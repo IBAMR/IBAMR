@@ -1,0 +1,1964 @@
+Ghost box = [(7,7),(56,56)]
+Reg box =   [(8,8),(55,55)]
+On index (8,7), axis 0, and level 1
+Values are different!
+in place:     0.123858
+out of place: 0.12382
+exact:        0.12382
+On index (56,7), axis 0, and level 1
+Values are different!
+in place:     0.762517
+out of place: 0.762279
+exact:        0.762279
+On index (7,8), axis 0, and level 1
+Values are different!
+in place:     0.10825
+out of place: 0.108199
+exact:        0.108196
+On index (8,8), axis 0, and level 1
+Values are different!
+in place:     0.12361
+out of place: 0.123577
+exact:        0.123577
+On index (56,8), axis 0, and level 1
+Values are different!
+in place:     0.760991
+out of place: 0.760784
+exact:        0.760784
+On index (57,8), axis 0, and level 1
+Values are different!
+in place:     0.770926
+out of place: 0.770616
+exact:        0.770618
+On index (7,9), axis 0, and level 1
+Values are different!
+in place:     0.107966
+out of place: 0.10796
+exact:        0.107957
+On index (8,9), axis 0, and level 1
+Values are different!
+in place:     0.123307
+out of place: 0.123304
+exact:        0.123304
+On index (56,9), axis 0, and level 1
+Values are different!
+in place:     0.759126
+out of place: 0.759103
+exact:        0.759103
+On index (57,9), axis 0, and level 1
+Values are different!
+in place:     0.768947
+out of place: 0.768913
+exact:        0.768915
+On index (7,10), axis 0, and level 1
+Values are different!
+in place:     0.107701
+out of place: 0.107695
+exact:        0.107691
+On index (8,10), axis 0, and level 1
+Values are different!
+in place:     0.123004
+out of place: 0.123001
+exact:        0.123001
+On index (56,10), axis 0, and level 1
+Values are different!
+in place:     0.757261
+out of place: 0.757237
+exact:        0.757237
+On index (57,10), axis 0, and level 1
+Values are different!
+in place:     0.767058
+out of place: 0.767023
+exact:        0.767025
+On index (7,11), axis 0, and level 1
+Values are different!
+in place:     0.107454
+out of place: 0.107403
+exact:        0.1074
+On index (8,11), axis 0, and level 1
+Values are different!
+in place:     0.122701
+out of place: 0.122667
+exact:        0.122667
+On index (56,11), axis 0, and level 1
+Values are different!
+in place:     0.755396
+out of place: 0.755186
+exact:        0.755186
+On index (57,11), axis 0, and level 1
+Values are different!
+in place:     0.76526
+out of place: 0.764945
+exact:        0.764947
+On index (7,12), axis 0, and level 1
+Values are different!
+in place:     0.107135
+out of place: 0.107085
+exact:        0.107082
+On index (8,12), axis 0, and level 1
+Values are different!
+in place:     0.122337
+out of place: 0.122304
+exact:        0.122304
+On index (56,12), axis 0, and level 1
+Values are different!
+in place:     0.753154
+out of place: 0.75295
+exact:        0.75295
+On index (57,12), axis 0, and level 1
+Values are different!
+in place:     0.762986
+out of place: 0.762681
+exact:        0.762683
+On index (7,13), axis 0, and level 1
+Values are different!
+in place:     0.106747
+out of place: 0.106741
+exact:        0.106738
+On index (8,13), axis 0, and level 1
+Values are different!
+in place:     0.121915
+out of place: 0.121911
+exact:        0.121911
+On index (56,13), axis 0, and level 1
+Values are different!
+in place:     0.750553
+out of place: 0.750531
+exact:        0.750531
+On index (57,13), axis 0, and level 1
+Values are different!
+in place:     0.760263
+out of place: 0.76023
+exact:        0.760233
+On index (7,14), axis 0, and level 1
+Values are different!
+in place:     0.106377
+out of place: 0.106371
+exact:        0.106367
+On index (8,14), axis 0, and level 1
+Values are different!
+in place:     0.121492
+out of place: 0.121489
+exact:        0.121489
+On index (56,14), axis 0, and level 1
+Values are different!
+in place:     0.747952
+out of place: 0.747928
+exact:        0.747928
+On index (57,14), axis 0, and level 1
+Values are different!
+in place:     0.75763
+out of place: 0.757594
+exact:        0.757596
+On index (7,15), axis 0, and level 1
+Values are different!
+in place:     0.106026
+out of place: 0.105975
+exact:        0.105971
+On index (8,15), axis 0, and level 1
+Values are different!
+in place:     0.12107
+out of place: 0.121036
+exact:        0.121036
+On index (56,15), axis 0, and level 1
+Values are different!
+in place:     0.745351
+out of place: 0.745143
+exact:        0.745143
+On index (57,15), axis 0, and level 1
+Values are different!
+in place:     0.755085
+out of place: 0.754773
+exact:        0.754775
+On index (7,16), axis 0, and level 1
+Values are different!
+in place:     0.105602
+out of place: 0.105553
+exact:        0.105549
+On index (8,16), axis 0, and level 1
+Values are different!
+in place:     0.120587
+out of place: 0.120554
+exact:        0.120554
+On index (56,16), axis 0, and level 1
+Values are different!
+in place:     0.742376
+out of place: 0.742176
+exact:        0.742176
+On index (57,16), axis 0, and level 1
+Values are different!
+in place:     0.752067
+out of place: 0.751767
+exact:        0.75177
+On index (7,17), axis 0, and level 1
+Values are different!
+in place:     0.105111
+out of place: 0.105105
+exact:        0.105102
+On index (8,17), axis 0, and level 1
+Values are different!
+in place:     0.120046
+out of place: 0.120043
+exact:        0.120043
+On index (56,17), axis 0, and level 1
+Values are different!
+in place:     0.739049
+out of place: 0.739028
+exact:        0.739028
+On index (57,17), axis 0, and level 1
+Values are different!
+in place:     0.748611
+out of place: 0.748578
+exact:        0.748581
+On index (7,18), axis 0, and level 1
+Values are different!
+in place:     0.104638
+out of place: 0.104632
+exact:        0.104628
+On index (8,18), axis 0, and level 1
+Values are different!
+in place:     0.119506
+out of place: 0.119502
+exact:        0.119502
+On index (56,18), axis 0, and level 1
+Values are different!
+in place:     0.735723
+out of place: 0.735699
+exact:        0.735699
+On index (57,18), axis 0, and level 1
+Values are different!
+in place:     0.745242
+out of place: 0.745207
+exact:        0.745209
+On index (7,19), axis 0, and level 1
+Values are different!
+in place:     0.104183
+out of place: 0.104133
+exact:        0.104129
+On index (8,19), axis 0, and level 1
+Values are different!
+in place:     0.118966
+out of place: 0.118932
+exact:        0.118932
+On index (56,19), axis 0, and level 1
+Values are different!
+in place:     0.732396
+out of place: 0.732191
+exact:        0.732191
+On index (57,19), axis 0, and level 1
+Values are different!
+in place:     0.741962
+out of place: 0.741654
+exact:        0.741656
+On index (7,20), axis 0, and level 1
+Values are different!
+in place:     0.103656
+out of place: 0.103609
+exact:        0.103605
+On index (8,20), axis 0, and level 1
+Values are different!
+in place:     0.118365
+out of place: 0.118333
+exact:        0.118333
+On index (56,20), axis 0, and level 1
+Values are different!
+in place:     0.728699
+out of place: 0.728504
+exact:        0.728504
+On index (57,20), axis 0, and level 1
+Values are different!
+in place:     0.738211
+out of place: 0.737918
+exact:        0.737921
+On index (7,21), axis 0, and level 1
+Values are different!
+in place:     0.103064
+out of place: 0.103059
+exact:        0.103055
+On index (8,21), axis 0, and level 1
+Values are different!
+in place:     0.117709
+out of place: 0.117706
+exact:        0.117706
+On index (56,21), axis 0, and level 1
+Values are different!
+in place:     0.72466
+out of place: 0.724639
+exact:        0.724639
+On index (57,21), axis 0, and level 1
+Values are different!
+in place:     0.734035
+out of place: 0.734004
+exact:        0.734006
+On index (7,22), axis 0, and level 1
+Values are different!
+in place:     0.10249
+out of place: 0.102484
+exact:        0.102481
+On index (8,22), axis 0, and level 1
+Values are different!
+in place:     0.117053
+out of place: 0.117049
+exact:        0.117049
+On index (56,22), axis 0, and level 1
+Values are different!
+in place:     0.720621
+out of place: 0.720597
+exact:        0.720597
+On index (57,22), axis 0, and level 1
+Values are different!
+in place:     0.729945
+out of place: 0.72991
+exact:        0.729912
+On index (7,23), axis 0, and level 1
+Values are different!
+in place:     0.101933
+out of place: 0.101884
+exact:        0.101881
+On index (8,23), axis 0, and level 1
+Values are different!
+in place:     0.116397
+out of place: 0.116364
+exact:        0.116364
+On index (56,23), axis 0, and level 1
+Values are different!
+in place:     0.716581
+out of place: 0.71638
+exact:        0.71638
+On index (57,23), axis 0, and level 1
+Values are different!
+in place:     0.725941
+out of place: 0.725638
+exact:        0.72564
+On index (7,24), axis 0, and level 1
+Values are different!
+in place:     0.101306
+out of place: 0.10126
+exact:        0.101256
+On index (8,24), axis 0, and level 1
+Values are different!
+in place:     0.115681
+out of place: 0.11565
+exact:        0.11565
+On index (56,24), axis 0, and level 1
+Values are different!
+in place:     0.712177
+out of place: 0.711987
+exact:        0.711987
+On index (57,24), axis 0, and level 1
+Values are different!
+in place:     0.721472
+out of place: 0.721188
+exact:        0.72119
+On index (7,25), axis 0, and level 1
+Values are different!
+in place:     0.100615
+out of place: 0.10061
+exact:        0.100607
+On index (8,25), axis 0, and level 1
+Values are different!
+in place:     0.114912
+out of place: 0.114909
+exact:        0.114909
+On index (56,25), axis 0, and level 1
+Values are different!
+in place:     0.707441
+out of place: 0.707421
+exact:        0.707421
+On index (57,25), axis 0, and level 1
+Values are different!
+in place:     0.716592
+out of place: 0.716562
+exact:        0.716565
+On index (7,26), axis 0, and level 1
+Values are different!
+in place:     0.0999417
+out of place: 0.0999361
+exact:        0.0999326
+On index (8,26), axis 0, and level 1
+Values are different!
+in place:     0.114143
+out of place: 0.114139
+exact:        0.114139
+On index (56,26), axis 0, and level 1
+Values are different!
+in place:     0.702704
+out of place: 0.702681
+exact:        0.702681
+On index (57,26), axis 0, and level 1
+Values are different!
+in place:     0.711797
+out of place: 0.711762
+exact:        0.711764
+On index (7,27), axis 0, and level 1
+Values are different!
+in place:     0.0992859
+out of place: 0.0992377
+exact:        0.0992342
+On index (8,27), axis 0, and level 1
+Values are different!
+in place:     0.113373
+out of place: 0.113341
+exact:        0.113341
+On index (56,27), axis 0, and level 1
+Values are different!
+in place:     0.697968
+out of place: 0.697771
+exact:        0.697771
+On index (57,27), axis 0, and level 1
+Values are different!
+in place:     0.707085
+out of place: 0.706789
+exact:        0.70679
+On index (7,28), axis 0, and level 1
+Values are different!
+in place:     0.0985597
+out of place: 0.098515
+exact:        0.0985116
+On index (8,28), axis 0, and level 1
+Values are different!
+in place:     0.112546
+out of place: 0.112516
+exact:        0.112516
+On index (56,28), axis 0, and level 1
+Values are different!
+in place:     0.692873
+out of place: 0.69269
+exact:        0.69269
+On index (57,28), axis 0, and level 1
+Values are different!
+in place:     0.701916
+out of place: 0.701641
+exact:        0.701644
+On index (7,29), axis 0, and level 1
+Values are different!
+in place:     0.097773
+out of place: 0.0977684
+exact:        0.097765
+On index (8,29), axis 0, and level 1
+Values are different!
+in place:     0.111666
+out of place: 0.111663
+exact:        0.111663
+On index (56,29), axis 0, and level 1
+Values are different!
+in place:     0.687459
+out of place: 0.68744
+exact:        0.68744
+On index (57,29), axis 0, and level 1
+Values are different!
+in place:     0.696352
+out of place: 0.696323
+exact:        0.696326
+On index (7,30), axis 0, and level 1
+Values are different!
+in place:     0.0970034
+out of place: 0.0969978
+exact:        0.0969945
+On index (8,30), axis 0, and level 1
+Values are different!
+in place:     0.110787
+out of place: 0.110783
+exact:        0.110783
+On index (56,30), axis 0, and level 1
+Values are different!
+in place:     0.682044
+out of place: 0.682022
+exact:        0.682022
+On index (57,30), axis 0, and level 1
+Values are different!
+in place:     0.69087
+out of place: 0.690836
+exact:        0.690838
+On index (7,31), axis 0, and level 1
+Values are different!
+in place:     0.0962506
+out of place: 0.0962036
+exact:        0.0962003
+On index (8,31), axis 0, and level 1
+Values are different!
+in place:     0.109907
+out of place: 0.109876
+exact:        0.109876
+On index (56,31), axis 0, and level 1
+Values are different!
+in place:     0.67663
+out of place: 0.676437
+exact:        0.676437
+On index (57,31), axis 0, and level 1
+Values are different!
+in place:     0.685468
+out of place: 0.685179
+exact:        0.685181
+On index (7,32), axis 0, and level 1
+Values are different!
+in place:     0.0954289
+out of place: 0.0953858
+exact:        0.0953826
+On index (8,32), axis 0, and level 1
+Values are different!
+in place:     0.108971
+out of place: 0.108942
+exact:        0.108942
+On index (56,32), axis 0, and level 1
+Values are different!
+in place:     0.670864
+out of place: 0.670687
+exact:        0.670687
+On index (57,32), axis 0, and level 1
+Values are different!
+in place:     0.679619
+out of place: 0.679354
+exact:        0.679357
+On index (7,33), axis 0, and level 1
+Values are different!
+in place:     0.0945493
+out of place: 0.0945449
+exact:        0.0945416
+On index (8,33), axis 0, and level 1
+Values are different!
+in place:     0.107985
+out of place: 0.107982
+exact:        0.107982
+On index (56,33), axis 0, and level 1
+Values are different!
+in place:     0.664792
+out of place: 0.664774
+exact:        0.664774
+On index (57,33), axis 0, and level 1
+Values are different!
+in place:     0.673392
+out of place: 0.673365
+exact:        0.673367
+On index (7,34), axis 0, and level 1
+Values are different!
+in place:     0.0936862
+out of place: 0.0936808
+exact:        0.0936775
+On index (8,34), axis 0, and level 1
+Values are different!
+in place:     0.106998
+out of place: 0.106995
+exact:        0.106995
+On index (56,34), axis 0, and level 1
+Values are different!
+in place:     0.658721
+out of place: 0.658698
+exact:        0.658698
+On index (57,34), axis 0, and level 1
+Values are different!
+in place:     0.667244
+out of place: 0.667211
+exact:        0.667213
+On index (7,35), axis 0, and level 1
+Values are different!
+in place:     0.0928394
+out of place: 0.0927939
+exact:        0.0927906
+On index (8,35), axis 0, and level 1
+Values are different!
+in place:     0.106012
+out of place: 0.105982
+exact:        0.105982
+On index (56,35), axis 0, and level 1
+Values are different!
+in place:     0.652649
+out of place: 0.652462
+exact:        0.652462
+On index (57,35), axis 0, and level 1
+Values are different!
+in place:     0.661175
+out of place: 0.660894
+exact:        0.660896
+On index (7,36), axis 0, and level 1
+Values are different!
+in place:     0.0919254
+out of place: 0.0918842
+exact:        0.091881
+On index (8,36), axis 0, and level 1
+Values are different!
+in place:     0.10497
+out of place: 0.104943
+exact:        0.104943
+On index (56,36), axis 0, and level 1
+Values are different!
+in place:     0.646235
+out of place: 0.646066
+exact:        0.646066
+On index (57,36), axis 0, and level 1
+Values are different!
+in place:     0.654668
+out of place: 0.654415
+exact:        0.654417
+On index (7,37), axis 0, and level 1
+Values are different!
+in place:     0.0909564
+out of place: 0.0909522
+exact:        0.090949
+On index (8,37), axis 0, and level 1
+Values are different!
+in place:     0.103881
+out of place: 0.103878
+exact:        0.103878
+On index (56,37), axis 0, and level 1
+Values are different!
+in place:     0.63953
+out of place: 0.639513
+exact:        0.639513
+On index (57,37), axis 0, and level 1
+Values are different!
+in place:     0.647803
+out of place: 0.647777
+exact:        0.647779
+On index (7,38), axis 0, and level 1
+Values are different!
+in place:     0.0900032
+out of place: 0.0899979
+exact:        0.0899948
+On index (8,38), axis 0, and level 1
+Values are different!
+in place:     0.102792
+out of place: 0.102788
+exact:        0.102788
+On index (56,38), axis 0, and level 1
+Values are different!
+in place:     0.632825
+out of place: 0.632803
+exact:        0.632803
+On index (57,38), axis 0, and level 1
+Values are different!
+in place:     0.641013
+out of place: 0.640981
+exact:        0.640983
+On index (7,39), axis 0, and level 1
+Values are different!
+in place:     0.0890657
+out of place: 0.0890217
+exact:        0.0890186
+On index (8,39), axis 0, and level 1
+Values are different!
+in place:     0.101703
+out of place: 0.101673
+exact:        0.101673
+On index (56,39), axis 0, and level 1
+Values are different!
+in place:     0.626119
+out of place: 0.625939
+exact:        0.625939
+On index (57,39), axis 0, and level 1
+Values are different!
+in place:     0.634299
+out of place: 0.634029
+exact:        0.63403
+On index (7,40), axis 0, and level 1
+Values are different!
+in place:     0.0880629
+out of place: 0.0880237
+exact:        0.0880207
+On index (8,40), axis 0, and level 1
+Values are different!
+in place:     0.10056
+out of place: 0.100534
+exact:        0.100534
+On index (56,40), axis 0, and level 1
+Values are different!
+in place:     0.619083
+out of place: 0.618922
+exact:        0.618922
+On index (57,40), axis 0, and level 1
+Values are different!
+in place:     0.627161
+out of place: 0.62692
+exact:        0.626922
+On index (7,41), axis 0, and level 1
+Values are different!
+in place:     0.0870082
+out of place: 0.0870043
+exact:        0.0870013
+On index (8,41), axis 0, and level 1
+Values are different!
+in place:     0.0993719
+out of place: 0.0993693
+exact:        0.0993693
+On index (56,41), axis 0, and level 1
+Values are different!
+in place:     0.61177
+out of place: 0.611754
+exact:        0.611754
+On index (57,41), axis 0, and level 1
+Values are different!
+in place:     0.619684
+out of place: 0.61966
+exact:        0.619662
+On index (7,42), axis 0, and level 1
+Values are different!
+in place:     0.0859687
+out of place: 0.0859636
+exact:        0.0859606
+On index (8,42), axis 0, and level 1
+Values are different!
+in place:     0.0981841
+out of place: 0.0981807
+exact:        0.0981807
+On index (56,42), axis 0, and level 1
+Values are different!
+in place:     0.604458
+out of place: 0.604437
+exact:        0.604437
+On index (57,42), axis 0, and level 1
+Values are different!
+in place:     0.612279
+out of place: 0.612248
+exact:        0.61225
+On index (7,43), axis 0, and level 1
+Values are different!
+in place:     0.0849442
+out of place: 0.084902
+exact:        0.084899
+On index (8,43), axis 0, and level 1
+Values are different!
+in place:     0.0969963
+out of place: 0.0969682
+exact:        0.0969682
+On index (56,43), axis 0, and level 1
+Values are different!
+in place:     0.597145
+out of place: 0.596972
+exact:        0.596972
+On index (57,43), axis 0, and level 1
+Values are different!
+in place:     0.604947
+out of place: 0.604687
+exact:        0.604688
+On index (7,44), axis 0, and level 1
+Values are different!
+in place:     0.0838565
+out of place: 0.0838195
+exact:        0.0838166
+On index (8,44), axis 0, and level 1
+Values are different!
+in place:     0.0957566
+out of place: 0.0957319
+exact:        0.0957319
+On index (56,44), axis 0, and level 1
+Values are different!
+in place:     0.589513
+out of place: 0.589361
+exact:        0.589361
+On index (57,44), axis 0, and level 1
+Values are different!
+in place:     0.597205
+out of place: 0.596977
+exact:        0.596979
+On index (7,45), axis 0, and level 1
+Values are different!
+in place:     0.0827203
+out of place: 0.0827167
+exact:        0.0827138
+On index (8,45), axis 0, and level 1
+Values are different!
+in place:     0.0944748
+out of place: 0.0944723
+exact:        0.0944723
+On index (56,45), axis 0, and level 1
+Values are different!
+in place:     0.581622
+out of place: 0.581606
+exact:        0.581606
+On index (57,45), axis 0, and level 1
+Values are different!
+in place:     0.589145
+out of place: 0.589122
+exact:        0.589124
+On index (7,46), axis 0, and level 1
+Values are different!
+in place:     0.0815986
+out of place: 0.0815936
+exact:        0.0815908
+On index (8,46), axis 0, and level 1
+Values are different!
+in place:     0.0931929
+out of place: 0.0931897
+exact:        0.0931897
+On index (56,46), axis 0, and level 1
+Values are different!
+in place:     0.57373
+out of place: 0.57371
+exact:        0.57371
+On index (57,46), axis 0, and level 1
+Values are different!
+in place:     0.581155
+out of place: 0.581124
+exact:        0.581126
+On index (7,47), axis 0, and level 1
+Values are different!
+in place:     0.080491
+out of place: 0.0804507
+exact:        0.0804479
+On index (8,47), axis 0, and level 1
+Values are different!
+in place:     0.0919111
+out of place: 0.0918843
+exact:        0.0918843
+On index (56,47), axis 0, and level 1
+Values are different!
+in place:     0.565839
+out of place: 0.565673
+exact:        0.565673
+On index (57,47), axis 0, and level 1
+Values are different!
+in place:     0.573232
+out of place: 0.572984
+exact:        0.572985
+On index (7,48), axis 0, and level 1
+Values are different!
+in place:     0.0793227
+out of place: 0.079288
+exact:        0.0792853
+On index (8,48), axis 0, and level 1
+Values are different!
+in place:     0.0905796
+out of place: 0.0905564
+exact:        0.0905564
+On index (56,48), axis 0, and level 1
+Values are different!
+in place:     0.557641
+out of place: 0.557499
+exact:        0.557499
+On index (57,48), axis 0, and level 1
+Values are different!
+in place:     0.564916
+out of place: 0.564702
+exact:        0.564705
+On index (7,49), axis 0, and level 1
+Values are different!
+in place:     0.0781094
+out of place: 0.078106
+exact:        0.0781033
+On index (8,49), axis 0, and level 1
+Values are different!
+in place:     0.0892087
+out of place: 0.0892065
+exact:        0.0892065
+On index (56,49), axis 0, and level 1
+Values are different!
+in place:     0.549202
+out of place: 0.549188
+exact:        0.549188
+On index (57,49), axis 0, and level 1
+Values are different!
+in place:     0.556306
+out of place: 0.556285
+exact:        0.556287
+On index (7,50), axis 0, and level 1
+Values are different!
+in place:     0.0769097
+out of place: 0.076905
+exact:        0.0769023
+On index (8,50), axis 0, and level 1
+Values are different!
+in place:     0.0878379
+out of place: 0.0878347
+exact:        0.0878347
+On index (56,50), axis 0, and level 1
+Values are different!
+in place:     0.540762
+out of place: 0.540743
+exact:        0.540743
+On index (57,50), axis 0, and level 1
+Values are different!
+in place:     0.54776
+out of place: 0.547731
+exact:        0.547733
+On index (7,51), axis 0, and level 1
+Values are different!
+in place:     0.0757234
+out of place: 0.0756853
+exact:        0.0756826
+On index (8,51), axis 0, and level 1
+Values are different!
+in place:     0.086467
+out of place: 0.0864415
+exact:        0.0864415
+On index (56,51), axis 0, and level 1
+Values are different!
+in place:     0.532323
+out of place: 0.532166
+exact:        0.532166
+On index (57,51), axis 0, and level 1
+Values are different!
+in place:     0.539279
+out of place: 0.539044
+exact:        0.539045
+On index (7,52), axis 0, and level 1
+Values are different!
+in place:     0.0744791
+out of place: 0.0744468
+exact:        0.0744443
+On index (8,52), axis 0, and level 1
+Values are different!
+in place:     0.0850488
+out of place: 0.0850273
+exact:        0.0850273
+On index (56,52), axis 0, and level 1
+Values are different!
+in place:     0.523592
+out of place: 0.523459
+exact:        0.523459
+On index (57,52), axis 0, and level 1
+Values are different!
+in place:     0.530422
+out of place: 0.530223
+exact:        0.530225
+On index (7,53), axis 0, and level 1
+Values are different!
+in place:     0.0731935
+out of place: 0.0731904
+exact:        0.0731879
+On index (8,53), axis 0, and level 1
+Values are different!
+in place:     0.0835943
+out of place: 0.0835922
+exact:        0.0835922
+On index (56,53), axis 0, and level 1
+Values are different!
+in place:     0.514637
+out of place: 0.514624
+exact:        0.514624
+On index (57,53), axis 0, and level 1
+Values are different!
+in place:     0.521294
+out of place: 0.521275
+exact:        0.521277
+On index (7,54), axis 0, and level 1
+Values are different!
+in place:     0.0719206
+out of place: 0.0719161
+exact:        0.0719136
+On index (8,54), axis 0, and level 1
+Values are different!
+in place:     0.0821398
+out of place: 0.0821368
+exact:        0.0821368
+On index (56,54), axis 0, and level 1
+Values are different!
+in place:     0.505683
+out of place: 0.505664
+exact:        0.505664
+On index (57,54), axis 0, and level 1
+Values are different!
+in place:     0.512227
+out of place: 0.512199
+exact:        0.512201
+On index (7,55), axis 0, and level 1
+Values are different!
+in place:     0.0706602
+out of place: 0.0706243
+exact:        0.0706217
+On index (8,55), axis 0, and level 1
+Values are different!
+in place:     0.0806852
+out of place: 0.0806613
+exact:        0.0806613
+On index (56,55), axis 0, and level 1
+Values are different!
+in place:     0.496728
+out of place: 0.49658
+exact:        0.49658
+On index (57,55), axis 0, and level 1
+Values are different!
+in place:     0.50322
+out of place: 0.502999
+exact:        0.502999
+On index (8,56), axis 0, and level 1
+Values are different!
+in place:     0.0791938
+out of place: 0.0791663
+exact:        0.0791661
+On index (56,56), axis 0, and level 1
+Values are different!
+in place:     0.487546
+out of place: 0.487377
+exact:        0.487375
+Ghost box = [(7,7),(56,56)]
+Reg box =   [(8,8),(55,55)]
+On index (8,7), axis 1, and level 1
+Values are different!
+in place:     0.131715
+out of place: 0.131632
+exact:        0.131631
+On index (9,7), axis 1, and level 1
+Values are different!
+in place:     0.147024
+out of place: 0.14701
+exact:        0.147009
+On index (10,7), axis 1, and level 1
+Values are different!
+in place:     0.162351
+out of place: 0.162351
+exact:        0.162352
+On index (11,7), axis 1, and level 1
+Values are different!
+in place:     0.177697
+out of place: 0.177653
+exact:        0.177654
+On index (12,7), axis 1, and level 1
+Values are different!
+in place:     0.193022
+out of place: 0.192915
+exact:        0.192913
+On index (13,7), axis 1, and level 1
+Values are different!
+in place:     0.208143
+out of place: 0.208126
+exact:        0.208126
+On index (14,7), axis 1, and level 1
+Values are different!
+in place:     0.223289
+out of place: 0.223286
+exact:        0.223287
+On index (15,7), axis 1, and level 1
+Values are different!
+in place:     0.238462
+out of place: 0.238392
+exact:        0.238394
+On index (16,7), axis 1, and level 1
+Values are different!
+in place:     0.253576
+out of place: 0.253444
+exact:        0.253442
+On index (17,7), axis 1, and level 1
+Values are different!
+in place:     0.268449
+out of place: 0.26843
+exact:        0.268429
+On index (18,7), axis 1, and level 1
+Values are different!
+in place:     0.283355
+out of place: 0.28335
+exact:        0.28335
+On index (19,7), axis 1, and level 1
+Values are different!
+in place:     0.298296
+out of place: 0.298201
+exact:        0.298202
+On index (20,7), axis 1, and level 1
+Values are different!
+in place:     0.313139
+out of place: 0.312983
+exact:        0.312982
+On index (21,7), axis 1, and level 1
+Values are different!
+in place:     0.327707
+out of place: 0.327685
+exact:        0.327685
+On index (22,7), axis 1, and level 1
+Values are different!
+in place:     0.342315
+out of place: 0.342307
+exact:        0.342307
+On index (23,7), axis 1, and level 1
+Values are different!
+in place:     0.356965
+out of place: 0.356845
+exact:        0.356847
+On index (24,7), axis 1, and level 1
+Values are different!
+in place:     0.371479
+out of place: 0.3713
+exact:        0.371299
+On index (25,7), axis 1, and level 1
+Values are different!
+in place:     0.385685
+out of place: 0.385661
+exact:        0.38566
+On index (26,7), axis 1, and level 1
+Values are different!
+in place:     0.399938
+out of place: 0.399927
+exact:        0.399928
+On index (27,7), axis 1, and level 1
+Values are different!
+in place:     0.41424
+out of place: 0.414096
+exact:        0.414097
+On index (28,7), axis 1, and level 1
+Values are different!
+in place:     0.428369
+out of place: 0.428167
+exact:        0.428166
+On index (29,7), axis 1, and level 1
+Values are different!
+in place:     0.442158
+out of place: 0.44213
+exact:        0.44213
+On index (30,7), axis 1, and level 1
+Values are different!
+in place:     0.456
+out of place: 0.455986
+exact:        0.455986
+On index (31,7), axis 1, and level 1
+Values are different!
+in place:     0.469897
+out of place: 0.46973
+exact:        0.469731
+On index (32,7), axis 1, and level 1
+Values are different!
+in place:     0.483586
+out of place: 0.483362
+exact:        0.483361
+On index (33,7), axis 1, and level 1
+Values are different!
+in place:     0.496903
+out of place: 0.496874
+exact:        0.496873
+On index (34,7), axis 1, and level 1
+Values are different!
+in place:     0.51028
+out of place: 0.510264
+exact:        0.510264
+On index (35,7), axis 1, and level 1
+Values are different!
+in place:     0.523719
+out of place: 0.523529
+exact:        0.523531
+On index (36,7), axis 1, and level 1
+Values are different!
+in place:     0.536915
+out of place: 0.53667
+exact:        0.536669
+On index (37,7), axis 1, and level 1
+Values are different!
+in place:     0.549708
+out of place: 0.549677
+exact:        0.549676
+On index (38,7), axis 1, and level 1
+Values are different!
+in place:     0.562568
+out of place: 0.562549
+exact:        0.56255
+On index (39,7), axis 1, and level 1
+Values are different!
+in place:     0.575497
+out of place: 0.575284
+exact:        0.575286
+On index (40,7), axis 1, and level 1
+Values are different!
+in place:     0.588147
+out of place: 0.587882
+exact:        0.587881
+On index (41,7), axis 1, and level 1
+Values are different!
+in place:     0.600367
+out of place: 0.600333
+exact:        0.600333
+On index (42,7), axis 1, and level 1
+Values are different!
+in place:     0.612659
+out of place: 0.612638
+exact:        0.612638
+On index (43,7), axis 1, and level 1
+Values are different!
+in place:     0.625027
+out of place: 0.624793
+exact:        0.624794
+On index (44,7), axis 1, and level 1
+Values are different!
+in place:     0.637082
+out of place: 0.636798
+exact:        0.636797
+On index (45,7), axis 1, and level 1
+Values are different!
+in place:     0.648681
+out of place: 0.648645
+exact:        0.648645
+On index (46,7), axis 1, and level 1
+Values are different!
+in place:     0.660358
+out of place: 0.660334
+exact:        0.660335
+On index (47,7), axis 1, and level 1
+Values are different!
+in place:     0.672116
+out of place: 0.671862
+exact:        0.671863
+On index (48,7), axis 1, and level 1
+Values are different!
+in place:     0.683529
+out of place: 0.683228
+exact:        0.683227
+On index (49,7), axis 1, and level 1
+Values are different!
+in place:     0.694462
+out of place: 0.694425
+exact:        0.694424
+On index (50,7), axis 1, and level 1
+Values are different!
+in place:     0.705478
+out of place: 0.705452
+exact:        0.705452
+On index (51,7), axis 1, and level 1
+Values are different!
+in place:     0.716581
+out of place: 0.716307
+exact:        0.716308
+On index (52,7), axis 1, and level 1
+Values are different!
+in place:     0.727308
+out of place: 0.726989
+exact:        0.726989
+On index (53,7), axis 1, and level 1
+Values are different!
+in place:     0.737531
+out of place: 0.737492
+exact:        0.737492
+On index (54,7), axis 1, and level 1
+Values are different!
+in place:     0.747844
+out of place: 0.747815
+exact:        0.747815
+On index (55,7), axis 1, and level 1
+Values are different!
+in place:     0.758247
+out of place: 0.757955
+exact:        0.757956
+On index (7,8), axis 1, and level 1
+Values are different!
+in place:     0.116071
+out of place: 0.116009
+exact:        0.116007
+On index (8,8), axis 1, and level 1
+Values are different!
+in place:     0.131444
+out of place: 0.131389
+exact:        0.131389
+On index (9,8), axis 1, and level 1
+Values are different!
+in place:     0.146749
+out of place: 0.146739
+exact:        0.146739
+On index (10,8), axis 1, and level 1
+Values are different!
+in place:     0.162053
+out of place: 0.162053
+exact:        0.162053
+On index (11,8), axis 1, and level 1
+Values are different!
+in place:     0.177357
+out of place: 0.177328
+exact:        0.177328
+On index (12,8), axis 1, and level 1
+Values are different!
+in place:     0.192631
+out of place: 0.192559
+exact:        0.192559
+On index (13,8), axis 1, and level 1
+Values are different!
+in place:     0.207755
+out of place: 0.207743
+exact:        0.207743
+On index (14,8), axis 1, and level 1
+Values are different!
+in place:     0.222878
+out of place: 0.222877
+exact:        0.222877
+On index (15,8), axis 1, and level 1
+Values are different!
+in place:     0.238002
+out of place: 0.237956
+exact:        0.237956
+On index (16,8), axis 1, and level 1
+Values are different!
+in place:     0.253065
+out of place: 0.252977
+exact:        0.252977
+On index (17,8), axis 1, and level 1
+Values are different!
+in place:     0.267949
+out of place: 0.267936
+exact:        0.267936
+On index (18,8), axis 1, and level 1
+Values are different!
+in place:     0.282833
+out of place: 0.28283
+exact:        0.28283
+On index (19,8), axis 1, and level 1
+Values are different!
+in place:     0.297718
+out of place: 0.297654
+exact:        0.297654
+On index (20,8), axis 1, and level 1
+Values are different!
+in place:     0.312511
+out of place: 0.312407
+exact:        0.312407
+On index (21,8), axis 1, and level 1
+Values are different!
+in place:     0.327097
+out of place: 0.327082
+exact:        0.327082
+On index (22,8), axis 1, and level 1
+Values are different!
+in place:     0.341684
+out of place: 0.341678
+exact:        0.341678
+On index (23,8), axis 1, and level 1
+Values are different!
+in place:     0.35627
+out of place: 0.356191
+exact:        0.356191
+On index (24,8), axis 1, and level 1
+Values are different!
+in place:     0.370736
+out of place: 0.370616
+exact:        0.370616
+On index (25,8), axis 1, and level 1
+Values are different!
+in place:     0.384968
+out of place: 0.384952
+exact:        0.384952
+On index (26,8), axis 1, and level 1
+Values are different!
+in place:     0.3992
+out of place: 0.399193
+exact:        0.399193
+On index (27,8), axis 1, and level 1
+Values are different!
+in place:     0.413432
+out of place: 0.413336
+exact:        0.413336
+On index (28,8), axis 1, and level 1
+Values are different!
+in place:     0.427514
+out of place: 0.427379
+exact:        0.427379
+On index (29,8), axis 1, and level 1
+Values are different!
+in place:     0.441336
+out of place: 0.441318
+exact:        0.441318
+On index (30,8), axis 1, and level 1
+Values are different!
+in place:     0.455158
+out of place: 0.455148
+exact:        0.455148
+On index (31,8), axis 1, and level 1
+Values are different!
+in place:     0.468979
+out of place: 0.468868
+exact:        0.468868
+On index (32,8), axis 1, and level 1
+Values are different!
+in place:     0.482622
+out of place: 0.482473
+exact:        0.482473
+On index (33,8), axis 1, and level 1
+Values are different!
+in place:     0.49598
+out of place: 0.49596
+exact:        0.49596
+On index (34,8), axis 1, and level 1
+Values are different!
+in place:     0.509338
+out of place: 0.509326
+exact:        0.509326
+On index (35,8), axis 1, and level 1
+Values are different!
+in place:     0.522695
+out of place: 0.522568
+exact:        0.522568
+On index (36,8), axis 1, and level 1
+Values are different!
+in place:     0.535846
+out of place: 0.535683
+exact:        0.535683
+On index (37,8), axis 1, and level 1
+Values are different!
+in place:     0.548687
+out of place: 0.548666
+exact:        0.548666
+On index (38,8), axis 1, and level 1
+Values are different!
+in place:     0.561529
+out of place: 0.561516
+exact:        0.561516
+On index (39,8), axis 1, and level 1
+Values are different!
+in place:     0.57437
+out of place: 0.574228
+exact:        0.574228
+On index (40,8), axis 1, and level 1
+Values are different!
+in place:     0.586977
+out of place: 0.586801
+exact:        0.586801
+On index (41,8), axis 1, and level 1
+Values are different!
+in place:     0.599252
+out of place: 0.59923
+exact:        0.59923
+On index (42,8), axis 1, and level 1
+Values are different!
+in place:     0.611527
+out of place: 0.611512
+exact:        0.611512
+On index (43,8), axis 1, and level 1
+Values are different!
+in place:     0.623802
+out of place: 0.623646
+exact:        0.623646
+On index (44,8), axis 1, and level 1
+Values are different!
+in place:     0.635816
+out of place: 0.635627
+exact:        0.635627
+On index (45,8), axis 1, and level 1
+Values are different!
+in place:     0.647477
+out of place: 0.647453
+exact:        0.647453
+On index (46,8), axis 1, and level 1
+Values are different!
+in place:     0.659137
+out of place: 0.659121
+exact:        0.659121
+On index (47,8), axis 1, and level 1
+Values are different!
+in place:     0.670798
+out of place: 0.670628
+exact:        0.670628
+On index (48,8), axis 1, and level 1
+Values are different!
+in place:     0.682173
+out of place: 0.681971
+exact:        0.681971
+On index (49,8), axis 1, and level 1
+Values are different!
+in place:     0.693173
+out of place: 0.693148
+exact:        0.693148
+On index (50,8), axis 1, and level 1
+Values are different!
+in place:     0.704174
+out of place: 0.704156
+exact:        0.704156
+On index (51,8), axis 1, and level 1
+Values are different!
+in place:     0.715174
+out of place: 0.714992
+exact:        0.714992
+On index (52,8), axis 1, and level 1
+Values are different!
+in place:     0.725865
+out of place: 0.725653
+exact:        0.725653
+On index (53,8), axis 1, and level 1
+Values are different!
+in place:     0.736163
+out of place: 0.736137
+exact:        0.736137
+On index (54,8), axis 1, and level 1
+Values are different!
+in place:     0.74646
+out of place: 0.746441
+exact:        0.746441
+On index (55,8), axis 1, and level 1
+Values are different!
+in place:     0.756758
+out of place: 0.756563
+exact:        0.756563
+On index (56,8), axis 1, and level 1
+Values are different!
+in place:     0.766725
+out of place: 0.766499
+exact:        0.7665
+On index (7,56), axis 1, and level 1
+Values are different!
+in place:     0.0749864
+out of place: 0.0749462
+exact:        0.074945
+On index (8,56), axis 1, and level 1
+Values are different!
+in place:     0.084918
+out of place: 0.0848823
+exact:        0.0848823
+On index (9,56), axis 1, and level 1
+Values are different!
+in place:     0.0948052
+out of place: 0.0947989
+exact:        0.0947989
+On index (10,56), axis 1, and level 1
+Values are different!
+in place:     0.104692
+out of place: 0.104692
+exact:        0.104692
+On index (11,56), axis 1, and level 1
+Values are different!
+in place:     0.114579
+out of place: 0.11456
+exact:        0.11456
+On index (12,56), axis 1, and level 1
+Values are different!
+in place:     0.124447
+out of place: 0.1244
+exact:        0.1244
+On index (13,56), axis 1, and level 1
+Values are different!
+in place:     0.134217
+out of place: 0.13421
+exact:        0.13421
+On index (14,56), axis 1, and level 1
+Values are different!
+in place:     0.143988
+out of place: 0.143987
+exact:        0.143987
+On index (15,56), axis 1, and level 1
+Values are different!
+in place:     0.153758
+out of place: 0.153728
+exact:        0.153728
+On index (16,56), axis 1, and level 1
+Values are different!
+in place:     0.163489
+out of place: 0.163432
+exact:        0.163432
+On index (17,56), axis 1, and level 1
+Values are different!
+in place:     0.173105
+out of place: 0.173097
+exact:        0.173097
+On index (18,56), axis 1, and level 1
+Values are different!
+in place:     0.182721
+out of place: 0.182719
+exact:        0.182719
+On index (19,56), axis 1, and level 1
+Values are different!
+in place:     0.192337
+out of place: 0.192296
+exact:        0.192296
+On index (20,56), axis 1, and level 1
+Values are different!
+in place:     0.201894
+out of place: 0.201826
+exact:        0.201826
+On index (21,56), axis 1, and level 1
+Values are different!
+in place:     0.211317
+out of place: 0.211307
+exact:        0.211307
+On index (22,56), axis 1, and level 1
+Values are different!
+in place:     0.220741
+out of place: 0.220737
+exact:        0.220737
+On index (23,56), axis 1, and level 1
+Values are different!
+in place:     0.230164
+out of place: 0.230113
+exact:        0.230113
+On index (24,56), axis 1, and level 1
+Values are different!
+in place:     0.239509
+out of place: 0.239432
+exact:        0.239432
+On index (25,56), axis 1, and level 1
+Values are different!
+in place:     0.248704
+out of place: 0.248693
+exact:        0.248693
+On index (26,56), axis 1, and level 1
+Values are different!
+in place:     0.257898
+out of place: 0.257893
+exact:        0.257893
+On index (27,56), axis 1, and level 1
+Values are different!
+in place:     0.267093
+out of place: 0.267031
+exact:        0.267031
+On index (28,56), axis 1, and level 1
+Values are different!
+in place:     0.27619
+out of place: 0.276103
+exact:        0.276103
+On index (29,56), axis 1, and level 1
+Values are different!
+in place:     0.285119
+out of place: 0.285108
+exact:        0.285108
+On index (30,56), axis 1, and level 1
+Values are different!
+in place:     0.294049
+out of place: 0.294043
+exact:        0.294043
+On index (31,56), axis 1, and level 1
+Values are different!
+in place:     0.302978
+out of place: 0.302906
+exact:        0.302906
+On index (32,56), axis 1, and level 1
+Values are different!
+in place:     0.311792
+out of place: 0.311696
+exact:        0.311696
+On index (33,56), axis 1, and level 1
+Values are different!
+in place:     0.320422
+out of place: 0.320409
+exact:        0.320409
+On index (34,56), axis 1, and level 1
+Values are different!
+in place:     0.329051
+out of place: 0.329044
+exact:        0.329044
+On index (35,56), axis 1, and level 1
+Values are different!
+in place:     0.337681
+out of place: 0.337599
+exact:        0.337599
+On index (36,56), axis 1, and level 1
+Values are different!
+in place:     0.346177
+out of place: 0.346071
+exact:        0.346071
+On index (37,56), axis 1, and level 1
+Values are different!
+in place:     0.354473
+out of place: 0.354459
+exact:        0.354459
+On index (38,56), axis 1, and level 1
+Values are different!
+in place:     0.362769
+out of place: 0.36276
+exact:        0.36276
+On index (39,56), axis 1, and level 1
+Values are different!
+in place:     0.371065
+out of place: 0.370973
+exact:        0.370973
+On index (40,56), axis 1, and level 1
+Values are different!
+in place:     0.379209
+out of place: 0.379095
+exact:        0.379095
+On index (41,56), axis 1, and level 1
+Values are different!
+in place:     0.387139
+out of place: 0.387125
+exact:        0.387125
+On index (42,56), axis 1, and level 1
+Values are different!
+in place:     0.395069
+out of place: 0.39506
+exact:        0.39506
+On index (43,56), axis 1, and level 1
+Values are different!
+in place:     0.402999
+out of place: 0.402899
+exact:        0.402899
+On index (44,56), axis 1, and level 1
+Values are different!
+in place:     0.410761
+out of place: 0.410639
+exact:        0.410639
+On index (45,56), axis 1, and level 1
+Values are different!
+in place:     0.418294
+out of place: 0.418279
+exact:        0.418279
+On index (46,56), axis 1, and level 1
+Values are different!
+in place:     0.425827
+out of place: 0.425817
+exact:        0.425817
+On index (47,56), axis 1, and level 1
+Values are different!
+in place:     0.43336
+out of place: 0.433251
+exact:        0.433251
+On index (48,56), axis 1, and level 1
+Values are different!
+in place:     0.440709
+out of place: 0.440579
+exact:        0.440579
+On index (49,56), axis 1, and level 1
+Values are different!
+in place:     0.447816
+out of place: 0.4478
+exact:        0.4478
+On index (50,56), axis 1, and level 1
+Values are different!
+in place:     0.454923
+out of place: 0.454911
+exact:        0.454911
+On index (51,56), axis 1, and level 1
+Values are different!
+in place:     0.462029
+out of place: 0.461911
+exact:        0.461911
+On index (52,56), axis 1, and level 1
+Values are different!
+in place:     0.468936
+out of place: 0.468799
+exact:        0.468799
+On index (53,56), axis 1, and level 1
+Values are different!
+in place:     0.475589
+out of place: 0.475572
+exact:        0.475572
+On index (54,56), axis 1, and level 1
+Values are different!
+in place:     0.482241
+out of place: 0.482229
+exact:        0.482229
+On index (55,56), axis 1, and level 1
+Values are different!
+in place:     0.488894
+out of place: 0.488768
+exact:        0.488768
+On index (56,56), axis 1, and level 1
+Values are different!
+in place:     0.495333
+out of place: 0.495187
+exact:        0.495188
+On index (8,57), axis 1, and level 1
+Values are different!
+in place:     0.0833386
+out of place: 0.0832851
+exact:        0.0832839
+On index (9,57), axis 1, and level 1
+Values are different!
+in place:     0.0930238
+out of place: 0.0930145
+exact:        0.0930138
+On index (10,57), axis 1, and level 1
+Values are different!
+in place:     0.102721
+out of place: 0.102721
+exact:        0.102721
+On index (11,57), axis 1, and level 1
+Values are different!
+in place:     0.112431
+out of place: 0.112403
+exact:        0.112403
+On index (12,57), axis 1, and level 1
+Values are different!
+in place:     0.122129
+out of place: 0.122059
+exact:        0.122058
+On index (13,57), axis 1, and level 1
+Values are different!
+in place:     0.131694
+out of place: 0.131683
+exact:        0.131683
+On index (14,57), axis 1, and level 1
+Values are different!
+in place:     0.141277
+out of place: 0.141276
+exact:        0.141275
+On index (15,57), axis 1, and level 1
+Values are different!
+in place:     0.150878
+out of place: 0.150833
+exact:        0.150833
+On index (16,57), axis 1, and level 1
+Values are different!
+in place:     0.160442
+out of place: 0.160356
+exact:        0.160355
+On index (17,57), axis 1, and level 1
+Values are different!
+in place:     0.169851
+out of place: 0.169838
+exact:        0.169837
+On index (18,57), axis 1, and level 1
+Values are different!
+in place:     0.179282
+out of place: 0.179278
+exact:        0.179278
+On index (19,57), axis 1, and level 1
+Values are different!
+in place:     0.188736
+out of place: 0.188675
+exact:        0.188675
+On index (20,57), axis 1, and level 1
+Values are different!
+in place:     0.198128
+out of place: 0.198027
+exact:        0.198026
+On index (21,57), axis 1, and level 1
+Values are different!
+in place:     0.207344
+out of place: 0.20733
+exact:        0.207328
+On index (22,57), axis 1, and level 1
+Values are different!
+in place:     0.216586
+out of place: 0.216581
+exact:        0.21658
+On index (23,57), axis 1, and level 1
+Values are different!
+in place:     0.225857
+out of place: 0.22578
+exact:        0.225779
+On index (24,57), axis 1, and level 1
+Values are different!
+in place:     0.235041
+out of place: 0.234925
+exact:        0.234923
+On index (25,57), axis 1, and level 1
+Values are different!
+in place:     0.244027
+out of place: 0.244011
+exact:        0.24401
+On index (26,57), axis 1, and level 1
+Values are different!
+in place:     0.253045
+out of place: 0.253038
+exact:        0.253037
+On index (27,57), axis 1, and level 1
+Values are different!
+in place:     0.262096
+out of place: 0.262003
+exact:        0.262002
+On index (28,57), axis 1, and level 1
+Values are different!
+in place:     0.271036
+out of place: 0.270906
+exact:        0.270904
+On index (29,57), axis 1, and level 1
+Values are different!
+in place:     0.279758
+out of place: 0.27974
+exact:        0.279739
+On index (30,57), axis 1, and level 1
+Values are different!
+in place:     0.288516
+out of place: 0.288507
+exact:        0.288506
+On index (31,57), axis 1, and level 1
+Values are different!
+in place:     0.297311
+out of place: 0.297203
+exact:        0.297202
+On index (32,57), axis 1, and level 1
+Values are different!
+in place:     0.305973
+out of place: 0.305828
+exact:        0.305826
+On index (33,57), axis 1, and level 1
+Values are different!
+in place:     0.314396
+out of place: 0.314377
+exact:        0.314375
+On index (34,57), axis 1, and level 1
+Values are different!
+in place:     0.32286
+out of place: 0.322849
+exact:        0.322848
+On index (35,57), axis 1, and level 1
+Values are different!
+in place:     0.331365
+out of place: 0.331242
+exact:        0.331241
+On index (36,57), axis 1, and level 1
+Values are different!
+in place:     0.339715
+out of place: 0.339556
+exact:        0.339554
+On index (37,57), axis 1, and level 1
+Values are different!
+in place:     0.347806
+out of place: 0.347786
+exact:        0.347784
+On index (38,57), axis 1, and level 1
+Values are different!
+in place:     0.355943
+out of place: 0.355931
+exact:        0.355929
+On index (39,57), axis 1, and level 1
+Values are different!
+in place:     0.364126
+out of place: 0.363988
+exact:        0.363987
+On index (40,57), axis 1, and level 1
+Values are different!
+in place:     0.37213
+out of place: 0.371959
+exact:        0.371956
+On index (41,57), axis 1, and level 1
+Values are different!
+in place:     0.379859
+out of place: 0.379837
+exact:        0.379835
+On index (42,57), axis 1, and level 1
+Values are different!
+in place:     0.387636
+out of place: 0.387622
+exact:        0.387621
+On index (43,57), axis 1, and level 1
+Values are different!
+in place:     0.395464
+out of place: 0.395313
+exact:        0.395312
+On index (44,57), axis 1, and level 1
+Values are different!
+in place:     0.403092
+out of place: 0.402909
+exact:        0.402906
+On index (45,57), axis 1, and level 1
+Values are different!
+in place:     0.410427
+out of place: 0.410404
+exact:        0.410402
+On index (46,57), axis 1, and level 1
+Values are different!
+in place:     0.417816
+out of place: 0.4178
+exact:        0.417798
+On index (47,57), axis 1, and level 1
+Values are different!
+in place:     0.425258
+out of place: 0.425094
+exact:        0.425092
+On index (48,57), axis 1, and level 1
+Values are different!
+in place:     0.43248
+out of place: 0.432285
+exact:        0.432283
+On index (49,57), axis 1, and level 1
+Values are different!
+in place:     0.439394
+out of place: 0.439369
+exact:        0.439367
+On index (50,57), axis 1, and level 1
+Values are different!
+in place:     0.446364
+out of place: 0.446347
+exact:        0.446345
+On index (51,57), axis 1, and level 1
+Values are different!
+in place:     0.453392
+out of place: 0.453215
+exact:        0.453213
+On index (52,57), axis 1, and level 1
+Values are different!
+in place:     0.460179
+out of place: 0.459974
+exact:        0.459971
+On index (53,57), axis 1, and level 1
+Values are different!
+in place:     0.466644
+out of place: 0.466619
+exact:        0.466616
+On index (54,57), axis 1, and level 1
+Values are different!
+in place:     0.473169
+out of place: 0.47315
+exact:        0.473148
+On index (55,57), axis 1, and level 1
+Values are different!
+in place:     0.479755
+out of place: 0.479566
+exact:        0.479564
