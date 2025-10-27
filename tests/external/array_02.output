@@ -40,6 +40,26 @@ Test tbox::Array<A>::resizeArray()
   A::~A() 14
   A::~A() 15
   A::~A() 16
+Test tbox::Array<A>::operator=()
+  A::A() 17
+  A::A() 18
+  A::A() 19
+  A::A() 20
+  operator=() complete
+  A::~A() 17
+  A::~A() 18
+  A::~A() 19
+  A::~A() 20
+Test tbox::Array<A>::Array(const tbox::Array<A> &)
+  A::A() 21
+  A::A() 22
+  A::A() 23
+  A::A() 24
+  'copy' constructor complete
+  A::~A() 21
+  A::~A() 22
+  A::~A() 23
+  A::~A() 24
 Test empty tbox::Array<double>
 Test tbox::Array<double>(1)
 Test assignment of array tbox::Array<double>
@@ -48,6 +68,10 @@ Test tbox::Array<double>::setNull()
   setNull() complete
 Test tbox::Array<double>::resizeArray()
   resizeArray() complete
+Test tbox::Array<double>::operator=()
+  operator=() complete
+Test tbox::Array<double>::Array(const tbox::Array<double> &)
+  'copy' constructor complete
 Test empty tbox::Array<std::string>
 Test tbox::Array<std::string>(1)
 Test assignment of array tbox::Array<std::string>
@@ -56,6 +80,10 @@ Test tbox::Array<std::string>::setNull()
   setNull() complete
 Test tbox::Array<std::string>::resizeArray()
   resizeArray() complete
+Test tbox::Array<std::string>::operator=()
+  operator=() complete
+Test tbox::Array<std::string>::Array(const tbox::Array<std::string> &)
+  'copy' constructor complete
 Test empty tbox::Array<std::vector<double>>
 Test tbox::Array<std::vector<double>>(1)
 Test assignment of array tbox::Array<std::vector<double>>
@@ -64,3 +92,7 @@ Test tbox::Array<std::vector<double>>::setNull()
   setNull() complete
 Test tbox::Array<std::vector<double>>::resizeArray()
   resizeArray() complete
+Test tbox::Array<std::vector<double>>::operator=()
+  operator=() complete
+Test tbox::Array<std::vector<double>>::Array(const tbox::Array<std::vector<double>> &)
+  'copy' constructor complete
