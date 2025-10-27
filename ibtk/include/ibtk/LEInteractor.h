@@ -22,7 +22,10 @@
 
 #include "Box.h"
 #include "IntVector.h"
+#include "tbox/Array.h"
 #include "tbox/Pointer.h"
+
+#include <Eigen/Core>
 
 #include <array>
 #include <string>
@@ -1230,6 +1233,72 @@ private:
      */
     LEInteractor& operator=(const LEInteractor& that) = delete;
 
+    /**
+     * @brief Helper class containing local indices and periodic shifts.
+     *
+     * To avoid reading points not owned by the present patch, the IB kernels
+     * take, as a function argument, the indices of points which should be
+     * interpolated at or spread from. Some applications call these functions
+     * for small numbers of points at a time (e.g. one finite element), whereas
+     * others batch things per-patch. To support both cases and avoid
+     * unnecessary allocations, this class computes the indices of points which
+     * intersect the Patch and stores their indices in an Eigen::Map, which, for
+     * small numbers of input points, uses std::array instead of std::vector.
+     */
+    struct IndicesAndShifts
+    {
+    private:
+        static constexpr std::size_t s_stack_size = 64u;
+
+        bool d_use_stack;
+
+        SAMRAI::tbox::Array<int> d_dynamic_local_indices;
+        SAMRAI::tbox::Array<double> d_dynamic_periodic_shifts;
+
+        std::array<int, s_stack_size> d_stack_local_indices;
+        std::array<double, s_stack_size * NDIM> d_stack_periodic_shifts;
+
+    public:
+        /**
+         * Constructor.
+         */
+        IndicesAndShifts(const SAMRAI::hier::Box<NDIM>& ib_box,
+                         const SAMRAI::hier::Patch<NDIM>& patch,
+                         const double* const X_data,
+                         const int X_size);
+
+        /**
+         * Copying is not implemented.
+         */
+        IndicesAndShifts(const IndicesAndShifts&) = delete;
+
+        /**
+         * Copying is not implemented.
+         */
+        IndicesAndShifts& operator=(const IndicesAndShifts&) = delete;
+
+        /**
+         * Moving is not implemented.
+         */
+        IndicesAndShifts(IndicesAndShifts&&) = delete;
+
+        /**
+         * Moving is not implemented.
+         */
+        IndicesAndShifts& operator=(IndicesAndShifts&&) = delete;
+
+        /**
+         * Array containing the indices of the points which are within the Patch
+         * provided to the constructor.
+         */
+        Eigen::Map<Eigen::VectorXi> d_local_indices;
+
+        /**
+         * Array containing periodic shifts. Presently this is all zeros.
+         */
+        Eigen::Map<Eigen::VectorXd> d_periodic_shifts;
+    };
+
     /*!
      * Implementation of the IB interpolation operation.
      */
@@ -1245,8 +1314,8 @@ private:
                             const double* dx,
                             const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
                             const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
-                            const std::vector<int>& local_indices,
-                            const std::vector<double>& periodic_shifts,
+                            const Eigen::Map<Eigen::VectorXi>& local_indices,
+                            const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
                             const std::string& interp_fcn,
                             int axis = 0);
 
@@ -1265,8 +1334,8 @@ private:
                        const double* dx,
                        const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
                        const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
-                       const std::vector<int>& local_indices,
-                       const std::vector<double>& periodic_shifts,
+                       const Eigen::Map<Eigen::VectorXi>& local_indices,
+                       const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
                        const std::string& spread_fcn,
                        int axis = 0);
 
@@ -1284,14 +1353,15 @@ private:
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
-     * based on the positions of the Lagrangian mesh nodes.
+     * based on the positions of the Lagrangian mesh nodes. Returns the total
+     * number of local indices.
      */
-    static void buildLocalIndices(std::vector<int>& local_indices,
-                                  const SAMRAI::hier::Box<NDIM>& box,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                  const double* X_data,
-                                  int X_size,
-                                  int X_depth);
+    static int buildLocalIndices(Eigen::Map<Eigen::VectorXi>& local_indices,
+                                 const SAMRAI::hier::Box<NDIM>& box,
+                                 const SAMRAI::hier::Patch<NDIM>& patch,
+                                 const double* const X_data,
+                                 const int X_size,
+                                 const int X_depth);
 
     /*!
      * Implementation of the IB interpolation operation for a user-defined
