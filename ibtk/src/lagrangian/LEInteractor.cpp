@@ -2320,8 +2320,8 @@ LEInteractor::interpolate(double* const Q_data,
                     dx,
                     patch_touches_lower_physical_bdry,
                     patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
+                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                     interp_fcn);
     }
     return;
@@ -2390,8 +2390,8 @@ LEInteractor::interpolate(double* const Q_data,
                     dx,
                     patch_touches_lower_physical_bdry,
                     patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
+                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                     interp_fcn);
     }
     return;
@@ -2473,8 +2473,8 @@ LEInteractor::interpolate(double* const Q_data,
                         dx,
                         patch_touches_lower_physical_bdry,
                         patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
+                        Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                        Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                         interp_fcn,
                         axis);
             for (const auto& local_index : local_indices)
@@ -2565,8 +2565,8 @@ LEInteractor::interpolate(double* const Q_data,
                         dx,
                         patch_touches_lower_physical_bdry,
                         patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
+                        Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                        Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                         interp_fcn,
                         axis);
             for (const auto& local_index : local_indices)
@@ -2720,6 +2720,52 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                 interp_fcn);
 }
 
+LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
+                                                 const Patch<NDIM>& patch,
+                                                 const double* const X_data,
+                                                 const int X_size)
+    : d_use_stack(X_size / NDIM < int(s_stack_size)),
+      d_dynamic_local_indices(d_use_stack ? 0 : X_size / NDIM),
+      d_dynamic_periodic_shifts(d_use_stack ? 0 : X_size),
+      d_local_indices(d_use_stack ? d_stack_local_indices.data() : d_dynamic_local_indices.getPointer(), X_size / NDIM),
+      d_periodic_shifts(d_use_stack ? d_stack_periodic_shifts.data() : d_dynamic_periodic_shifts.getPointer(), X_size)
+{
+    if (d_use_stack)
+    {
+        d_stack_local_indices.fill(0);
+        d_stack_periodic_shifts.fill(0.0);
+    }
+    else
+    {
+#ifndef NDEBUG
+        // We should never read these entries, but just in-case give them
+        // invalid values in debug mode
+        std::fill(d_dynamic_local_indices.getPointer(),
+                  d_dynamic_local_indices.getPointer() + d_dynamic_local_indices.size(),
+                  std::numeric_limits<int>::max());
+#endif
+        std::fill(d_dynamic_periodic_shifts.getPointer(),
+                  d_dynamic_periodic_shifts.getPointer() + d_dynamic_periodic_shifts.size(),
+                  0);
+    }
+
+    const int num_local_indices = LEInteractor::buildLocalIndices(d_local_indices, ib_box, patch, X_data, X_size, NDIM);
+
+    // Eigen::Map cannot be resized, so, now that we have num_local_indices,
+    // create new objects in-place:
+    d_local_indices.~Map();
+    new (&d_local_indices) Eigen::Map<Eigen::VectorXi>(
+        d_use_stack ? d_stack_local_indices.data() : d_dynamic_local_indices.getPointer(), num_local_indices);
+    d_periodic_shifts.~Map();
+    new (&d_periodic_shifts) Eigen::Map<Eigen::VectorXd>(d_use_stack ? d_stack_periodic_shifts.data() :
+                                                                       d_dynamic_periodic_shifts.getPointer(),
+                                                         num_local_indices * NDIM);
+#ifndef NDEBUG
+    TBOX_ASSERT(d_local_indices.size() * NDIM <= X_size);
+    TBOX_ASSERT(d_local_indices.size() * NDIM == d_periodic_shifts.size());
+#endif
+}
+
 void
 LEInteractor::interpolate(double* const Q_data,
                           const int Q_size,
@@ -2756,14 +2802,10 @@ LEInteractor::interpolate(double* const Q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         interpolate(Q_data,
                     Q_depth,
@@ -2777,8 +2819,8 @@ LEInteractor::interpolate(double* const Q_data,
                     dx,
                     patch_touches_lower_physical_bdry,
                     patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
+                    indices_and_shifts.d_local_indices,
+                    indices_and_shifts.d_periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -2855,23 +2897,21 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    const int nindices = static_cast<int>(local_indices.size());
+    const auto nindices = static_cast<int>(indices_and_shifts.d_local_indices.size());
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
         for (int k = 0; k < nindices; ++k)
         {
-            int s = local_indices[k];
+            int s = indices_and_shifts.d_local_indices[k];
             MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
             get_mls_weights(interp_fcn,
                             &X_data[s * NDIM],
-                            &periodic_shifts[k * NDIM],
+                            &indices_and_shifts.d_periodic_shifts[k * NDIM],
                             dx,
                             x_lower,
                             ilower,
@@ -2936,12 +2976,10 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2961,8 +2999,8 @@ LEInteractor::interpolate(double* const Q_data,
                     dx,
                     patch_touches_lower_physical_bdry,
                     patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
+                    indices_and_shifts.d_local_indices,
+                    indices_and_shifts.d_periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -3013,15 +3051,15 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+        const int local_sz =
+            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
+            1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -3044,11 +3082,11 @@ LEInteractor::interpolate(double* const Q_data,
                         dx,
                         patch_touches_lower_physical_bdry,
                         patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
+                        indices_and_shifts.d_local_indices,
+                        indices_and_shifts.d_periodic_shifts,
                         interp_fcn,
                         axis);
-            for (const auto& local_index : local_indices)
+            for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
                 Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
@@ -3127,12 +3165,10 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    const int nindices = static_cast<int>(local_indices.size());
+    const int nindices = static_cast<int>(indices_and_shifts.d_local_indices.size());
     if (nindices)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
@@ -3154,12 +3190,12 @@ LEInteractor::interpolate(double* const Q_data,
 
             for (int k = 0; k < nindices; ++k)
             {
-                int s = local_indices[k];
+                int s = indices_and_shifts.d_local_indices[k];
                 MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
                 get_mls_weights(interp_fcn,
                                 &X_data[s * NDIM],
-                                &periodic_shifts[k * NDIM],
+                                &indices_and_shifts.d_periodic_shifts[k * NDIM],
                                 dx,
                                 x_lower_axis.data(),
                                 ilower,
@@ -3228,15 +3264,15 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
 
     // Interpolate.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+        const int local_sz =
+            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
+            1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -3262,11 +3298,11 @@ LEInteractor::interpolate(double* const Q_data,
                         dx,
                         patch_touches_lower_physical_bdry,
                         patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
+                        indices_and_shifts.d_local_indices,
+                        indices_and_shifts.d_periodic_shifts,
                         interp_fcn,
                         axis);
-            for (const auto& local_index : local_indices)
+            for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
                 Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
@@ -3484,8 +3520,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                dx,
                patch_touches_lower_physical_bdry,
                patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+               Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+               Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                spread_fcn);
     }
     return;
@@ -3554,8 +3590,8 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                dx,
                patch_touches_lower_physical_bdry,
                patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+               Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+               Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                spread_fcn);
     }
     return;
@@ -3641,8 +3677,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                    dx,
                    patch_touches_lower_physical_bdry,
                    patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
+                   Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                   Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                    spread_fcn,
                    axis);
         }
@@ -3733,8 +3769,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                    dx,
                    patch_touches_lower_physical_bdry,
                    patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
+                   Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
+                   Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                    spread_fcn,
                    axis);
         }
@@ -3920,14 +3956,10 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         spread(q_data->getPointer(),
                q_data->getBox(),
@@ -3941,8 +3973,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                dx,
                patch_touches_lower_physical_bdry,
                patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+               indices_and_shifts.d_local_indices,
+               indices_and_shifts.d_periodic_shifts,
                spread_fcn);
     }
     return;
@@ -4017,25 +4049,21 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    const int nindices = static_cast<int>(local_indices.size());
+    const int nindices = static_cast<int>(indices_and_shifts.d_local_indices.size());
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
         for (int k = 0; k < nindices; ++k)
         {
-            int s = local_indices[k];
+            int s = indices_and_shifts.d_local_indices[k];
             MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
             get_mls_weights(spread_fcn,
                             &X_data[s * NDIM],
-                            &periodic_shifts[k * NDIM],
+                            &indices_and_shifts.d_periodic_shifts[k * NDIM],
                             dx,
                             x_lower,
                             ilower,
@@ -4099,14 +4127,10 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -4126,8 +4150,8 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                dx,
                patch_touches_lower_physical_bdry,
                patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+               indices_and_shifts.d_local_indices,
+               indices_and_shifts.d_periodic_shifts,
                spread_fcn);
     }
     return;
@@ -4171,17 +4195,15 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+        const int local_sz =
+            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
+            1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -4192,7 +4214,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            for (const auto& local_index : local_indices)
+            for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
                 Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
@@ -4208,8 +4230,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                    dx,
                    patch_touches_lower_physical_bdry,
                    patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
+                   indices_and_shifts.d_local_indices,
+                   indices_and_shifts.d_periodic_shifts,
                    spread_fcn,
                    axis);
         }
@@ -4284,14 +4306,10 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    const int nindices = static_cast<int>(local_indices.size());
+    const int nindices = static_cast<int>(indices_and_shifts.d_local_indices.size());
     if (nindices)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
@@ -4312,12 +4330,12 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
 
             for (int k = 0; k < nindices; ++k)
             {
-                int s = local_indices[k];
+                int s = indices_and_shifts.d_local_indices[k];
                 MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
                 get_mls_weights(spread_fcn,
                                 &X_data[s * NDIM],
-                                &periodic_shifts[k * NDIM],
+                                &indices_and_shifts.d_periodic_shifts[k * NDIM],
                                 dx,
                                 x_lower_axis.data(),
                                 ilower,
@@ -4379,17 +4397,15 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    // Generate a list of local indices which lie in the specified box and set
-    // all periodic offsets to zero.
-    std::vector<int> local_indices;
-    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
 
     // Spread.
-    if (!local_indices.empty())
+    if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+        const int local_sz =
+            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
+            1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -4403,7 +4419,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                     x_upper_axis[axis] += 0.5 * dx[axis];
                 }
             }
-            for (const auto& local_index : local_indices)
+            for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
                 Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
@@ -4419,8 +4435,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                    dx,
                    patch_touches_lower_physical_bdry,
                    patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
+                   indices_and_shifts.d_local_indices,
+                   indices_and_shifts.d_periodic_shifts,
                    spread_fcn,
                    axis);
         }
@@ -4445,8 +4461,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const dx,
                           const std::array<int, NDIM>& /*patch_touches_lower_physical_bdry*/,
                           const std::array<int, NDIM>& /*patch_touches_upper_physical_bdry*/,
-                          const std::vector<int>& local_indices,
-                          const std::vector<double>& periodic_shifts,
+                          const Eigen::Map<VectorXi>& local_indices,
+                          const Eigen::Map<VectorXd>& periodic_shifts,
                           const std::string& interp_fcn,
                           const int axis)
 {
@@ -4461,7 +4477,7 @@ LEInteractor::interpolate(double* const Q_data,
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
     }
-    if (local_indices.empty()) return;
+    if (local_indices.size() == 0) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -5207,8 +5223,8 @@ LEInteractor::spread(double* const q_data,
                      const double* const dx,
                      const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
                      const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
-                     const std::vector<int>& local_indices,
-                     const std::vector<double>& periodic_shifts,
+                     const Eigen::Map<VectorXi>& local_indices,
+                     const Eigen::Map<VectorXd>& periodic_shifts,
                      const std::string& spread_fcn,
                      const int axis)
 {
@@ -5229,7 +5245,7 @@ LEInteractor::spread(double* const q_data,
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
     }
-    if (local_indices.empty()) return;
+    if (local_indices.size() == 0) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -6050,28 +6066,44 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     return;
 }
 
-void
-LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
+int
+LEInteractor::buildLocalIndices(Eigen::Map<VectorXi>& local_indices,
                                 const Box<NDIM>& box,
-                                const Pointer<Patch<NDIM> > patch,
+                                const Patch<NDIM>& patch,
                                 const double* const X_data,
                                 const int X_size,
                                 const int X_depth)
 {
-    local_indices.clear();
     const int upper_bound = X_size / X_depth;
-    if (upper_bound == 0) return;
+    if (upper_bound == 0) return 0;
+#ifndef NDEBUG
+    local_indices.fill(std::numeric_limits<int>::max());
+    TBOX_ASSERT(upper_bound <= int(local_indices.size()));
+#endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    local_indices.reserve(upper_bound);
-    for (int k = 0; k < X_size / X_depth; ++k)
+    const Box<NDIM>& patch_box = patch.getBox();
+    const auto* patch_geom_ptr = patch.getPatchGeometry().getPointer();
+#ifndef NDEBUG
+    TBOX_ASSERT(dynamic_cast<const CartesianPatchGeometry<NDIM>*>(patch_geom_ptr) != nullptr);
+#endif
+    const auto& patch_geom = *static_cast<const CartesianPatchGeometry<NDIM>*>(patch_geom_ptr);
+    int n_indices = 0;
+    for (int k = 0; k < upper_bound; ++k)
     {
         const double* const X = &X_data[NDIM * k];
-        const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
-        if (box.contains(i)) local_indices.push_back(k);
+        const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X,
+                                                                 patch_geom.getXLower(),
+                                                                 patch_geom.getXUpper(),
+                                                                 patch_geom.getDx(),
+                                                                 patch_box.lower(),
+                                                                 patch_box.upper());
+        if (box.contains(i))
+        {
+            local_indices[n_indices] = k;
+            ++n_indices;
+        }
     }
-    return;
+    return n_indices;
 }
 
 void

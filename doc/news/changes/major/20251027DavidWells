@@ -1,0 +1,3 @@
+Improved: LEInteractor now allocates significantly fewer temporary arrays.
+<br>
+(David Wells, 2025/10/27)
