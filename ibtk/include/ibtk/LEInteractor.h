@@ -1254,9 +1254,11 @@ private:
 
         SAMRAI::tbox::Array<int> d_dynamic_local_indices;
         SAMRAI::tbox::Array<double> d_dynamic_periodic_shifts;
+        SAMRAI::tbox::Array<double> d_dynamic_buffer;
 
         std::array<int, s_stack_size> d_stack_local_indices;
         std::array<double, s_stack_size * NDIM> d_stack_periodic_shifts;
+        std::array<double, s_stack_size> d_stack_buffer;
 
     public:
         /**
@@ -1265,7 +1267,8 @@ private:
         IndicesAndShifts(const SAMRAI::hier::Box<NDIM>& ib_box,
                          const SAMRAI::hier::Patch<NDIM>& patch,
                          const double* const X_data,
-                         const int X_size);
+                         const int X_size,
+                         const bool setup_extra_buffer = false);
 
         /**
          * Copying is not implemented.
@@ -1297,6 +1300,13 @@ private:
          * Array containing periodic shifts. Presently this is all zeros.
          */
         Eigen::Map<Eigen::VectorXd> d_periodic_shifts;
+
+        /**
+         * Array containing an extra buffer (if requested in the constructor by
+         * setting `setup_extra_buffer = true`) which has the same length as
+         * d_local_indices.
+         */
+        Eigen::Map<Eigen::VectorXd> d_buffer;
     };
 
     /*!

@@ -49,6 +49,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -2723,17 +2724,27 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
 LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
                                                  const Patch<NDIM>& patch,
                                                  const double* const X_data,
-                                                 const int X_size)
+                                                 const int X_size,
+                                                 const bool setup_extra_buffer)
     : d_use_stack(X_size / NDIM < int(s_stack_size)),
       d_dynamic_local_indices(d_use_stack ? 0 : X_size / NDIM),
       d_dynamic_periodic_shifts(d_use_stack ? 0 : X_size),
+      d_dynamic_buffer(d_use_stack ? 0 : (setup_extra_buffer ? X_size / NDIM : 0)),
       d_local_indices(d_use_stack ? d_stack_local_indices.data() : d_dynamic_local_indices.getPointer(), X_size / NDIM),
-      d_periodic_shifts(d_use_stack ? d_stack_periodic_shifts.data() : d_dynamic_periodic_shifts.getPointer(), X_size)
+      d_periodic_shifts(d_use_stack ? d_stack_periodic_shifts.data() : d_dynamic_periodic_shifts.getPointer(), X_size),
+      d_buffer(nullptr, 0)
 {
     if (d_use_stack)
     {
         d_stack_local_indices.fill(0);
         d_stack_periodic_shifts.fill(0.0);
+
+#ifndef NDEBUG
+        if (d_dynamic_buffer.size() == 0)
+        {
+            d_stack_buffer.fill(std::numeric_limits<double>::signaling_NaN());
+        }
+#endif
     }
     else
     {
@@ -2743,6 +2754,14 @@ LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
         std::fill(d_dynamic_local_indices.getPointer(),
                   d_dynamic_local_indices.getPointer() + d_dynamic_local_indices.size(),
                   std::numeric_limits<int>::max());
+
+        // getPointer() cannot be nullptr
+        if (d_dynamic_buffer.size() > 0)
+        {
+            std::fill(d_dynamic_buffer.getPointer(),
+                      d_dynamic_buffer.getPointer() + d_dynamic_local_indices.size(),
+                      std::numeric_limits<double>::signaling_NaN());
+        }
 #endif
         std::fill(d_dynamic_periodic_shifts.getPointer(),
                   d_dynamic_periodic_shifts.getPointer() + d_dynamic_periodic_shifts.size(),
@@ -2760,6 +2779,14 @@ LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
     new (&d_periodic_shifts) Eigen::Map<Eigen::VectorXd>(d_use_stack ? d_stack_periodic_shifts.data() :
                                                                        d_dynamic_periodic_shifts.getPointer(),
                                                          num_local_indices * NDIM);
+
+    if (setup_extra_buffer)
+    {
+        d_buffer.~Map();
+        new (&d_buffer) Eigen::Map<Eigen::VectorXd>(d_use_stack ? d_stack_buffer.data() : d_dynamic_buffer.getPointer(),
+                                                    X_size / NDIM);
+    }
+
 #ifndef NDEBUG
     TBOX_ASSERT(d_local_indices.size() * NDIM <= X_size);
     TBOX_ASSERT(d_local_indices.size() * NDIM == d_periodic_shifts.size());
@@ -3051,16 +3078,12 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size, true);
 
     // Interpolate.
     if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz =
-            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
-            1;
-        std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -3070,7 +3093,7 @@ LEInteractor::interpolate(double* const Q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            interpolate(&Q_data_axis[0],
+            interpolate(indices_and_shifts.d_buffer.data(),
                         /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
@@ -3088,7 +3111,7 @@ LEInteractor::interpolate(double* const Q_data,
                         axis);
             for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
-                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
+                Q_data[NDIM * local_index + axis] = indices_and_shifts.d_buffer[local_index];
             }
         }
     }
@@ -3264,16 +3287,12 @@ LEInteractor::interpolate(double* const Q_data,
 
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
-    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size);
+    IndicesAndShifts indices_and_shifts(interp_box, *patch, X_data, X_size, true);
 
     // Interpolate.
     if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz =
-            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
-            1;
-        std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -3286,7 +3305,7 @@ LEInteractor::interpolate(double* const Q_data,
                     x_upper_axis[d] += 0.5 * dx[d];
                 }
             }
-            interpolate(&Q_data_axis[0],
+            interpolate(indices_and_shifts.d_buffer.data(),
                         /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
@@ -3304,7 +3323,7 @@ LEInteractor::interpolate(double* const Q_data,
                         axis);
             for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
-                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
+                Q_data[NDIM * local_index + axis] = indices_and_shifts.d_buffer[local_index];
             }
         }
     }
@@ -4195,16 +4214,12 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size, true);
 
     // Spread.
     if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz =
-            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
-            1;
-        std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -4216,13 +4231,13 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             x_upper_axis[axis] += 0.5 * dx[axis];
             for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
-                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
+                indices_and_shifts.d_buffer[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
                    /*q_depth*/ 1,
-                   &Q_data_axis[0],
+                   indices_and_shifts.d_buffer.data(),
                    /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
@@ -4397,16 +4412,12 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
         patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
     }
 
-    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size);
+    IndicesAndShifts indices_and_shifts(spread_box, *patch, X_data, X_size, true);
 
     // Spread.
     if (indices_and_shifts.d_local_indices.size() > 0)
     {
         std::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz =
-            (*std::max_element(indices_and_shifts.d_local_indices.begin(), indices_and_shifts.d_local_indices.end())) +
-            1;
-        std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -4421,13 +4432,13 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
             }
             for (const auto& local_index : indices_and_shifts.d_local_indices)
             {
-                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
+                indices_and_shifts.d_buffer[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
                    /*q_depth*/ 1,
-                   &Q_data_axis[0],
+                   indices_and_shifts.d_buffer.data(),
                    /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
