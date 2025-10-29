@@ -252,9 +252,10 @@ jobs:
         run: |
           mkdir -p ~/unpack-samrai
           cd ~/unpack-samrai
-          curl -LO https://github.com/IBAMR/IBSAMRAI2/archive/refs/tags/2025.01.09.tar.gz
-          tar xf 2025.01.09.tar.gz
-          cd IBSAMRAI2-2025.01.09
+          export SAMRAI_VERSION=2025.10.29
+          curl -LO "https://github.com/IBAMR/IBSAMRAI2/archive/refs/tags/$SAMRAI_VERSION.tar.gz"
+          tar xf "$SAMRAI_VERSION.tar.gz"
+          cd "IBSAMRAI2-$SAMRAI_VERSION"
           mkdir -p build
           cd build
 
