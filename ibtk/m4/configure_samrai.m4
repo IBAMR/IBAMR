@@ -41,6 +41,22 @@ AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 CPPFLAGS_PREPEND($SAMRAI_CPPFLAGS)
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
 
+AC_MSG_CHECKING([for SAMRAI version 2025.10.29 or newer])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <SAMRAI_config.h>
+
+#define IBAMR_SAMRAI_VERSION (10000 * SAMRAI_VERSION_MAJOR + 100 * SAMRAI_VERSION_MINOR + SAMRAI_VERSION_PATCHLEVEL)
+#define SAMRAI_VERSION_GTE(major,minor,subminor) 10000 * major + 100 * minor + subminor >= IBAMR_SAMRAI_VERSION
+#if SAMRAI_VERSION_GTE(2025, 10, 29)
+#else
+#error
+#endif
+]])],[SAMRAI_VERSION_VALID=yes],[SAMRAI_VERSION_VALID=no])
+AC_MSG_RESULT([${SAMRAI_VERSION_VALID}])
+if test "$SAMRAI_VERSION_VALID" = no; then
+  AC_MSG_ERROR([invalid SAMRAI version detected: please use IBSAMRAI2 version 2025.10.29 or newer])
+fi
+
 AC_MSG_CHECKING([whether SAMRAI is configured with debugging enabled])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <SAMRAI_config.h>
