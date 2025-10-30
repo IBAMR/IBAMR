@@ -1,0 +1,3 @@
+total number of Array<int> allocations = 0
+total number of Array<bool> allocations = 4
+total number of Array<Array<bool>> allocations = 2
