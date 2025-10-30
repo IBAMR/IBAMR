@@ -31702,6 +31702,48 @@ fi
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SAMRAI version 2025.10.29 or newer" >&5
+$as_echo_n "checking for SAMRAI version 2025.10.29 or newer... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <SAMRAI_config.h>
+
+#define IBAMR_SAMRAI_VERSION (10000 * SAMRAI_VERSION_MAJOR + 100 * SAMRAI_VERSION_MINOR + SAMRAI_VERSION_PATCHLEVEL)
+#define SAMRAI_VERSION_GTE(major,minor,subminor) 10000 * major + 100 * minor + subminor >= IBAMR_SAMRAI_VERSION
+#if SAMRAI_VERSION_GTE(2025, 10, 29)
+#else
+#error
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  SAMRAI_VERSION_VALID=yes
+else
+  SAMRAI_VERSION_VALID=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${SAMRAI_VERSION_VALID}" >&5
+$as_echo "${SAMRAI_VERSION_VALID}" >&6; }
+if test "$SAMRAI_VERSION_VALID" = no; then
+  as_fn_error $? "invalid SAMRAI version detected: please use IBSAMRAI2 version 2025.10.29 or newer" "$LINENO" 5
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether SAMRAI is configured with debugging enabled" >&5
 $as_echo_n "checking whether SAMRAI is configured with debugging enabled... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
