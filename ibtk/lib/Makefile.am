@@ -318,6 +318,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonFACPreconditionerStrategy.h \
 ../include/ibtk/PoissonSolver.h \
 ../include/ibtk/PoissonUtilities.h \
+../include/ibtk/ProblemSpecification.h \
 ../include/ibtk/SAMRAIGhostDataAccumulator.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
