@@ -256,8 +256,8 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     if (d_is_initialized) deallocateOperatorState();
 
     // Setup the interpolation transaction information.
-    d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
-    d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, /*overwrite_interior*/ false);
+    d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(0),

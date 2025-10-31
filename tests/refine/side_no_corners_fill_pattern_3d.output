@@ -1,0 +1,1194 @@
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,-10,-10),(-1,-1,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,-1),(0,-1,-1)]
+axis: 1
+Box # 0:  [(-1,-1,-1),(-1,0,-1)]
+axis: 2
+Box # 0:  [(-1,-1,-1),(-1,-1,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,-1),(0,-1,-1)]
+axis: 1
+Box # 0:  [(-1,-1,-1),(-1,0,-1)]
+axis: 2
+Box # 0:  [(-1,-1,-1),(-1,-1,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,-1),(0,-1,-1)]
+axis: 1
+Box # 0:  [(-1,-1,-1),(-1,0,-1)]
+axis: 2
+Box # 0:  [(-1,-1,-1),(-1,-1,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,-1),(0,-1,-1)]
+axis: 1
+Box # 0:  [(-1,-1,-1),(-1,0,-1)]
+axis: 2
+Box # 0:  [(-1,-1,-1),(-1,-1,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,-10,0),(-1,-1,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,-1,0),(-1,0,9)]
+axis: 2
+Box # 0:  [(-1,-1,0),(-1,-1,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,-1,0),(-1,0,9)]
+axis: 2
+Box # 0:  [(-1,-1,0),(-1,-1,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,0,9)]
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,0,9)]
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,-1,0),(-1,0,9)]
+axis: 2
+Box # 0:  [(-1,-1,0),(-1,-1,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,0),(0,-1,9)]
+axis: 1
+Box # 0:  [(-1,-1,0),(-1,0,9)]
+axis: 2
+Box # 0:  [(-1,-1,0),(-1,-1,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,-10,10),(-1,-1,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,10),(0,-1,10)]
+axis: 1
+Box # 0:  [(-1,-1,10),(-1,0,10)]
+axis: 2
+Box # 0:  [(-1,-1,10),(-1,-1,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,10),(0,-1,10)]
+axis: 1
+Box # 0:  [(-1,-1,10),(-1,0,10)]
+axis: 2
+Box # 0:  [(-1,-1,10),(-1,-1,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,-1,10),(0,-1,10)]
+axis: 1
+Box # 0:  [(-1,-1,10),(-1,0,10)]
+axis: 2
+Box # 0:  [(-1,-1,10),(-1,-1,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,-1,10),(0,-1,10)]
+axis: 1
+Box # 0:  [(-1,-1,10),(-1,0,10)]
+axis: 2
+Box # 0:  [(-1,-1,10),(-1,-1,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,0,-10),(-1,9,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,-1),(0,9,-1)]
+axis: 1
+Box # 0:  [(-1,0,-1),(-1,10,-1)]
+axis: 2
+Box # 0:  [(-1,0,-1),(-1,9,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,-1),(0,9,-1)]
+axis: 1
+Box # 0:  [(-1,0,-1),(-1,10,-1)]
+axis: 2
+Box # 0:  [(-1,0,-1),(-1,9,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,-1),(0,9,-1)]
+axis: 1
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,-1),(0,9,-1)]
+axis: 1
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,0)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,-1),(0,9,-1)]
+axis: 1
+Box # 0:  [(-1,0,-1),(-1,10,-1)]
+axis: 2
+Box # 0:  [(-1,0,-1),(-1,9,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,-1),(0,9,-1)]
+axis: 1
+Box # 0:  [(-1,0,-1),(-1,10,-1)]
+axis: 2
+Box # 0:  [(-1,0,-1),(-1,9,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,0,0),(-1,9,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,0),(-1,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,0),(0,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,0),(-1,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,0),(-1,9,9)]
+Box # 1:  [(0,0,0),(0,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,0),(-1,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,0),(0,9,9)]
+axis: 1
+Box # 0:  [(-1,0,0),(-1,10,9)]
+axis: 2
+Box # 0:  [(-1,0,0),(-1,9,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,0,10),(-1,9,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,10),(0,9,10)]
+axis: 1
+Box # 0:  [(-1,0,10),(-1,10,10)]
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,10),(0,9,10)]
+axis: 1
+Box # 0:  [(-1,0,10),(-1,10,10)]
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,10),(0,9,10)]
+axis: 1
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,10),(0,9,10)]
+axis: 1
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,0,10),(0,9,10)]
+axis: 1
+Box # 0:  [(-1,0,10),(-1,10,10)]
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,0,10),(0,9,10)]
+axis: 1
+Box # 0:  [(-1,0,10),(-1,10,10)]
+axis: 2
+Box # 0:  [(-1,0,10),(-1,9,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,10,-10),(-1,19,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,-1),(0,10,-1)]
+axis: 1
+Box # 0:  [(-1,10,-1),(-1,11,-1)]
+axis: 2
+Box # 0:  [(-1,10,-1),(-1,10,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,-1),(0,10,-1)]
+axis: 1
+Box # 0:  [(-1,10,-1),(-1,11,-1)]
+axis: 2
+Box # 0:  [(-1,10,-1),(-1,10,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,-1),(0,10,-1)]
+axis: 1
+Box # 0:  [(-1,10,-1),(-1,11,-1)]
+axis: 2
+Box # 0:  [(-1,10,-1),(-1,10,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,-1),(0,10,-1)]
+axis: 1
+Box # 0:  [(-1,10,-1),(-1,11,-1)]
+axis: 2
+Box # 0:  [(-1,10,-1),(-1,10,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,10,0),(-1,19,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,11,9)]
+axis: 2
+Box # 0:  [(-1,10,0),(-1,10,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,11,9)]
+axis: 2
+Box # 0:  [(-1,10,0),(-1,10,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,10,9)]
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,10,9)]
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,11,9)]
+axis: 2
+Box # 0:  [(-1,10,0),(-1,10,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,0),(0,10,9)]
+axis: 1
+Box # 0:  [(-1,10,0),(-1,11,9)]
+axis: 2
+Box # 0:  [(-1,10,0),(-1,10,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(-10,10,10),(-1,19,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,10),(0,10,10)]
+axis: 1
+Box # 0:  [(-1,10,10),(-1,11,10)]
+axis: 2
+Box # 0:  [(-1,10,10),(-1,10,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,10),(0,10,10)]
+axis: 1
+Box # 0:  [(-1,10,10),(-1,11,10)]
+axis: 2
+Box # 0:  [(-1,10,10),(-1,10,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(-1,10,10),(0,10,10)]
+axis: 1
+Box # 0:  [(-1,10,10),(-1,11,10)]
+axis: 2
+Box # 0:  [(-1,10,10),(-1,10,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(-1,10,10),(0,10,10)]
+axis: 1
+Box # 0:  [(-1,10,10),(-1,11,10)]
+axis: 2
+Box # 0:  [(-1,10,10),(-1,10,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,-10,-10),(9,-1,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,-1),(10,-1,-1)]
+axis: 1
+Box # 0:  [(0,-1,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,-1),(9,-1,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,-1),(10,-1,-1)]
+axis: 1
+Box # 0:  [(0,-1,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,-1),(9,-1,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+Box # 0:  [(0,0,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+Box # 0:  [(0,0,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,0)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,-1),(10,-1,-1)]
+axis: 1
+Box # 0:  [(0,-1,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,-1),(9,-1,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,-1),(10,-1,-1)]
+axis: 1
+Box # 0:  [(0,-1,-1),(9,0,-1)]
+axis: 2
+Box # 0:  [(0,-1,-1),(9,-1,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,-10,0),(9,-1,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,-1,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,0,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,-1,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,-1,9)]
+Box # 1:  [(0,0,0),(9,0,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,-1,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(0,-1,0),(9,0,9)]
+axis: 2
+Box # 0:  [(0,-1,0),(9,-1,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,-10,10),(9,-1,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,10),(10,-1,10)]
+axis: 1
+Box # 0:  [(0,-1,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,10),(10,-1,10)]
+axis: 1
+Box # 0:  [(0,-1,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+Box # 0:  [(0,0,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+Box # 0:  [(0,0,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,-1,10),(10,-1,10)]
+axis: 1
+Box # 0:  [(0,-1,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,-1,10),(10,-1,10)]
+axis: 1
+Box # 0:  [(0,-1,10),(9,0,10)]
+axis: 2
+Box # 0:  [(0,-1,10),(9,-1,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,0,-10),(9,9,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,-1)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,-1)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,-1)]
+Box # 1:  [(0,0,0),(9,9,0)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,-1)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,-1),(10,9,-1)]
+axis: 1
+Box # 0:  [(0,0,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,0,-1),(9,9,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,0,0),(9,9,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,0),(10,9,9)]
+axis: 1
+Box # 0:  [(0,0,0),(9,10,9)]
+axis: 2
+Box # 0:  [(0,0,0),(9,9,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,0),(10,9,9)]
+axis: 1
+Box # 0:  [(0,0,0),(9,10,9)]
+axis: 2
+Box # 0:  [(0,0,0),(9,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,0),(10,9,9)]
+axis: 1
+Box # 0:  [(0,0,0),(9,10,9)]
+axis: 2
+Box # 0:  [(0,0,0),(9,9,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,0,10),(9,9,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,11),(9,9,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,10),(9,9,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,11),(9,9,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,11),(9,9,11)]
+Box # 1:  [(0,0,10),(9,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,11),(9,9,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,0,10),(10,9,10)]
+axis: 1
+Box # 0:  [(0,0,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,0,10),(9,9,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,10,-10),(9,19,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,-1),(10,10,-1)]
+axis: 1
+Box # 0:  [(0,10,-1),(9,11,-1)]
+axis: 2
+Box # 0:  [(0,10,-1),(9,10,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,-1),(10,10,-1)]
+axis: 1
+Box # 0:  [(0,10,-1),(9,11,-1)]
+axis: 2
+Box # 0:  [(0,10,-1),(9,10,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+Box # 0:  [(0,10,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+Box # 0:  [(0,10,-1),(9,10,-1)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,0)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,-1),(10,10,-1)]
+axis: 1
+Box # 0:  [(0,10,-1),(9,11,-1)]
+axis: 2
+Box # 0:  [(0,10,-1),(9,10,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,-1),(10,10,-1)]
+axis: 1
+Box # 0:  [(0,10,-1),(9,11,-1)]
+axis: 2
+Box # 0:  [(0,10,-1),(9,10,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,10,0),(9,19,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,11,0),(9,11,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,10,0),(9,11,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,11,0),(9,11,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,11,0),(9,11,9)]
+Box # 1:  [(0,10,0),(9,10,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,11,0),(9,11,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(0,10,0),(9,11,9)]
+axis: 2
+Box # 0:  [(0,10,0),(9,10,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(0,10,10),(9,19,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,10),(10,10,10)]
+axis: 1
+Box # 0:  [(0,10,10),(9,11,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,10),(10,10,10)]
+axis: 1
+Box # 0:  [(0,10,10),(9,11,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+Box # 0:  [(0,10,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+Box # 0:  [(0,10,10),(9,10,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(0,10,10),(10,10,10)]
+axis: 1
+Box # 0:  [(0,10,10),(9,11,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(0,10,10),(10,10,10)]
+axis: 1
+Box # 0:  [(0,10,10),(9,11,10)]
+axis: 2
+Box # 0:  [(0,10,10),(9,10,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,-10,-10),(19,-1,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,-1),(11,-1,-1)]
+axis: 1
+Box # 0:  [(10,-1,-1),(10,0,-1)]
+axis: 2
+Box # 0:  [(10,-1,-1),(10,-1,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,-1),(11,-1,-1)]
+axis: 1
+Box # 0:  [(10,-1,-1),(10,0,-1)]
+axis: 2
+Box # 0:  [(10,-1,-1),(10,-1,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,-1),(11,-1,-1)]
+axis: 1
+Box # 0:  [(10,-1,-1),(10,0,-1)]
+axis: 2
+Box # 0:  [(10,-1,-1),(10,-1,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,-1),(11,-1,-1)]
+axis: 1
+Box # 0:  [(10,-1,-1),(10,0,-1)]
+axis: 2
+Box # 0:  [(10,-1,-1),(10,-1,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,-10,0),(19,-1,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,0),(11,-1,9)]
+axis: 1
+Box # 0:  [(10,-1,0),(10,0,9)]
+axis: 2
+Box # 0:  [(10,-1,0),(10,-1,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,0),(11,-1,9)]
+axis: 1
+Box # 0:  [(10,-1,0),(10,0,9)]
+axis: 2
+Box # 0:  [(10,-1,0),(10,-1,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,0,9)]
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,0),(10,-1,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,0,9)]
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,0),(11,-1,9)]
+axis: 1
+Box # 0:  [(10,-1,0),(10,0,9)]
+axis: 2
+Box # 0:  [(10,-1,0),(10,-1,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,0),(11,-1,9)]
+axis: 1
+Box # 0:  [(10,-1,0),(10,0,9)]
+axis: 2
+Box # 0:  [(10,-1,0),(10,-1,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,-10,10),(19,-1,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,10),(11,-1,10)]
+axis: 1
+Box # 0:  [(10,-1,10),(10,0,10)]
+axis: 2
+Box # 0:  [(10,-1,10),(10,-1,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,10),(11,-1,10)]
+axis: 1
+Box # 0:  [(10,-1,10),(10,0,10)]
+axis: 2
+Box # 0:  [(10,-1,10),(10,-1,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,-1,10),(11,-1,10)]
+axis: 1
+Box # 0:  [(10,-1,10),(10,0,10)]
+axis: 2
+Box # 0:  [(10,-1,10),(10,-1,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,-1,10),(11,-1,10)]
+axis: 1
+Box # 0:  [(10,-1,10),(10,0,10)]
+axis: 2
+Box # 0:  [(10,-1,10),(10,-1,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,0,-10),(19,9,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,-1),(11,9,-1)]
+axis: 1
+Box # 0:  [(10,0,-1),(10,10,-1)]
+axis: 2
+Box # 0:  [(10,0,-1),(10,9,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,-1),(11,9,-1)]
+axis: 1
+Box # 0:  [(10,0,-1),(10,10,-1)]
+axis: 2
+Box # 0:  [(10,0,-1),(10,9,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,-1),(10,9,-1)]
+axis: 1
+axis: 2
+Box # 0:  [(10,0,0),(10,9,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,-1),(10,9,-1)]
+axis: 1
+axis: 2
+Box # 0:  [(10,0,0),(10,9,0)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,-1),(11,9,-1)]
+axis: 1
+Box # 0:  [(10,0,-1),(10,10,-1)]
+axis: 2
+Box # 0:  [(10,0,-1),(10,9,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,-1),(11,9,-1)]
+axis: 1
+Box # 0:  [(10,0,-1),(10,10,-1)]
+axis: 2
+Box # 0:  [(10,0,-1),(10,9,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,0,0),(19,9,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(11,0,0),(11,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,0),(11,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(11,0,0),(11,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(11,0,0),(11,9,9)]
+Box # 1:  [(10,0,0),(10,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(11,0,0),(11,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,0),(11,9,9)]
+axis: 1
+Box # 0:  [(10,0,0),(10,10,9)]
+axis: 2
+Box # 0:  [(10,0,0),(10,9,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,0,10),(19,9,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,10),(11,9,10)]
+axis: 1
+Box # 0:  [(10,0,10),(10,10,10)]
+axis: 2
+Box # 0:  [(10,0,10),(10,9,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,10),(11,9,10)]
+axis: 1
+Box # 0:  [(10,0,10),(10,10,10)]
+axis: 2
+Box # 0:  [(10,0,10),(10,9,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,10),(10,9,10)]
+axis: 1
+axis: 2
+Box # 0:  [(10,0,10),(10,9,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,10),(10,9,10)]
+axis: 1
+axis: 2
+Box # 0:  [(10,0,10),(10,9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,0,10),(11,9,10)]
+axis: 1
+Box # 0:  [(10,0,10),(10,10,10)]
+axis: 2
+Box # 0:  [(10,0,10),(10,9,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,0,10),(11,9,10)]
+axis: 1
+Box # 0:  [(10,0,10),(10,10,10)]
+axis: 2
+Box # 0:  [(10,0,10),(10,9,11)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,10,-10),(19,19,-1)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,-1),(11,10,-1)]
+axis: 1
+Box # 0:  [(10,10,-1),(10,11,-1)]
+axis: 2
+Box # 0:  [(10,10,-1),(10,10,0)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,-1),(11,10,-1)]
+axis: 1
+Box # 0:  [(10,10,-1),(10,11,-1)]
+axis: 2
+Box # 0:  [(10,10,-1),(10,10,0)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,-1),(11,10,-1)]
+axis: 1
+Box # 0:  [(10,10,-1),(10,11,-1)]
+axis: 2
+Box # 0:  [(10,10,-1),(10,10,0)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,-1),(11,10,-1)]
+axis: 1
+Box # 0:  [(10,10,-1),(10,11,-1)]
+axis: 2
+Box # 0:  [(10,10,-1),(10,10,0)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,10,0),(19,19,9)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,0),(11,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,11,9)]
+axis: 2
+Box # 0:  [(10,10,0),(10,10,10)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,0),(11,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,11,9)]
+axis: 2
+Box # 0:  [(10,10,0),(10,10,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,10,9)]
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,0),(10,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,10,9)]
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,0),(11,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,11,9)]
+axis: 2
+Box # 0:  [(10,10,0),(10,10,10)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,0),(11,10,9)]
+axis: 1
+Box # 0:  [(10,10,0),(10,11,9)]
+axis: 2
+Box # 0:  [(10,10,0),(10,10,10)]
+**************************************************
+dst_box: [(0,0,0),(9,9,9)]
+src_box: [(10,10,10),(19,19,19)]
+default overlap, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,10),(11,10,10)]
+axis: 1
+Box # 0:  [(10,10,10),(10,11,10)]
+axis: 2
+Box # 0:  [(10,10,10),(10,10,11)]
+default overlap, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,10),(11,10,10)]
+axis: 1
+Box # 0:  [(10,10,10),(10,11,10)]
+axis: 2
+Box # 0:  [(10,10,10),(10,10,11)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+axis: 1
+axis: 2
+no corners pattern, overwrite_interior == true:
+axis: 0
+axis: 1
+axis: 2
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+axis: 0
+Box # 0:  [(10,10,10),(11,10,10)]
+axis: 1
+Box # 0:  [(10,10,10),(10,11,10)]
+axis: 2
+Box # 0:  [(10,10,10),(10,10,11)]
+no corners pattern, overwrite_interior == true:
+axis: 0
+Box # 0:  [(10,10,10),(11,10,10)]
+axis: 1
+Box # 0:  [(10,10,10),(10,11,10)]
+axis: 2
+Box # 0:  [(10,10,10),(10,10,11)]
