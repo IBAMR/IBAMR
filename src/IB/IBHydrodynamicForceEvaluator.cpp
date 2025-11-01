@@ -1234,7 +1234,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
 
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy, "DEFAULT_FILL");
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);
     }
@@ -1266,7 +1266,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 p_ins_bc_coef,
                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy, "DEFAULT_FILL");
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);
     }

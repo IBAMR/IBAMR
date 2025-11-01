@@ -1105,7 +1105,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy, "DEFAULT_FILL");
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
     d_hier_math_ops->grad(d_U_current_idx,

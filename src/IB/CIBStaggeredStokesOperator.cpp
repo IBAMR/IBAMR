@@ -271,7 +271,7 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy(), "DEFAULT_FILL");
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
@@ -362,7 +362,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
                                                                    d_U_fill_pattern,
                                                                    d_bdry_interp_type);
         Pointer<HierarchyGhostCellInterpolation> U_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-        U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
+        U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy(), "DEFAULT_FILL");
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
         U_bdry_fill->fillData(d_solution_time);
 

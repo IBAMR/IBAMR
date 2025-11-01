@@ -339,8 +339,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Initialize operator states
-    D_fill_op->initializeOperatorState(D_transaction, hierarchy);
-    H_fill_op->initializeOperatorState(H_transcation, hierarchy);
+    D_fill_op->initializeOperatorState(D_transaction, hierarchy, "DEFAULT_FILL");
+    H_fill_op->initializeOperatorState(H_transcation, hierarchy, "DEFAULT_FILL");
 
     // Copy initial condition, including ghost cells
     D_fill_op->fillData(time);

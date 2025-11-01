@@ -1735,7 +1735,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
                                                      DATA_REFINE_TYPE,
@@ -1745,7 +1745,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_P_bc_coef);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
+    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     if (d_Q_fcn)
     {
@@ -1756,7 +1756,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy, "DEFAULT_FILL");
     }
 
     if (!d_mu_is_const)
@@ -1766,7 +1766,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         InterpolationTransactionComponent mu_bc_component(
             d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
         d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy, "DEFAULT_FILL");
     }
 
     // Setup the patch boundary synchronization objects.

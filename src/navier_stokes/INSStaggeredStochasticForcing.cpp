@@ -607,7 +607,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         ghost_fill_components[0] =
             InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);
         HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
+        ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy, "DEFAULT_FILL");
         ghost_fill_op.fillData(data_time);
     }
 

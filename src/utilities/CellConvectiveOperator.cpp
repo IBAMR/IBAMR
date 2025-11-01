@@ -283,8 +283,7 @@ CellConvectiveOperator::interpolateToFaceOnHierarchy(int q_interp_idx, int Q_cel
 {
     if (!d_is_initialized)
     {
-        TBOX_ERROR("CellConvectiveOperator::interpolateToFaceOnHierarchy():\n"
-                   << "  operator must be initialized\n");
+        TBOX_ERROR("CellConvectiveOperator::interpolateToFaceOnHierarchy():\n" << "  operator must be initialized\n");
     }
 
     // Setup communications algorithms.
@@ -727,8 +726,7 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_f
 {
     if (!d_is_initialized)
     {
-        TBOX_ERROR("CellConvectiveOperator::evaluateAdvectiveFluxOnPatch():\n"
-                   << "  operator must be initialized\n");
+        TBOX_ERROR("CellConvectiveOperator::evaluateAdvectiveFluxOnPatch():\n" << "  operator must be initialized\n");
     }
 
     // Setup temporary data.
@@ -803,8 +801,7 @@ CellConvectiveOperator::applyConvectiveOperator(int Q_idx, int N_idx)
 {
     if (!d_is_initialized)
     {
-        TBOX_ERROR("CellConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized\n");
+        TBOX_ERROR("CellConvectiveOperator::applyConvectiveOperator():\n" << "  operator must be initialized\n");
     }
 
     switch (d_difference_form)
@@ -882,7 +879,7 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
         level->allocatePatchData(d_q_flux_idx);
         level->allocatePatchData(d_q_interp_idx);
         d_Q_cell_refine_scheds[ln] =
-            d_Q_cell_refine_alg->createSchedule(level, ln - 1, d_hierarchy, d_Q_cell_refine_bdry_op);
+            d_Q_cell_refine_alg->createSchedule("DEFAULT_FILL", level, ln - 1, d_hierarchy, d_Q_cell_refine_bdry_op);
         if (ln > coarsest_ln)
         {
             d_q_flux_coarsen_scheds[ln] = d_q_flux_coarsen_alg->createSchedule(coarser_level, level);
