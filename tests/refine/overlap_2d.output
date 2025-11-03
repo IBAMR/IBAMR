@@ -1,0 +1,617 @@
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,-10),(-1,-1)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,-1)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(-1,-1)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,0)]
+Box # 0:  [(-1,-1),(0,-1)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(-1,0)]
+Box # 0:  [(-1,-1),(0,-1)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(0,-1)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(0,-1)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,0)]
+Box # 1:  [(0,-1),(0,-1)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(0,0)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,0)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,0)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(-1,0),(-1,0)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(-1,0),(-1,0)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 1:  [(-1,0),(-1,0)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,-1),(0,-1)]
+Box # 0:  [(-1,-1),(0,-1)]
+Box # 1:  [(-1,0),(0,0)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(-1,0),(-1,0)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(0,-1),(0,-1)]
+Box # 0:  [(-1,-1),(-1,-1)]
+Box # 1:  [(-1,0),(-1,0)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,0),(-1,9)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,9)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,10)]
+Box # 0:  [(-1,0),(-1,9)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,10)]
+Box # 0:  [(-1,0),(0,9)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(0,-1),(10,-1)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(0,9)]
+Box # 0:  [(0,-1),(10,-1)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,10)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(0,10)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(-1,0),(-1,10)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(0,9)]
+Box # 0:  [(-1,0),(-1,10)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,0),(-1,9)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,0),(-1,9)]
+Box # 1:  [(0,0),(0,9)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 1:  [(0,0),(0,9)]
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(-1,1),(-1,9)]
+Box # 1:  [(-1,0),(-1,0)]
+Box # 2:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,1),(-1,9)]
+Box # 1:  [(-1,0),(-1,0)]
+Box # 2:  [(-1,10),(-1,10)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(-1,1),(-1,9)]
+Box # 1:  [(-1,0),(-1,0)]
+Box # 2:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,1),(-1,9)]
+Box # 1:  [(0,1),(0,9)]
+Box # 2:  [(-1,0),(0,0)]
+Box # 3:  [(-1,10),(0,10)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,10),(-1,10)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(-1,0),(-1,9)]
+Box # 1:  [(0,0),(0,9)]
+Box # 0:  [(-1,0),(-1,0)]
+Box # 1:  [(-1,10),(-1,10)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,10),(-1,19)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,10)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(-1,10)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,11)]
+Box # 0:  [(-1,10),(0,10)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(-1,11)]
+Box # 0:  [(-1,10),(0,10)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(0,10)]
+Box # 0:  [(10,-1),(11,-1)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(0,10)]
+Box # 0:  [(10,-1),(11,-1)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,11)]
+Box # 1:  [(0,11),(0,11)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(0,11)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(0,10)]
+Box # 0:  [(-1,10),(-1,11)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(0,10)]
+Box # 0:  [(-1,10),(-1,11)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(-1,11),(-1,11)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(-1,11)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(-1,11),(-1,11)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(-1,11)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(0,11)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(0,11)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(0,11)]
+Box # 0:  [(-1,10),(0,10)]
+Box # 1:  [(-1,11),(0,11)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(-1,11)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(-1,11),(-1,11)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,-10),(9,-1)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(9,-1)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(9,-1)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(9,-1)]
+Box # 0:  [(0,-1),(10,-1)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(9,0)]
+Box # 0:  [(0,-1),(10,-1)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(-1,0),(-1,9)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(-1,0),(0,9)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(10,-1)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(10,0)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(0,-1),(9,-1)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(0,-1),(9,0)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(9,-1)]
+Box # 0:  [(0,-1),(9,-1)]
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(9,-1)]
+Box # 0:  [(0,-1),(9,-1)]
+Box # 1:  [(0,0),(9,0)]
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+Box # 0:  [(-1,0),(-1,9)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+Box # 0:  [(-1,0),(-1,9)]
+Box # 1:  [(0,0),(0,9)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(0,-1),(10,-1)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(10,-1)]
+Box # 0:  [(0,-1),(10,-1)]
+Box # 1:  [(0,0),(10,0)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+Box # 0:  [(0,-1),(9,-1)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(0,-1),(0,-1)]
+Box # 1:  [(10,-1),(10,-1)]
+Box # 0:  [(0,-1),(9,-1)]
+Box # 1:  [(0,0),(9,0)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,0),(9,9)]
+cell overlap, overwrite_interior == false:
+cell overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(9,9)]
+edge overlap, overwrite_interior == false:
+edge overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(9,10)]
+Box # 0:  [(0,0),(10,9)]
+face overlap, overwrite_interior == false:
+face overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(10,9)]
+Box # 0:  [(0,0),(10,9)]
+node overlap, overwrite_interior == false:
+node overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(10,10)]
+side overlap, overwrite_interior == false:
+side overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(10,9)]
+Box # 0:  [(0,0),(9,10)]
+outer edge overlap, overwrite_interior == false:
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(9,0)]
+Box # 1:  [(0,10),(9,10)]
+Box # 0:  [(0,0),(0,9)]
+Box # 1:  [(10,0),(10,9)]
+outer face overlap, overwrite_interior == false:
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(0,9)]
+Box # 1:  [(10,0),(10,9)]
+Box # 0:  [(0,0),(0,9)]
+Box # 1:  [(10,0),(10,9)]
+outer node overlap, overwrite_interior == false:
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(0,1),(0,9)]
+Box # 1:  [(10,1),(10,9)]
+Box # 2:  [(0,0),(10,0)]
+Box # 3:  [(0,10),(10,10)]
+outer side overlap, overwrite_interior == false:
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(0,0),(0,9)]
+Box # 1:  [(10,0),(10,9)]
+Box # 0:  [(0,0),(9,0)]
+Box # 1:  [(0,10),(9,10)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,10),(9,19)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(0,10),(9,10)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(9,10)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(0,11),(9,11)]
+Box # 0:  [(0,10),(10,10)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(9,11)]
+Box # 0:  [(0,10),(10,10)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(0,10),(10,10)]
+Box # 0:  [(11,0),(11,9)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(10,10)]
+Box # 0:  [(10,0),(11,9)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(0,11),(10,11)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(10,11)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(0,10),(10,10)]
+Box # 0:  [(0,11),(9,11)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(10,10)]
+Box # 0:  [(0,10),(9,11)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(0,11),(9,11)]
+Box # 0:  [(0,11),(9,11)]
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(0,11),(9,11)]
+Box # 0:  [(0,10),(9,10)]
+Box # 1:  [(0,11),(9,11)]
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(11,0),(11,9)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(10,0),(10,9)]
+Box # 1:  [(11,0),(11,9)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(0,11),(10,11)]
+Box # 0:  [(0,11),(10,11)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(0,11),(10,11)]
+Box # 0:  [(0,10),(10,10)]
+Box # 1:  [(0,11),(10,11)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(0,11),(9,11)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(0,10),(9,10)]
+Box # 1:  [(0,11),(9,11)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,-10),(19,-1)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(10,-1)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(10,-1)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(10,0)]
+Box # 0:  [(10,-1),(11,-1)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(10,0)]
+Box # 0:  [(10,-1),(11,-1)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(11,-1)]
+Box # 0:  [(-1,10),(0,10)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(11,-1)]
+Box # 0:  [(-1,10),(0,10)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(11,-1),(11,0)]
+Box # 1:  [(10,-1),(10,-1)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(11,0)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,0)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,0)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 0:  [(11,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(10,0),(10,0)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 0:  [(11,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(10,0),(10,0)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+Box # 0:  [(-1,10),(-1,10)]
+Box # 1:  [(0,10),(0,10)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,0)]
+Box # 1:  [(10,-1),(11,-1)]
+Box # 0:  [(10,-1),(11,-1)]
+Box # 1:  [(11,0),(11,0)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(11,0),(11,0)]
+Box # 1:  [(10,-1),(11,-1)]
+Box # 0:  [(10,-1),(11,-1)]
+Box # 1:  [(10,0),(11,0)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(10,0),(10,0)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(11,-1),(11,-1)]
+Box # 0:  [(10,-1),(10,-1)]
+Box # 1:  [(10,0),(10,0)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,0),(19,9)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(10,0),(10,9)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(10,9)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(10,0),(10,10)]
+Box # 0:  [(11,0),(11,9)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(10,10)]
+Box # 0:  [(10,0),(11,9)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(0,10),(10,10)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(11,9)]
+Box # 0:  [(0,10),(10,10)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,10)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(11,10)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(10,0),(10,10)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(11,9)]
+Box # 0:  [(10,0),(10,10)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(10,0),(10,0)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(11,0),(11,9)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(10,0),(10,0)]
+Box # 1:  [(10,10),(10,10)]
+Box # 0:  [(10,0),(10,9)]
+Box # 1:  [(11,0),(11,9)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(10,9)]
+Box # 1:  [(11,0),(11,9)]
+Box # 0:  [(0,10),(0,10)]
+Box # 1:  [(10,10),(10,10)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(11,1),(11,9)]
+Box # 1:  [(11,0),(11,0)]
+Box # 2:  [(11,10),(11,10)]
+Box # 0:  [(11,1),(11,9)]
+Box # 1:  [(11,0),(11,0)]
+Box # 2:  [(11,10),(11,10)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(11,1),(11,9)]
+Box # 1:  [(11,0),(11,0)]
+Box # 2:  [(11,10),(11,10)]
+Box # 0:  [(10,1),(10,9)]
+Box # 1:  [(11,1),(11,9)]
+Box # 2:  [(10,0),(11,0)]
+Box # 3:  [(10,10),(11,10)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(11,0),(11,9)]
+Box # 0:  [(10,0),(10,0)]
+Box # 1:  [(10,10),(10,10)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(10,0),(10,9)]
+Box # 1:  [(11,0),(11,9)]
+Box # 0:  [(10,0),(10,0)]
+Box # 1:  [(10,10),(10,10)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,10),(19,19)]
+cell overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(10,10)]
+cell overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(10,10)]
+edge overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(10,11)]
+Box # 0:  [(10,10),(11,10)]
+edge overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(10,11)]
+Box # 0:  [(10,10),(11,10)]
+face overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(11,10)]
+Box # 0:  [(10,10),(11,10)]
+face overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(11,10)]
+Box # 0:  [(10,10),(11,10)]
+node overlap, overwrite_interior == false:
+Box # 0:  [(11,10),(11,11)]
+Box # 1:  [(10,11),(10,11)]
+node overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(11,11)]
+side overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(11,10)]
+Box # 0:  [(10,10),(10,11)]
+side overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(11,10)]
+Box # 0:  [(10,10),(10,11)]
+outer edge overlap, overwrite_interior == false:
+Box # 0:  [(10,11),(10,11)]
+Box # 0:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(10,11),(10,11)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+outer edge overlap, overwrite_interior == true:
+Box # 0:  [(10,11),(10,11)]
+Box # 0:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(10,11),(10,11)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+outer face overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+outer face overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+outer node overlap, overwrite_interior == false:
+Box # 0:  [(11,10),(11,10)]
+Box # 1:  [(10,11),(11,11)]
+Box # 0:  [(11,10),(11,10)]
+Box # 1:  [(10,11),(11,11)]
+outer node overlap, overwrite_interior == true:
+Box # 0:  [(11,10),(11,10)]
+Box # 1:  [(10,11),(11,11)]
+Box # 0:  [(10,10),(11,10)]
+Box # 1:  [(10,11),(11,11)]
+outer side overlap, overwrite_interior == false:
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(10,11),(10,11)]
+outer side overlap, overwrite_interior == true:
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(11,10),(11,10)]
+Box # 0:  [(10,10),(10,10)]
+Box # 1:  [(10,11),(10,11)]
