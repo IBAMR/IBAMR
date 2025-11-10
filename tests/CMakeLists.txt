@@ -125,6 +125,7 @@ SETUP_3D(complex_fluids cf_ucd.cpp)
 SETUP(external eelgenerator3d.cpp IBAMR2d)
 SETUP(external array_01.cpp IBAMR2d)
 SETUP(external array_02.cpp IBAMR2d)
+SETUP(external array_03.cpp IBAMR2d)
 
 # fe_mechanics:
 IF(${IBAMR_HAVE_LIBMESH})
