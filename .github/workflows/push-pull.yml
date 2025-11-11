@@ -428,5 +428,6 @@ jobs:
           }
           export -f print_and_check
 
-          find ./ibtk/include/ibtk -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
-          find ./include/ibamr -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
+          # exclude the namespace headers themselves
+          find ./ibtk/include/ibtk -name '*.h' -print0 | grep -EvZz 'ibtk/app_namespaces.h' | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
+          find ./include/ibamr -name '*.h' -print0 | grep -EvZz 'ibamr/(app_)?namespaces.h' | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
