@@ -22,9 +22,13 @@
 
 #include <ibtk/app_namespaces.h>
 
+#ifndef DOXYGEN
+
 namespace IBAMR
 {
 }
 using namespace IBAMR;
+
+#endif
 
 #endif // #ifndef included_IBAMR_app_namespaces
