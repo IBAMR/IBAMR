@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/namespaces.h>
+
 //////////////////////////////////////////////////////////////////////////////
 
 /*!
@@ -27,65 +29,11 @@
  * file may be included in application codes, but it MUST NOT be included in any
  * other header (.h) or inline (-inl.h) file in the library.
  */
+
 namespace Eigen
 {
 }
 using namespace Eigen;
-
-namespace IBTK
-{
-}
-using namespace IBTK;
-
-namespace SAMRAI
-{
-namespace algs
-{
-}
-namespace appu
-{
-}
-namespace geom
-{
-}
-namespace hier
-{
-}
-namespace math
-{
-}
-namespace mesh
-{
-}
-namespace pdat
-{
-}
-namespace solv
-{
-}
-namespace tbox
-{
-}
-namespace xfer
-{
-}
-} // namespace SAMRAI
-using namespace SAMRAI;
-using namespace SAMRAI::algs;
-using namespace SAMRAI::appu;
-using namespace SAMRAI::geom;
-using namespace SAMRAI::hier;
-using namespace SAMRAI::math;
-using namespace SAMRAI::mesh;
-using namespace SAMRAI::pdat;
-using namespace SAMRAI::solv;
-using namespace SAMRAI::tbox;
-using namespace SAMRAI::xfer;
-
-namespace libMesh
-{
-}
-using namespace libMesh;
 
 namespace std
 {
