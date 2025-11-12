@@ -1,0 +1,44 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: Fixed implementations of CellNoCornersFillPattern and SideNoCornersFillPattern,
+and updated the class constructors to correspond to the new implementation.
+<br>
+(Boyce Griffith, 2025/09/23)
+</li>
+<li>
+Changed: Added input databases to the constructors for several operators and preconditioners.
+These enable runtime configuration of coarse-fine interface discretization details.
+<br>
+(Boyce Griffith, 2025/10/02)
+</li>
+<li>
+Changed: IBAMR now requires IBSAMRAI2 version 2025.10.29.
+<br>
+(David Wells, 2025/10/29)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+Improved: The doxygen manual is now integrated into the CMake build system
+and also creates documentation for all SAMRAI classes.
+(David Wells, 2025/11/12)
+</li>
+<li>
+Improved: Several communication patterns no longer communicate duplicate data:
+see Incompatibilities for more information.
+<br>
+(Boyce Griffith, 2025/09/29)
+</li>
+<li>
+Improved: LEInteractor now allocates significantly fewer temporary arrays.
+<br>
+(David Wells, 2025/10/27)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+</ol>
