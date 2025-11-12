@@ -308,7 +308,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
 
     if (!d_split_penalty)
     {
-        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy, "DEFAULT_FILL");
         hier_bdry_fill->fillData(time);
 
         computeBrinkmanVelocityWithoutSplitting(u_idx, time, cycle_num);
@@ -330,7 +330,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                                               false,
                                               d_fluid_solver->getVelocityBoundaryConditions()));
 
-        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy, "DEFAULT_FILL");
         hier_bdry_fill->fillData(time);
 
         computeBrinkmanVelocityWithSplitting(u_idx, time, cycle_num);
@@ -367,7 +367,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(time);
 
     if (!d_split_penalty)

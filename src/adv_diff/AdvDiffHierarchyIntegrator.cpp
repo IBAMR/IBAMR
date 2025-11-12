@@ -1061,7 +1061,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
         // Initialize the interpolation operators.
         d_hier_bdry_fill_ops[l] = new HierarchyGhostCellInterpolation();
-        d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
+        d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy, "DEFAULT_FILL");
     }
 
     // Reset the solution and rhs vectors.

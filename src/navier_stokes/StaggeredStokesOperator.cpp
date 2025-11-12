@@ -281,7 +281,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy(), "FILL_PATCH_BORDERS_ONLY");
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
