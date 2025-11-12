@@ -2,7 +2,7 @@
 
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2025 by the IBAMR developers
+## Copyright (c) 2025 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
