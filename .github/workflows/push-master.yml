@@ -24,39 +24,39 @@ jobs:
   deploy_documentation:
     runs-on: ubuntu-latest
     name: Compile and deploy doxygen documentation
-    env:
-      TRAVIS_BUILD_DIR: ${{ github.workspace }}
-      DOXYFILE: ${{ github.workspace }}/doc/Doxyfile
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.18-dependencies-ubuntu'
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
         id: git
-      - name: Install dependencies
-        id: dependencies
-        run: |
-          sudo apt update && sudo apt install doxygen doxygen-gui doxygen-doc doxygen-latex graphviz
-          doxygen --version
       - name: Clone IBAMR-docs
         uses: actions/checkout@v4
         with:
           repository: IBAMR/IBAMR-docs
           path: IBAMR-docs
           ref: master
-      - name: Grab tagfile
-        working-directory: ${{ github.workspace }}/doc
-        run: wget https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/libstdc++.tag
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          mkdir build
+          cd build
+          FLAGS="-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai -DIBAMR_ENABLE_DOCUMENTATION=ON"
+          # add a subshell to ensure flags are passed as separate arguments
+          cmake $(echo "$FLAGS") -GNinja ../
       - name: Run Doxygen
-        working-directory: ${{ github.workspace }}/doc
-        run: doxygen $DOXYFILE 2>&1 | tee doxygen.log
+        run: |
+          cd build
+          ninja documentation
       - name: Archive Doxygen Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: doxygen-log
-          path: ${{ github.workspace }}/doc/doxygen.log
+          path: build/doxygen.log
       - name: Update IBAMR-docs
         run: |
           rm -rf IBAMR-docs/ibamr
-          mv doc/html/ibamr IBAMR-docs/ 
+          mv build/doc/doxygen/ibamr IBAMR-docs/
       - name: Push to IBAMR-docs
         uses: cpina/github-action-push-to-another-repository@main
         env:
@@ -65,7 +65,6 @@ jobs:
           source-directory: 'IBAMR-docs'
           destination-github-username: 'IBAMR'
           destination-repository-name: 'IBAMR-docs'
-          user-email: 'travis@travis-ci.org'
           target-branch: master
 
   # build IBAMR with CMake and update the cache
