@@ -422,6 +422,17 @@ public:
     void setHelmholtzRHSOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
+     * Sets the refine operator used during regridding to fill the new patch hierarchy and the coarsen operator used
+     * during grid synchronizations.
+     *
+     * These strings must correspond to a valid operator under the grid geometry when initializePatchHierarchy() is
+     * called.
+     */
+    void setRefineAndCoarsenOperators(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                      std::string Q_refine_type = "CONSERVATIVE_LINEAR_REFINE",
+                                      std::string Q_coarsen_type = "CONSERVATIVE_COARSEN");
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *
@@ -606,6 +617,12 @@ protected:
         d_Q_reset_fcns;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
+
+    /*!
+     * Refine and coarsening types for Q.
+     */
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::string> d_Q_refine_map,
+        d_Q_coarsen_map;
 
     /*
      * Hierarchy operations objects.

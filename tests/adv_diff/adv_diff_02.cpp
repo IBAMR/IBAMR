@@ -37,6 +37,80 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+// Dummy refine and coarsen operators
+class DummyCoarsen : public CoarsenOperator<NDIM>
+{
+public:
+    bool findCoarsenOperator(const Pointer<Variable<NDIM> >&, const std::string& op_name) const
+    {
+        return op_name == s_op_name;
+    }
+
+    const std::string& getOperatorName() const
+    {
+        return s_op_name;
+    }
+
+    int getOperatorPriority() const
+    {
+        return 0;
+    }
+
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const
+    {
+        return 0;
+    }
+
+    void
+    coarsen(Patch<NDIM>& coarse, const Patch<NDIM>&, int dst_idx, int, const Box<NDIM>&, const IntVector<NDIM>&) const
+    {
+        pout << "Coarsening\n";
+        Pointer<CellData<NDIM, double> > data = coarse.getPatchData(dst_idx);
+        data->fillAll(0.0);
+        return;
+    }
+
+private:
+    static const std::string s_op_name;
+};
+const std::string DummyCoarsen::s_op_name = "DUMMY_COARSEN";
+
+class DummyRefine : public RefineOperator<NDIM>
+{
+public:
+    bool findRefineOperator(const Pointer<Variable<NDIM> >&, const std::string& op_name) const
+    {
+        return op_name == s_op_name;
+    }
+
+    const std::string& getOperatorName() const
+    {
+        return s_op_name;
+    }
+
+    int getOperatorPriority() const
+    {
+        return 0;
+    }
+
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const
+    {
+        return 0;
+    }
+
+    void refine(Patch<NDIM>& fine, const Patch<NDIM>&, int dst_idx, int, const Box<NDIM>&, const IntVector<NDIM>&) const
+    {
+        pout << "Refining\n";
+        Pointer<CellData<NDIM, double> > data = fine.getPatchData(dst_idx);
+        data->fillAll(0.0);
+        return;
+    }
+
+private:
+    static const std::string s_op_name;
+};
+const std::string DummyRefine::s_op_name = "DUMMY_REFINE";
+
 int
 main(int argc, char* argv[])
 {
@@ -108,6 +182,13 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        bool test_refine_and_coarsen = input_db->getBoolWithDefault("TEST_REFINE_AND_COARSEN", false);
+        if (test_refine_and_coarsen)
+        {
+            grid_geometry->addSpatialCoarsenOperator(new DummyCoarsen());
+            grid_geometry->addSpatialRefineOperator(new DummyRefine());
+        }
+
         // Create an initial condition specification object.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
@@ -139,6 +220,8 @@ main(int argc, char* argv[])
         time_integrator->setDiffusionCoefficient(U_var, input_db->getDouble("MU") / input_db->getDouble("RHO"));
         time_integrator->setInitialConditions(U_var, u_init);
         time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
+        if (test_refine_and_coarsen)
+            time_integrator->setRefineAndCoarsenOperators(U_var, "DUMMY_REFINE", "DUMMY_COARSEN");
 
         Pointer<FaceVariable<NDIM, double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
@@ -169,8 +252,11 @@ main(int argc, char* argv[])
         app_initializer.setNull();
 
         // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
+        if (!test_refine_and_coarsen)
+        {
+            plog << "Input database:\n";
+            input_db->printClassData(plog);
+        }
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -259,7 +345,7 @@ main(int argc, char* argv[])
         const double l1_norm = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
         const double l2_norm = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
         const double max_norm = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
-        if (IBTK_MPI::getRank() == 0)
+        if (!test_refine_and_coarsen && IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "Error in U at time " << loop_time << ":\n"
