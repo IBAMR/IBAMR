@@ -48,6 +48,9 @@ INCLUDE(CTest)
 # Build tests?
 OPTION(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
 
+OPTION(IBAMR_ENABLE_DOCUMENTATION
+"Whether or not to compile the documentation via doxygen." OFF)
+
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 # Build the libraries in one place:
@@ -1400,6 +1403,10 @@ IF(IBAMR_ENABLE_TESTING)
   ADD_SUBDIRECTORY(tests)
 ENDIF()
 ADD_SUBDIRECTORY(examples)
+
+IF (IBAMR_ENABLE_DOCUMENTATION)
+  ADD_SUBDIRECTORY(doc)
+ENDIF()
 
 # ---------------------------------------------------------------------------- #
 #                               6: Other targets                               #

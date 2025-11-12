@@ -22,6 +22,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
+#ifndef DOXYGEN
+
 /*!
  * Defines "using" declarations for all IBTK namespaces.  This header file may
  * be included in application codes, but it MUST NOT be included in any other
@@ -93,5 +95,7 @@ namespace libMesh
 using namespace libMesh;
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif // #ifndef DOXYGEN
 
 #endif // #ifndef included_IBTK_namespaces
