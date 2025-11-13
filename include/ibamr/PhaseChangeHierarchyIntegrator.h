@@ -142,13 +142,13 @@ public:
      */
     void
     registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > specific_heat_var,
-                                 const bool output_Cp = false);
+                                 bool output_Cp = false);
 
     /*!
      * Register the density \f$ \rho \f$ variable.
      */
     void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
-                                 const bool output_rho = false);
+                                 bool output_rho = false);
 
     /*!
      * \brief Function to reset the phase density, specific heat and conductivity if they are
@@ -187,14 +187,14 @@ public:
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
     virtual void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                                                const bool output_lf_var = true);
+                                                bool output_lf_var = true);
 
     /*!
      * \brief Register gradient of liquid fraction variable.
      */
     virtual void registerLiquidFractionGradientVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
-        const bool output_lf_gradient_var = true);
+        bool output_lf_gradient_var = true);
 
     /*!
      * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
@@ -205,7 +205,7 @@ public:
      * \brief Register temperature variable \f$ T \f$.
      */
     void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
-                                     const bool output_T_var = true);
+                                     bool output_T_var = true);
 
     /*!
      * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
@@ -237,7 +237,7 @@ public:
     /*!
      *  \brief Add the temporal and linear terms to the RHS of the energy equation.
      */
-    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) = 0;
+    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) = 0;
 
     /*!
      * \brief Get the solver of the energy equation.
@@ -281,12 +281,12 @@ public:
     /*!
      * \brief Compute the source term for the div U equation.
      */
-    virtual void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) = 0;
+    virtual void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, double new_time) = 0;
 
     /*!
      * \brief Register boundary conditions for the density field.
      */
-    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_bc_coefs);
+    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coefs);
 
     /*!
      * \brief Register the source term for the mass update equation.
@@ -298,12 +298,12 @@ public:
     /*!
      * \brief Register boundary conditions for the cell-centered specific heat variable.
      */
-    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coefs);
+    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* specific_heat_bc_coefs);
 
     /*!
      * \brief Register boundary conditions for the cell-centered thermal conductivity variable.
      */
-    void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& k_bc_coefs);
+    void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* k_bc_coefs);
 
     /*!
      * \brief Set the face-centered advection velocity.
@@ -319,12 +319,12 @@ protected:
     /*!
      * \brief Interpolate the cell-centered scalar variable to side-centered using simple averaging.
      */
-    void interpolateCCToSCSimpleAveraging(int sc_idx, const int cc_idx);
+    void interpolateCCToSCSimpleAveraging(int sc_idx, int cc_idx);
 
     /*!
      * \brief Interpolate the cell-centered scalar variable to side-centered using harmonic averaging.
      */
-    void interpolateCCToSCHarmonicAveraging(int sc_idx, const int cc_idx);
+    void interpolateCCToSCHarmonicAveraging(int sc_idx, int cc_idx);
 
     /*!
      * \brief Read input values from a given database.
@@ -338,14 +338,12 @@ protected:
     void getFromRestart();
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data for solvers and operators.
      */
-    virtual void regridHierarchyBeginSpecialized() override;
-
-    /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
-     */
-    virtual void regridHierarchyEndSpecialized() override;
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level) override;
 
     /*!
      * Bound the liquid fraction, if necessary.

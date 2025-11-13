@@ -190,7 +190,7 @@ public:
      * \brief Function to compute the variable surface tension coefficient.
      */
     using ComputeSurfaceTensionCoefficientPtr = void (*)(int F_idx,
-                                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                                          int cycle_num,
                                                          double time,
                                                          double current_time,
