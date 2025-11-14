@@ -1,5 +1,0 @@
-# Makefile for generating and deploying docs
-
-docs-deploy:
-	chmod +x generateDocumentationAndDeploy.sh
-	./generateDocumentationAndDeploy.sh
