@@ -71,7 +71,6 @@ MultiStructureForceTracker::registerStructuresFromDatabase(
         // Input validation: check that database exists
         if (!input_db->isDatabase(box_db_name))
         {
-            SAMRAI::tbox::SAMRAI_MPI::abort();
             TBOX_ERROR("MultiStructureForceTracker::registerStructuresFromDatabase()\n"
                       << "  Missing control volume configuration: " << box_db_name << "\n"
                       << "  Each structure requires " << db_name_prefix << "_N database in input file.");
