@@ -1,0 +1,14 @@
+# VinodIBAMRConfig.cmake
+# CMake configuration file for Vinod IBAMR Extensions
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find IBAMR dependency
+find_dependency(IBAMR REQUIRED)
+
+# Include targets
+include("${CMAKE_CURRENT_LIST_DIR}/VinodIBAMRTargets.cmake")
+
+check_required_components(VinodIBAMR)
