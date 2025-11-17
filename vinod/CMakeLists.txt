@@ -75,6 +75,12 @@ target_include_directories(vinod_ibamr
 )
 
 # Link IBAMR
+# NDIM should be set by parent project or passed via -DNDIM=2 or -DNDIM=3
+if(NOT DEFINED NDIM)
+    set(NDIM 2 CACHE STRING "Spatial dimension (2 or 3)")
+    message(STATUS "NDIM not set, defaulting to NDIM=${NDIM}")
+endif()
+
 target_link_libraries(vinod_ibamr
     PUBLIC
         IBAMR::IBAMR${NDIM}d
@@ -84,12 +90,12 @@ target_link_libraries(vinod_ibamr
 # Examples
 # =============================================================================
 
-option(BUILD_EXAMPLES "Build example programs" ON)
-
-if(BUILD_EXAMPLES)
-    add_subdirectory(examples/Four_fish_school-main)
-    add_subdirectory(examples/simple_cylinder)
-endif()
+# Note: Examples have their own standalone CMakeLists.txt files
+# Build them separately from their own directories
+# Example:
+#   cd examples/simple_cylinder && mkdir build && cd build
+#   cmake .. -DIBAMR_DIR=/path/to/IBAMR/install
+#   make
 
 # =============================================================================
 # Installation
@@ -163,8 +169,8 @@ message(STATUS "====================================")
 message(STATUS "Version: ${PROJECT_VERSION}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "Spatial dimension: ${NDIM}D")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "Build examples: ${BUILD_EXAMPLES}")
 message(STATUS "Build testing: ${BUILD_TESTING}")
 message(STATUS "====================================")
 message(STATUS "")
