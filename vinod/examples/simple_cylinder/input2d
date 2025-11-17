@@ -1,0 +1,155 @@
+// Physical parameters
+MU = 0.01                                    // Fluid viscosity
+RHO = 1.0                                    // Fluid density
+U_MAX = 1.0                                  // Maximum inflow velocity
+
+// Grid parameters
+N = 128                                      // Grid resolution (coarsest level)
+NFINEST = 128                                // Grid resolution (finest level)
+MAX_LEVELS = 2                               // Maximum number of AMR levels
+
+L = 4.0                                      // Domain size (square domain)
+H = 4.0
+
+// Solver parameters
+START_TIME = 0.0e0                           // Initial simulation time
+END_TIME = 10.0                              // Final simulation time
+GROW_DT = 2.0e0                              // Growth factor for time step
+MAX_INTEGRATOR_STEPS = 10000000              // Max timesteps
+REGRID_INTERVAL = 4                          // Regrid interval
+DT_MAX = 0.01                                // Maximum time step size
+CFL_MAX = 0.3                                // CFL number
+ERROR_ON_DT_CHANGE = FALSE                   // Error on timestep change
+
+// IB parameters
+IB_DELTA_FUNCTION = "IB_4"                   // IB kernel function
+IB_USE_CONSISTENT_MASS_MATRIX = TRUE         // Use consistent mass matrix
+
+// Model parameters
+CYLINDER_RADIUS = 0.2                        // Cylinder radius
+CYLINDER_CENTER_X = 1.0                      // Cylinder center X
+CYLINDER_CENTER_Y = 2.0                      // Cylinder center Y
+
+VelocityInitialConditions {
+   function_0 = "U_MAX"                      // u-velocity
+   function_1 = "0.0"                        // v-velocity
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "U_MAX"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time            = START_TIME
+   end_time              = END_TIME
+   grow_dt               = GROW_DT
+   regrid_interval       = REGRID_INTERVAL
+   dt_max                = DT_MAX
+   error_on_dt_change    = ERROR_ON_DT_CHANGE
+   enable_logging        = TRUE
+}
+
+IBMethod {
+   delta_fcn                = IB_DELTA_FUNCTION
+   use_consistent_mass_matrix = IB_USE_CONSISTENT_MASS_MATRIX
+   IB_point_density         = 2.0
+   enable_logging           = TRUE
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = MU
+   rho                     = RHO
+   start_time              = START_TIME
+   end_time                = END_TIME
+   grow_dt                 = GROW_DT
+   cfl                     = CFL_MAX
+   dt_max                  = DT_MAX
+   using_vorticity_tagging = TRUE
+   vorticity_rel_thresh    = 0.25
+   tag_buffer              = 1
+   regrid_interval         = REGRID_INTERVAL
+   output_U                = TRUE
+   output_P                = TRUE
+   output_F                = FALSE
+   output_Omega            = TRUE
+   output_Div_U            = FALSE
+   enable_logging          = TRUE
+}
+
+Main {
+   solver_type = "STAGGERED"
+   log_file_name    = "IB2d.log"
+   log_all_nodes    = FALSE
+   viz_writer       = "VisIt"
+   viz_dump_interval = 100
+   viz_dump_dirname = "viz_IB2d"
+   visit_number_procs_per_file = 1
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (N - 1, N - 1) ]
+   x_lo         =  0.0, 0.0
+   x_up         =  L, H
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 4, 4
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+   efficiency_tolerance   = 0.85e0
+   combine_efficiency     = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*", "IBTK::*::*", "*::*::*"
+}
