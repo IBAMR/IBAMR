@@ -242,41 +242,23 @@ main(int argc, char* argv[])
         // Following official IBAMR eel2d example pattern
         // =============================================================================
         vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
-        Pointer<ConstraintIBKinematics> ib_kinematics_op;
-        
-        // struct_0 - FISH-1 (bottom-left, y = -0.3)
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d_1",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d_1"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
-        ibkinematics_ops_vec.push_back(ib_kinematics_op);
-        
-        // struct_1 - FISH-2 (bottom-right, y = -0.3)
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d_2",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d_2"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
-        ibkinematics_ops_vec.push_back(ib_kinematics_op);
+        Pointer<Database> kinematics_db = app_initializer->getComponentDatabase("ConstraintIBKinematics");
 
-        // struct_2 - FISH-3 (top-left, y = +0.3)
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d_3",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d_3"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
-        ibkinematics_ops_vec.push_back(ib_kinematics_op);
+        // Create kinematics for all fish in a loop (eliminates code duplication)
+        for (int fish_id = 0; fish_id < num_structures; ++fish_id)
+        {
+            const std::string fish_name = "eel2d_" + std::to_string(fish_id + 1);
+            pout << "Creating kinematics for " << fish_name << std::endl;
 
-        // struct_3 - FISH-4 (top-right, y = +0.3)
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d_4",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d_4"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
-        ibkinematics_ops_vec.push_back(ib_kinematics_op);
+            Pointer<ConstraintIBKinematics> ib_kinematics_op =
+                new IBEELKinematics(fish_name,
+                                    kinematics_db->getDatabase(fish_name),
+                                    ib_method_ops->getLDataManager(),
+                                    patch_hierarchy);
+            ibkinematics_ops_vec.push_back(ib_kinematics_op);
+        }
 
-        // register ConstraintIBKinematics objects with ConstraintIBMethod.
+        // Register all ConstraintIBKinematics objects with ConstraintIBMethod
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
@@ -292,67 +274,72 @@ main(int argc, char* argv[])
         // =============================================================================
         // REGISTER CONTROL VOLUMES FOR 4 FISH
         // =============================================================================
-        
-        // Get the initial box position and velocity from input - FISH 1
-        const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
-        IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
-        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
-        hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
+        for (int fish_id = 0; fish_id < num_structures; ++fish_id)
+        {
+            // Get the initial box position and velocity from input for this fish
+            const string box_db_name = "InitHydroForceBox_" + std::to_string(fish_id);
+            pout << "Registering control volume for Fish " << (fish_id + 1) << ": " << box_db_name << std::endl;
 
-        // Get the initial box position and velocity from input - FISH 2
-        const string init_hydro_force_box_db_name_2 = "InitHydroForceBox_1";
-        IBTK::Vector3d box_X_lower_2, box_X_upper_2, box_init_vel_2;
-        input_db->getDatabase(init_hydro_force_box_db_name_2)->getDoubleArray("lower_left_corner", &box_X_lower_2[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_2)->getDoubleArray("upper_right_corner", &box_X_upper_2[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_2)->getDoubleArray("init_velocity", &box_init_vel_2[0], 3);
-        hydro_force->registerStructure(box_X_lower_2, box_X_upper_2, patch_hierarchy, box_init_vel_2, 1);
+            // Input validation: check that database exists
+            if (!input_db->isDatabase(box_db_name))
+            {
+                TBOX_ERROR("FATAL ERROR: Missing control volume configuration: " << box_db_name
+                          << "\nEach fish requires InitHydroForceBox_N database in input file.");
+            }
 
-        // Get the initial box position and velocity from input - FISH 3
-        const string init_hydro_force_box_db_name_3 = "InitHydroForceBox_2";
-        IBTK::Vector3d box_X_lower_3, box_X_upper_3, box_init_vel_3;
-        input_db->getDatabase(init_hydro_force_box_db_name_3)->getDoubleArray("lower_left_corner", &box_X_lower_3[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_3)->getDoubleArray("upper_right_corner", &box_X_upper_3[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_3)->getDoubleArray("init_velocity", &box_init_vel_3[0], 3);
-        hydro_force->registerStructure(box_X_lower_3, box_X_upper_3, patch_hierarchy, box_init_vel_3, 2);
+            Pointer<Database> box_db = input_db->getDatabase(box_db_name);
 
-        // Get the initial box position and velocity from input - FISH 4
-        const string init_hydro_force_box_db_name_4 = "InitHydroForceBox_3";
-        IBTK::Vector3d box_X_lower_4, box_X_upper_4, box_init_vel_4;
-        input_db->getDatabase(init_hydro_force_box_db_name_4)->getDoubleArray("lower_left_corner", &box_X_lower_4[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_4)->getDoubleArray("upper_right_corner", &box_X_upper_4[0], 3);
-        input_db->getDatabase(init_hydro_force_box_db_name_4)->getDoubleArray("init_velocity", &box_init_vel_4[0], 3);
-        hydro_force->registerStructure(box_X_lower_4, box_X_upper_4, patch_hierarchy, box_init_vel_4, 3);
+            // Input validation: check that required keys exist
+            if (!box_db->keyExists("lower_left_corner"))
+            {
+                TBOX_ERROR("FATAL ERROR: Missing 'lower_left_corner' in " << box_db_name);
+            }
+            if (!box_db->keyExists("upper_right_corner"))
+            {
+                TBOX_ERROR("FATAL ERROR: Missing 'upper_right_corner' in " << box_db_name);
+            }
+            if (!box_db->keyExists("init_velocity"))
+            {
+                TBOX_ERROR("FATAL ERROR: Missing 'init_velocity' in " << box_db_name);
+            }
+
+            IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
+            box_db->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
+            box_db->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
+            box_db->getDoubleArray("init_velocity", &box_init_vel[0], 3);
+
+            // Input validation: check that lower < upper
+            for (int d = 0; d < 3; ++d)
+            {
+                if (box_X_lower[d] >= box_X_upper[d])
+                {
+                    TBOX_ERROR("FATAL ERROR: Invalid control volume for " << box_db_name
+                              << "\nlower_left_corner[" << d << "] = " << box_X_lower[d]
+                              << " >= upper_right_corner[" << d << "] = " << box_X_upper[d]
+                              << "\nControl volume bounds must satisfy lower < upper.");
+                }
+            }
+
+            hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, fish_id);
+        }
 
         // =============================================================================
         // CREATE COM VARIABLES AND SET TORQUE ORIGINS FOR 4 FISH
         // =============================================================================
         std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
-        
-        // Create COM variable - FISH 1
-        IBTK::Vector3d eel_COM;
-        for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[0][d];
-        hydro_force->setTorqueOrigin(eel_COM, 0);
-        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
 
-        // Create COM variable - FISH 2
-        IBTK::Vector3d eel_COM_2;
-        for (int d = 0; d < 3; ++d) eel_COM_2[d] = structure_COM[1][d];
-        hydro_force->setTorqueOrigin(eel_COM_2, 1);
-        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 1);
+        for (int fish_id = 0; fish_id < num_structures; ++fish_id)
+        {
+            // Set torque origin at fish center of mass
+            IBTK::Vector3d eel_COM;
+            for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[fish_id][d];
 
-        // Create COM variable - FISH 3
-        IBTK::Vector3d eel_COM_3;
-        for (int d = 0; d < 3; ++d) eel_COM_3[d] = structure_COM[2][d];
-        hydro_force->setTorqueOrigin(eel_COM_3, 2);
-        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 2);
+            hydro_force->setTorqueOrigin(eel_COM, fish_id);
+            hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, fish_id);
 
-        // Create COM variable - FISH 4
-        IBTK::Vector3d eel_COM_4;
-        for (int d = 0; d < 3; ++d) eel_COM_4[d] = structure_COM[3][d];
-        hydro_force->setTorqueOrigin(eel_COM_4, 3);
-        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 3);
+            pout << "Fish " << (fish_id + 1) << " torque origin set at COM: ("
+                 << eel_COM[0] << ", " << eel_COM[1] << ", " << eel_COM[2] << ")" << std::endl;
+        }
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
