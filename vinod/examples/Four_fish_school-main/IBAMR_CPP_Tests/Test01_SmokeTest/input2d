@@ -1,0 +1,169 @@
+// Test 01: Smoke Test - Scalar Transport Infrastructure
+// Simple diffusion test with Gaussian initial condition
+
+// Physical parameters
+diffusion_coefficient = 0.001
+
+// Grid geometry
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (63,63) ]
+   x_lo         = -1.0, -1.0
+   x_up         = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+
+// Main parameters
+Main {
+   log_file_name = "test01.log"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_interval = 10
+   viz_dump_dirname = "viz_test01"
+   timer_enabled = TRUE
+
+   DT = 0.01
+   START_TIME = 0.0
+   END_TIME = 1.0
+}
+
+// Navier-Stokes solver (velocity = 0 for this test)
+INSStaggeredHierarchyIntegrator {
+   mu = 0.01
+   rho = 1.0
+
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+
+   regrid_interval = 10000
+
+   enable_logging = TRUE
+
+   tag_buffer = 1
+
+   convective_difference_form = "ADVECTIVE"
+   using_vorticity_tagging = FALSE
+   vorticity_rel_thresh = 0.25
+
+   output_U = TRUE
+   output_P = TRUE
+   output_F = FALSE
+   output_Q = FALSE
+   output_Omega = FALSE
+   output_Div_U = FALSE
+
+   helmholtz_solver_type = "PETSC_KRYLOV_SOLVER"
+   helmholtz_solver_db {
+      ksp_type = "fgmres"
+   }
+
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+   }
+
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_solver_db {
+      ksp_type = "fgmres"
+      max_iterations = 50
+      rel_residual_tol = 1.0e-6
+   }
+
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_solver_db {
+      ksp_type = "fgmres"
+      max_iterations = 50
+      rel_residual_tol = 1.0e-6
+   }
+}
+
+// Advection-diffusion solver
+AdvDiffHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+
+   regrid_interval = 10000
+
+   enable_logging = TRUE
+
+   tag_buffer = 1
+
+   convective_difference_form = "ADVECTIVE"
+   convective_difference_type = "CENTERED"
+
+   diffusion_time_stepping_type = "CRANK_NICOLSON"
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+
+   helmholtz_solver_type = "PETSC_KRYLOV_SOLVER"
+   helmholtz_solver_db {
+      ksp_type = "fgmres"
+      pc_type = "jacobi"
+      max_iterations = 100
+      rel_residual_tol = 1.0e-6
+   }
+}
+
+// Gridding algorithm
+GriddingAlgorithm {
+   max_levels = 1
+
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+// Odor (scalar) initial conditions
+// Gaussian blob centered at origin
+OdorInitialConditions {
+   function = "exp(-10.0*(X_0*X_0 + X_1*X_1))"
+}
+
+// Odor boundary conditions
+// Homogeneous Dirichlet (C = 0 at boundaries)
+OdorBcCoefs {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// Timers
+TimerManager {
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 0.1
+   timer_list = "IBAMR::*::*", "IBTK::*::*", "*::*::*"
+}
