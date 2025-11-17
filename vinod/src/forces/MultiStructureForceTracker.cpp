@@ -33,8 +33,10 @@ MultiStructureForceTracker::MultiStructureForceTracker(const std::string& object
       d_use_adaptive_cvs(use_adaptive_control_volumes)
 {
     // Create the underlying IBAMR force evaluator
+    // Note: 5th parameter is register_for_restart (not adaptive CVs)
+    // Adaptive CV logic is handled in updateAllControlVolumes()
     d_hydro_force = new IBAMR::IBHydrodynamicForceEvaluator(
-        object_name, rho_fluid, mu_fluid, start_time, use_adaptive_control_volumes);
+        object_name, rho_fluid, mu_fluid, start_time, /*register_for_restart*/ true);
 
     // Initialize maximum box velocity
     d_max_box_vel.setZero();
