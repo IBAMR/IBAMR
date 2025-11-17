@@ -182,8 +182,9 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
+        // Using SAMRAI smart pointers for automatic memory management
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        vector<Pointer<RobinBcCoefStrategy<NDIM> > > u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -206,7 +207,7 @@ main(int argc, char* argv[])
         }
 
         // Create odor concentration boundary conditions
-        RobinBcCoefStrategy<NDIM>* C_bc_coef = nullptr;
+        Pointer<RobinBcCoefStrategy<NDIM> > C_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("OdorBcCoefs"))
         {
             C_bc_coef = new muParserRobinBcCoefs(
@@ -388,7 +389,8 @@ main(int argc, char* argv[])
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
         double current_time, new_time;
-        double box_disp = 0.0;
+        // Track displacement for each fish control volume
+        std::vector<double> box_disp(num_structures, 0.0);
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -407,39 +409,46 @@ main(int argc, char* argv[])
             // Regrid the hierarchy if necessary.
             if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
 
-            // Set the box velocity to nonzero only if the eel has moved sufficiently far.
-            IBTK::Vector3d box_vel;
-            box_vel.setZero();
-
-            // Velocity due to free-swimming
-            std::vector<std::vector<double> > COM_vel = ib_method_ops->getCurrentCOMVelocity();
-            for (int d = 0; d < NDIM; ++d) box_vel(d) = COM_vel[0][d];
-
+            // Get coarsest level grid spacing (used for all fish)
             int coarsest_ln = 0;
             Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
             const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
 
-            // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
-            // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
-            // the CV will translate by 1 coarse mesh width in the direction of swimming (negative x-direction).
-            // Otherwise, keep the CV in place by setting its velocity to zero.
+            // Get center of mass velocities for all fish
+            std::vector<std::vector<double> > COM_vel = ib_method_ops->getCurrentCOMVelocity();
 
-            box_disp += box_vel[0] * dt;
-            if (abs(box_disp) >= abs(0.9 * DX[0]))
+            // Update control volume for EACH fish
+            for (int fish_id = 0; fish_id < num_structures; ++fish_id)
             {
+                // Set the box velocity to nonzero only if the eel has moved sufficiently far.
+                IBTK::Vector3d box_vel;
                 box_vel.setZero();
-                box_vel[0] = -DX[0] / dt;
 
-                box_disp = 0.0;
-            }
-            else
-            {
-                box_vel.setZero();
-            }
+                // Velocity due to free-swimming for this fish
+                for (int d = 0; d < NDIM; ++d) box_vel(d) = COM_vel[fish_id][d];
 
-            // Update the location of the box for time n + 1
-            hydro_force->updateStructureDomain(box_vel, dt, patch_hierarchy, 0);
+                // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
+                // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
+                // the CV will translate by 1 coarse mesh width in the direction of swimming (negative x-direction).
+                // Otherwise, keep the CV in place by setting its velocity to zero.
+
+                box_disp[fish_id] += box_vel[0] * dt;
+                if (abs(box_disp[fish_id]) >= abs(0.9 * DX[0]))
+                {
+                    box_vel.setZero();
+                    box_vel[0] = -DX[0] / dt;
+
+                    box_disp[fish_id] = 0.0;
+                }
+                else
+                {
+                    box_vel.setZero();
+                }
+
+                // Update the location of the box for time n + 1 (this fish)
+                hydro_force->updateStructureDomain(box_vel, dt, patch_hierarchy, fish_id);
+            }
 
             // Compute the momentum of u^n in box n+1 on the newest hierarchy
             hydro_force->computeLaggedMomentumIntegral(
@@ -581,10 +590,8 @@ main(int argc, char* argv[])
             }
         }
 
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete C_bc_coef;
+        // SAMRAI smart pointers (Pointer<>) automatically handle cleanup
+        // No manual delete needed for u_bc_coefs and C_bc_coef
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

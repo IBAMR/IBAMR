@@ -25,7 +25,7 @@ N = 64 // Number of grid points in the x-direction
 // Solver parameters
 DELTA_FUNCTION       = "IB_4"
 START_TIME           = 0.0e0
-END_TIME             = 30.0
+END_TIME             = 0.1   // Quick test: just 0.1 seconds (1/10 of a swimming period)
 MAX_INTEGRATOR_STEPS = 10000000000000
 GROW_DT              = 2.0e0
 NUM_CYCLES           = 1
