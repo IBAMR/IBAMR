@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-17
 **Project:** Odor Plume Navigation by Swimming Fish
-**Location:** `vinod/examples/Four_fish_school-main/`
+**Location:** `vinod/examples/Four_fish_school/`
 **Overall Assessment:** 🟡 **B+ - Good foundation with critical bugs**
 
 ---
@@ -333,7 +333,7 @@ After each fix, run validation:
 
 ### Quick Test (5 minutes)
 ```bash
-cd vinod/examples/Four_fish_school-main
+cd vinod/examples/Four_fish_school
 mpirun -np 4 ./main2d input2d_test
 
 # input2d_test: Modified input2d with:
@@ -395,7 +395,7 @@ I can:
 
 ## Contact Information
 
-**Code Location:** `/home/user/IBAMR/vinod/examples/Four_fish_school-main/`
+**Code Location:** `/home/user/IBAMR/vinod/examples/Four_fish_school/`
 
 **Key Files:**
 - `example.cpp` (main simulation, 637 lines)

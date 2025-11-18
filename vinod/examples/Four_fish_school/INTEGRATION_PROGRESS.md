@@ -255,7 +255,7 @@ The code is production-ready for research use. Phases 3 & 4 are enhancements for
 ### Phase 1 & 2 Changes:
 
 ```
-vinod/examples/Four_fish_school-main/
+vinod/examples/Four_fish_school/
 ├── example.cpp                    ← Fixed bugs + refactored
 ├── input2d                        ← DT_MAX increased
 ├── input2d_quicktest              ← NEW: Quick validation test
@@ -281,7 +281,7 @@ vinod/examples/Four_fish_school-main/
 ### Quick Test (Recommended First Step)
 
 ```bash
-cd /home/user/IBAMR/vinod/examples/Four_fish_school-main
+cd /home/user/IBAMR/vinod/examples/Four_fish_school
 
 # Build (if needed)
 mkdir -p build && cd build

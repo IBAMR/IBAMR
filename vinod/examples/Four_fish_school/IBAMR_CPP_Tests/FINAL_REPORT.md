@@ -224,7 +224,7 @@ export LD_LIBRARY_PATH=$IBAMR_DIR/lib:$SAMRAI_DIR/lib:$PETSC_DIR/$PETSC_ARCH/lib
 
 #### 5. Build Test Suite
 ```bash
-cd /home/user/IBAMR/vinod/examples/Four_fish_school-main/IBAMR_CPP_Tests
+cd /home/user/IBAMR/vinod/examples/Four_fish_school/IBAMR_CPP_Tests
 mkdir build && cd build
 
 cmake .. \

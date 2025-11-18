@@ -214,7 +214,7 @@ export IBAMR_ROOT=/usr/local/ibamr
 Once IBAMR is built:
 
 ```bash
-cd /home/user/IBAMR/vinod/examples/Four_fish_school-main/IBAMR_CPP_Tests
+cd /home/user/IBAMR/vinod/examples/Four_fish_school/IBAMR_CPP_Tests
 
 # Build all tests
 export IBAMR_ROOT=/usr/local/ibamr

@@ -42,19 +42,19 @@ This PR adds a complete, production-ready **Vinod IBAMR Extensions Library** wit
    - **Issue:** Only Fish-1's control volume was updating; Fish 2-4 had stale positions
    - **Impact:** 75% of structures computed incorrect hydrodynamic forces
    - **Fix:** Implemented per-structure displacement tracking with loop over all fish
-   - **Files:** `vinod/examples/Four_fish_school-main/example.cpp:391-450`
+   - **Files:** `vinod/examples/Four_fish_school/example.cpp:391-450`
 
 2. **Memory Management** (Safety Bug)
    - **Issue:** Raw pointers with manual delete causing potential memory leaks
    - **Impact:** Exception-unsafe, risk of leaks on error paths
    - **Fix:** Converted to SAMRAI smart pointers throughout
-   - **Files:** `vinod/examples/Four_fish_school-main/example.cpp:186-216`
+   - **Files:** `vinod/examples/Four_fish_school/example.cpp:186-216`
 
 3. **Performance** (10× Too Slow)
    - **Issue:** DT_MAX = 0.0001 too conservative (300,000 timesteps for 30s)
    - **Impact:** 10-20 hour runtime for 30-second simulation
    - **Fix:** Increased DT_MAX to 0.001 (still conservative at 1000 steps/period)
-   - **Files:** `vinod/examples/Four_fish_school-main/input2d:36`
+   - **Files:** `vinod/examples/Four_fish_school/input2d:36`
 
 ### Library Implementation Fixes:
 
@@ -127,7 +127,7 @@ vinod/
 ├── LIBRARY_README.md                                 # API reference (466 lines)
 ├── INTEGRATION_GUIDE.md                              # Integration instructions
 ├── INTEGRATION_COMPLETE.md                           # Complete summary (650+ lines)
-└── examples/Four_fish_school-main/
+└── examples/Four_fish_school/
     ├── CODE_REVIEW_SUMMARY.md                        # Code review (415 lines)
     ├── INTEGRATION_PROGRESS.md                       # Progress report (450 lines)
     └── LIBRARY_USAGE.md                              # Migration guide (380 lines)
@@ -138,7 +138,7 @@ vinod/
 vinod/
 ├── examples/
 │   ├── simple_cylinder/                              # Basic IB example
-│   └── Four_fish_school-main/                        # Complete 4-fish simulation
+│   └── Four_fish_school/                        # Complete 4-fish simulation
 ├── scripts/
 │   ├── build.sh                                      # Build automation
 │   ├── run.sh                                        # Run simulations

@@ -170,7 +170,7 @@ target_link_libraries(my_simulation PRIVATE Vinod::vinod_ibamr)
 
 ### Four Fish School
 
-**Location:** `examples/Four_fish_school-main/`
+**Location:** `examples/Four_fish_school/`
 
 Complete multi-fish simulation demonstrating:
 - 4 swimming eels in rectangular formation
@@ -180,7 +180,7 @@ Complete multi-fish simulation demonstrating:
 
 **Run Example:**
 ```bash
-cd examples/Four_fish_school-main
+cd examples/Four_fish_school
 mkdir build && cd build
 cmake .. && make
 mpirun -np 4 ./main2d ../input2d
@@ -224,7 +224,7 @@ vinod/
 │   ├── CustomForceFunction.cpp
 │   └── CustomForceFunction.h
 ├── examples/                      # Example simulations
-│   ├── Four_fish_school-main/
+│   ├── Four_fish_school/
 │   └── simple_cylinder/
 ├── docs/                          # Documentation
 │   ├── EXAMPLES.md

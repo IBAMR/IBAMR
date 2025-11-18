@@ -60,7 +60,7 @@ Successfully transformed the Four Fish School simulation from research code into
 **Status:** Committed & Pushed
 
 #### Bug #1: Incorrect Control Volume Updates
-**File:** `vinod/examples/Four_fish_school-main/example.cpp`
+**File:** `vinod/examples/Four_fish_school/example.cpp`
 
 **Problem:** Only Fish-1's control volume was updating; Fish 2-4 had stale CV positions
 
@@ -86,7 +86,7 @@ for (int fish_id = 0; fish_id < num_structures; ++fish_id) {
 ---
 
 #### Bug #2: Memory Leaks
-**File:** `vinod/examples/Four_fish_school-main/example.cpp`
+**File:** `vinod/examples/Four_fish_school/example.cpp`
 
 **Problem:** Raw pointers with manual delete (exception-unsafe)
 
@@ -108,7 +108,7 @@ u_bc_coefs[d] = new muParserRobinBcCoefs(...);
 ---
 
 #### Bug #3: Performance (10× Too Slow)
-**File:** `vinod/examples/Four_fish_school-main/input2d`
+**File:** `vinod/examples/Four_fish_school/input2d`
 
 **Problem:** DT_MAX = 0.0001 too small (300,000 timesteps for 30s)
 
@@ -133,7 +133,7 @@ DT_MAX = 0.001   // 1,000 steps per period (still conservative)
 **Status:** Committed & Pushed
 
 #### Improvement #1: Kinematics Setup Refactor
-**File:** `vinod/examples/Four_fish_school-main/example.cpp:240-262`
+**File:** `vinod/examples/Four_fish_school/example.cpp:240-262`
 
 **Before:** 38 lines (repeated 4 times)
 ```cpp
@@ -162,7 +162,7 @@ for (int fish_id = 0; fish_id < num_structures; ++fish_id) {
 ---
 
 #### Improvement #2: Control Volume Registration with Validation
-**File:** `vinod/examples/Four_fish_school-main/example.cpp:274-324`
+**File:** `vinod/examples/Four_fish_school/example.cpp:274-324`
 
 **Before:** 132 lines (manual setup × 4)
 
@@ -206,7 +206,7 @@ for (int fish_id = 0; fish_id < num_structures; ++fish_id) {
 ---
 
 #### Improvement #3: COM/Torque Setup Refactor
-**File:** `vinod/examples/Four_fish_school-main/example.cpp:293-309`
+**File:** `vinod/examples/Four_fish_school/example.cpp:293-309`
 
 **Before:** 28 lines (manual setup)
 
@@ -412,9 +412,9 @@ Shows migration path from manual code to library:
 | `vinod/README.md` | 150 | Workspace overview |
 | `vinod/LIBRARY_README.md` | 466 | Complete API reference |
 | `vinod/INTEGRATION_GUIDE.md` | 270 | How to add new code |
-| `vinod/examples/Four_fish_school-main/CODE_REVIEW_SUMMARY.md` | 415 | Code review & bugs |
-| `vinod/examples/Four_fish_school-main/INTEGRATION_PROGRESS.md` | 450 | Phase 1 & 2 progress |
-| `vinod/examples/Four_fish_school-main/LIBRARY_USAGE.md` | 380 | Migration guide |
+| `vinod/examples/Four_fish_school/CODE_REVIEW_SUMMARY.md` | 415 | Code review & bugs |
+| `vinod/examples/Four_fish_school/INTEGRATION_PROGRESS.md` | 450 | Phase 1 & 2 progress |
+| `vinod/examples/Four_fish_school/LIBRARY_USAGE.md` | 380 | Migration guide |
 | `vinod/INTEGRATION_COMPLETE.md` | This file | Final summary |
 
 **Total Documentation:** ~2,100 lines
@@ -468,7 +468,7 @@ Shows migration path from manual code to library:
 
 ### Quick Test (5 minutes)
 ```bash
-cd vinod/examples/Four_fish_school-main
+cd vinod/examples/Four_fish_school
 mpirun -np 4 ./main2d input2d_quicktest
 
 # Validates:
@@ -603,7 +603,7 @@ IBAMR/vinod/
 │   └── CustomForceFunction.h
 │
 ├── examples/                      # Example simulations
-│   ├── Four_fish_school-main/     # Complete 4-fish simulation
+│   ├── Four_fish_school/     # Complete 4-fish simulation
 │   │   ├── example.cpp            # Main code (637 lines)
 │   │   ├── IBEELKinematics.cpp    # Fish motion (665 lines)
 │   │   ├── input2d                # Parameters (479 lines)
@@ -766,7 +766,7 @@ git push origin v1.0.0
 - **Main README:** `vinod/README.md`
 - **Library API:** `vinod/LIBRARY_README.md`
 - **Integration Guide:** `vinod/INTEGRATION_GUIDE.md`
-- **Code Review:** `vinod/examples/Four_fish_school-main/CODE_REVIEW_SUMMARY.md`
+- **Code Review:** `vinod/examples/Four_fish_school/CODE_REVIEW_SUMMARY.md`
 
 ### Contact
 - **GitHub Issues:** https://github.com/vinodthale/IBAMR/issues
