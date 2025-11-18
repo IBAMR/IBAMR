@@ -1,0 +1,182 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2025 - 2025 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+name: IBAMR Full Build CI — Compile IBAMR + vinod/examples + Static Analysis
+
+on:
+  push:
+    branches:
+      - "claude/*"
+      - "*/understand-ibamr-codebase-*"
+      - "main"
+      - "master"
+  pull_request:
+
+jobs:
+  ibamr-full-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    env:
+      IBAMR_PREFIX: ${{ runner.temp }}/ibamr-install
+      AUTOIBAMR_DIR: ${{ runner.temp }}/autoibamr
+      EXAMPLES_DIR: ${{ github.workspace }}/vinod/examples
+
+    steps:
+    - name: Checkout repository (full history)
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Show repo structure
+      run: |
+        echo "Workspace: $GITHUB_WORKSPACE"
+        tree -L 4 || true
+
+    # ------------------------------------------
+    # 1. Install system dependencies
+    # ------------------------------------------
+    - name: Install system packages
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y \
+          build-essential cmake ninja-build pkg-config \
+          git wget curl python3 python3-pip \
+          autoconf automake libtool m4 \
+          zlib1g-dev libhdf5-dev libeigen3-dev \
+          libboost-all-dev libopenmpi-dev openmpi-bin \
+          clang-tidy cppcheck gfortran
+
+    # ------------------------------------------
+    # 2. Download and prepare autoibamr installer
+    # ------------------------------------------
+    - name: Clone autoibamr
+      run: |
+        mkdir -p "${AUTOIBAMR_DIR}"
+        git clone https://github.com/IBAMR/autoibamr.git "${AUTOIBAMR_DIR}"
+        echo "autoibamr HEAD:"
+        cd "${AUTOIBAMR_DIR}" && git rev-parse --short HEAD
+
+    # ------------------------------------------
+    # 3. Build IBAMR + SAMRAI + PETSc + hypre etc.
+    # ------------------------------------------
+    - name: Build IBAMR stack via autoibamr (FULL BUILD)
+      run: |
+        cd "${AUTOIBAMR_DIR}"
+        chmod +x autoibamr.sh
+
+        echo "=== STARTING FULL IBAMR BUILD ==="
+        ./autoibamr.sh \
+          --prefix "${IBAMR_PREFIX}" \
+          --no-sudo \
+          --enable-debugging \
+          --buildType Release \
+          2>&1 | tee ${GITHUB_WORKSPACE}/autoibamr_build.log
+
+      continue-on-error: true  # we capture logs even if it fails
+
+    - name: Upload autoibamr logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: autoibamr-logs
+        path: |
+          ${{ github.workspace }}/autoibamr_build.log
+          ${{ env.AUTOIBAMR_DIR }}/**/*.log
+
+    # ------------------------------------------
+    # 4. Build your vinod/examples/*
+    # ------------------------------------------
+    - name: Build vinod/examples directory
+      run: |
+        echo "Checking for examples directory at: $EXAMPLES_DIR"
+        if [ ! -d "$EXAMPLES_DIR" ]; then
+          echo "ERROR: vinod/examples not found!"
+          exit 1
+        fi
+
+        echo "=== Building examples ==="
+        for d in "$EXAMPLES_DIR"/*; do
+          if [ -d "$d" ]; then
+            echo ">>>> Building example: $d"
+
+            # Case 1: CMake project
+            if [ -f "$d/CMakeLists.txt" ]; then
+              mkdir -p "$d/build"
+              cd "$d/build"
+              cmake -DCMAKE_PREFIX_PATH="${IBAMR_PREFIX}" ..
+              cmake --build . -- -j$(nproc) || true
+              cd -
+
+            # Case 2: Makefile project
+            elif [ -f "$d/Makefile" ]; then
+              (cd "$d" && make -j$(nproc) || true)
+
+            else
+              echo "No CMakeLists.txt or Makefile found — skipping $d"
+            fi
+          fi
+        done
+
+      continue-on-error: true
+
+    - name: Upload example build outputs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: example-build-artifacts
+        path: |
+          vinod/examples/**/build/**
+          vinod/examples/**/Makefile
+
+    # ------------------------------------------
+    # 5. Static Analysis (clang-tidy & cppcheck)
+    # ------------------------------------------
+    - name: Run clang-tidy
+      run: |
+        echo "=== Running clang-tidy ==="
+        SRC=$(git ls-files '*.cpp' '*.cc' '*.c' '*.h' | grep 'vinod/examples' || true)
+        echo "Files detected:"
+        echo "$SRC"
+
+        for f in $SRC; do
+          echo ">>> Analyzing: $f"
+          clang-tidy "$f" -- -I"${IBAMR_PREFIX}/include" || true
+        done
+
+      continue-on-error: true
+
+    - name: Run cppcheck
+      run: |
+        echo "=== Running cppcheck ==="
+        cppcheck --enable=all --inconclusive --std=c++17 \
+          --force vinod/examples \
+          2>&1 | tee cppcheck_output.txt
+
+      continue-on-error: true
+
+    - name: Upload static analysis logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: static-analysis-results
+        path: |
+          cppcheck_output.txt
+
+    # ------------------------------------------
+    # FINAL STATUS
+    # ------------------------------------------
+    - name: CI Complete
+      run: |
+        echo "FULL BUILD CI is complete."
+        echo "Download artifacts to see real IBAMR errors."
