@@ -1,0 +1,13 @@
+
+# 1. Compile the from Enter build directory
+cmake .. --debug-output
+make -j4
+
+then from main directory 
+you just run this 
+
+# 2. Run the simulation from main directory
+
+mpirun -np 6 ./build/main2d input2d
+
+
