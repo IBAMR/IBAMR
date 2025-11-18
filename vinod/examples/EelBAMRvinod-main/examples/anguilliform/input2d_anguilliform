@@ -1,0 +1,205 @@
+// input2d_anguilliform
+// IBAMR input file for ANGUILLIFORM (eel-like) swimming simulation
+//
+// Characteristics:
+//   - Whole body undulation
+//   - Exponential amplitude envelope: A(X) = 0.1 * exp[α(X-1)]
+//   - Multiple waves on body (λ < L)
+//   - Moderate swimming speed
+
+// ============================================================================
+// Main Configuration
+// ============================================================================
+Main {
+   log_file_name = "output_anguilliform"
+   log_all_nodes = FALSE
+
+   // Visualization
+   viz_writer = "VisIt"
+   viz_dump_interval = 100
+   viz_dump_dirname = "viz_anguilliform"
+
+   // Restart
+   restart_interval = 1000
+   restart_write_dirname = "restart_anguilliform"
+
+   // Timer
+   timer_dump_interval = 100
+}
+
+// ============================================================================
+// Cartesian Grid Geometry
+// ============================================================================
+CartesianGeometry {
+   domain_boxes = [(0,0), (799,199)]  // 4:1 aspect ratio
+   x_lo         = -2.0, -0.5          // Domain: 4m x 1m
+   x_up         =  2.0,  0.5
+   periodic_dimension = 0, 0
+}
+
+// ============================================================================
+// Grid Refinement
+// ============================================================================
+GriddingAlgorithm {
+   max_levels = 3  // Three levels of refinement
+
+   ratio_to_coarser {
+      level_1 = 2, 2
+      level_2 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512
+      level_1 = 256, 256
+      level_2 = 128, 128
+   }
+
+   smallest_patch_size {
+      level_0 = 8, 8
+      level_1 = 8, 8
+      level_2 = 8, 8
+   }
+
+   efficiency_tolerance = 0.85e0
+   combine_efficiency   = 0.85e0
+}
+
+// ============================================================================
+// Immersed Boundary (IB) Parameters
+// ============================================================================
+IBHierarchyIntegrator {
+   start_time          = 0.0
+   end_time            = 10.0  // 10 seconds = 20 swimming cycles
+   grow_dt             = 2.0e0
+   num_cycles          = 1
+   regrid_cfl_interval = 0.5e0
+   dt_max              = 0.001  // 1 ms time step
+   error_on_dt_change  = FALSE
+   tag_buffer          = 2
+
+   enable_logging = TRUE
+}
+
+ConstraintIBMethod {
+   delta_fcn                = "IB_4"
+   enable_logging           = TRUE
+   needs_divfree_projection = FALSE
+
+   PrintOutput {
+      print_output          = TRUE
+      output_interval       = 100
+      output_drag           = TRUE
+      output_power          = TRUE
+      output_rig_transvel   = TRUE
+      output_rig_rotvel     = FALSE
+      output_com_coords     = TRUE
+      output_moment_inertia = FALSE
+      output_dirname        = "anguilliform_output"
+      base_filename         = "eel"
+   }
+}
+
+ConstraintIBKinematics {
+   eel {
+      structure_names = "eel2d"
+      structure_levels = 2
+      calculate_translational_momentum = TRUE
+      calculate_rotational_momentum    = FALSE
+      lag_position_update_method       = "CONSTRAINT_VELOCITY"
+      tagged_pt_identifier             = MAX_ENTITY_ID - 1
+
+      kinematics_velocity_function {
+         frequency   = 2.0      // Swimming frequency (Hz)
+         wavelength  = 0.8      // Wavelength (fraction of L)
+         amplitude   = 0.1      // Base amplitude (10% of L)
+         alpha       = 1.0      // Exponential growth rate
+         length      = 1.0      // Body length (m)
+         initCenterOfMass = 0.0, 0.0
+      }
+   }
+}
+
+// ============================================================================
+// Navier-Stokes Solver
+// ============================================================================
+INSStaggeredHierarchyIntegrator {
+   mu                         = 1.0e-3  // Water viscosity (kg/m·s)
+   rho                        = 1000.0  // Water density (kg/m³)
+   start_time                 = 0.0
+   end_time                   = 10.0
+   grow_dt                    = 2.0e0
+   num_cycles                 = 1
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type         = "PPM"
+   convective_difference_form = "ADVECTIVE"
+   normalize_pressure         = TRUE
+   cfl                        = 0.3e0
+   dt_max                     = 0.001
+   using_vorticity_tagging    = TRUE
+   vorticity_rel_thresh       = 0.25, 0.5, 0.75
+
+   output_U = TRUE
+   output_P = TRUE
+   output_F = FALSE
+   output_Omega = TRUE
+   output_Div_U = FALSE
+
+   enable_logging = TRUE
+}
+
+// ============================================================================
+// Navier-Stokes Boundary Conditions
+// ============================================================================
+VelocityBcCoefs_0 {  // u-velocity (x-direction)
+   acoef_function_0 = "1.0"  // Left boundary (Dirichlet)
+   acoef_function_1 = "1.0"  // Right boundary (Dirichlet)
+   acoef_function_2 = "1.0"  // Bottom (Dirichlet)
+   acoef_function_3 = "1.0"  // Top (Dirichlet)
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"  // No inflow
+   gcoef_function_1 = "0.0"  // No outflow
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {  // v-velocity (y-direction)
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// ============================================================================
+// Load Balancer
+// ============================================================================
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+// ============================================================================
+// Time Refinement
+// ============================================================================
+TimeRefinementIntegrator {
+   start_time           = 0.0
+   end_time             = 10.0
+   grow_dt              = 2.0e0
+   max_integrator_steps = 10000000
+   regrid_interval      = 10
+   tag_buffer           = 2
+}
