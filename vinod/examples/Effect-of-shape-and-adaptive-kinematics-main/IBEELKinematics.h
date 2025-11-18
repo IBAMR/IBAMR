@@ -27,6 +27,7 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <array>
 #include <iostream>
 #include <map>
 #include <string>
