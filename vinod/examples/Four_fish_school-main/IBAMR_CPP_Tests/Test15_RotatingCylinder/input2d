@@ -1,0 +1,267 @@
+// =============================================================================
+// INPUT FILE: Test15 - Rotating Cylinder Validation (Yan & Zu 2008)
+// =============================================================================
+// Reference: Yan & Zu (2008), Lei et al. (2021) Section II.B Figure 2
+// Parameters: Re=200, Pr=0.5, k=0.5
+// =============================================================================
+
+// Physical parameters
+RE = 200.0                     // Reynolds number
+PR = 0.5                       // Prandtl number (ν/α)
+U_INF = 1.0                    // Free-stream velocity
+D = 1.0                        // Cylinder diameter
+K_ROTATION = 0.5               // Rotation parameter V/U
+
+// Computed: ν = U*D/Re = 1.0*1.0/200 = 0.005
+//          α = ν/Pr = 0.005/0.5 = 0.01 (will be set in code)
+//          V = k*U = 0.5*1.0 = 0.5 (tangential velocity)
+
+// Cylinder geometry
+CYLINDER_X = 0.0               // Cylinder center x
+CYLINDER_Y = 0.0               // Cylinder center y
+
+// Source term parameters (for scalar BC on cylinder)
+SOURCE_THICKNESS = 0.05        // Gaussian thickness for isothermal BC
+
+// Steady-state detection
+STEADY_TOL = 1.0e-6           // Convergence tolerance for |dC/dt|
+CHECK_INTERVAL = 100           // Check every N iterations
+
+// =============================================================================
+// MAIN
+// =============================================================================
+Main {
+   log_file_name = "test15.log"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz_test15"
+   visit_number_procs_per_file = 1
+
+   // Simulation parameters
+   solver_type = "STAGGERED"
+
+   // Restart
+   restart_interval = 500
+   restart_write_dirname = "restart_test15"
+}
+
+// =============================================================================
+// CARTESIAN GEOMETRY
+// =============================================================================
+CartesianGeometry {
+   domain_boxes = [(0,0), (255,127)]    // 2:1 aspect ratio domain
+
+   x_lo = -3.0, -2.0                     // Domain: [-3, 5] × [-2, 2]
+   x_up =  5.0,  2.0                     // Cylinder at (0,0), 8D × 4D domain
+
+   periodic_dimension = 0, 0             // Non-periodic
+}
+
+// =============================================================================
+// GRID GENERATION
+// =============================================================================
+GriddingAlgorithm {
+   max_levels = 2                        // Coarse + 1 fine level
+
+   ratio_to_coarser {
+      level_1 = 2, 2                     // 2x refinement
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512
+      level_1 = 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 8, 8
+      level_1 = 8, 8
+   }
+
+   efficiency_tolerance = 0.85
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+
+   RefineBoxes {
+      // Refine around cylinder and near wake
+      level_0 {
+         boxes = [(-1.0, -1.0), (2.0, 1.0)]
+      }
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+// =============================================================================
+// NAVIER-STOKES (INS)
+// =============================================================================
+INSStaggeredHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 50.0                       // Run to steady state
+   grow_dt = 2.0
+   num_cycles = 1
+
+   regrid_interval = 10000               // No regridding (steady geometry)
+
+   cfl = 0.3
+   dt_max = 0.01
+
+   tag_buffer = 1
+
+   enable_logging = TRUE
+
+   // Stokes solver (for viscous term)
+   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
+   stokes_precond_type = "PROJECTION_PRECONDITIONER"
+
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-1
+   }
+
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-1
+   }
+
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+}
+
+// Velocity initial condition
+VelocityInitialConditions {
+   function_0 = "1.0"                    // u = U_inf
+   function_1 = "0.0"                    // v = 0
+}
+
+// Velocity boundary conditions
+VelocityBcCoefs_0 {
+   // u-component
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "1.0"              // Inlet: u = U_inf
+   gcoef_function_1 = "0.0"              // Outlet: Neumann (handled by code)
+   gcoef_function_2 = "0.0"              // Bottom: u = 0 (no-slip wall)
+   gcoef_function_3 = "0.0"              // Top: u = 0 (no-slip wall)
+}
+
+VelocityBcCoefs_1 {
+   // v-component
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"              // Inlet: v = 0
+   gcoef_function_1 = "0.0"              // Outlet: Neumann
+   gcoef_function_2 = "0.0"              // Bottom: v = 0
+   gcoef_function_3 = "0.0"              // Top: v = 0
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+// =============================================================================
+// ADVECTION-DIFFUSION (SCALAR TRANSPORT)
+// =============================================================================
+AdvDiffHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 50.0
+   grow_dt = 2.0
+   num_cycles = 1
+
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type = "PPM"
+   convective_difference_form = "ADVECTIVE"
+
+   diffusion_time_stepping_type = "TRAPEZOIDAL_RULE"
+
+   cfl = 0.3
+   dt_max = 0.01
+
+   tag_buffer = 1
+
+   enable_logging = TRUE
+
+   // Helmholtz solver for diffusion
+   helmholtz_solver_type = "PETSC_KRYLOV_SOLVER"
+   helmholtz_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   helmholtz_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 10
+      rel_residual_tol = 1.0e-6
+   }
+}
+
+// Scalar initial condition: C = 0 everywhere (cold background)
+C_init {
+   function = "0.0"
+}
+
+// Scalar boundary conditions
+C_BcCoefs_0 {
+   // x-direction (inlet/outlet)
+   acoef_function_0 = "1.0"              // Inlet: Dirichlet
+   acoef_function_1 = "0.0"              // Outlet: Neumann
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+
+   gcoef_function_0 = "0.0"              // Inlet: C = 0 (cold)
+   gcoef_function_1 = "0.0"              // Outlet: dC/dn = 0
+}
+
+C_BcCoefs_1 {
+   // y-direction (top/bottom walls)
+   acoef_function_0 = "0.0"              // Bottom: Neumann
+   acoef_function_1 = "0.0"              // Top: Neumann
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+
+   gcoef_function_0 = "0.0"              // Bottom: dC/dn = 0
+   gcoef_function_1 = "0.0"              // Top: dC/dn = 0
+}
+
+// =============================================================================
+// VISIT VISUALIZATION
+// =============================================================================
+VisItDataWriter {
+   file_name = "test15"
+   visit_number_procs_per_file = 1
+
+   time_step_interval = 50               // Save every 50 steps
+}
+
+// =============================================================================
+// TIMERS
+// =============================================================================
+TimerManager {
+   print_threshold = 0.01
+   timer_list = "IBAMR::*::*", "IBTK::*::*", "*::*::*"
+}
