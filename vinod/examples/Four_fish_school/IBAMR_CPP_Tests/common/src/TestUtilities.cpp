@@ -9,6 +9,11 @@
 
 namespace TestUtilities {
 
+// Define static constexpr members for C++11 compatibility (ODR-usage requires definition)
+constexpr int TestUtils::LINE_WIDTH;
+constexpr char TestUtils::SEPARATOR_CHAR;
+constexpr char TestUtils::SUBSEPARATOR_CHAR;
+
 // ============================================================================
 // TestUtils Implementation
 // ============================================================================
