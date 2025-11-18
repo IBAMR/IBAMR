@@ -132,6 +132,8 @@ public:
      *
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
@@ -171,6 +173,8 @@ public:
      *
      * Data management for the registered source term will be handled by the
      * hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
                                     const bool output_F = true);
@@ -195,6 +199,8 @@ public:
      *
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                              const bool output_Q = true);
@@ -276,6 +282,8 @@ public:
     /*!
      * Register a variable scalar diffusion coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     void registerDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var);
 

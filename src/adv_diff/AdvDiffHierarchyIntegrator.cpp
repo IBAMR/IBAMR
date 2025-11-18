@@ -203,6 +203,8 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(Pointer<FaceVariable<NDIM,
     TBOX_ASSERT(u_var);
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) == d_u_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerAdvectionVelocity(): Integrator has already been initialized.\n");
     d_u_var.push_back(u_var);
 
     // Set default values.
@@ -258,6 +260,8 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double
     TBOX_ASSERT(F_var);
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) == d_F_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerSourceTerm(): Integrator has already been initialized.\n");
     d_F_var.push_back(F_var);
 
     // Set default values.
@@ -312,6 +316,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     TBOX_ASSERT(Q_var);
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) == d_Q_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerTransportedQuantity(): Integrator has already been initialized.\n");
     d_Q_var.push_back(Q_var);
     Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
@@ -467,6 +473,9 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVar
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) ==
                 d_diffusion_coef_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name +
+                   "::registerDiffusionCoefficientVariable(): Integrator has already been initialized.\n");
     d_diffusion_coef_var.push_back(D_var);
     Pointer<SideDataFactory<NDIM, double> > D_factory = D_var->getPatchDataFactory();
     const int D_depth = D_factory->getDefaultDepth();
