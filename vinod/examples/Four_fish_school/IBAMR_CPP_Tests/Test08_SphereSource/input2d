@@ -1,0 +1,74 @@
+// Test 08: Sphere Source
+// Compares to Lei et al. sphere source data
+
+diffusion_coefficient = 0.001
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (63,63) ]
+   x_lo = -1.0, -1.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+
+Main {
+   log_file_name = "test00.log"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_interval = 10
+   viz_dump_dirname = "viz_test00"
+   timer_enabled = TRUE
+
+   DT = 0.01
+   START_TIME = 0.0
+   END_TIME = 1.0
+}
+
+// TODO: Add test-specific configuration
+
+INSStaggeredHierarchyIntegrator {
+   mu = 0.01
+   rho = 1.0
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+}
+
+AdvDiffHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+   diffusion_time_stepping_type = "CRANK_NICOLSON"
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
+
+OdorInitialConditions {
+   function = "exp(-10.0*(X_0*X_0 + X_1*X_1))"
+}
+
+OdorBcCoefs {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}

@@ -1,0 +1,25 @@
+
+# 1. Compile the from Enter build directory
+cmake .. --debug-output
+make -j4
+
+then from main directory 
+you just run this 
+
+# 2. Run the simulation from main directory
+
+mpirun -np 8 ./build/main2d input2d
+
+
+
+# Check available memory
+free -h
+
+# Run with memory monitoring
+mpirun -np 6 /usr/bin/time -v ./build/main2d input2d 2>&1 | grep -E "Maximum resident|Memory"
+
+# Or with reduced resolution (should work)
+sed -i 's/^N = 64$/N = 32/' input2d
+mpirun -np 4 ./build/main2d input2d  # Should NOT crash
+
+

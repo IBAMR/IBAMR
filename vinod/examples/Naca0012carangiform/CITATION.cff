@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+type: software
+title: "NACA0012 Undulatory Swimming Simulation"
+abstract: "Constraint-based immersed boundary (IB) simulation of undulatory swimming using NACA0012 airfoil profile to model swimmer bodies with anguilliform and carangiform swimming modes."
+authors:
+  - family-names: "Thale"
+    given-names: "Vinod"
+repository-code: "https://github.com/vinodthale/Naca0012carangiform"
+license: BSD-3-Clause
+keywords:
+  - immersed-boundary
+  - CFD
+  - swimming
+  - biomechanics
+  - IBAMR
+  - carangiform
+  - anguilliform
+  - fluid-structure-interaction
+references:
+  - type: article
+    authors:
+      - family-names: "Khalid"
+        given-names: "M. S. U."
+      - family-names: "Wang"
+        given-names: "J."
+      - family-names: "Akhtar"
+        given-names: "I."
+      - family-names: "Dong"
+        given-names: "H."
+      - family-names: "Liu"
+        given-names: "M."
+      - family-names: "Hemmati"
+        given-names: "A."
+    title: "Flow transitions and mapping for undulating swimmers"
+    journal: "Physical Review Fluids"
+    volume: 5
+    issue: 6
+    year: 2020
+    doi: "10.1103/PhysRevFluids.5.063104"
+  - type: software
+    authors:
+      - name: "IBAMR Development Team"
+    title: "IBAMR: An adaptive and distributed-memory parallel implementation of the immersed boundary method"
+    repository-code: "https://github.com/IBAMR/IBAMR"
+    url: "https://ibamr.github.io"

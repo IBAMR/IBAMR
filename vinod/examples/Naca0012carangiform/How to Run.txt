@@ -1,0 +1,90 @@
+========================================================================
+NACA0012 UNDULATORY SWIMMING SIMULATION - QUICK START GUIDE
+========================================================================
+
+For detailed documentation, see README.md
+
+========================================================================
+STEP 1: GENERATE MESH (Choose swimming mode)
+========================================================================
+
+Option A: Unified Generator (RECOMMENDED)
+------------------------------------------
+1. Open naca0012_swimmer_generator.m
+2. Set swimming_mode = 'carangiform' or 'anguilliform' (line 20)
+3. Run in MATLAB:
+   >> naca0012_swimmer_generator
+
+Option B: Mode-Specific Generators
+-----------------------------------
+For CARANGIFORM (fish-like):
+   >> naca_carangiform_clean
+
+For ANGUILLIFORM (eel-like):
+   >> naca_anguilliform
+
+========================================================================
+STEP 2: UPDATE input2d FILE
+========================================================================
+
+1. Set structure name to match your mesh (lines 149, 237):
+   - For carangiform: structure_names = "naca0012carangiform"
+   - For anguilliform: structure_names = "naca0012anguilliform"
+
+2. Activate corresponding kinematics equations (lines 198-218):
+   - For carangiform: uncomment lines 198-202
+   - For anguilliform: uncomment lines 215-218
+   - Comment out the other mode!
+
+========================================================================
+STEP 3: BUILD THE SIMULATION
+========================================================================
+
+From main directory:
+
+mkdir -p build
+cd build
+cmake .. --debug-output
+make -j4
+cd ..
+
+========================================================================
+STEP 4: RUN THE SIMULATION
+========================================================================
+
+From main directory:
+
+mpirun -np 6 ./build/main2d input2d
+
+Notes:
+- Adjust -np value based on available cores (4-16 recommended)
+- Output goes to: ./viz_naca0012_Str/ and ./NACA0012Str/
+- Simulation runs for 10 time units (END_TIME in input2d)
+
+========================================================================
+STEP 5: VISUALIZE RESULTS
+========================================================================
+
+Using VisIt:
+visit -o viz_naca0012_Str/dumps.visit
+
+Using Paraview:
+paraview viz_naca0012_Str/
+
+========================================================================
+SWIMMING MODES COMPARISON
+========================================================================
+
+ANGUILLIFORM (Eel-like):
+  - Amplitude: A(x/L) = 0.0367 + 0.0323*x/L + 0.0310*(x/L)²
+  - Gradual increase from head to tail
+  - Entire body participates in swimming
+  - High maneuverability
+
+CARANGIFORM (Fish-like):
+  - Amplitude: A(x/L) = 0.02 - 0.0825*x/L + 0.1625*(x/L)²
+  - Posterior concentration (rigid head, flexible tail)
+  - Fast cruising speed
+  - High efficiency
+
+========================================================================

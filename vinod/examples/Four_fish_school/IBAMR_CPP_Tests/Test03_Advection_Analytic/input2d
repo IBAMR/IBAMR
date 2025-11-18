@@ -1,0 +1,114 @@
+// =============================================================================
+// Test 03: Pure Advection - Input Configuration
+// =============================================================================
+// Advects a Gaussian profile with uniform velocity (u,v)
+// Validates: Conservative advection, shape preservation, minimal diffusion
+// =============================================================================
+
+// Physical parameters
+diffusion_coefficient = 1.0e-6       // Minimal diffusion for pure advection test
+advection_velocity_u = 0.5           // X velocity
+advection_velocity_v = 0.3           // Y velocity
+
+// Gaussian initial condition parameters
+gaussian_x0 = -0.3                   // Initial center X
+gaussian_y0 = -0.2                   // Initial center Y
+gaussian_sigma = 0.15                // Standard deviation
+gaussian_amplitude = 1.0             // Peak concentration
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (63,63) ]
+   x_lo = -1.0, -1.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+
+Main {
+   log_file_name = "test03.log"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_interval = 10
+   viz_dump_dirname = "viz_test03"
+   timer_enabled = TRUE
+
+   DT = 0.01
+   START_TIME = 0.0
+   END_TIME = 1.0
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu = 0.01
+   rho = 1.0
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+
+   // Prescribed uniform velocity field
+   U = "0.5"  // u velocity
+   V = "0.3"  // v velocity
+}
+
+AdvDiffHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 1.0
+   num_cycles = 1
+
+   // Use explicit Adams-Bashforth for advection
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type = "PPM"  // Piecewise Parabolic Method (conservative)
+
+   // Minimal implicit diffusion (Crank-Nicolson)
+   diffusion_time_stepping_type = "CRANK_NICOLSON"
+
+   convective_difference_form = "CONSERVATIVE"
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+
+   ratio_to_coarser {
+      level_1 = 4, 4
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+// Initial Gaussian profile (not advected yet)
+OdorInitialConditions {
+   function = "exp(-((X_0 + 0.3)^2 + (X_1 + 0.2)^2) / (2*0.15^2))"
+}
+
+// Dirichlet boundary conditions (homogeneous)
+OdorBcCoefs {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
