@@ -17,6 +17,8 @@
 #include <PatchHierarchy.h>
 #include <tbox/Pointer.h>
 #include <tbox/Database.h>
+#include <appu/VisItDataWriter.h>
+#include <solv/RobinBcCoefStrategy.h>
 
 #include <string>
 #include <vector>

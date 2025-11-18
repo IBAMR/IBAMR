@@ -19,6 +19,7 @@
 namespace IBTK
 {
 class LDataManager;
+class LData;
 } // namespace IBTK
 
 namespace SAMRAI
