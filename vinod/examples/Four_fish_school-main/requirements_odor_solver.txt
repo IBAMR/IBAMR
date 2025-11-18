@@ -1,0 +1,18 @@
+# Python dependencies for Crank-Nicolson Odor Transport Solver
+#
+# Installation:
+#   pip install -r requirements_odor_solver.txt
+#
+# Or install individually:
+#   pip install numpy scipy matplotlib pyvista
+
+numpy>=1.20.0
+scipy>=1.7.0
+matplotlib>=3.3.0
+pyvista>=0.32.0
+
+# Optional but recommended for LaTeX rendering
+# texlive-latex-base
+# texlive-latex-extra
+# dvipng
+# cm-super

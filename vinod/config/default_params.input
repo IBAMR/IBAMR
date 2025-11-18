@@ -1,0 +1,242 @@
+// Default parameter template for IBAMR simulations
+// Copy and modify this file for your specific simulation
+
+// ============================================================================
+// PHYSICAL PARAMETERS
+// ============================================================================
+MU = 0.01                                    // Fluid dynamic viscosity
+RHO = 1.0                                    // Fluid density
+U_MAX = 1.0                                  // Characteristic velocity
+
+// ============================================================================
+// GRID PARAMETERS
+// ============================================================================
+N = 128                                      // Grid resolution (coarsest level)
+NFINEST = 128                                // Grid resolution (finest level)
+MAX_LEVELS = 2                               // Maximum number of AMR levels
+
+// Domain dimensions
+L = 4.0                                      // Domain length (x-direction)
+H = 4.0                                      // Domain height (y-direction)
+#if (NDIM == 3)
+W = 4.0                                      // Domain width (z-direction)
+#endif
+
+// ============================================================================
+// TEMPORAL PARAMETERS
+// ============================================================================
+START_TIME = 0.0                             // Initial simulation time
+END_TIME = 10.0                              // Final simulation time
+DT_MAX = 0.01                                // Maximum time step size
+CFL_MAX = 0.3                                // CFL number for stability
+GROW_DT = 2.0                                // Growth factor for time step
+MAX_INTEGRATOR_STEPS = 10000000              // Maximum number of timesteps
+ERROR_ON_DT_CHANGE = FALSE                   // Error if timestep changes
+
+// ============================================================================
+// AMR PARAMETERS
+// ============================================================================
+REGRID_INTERVAL = 4                          // Regrid every N timesteps
+TAG_BUFFER = 1                               // Buffer cells around tagged regions
+EFFICIENCY_TOLERANCE = 0.85                  // Gridding efficiency tolerance
+COMBINE_EFFICIENCY = 0.85                    // Box combination efficiency
+
+// ============================================================================
+// IB METHOD PARAMETERS
+// ============================================================================
+IB_DELTA_FUNCTION = "IB_4"                   // IB kernel: IB_2, IB_3, IB_4, IB_6
+IB_USE_CONSISTENT_MASS_MATRIX = TRUE         // Use consistent mass matrix
+IB_POINT_DENSITY = 2.0                       // Lagrangian point density factor
+
+// ============================================================================
+// SOLVER PARAMETERS
+// ============================================================================
+USE_STAGGERED_GRID = TRUE                    // Use staggered vs collocated grid
+USE_VORTICITY_TAGGING = TRUE                 // Tag based on vorticity
+VORTICITY_REL_THRESH = 0.25                  // Relative vorticity threshold
+
+// Projection method parameters
+PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"   // or "PRESSURE_INCREMENT"
+SECOND_ORDER_PRESSURE_UPDATE = TRUE
+
+// Linear solver parameters
+SOLVER_TYPE = "PETSC_KRYLOV_SOLVER"
+MAX_ITERATIONS = 100
+ABS_RESIDUAL_TOL = 1.0e-8
+REL_RESIDUAL_TOL = 1.0e-2
+KRYLOV_SUBSPACE_SIZE = 50
+
+// Preconditioner parameters
+PC_TYPE = "SHELL"
+PC_LEVEL_TYPE = "HYPRE_LEVEL_SOLVER"
+PC_HYPRE_TYPE = "PFMG"
+
+// ============================================================================
+// OUTPUT PARAMETERS
+// ============================================================================
+ENABLE_LOGGING = TRUE                        // Enable log files
+LOG_ALL_NODES = FALSE                        // Log from all MPI processes
+
+// Visualization output
+VIZ_DUMP_INTERVAL = 100                      // Write visualization every N steps
+VIZ_DUMP_DIRNAME = "viz_data"                // Visualization directory name
+VIZ_WRITER = "VisIt"                         // Visualization format
+
+// Restart output
+RESTART_DUMP_INTERVAL = 1000                 // Write restart every N steps
+RESTART_DUMP_DIRNAME = "restart_data"        // Restart directory name
+
+// Timer output
+TIMER_DUMP_INTERVAL = 0                      // Print timers every N steps (0=disabled)
+
+// Post-processing output
+POSTPROC_DUMP_INTERVAL = 0                   // Post-processing every N steps
+POSTPROC_DUMP_DIRNAME = "postproc_data"      // Post-processing directory
+
+// ============================================================================
+// INITIAL CONDITIONS
+// ============================================================================
+VelocityInitialConditions {
+   function_0 = "0.0"                        // u-velocity
+   function_1 = "0.0"                        // v-velocity
+#if (NDIM == 3)
+   function_2 = "0.0"                        // w-velocity
+#endif
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+// ============================================================================
+// BOUNDARY CONDITIONS
+// ============================================================================
+// Format: acoef * u + bcoef * du/dn = gcoef
+// Dirichlet: acoef=1.0, bcoef=0.0, gcoef=value
+// Neumann: acoef=0.0, bcoef=1.0, gcoef=value
+
+VelocityBcCoefs_0 {
+   // X-direction velocity component
+   acoef_function_0 = "1.0"                  // x_lo boundary
+   acoef_function_1 = "1.0"                  // x_hi boundary
+   acoef_function_2 = "1.0"                  // y_lo boundary
+   acoef_function_3 = "1.0"                  // y_hi boundary
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   // Y-direction velocity component
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// ============================================================================
+// INTEGRATOR CONFIGURATION
+// ============================================================================
+IBHierarchyIntegrator {
+   start_time            = START_TIME
+   end_time              = END_TIME
+   grow_dt               = GROW_DT
+   regrid_interval       = REGRID_INTERVAL
+   dt_max                = DT_MAX
+   error_on_dt_change    = ERROR_ON_DT_CHANGE
+   enable_logging        = ENABLE_LOGGING
+}
+
+IBMethod {
+   delta_fcn                = IB_DELTA_FUNCTION
+   use_consistent_mass_matrix = IB_USE_CONSISTENT_MASS_MATRIX
+   IB_point_density         = IB_POINT_DENSITY
+   enable_logging           = ENABLE_LOGGING
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = MU
+   rho                     = RHO
+   start_time              = START_TIME
+   end_time                = END_TIME
+   grow_dt                 = GROW_DT
+   cfl                     = CFL_MAX
+   dt_max                  = DT_MAX
+   using_vorticity_tagging = USE_VORTICITY_TAGGING
+   vorticity_rel_thresh    = VORTICITY_REL_THRESH
+   tag_buffer              = TAG_BUFFER
+   regrid_interval         = REGRID_INTERVAL
+   output_U                = TRUE
+   output_P                = TRUE
+   output_F                = FALSE
+   output_Omega            = TRUE
+   output_Div_U            = FALSE
+   enable_logging          = ENABLE_LOGGING
+}
+
+Main {
+   solver_type = "STAGGERED"
+   log_file_name    = "simulation.log"
+   log_all_nodes    = LOG_ALL_NODES
+   viz_writer       = VIZ_WRITER
+   viz_dump_interval = VIZ_DUMP_INTERVAL
+   viz_dump_dirname = VIZ_DUMP_DIRNAME
+   visit_number_procs_per_file = 1
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (N - 1, N - 1) ]
+   x_lo         =  0.0, 0.0
+   x_up         =  L, H
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 4, 4
+      level_2 = 4, 4
+      level_3 = 4, 4
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+   efficiency_tolerance   = EFFICIENCY_TOLERANCE
+   combine_efficiency     = COMBINE_EFFICIENCY
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*", "IBTK::*::*", "*::*::*"
+}
