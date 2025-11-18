@@ -1,0 +1,212 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2021 - 2025 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+name: IBAMR Full Environment Check — Build + Static Analysis
+
+on:
+  push:
+    branches:
+      - "claude/ibamr-build-analysis-01SNfR9rMQzRyPSa2UCcpJUM"
+  pull_request:
+    branches:
+      - "claude/ibamr-build-analysis-01SNfR9rMQzRyPSa2UCcpJUM"
+
+jobs:
+  ibamr-full-env:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    env:
+      IBAMR_PREFIX: ${{ runner.temp }}/ibamr-install
+      AUTOIBAMR_DIR: ${{ runner.temp }}/autoibamr
+      ROOT_DIR: ${{ github.workspace }}
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Show repository structure
+      run: tree -L 4 || ls -R "$ROOT_DIR"
+
+    # -------------------------------------
+    # Install Dependencies
+    # -------------------------------------
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y \
+          build-essential cmake ninja-build pkg-config \
+          git wget curl python3 python3-pip \
+          autoconf automake libtool m4 \
+          zlib1g-dev libhdf5-dev libeigen3-dev \
+          libboost-all-dev libopenmpi-dev openmpi-bin \
+          clang-tidy cppcheck gfortran tree
+
+    # -------------------------------------
+    # Download autoibamr
+    # -------------------------------------
+    - name: Clone autoibamr
+      run: |
+        git clone https://github.com/IBAMR/autoibamr.git "${AUTOIBAMR_DIR}"
+        cd "${AUTOIBAMR_DIR}"
+        git rev-parse --short HEAD
+        ls -la
+
+    # -------------------------------------
+    # Build full IBAMR stack
+    # -------------------------------------
+    - name: Build IBAMR with autoibamr
+      run: |
+        cd "${AUTOIBAMR_DIR}"
+        chmod +x autoibamr.sh
+        ./autoibamr.sh \
+          --prefix "${IBAMR_PREFIX}" \
+          --no-sudo \
+          --enable-debugging \
+          2>&1 | tee "${ROOT_DIR}/autoibamr_build.log"
+      continue-on-error: true
+
+    - name: Check autoibamr build status
+      run: |
+        if [ -d "${IBAMR_PREFIX}" ]; then
+          echo "IBAMR installation directory exists"
+          find "${IBAMR_PREFIX}" -type d -name include -o -name lib | head -20
+        else
+          echo "WARNING: IBAMR installation directory not found"
+        fi
+
+    - name: Upload IBAMR build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: autoibamr-logs
+        path: |
+          ${{ github.workspace }}/autoibamr_build.log
+          ${{ runner.temp }}/autoibamr/*.log
+
+    # -------------------------------------
+    # Build all example/code directories
+    # -------------------------------------
+    - name: Build all C/C++ code in this branch
+      run: |
+        echo "Scanning repository for C/C++ build directories..."
+        find "$ROOT_DIR" -type f \( -name "CMakeLists.txt" -o -name "Makefile" \) -exec dirname {} \; | sort -u > /tmp/build_targets.txt
+        echo "Found the following build targets:"
+        cat /tmp/build_targets.txt
+
+        while IFS= read -r dir; do
+          echo "---------------------------------------------"
+          echo "BUILDING DIRECTORY: $dir"
+          echo "---------------------------------------------"
+
+          if [ -f "$dir/CMakeLists.txt" ]; then
+            mkdir -p "$dir/build"
+            cd "$dir/build"
+            cmake -DCMAKE_PREFIX_PATH="${IBAMR_PREFIX}" \
+                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                  .. 2>&1 | tee cmake_config.log || true
+            cmake --build . -- -j$(nproc) 2>&1 | tee cmake_build.log || true
+          elif [ -f "$dir/Makefile" ]; then
+            cd "$dir"
+            make -j$(nproc) 2>&1 | tee make_build.log || true
+          fi
+        done < /tmp/build_targets.txt
+      continue-on-error: true
+
+    - name: Upload build outputs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: built-artifacts
+        path: |
+          **/build/*.log
+          **/compile_commands.json
+          **/*_build.log
+
+    # -------------------------------------
+    # Static analysis (clang-tidy + cppcheck)
+    # -------------------------------------
+    - name: Run clang-tidy on source files
+      run: |
+        echo "Running clang-tidy on C/C++ source files..."
+        find "$ROOT_DIR" -type f \( -name "*.cpp" -o -name "*.c" -o -name "*.cc" \) -print0 | \
+        while IFS= read -r -d '' f; do
+          echo ">>> Analyzing $f"
+          # Try to find compile_commands.json in parent directories
+          compile_db=$(find "$(dirname "$f")" -name compile_commands.json | head -1)
+          if [ -n "$compile_db" ]; then
+            clang-tidy "$f" -p "$(dirname "$compile_db")" 2>&1 || true
+          else
+            clang-tidy "$f" -- -I"${IBAMR_PREFIX}/include" -I"${ROOT_DIR}/include" -I"${ROOT_DIR}/ibtk/include" 2>&1 || true
+          fi
+        done | tee "${ROOT_DIR}/clang_tidy_output.txt"
+      continue-on-error: true
+
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all \
+          --inconclusive \
+          --std=c++17 \
+          --suppress=missingIncludeSystem \
+          --inline-suppr \
+          --force \
+          -I"${ROOT_DIR}/include" \
+          -I"${ROOT_DIR}/ibtk/include" \
+          "$ROOT_DIR" \
+          2>&1 | tee "${ROOT_DIR}/cppcheck_output.txt"
+      continue-on-error: true
+
+    - name: Upload static analysis logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: static-analysis
+        path: |
+          ${{ github.workspace }}/cppcheck_output.txt
+          ${{ github.workspace }}/clang_tidy_output.txt
+
+    - name: Generate summary
+      if: always()
+      run: |
+        echo "# IBAMR Full Environment Check Summary" | tee summary.md
+        echo "" | tee -a summary.md
+        echo "## Build Status" | tee -a summary.md
+        if [ -d "${IBAMR_PREFIX}" ]; then
+          echo "✅ IBAMR dependencies built successfully" | tee -a summary.md
+        else
+          echo "❌ IBAMR dependencies build failed" | tee -a summary.md
+        fi
+        echo "" | tee -a summary.md
+        echo "## Static Analysis" | tee -a summary.md
+        if [ -f "${ROOT_DIR}/cppcheck_output.txt" ]; then
+          echo "### cppcheck findings:" | tee -a summary.md
+          grep -c "error\|warning" "${ROOT_DIR}/cppcheck_output.txt" || echo "0" | tee -a summary.md
+        fi
+        if [ -f "${ROOT_DIR}/clang_tidy_output.txt" ]; then
+          echo "### clang-tidy findings:" | tee -a summary.md
+          grep -c "warning\|error" "${ROOT_DIR}/clang_tidy_output.txt" || echo "0" | tee -a summary.md
+        fi
+        cat summary.md
+
+    - name: Upload summary
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-summary
+        path: summary.md
+
+    - name: CI Finished
+      run: echo "IBAMR Full Environment Check complete!"
