@@ -27,6 +27,13 @@
 namespace IBAMR
 {
 
+// Define static constexpr members for C++11 compatibility (ODR-usage requires definition)
+constexpr double IBEELKinematicsZhang::ZHANG_A_MAX;
+constexpr double IBEELKinematicsZhang::ZHANG_ENVELOPE_C0;
+constexpr double IBEELKinematicsZhang::ZHANG_ENVELOPE_C1;
+constexpr double IBEELKinematicsZhang::ZHANG_ENVELOPE_POWER;
+constexpr double IBEELKinematicsZhang::ZHANG_WAVELENGTH;
+
 IBEELKinematicsZhang::IBEELKinematicsZhang(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            LDataManager* l_data_manager,

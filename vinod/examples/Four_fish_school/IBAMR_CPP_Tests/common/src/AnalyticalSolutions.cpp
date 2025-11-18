@@ -4,6 +4,10 @@
 
 namespace TestUtilities {
 
+// Define static constexpr members for C++11 compatibility (ODR-usage requires definition)
+constexpr double AnalyticalSolutions::PI;
+constexpr double AnalyticalSolutions::EPSILON;
+
 double AnalyticalSolutions::gaussianDiffusion1D(
     double x, double t, double kappa, double x0, double C0)
 {
