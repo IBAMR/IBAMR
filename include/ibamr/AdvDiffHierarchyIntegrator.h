@@ -427,6 +427,9 @@ public:
      *
      * These strings must correspond to a valid operator under the grid geometry when initializePatchHierarchy() is
      * called.
+     *
+     * \note This function will emit a warning if the integrator has already been initialized. In this case, the new
+     * refine and coarsen operators will not be used.
      */
     void setRefineAndCoarsenOperators(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                       std::string Q_refine_type = "CONSERVATIVE_LINEAR_REFINE",

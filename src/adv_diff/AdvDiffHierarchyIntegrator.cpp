@@ -333,8 +333,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, nullptr);
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     d_Q_output[Q_var] = output_Q;
-    d_Q_refine_map[Q_var] = "CONSERVATIVE_LINEAR_REFINE";
-    d_Q_coarsen_map[Q_var] = "CONSERVATIVE_COARSEN";
+    setRefineAndCoarsenOperators(Q_var);
     return;
 } // registerTransportedQuantity
 
@@ -764,6 +763,10 @@ AdvDiffHierarchyIntegrator::setRefineAndCoarsenOperators(Pointer<CellVariable<ND
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
+    if (d_hierarchy_is_initialized)
+        TBOX_WARNING(d_object_name +
+                     "::setRefineAndCoarsenOperators(): Integrator has already been initialized. These options will "
+                     "have no effect.\n");
     d_Q_refine_map[Q_var] = std::move(Q_refine_type);
     d_Q_coarsen_map[Q_var] = std::move(Q_coarsen_type);
 }
