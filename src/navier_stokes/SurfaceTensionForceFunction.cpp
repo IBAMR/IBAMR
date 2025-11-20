@@ -400,6 +400,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     {
         setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
 
+        PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
         if (d_compute_surface_tension_coef)
         {
             // Compute variable surface tension coefficient sigma as F = sigma*F.
@@ -407,7 +408,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
             const double current_time = data_time;
             const double new_time = data_time;
             d_compute_surface_tension_coef(data_idx,
-                                           d_hier_math_ops,
+                                           patch,
                                            -1 /*cycle_num*/,
                                            apply_time,
                                            current_time,
@@ -416,7 +417,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
         }
         else
         {
-            d_hier_sc_data_ops->scale(data_idx, d_sigma, data_idx, /*interior_only*/ true);
+            patch_sc_data_ops.scale(f_sc_data, d_sigma, f_sc_data, patch->getBox());
         }
     }
     return;
@@ -565,6 +566,16 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                              /*depth*/ NDIM,
                              /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
+
+    const int required_phi_ghost_width = getMinimumGhostWidth(d_kernel_fcn);
+    const int phi_ghost_width = Phi->getGhostCellWidth().max();
+
+    if (phi_ghost_width < required_phi_ghost_width)
+    {
+        TBOX_ERROR("SurfaceTensionForceFunction::setDataOnPatchSide: ghost cell width for phi variable is small.\n"
+                   << "Minimum ghost cell width required: " << required_phi_ghost_width << "\n"
+                   << "Provided: " << phi_ghost_width << "\n");
+    }
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
