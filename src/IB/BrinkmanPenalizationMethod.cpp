@@ -17,6 +17,7 @@
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include <string>
@@ -27,6 +28,35 @@
 
 namespace IBAMR
 {
+
+namespace
+{
+
+void
+rdv_to_eigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vector3d& W)
+{
+    U.setZero();
+    W.setZero();
+
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        U[d] = UW[d];
+    }
+
+#if (NDIM == 2)
+    W[2] = UW[2];
+#elif (NDIM == 3)
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        W[d] = UW[3 + d];
+    }
+#endif
+
+    return;
+} // rdv_to_eigen
+
+} // namespace
+
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationMethod::BrinkmanPenalizationMethod(std::string object_name,
                                                        Pointer<HierarchyIntegrator> time_integrator,
@@ -54,6 +84,27 @@ BrinkmanPenalizationMethod::registerSolidLevelSet(int ls_current_idx,
     d_ls_bc_coef = ls_bc_coef;
     return;
 } // registerSolidLevelSet
+
+void
+BrinkmanPenalizationMethod::setRigidVelocity(const IBTK::FreeRigidDOFVector& free_dofs,
+                                             const IBTK::RigidDOFVector& UW,
+                                             const std::array<double, NDIM>& X_com,
+                                             int depth)
+{
+    d_free_rigid_dofs = free_dofs;
+    for (int i = 0; i < s_max_free_dofs; ++i)
+    {
+        if (d_free_rigid_dofs(i))
+        {
+            d_is_freely_moving = true;
+            break;
+        }
+    }
+    d_rigid_vel = UW;
+    d_X_com = X_com;
+    d_depth = depth;
+    return;
+} // setVelocity
 
 void
 BrinkmanPenalizationMethod::computeBrinkmanVelocity(int u_idx, double time, int /*cycle_num*/)
@@ -90,6 +141,7 @@ BrinkmanPenalizationMethod::computeBrinkmanVelocity(int u_idx, double time, int 
         Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(d_ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
 
+        IBTK::Vector3d U, W, X_com;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
@@ -103,8 +155,15 @@ BrinkmanPenalizationMethod::computeBrinkmanVelocity(int u_idx, double time, int 
 
                 if (phi <= alpha)
                 {
-                    const double solid_velocity = 0.0;
-                    (*u_data)(s_i) = solid_velocity * d_penalty_factor * (1.0 - Hphi);
+                    // Compute the rigid body velocity at the side center
+                    // V = U + WxR
+                    rdv_to_eigen(d_rigid_vel, U, W);
+                    X_com.setZero();
+                    std::copy(d_X_com.data(), d_X_com.data() + NDIM, X_com.data());
+                    const IBTK::Vector3d R = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i) - X_com;
+                    IBTK::Vector3d solid_velocity = U + W.cross(R);
+
+                    (*u_data)(s_i, d_depth) = solid_velocity[axis] * d_penalty_factor * (1.0 - Hphi);
                 }
             }
         }

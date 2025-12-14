@@ -33,6 +33,7 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "EdgeVariable.h"
@@ -48,12 +49,17 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <string>
 #include <vector>
 
 namespace IBAMR
 {
-class BrinkmanPenalizationStrategy;
+class BrinkmanPenalizationMethod;
 class FOAcousticStreamingPETScLevelSolver;
 } // namespace IBAMR
 namespace IBTK
@@ -447,10 +453,14 @@ public:
      * in the momentum equation for the first- and second-order systems.
      */
     void
-    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> fo_brinkman_force,
-                                         SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> so_brinkman_force,
+    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> fo_brinkman_force,
+                                         SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> so_brinkman_force,
                                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > brinkman_var,
-                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* brinkman_bc);
+                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* brinkman_bc,
+                                         const std::array<double, NDIM>& center,
+                                         const IBTK::FreeRigidDOFVector& free_dofs,
+                                         const double mass = 0.0,
+                                         const Eigen::Matrix3d& J_com = Eigen::Matrix3d::Zero());
 
     /*!
      * \brief Register level set function to perform contour integral to evaluate acoustic radiation force.
@@ -470,7 +480,7 @@ public:
     /*!
      * \brief Get the Brinkman penalization objects for the first-order velocity registered with this class.
      */
-    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
+    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> >&
     getFOBrinkmanPenalizationStrategy() const
     {
         return d_fo_brinkman_force;
@@ -479,7 +489,7 @@ public:
     /*!
      * \brief Get the Brinkman penalization objects for the second-order velocity registered with this class.
      */
-    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
+    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> >&
     getSOBrinkmanPenalizationStrategy() const
     {
         return d_so_brinkman_force;
@@ -492,6 +502,67 @@ public:
     {
         return d_acoustic_radiation_force;
     } // getAcousticRadiationForce
+
+    /*!
+     * \brief Get the real component of the first-order hydrodynamic force acting on the bodies registered with this
+     * class.
+     */
+    const std::vector<std::array<double, NDIM> >& getFORealHydrodynamicForce() const
+    {
+        return d_fo_real_hydro_force;
+    } // getFORealHydrodynamicForce
+
+    /*!
+     * \brief Get the imaginary component of the first-order hydrodynamic force acting on the bodies registered with
+     * this class.
+     */
+    const std::vector<std::array<double, NDIM> >& getFOImagHydrodynamicForce() const
+    {
+        return d_fo_imag_hydro_force;
+    } // getFOImagHydrodynamicForce
+
+    /*!
+     * \brief Get the real component of the first-order hydrodynamic torque acting on the bodies registered with this
+     * class.
+     */
+    const std::vector<std::array<double, 3> >& getFORealHydrodynamicTorque() const
+    {
+        return d_fo_real_hydro_torque;
+    } // getFORealHydrodynamicTorque
+
+    /*!
+     * \brief Get the imaginary component of the first-order hydrodynamic torque acting on the bodies registered with
+     * this class.
+     */
+    const std::vector<std::array<double, 3> >& getFOImagHydrodynamicTorque() const
+    {
+        return d_fo_imag_hydro_torque;
+    } // getFOImagHydrodynamicTorque
+
+    /*!
+     * \brief Get the center of mass of the bodies registered with this class.
+     */
+    const std::vector<std::array<double, NDIM> >& getCenterOfMass() const
+    {
+        return d_brinkman_center;
+    } // getCenterOfMass
+
+    /*!
+     * \brief Update the center of mass of the pth body registered with this class.
+     */
+    void updateCenterOfMass(const std::array<double, NDIM>& X_new, int part = 0)
+    {
+        d_brinkman_center[part] = X_new;
+        return;
+    } // updateCenterOfMass
+
+    /*!
+     * \brief Get the rigid body velocity at the second-order
+     */
+    const std::vector<IBTK::RigidDOFVector>& getSORigidBodyVelocity() const
+    {
+        return d_brinkman_so_vel;
+    } // getSORigidBodyVelocity
 
     /*!
      * \brief Get the variables associated with the Brinkman penalization objects registered with this class.
@@ -854,10 +925,17 @@ protected:
     /*!
      * Brinkman force strategy objects registered with this integrator.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_fo_brinkman_force, d_so_brinkman_force;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> > d_fo_brinkman_force, d_so_brinkman_force;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_brinkman_vars;
     std::vector<int> d_brinkman_current_idx, d_brinkman_new_idx, d_brinkman_scratch_idx;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_brinkman_bcs;
+    std::vector<std::array<double, NDIM> > d_brinkman_center;
+    std::vector<IBTK::RigidDOFVector> d_brinkman_fo_real_vel, d_brinkman_fo_imag_vel;
+    std::vector<IBTK::RigidDOFVector> d_brinkman_so_vel;
+    std::vector<IBTK::FreeRigidDOFVector> d_brinkman_free_dofs;
+    std::vector<double> d_brinkman_mass;
+    std::vector<Eigen::Matrix3d> d_brinkman_intertia_tensor_initial;
+    std::vector<Eigen::Quaterniond> d_brinkman_quaternion;
 
     /*!
      * Contour variables registered with this integrator.
@@ -877,6 +955,12 @@ protected:
      * Acoustic radiation force acting on the body
      */
     std::vector<std::array<double, NDIM> > d_acoustic_radiation_force;
+
+    /*!
+     * First-order hydrodynamic force and torque acting on the body
+     */
+    std::vector<std::array<double, NDIM> > d_fo_real_hydro_force, d_fo_imag_hydro_force;
+    std::vector<std::array<double, 3> > d_fo_real_hydro_torque, d_fo_imag_hydro_torque;
 
     /*
      * Variable to set how often the preconditioner is reinitialized.
@@ -999,7 +1083,27 @@ private:
     /*!
      * Compute contour integrals to evaluate acoustic radiation force.
      */
-    void computeAcousticRadiationForce(double time, int cycle_num);
+    void computeAcousticRadiationForce(double time);
+
+    /*!
+     * Compute the first-order hydrodynamic force.
+     */
+    void computeFOHydrodynamicForce(double time);
+
+    /*!
+     * Get the number of free degrees of freedom for the Brinkman body
+     */
+    int getFreeDOFs(int part);
+
+    /*!
+     * Compute residual for the first-order system
+     */
+    void computeFOResidual(Eigen::VectorXd& R, double time);
+
+    /*!
+     * Compute residual for the second-order system
+     */
+    void computeSOResidual(Eigen::VectorXd& R, double time);
 };
 } // namespace IBAMR
 

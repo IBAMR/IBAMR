@@ -70,11 +70,8 @@ struct SolidLevelSetResetter
     int ls_idx;
 
     // "CYLINDER" geometry
-    IBTK::VectorNd center;
+    std::array<double, NDIM> center;
     double R;
-
-    // Rigid body velocity of the structure.
-    IBTK::VectorNd trans_vel = IBTK::VectorNd::Zero();
 };
 
 // Struct to reset contour level set
@@ -84,7 +81,7 @@ struct ContourLevelSetResetter
     int contour_idx;
 
     // "Circular" geometry
-    IBTK::VectorNd center;
+    std::array<double, NDIM> center;
     double R;
 };
 
@@ -362,6 +359,16 @@ main(int argc, char* argv[])
         time_integrator->registerResetFluidBulkViscosityFcn(&callSetFluidPropertyCallbackFunction,
                                                             static_cast<void*>(lambda_init.getPointer()));
 
+        // Reset solid geometry
+        SolidLevelSetResetter solid_level_set_resetter;
+        solid_level_set_resetter.time_integrator = time_integrator;
+        solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
+        solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
+        solid_level_set_resetter.R = input_db->getDouble("Radius");
+
+        auto fcn_ptr = &reset_solid_level_set_callback_fcn;
+        time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
+
         // Configure the Brinkman penalization objects for the first- and second-order solvers.
         Pointer<BrinkmanPenalizationMethod> fo_brinkman =
             new BrinkmanPenalizationMethod("First-order Brinkman Force",
@@ -373,17 +380,16 @@ main(int argc, char* argv[])
                                                         time_integrator,
                                                         app_initializer->getComponentDatabase("SOBrinkmanPenalization"),
                                                         /*register_for_restart*/ true);
-        time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman, so_brinkman, phi_var_solid, ls_bc_coef);
-
-        // Reset solid geometry
-        SolidLevelSetResetter solid_level_set_resetter;
-        solid_level_set_resetter.time_integrator = time_integrator;
-        solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
-        solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
-        solid_level_set_resetter.R = input_db->getDouble("Radius");
-
-        auto fcn_ptr = &reset_solid_level_set_callback_fcn;
-        time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
+        IBTK::FreeRigidDOFVector cylinder_dofs;
+        input_db->getIntegerArray("FREE_DOFS", cylinder_dofs.data(), IBTK::s_max_free_dofs);
+        const double cylinder_mass = input_db->getDouble("MASS");
+        time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman,
+                                                              so_brinkman,
+                                                              phi_var_solid,
+                                                              ls_bc_coef,
+                                                              solid_level_set_resetter.center,
+                                                              cylinder_dofs,
+                                                              cylinder_mass);
 
         // Create level set for the contour integration and register it with acoustic integrator
         const std::string& ls_name_contour = "ARF";
@@ -438,6 +444,7 @@ main(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
+        const auto& arf = time_integrator->getAcousticRadiationForce();
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -459,13 +466,17 @@ main(int argc, char* argv[])
             pout << "\n";
 
             // Update the center of mass position of the immersed solid and integration contour
-            const auto& arf = time_integrator->getAcousticRadiationForce();
+            auto& so_vel = time_integrator->getSORigidBodyVelocity();
+            auto& X_com_old = time_integrator->getCenterOfMass();
+            std::array<double, NDIM> X_com_new;
+            int part = 0;
             for (int d = 0; d < NDIM; ++d)
             {
-                solid_level_set_resetter.trans_vel[d] += arf[0][d] * dt;
-                solid_level_set_resetter.center[d] += solid_level_set_resetter.trans_vel[d] * dt;
-                contour_level_set_resetter.center[d] += solid_level_set_resetter.trans_vel[d] * dt;
+                X_com_new[d] = X_com_old[part][d] + dt * so_vel[part](d);
             }
+            solid_level_set_resetter.center = X_com_new;
+            contour_level_set_resetter.center = X_com_new;
+            time_integrator->updateCenterOfMass(X_com_new, part);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -492,9 +503,8 @@ main(int argc, char* argv[])
 
         if (IBTK_MPI::getRank() == 0)
         {
-            std::ifstream in_file("ContourIntegral_ARF");
             std::ofstream out_file("output");
-            out_file << in_file.rdbuf();
+            out_file << loop_time << '\t' << arf[0][0] << '\t' << arf[0][1] << '\t' << 0.0 << std::endl;
         }
 
         if (dump_viz_data && uses_visit)

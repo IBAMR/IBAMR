@@ -30,6 +30,7 @@
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/VCSCViscousDilatationalOperator.h"
@@ -887,18 +888,34 @@ AcousticStreamingHierarchyIntegrator::registerBulkViscosityBoundaryConditions(
 
 void
 AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
-    Pointer<BrinkmanPenalizationStrategy> fo_brinkman_force,
-    Pointer<BrinkmanPenalizationStrategy> so_brinkman_force,
+    Pointer<BrinkmanPenalizationMethod> fo_brinkman_force,
+    Pointer<BrinkmanPenalizationMethod> so_brinkman_force,
     Pointer<CellVariable<NDIM, double> > brinkman_var,
-    RobinBcCoefStrategy<NDIM>* brinkman_bc)
+    RobinBcCoefStrategy<NDIM>* brinkman_bc,
+    const std::array<double, NDIM>& center,
+    const FreeRigidDOFVector& free_dofs,
+    const double mass,
+    const Eigen::Matrix3d& J_com)
 {
     d_fo_brinkman_force.push_back(fo_brinkman_force);
     d_so_brinkman_force.push_back(so_brinkman_force);
+
     d_brinkman_vars.push_back(brinkman_var);
     d_brinkman_current_idx.push_back(IBTK::invalid_index);
     d_brinkman_new_idx.push_back(IBTK::invalid_index);
     d_brinkman_scratch_idx.push_back(IBTK::invalid_index);
     d_brinkman_bcs.push_back(brinkman_bc);
+
+    d_brinkman_center.push_back(center);
+    d_brinkman_mass.push_back(mass);
+    d_brinkman_intertia_tensor_initial.push_back(J_com);
+    d_brinkman_quaternion.push_back(Eigen::Quaterniond::Identity());
+
+    d_brinkman_free_dofs.push_back(free_dofs);
+    d_brinkman_fo_real_vel.push_back(IBTK::RigidDOFVector::Zero());
+    d_brinkman_fo_imag_vel.push_back(IBTK::RigidDOFVector::Zero());
+    d_brinkman_so_vel.push_back(IBTK::RigidDOFVector::Zero());
+
     return;
 } // registerBrinkmanPenalizationStrategy
 
@@ -1191,6 +1208,10 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
         so_brinkman_force->registerSolidLevelSet(current_idx, new_idx, scratch_idx, brinkman_bc);
     }
+    d_fo_real_hydro_force.resize(num_bodies);
+    d_fo_imag_hydro_force.resize(num_bodies);
+    d_fo_real_hydro_torque.resize(num_bodies);
+    d_fo_imag_hydro_torque.resize(num_bodies);
 
     // Register contour variables that are maintained by the AcousticStreamingHierarchyIntegrator.
     unsigned int num_contours = d_contour_vars.size();
@@ -1802,7 +1823,6 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                                  /*interior_only*/ true);
 
     // Zero-out the RHS vectors of the two solvers.
-    d_rhs1_vec->setToScalar(0.0);
     d_U2_rhs_vec->setToScalar(0.0);
     d_P2_rhs_vec->setToScalar(0.0);
 
@@ -1810,10 +1830,81 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     updateOperatorsAndSolvers(current_time, new_time, cycle_num);
 
     // Setup the solution and right-hand-side vector for the 1st order system.
-    setupSolverVectorsFOSystem(d_sol1_vec, d_rhs1_vec, current_time, new_time, cycle_num);
+    int fo_jacobian_size = 0;
+    const unsigned num_bodies = d_fo_brinkman_force.size();
+    for (int b = 0; b < num_bodies; ++b)
+    {
+        fo_jacobian_size += 2 * getFreeDOFs(b);
+    }
 
-    // Solve for u1(n+1), p1(n+1)
-    d_first_order_solver->solveSystem(*d_sol1_vec, *d_rhs1_vec);
+    // Solve the first order system with constraints
+    static const int NEWTON_ITER_MAX = 10;
+    for (int iter = 0; iter < NEWTON_ITER_MAX; ++iter)
+    {
+        setupSolverVectorsFOSystem(d_sol1_vec, d_rhs1_vec, current_time, new_time, cycle_num);
+        d_first_order_solver->solveSystem(*d_sol1_vec, *d_rhs1_vec);
+
+        Eigen::VectorXd R_current(fo_jacobian_size);
+        R_current.setZero();
+        computeFOResidual(R_current, new_time);
+        pout << "FO NEWTON ITERATION # = " << iter << "\n"
+             << "|| Residual FO || = " << R_current.norm() << std::endl;
+        if (R_current.norm() < 1e-8) break;
+
+        // Compute the Jacobian matrix
+        Eigen::MatrixXd Jac(fo_jacobian_size, fo_jacobian_size);
+        Jac.setIdentity();
+        int p = -1;
+        for (int b = 0; b < num_bodies; ++b)
+        {
+            for (int d = 0; d < s_max_free_dofs; ++d)
+            {
+                if (d_brinkman_free_dofs[b](d))
+                {
+                    for (int comp = 0; comp < 2; ++comp)
+                    {
+                        p = p + 1;
+                        double& vcomp = (comp == REAL ? d_brinkman_fo_real_vel[b](d) : d_brinkman_fo_imag_vel[b](d));
+                        const double incr = 1e-3;
+                        // 0.01*std::abs(vcomp);
+                        vcomp += incr;
+
+                        // Solve the first-order system with the perturbed free DOF
+                        setupSolverVectorsFOSystem(d_sol1_vec, d_rhs1_vec, current_time, new_time, cycle_num);
+                        d_first_order_solver->solveSystem(*d_sol1_vec, *d_rhs1_vec);
+
+                        // Compute the new residual
+                        Eigen::VectorXd R_new(fo_jacobian_size);
+                        computeFOResidual(R_new, new_time);
+
+                        Jac(Eigen::all, p) = (R_new - R_current) / incr;
+
+                        // Remove the perturbation from the velocity
+                        vcomp -= incr;
+                    }
+                }
+            }
+        }
+        Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
+        Eigen::VectorXd delta_v = lu.solve(-R_current);
+        p = -1;
+        for (int b = 0; b < num_bodies; ++b)
+        {
+            for (int d = 0; d < s_max_free_dofs; ++d)
+            {
+                if (d_brinkman_free_dofs[b](d))
+                {
+                    for (int comp = 0; comp < 2; ++comp)
+                    {
+                        p = p + 1;
+                        double& vcomp = (comp == REAL ? d_brinkman_fo_real_vel[b](d) : d_brinkman_fo_imag_vel[b](d));
+                        const double& delta = delta_v(p);
+                        vcomp += delta;
+                    }
+                }
+            }
+        }
+    }
 
     // Compute src terms for the 2nd order system due to 1st order
     if (d_coupled_system)
@@ -1821,11 +1912,131 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         computeCouplingSourceTerms(d_sol1_vec, d_rhs2_vec, current_time, new_time, cycle_num);
     }
 
-    // Setup the remainder of the solution and right-hand-side vector for the 2nd order system.
-    setupSolverVectorsSOSystem(d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+    const int so_jacobian_size = fo_jacobian_size / 2;
+    for (int iter = 0; iter < NEWTON_ITER_MAX; ++iter)
+    {
+        // Add the contribution that is independent of the Newton iteration to the RHS
+        // vector for the 2nd order system.
+        if (iter == 0)
+        {
+            setupSolverVectorsSOSystem(d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+        }
 
-    // Solve for u2(n+1), p2(n+1).
-    d_stokes_solver->solveSystem(*d_sol2_vec, *d_rhs2_vec);
+        // Compute and add the Brinkman term to the RHS vector.
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+        for (int k = 0; k < num_bodies; ++k)
+        {
+            auto& so_brinkman_force = d_so_brinkman_force[k];
+            so_brinkman_force->setRigidVelocity(
+                d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+            so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+        }
+        d_hier_sc_data_ops->add(
+            d_rhs2_vec->getComponentDescriptorIndex(0), d_rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
+        // Synchronize solution and right-hand-side data before solve for the second order system.
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+        SynchronizationTransactionComponent sol2_synch_transaction =
+            SynchronizationTransactionComponent(d_sol2_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
+        d_side_synch2_op->resetTransactionComponent(sol2_synch_transaction);
+        d_side_synch2_op->synchronizeData(current_time);
+        SynchronizationTransactionComponent rhs2_synch_transaction =
+            SynchronizationTransactionComponent(d_rhs2_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
+        d_side_synch2_op->resetTransactionComponent(rhs2_synch_transaction);
+        d_side_synch2_op->synchronizeData(current_time);
+        SynchronizationTransactionComponent default_synch2_transaction =
+            SynchronizationTransactionComponent(d_U2_scratch_idx, d_U_coarsen_type);
+        d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
+
+        // Set solution components to equal most recent approximations to u(n+1) and p(n+1).
+        if (iter == 0)
+        {
+            d_hier_sc_data_ops->copyData(d_sol2_vec->getComponentDescriptorIndex(0), d_U2_new_idx);
+            d_hier_cc_data_ops->copyData(d_sol2_vec->getComponentDescriptorIndex(1), d_P2_new_idx);
+        }
+        d_stokes_solver->solveSystem(*d_sol2_vec, *d_rhs2_vec);
+
+        // Remove the Brinkman contribution from the 2nd order RHS
+        d_hier_sc_data_ops->subtract(
+            d_rhs2_vec->getComponentDescriptorIndex(0), d_rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
+        Eigen::VectorXd R_current(so_jacobian_size);
+        R_current.setZero();
+        computeSOResidual(R_current, new_time);
+        pout << "SO NEWTON ITERATION # = " << iter << "\n"
+             << "|| Residual SO|| = " << R_current.norm() << std::endl;
+        if (R_current.norm() < 1e-8) break;
+
+        // Compute the Jacobian matrix
+        Eigen::MatrixXd Jac(so_jacobian_size, so_jacobian_size);
+        Jac.setIdentity();
+        int p = -1;
+        for (int b = 0; b < num_bodies; ++b)
+        {
+            for (int d = 0; d < s_max_free_dofs; ++d)
+            {
+                if (d_brinkman_free_dofs[b](d))
+                {
+                    p = p + 1;
+                    double& vcomp = d_brinkman_so_vel[b](d);
+                    const double incr = 1e-4;
+                    // 0.01*std::abs(vcomp);
+                    vcomp += incr;
+
+                    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+                    for (int k = 0; k < num_bodies; ++k)
+                    {
+                        auto& so_brinkman_force = d_so_brinkman_force[k];
+                        so_brinkman_force->setRigidVelocity(
+                            d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+                        so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+                    }
+                    d_hier_sc_data_ops->add(d_rhs2_vec->getComponentDescriptorIndex(0),
+                                            d_rhs2_vec->getComponentDescriptorIndex(0),
+                                            d_velocity_L_idx);
+
+                    d_side_synch2_op->resetTransactionComponent(sol2_synch_transaction);
+                    d_side_synch2_op->synchronizeData(current_time);
+                    d_side_synch2_op->resetTransactionComponent(rhs2_synch_transaction);
+                    d_side_synch2_op->synchronizeData(current_time);
+                    d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
+
+                    // Solve the second-order system with the perturbed free DOF
+                    d_stokes_solver->solveSystem(*d_sol2_vec, *d_rhs2_vec);
+
+                    // Compute the new residual
+                    Eigen::VectorXd R_new(so_jacobian_size);
+                    computeSOResidual(R_new, new_time);
+
+                    Jac(Eigen::all, p) = (R_new - R_current) / incr;
+
+                    // Remove the perturbation from the velocity
+                    vcomp -= incr;
+
+                    // Remove the Brinkman contribution from the RHS vector
+                    d_hier_sc_data_ops->subtract(d_rhs2_vec->getComponentDescriptorIndex(0),
+                                                 d_rhs2_vec->getComponentDescriptorIndex(0),
+                                                 d_velocity_L_idx);
+                }
+            }
+        }
+        Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
+        Eigen::VectorXd delta_v = lu.solve(-R_current);
+        p = -1;
+        for (int b = 0; b < num_bodies; ++b)
+        {
+            for (int d = 0; d < s_max_free_dofs; ++d)
+            {
+                if (d_brinkman_free_dofs[b](d))
+                {
+                    p = p + 1;
+                    double& vcomp = d_brinkman_so_vel[b](d);
+                    const double& delta = delta_v(p);
+                    vcomp += delta;
+                }
+            }
+        }
+    }
 
     if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name
@@ -1840,8 +2051,18 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     // Reset the solution and right-hand-side vectors.
     resetSolverVectors(d_sol1_vec, d_rhs1_vec, d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
 
-    // Compute acoustic radiation force for displacing particles etc.
-    computeAcousticRadiationForce(new_time, cycle_num);
+    // Compute hydrodynamic and acoustic radiation force for displacing particles etc.
+    // {
+    //     // We need to fill ghost cells of U1, P1, U2 and P2 for force calculation.
+    //     // We have already filled ghost cells of first-order velocity and pressure.
+    //     // Fill ghost cells of U2 and P2 scratch data
+    //     d_U2_bdry_bc_fill_op->fillData(time);
+    //     auto P2_bc_coef = dynamic_cast<VCStaggeredStokesPressureBcCoef*>(d_P2_bc_coef);
+    //     P2_bc_coef->setTargetVelocityPatchDataIndex(d_U2_scratch_idx);
+    //     d_P2_bdry_bc_fill_op->fillData(time);
+    // }
+    // computeFOHydrodynamicForce(new_time, cycle_num);
+    // computeAcousticRadiationForce(new_time, cycle_num);
 
     // Re-update viscosity if it is maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
@@ -3194,8 +3415,32 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsFOSystem(Pointer<SAMRAIV
                                                                  Pointer<SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
                                                                  double current_time,
                                                                  double new_time,
-                                                                 int /*cycle_num*/)
+                                                                 int cycle_num)
 {
+    // Zero out the RHS vector
+    rhs1_vec->setToScalar(0.0);
+
+    // First compute and add the Brinkman term to the RHS vector.
+    const bool has_brinkman = d_fo_brinkman_force.size();
+    if (has_brinkman)
+    {
+        int F1_rhs_idx = rhs1_vec->getComponentDescriptorIndex(0);
+        d_hier_sc_data_ops->setToScalar(F1_rhs_idx, 0.0);
+        for (unsigned k = 0; k < d_fo_brinkman_force.size(); ++k)
+        {
+            auto& bpm = d_fo_brinkman_force[k];
+            for (int comp = 0; comp < 2; ++comp)
+            {
+                bpm->setRigidVelocity(d_brinkman_free_dofs[k],
+                                      (comp == REAL ? d_brinkman_fo_imag_vel[k] : d_brinkman_fo_real_vel[k]),
+                                      d_brinkman_center[k],
+                                      comp);
+                bpm->computeBrinkmanVelocity(F1_rhs_idx, new_time, cycle_num);
+            }
+        }
+    }
+
+    // Subsequently add other forces
     // Account for body forcing terms.
     if (d_F1_fcn)
     {
@@ -3500,39 +3745,6 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIV
         // -mean_mass_src, /*interior_only*/true);
     }
 
-    // Compute and add the Brinkman term to the RHS vector.
-    const bool has_brinkman = d_so_brinkman_force.size();
-    if (has_brinkman)
-    {
-        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-        for (auto& so_brinkman_force : d_so_brinkman_force)
-        {
-            so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
-        }
-        d_hier_sc_data_ops->add(
-            rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
-    }
-
-    // Set solution components to equal most recent approximations to u(n+1) and
-    // p(n+1).
-    d_hier_sc_data_ops->copyData(sol2_vec->getComponentDescriptorIndex(0), d_U2_new_idx);
-    d_hier_cc_data_ops->copyData(sol2_vec->getComponentDescriptorIndex(1), d_P2_new_idx);
-
-    // Synchronize solution and right-hand-side data before solve for the second order system.
-    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-
-    SynchronizationTransactionComponent sol2_synch_transaction =
-        SynchronizationTransactionComponent(sol2_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
-    d_side_synch2_op->resetTransactionComponent(sol2_synch_transaction);
-    d_side_synch2_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent rhs2_synch_transaction =
-        SynchronizationTransactionComponent(rhs2_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
-    d_side_synch2_op->resetTransactionComponent(rhs2_synch_transaction);
-    d_side_synch2_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent default_synch2_transaction =
-        SynchronizationTransactionComponent(d_U2_scratch_idx, d_U_coarsen_type);
-    d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
-
     return;
 } // setupSolverVectorsSOSystem
 
@@ -3609,9 +3821,9 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 } // resetSolverVectors
 
 void
-AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time, int cycle_num)
+AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 {
-    unsigned int num_contours = d_contour_vars.size();
+    unsigned unsigned num_contours = d_contour_vars.size();
     if (num_contours == 0) return;
 
     // Perform contour integrations to determine acoustic radiation force.
@@ -3783,16 +3995,277 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time,
 
         std::copy(radiation_force.data(), radiation_force.data() + NDIM, d_acoustic_radiation_force[k].begin());
 
-        // Output radiation force in stream files at the last cycle
-        if (d_current_num_cycles == cycle_num + 1 && d_write_contour_integrals && IBTK_MPI::getRank() == 0)
-        {
-            *(d_contour_integral_stream[k]) << time << '\t' << radiation_force[0] << '\t' << radiation_force[1] << '\t'
-                                            << radiation_force[2] << std::endl;
-        }
+        // // Output radiation force in stream files at the last cycle
+        // if (d_current_num_cycles == cycle_num + 1 && d_write_contour_integrals && IBTK_MPI::getRank() == 0)
+        // {
+        //     *(d_contour_integral_stream[k]) << time << '\t' << radiation_force[0] << '\t' << radiation_force[1] <<
+        //     '\t'
+        //                                     << radiation_force[2] << std::endl;
+        // }
     }
 
     return;
 } // computeAcousticRadiationForce
+
+void
+AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(double time)
+{
+    unsigned num_bodies = d_brinkman_scratch_idx.size();
+    if (num_bodies == 0) return;
+
+    // Perform surface integration to determine hydrodynamic force due to the first-order solution.
+    for (unsigned k = 0; k < num_bodies; ++k)
+    {
+        auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
+        auto& phi_new_idx = d_brinkman_new_idx[k];
+        auto& phi_bc_coef = d_brinkman_bcs[k];
+        double contour_val = 0.0;
+
+        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        InterpolationTransactionComponent transaction_comp(phi_scratch_idx,
+                                                           phi_new_idx,
+                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                           false,
+                                                           "CONSERVATIVE_COARSEN",
+                                                           "LINEAR",
+                                                           false,
+                                                           phi_bc_coef);
+        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        hier_bdry_fill->initializeOperatorState(transaction_comp, d_hierarchy);
+        hier_bdry_fill->fillData(time);
+
+        // Zero out the vectors.
+        IBTK::Vector3d hydro_real_force = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_imag_force = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_real_torque = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_imag_torque = IBTK::Vector3d::Zero();
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+        {
+            // Assumes that the contour is placed on the finest level
+            if (ln < finest_ln) continue;
+
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* const patch_dx = patch_geom->getDx();
+                double cell_vol = 1.0;
+                for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
+
+                // Get the required patch data
+                Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+
+                Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(d_U1_real_idx);
+                Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(d_U1_imag_idx);
+                Pointer<CellData<NDIM, double> > p1_real_data = patch->getPatchData(d_p1_real_idx);
+                Pointer<CellData<NDIM, double> > p1_imag_data = patch->getPatchData(d_p1_imag_idx);
+
+                Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(d_mu_scratch_idx);
+                Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                Pointer<CellData<NDIM, double> > lambda_data = nullptr;
+                if (d_lambda_var) lambda_data = patch->getPatchData(d_lambda_scratch_idx);
+
+                auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
+
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    // Compute the required area element
+                    const double dS = cell_vol / patch_dx[axis];
+
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                    {
+                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                        CellIndex<NDIM> c_l = s_i.toCell(SideIndex<NDIM>::Lower);
+                        CellIndex<NDIM> c_u = s_i.toCell(SideIndex<NDIM>::Upper);
+                        const double phi_lower = (*phi_data)(c_l);
+                        const double phi_upper = (*phi_data)(c_u);
+
+                        // If not within a band near the body, do not use this cell in the force calculation
+                        if ((phi_lower - contour_val) * (phi_upper - contour_val) >= 0.0) continue;
+
+                        // Compute the required unit normal
+                        IBTK::Vector3d n = IBTK::Vector3d::Zero();
+                        n(axis) = signof(phi_upper - phi_lower);
+
+                        // Get the relative coordinate from X0
+                        IBTK::Vector3d X0 = IBTK::Vector3d::Zero();
+                        std::copy(d_brinkman_center[k].data(), d_brinkman_center[k].data() + NDIM, X0.data());
+                        const IBTK::Vector3d r_vec =
+                            IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i) - X0;
+
+                        // Compute pressure on the face using simple averaging (n. -p I) * dA
+                        const IBTK::Vector3d p_real_n = 0.5 * n * ((*p1_real_data)(c_l) + (*p1_real_data)(c_u));
+                        const IBTK::Vector3d p_imag_n = 0.5 * n * ((*p1_imag_data)(c_l) + (*p1_imag_data)(c_u));
+
+                        // Shear viscosity traction force :=  mu(grad u + grad u ^ T).n
+                        // Estimate shear viscosity on the face using simple averaging
+                        const double mu_side = 0.5 * ((*mu_data)(c_l) + (*mu_data)(c_u));
+                        IBTK::Vector3d viscous_real_trac = IBTK::Vector3d::Zero();
+                        IBTK::Vector3d viscous_imag_trac = IBTK::Vector3d::Zero();
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis)
+                            {
+                                viscous_real_trac(axis) =
+                                    (2.0 * mu_side) / (2.0 * patch_dx[axis]) *
+                                    ((*U1_real_data)(SideIndex<NDIM>(c_u, axis, SideIndex<NDIM>::Upper)) -
+                                     (*U1_real_data)(SideIndex<NDIM>(c_l, axis, SideIndex<NDIM>::Lower)));
+                                viscous_imag_trac(axis) =
+                                    (2.0 * mu_side) / (2.0 * patch_dx[axis]) *
+                                    ((*U1_imag_data)(SideIndex<NDIM>(c_u, axis, SideIndex<NDIM>::Upper)) -
+                                     (*U1_imag_data)(SideIndex<NDIM>(c_l, axis, SideIndex<NDIM>::Lower)));
+                            }
+                            else
+                            {
+                                CellIndex<NDIM> offset(0);
+                                offset(d) = 1;
+
+                                viscous_real_trac(d) =
+                                    mu_side / (2.0 * patch_dx[d]) *
+                                        ((*U1_real_data)(SideIndex<NDIM>(c_u + offset, axis, SideIndex<NDIM>::Lower)) -
+                                         (*U1_real_data)(SideIndex<NDIM>(c_u - offset, axis, SideIndex<NDIM>::Lower))) +
+                                    mu_side / (2.0 * patch_dx[axis]) *
+                                        ((*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
+                                         (*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) -
+                                         (*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                         (*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
+
+                                viscous_imag_trac(d) =
+                                    mu_side / (2.0 * patch_dx[d]) *
+                                        ((*U1_imag_data)(SideIndex<NDIM>(c_u + offset, axis, SideIndex<NDIM>::Lower)) -
+                                         (*U1_imag_data)(SideIndex<NDIM>(c_u - offset, axis, SideIndex<NDIM>::Lower))) +
+                                    mu_side / (2.0 * patch_dx[axis]) *
+                                        ((*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
+                                         (*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) -
+                                         (*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                         (*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
+                            }
+                        }
+
+                        // Compute bulk viscosity traction
+                        IBTK::Vector3d bulk_real_trac = IBTK::Vector3d::Zero();
+                        IBTK::Vector3d bulk_imag_trac = IBTK::Vector3d::Zero();
+                        if (d_lambda_var)
+                        {
+                            double div_real_lower = 0.0, div_real_upper = 0.0;
+                            double div_imag_lower = 0.0, div_imag_upper = 0.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                div_real_upper += ((*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) -
+                                                   (*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower))) /
+                                                  patch_dx[d];
+                                div_real_lower += ((*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                                   (*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower))) /
+                                                  patch_dx[d];
+                                div_imag_upper += ((*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) -
+                                                   (*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower))) /
+                                                  patch_dx[d];
+                                div_imag_lower += ((*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                                   (*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower))) /
+                                                  patch_dx[d];
+                            }
+                            bulk_real_trac =
+                                n * 0.5 * ((*lambda_data)(c_u)*div_real_upper + (*lambda_data)(c_l)*div_real_lower);
+                            bulk_imag_trac =
+                                n * 0.5 * ((*lambda_data)(c_u)*div_imag_upper + (*lambda_data)(c_l)*div_imag_lower);
+                        }
+
+                        // Add up the pressure force: n.(-pI)dS, shear viscosity force: (mu*(grad U + grad U)^T).ndS,
+                        // and bulk viscosity force: n. (lambda div U2)dS.
+                        IBTK::Vector3d real_trac =
+                            (-p_real_n * dS) + (n(axis) * viscous_real_trac * dS) + (bulk_real_trac * dS);
+                        IBTK::Vector3d imag_trac =
+                            (-p_imag_n * dS) + (n(axis) * viscous_imag_trac * dS) + (bulk_imag_trac * dS);
+                        hydro_real_force += real_trac;
+                        hydro_imag_force += imag_trac;
+                        hydro_real_torque += r_vec.cross(real_trac);
+                        hydro_imag_torque += r_vec.cross(imag_trac);
+                    }
+                }
+            }
+        }
+        IBTK_MPI::sumReduction(hydro_real_force.data(), hydro_real_force.size());
+        IBTK_MPI::sumReduction(hydro_imag_force.data(), hydro_imag_force.size());
+        IBTK_MPI::sumReduction(hydro_real_torque.data(), hydro_real_torque.size());
+        IBTK_MPI::sumReduction(hydro_imag_torque.data(), hydro_imag_torque.size());
+
+        std::copy(hydro_real_force.data(), hydro_real_force.data() + NDIM, d_fo_real_hydro_force[k].begin());
+        std::copy(hydro_imag_force.data(), hydro_imag_force.data() + NDIM, d_fo_imag_hydro_force[k].begin());
+        std::copy(hydro_real_torque.data(), hydro_real_torque.data() + 3, d_fo_real_hydro_torque[k].begin());
+        std::copy(hydro_imag_torque.data(), hydro_imag_torque.data() + 3, d_fo_imag_hydro_torque[k].begin());
+    }
+
+    return;
+} // computeFOHydrodynamicForce
+
+int
+AcousticStreamingHierarchyIntegrator::getFreeDOFs(int part)
+{
+    int num_free_dofs = 0;
+    for (int i = 0; i < s_max_free_dofs; ++i)
+    {
+        if (d_brinkman_free_dofs[part][i])
+        {
+            ++num_free_dofs;
+        }
+    }
+    return num_free_dofs;
+} // getFreeDOFs
+
+void
+AcousticStreamingHierarchyIntegrator::computeFOResidual(Eigen::VectorXd& R, double time)
+{
+    computeFOHydrodynamicForce(time);
+    // pout << d_fo_imag_hydro_force[0][0] << "\t" << d_fo_imag_hydro_force[0][1] << "\t" << d_fo_real_hydro_force[0][0]
+    // << "\t" << d_fo_real_hydro_force[0][1] << std::endl;
+
+    int k = -1;
+    int num_bodies = d_fo_brinkman_force.size();
+    for (int b = 0; b < num_bodies; ++b)
+    {
+        const double& mass = d_brinkman_mass[b];
+        for (int i = 0; i < NDIM; ++i)
+        {
+            if (d_brinkman_free_dofs[b](i))
+            {
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    k = k + 1;
+                    if (comp == REAL)
+                        R(k) = mass * d_acoustic_freq * d_brinkman_fo_real_vel[b](i) - d_fo_imag_hydro_force[b][i];
+                    else
+                        R(k) = mass * d_acoustic_freq * d_brinkman_fo_imag_vel[b](i) + d_fo_real_hydro_force[b][i];
+                }
+            }
+        }
+    }
+    return;
+} // computeFOResidual
+
+void
+AcousticStreamingHierarchyIntegrator::computeSOResidual(Eigen::VectorXd& R, double time)
+{
+    computeAcousticRadiationForce(time);
+
+    int k = -1;
+    int num_bodies = d_so_brinkman_force.size();
+    for (int b = 0; b < num_bodies; ++b)
+    {
+        for (int i = 0; i < NDIM; ++i)
+        {
+            if (d_brinkman_free_dofs[b](i))
+            {
+                k = k + 1;
+                R(k) = d_acoustic_radiation_force[b][i];
+            }
+        }
+    }
+    return;
+} // computeSOResidual
 
 //////////////////////////////////////////////////////////////////////////////
 

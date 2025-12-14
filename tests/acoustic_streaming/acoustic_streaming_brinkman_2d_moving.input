@@ -1,6 +1,6 @@
 // Scalar parameters
 
-PI = 3.1416
+PII = 3.1416
 LENGTH = 150e-6
 WIDTH  = 40e-6
 LAMBDA0 = 1.876e-3
@@ -8,7 +8,6 @@ MU0 = 0.893e-3
 RHO0 = 998
 RHO1 = 0.0
 OMEGA0 = 3.1416e7   // acoustic_angular_frequency
-T = 2*PI/OMEGA0
 C0 = 1500         // speed of sound
 D0 = 1e-9
 
@@ -20,6 +19,9 @@ PERIODIC_BC = 0
 XCOM = LENGTH/4.0
 YCOM = WIDTH/2.0
 Radius = 5.0e-6
+RHOS = RHO0
+MASS = PII*Radius^2*RHOS
+FREE_DOFS = 1, 1, 0              // locked wz
 Contour_XCOM = LENGTH/4.0
 Contour_YCOM = WIDTH/2.0
 Contour_Radius = 10.0e-6
@@ -237,8 +239,8 @@ BulkViscosityBcCoefs {
 START_TIME                          =  0.0e0     // initial simulation time
 END_TIME                            =  1.5e0     // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  100         // max number of simulation timesteps
-REGRID_INTERVAL                     =  500000000
+MAX_INTEGRATOR_STEPS                =  100000    // max number of simulation timesteps
+REGRID_INTERVAL                     =  50000000
 CFL_MAX                             =  1.0
 NUM_INS_CYCLES                      =  1
 PRECOND_REINIT_INTERVAL             =  1
@@ -249,7 +251,7 @@ EXPLICITLY_REMOVE_NULLSPACE         = TRUE
 HAS_RIGID_BODY_NULLSPACE            = TRUE
 VORTICITY_TAGGING                   = TRUE       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2          // size of tag buffer used by grid generation algorithm
-DT_MAX                              = 10000*T
+DT_MAX                              = 2*PII*10/OMEGA0
 OUTPUT_U1                           = TRUE
 OUTPUT_U2                           = TRUE
 OUTPUT_P1                           = TRUE

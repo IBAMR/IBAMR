@@ -19,6 +19,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 
+#include "ibtk/ibtk_utilities.h"
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -90,6 +92,16 @@ public:
         return d_ls_scratch_idx;
     } // getLevelSetScratchPatchIndex
 
+    /*
+     * \brief Set uniform velocity in the Brinkman penalized zone.
+     * @param depth of the velocity index.
+     * @param X0 center of mass of the body
+     */
+    void setRigidVelocity(const IBTK::FreeRigidDOFVector& free_dofs,
+                          const IBTK::RigidDOFVector& rigid_vel,
+                          const std::array<double, NDIM>& X0,
+                          int depth = 0);
+
     /*!
      * \brief Compute the desired rigid body velocity in the Brinkman penalized (solid) zone.
      */
@@ -125,6 +137,15 @@ protected:
     int d_ls_current_idx = IBTK::invalid_index, d_ls_new_idx = IBTK::invalid_index,
         d_ls_scratch_idx = IBTK::invalid_index;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_ls_bc_coef = nullptr;
+
+    /*
+     * \brief Uniform velocity data that needs to be imposed in the Brinkman zone.
+     */
+    IBTK::FreeRigidDOFVector d_free_rigid_dofs;
+    bool d_is_freely_moving = false;
+    IBTK::RigidDOFVector d_rigid_vel;
+    std::array<double, NDIM> d_X_com;
+    int d_depth = 0;
 
 private:
     /*!
