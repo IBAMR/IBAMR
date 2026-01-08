@@ -1838,7 +1838,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     }
 
     // Solve the first order system with constraints
-    static const int NEWTON_ITER_MAX = 10;
+    static const int NEWTON_ITER_MAX = 100;
+    double init_residual;
     for (int iter = 0; iter < NEWTON_ITER_MAX; ++iter)
     {
         setupSolverVectorsFOSystem(d_sol1_vec, d_rhs1_vec, current_time, new_time, cycle_num);
@@ -1846,10 +1847,16 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
 
         Eigen::VectorXd R_current(fo_jacobian_size);
         R_current.setZero();
-        computeFOResidual(R_current, new_time);
+        computeFOResidual(d_sol1_vec, R_current, new_time);
+        double current_residual = R_current.norm();
+        if (iter == 0) init_residual = current_residual;
+
         pout << "FO NEWTON ITERATION # = " << iter << "\n"
-             << "|| Residual FO || = " << R_current.norm() << std::endl;
-        if (R_current.norm() < 1e-8) break;
+             << "|| Residual FO || = " << current_residual << std::endl;
+        break;
+
+        if (iter == 0 && current_residual <= 1e-7) break;
+        if (iter > 0 && (current_residual / init_residual <= 1e-4 || current_residual <= 1e-7)) break;
 
         // Compute the Jacobian matrix
         Eigen::MatrixXd Jac(fo_jacobian_size, fo_jacobian_size);
@@ -1865,7 +1872,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                     {
                         p = p + 1;
                         double& vcomp = (comp == REAL ? d_brinkman_fo_real_vel[b](d) : d_brinkman_fo_imag_vel[b](d));
-                        const double incr = 1e-3;
+                        const double incr = 1e-4;
                         // 0.01*std::abs(vcomp);
                         vcomp += incr;
 
@@ -1875,7 +1882,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
 
                         // Compute the new residual
                         Eigen::VectorXd R_new(fo_jacobian_size);
-                        computeFOResidual(R_new, new_time);
+                        computeFOResidual(d_sol1_vec, R_new, new_time);
 
                         Jac(Eigen::all, p) = (R_new - R_current) / incr;
 
@@ -1885,6 +1892,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                 }
             }
         }
+        //  pout << "FO JAcobian = " << "\n" << Jac << std::endl;
         Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
         Eigen::VectorXd delta_v = lu.solve(-R_current);
         p = -1;
@@ -1905,6 +1913,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
             }
         }
     }
+    // pout << "Converged FO Real velocity = \n" <<  d_brinkman_fo_real_vel[0] << "\n\n\n";
+    // pout << "Converged FO Imag velocity  = \n" <<  d_brinkman_fo_imag_vel[0] << "\n\n\n";
 
     // Compute src terms for the 2nd order system due to 1st order
     if (d_coupled_system)
@@ -1926,7 +1936,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
         for (int k = 0; k < num_bodies; ++k)
         {
-            auto& so_brinkman_force = d_so_brinkman_force[k];
+            Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+            // auto& so_brinkman_force = d_so_brinkman_force[k];
             so_brinkman_force->setRigidVelocity(
                 d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
             so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
@@ -1963,9 +1974,13 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         Eigen::VectorXd R_current(so_jacobian_size);
         R_current.setZero();
         computeSOResidual(R_current, new_time);
+        double current_residual = R_current.norm();
+        if (iter == 0) init_residual = current_residual;
+
         pout << "SO NEWTON ITERATION # = " << iter << "\n"
-             << "|| Residual SO|| = " << R_current.norm() << std::endl;
-        if (R_current.norm() < 1e-8) break;
+             << "|| Residual SO|| = " << current_residual << std::endl;
+        if (iter == 0 && current_residual <= 1e-7) break;
+        if (iter > 0 && (current_residual / init_residual <= 1e-4 || current_residual <= 1e-7)) break;
 
         // Compute the Jacobian matrix
         Eigen::MatrixXd Jac(so_jacobian_size, so_jacobian_size);
@@ -1986,7 +2001,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
                     for (int k = 0; k < num_bodies; ++k)
                     {
-                        auto& so_brinkman_force = d_so_brinkman_force[k];
+                        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+                        // auto& so_brinkman_force = d_so_brinkman_force[k];
                         so_brinkman_force->setRigidVelocity(
                             d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
                         so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
@@ -2021,6 +2037,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
             }
         }
         Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
+        // pout << "SO Jacobian = " << "\n" << Jac << std::endl;
         Eigen::VectorXd delta_v = lu.solve(-R_current);
         p = -1;
         for (int b = 0; b < num_bodies; ++b)
@@ -2037,6 +2054,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
             }
         }
     }
+    // pout << "Converged SO velocity = \n" <<  d_brinkman_so_vel[0] << "\n\n\n";
 
     if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name
@@ -4008,10 +4026,46 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 } // computeAcousticRadiationForce
 
 void
-AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(double time)
+AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                                                 double time)
 {
     unsigned num_bodies = d_brinkman_scratch_idx.size();
     if (num_bodies == 0) return;
+
+    const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
+    const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
+
+    // Copy components
+    copy_to_comps_side(U1_sol_idx, d_U1_real_idx, d_U1_imag_idx, d_hierarchy);
+    copy_to_comps_cell(p1_sol_idx, d_p1_real_idx, d_p1_imag_idx, d_hierarchy);
+
+    // Set hierarchy ghost filling objects and fill ghost cells.
+    // For first-order pressure we rely on "QUADRATIC" extrapolation as there
+    // is no good boundary condition for it.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> comp_transactions(4);
+    comp_transactions[0] = InterpolationTransactionComponent(d_U1_real_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[REAL]);
+    comp_transactions[1] = InterpolationTransactionComponent(d_U1_imag_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[IMAG]);
+    comp_transactions[2] = InterpolationTransactionComponent(
+        d_p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+    comp_transactions[3] = InterpolationTransactionComponent(
+        d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+
+    Pointer<HierarchyGhostCellInterpolation> comp_fill_op = new HierarchyGhostCellInterpolation();
+    comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
+    comp_fill_op->fillData(time);
 
     // Perform surface integration to determine hydrodynamic force due to the first-order solution.
     for (unsigned k = 0; k < num_bodies; ++k)
@@ -4019,7 +4073,6 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(double time)
         auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
         auto& phi_new_idx = d_brinkman_new_idx[k];
         auto& phi_bc_coef = d_brinkman_bcs[k];
-        double contour_val = 0.0;
 
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent transaction_comp(phi_scratch_idx,
@@ -4055,6 +4108,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(double time)
                 const double* const patch_dx = patch_geom->getDx();
                 double cell_vol = 1.0;
                 for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
+                double contour_val = 2 * std::pow(cell_vol, 1.0 / static_cast<double>(NDIM));
 
                 // Get the required patch data
                 Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
@@ -4217,11 +4271,14 @@ AcousticStreamingHierarchyIntegrator::getFreeDOFs(int part)
 } // getFreeDOFs
 
 void
-AcousticStreamingHierarchyIntegrator::computeFOResidual(Eigen::VectorXd& R, double time)
+AcousticStreamingHierarchyIntegrator::computeFOResidual(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                                        Eigen::VectorXd& R,
+                                                        double time)
 {
-    computeFOHydrodynamicForce(time);
-    // pout << d_fo_imag_hydro_force[0][0] << "\t" << d_fo_imag_hydro_force[0][1] << "\t" << d_fo_real_hydro_force[0][0]
-    // << "\t" << d_fo_real_hydro_force[0][1] << std::endl;
+    computeFOHydrodynamicForce(sol1_vec, time);
+    //  pout << "1st order force = \n" << d_fo_imag_hydro_force[0][0] << "\t" << d_fo_imag_hydro_force[0][1] << "\t" <<
+    //  d_fo_real_hydro_force[0][0]
+    //   << "\t" << d_fo_real_hydro_force[0][1] << std::endl;
 
     int k = -1;
     int num_bodies = d_fo_brinkman_force.size();
@@ -4243,6 +4300,7 @@ AcousticStreamingHierarchyIntegrator::computeFOResidual(Eigen::VectorXd& R, doub
             }
         }
     }
+ //   pout << "1st order residual =  " << R << std::endl;
     return;
 } // computeFOResidual
 
@@ -4250,6 +4308,8 @@ void
 AcousticStreamingHierarchyIntegrator::computeSOResidual(Eigen::VectorXd& R, double time)
 {
     computeAcousticRadiationForce(time);
+    // pout << "2nd order force = \n" << d_acoustic_radiation_force[0][0] << "\t" << d_acoustic_radiation_force[0][1] <<
+    // std::endl;
 
     int k = -1;
     int num_bodies = d_so_brinkman_force.size();

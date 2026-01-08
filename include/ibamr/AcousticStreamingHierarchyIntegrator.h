@@ -1088,7 +1088,8 @@ private:
     /*!
      * Compute the first-order hydrodynamic force.
      */
-    void computeFOHydrodynamicForce(double time);
+    void computeFOHydrodynamicForce(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                    double time);
 
     /*!
      * Get the number of free degrees of freedom for the Brinkman body
@@ -1098,7 +1099,9 @@ private:
     /*!
      * Compute residual for the first-order system
      */
-    void computeFOResidual(Eigen::VectorXd& R, double time);
+    void computeFOResidual(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                           Eigen::VectorXd& R,
+                           double time);
 
     /*!
      * Compute residual for the second-order system

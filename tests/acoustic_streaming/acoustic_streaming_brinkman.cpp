@@ -519,7 +519,6 @@ main(int argc, char* argv[])
         {
             delete u1_bc_coefs[0][d];
             delete u1_bc_coefs[1][d];
-
             delete rho_bc_coefs[d];
         }
 

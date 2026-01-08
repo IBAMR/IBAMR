@@ -11,8 +11,8 @@ OMEGA0 = 3.1416e7   // acoustic_angular_frequency
 C0 = 1500         // speed of sound
 D0 = 1e-9
 
-Nx = 300
-Ny = 80
+Nx = 600
+Ny = 160
 h = LENGTH/Nx
 PERIODIC_BC = 0
 
@@ -239,7 +239,7 @@ BulkViscosityBcCoefs {
 START_TIME                          =  0.0e0     // initial simulation time
 END_TIME                            =  1.5e0     // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  100000    // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS                =  10 //100000    // max number of simulation timesteps
 REGRID_INTERVAL                     =  50000000
 CFL_MAX                             =  1.0
 NUM_INS_CYCLES                      =  1
@@ -251,7 +251,7 @@ EXPLICITLY_REMOVE_NULLSPACE         = TRUE
 HAS_RIGID_BODY_NULLSPACE            = TRUE
 VORTICITY_TAGGING                   = TRUE       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2          // size of tag buffer used by grid generation algorithm
-DT_MAX                              = 2*PII*10/OMEGA0
+DT_MAX                              = 2*PII*100/OMEGA0
 OUTPUT_U1                           = TRUE
 OUTPUT_U2                           = TRUE
 OUTPUT_P1                           = TRUE
