@@ -2,50 +2,22 @@ RestartCleaner functional test...
 Testing complete end-to-end functionality with real file operations
 
 === Test 1: Directory Pattern Parsing and Filtering ===
-Valid iterations detected: 1 100 200 300 1000 2500 3000 5000 999999 
+Valid iterations detected: 1 100 200 300 1000 2500 3000 5000 999999 1000000 1234567 10000000
 Test 1 PASSED: Correctly parsed and sorted all valid directories
 
 === Test 2: Real File System Cleanup Operations ===
 Directories before cleanup: 8
-CleanupTest::keepRecentN(): Found 8 directories, keeping 3 most recent, deleting 5 oldest
-CleanupTest::keepRecentN(): Deleting "test_restart_cleanup/restore.000100"
-CleanupTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_cleanup/restore.000100"
-CleanupTest::keepRecentN(): Deleting "test_restart_cleanup/restore.000200"
-CleanupTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_cleanup/restore.000200"
-CleanupTest::keepRecentN(): Deleting "test_restart_cleanup/restore.000300"
-CleanupTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_cleanup/restore.000300"
-CleanupTest::keepRecentN(): Deleting "test_restart_cleanup/restore.000400"
-CleanupTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_cleanup/restore.000400"
-CleanupTest::keepRecentN(): Deleting "test_restart_cleanup/restore.000500"
-CleanupTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_cleanup/restore.000500"
-CleanupTest::keepRecentN(): Cleanup completed
 Directories after cleanup: 3
-Remaining iterations: 600 700 800 
+Remaining iterations: 600 700 800
 Test 2 PASSED: Correctly cleaned up and kept 3 most recent
 
 === Test 3: Dry Run Functionality Verification ===
 Directories before dry run: 6
-DryRunTest::keepRecentN(): Found 6 directories, keeping 2 most recent, deleting 4 oldest
-DryRunTest::keepRecentN(): [DRY RUN] Would delete "test_restart_dryrun/restore.000010"
-DryRunTest::keepRecentN(): [DRY RUN] Would delete "test_restart_dryrun/restore.000020"
-DryRunTest::keepRecentN(): [DRY RUN] Would delete "test_restart_dryrun/restore.000030"
-DryRunTest::keepRecentN(): [DRY RUN] Would delete "test_restart_dryrun/restore.000040"
-DryRunTest::keepRecentN(): Cleanup completed
 Directories after dry run: 6
 Test 3 PASSED: Dry run correctly preserved all directories
 
 === Test 4: Database Constructor Functionality ===
-DatabaseCleaner::keepRecentN(): Found 8 directories, keeping 4 most recent, deleting 4 oldest
-DatabaseCleaner::keepRecentN(): Deleting "test_restart_database/restore.000010"
-DatabaseCleaner::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_database/restore.000010"
-DatabaseCleaner::keepRecentN(): Deleting "test_restart_database/restore.000020"
-DatabaseCleaner::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_database/restore.000020"
-DatabaseCleaner::keepRecentN(): Deleting "test_restart_database/restore.000030"
-DatabaseCleaner::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_database/restore.000030"
-DatabaseCleaner::keepRecentN(): Deleting "test_restart_database/restore.000040"
-DatabaseCleaner::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_database/restore.000040"
-DatabaseCleaner::keepRecentN(): Cleanup completed
-Iterations after database cleanup: 50 60 70 80 
+Iterations after database cleanup: 50 60 70 80
 Test 4 PASSED: Database constructor worked correctly
 
 === Test 5: Error Handling and Edge Cases ===

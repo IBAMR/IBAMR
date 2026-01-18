@@ -132,7 +132,7 @@ count_dirs_matching_pattern(const std::string& base_path)
     int count = 0;
     if (!std::filesystem::exists(base_path)) return 0;
 
-    std::regex pattern("restore\\.([0-9]{6})");
+    std::regex pattern("restore\\.([0-9]{6,})");
     for (const auto& entry : std::filesystem::directory_iterator(base_path))
     {
         if (entry.is_directory())
@@ -170,12 +170,12 @@ main(int argc, char** argv)
         TestDirGuard guard(test_dir);
 
         // Create mix of valid and invalid directories
-        std::vector<int> valid_iterations = { 1, 100, 200, 300, 1000, 2500, 3000, 5000, 999999 };
+        // Test coverage: 6-digit (standard), 6-digit boundary, and 7+ digit (long simulations)
+        std::vector<int> valid_iterations = { 1, 100, 200, 300, 1000, 2500, 3000, 5000, 999999, 1000000, 1234567, 10000000 };
         std::vector<std::string> invalid_names = {
-            "restore.12345",        // 5 digits
-            "restore.1234567",      // 7 digits
+            "restore.12345",        // string less than 6 digits
             "restore.abc123",       // contains letters
-            "restore_invalid",      // wrong format
+            "restore_invalid",      // wrong format (underscore instead of dot)
             "other_directory",      // completely different
             "restore.",             // no digits
             "restore.000100_backup" // extra suffix
@@ -188,14 +188,12 @@ main(int argc, char** argv)
         {
             // Create database configuration for parsing test
             Pointer<MemoryDatabase> db = new MemoryDatabase("ParsingTestConfig");
-            db->putBool("enable_cleaner", true);
-            db->putString("restart_directory", test_dir);
+                        db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 20);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("ParsingTest", db_ptr);
+            RestartCleaner cleaner("ParsingTest", db);
             auto parsed_iterations = cleaner.getAvailableIterations();
 
             pout << "Valid iterations detected: ";
@@ -247,14 +245,12 @@ main(int argc, char** argv)
 
             // Create database configuration for cleanup test
             Pointer<MemoryDatabase> db = new MemoryDatabase("CleanupTestConfig");
-            db->putBool("enable_cleaner", true);
-            db->putString("restart_directory", test_dir);
+                        db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", false);
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("CleanupTest", db_ptr);
+            RestartCleaner cleaner("CleanupTest", db);
             cleaner.cleanup();
 
             int dirs_after = count_dirs_matching_pattern(test_dir);
@@ -309,14 +305,12 @@ main(int argc, char** argv)
 
             // Create database configuration for dry run test
             Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunTestConfig");
-            db->putBool("enable_cleaner", true);
-            db->putString("restart_directory", test_dir);
+                        db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 2);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("DryRunTest", db_ptr);
+            RestartCleaner cleaner("DryRunTest", db);
             cleaner.cleanup();
 
             int dirs_after = count_dirs_matching_pattern(test_dir);
@@ -353,41 +347,30 @@ main(int argc, char** argv)
         {
             // Create database configuration
             Pointer<MemoryDatabase> db = new MemoryDatabase("DatabaseTest");
-            db->putBool("enable_cleaner", true);
-            db->putString("restart_directory", test_dir);
+                        db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 4);
-            db->putBool("log_cleaning_actions", true);
+            db->putBool("enable_logging", true);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("DatabaseCleaner", db_ptr);
+            RestartCleaner cleaner("DatabaseCleaner", db);
+            cleaner.cleanup();
 
-            if (!cleaner.isEnabled())
+            // Should keep 4 recent (database specified value)
+            auto iterations_after = cleaner.getAvailableIterations();
+            pout << "Iterations after database cleanup: ";
+            for (int iter : iterations_after) pout << iter << " ";
+            pout << std::endl;
+
+            // Should keep: 50, 60, 70, 80
+            std::vector<int> expected = { 50, 60, 70, 80 };
+            if (iterations_after == expected)
             {
-                pout << "FAILED: Database cleaner should be enabled" << std::endl;
-                test_failures++;
+                pout << "Test 4 PASSED: Database constructor worked correctly" << std::endl;
             }
             else
             {
-                cleaner.cleanup();
-
-                // Should keep 4 recent (database specified value)
-                auto iterations_after = cleaner.getAvailableIterations();
-                pout << "Iterations after database cleanup: ";
-                for (int iter : iterations_after) pout << iter << " ";
-                pout << std::endl;
-
-                // Should keep: 50, 60, 70, 80
-                std::vector<int> expected = { 50, 60, 70, 80 };
-                if (iterations_after == expected)
-                {
-                    pout << "Test 4 PASSED: Database constructor worked correctly" << std::endl;
-                }
-                else
-                {
-                    pout << "FAILED: Database constructor cleanup error" << std::endl;
-                    test_failures++;
-                }
+                pout << "FAILED: Database constructor cleanup error" << std::endl;
+                test_failures++;
             }
         }
         catch (const std::exception& e)
@@ -409,14 +392,12 @@ main(int argc, char** argv)
 
             // Create database configuration for empty directory test
             Pointer<MemoryDatabase> db1 = new MemoryDatabase("EmptyDirTestConfig");
-            db1->putBool("enable_cleaner", true);
-            db1->putString("restart_directory", empty_dir);
+                        db1->putString("restart_directory", empty_dir);
             db1->putInteger("keep_recent_files", 5);
             db1->putString("cleanup_strategy", "KEEP_RECENT_N");
             db1->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr1 = db1;
-            RestartCleaner cleaner("EmptyDirTest", db_ptr1);
+            RestartCleaner cleaner("EmptyDirTest", db1);
             auto result = cleaner.getAvailableIterations();
             if (result.empty())
             {
@@ -437,14 +418,12 @@ main(int argc, char** argv)
 
             // Create database configuration for invalid content test
             Pointer<MemoryDatabase> db2 = new MemoryDatabase("InvalidContentTestConfig");
-            db2->putBool("enable_cleaner", true);
-            db2->putString("restart_directory", invalid_dir);
+                        db2->putString("restart_directory", invalid_dir);
             db2->putInteger("keep_recent_files", 5);
             db2->putString("cleanup_strategy", "KEEP_RECENT_N");
             db2->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr2 = db2;
-            RestartCleaner cleaner2("InvalidContentTest", db_ptr2);
+            RestartCleaner cleaner2("InvalidContentTest", db2);
             auto result2 = cleaner2.getAvailableIterations();
             if (result2.empty())
             {

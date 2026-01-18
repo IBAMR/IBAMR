@@ -21,15 +21,22 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <optional>
 #include <regex>
 
-#include "ibtk/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/app_namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// Pattern for IBAMR restart directories: "restore.NNNNNN..." (at least 6 digits)
+const std::regex RESTART_DIR_PATTERN("restore\\.([0-9]{6,})");
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -38,30 +45,39 @@ RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Poi
       d_restart_base_path(),
       d_strategy(parseStrategy(input_db->getStringWithDefault("cleanup_strategy", "KEEP_RECENT_N"))),
       d_keep_restart_count(input_db->getIntegerWithDefault("keep_recent_files", 5)),
-      d_enabled(input_db->getBoolWithDefault("enable_cleaner", false)),
-      d_log_actions(input_db->getBoolWithDefault("log_cleaning_actions", true)),
+      d_enable_logging(input_db->getBoolWithDefault("enable_logging", true)),
       d_dry_run(input_db->getBoolWithDefault("dry_run", false))
 {
-    if (d_enabled)
+    if (d_keep_restart_count < 0)
     {
-        if (input_db->keyExists("restart_directory"))
-        {
-            d_restart_base_path = input_db->getString("restart_directory");
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::RestartCleaner(): "
-                                     << "'restart_directory' must be specified when enable_cleaner is true"
-                                     << std::endl);
-        }
+        TBOX_ERROR(d_object_name << "::RestartCleaner(): "
+                                 << "Invalid configuration: keep_recent_files = " << d_keep_restart_count << "\n"
+                                 << "keep_recent_files must be non-negative.\n"
+                                 << "  - Use 0 to delete ALL restart directories (dangerous!)\n"
+                                 << "  - Use 1 or higher to keep that many recent directories\n"
+                                 << "Please correct your configuration file." << std::endl);
+    }
+    if (d_keep_restart_count == 0)
+    {
+        plog << "WARNING: RestartCleaner::RestartCleaner(): "
+             << "keep_recent_files is set to 0.\n"
+             << "ALL restart directories will be deleted during cleanup!" << std::endl;
+    }
+
+    if (input_db->keyExists("restart_directory"))
+    {
+        d_restart_base_path = input_db->getString("restart_directory");
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::RestartCleaner(): "
+                                 << "'restart_directory' must be specified" << std::endl);
     }
 } // RestartCleaner
 
 void
 RestartCleaner::cleanup()
 {
-    if (!d_enabled) return;
-
     // Only perform file system operations on the master processor
     if (IBTK_MPI::getRank() == 0)
     {
@@ -80,10 +96,10 @@ RestartCleaner::getAvailableIterations() const
         auto dirs = getAllRestartDirs(d_restart_base_path);
         for (const auto& dir : dirs)
         {
-            int iter = parseIterationNum(dir.filename().string());
-            if (iter >= 0)
+            auto iter_opt = parseIterationNum(dir.filename().string());
+            if (iter_opt)
             {
-                iterations.push_back(iter);
+                iterations.push_back(*iter_opt);
             }
         }
         std::sort(iterations.begin(), iterations.end());
@@ -105,12 +121,6 @@ RestartCleaner::getAvailableIterations() const
 
     return iterations;
 } // getAvailableIterations
-
-bool
-RestartCleaner::isEnabled() const
-{
-    return d_enabled;
-} // isEnabled
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -139,17 +149,16 @@ RestartCleaner::executeStrategy() const
     }
 } // executeStrategy
 
-int
+std::optional<int>
 RestartCleaner::parseIterationNum(const std::string& dirname) const
 {
-    std::regex pattern("restore\\.([0-9]{6})");
     std::smatch match;
 
-    if (std::regex_match(dirname, match, pattern))
+    if (std::regex_match(dirname, match, RESTART_DIR_PATTERN))
     {
         return std::stoi(match[1].str());
     }
-    return -1;
+    return std::nullopt;
 } // parseIterationNum
 
 std::vector<std::filesystem::path>
@@ -167,8 +176,6 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
         TBOX_ERROR(d_object_name << "::getAllRestartDirs(): Path is not a directory: " << restart_dir << std::endl);
     }
 
-    std::regex pattern("restore\\.([0-9]{6})");
-
     try
     {
         for (const auto& entry : std::filesystem::directory_iterator(restart_dir))
@@ -176,7 +183,7 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
             if (entry.is_directory())
             {
                 std::string dirname = entry.path().filename().string();
-                if (std::regex_match(dirname, pattern))
+                if (std::regex_match(dirname, RESTART_DIR_PATTERN))
                 {
                     restart_dirs.push_back(entry.path());
                 }
@@ -194,71 +201,91 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
 void
 RestartCleaner::keepRecentN() const
 {
-    auto dirs = getAllRestartDirs(d_restart_base_path);
-
-    if (dirs.size() <= static_cast<size_t>(d_keep_restart_count))
+    // Structure to cache parsed iteration numbers with their paths
+    struct DirInfo
     {
-        if (d_log_actions)
+        int iter;
+        std::filesystem::path path;
+    };
+
+    // Build cache: parse once, filter invalid directories
+    std::vector<DirInfo> valid_dirs;
+    for (const auto& dir : getAllRestartDirs(d_restart_base_path))
+    {
+        auto iter_opt = parseIterationNum(dir.filename().string());
+        if (iter_opt)
         {
-            plog << d_object_name << "::keepRecentN(): Found " << dirs.size()
-                 << " directories, keeping all (threshold: " << d_keep_restart_count << ")" << std::endl;
+            valid_dirs.push_back({ *iter_opt, dir });
+        }
+        else
+        {
+            // Invalid directories are skipped but logged for user awareness
+            TBOX_WARNING(d_object_name << "::keepRecentN(): Skipping directory with unparseable name: " << dir
+                                       << "\n  This directory will not be managed by RestartCleaner." << std::endl);
+        }
+    }
+
+    if (valid_dirs.size() <= static_cast<size_t>(d_keep_restart_count))
+    {
+        if (d_enable_logging)
+        {
+            plog << d_object_name << "::keepRecentN(): Found " << valid_dirs.size()
+                 << " valid directories, keeping all (threshold: " << d_keep_restart_count << ")" << std::endl;
         }
         return;
     }
 
-    // Sort directories by iteration number (ascending order)
-    std::sort(dirs.begin(),
-              dirs.end(),
-              [this](const std::filesystem::path& a, const std::filesystem::path& b)
-              {
-                  int iter_a = parseIterationNum(a.filename().string());
-                  int iter_b = parseIterationNum(b.filename().string());
-                  return iter_a < iter_b;
-              });
+    // Sort by cached iteration number (pure integer comparison, no regex)
+    std::sort(valid_dirs.begin(), valid_dirs.end(), [](const DirInfo& a, const DirInfo& b) { return a.iter < b.iter; });
 
     // Delete older directories
-    size_t dirs_to_delete_count = dirs.size() - d_keep_restart_count;
+    size_t dirs_to_delete_count = valid_dirs.size() - d_keep_restart_count;
 
-    if (d_log_actions)
+    if (d_enable_logging)
     {
-        plog << d_object_name << "::keepRecentN(): Found " << dirs.size() << " directories, "
+        plog << d_object_name << "::keepRecentN(): Found " << valid_dirs.size() << " valid directories, "
              << "keeping " << d_keep_restart_count << " most recent, "
              << "deleting " << dirs_to_delete_count << " oldest" << std::endl;
     }
 
     for (size_t i = 0; i < dirs_to_delete_count; ++i)
     {
+        const auto& dir_path = valid_dirs[i].path;
+
         if (d_dry_run)
         {
-            if (d_log_actions)
+            if (d_enable_logging)
             {
-                plog << d_object_name << "::keepRecentN(): [DRY RUN] Would delete " << dirs[i] << std::endl;
+                plog << d_object_name << "::keepRecentN(): [DRY RUN] Would delete " << dir_path << std::endl;
             }
         }
         else
         {
-            if (d_log_actions)
+            if (d_enable_logging)
             {
-                plog << d_object_name << "::keepRecentN(): Deleting " << dirs[i] << std::endl;
+                plog << d_object_name << "::keepRecentN(): Deleting " << dir_path << std::endl;
             }
 
             std::error_code ec;
-            std::uintmax_t removed_count = std::filesystem::remove_all(dirs[i], ec);
+            std::uintmax_t removed_count = std::filesystem::remove_all(dir_path, ec);
 
             if (ec)
             {
-                TBOX_ERROR(d_object_name << "::keepRecentN(): Failed to delete " << dirs[i] << ": " << ec.message()
-                                         << std::endl);
+                TBOX_WARNING(d_object_name << "::keepRecentN(): "
+                                           << "Failed to delete " << dir_path << ": " << ec.message() << "\n"
+                                           << "Stopping cleanup to maintain consistency. "
+                                           << "Remaining old directories will not be deleted." << std::endl);
+                return;
             }
-            else if (d_log_actions)
+            else if (d_enable_logging)
             {
                 plog << d_object_name << "::keepRecentN(): Successfully deleted " << removed_count
-                     << " files/directories from " << dirs[i] << std::endl;
+                     << " files/directories from " << dir_path << std::endl;
             }
         }
     }
 
-    if (d_log_actions)
+    if (d_enable_logging)
     {
         plog << d_object_name << "::keepRecentN(): Cleanup completed" << std::endl;
     }

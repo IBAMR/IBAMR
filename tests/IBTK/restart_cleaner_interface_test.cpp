@@ -31,8 +31,8 @@
 /*!
  * RestartCleaner Interface Test, which verifies complete RestartCleaner integration:
  * 1. Header file compilation and inclusion
- * 2. Database constructor with enabled cleaner
- * 3. Database constructor with disabled cleaner
+ * 2. Database constructor and basic functionality
+ * 3. Dry run mode verification
  * 4. Database parameter parsing and defaults
  * 5. MPI environment compatibility
  *
@@ -72,8 +72,8 @@ main(int argc, char** argv)
         }
     }
 
-    // Test 2: Database constructor with enabled cleaner
-    pout << "Testing database constructor with enabled cleaner..." << std::endl;
+    // Test 2: Database constructor and basic functionality
+    pout << "Testing database constructor and basic functionality..." << std::endl;
     {
         try
         {
@@ -90,67 +90,69 @@ main(int argc, char** argv)
                 }
             } cleanup_guard{ temp_dir };
 
-            Pointer<MemoryDatabase> db = new MemoryDatabase("EnabledCleanerTest");
-            db->putBool("enable_cleaner", true);
+            Pointer<MemoryDatabase> db = new MemoryDatabase("BasicCleanerTest");
             db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("EnabledCleanerTest", db_ptr);
-
-            // Test basic method calls work
-            bool enabled = cleaner.isEnabled();
-            pout << "Enabled cleaner test: enabled=" << (enabled ? "true" : "false") << std::endl;
+            RestartCleaner cleaner("BasicCleanerTest", db);
 
             // Test method call doesn't crash (dry run mode)
             cleaner.cleanup();
-            pout << "Enabled cleaner test: cleanup() call successful" << std::endl;
+            pout << "Basic cleaner test: cleanup() call successful" << std::endl;
         }
         catch (const std::exception& e)
         {
-            pout << "ERROR in enabled cleaner test: " << e.what() << std::endl;
+            pout << "ERROR in basic cleaner test: " << e.what() << std::endl;
             return 1;
         }
         catch (...)
         {
-            pout << "ERROR in enabled cleaner test: unknown exception" << std::endl;
+            pout << "ERROR in basic cleaner test: unknown exception" << std::endl;
             return 1;
         }
     }
 
-    // Test 3: Database constructor - configuration parsing
-    pout << "Testing database constructor and parameter parsing..." << std::endl;
+    // Test 3: Dry run mode verification
+    pout << "Testing dry run mode..." << std::endl;
     {
         try
         {
-            // Create minimal configuration database
-            Pointer<MemoryDatabase> db = new MemoryDatabase("RestartCleanerConfig");
-            db->putBool("enable_cleaner", false); // Disabled to avoid file operations
+            std::string temp_dir = "./temp_restart_dryrun_dir";
+            std::filesystem::create_directories(temp_dir);
+
+            struct TempDirGuard
+            {
+                std::string path;
+                ~TempDirGuard()
+                {
+                    std::error_code ec;
+                    std::filesystem::remove_all(path, ec);
+                }
+            } cleanup_guard{ temp_dir };
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunConfig");
+            db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 5);
-            db->putBool("log_cleaning_actions", false);
+            db->putBool("enable_logging", false);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
+            db->putBool("dry_run", true);
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("TestCleaner", db_ptr);
+            RestartCleaner cleaner("DryRunCleaner", db);
 
-            // Test configuration was parsed correctly
-            bool enabled = cleaner.isEnabled();
-            pout << "Database constructor: enabled=" << (enabled ? "true" : "false") << std::endl;
-
-            // Test cleanup call with disabled cleaner (should be no-op)
+            // Test cleanup call in dry run mode (should not delete anything)
             cleaner.cleanup();
-            pout << "Database constructor: cleanup() call successful" << std::endl;
+            pout << "Dry run mode: cleanup() call successful" << std::endl;
         }
         catch (const std::exception& e)
         {
-            pout << "ERROR in database constructor test: " << e.what() << std::endl;
+            pout << "ERROR in dry run test: " << e.what() << std::endl;
             return 1;
         }
         catch (...)
         {
-            pout << "ERROR in database constructor test: unknown exception" << std::endl;
+            pout << "ERROR in dry run test: unknown exception" << std::endl;
             return 1;
         }
     }
@@ -160,15 +162,28 @@ main(int argc, char** argv)
     {
         try
         {
-            // Minimal database - test default parameter handling
+            std::string temp_dir = "./temp_restart_defaults_dir";
+            std::filesystem::create_directories(temp_dir);
+
+            struct TempDirGuard
+            {
+                std::string path;
+                ~TempDirGuard()
+                {
+                    std::error_code ec;
+                    std::filesystem::remove_all(path, ec);
+                }
+            } cleanup_guard{ temp_dir };
+
+            // Minimal database - only required parameter (restart_directory)
             Pointer<MemoryDatabase> db = new MemoryDatabase("MinimalConfig");
-            db->putBool("enable_cleaner", false);
+            db->putString("restart_directory", temp_dir);
+            db->putBool("dry_run", true); // Use dry_run to avoid file operations
 
-            Pointer<Database> db_ptr = db;
-            RestartCleaner cleaner("MinimalCleaner", db_ptr);
+            RestartCleaner cleaner("MinimalCleaner", db);
 
-            bool enabled = cleaner.isEnabled();
-            pout << "Minimal config: enabled=" << (enabled ? "true" : "false") << std::endl;
+            // Test that default parameters are applied correctly
+            cleaner.cleanup();
             pout << "Database parameter defaults: successful" << std::endl;
         }
         catch (const std::exception& e)
@@ -212,13 +227,14 @@ main(int argc, char** argv)
         }
     }
 
-    // Test 6: Configuration error - enable_cleaner=true without restart_directory
+    // Test 6: Configuration error - missing restart_directory
     // Note: TBOX_ERROR correctly triggers abort() for missing required parameters
     // This has been manually verified but cannot be tested automatically
 
-    // Test 7: Parameter boundary test - keep_restart_count <= 0
-    // Note: TBOX_ASSERT correctly triggers abort() for invalid parameters
-    // This has been manually verified but cannot be tested automatically
+    // Test 7: Parameter boundary test - keep_recent_files < 0 (Aborts) or == 0 (Warns)
+    // Note: TBOX_ERROR correctly triggers abort() for negative parameters.
+    // Note: Zero value triggers a warning but allows execution (for 'delete all' behavior).
+    // This behavior has been manually verified but cannot be tested automatically.
 
     pout << "RestartCleaner interface test: ALL TESTS PASSED" << std::endl;
 

@@ -26,6 +26,7 @@
 #include "tbox/Pointer.h"
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -41,13 +42,15 @@ namespace IBTK
  * directory naming convention and integrates with the SAMRAI Database configuration system.
  *
  * The main functionalities include:
- * -# Scan a specified directory for subdirectories matching the pattern "restore.XXXXXX"
+ * -# Scan a specified directory for subdirectories matching the pattern "restore.NNNNNN..."
  * -# Parse iteration numbers from these directory names
  * -# Sort directories based on iteration numbers
  * -# Keep the N most recent directories and delete the rest
  *
- * \note This class assumes restart directories follow the naming pattern "restore.XXXXXX"
- * where XXXXXX is a zero-padded iteration number.
+ * \note This class assumes restart directories follow the naming pattern "restore.NNNNNN..."
+ * where the iteration number is zero-padded to a minimum of 6 digits by IBAMR.
+ * For example: restore.000005, restore.123456, restore.1000000 (7 digits). 
+ * Iteration numbers with fewer than 6 digits are always zero-padded by IBAMR.
  *
  * \note This is a stateless utility class. Each cleanup operation performs a complete scan
  * of the target directory and makes decisions based on the current filesystem state. No
@@ -64,9 +67,7 @@ namespace IBTK
  * // Configuration-driven usage with SAMRAI Database
  * Pointer<Database> restart_db = input_db->getDatabase("RestartCleaner");
  * RestartCleaner cleaner("RestartCleaner", restart_db);
- * if (cleaner.isEnabled()) {
- *     cleaner.cleanup();
- * }
+ * cleaner.cleanup();  // Use dry_run=true in config to preview without deleting
  *
  * // Check available iterations
  * auto iterations = cleaner.getAvailableIterations();
@@ -79,16 +80,14 @@ public:
      * \brief Constructor using SAMRAI Database configuration.
      *
      * This is the constructor for RestartCleaner and integrates with IBAMR's
-     * standard configuration system. The cleaner can be enabled or disabled through
-     * the configuration.
+     * standard configuration system.
      *
      * The input database is searched for the following keys:
-     * - 'enable_cleaner': bool (default: false)
+     * - 'restart_directory': string (required)
      * - 'keep_recent_files': int (default: 5)
-     * - 'restart_directory': string (required if enable_cleaner is true)
-     * - 'log_cleaning_actions': bool (default: true)
      * - 'cleanup_strategy': string (default: "KEEP_RECENT_N")
-     * - 'dry_run': bool (default: false)
+     * - 'enable_logging': bool (default: true)
+     * - 'dry_run': bool (default: false) - when true, only logs actions without deleting
      *
      * \param object_name Name for this object (used in error messages and logging)
      * \param input_db    Database containing configuration parameters
@@ -114,8 +113,8 @@ public:
      *
      * \note Call cleanup() after each restart save to maintain only the most recent directories.
      *
-     * \note This method only performs cleanup if the cleaner is enabled (for Database
-     * constructor) or always executes (for explicit parameter constructor).
+     * \note When dry_run is enabled, this method only logs what would be deleted without
+     * actually removing any files.
      */
     void cleanup();
 
@@ -129,15 +128,6 @@ public:
      *         sorted in ascending order
      */
     std::vector<int> getAvailableIterations() const;
-
-    /*!
-     * \brief Check if the cleaner is enabled.
-     *
-     * Returns the value of 'enable_cleaner' parameter from the Database.
-     *
-     * \return true if cleaning is enabled, false otherwise
-     */
-    bool isEnabled() const;
 
 private:
     RestartCleaner() = delete;
@@ -166,12 +156,12 @@ private:
      * \brief Parse iteration number from directory name.
      *
      * Extracts the iteration number from directory names following the pattern
-     * "restore.XXXXXX" where XXXXXX is a zero-padded number.
+     * "restore.NNNNNN..." where the iteration number is zero-padded to at least 6 digits.
      *
      * \param dirname Directory name to parse
-     * \return Iteration number, or -1 if parsing fails
+     * \return Iteration number if parsing succeeds, std::nullopt otherwise
      */
-    int parseIterationNum(const std::string& dirname) const;
+    std::optional<int> parseIterationNum(const std::string& dirname) const;
 
     /*!
      * \brief Get all restart directories from the base path.
@@ -194,8 +184,7 @@ private:
     std::string d_restart_base_path;
     CleanupStrategy d_strategy;
     int d_keep_restart_count;
-    bool d_enabled;
-    bool d_log_actions;
+    bool d_enable_logging;
     bool d_dry_run;
 };
 
