@@ -22,8 +22,6 @@ Radius = 5.0e-6
 RHOS = RHO0
 MASS = PII*Radius^2*RHOS
 FREE_DOFS = 1, 1, 0              // locked wz
-Contour_XCOM = LENGTH/4.0
-Contour_YCOM = WIDTH/2.0
 Contour_Radius = 10.0e-6
 
 FOVelocityInitialConditions {

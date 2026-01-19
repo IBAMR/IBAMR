@@ -4300,7 +4300,7 @@ AcousticStreamingHierarchyIntegrator::computeFOResidual(Pointer<SAMRAIVectorReal
             }
         }
     }
- //   pout << "1st order residual =  " << R << std::endl;
+    //   pout << "1st order residual =  " << R << std::endl;
     return;
 } // computeFOResidual
 

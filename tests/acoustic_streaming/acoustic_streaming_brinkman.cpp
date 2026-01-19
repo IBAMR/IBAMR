@@ -63,14 +63,20 @@ callSetFluidPropertyCallbackFunction(int dst_idx,
     return;
 } // callSetFluidPropertyCallbackFunction
 
+struct XCOM
+{
+    // "CYLINDER" geometry
+    Pointer<AcousticStreamingHierarchyIntegrator> time_integrator;
+    std::array<double, NDIM> center;
+    double dt;
+};
+
 // Struct to reset solid level set
 struct SolidLevelSetResetter
 {
     Pointer<HierarchyIntegrator> time_integrator;
     int ls_idx;
-
-    // "CYLINDER" geometry
-    std::array<double, NDIM> center;
+    const XCOM* S;
     double R;
 };
 
@@ -79,11 +85,27 @@ struct ContourLevelSetResetter
 {
     Pointer<HierarchyIntegrator> time_integrator;
     int contour_idx;
-
-    // "Circular" geometry
-    std::array<double, NDIM> center;
+    const XCOM* S;
     double R;
 };
+
+void
+reset_center_of_mass_callback_fcn(double /*current_time*/, double /*new_time*/, int /*cycle_num*/, void* ctx)
+{
+    XCOM* resetter = static_cast<XCOM*>(ctx);
+    auto& so_vel = resetter->time_integrator->getSORigidBodyVelocity();
+    auto& X_com_old = resetter->time_integrator->getCenterOfMass();
+    std::array<double, NDIM> X_com_new;
+    int part = 0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        X_com_new[d] = X_com_old[part][d] + resetter->dt * so_vel[part](d);
+    }
+    resetter->center = X_com_new;
+    resetter->time_integrator->updateCenterOfMass(X_com_new, part);
+
+    return;
+}
 
 void
 reset_solid_level_set_callback_fcn(double /*current_time*/, double /*new_time*/, int /*cycle_num*/, void* ctx)
@@ -117,8 +139,8 @@ reset_solid_level_set_callback_fcn(double /*current_time*/, double /*new_time*/,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                const double distance = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
-                                                  std::pow(coord[1] - resetter->center[1], 2)) -
+                const double distance = std::sqrt(std::pow(coord[0] - resetter->S->center[0], 2) +
+                                                  std::pow(coord[1] - resetter->S->center[1], 2)) -
                                         resetter->R;
                 (*ls_data)(ci) = distance;
             }
@@ -159,8 +181,8 @@ reset_contour_level_set_callback_fcn(double /*current_time*/, double /*new_time*
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-                (*contour_data)(ci) = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
-                                                std::pow(coord[1] - resetter->center[1], 2)) -
+                (*contour_data)(ci) = std::sqrt(std::pow(coord[0] - resetter->S->center[0], 2) +
+                                                std::pow(coord[1] - resetter->S->center[1], 2)) -
                                       resetter->R;
             }
         }
@@ -359,15 +381,22 @@ main(int argc, char* argv[])
         time_integrator->registerResetFluidBulkViscosityFcn(&callSetFluidPropertyCallbackFunction,
                                                             static_cast<void*>(lambda_init.getPointer()));
 
+        // Reset the center of mass position at every time step
+        XCOM s_resetter;
+        s_resetter.time_integrator = time_integrator;
+        s_resetter.center[0] = input_db->getDouble("XCOM");
+        s_resetter.center[1] = input_db->getDouble("YCOM");
+        time_integrator->registerIntegrateHierarchyCallback(&reset_center_of_mass_callback_fcn,
+                                                            static_cast<void*>(&s_resetter));
+
         // Reset solid geometry
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.time_integrator = time_integrator;
-        solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
-        solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
+        solid_level_set_resetter.S = &s_resetter;
         solid_level_set_resetter.R = input_db->getDouble("Radius");
-
-        auto fcn_ptr = &reset_solid_level_set_callback_fcn;
-        time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
+        auto solid_fcn_ptr = &reset_solid_level_set_callback_fcn;
+        time_integrator->registerIntegrateHierarchyCallback(solid_fcn_ptr,
+                                                            static_cast<void*>(&solid_level_set_resetter));
 
         // Configure the Brinkman penalization objects for the first- and second-order solvers.
         Pointer<BrinkmanPenalizationMethod> fo_brinkman =
@@ -383,21 +412,15 @@ main(int argc, char* argv[])
         IBTK::FreeRigidDOFVector cylinder_dofs;
         input_db->getIntegerArray("FREE_DOFS", cylinder_dofs.data(), IBTK::s_max_free_dofs);
         const double cylinder_mass = input_db->getDouble("MASS");
-        time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman,
-                                                              so_brinkman,
-                                                              phi_var_solid,
-                                                              ls_bc_coef,
-                                                              solid_level_set_resetter.center,
-                                                              cylinder_dofs,
-                                                              cylinder_mass);
+        time_integrator->registerBrinkmanPenalizationStrategy(
+            fo_brinkman, so_brinkman, phi_var_solid, ls_bc_coef, s_resetter.center, cylinder_dofs, cylinder_mass);
 
         // Create level set for the contour integration and register it with acoustic integrator
         const std::string& ls_name_contour = "ARF";
         Pointer<CellVariable<NDIM, double> > phi_var_contour = new CellVariable<NDIM, double>(ls_name_contour);
         ContourLevelSetResetter contour_level_set_resetter;
         contour_level_set_resetter.time_integrator = time_integrator;
-        contour_level_set_resetter.center[0] = input_db->getDouble("Contour_XCOM");
-        contour_level_set_resetter.center[1] = input_db->getDouble("Contour_YCOM");
+        contour_level_set_resetter.S = &s_resetter;
         contour_level_set_resetter.R = input_db->getDouble("Contour_Radius");
         time_integrator->registerContourVariable(phi_var_contour, ls_bc_coef, /*contour_value*/ 0.0);
         time_integrator->registerIntegrateHierarchyCallback(reset_contour_level_set_callback_fcn,
@@ -415,7 +438,7 @@ main(int argc, char* argv[])
 
         // Initialize the solid level set function
         solid_level_set_resetter.ls_idx = fo_brinkman->getLevelSetCurrentPatchIndex();
-        fcn_ptr(0.0, 0.0, -1, static_cast<void*>(&solid_level_set_resetter));
+        solid_fcn_ptr(0.0, 0.0, -1, static_cast<void*>(&solid_level_set_resetter));
         solid_level_set_resetter.ls_idx = fo_brinkman->getLevelSetNewPatchIndex();
 
         // Set the contour level set patch index
@@ -456,6 +479,7 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+            s_resetter.dt = dt;
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -464,19 +488,6 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
-
-            // Update the center of mass position of the immersed solid and integration contour
-            auto& so_vel = time_integrator->getSORigidBodyVelocity();
-            auto& X_com_old = time_integrator->getCenterOfMass();
-            std::array<double, NDIM> X_com_new;
-            int part = 0;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                X_com_new[d] = X_com_old[part][d] + dt * so_vel[part](d);
-            }
-            solid_level_set_resetter.center = X_com_new;
-            contour_level_set_resetter.center = X_com_new;
-            time_integrator->updateCenterOfMass(X_com_new, part);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
