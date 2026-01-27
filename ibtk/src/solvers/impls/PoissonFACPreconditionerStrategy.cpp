@@ -442,7 +442,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
+            d_prolongation_refine_algorithm->createSchedule("DEFAULT_FILL",
+                                                            d_hierarchy->getPatchLevel(dst_ln),
                                                             Pointer<PatchLevel<NDIM> >(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
@@ -457,9 +458,10 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        d_ghostfill_nocoarse_refine_schedules[ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(ln), d_bc_op.getPointer());
-        d_synch_refine_schedules[ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(ln));
+        d_ghostfill_nocoarse_refine_schedules[ln] = d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+            "FILL_PATCH_BORDERS_ONLY", d_hierarchy->getPatchLevel(ln), d_bc_op.getPointer());
+        d_synch_refine_schedules[ln] =
+            d_synch_refine_algorithm->createSchedule("FILL_INTERIORS_ONLY", d_hierarchy->getPatchLevel(ln));
     }
 
     // Indicate that the operator is initialized.
