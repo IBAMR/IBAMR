@@ -203,6 +203,8 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(Pointer<FaceVariable<NDIM,
     TBOX_ASSERT(u_var);
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) == d_u_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerAdvectionVelocity(): Integrator has already been initialized.\n");
     d_u_var.push_back(u_var);
 
     // Set default values.
@@ -258,6 +260,8 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double
     TBOX_ASSERT(F_var);
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) == d_F_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerSourceTerm(): Integrator has already been initialized.\n");
     d_F_var.push_back(F_var);
 
     // Set default values.
@@ -312,6 +316,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     TBOX_ASSERT(Q_var);
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) == d_Q_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name + "::registerTransportedQuantity(): Integrator has already been initialized.\n");
     d_Q_var.push_back(Q_var);
     Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
@@ -333,6 +339,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, nullptr);
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     d_Q_output[Q_var] = output_Q;
+    setRefineAndCoarsenOperators(Q_var);
     return;
 } // registerTransportedQuantity
 
@@ -466,6 +473,9 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVar
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) ==
                 d_diffusion_coef_var.end());
 #endif
+    if (d_integrator_is_initialized)
+        TBOX_ERROR(d_object_name +
+                   "::registerDiffusionCoefficientVariable(): Integrator has already been initialized.\n");
     d_diffusion_coef_var.push_back(D_var);
     Pointer<SideDataFactory<NDIM, double> > D_factory = D_var->getPatchDataFactory();
     const int D_depth = D_factory->getDefaultDepth();
@@ -755,6 +765,22 @@ AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(Pointer<CellVariabl
 }
 
 void
+AdvDiffHierarchyIntegrator::setRefineAndCoarsenOperators(Pointer<CellVariable<NDIM, double> > Q_var,
+                                                         std::string Q_refine_type,
+                                                         std::string Q_coarsen_type)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    if (d_hierarchy_is_initialized)
+        TBOX_WARNING(d_object_name +
+                     "::setRefineAndCoarsenOperators(): Integrator has already been initialized. These options will "
+                     "have no effect.\n");
+    d_Q_refine_map[Q_var] = std::move(Q_refine_type);
+    d_Q_coarsen_map[Q_var] = std::move(Q_coarsen_type);
+}
+
+void
 AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -770,19 +796,6 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
     Pointer<SideVariable<NDIM, double> > sc_var = new SideVariable<NDIM, double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
-
-    // Setup coarsening communications algorithms, used in synchronizing refined
-    // regions of coarse data with the underlying fine data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (const auto& Q_var : d_Q_var)
-    {
-        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-        const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        Pointer<CoarsenOperator<NDIM> > coarsen_operator =
-            grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
-        getCoarsenAlgorithm(SYNCH_CURRENT_DATA_ALG)->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
-        getCoarsenAlgorithm(SYNCH_NEW_DATA_ALG)->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
-    }
 
     // Operators and solvers are maintained for each variable registered with the
     // integrator.
@@ -1134,8 +1147,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          Q_scratch_idx,
                          Q_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_Q_coarsen_map[Q_var],
+                         d_Q_refine_map[Q_var],
                          d_Q_init[Q_var]);
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();

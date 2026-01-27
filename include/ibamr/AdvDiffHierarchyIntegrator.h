@@ -132,6 +132,8 @@ public:
      *
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
@@ -171,6 +173,8 @@ public:
      *
      * Data management for the registered source term will be handled by the
      * hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
                                     const bool output_F = true);
@@ -195,6 +199,8 @@ public:
      *
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                              const bool output_Q = true);
@@ -276,6 +282,8 @@ public:
     /*!
      * Register a variable scalar diffusion coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \note This function will abort if the integrator has already been initialized.
      */
     void registerDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var);
 
@@ -420,6 +428,20 @@ public:
      * Helmholtz solver should be (re-)initialized before the next time step.
      */
     void setHelmholtzRHSOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+
+    /*!
+     * Sets the refine operator used during regridding to fill the new patch hierarchy and the coarsen operator used
+     * during grid synchronizations.
+     *
+     * These strings must correspond to a valid operator under the grid geometry when initializePatchHierarchy() is
+     * called.
+     *
+     * \note This function will emit a warning if the integrator has already been initialized. In this case, the new
+     * refine and coarsen operators will not be used.
+     */
+    void setRefineAndCoarsenOperators(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                      std::string Q_refine_type = "CONSERVATIVE_LINEAR_REFINE",
+                                      std::string Q_coarsen_type = "CONSERVATIVE_COARSEN");
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -606,6 +628,12 @@ protected:
         d_Q_reset_fcns;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
+
+    /*!
+     * Refine and coarsening types for Q.
+     */
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::string> d_Q_refine_map,
+        d_Q_coarsen_map;
 
     /*
      * Hierarchy operations objects.
