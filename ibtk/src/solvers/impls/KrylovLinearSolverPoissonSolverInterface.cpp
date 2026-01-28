@@ -57,6 +57,21 @@ KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Poisson
 } // setPoissonSpecifications
 
 void
+KrylovLinearSolverPoissonSolverInterface::setProblemSpecification(const IBTK::ProblemSpecification* problem_spec)
+{
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(p_this);
+#endif
+    PoissonSolver::setProblemSpecification(problem_spec);
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    if (p_operator) p_operator->setProblemSpecification(problem_spec);
+    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    if (p_preconditioner) p_preconditioner->setProblemSpecification(problem_spec);
+    return;
+} // setsetProblemSpecification
+
+void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);

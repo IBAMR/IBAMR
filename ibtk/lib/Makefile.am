@@ -133,7 +133,9 @@ DIM_DEPENDENT_SOURCES = \
 ../src/solvers/impls/SCPoissonSolverManager.cpp \
 ../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/VCSCViscousOperator.cpp \
+../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \
 ../src/solvers/impls/VCSCViscousPETScLevelSolver.cpp \
+../src/solvers/impls/VCSCViscousDilatationalPETScLevelSolver.cpp \
 ../src/solvers/interfaces/FACPreconditionerStrategy.cpp \
 ../src/solvers/interfaces/GeneralOperator.cpp \
 ../src/solvers/interfaces/GeneralSolver.cpp \
@@ -318,6 +320,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonFACPreconditionerStrategy.h \
 ../include/ibtk/PoissonSolver.h \
 ../include/ibtk/PoissonUtilities.h \
+../include/ibtk/ProblemSpecification.h \
 ../include/ibtk/SAMRAIGhostDataAccumulator.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
@@ -339,7 +342,9 @@ pkg_include_HEADERS += \
 ../include/ibtk/StreamableManager.h \
 ../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
 ../include/ibtk/VCSCViscousOperator.h \
+../include/ibtk/VCSCViscousDilatationalOperator.h \
 ../include/ibtk/VCSCViscousPETScLevelSolver.h \
+../include/ibtk/VCSCViscousDilatationalPETScLevelSolver.h \
 ../include/ibtk/box_utilities.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
