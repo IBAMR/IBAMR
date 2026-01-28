@@ -43,17 +43,17 @@ namespace IBTK
 /*!
  * \brief Class VCSCViscousPETScLevelSolver is a subclass of SCPoissonPETScLevelSolver
  * class which solves vector-valued elliptic equation of the form
- * \f$ \mbox{$L u$} = C u + \nabla \cdot \mu (\nabla u + (\nabla u)^T) = f \f$
+ * \f$ \mbox{$L \vec{u}$} = C \vec{u} + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) = \vec{f} \f$
  * on a \em single SAMRAI::hier::PatchLevel
  * using <A HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
  * This solver class uses the PETSc library to solve linear equations of the
- * form \f$ \beta C u  + \alpha \nabla \cdot \mu (\nabla u + (\nabla u)^T) = f \f$,
+ * form \f$ C \vec{u} + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) = \vec{f} \f$,
  * in which \f$ C \f$ and \f$ \mu \f$ are spacially varying coefficients,
- * and \f$u\f$ and \f$f\f$ are side-centered arrays. The scaling factors of
- * \f$ C \f$ and \f$ \mu \f$ are stored separately in the class and are
- * denoted by \f$ \beta \f$ and \f$ \alpha \f$, respectively. The discretization
- * is second-order accurate.
+ * and \f$ \vec{u}\f$ and \f$ \vec{f}\f$ are side-centered arrays. The discretization
+ * is second-order accurate. For physical problems $\mu$ is negative and $C$ is positive.
+ * The class does not modify the signs of these quantities, and uses whatever the user
+ * sets in the SAMRAI::solv::PoissonSpecifications object.
  *
  * Robin boundary conditions may be specified through the interface class
  * SAMRAI::solv::RobinBcCoefStrategy.
@@ -67,8 +67,8 @@ namespace IBTK
  * -# Initialize VCSCViscousPETScLevelSolver object using the function
  *    initializeSolverState().
  * -# Solve the linear system using the member function solveSystem(), passing
- *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
- *    \f$f\f$.
+ *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$\vec{u}\f$ and
+ *    \f$\vec{f}\f$.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
