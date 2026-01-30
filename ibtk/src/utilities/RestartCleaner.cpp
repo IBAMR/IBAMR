@@ -32,11 +32,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-// Pattern for IBAMR restart directories: "restore.NNNNNN..." (at least 6 digits)
-const std::regex RESTART_DIR_PATTERN("restore\\.([0-9]{6,})");
-} // namespace
+const std::regex RestartCleaner::s_restart_dir_pattern("restore\\.([0-9]{6,})");
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -53,7 +49,7 @@ RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Poi
         TBOX_ERROR(d_object_name << "::RestartCleaner(): "
                                  << "Invalid configuration: keep_recent_files = " << d_keep_restart_count << "\n"
                                  << "keep_recent_files must be non-negative.\n"
-                                 << "  - Use 0 to delete ALL restart directories (dangerous!)\n"
+                                 << "  - Use 0 to delete ALL restart directories\n"
                                  << "  - Use 1 or higher to keep that many recent directories\n"
                                  << "Please correct your configuration file." << std::endl);
     }
@@ -87,40 +83,40 @@ RestartCleaner::cleanup()
 } // cleanup
 
 std::vector<int>
-RestartCleaner::getAvailableIterations() const
+RestartCleaner::getAvailableRestartRestoreNumbers() const
 {
-    std::vector<int> iterations;
+    std::vector<int> restart_restore_numbers;
 
     if (IBTK_MPI::getRank() == 0)
     {
         auto dirs = getAllRestartDirs(d_restart_base_path);
         for (const auto& dir : dirs)
         {
-            auto iter_opt = parseIterationNum(dir.filename().string());
-            if (iter_opt)
+            auto restart_restore_number = parseRestartRestoreNumber(dir.filename().string());
+            if (restart_restore_number)
             {
-                iterations.push_back(*iter_opt);
+                restart_restore_numbers.push_back(*restart_restore_number);
             }
         }
-        std::sort(iterations.begin(), iterations.end());
+        std::sort(restart_restore_numbers.begin(), restart_restore_numbers.end());
     }
 
-    int vec_size = static_cast<int>(iterations.size());
+    int vec_size = static_cast<int>(restart_restore_numbers.size());
     vec_size = IBTK_MPI::bcast(vec_size, 0);
 
     // Resize vector on non-master processors
     if (IBTK_MPI::getRank() != 0)
     {
-        iterations.resize(vec_size);
+        restart_restore_numbers.resize(vec_size);
     }
 
     if (vec_size > 0)
     {
-        IBTK_MPI::bcast(iterations.data(), vec_size, 0);
+        IBTK_MPI::bcast(restart_restore_numbers.data(), vec_size, 0);
     }
 
-    return iterations;
-} // getAvailableIterations
+    return restart_restore_numbers;
+} // getAvailableRestartRestoreNumbers
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -150,16 +146,16 @@ RestartCleaner::executeStrategy() const
 } // executeStrategy
 
 std::optional<int>
-RestartCleaner::parseIterationNum(const std::string& dirname) const
+RestartCleaner::parseRestartRestoreNumber(const std::string& dirname) const
 {
     std::smatch match;
 
-    if (std::regex_match(dirname, match, RESTART_DIR_PATTERN))
+    if (std::regex_match(dirname, match, s_restart_dir_pattern))
     {
         return std::stoi(match[1].str());
     }
     return std::nullopt;
-} // parseIterationNum
+} // parseRestartRestoreNumber
 
 std::vector<std::filesystem::path>
 RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
@@ -183,7 +179,7 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
             if (entry.is_directory())
             {
                 std::string dirname = entry.path().filename().string();
-                if (std::regex_match(dirname, RESTART_DIR_PATTERN))
+                if (std::regex_match(dirname, s_restart_dir_pattern))
                 {
                     restart_dirs.push_back(entry.path());
                 }
@@ -201,10 +197,10 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
 void
 RestartCleaner::keepRecentN() const
 {
-    // Structure to cache parsed iteration numbers with their paths
+    // Structure to cache parsed restart restore numbers with their paths
     struct DirInfo
     {
-        int iter;
+        int restart_restore_number;
         std::filesystem::path path;
     };
 
@@ -212,10 +208,10 @@ RestartCleaner::keepRecentN() const
     std::vector<DirInfo> valid_dirs;
     for (const auto& dir : getAllRestartDirs(d_restart_base_path))
     {
-        auto iter_opt = parseIterationNum(dir.filename().string());
-        if (iter_opt)
+        auto restart_restore_number = parseRestartRestoreNumber(dir.filename().string());
+        if (restart_restore_number)
         {
-            valid_dirs.push_back({ *iter_opt, dir });
+            valid_dirs.push_back({ *restart_restore_number, dir });
         }
         else
         {
@@ -235,8 +231,11 @@ RestartCleaner::keepRecentN() const
         return;
     }
 
-    // Sort by cached iteration number (pure integer comparison, no regex)
-    std::sort(valid_dirs.begin(), valid_dirs.end(), [](const DirInfo& a, const DirInfo& b) { return a.iter < b.iter; });
+    // Sort by cached restart restore number (pure integer comparison, no regex)
+    std::sort(valid_dirs.begin(),
+              valid_dirs.end(),
+              [](const DirInfo& a, const DirInfo& b)
+              { return a.restart_restore_number < b.restart_restore_number; });
 
     // Delete older directories
     size_t dirs_to_delete_count = valid_dirs.size() - d_keep_restart_count;

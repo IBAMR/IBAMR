@@ -27,6 +27,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -43,14 +44,14 @@ namespace IBTK
  *
  * The main functionalities include:
  * -# Scan a specified directory for subdirectories matching the pattern "restore.NNNNNN..."
- * -# Parse iteration numbers from these directory names
- * -# Sort directories based on iteration numbers
+ * -# Parse restart restore numbers from these directory names
+ * -# Sort directories based on restart restore numbers
  * -# Keep the N most recent directories and delete the rest
  *
  * \note This class assumes restart directories follow the naming pattern "restore.NNNNNN..."
- * where the iteration number is zero-padded to a minimum of 6 digits by IBAMR.
- * For example: restore.000005, restore.123456, restore.1000000 (7 digits). 
- * Iteration numbers with fewer than 6 digits are always zero-padded by IBAMR.
+ * where the restart restore number is zero-padded to a minimum of 6 digits by IBAMR.
+ * For example: restore.000005, restore.123456, restore.1000000 (7 digits).
+ * Restart restore numbers with fewer than 6 digits are always zero-padded by IBAMR.
  *
  * \note This is a stateless utility class. Each cleanup operation performs a complete scan
  * of the target directory and makes decisions based on the current filesystem state. No
@@ -69,8 +70,8 @@ namespace IBTK
  * RestartCleaner cleaner("RestartCleaner", restart_db);
  * cleaner.cleanup();  // Use dry_run=true in config to preview without deleting
  *
- * // Check available iterations
- * auto iterations = cleaner.getAvailableIterations();
+ * // Check available restart restore numbers
+ * auto restore_numbers = cleaner.getAvailableRestoreNumbers();
  * \endcode
  */
 class RestartCleaner
@@ -104,8 +105,8 @@ public:
      *
      * This method performs the complete cleanup process:
      * 1. Scans the base directory for restart folders
-     * 2. Parses iteration numbers from directory names
-     * 3. Sorts directories by iteration number
+     * 2. Parses restart restore numbers from directory names
+     * 3. Sorts directories by restart restore number
      * 4. Keeps the N most recent directories and deletes the rest
      *
      * In parallel environments, file operations are performed only on the master
@@ -119,15 +120,15 @@ public:
     void cleanup();
 
     /*!
-     * \brief Get available iteration numbers.
+     * \brief Get available restart restore numbers.
      *
-     * Scans the restart directory and returns iteration numbers for all currently
+     * Scans the restart directory and returns restart restore numbers for all currently
      * existing restore directories, sorted in ascending order.
      *
-     * \return Vector of iteration numbers for available restore directories,
+     * \return Vector of restart restore numbers for available restore directories,
      *         sorted in ascending order
      */
-    std::vector<int> getAvailableIterations() const;
+    std::vector<int> getAvailableRestartRestoreNumbers() const;
 
 private:
     RestartCleaner() = delete;
@@ -153,15 +154,15 @@ private:
     void executeStrategy() const;
 
     /*!
-     * \brief Parse iteration number from directory name.
+     * \brief Parse restart restore number from directory name.
      *
-     * Extracts the iteration number from directory names following the pattern
-     * "restore.NNNNNN..." where the iteration number is zero-padded to at least 6 digits.
+     * Extracts the restart restore number from directory names following the pattern
+     * "restore.NNNNNN..." where the restart restore number is zero-padded to at least 6 digits.
      *
      * \param dirname Directory name to parse
-     * \return Iteration number if parsing succeeds, std::nullopt otherwise
+     * \return Restart restore number if parsing succeeds, std::nullopt otherwise
      */
-    std::optional<int> parseIterationNum(const std::string& dirname) const;
+    std::optional<int> parseRestartRestoreNumber(const std::string& dirname) const;
 
     /*!
      * \brief Get all restart directories from the base path.
@@ -186,6 +187,9 @@ private:
     int d_keep_restart_count;
     bool d_enable_logging;
     bool d_dry_run;
+
+    // Pattern for IBAMR restart directories: "restore.NNNNNN..." (at least 6 digits)
+    static const std::regex s_restart_dir_pattern;
 };
 
 } // namespace IBTK

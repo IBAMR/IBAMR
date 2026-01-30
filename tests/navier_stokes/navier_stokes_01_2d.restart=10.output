@@ -1,0 +1,247 @@
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+
+At end       of timestep # 0
+Simulation time is 0.000976562
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.000976562
+
+At end       of timestep # 1
+Simulation time is 0.00195312
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 0.00195312
+
+At end       of timestep # 2
+Simulation time is 0.00292969
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 0.00292969
+
+At end       of timestep # 3
+Simulation time is 0.00390625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 0.00390625
+
+At end       of timestep # 4
+Simulation time is 0.00488281
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 5
+Simulation time is 0.00488281
+
+At end       of timestep # 5
+Simulation time is 0.00585938
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 6
+Simulation time is 0.00585938
+
+At end       of timestep # 6
+Simulation time is 0.00683594
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 7
+Simulation time is 0.00683594
+
+At end       of timestep # 7
+Simulation time is 0.0078125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 8
+Simulation time is 0.0078125
+
+At end       of timestep # 8
+Simulation time is 0.00878906
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 9
+Simulation time is 0.00878906
+
+At end       of timestep # 9
+Simulation time is 0.00976562
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 10
+Simulation time is 0.00976562
+
+At end       of timestep # 10
+Simulation time is 0.0107422
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 11
+Simulation time is 0.0107422
+
+At end       of timestep # 11
+Simulation time is 0.0117188
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 12
+Simulation time is 0.0117188
+
+At end       of timestep # 12
+Simulation time is 0.0126953
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 13
+Simulation time is 0.0126953
+
+At end       of timestep # 13
+Simulation time is 0.0136719
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 14
+Simulation time is 0.0136719
+
+At end       of timestep # 14
+Simulation time is 0.0146484
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+RestartCleaner: 4 restart directories remain
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in u at time 0.0146484:
+  L1-norm:  0.00485493204
+  L2-norm:  0.005832945375
+  max-norm: 0.05411278971
+Error in p at time 0.01416015625:
+  L1-norm:  0.02419124368
+  L2-norm:  0.03225987489
+  max-norm: 0.2386372035
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 10
+Simulation time is 0.00976562
+
+At end       of timestep # 10
+Simulation time is 0.0107422
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 11
+Simulation time is 0.0107422
+
+At end       of timestep # 11
+Simulation time is 0.0117188
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 12
+Simulation time is 0.0117188
+
+At end       of timestep # 12
+Simulation time is 0.0126953
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 13
+Simulation time is 0.0126953
+
+At end       of timestep # 13
+Simulation time is 0.0136719
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 14
+Simulation time is 0.0136719
+
+At end       of timestep # 14
+Simulation time is 0.0146484
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+RestartCleaner: 4 restart directories remain
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in u at time 0.0146484:
+  L1-norm:  0.00485493204
+  L2-norm:  0.005832945375
+  max-norm: 0.05411278971
+Error in p at time 0.01416015625:
+  L1-norm:  0.02419124368
+  L2-norm:  0.03225987489
+  max-norm: 0.2386372035
++++++++++++++++++++++++++++++++++++++++++++++++++++
