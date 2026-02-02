@@ -2237,7 +2237,8 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
         p_regrid_projection_solver->setNullSpace(true);
     }
 
-    // Allocate temporary data.
+    // Allocate temporary data. Under some circumstances the divergence may not be allocated - check that too.
+    bool deallocate_divergence = false;
     ComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_U_scratch_idx);
     scratch_idxs.setFlag(d_P_scratch_idx);
@@ -2249,6 +2250,12 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
+
+        if (!level->checkAllocated(d_Div_U_idx))
+        {
+            level->allocatePatchData(d_Div_U_idx, d_integrator_time);
+            deallocate_divergence = true;
+        }
     }
 
     if (d_Q_fcn)
@@ -2314,6 +2321,11 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
+
+        if (deallocate_divergence)
+        {
+            level->deallocatePatchData(d_Div_U_idx);
+        }
     }
 
     // Synchronize data on the patch hierarchy.
