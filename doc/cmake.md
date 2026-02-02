@@ -169,10 +169,7 @@ to them to CMake.
            -DPETSC_ROOT=/path/to/petsc
      # etc.
  ```
-- The CMake build system is new and may still contain bugs. If things don't seem
-  to work then post a message on the IBAMR mailing list.
-- If all else fails use the autotools-based build system, which is currently
-  known to work well on a wide variety of computers.
+- If things don't seem to work then post a message on the IBAMR mailing list.
 
 ## How to use IBAMR in your own project
 
@@ -205,7 +202,7 @@ build directory.
 
 ### General setup
 
-IBAMR is now compiled as four libraries: 2D and 3D IBTK libraries and 2D and 3D
+IBAMR is compiled as four libraries: 2D and 3D IBTK libraries and 2D and 3D
 IBAMR libraries. Since IBAMR depends on IBTK, many features in the library are
 actually set up for IBTK and then copied into IBAMR proper. IBAMR and IBTK have
 their dependencies configured in the top-level `CMakeLists.txt` file. Source
@@ -220,8 +217,15 @@ input files). New examples should use this macro as well.
 
 ### Configuration headers
 
-At the current time IBAMR now generates a single configuration header:
-`ibtk/config.h`. All macros defined in this file with the prefix `IBTK_` are
-redefined in `ibamr/config.h` with the prefix `IBAMR_`. The old top-level
-configuration files `IBAMR_config.h` and `IBTK_config.h` do not have equivalents
-in the CMake build system.
+IBAMR generates a single configuration header: `ibtk/config.h`. All macros
+defined in this file with the prefix `IBTK_` are redefined in `ibamr/config.h`
+with the prefix `IBAMR_`. The old top-level configuration files `IBAMR_config.h`
+and `IBTK_config.h` do not have equivalents in the CMake build system.
+
+## Tips and Tricks
+
+cmake supports many useful features. We recommend
+1. Use ninja instead of make for much better build performance by providing the
+   `-GNinja` to cmake.
+2. Cache object files (and thus make recompilation much faster) with `ccache` with
+   the flag `-DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"`.

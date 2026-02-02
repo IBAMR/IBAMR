@@ -61,6 +61,36 @@ MACRO(IBAMR_CONVERT_MD_TO_H _md_file _h_file _groupname _grouptitle _brieftext)
     ${CMAKE_CURRENT_BINARY_DIR}/generated-headers/${_h_file})
 ENDMACRO()
 
+IBAMR_CONVERT_MD_TO_H(ci.md ci.h
+  "ci"
+  "Continuous Integration"
+  "Description of IBAMR's Continuous Integration (CI) infrastructure.")
+
+IBAMR_CONVERT_MD_TO_H(cmake.md cmake.h
+  "cmake"
+  "Build System"
+  "Description of IBAMR's build system.")
+
+IBAMR_CONVERT_MD_TO_H(mpi.md mpi.h
+  "mpi"
+  "Using IBAMR with MPI"
+  "How to use IBAMR with MPI and job systems.")
+
+IBAMR_CONVERT_MD_TO_H(git.md git.h
+  "git"
+  "Introduction to using git"
+  "How IBAMR uses git for developing new features.")
+
+IBAMR_CONVERT_MD_TO_H(input-and-restart-databases.md input-and-restart-databases.h
+  "databases"
+  "Input and Restart Databases"
+  "How IBAMR uses databases for setting up objects.")
+
+IBAMR_CONVERT_MD_TO_H(testrunner.md testrunner.h
+  "tests"
+  "Test Runner"
+  "Description of IBAMR's test runner, attest.")
+
 #
 # Rather than list all headers use GLOB
 #
