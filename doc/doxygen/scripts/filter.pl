@@ -31,5 +31,11 @@ while (<>)
     s#.Style Guide..style-guide.md.#\@ref styleguide #g;
     s#.Project Architecture..architecture.md.#\@ref architecture #g;
 
+    # Prevent ```cmake from appearing, which confuses doxygen
+    s#```cmake#```#g;
+
+    # Same with ```cpp
+    s#```cpp#```#g;
+
     print;
 }
