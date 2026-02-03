@@ -49,13 +49,11 @@ MACRO(IBAMR_CONVERT_MD_TO_H _md_file _h_file _groupname _grouptitle _brieftext)
       ${CMAKE_SOURCE_DIR}/doc/doxygen/scripts/filter.pl
     OUTPUT ${_outfile}
     COMMAND
-      ${CMAKE_COMMAND} -E echo "/\*\* @defgroup ${_groupname} ${_grouptitle}"
-        > ${_outfile} &&
-      ${CMAKE_COMMAND} -E echo "@brief ${_brieftext}" >> ${_outfile} &&
-      ${CMAKE_COMMAND} -E cat ${CMAKE_SOURCE_DIR}/doc/${_md_file}
-        >> ${_outfile} &&
-      ${CMAKE_COMMAND} -E echo "\*/" >> ${_outfile}
-      VERBATIM
+      echo "/\*\* @defgroup ${_groupname} ${_grouptitle}" > ${_outfile} &&
+      echo "@brief ${_brieftext}" >> ${_outfile}                        &&
+      cat ${CMAKE_SOURCE_DIR}/doc/${_md_file} >> ${_outfile}            &&
+      echo "\*/" >> ${_outfile}
+    VERBATIM
   )
   LIST(APPEND _generated_headers
     ${CMAKE_CURRENT_BINARY_DIR}/generated-headers/${_h_file})
