@@ -409,20 +409,30 @@ main(int argc, char* argv[])
                                                         time_integrator,
                                                         app_initializer->getComponentDatabase("SOBrinkmanPenalization"),
                                                         /*register_for_restart*/ true);
-        IBTK::FreeRigidDOFVector cylinder_dofs;
-        input_db->getIntegerArray("FREE_DOFS", cylinder_dofs.data(), IBTK::s_max_free_dofs);
-        const double cylinder_mass = input_db->getDouble("MASS");
-        time_integrator->registerBrinkmanPenalizationStrategy(
-            fo_brinkman, so_brinkman, phi_var_solid, ls_bc_coef, s_resetter.center, cylinder_dofs, cylinder_mass);
 
         // Create level set for the contour integration and register it with acoustic integrator
         const std::string& ls_name_contour = "ARF";
-        Pointer<CellVariable<NDIM, double> > phi_var_contour = new CellVariable<NDIM, double>(ls_name_contour);
+        Pointer<CellVariable<NDIM, double> > S_var_contour = new CellVariable<NDIM, double>(ls_name_contour);
+        IBTK::FreeRigidDOFVector cylinder_dofs;
+        input_db->getIntegerArray("FREE_DOFS", cylinder_dofs.data(), IBTK::s_max_free_dofs);
+        const double cylinder_mass = input_db->getDouble("MASS");
+        time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman,
+                                                              so_brinkman,
+                                                              phi_var_solid,
+                                                              ls_bc_coef,
+                                                              S_var_contour,
+                                                              ls_bc_coef,
+                                                              s_resetter.center,
+                                                              cylinder_dofs,
+                                                              cylinder_mass,
+                                                              Eigen::Matrix3d::Zero(),
+                                                              /*contour_value*/ 0.0);
+
+        // Reset the position of the contour variable
         ContourLevelSetResetter contour_level_set_resetter;
         contour_level_set_resetter.time_integrator = time_integrator;
         contour_level_set_resetter.S = &s_resetter;
         contour_level_set_resetter.R = input_db->getDouble("Contour_Radius");
-        time_integrator->registerContourVariable(phi_var_contour, ls_bc_coef, /*contour_value*/ 0.0);
         time_integrator->registerIntegrateHierarchyCallback(reset_contour_level_set_callback_fcn,
                                                             static_cast<void*>(&contour_level_set_resetter));
 
@@ -444,7 +454,7 @@ main(int argc, char* argv[])
         // Set the contour level set patch index
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         contour_level_set_resetter.contour_idx =
-            var_db->mapVariableAndContextToIndex(phi_var_contour, time_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(S_var_contour, time_integrator->getCurrentContext());
         reset_contour_level_set_callback_fcn(0.0, 0.0, -1, static_cast<void*>(&contour_level_set_resetter));
 
         // Remove the AppInitializer

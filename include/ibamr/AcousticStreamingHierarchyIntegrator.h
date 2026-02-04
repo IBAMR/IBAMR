@@ -451,23 +451,25 @@ public:
     /*!
      * \brief Register BrinkmanPenalizationStrategy objects to add the Brinkman penalization term
      * in the momentum equation for the first- and second-order systems.
+     *
+     * @param  brinkman_var Level set function that represents the surface of the body
+     * @param contour_var Level set function that represents the surface of the contour which is used
+     * to compute first- and second-order hydrodynamic force on the object
+     * @param contour_val Level set value that represents the surface of the contour used to compute
+     * hydrodynamic force on the immersed object.
      */
     void
     registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> fo_brinkman_force,
                                          SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationMethod> so_brinkman_force,
                                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > brinkman_var,
                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* brinkman_bc,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > contour_var,
+                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* contour_bc_coef,
                                          const std::array<double, NDIM>& center,
                                          const IBTK::FreeRigidDOFVector& free_dofs,
-                                         const double mass = 0.0,
-                                         const Eigen::Matrix3d& J_com = Eigen::Matrix3d::Zero());
-
-    /*!
-     * \brief Register level set function to perform contour integral to evaluate acoustic radiation force.
-     */
-    void registerContourVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var,
-                                 SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-                                 double val = 0.0);
+                                         double mass = 0.0,
+                                         const Eigen::Matrix3d& J_com = Eigen::Matrix3d::Zero(),
+                                         double contour_val = 0.0);
 
     /*!
      * \brief Get the contour variables registered with this class.
@@ -1090,6 +1092,13 @@ private:
      */
     void computeFOHydrodynamicForce(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
                                     double time);
+
+    /*!
+     * Compute the first-order hydrodynamic force.
+     */
+    void computeFOHydrodynamicForceViaContourIntegral(
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+        double time);
 
     /*!
      * Get the number of free degrees of freedom for the Brinkman body
