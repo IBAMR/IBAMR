@@ -615,7 +615,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
                     std::vector<int> u_mat_cols(u_stencil_sz);
 
                     int idx = 0;
-                    u_mat_vals[idx] = freq * (*rho_data)(is, 0) + chi;
+                    u_mat_vals[idx] = freq * (*rho_data)(is, 0);
                     u_mat_cols[idx] = u_dof_index;
 
                     for (unsigned int d = 0; d < NDIM; ++d)
@@ -623,7 +623,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
                         if (d == axis)
                         {
                             idx += 1;
-                            u_mat_vals[idx] = uu_matrix_coefs(is, stencil_map[ORIGIN]);
+                            u_mat_vals[idx] = uu_matrix_coefs(is, stencil_map[ORIGIN]) + chi;
                             u_mat_cols[idx] = (*u_dof_index_data)(is, other_comp);
 
                             const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
