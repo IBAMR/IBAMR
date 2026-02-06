@@ -37,5 +37,8 @@ while (<>)
     # Same with ```cpp
     s#```cpp#```#g;
 
+    # Same with ```xml
+    s#```xml#```#g;
+
     print;
 }

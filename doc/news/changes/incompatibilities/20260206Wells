@@ -6,6 +6,8 @@ or ParaView for data-processing purposes, then use, e.g., the path
 instead of
 <tt>/processor.00000/level.00001/patch.00016/U_x</tt>
 to retrieve component output.
-
+For more information see
+<a href="https://ibamr.github.io/IBAMR-docs/ibamr/group__visualization.html">The
+new visualization module in the manual</a>.
 <br>
 (David Wells, 2026/02/06)
