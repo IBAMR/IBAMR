@@ -78,14 +78,14 @@ private:
 };
 
 void
-create_test_restart_dirs(const std::string& base_path, const std::vector<int>& iterations)
+create_test_restart_dirs(const std::string& base_path, const std::vector<int>& restart_restore_numbers)
 {
     std::filesystem::create_directories(base_path);
 
-    for (int iter : iterations)
+    for (int restart_restore_number : restart_restore_numbers)
     {
         std::ostringstream dirname;
-        dirname << "restore." << std::setfill('0') << std::setw(6) << iter;
+        dirname << "restore." << std::setfill('0') << std::setw(6) << restart_restore_number;
         std::filesystem::path dir_path = std::filesystem::path(base_path) / dirname.str();
         std::filesystem::create_directories(dir_path);
 
@@ -94,7 +94,7 @@ create_test_restart_dirs(const std::string& base_path, const std::vector<int>& i
         {
             std::filesystem::path data_file = dir_path / ("samrai_data_" + std::to_string(i) + ".dat");
             std::ofstream file(data_file);
-            file << "SAMRAI restart data file " << i << " for iteration " << iter << std::endl;
+            file << "SAMRAI restart data file " << i << " for iteration " << restart_restore_number << std::endl;
             file.close();
         }
 
@@ -103,7 +103,7 @@ create_test_restart_dirs(const std::string& base_path, const std::vector<int>& i
         std::filesystem::create_directories(sub_dir);
         std::filesystem::path hier_file = sub_dir / "hierarchy.samrai.00000";
         std::ofstream hier(hier_file);
-        hier << "Hierarchy data for iteration " << iter << std::endl;
+        hier << "Hierarchy data for iteration " << restart_restore_number << std::endl;
         hier.close();
     }
 }
@@ -171,8 +171,8 @@ main(int argc, char** argv)
 
         // Create mix of valid and invalid directories
         // Test coverage: 6-digit (standard), 6-digit boundary, and 7+ digit (long simulations)
-        std::vector<int> valid_iterations = { 1,    100,  200,    300,     1000,    2500,
-                                              3000, 5000, 999999, 1000000, 1234567, 10000000 };
+        std::vector<int> valid_restart_restore_numbers = { 1,    100,  200,    300,     1000,    2500,
+                                                           3000, 5000, 999999, 1000000, 1234567, 10000000 };
         std::vector<std::string> invalid_names = {
             "restore.12345",        // string less than 6 digits
             "restore.abc123",       // contains letters
@@ -182,7 +182,7 @@ main(int argc, char** argv)
             "restore.000100_backup" // extra suffix
         };
 
-        create_test_restart_dirs(test_dir, valid_iterations);
+        create_test_restart_dirs(test_dir, valid_restart_restore_numbers);
         create_invalid_dirs(test_dir, invalid_names);
 
         try
@@ -195,24 +195,24 @@ main(int argc, char** argv)
             db->putBool("dry_run", true);
 
             RestartCleaner cleaner("ParsingTest", db);
-            auto parsed_iterations = cleaner.getAvailableRestartRestoreNumbers();
+            auto parsed_restart_restore_numbers = cleaner.getAvailableRestartRestoreNumbers();
 
-            pout << "Valid iterations detected: ";
-            for (int iter : parsed_iterations) pout << iter << " ";
+            pout << "Valid restart restore numbers detected: ";
+            for (int restart_restore_number : parsed_restart_restore_numbers) pout << restart_restore_number << " ";
             pout << std::endl;
 
             // Check count - should ignore invalid directories
-            if (parsed_iterations.size() != valid_iterations.size())
+            if (parsed_restart_restore_numbers.size() != valid_restart_restore_numbers.size())
             {
-                pout << "FAILED: Expected " << valid_iterations.size() << " valid iterations, found "
-                     << parsed_iterations.size() << std::endl;
+                pout << "FAILED: Expected " << valid_restart_restore_numbers.size()
+                     << " valid restart restore numbers, found " << parsed_restart_restore_numbers.size() << std::endl;
                 test_failures++;
             }
             else
             {
                 // Check sorting and content
-                std::sort(valid_iterations.begin(), valid_iterations.end());
-                if (parsed_iterations == valid_iterations)
+                std::sort(valid_restart_restore_numbers.begin(), valid_restart_restore_numbers.end());
+                if (parsed_restart_restore_numbers == valid_restart_restore_numbers)
                 {
                     pout << "Test 1 PASSED: Correctly parsed and sorted all valid directories" << std::endl;
                 }
@@ -235,9 +235,9 @@ main(int argc, char** argv)
     {
         const std::string test_dir = "test_restart_cleanup";
         TestDirGuard guard(test_dir);
-        std::vector<int> iterations = { 100, 200, 300, 400, 500, 600, 700, 800 };
+        std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500, 600, 700, 800 };
 
-        create_test_restart_dirs(test_dir, iterations);
+        create_test_restart_dirs(test_dir, restart_restore_numbers);
 
         try
         {
@@ -257,17 +257,17 @@ main(int argc, char** argv)
             int dirs_after = count_dirs_matching_pattern(test_dir);
             pout << "Directories after cleanup: " << dirs_after << std::endl;
 
-            auto remaining_iterations = cleaner.getAvailableRestartRestoreNumbers();
-            pout << "Remaining iterations: ";
-            for (int iter : remaining_iterations) pout << iter << " ";
+            auto remaining_restart_restore_numbers = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Remaining restart restore numbers: ";
+            for (int restart_restore_number : remaining_restart_restore_numbers) pout << restart_restore_number << " ";
             pout << std::endl;
 
             // Should keep exactly 3 directories
-            if (dirs_after == 3 && remaining_iterations.size() == 3)
+            if (dirs_after == 3 && remaining_restart_restore_numbers.size() == 3)
             {
                 // Check that we kept the highest 3
                 std::vector<int> expected = { 600, 700, 800 };
-                if (remaining_iterations == expected)
+                if (remaining_restart_restore_numbers == expected)
                 {
                     pout << "Test 2 PASSED: Correctly cleaned up and kept 3 most recent" << std::endl;
                 }
@@ -295,9 +295,9 @@ main(int argc, char** argv)
     {
         const std::string test_dir = "test_restart_dryrun";
         TestDirGuard guard(test_dir);
-        std::vector<int> iterations = { 10, 20, 30, 40, 50, 60 };
+        std::vector<int> restart_restore_numbers = { 10, 20, 30, 40, 50, 60 };
 
-        create_test_restart_dirs(test_dir, iterations);
+        create_test_restart_dirs(test_dir, restart_restore_numbers);
 
         try
         {
@@ -340,9 +340,9 @@ main(int argc, char** argv)
     {
         const std::string test_dir = "test_restart_database";
         TestDirGuard guard(test_dir);
-        std::vector<int> iterations = { 10, 20, 30, 40, 50, 60, 70, 80 };
+        std::vector<int> restart_restore_numbers = { 10, 20, 30, 40, 50, 60, 70, 80 };
 
-        create_test_restart_dirs(test_dir, iterations);
+        create_test_restart_dirs(test_dir, restart_restore_numbers);
 
         try
         {
@@ -357,14 +357,14 @@ main(int argc, char** argv)
             cleaner.cleanup();
 
             // Should keep 4 recent (database specified value)
-            auto iterations_after = cleaner.getAvailableRestartRestoreNumbers();
-            pout << "Iterations after database cleanup: ";
-            for (int iter : iterations_after) pout << iter << " ";
+            auto restart_restore_numbers_after = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Restart restore numbers after database cleanup: ";
+            for (int restart_restore_number : restart_restore_numbers_after) pout << restart_restore_number << " ";
             pout << std::endl;
 
             // Should keep: 50, 60, 70, 80
             std::vector<int> expected = { 50, 60, 70, 80 };
-            if (iterations_after == expected)
+            if (restart_restore_numbers_after == expected)
             {
                 pout << "Test 4 PASSED: Database constructor worked correctly" << std::endl;
             }
