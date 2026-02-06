@@ -195,7 +195,7 @@ main(int argc, char** argv)
             db->putBool("dry_run", true);
 
             RestartCleaner cleaner("ParsingTest", db);
-            auto parsed_iterations = cleaner.getAvailableIterations();
+            auto parsed_iterations = cleaner.getAvailableRestartRestoreNumbers();
 
             pout << "Valid iterations detected: ";
             for (int iter : parsed_iterations) pout << iter << " ";
@@ -257,7 +257,7 @@ main(int argc, char** argv)
             int dirs_after = count_dirs_matching_pattern(test_dir);
             pout << "Directories after cleanup: " << dirs_after << std::endl;
 
-            auto remaining_iterations = cleaner.getAvailableIterations();
+            auto remaining_iterations = cleaner.getAvailableRestartRestoreNumbers();
             pout << "Remaining iterations: ";
             for (int iter : remaining_iterations) pout << iter << " ";
             pout << std::endl;
@@ -357,7 +357,7 @@ main(int argc, char** argv)
             cleaner.cleanup();
 
             // Should keep 4 recent (database specified value)
-            auto iterations_after = cleaner.getAvailableIterations();
+            auto iterations_after = cleaner.getAvailableRestartRestoreNumbers();
             pout << "Iterations after database cleanup: ";
             for (int iter : iterations_after) pout << iter << " ";
             pout << std::endl;
@@ -399,7 +399,7 @@ main(int argc, char** argv)
             db1->putBool("dry_run", true);
 
             RestartCleaner cleaner("EmptyDirTest", db1);
-            auto result = cleaner.getAvailableIterations();
+            auto result = cleaner.getAvailableRestartRestoreNumbers();
             if (result.empty())
             {
                 pout << "Empty directory test: PASSED" << std::endl;
@@ -425,7 +425,7 @@ main(int argc, char** argv)
             db2->putBool("dry_run", true);
 
             RestartCleaner cleaner2("InvalidContentTest", db2);
-            auto result2 = cleaner2.getAvailableIterations();
+            auto result2 = cleaner2.getAvailableRestartRestoreNumbers();
             if (result2.empty())
             {
                 pout << "Invalid content test: PASSED" << std::endl;
