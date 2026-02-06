@@ -234,8 +234,7 @@ RestartCleaner::keepRecentN() const
     // Sort by cached restart restore number (pure integer comparison, no regex)
     std::sort(valid_dirs.begin(),
               valid_dirs.end(),
-              [](const DirInfo& a, const DirInfo& b)
-              { return a.restart_restore_number < b.restart_restore_number; });
+              [](const DirInfo& a, const DirInfo& b) { return a.restart_restore_number < b.restart_restore_number; });
 
     // Delete older directories
     size_t dirs_to_delete_count = valid_dirs.size() - d_keep_restart_count;

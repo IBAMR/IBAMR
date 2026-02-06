@@ -13,7 +13,7 @@
 
 // This input file tests RestartCleaner integration with Navier-Stokes solver.
 // The test runs 15 time steps, writing restart files every 2 steps.
-// RestartCleaner keeps only the 4 most recent restart directories 
+// RestartCleaner keeps only the 4 most recent restart directories
 
 // Expected behavior:
 //   First run:  generates restore.000002, 000004, ..., 000014
@@ -366,7 +366,7 @@ Main {
 // RestartCleaner configuration
 RestartCleaner {
    restart_directory   = "restart"    // must match restart_dump_dirname
-   keep_recent_files   = 4            // keep 4 most recent 
+   keep_recent_files   = 4            // keep 4 most recent
    cleanup_strategy    = "KEEP_RECENT_N"
    enable_logging      = TRUE
    dry_run             = FALSE

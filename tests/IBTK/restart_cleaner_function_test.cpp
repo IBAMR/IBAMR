@@ -171,7 +171,8 @@ main(int argc, char** argv)
 
         // Create mix of valid and invalid directories
         // Test coverage: 6-digit (standard), 6-digit boundary, and 7+ digit (long simulations)
-        std::vector<int> valid_iterations = { 1, 100, 200, 300, 1000, 2500, 3000, 5000, 999999, 1000000, 1234567, 10000000 };
+        std::vector<int> valid_iterations = { 1,    100,  200,    300,     1000,    2500,
+                                              3000, 5000, 999999, 1000000, 1234567, 10000000 };
         std::vector<std::string> invalid_names = {
             "restore.12345",        // string less than 6 digits
             "restore.abc123",       // contains letters
@@ -188,7 +189,7 @@ main(int argc, char** argv)
         {
             // Create database configuration for parsing test
             Pointer<MemoryDatabase> db = new MemoryDatabase("ParsingTestConfig");
-                        db->putString("restart_directory", test_dir);
+            db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 20);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", true);
@@ -245,7 +246,7 @@ main(int argc, char** argv)
 
             // Create database configuration for cleanup test
             Pointer<MemoryDatabase> db = new MemoryDatabase("CleanupTestConfig");
-                        db->putString("restart_directory", test_dir);
+            db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", false);
@@ -305,7 +306,7 @@ main(int argc, char** argv)
 
             // Create database configuration for dry run test
             Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunTestConfig");
-                        db->putString("restart_directory", test_dir);
+            db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 2);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
             db->putBool("dry_run", true);
@@ -347,7 +348,7 @@ main(int argc, char** argv)
         {
             // Create database configuration
             Pointer<MemoryDatabase> db = new MemoryDatabase("DatabaseTest");
-                        db->putString("restart_directory", test_dir);
+            db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 4);
             db->putBool("enable_logging", true);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -392,7 +393,7 @@ main(int argc, char** argv)
 
             // Create database configuration for empty directory test
             Pointer<MemoryDatabase> db1 = new MemoryDatabase("EmptyDirTestConfig");
-                        db1->putString("restart_directory", empty_dir);
+            db1->putString("restart_directory", empty_dir);
             db1->putInteger("keep_recent_files", 5);
             db1->putString("cleanup_strategy", "KEEP_RECENT_N");
             db1->putBool("dry_run", true);
@@ -418,7 +419,7 @@ main(int argc, char** argv)
 
             // Create database configuration for invalid content test
             Pointer<MemoryDatabase> db2 = new MemoryDatabase("InvalidContentTestConfig");
-                        db2->putString("restart_directory", invalid_dir);
+            db2->putString("restart_directory", invalid_dir);
             db2->putInteger("keep_recent_files", 5);
             db2->putString("cleanup_strategy", "KEEP_RECENT_N");
             db2->putBool("dry_run", true);
