@@ -89,6 +89,11 @@ IBAMR_CONVERT_MD_TO_H(testrunner.md testrunner.h
   "Test Runner"
   "Description of IBAMR's test runner, attest.")
 
+IBAMR_CONVERT_MD_TO_H(visualization.md visualization.h
+  "visualization"
+  "Visualizing IBAMR output"
+  "How to view IBAMR's output with VisIt or ParaView.")
+
 #
 # Rather than list all headers use GLOB
 #
