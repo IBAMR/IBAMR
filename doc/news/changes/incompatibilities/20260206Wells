@@ -1,0 +1,13 @@
+Changed: IBAMR no longer stores redundant component output: e.g., for
+INSStaggeredHierarchyIntegrator, the output velocity is stored by just U and not
+also U_x, U_y, and U_z. If you needed to access these values outside of VisIt
+or ParaView for data-processing purposes, then use, e.g., the path
+<tt>/processor.00000/level.00001/patch.00016/U.01</tt>
+instead of
+<tt>/processor.00000/level.00001/patch.00016/U_x</tt>
+to retrieve component output.
+For more information see
+<a href="https://ibamr.github.io/IBAMR-docs/ibamr/group__visualization.html">The
+new visualization module in the manual</a>.
+<br>
+(David Wells, 2026/02/06)

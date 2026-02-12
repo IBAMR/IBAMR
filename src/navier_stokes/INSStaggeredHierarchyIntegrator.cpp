@@ -964,11 +964,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         if (d_output_U)
         {
             d_visit_writer->registerPlotQuantity("U", "VECTOR", d_U_nc_idx, 0, d_U_scale);
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                d_visit_writer->registerPlotQuantity("U_" + suffix, "SCALAR", d_U_nc_idx, i, d_U_scale);
-            }
         }
 
         if (d_output_P)
@@ -979,11 +974,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         if (d_F_fcn && d_output_F)
         {
             d_visit_writer->registerPlotQuantity("F", "VECTOR", d_F_cc_idx, 0, d_F_scale);
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                d_visit_writer->registerPlotQuantity("F_" + suffix, "SCALAR", d_F_cc_idx, i, d_F_scale);
-            }
         }
 
         if (d_Q_fcn && d_output_Q)
@@ -995,14 +985,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         {
             d_visit_writer->registerPlotQuantity(
                 "Omega", ((NDIM == 2) ? "SCALAR" : "VECTOR"), d_Omega_nc_idx, 0, d_Omega_scale);
-            if (NDIM == 3)
-            {
-                for (unsigned int i = 0; i < NDIM; ++i)
-                {
-                    const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                    d_visit_writer->registerPlotQuantity("Omega_" + suffix, "SCALAR", d_Omega_nc_idx, i, d_Omega_scale);
-                }
-            }
         }
 
         if (d_output_Div_U)
