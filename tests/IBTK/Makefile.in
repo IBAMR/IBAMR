@@ -111,7 +111,9 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
 	marker_points_02_2d$(EXEEXT) \
 	interpolation_utilities_2d$(EXEEXT) \
-	interpolation_utilities_3d$(EXEEXT) $(am__EXEEXT_1)
+	interpolation_utilities_3d$(EXEEXT) \
+	restart_cleaner_function_test$(EXEEXT) \
+	restart_cleaner_interface_test$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -536,6 +538,24 @@ prolongation_mat_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_restart_cleaner_function_test_OBJECTS = restart_cleaner_function_test-restart_cleaner_function_test.$(OBJEXT)
+restart_cleaner_function_test_OBJECTS =  \
+	$(am_restart_cleaner_function_test_OBJECTS)
+restart_cleaner_function_test_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+restart_cleaner_function_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(restart_cleaner_function_test_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_restart_cleaner_interface_test_OBJECTS = restart_cleaner_interface_test-restart_cleaner_interface_test.$(OBJEXT)
+restart_cleaner_interface_test_OBJECTS =  \
+	$(am_restart_cleaner_interface_test_OBJECTS)
+restart_cleaner_interface_test_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+restart_cleaner_interface_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(restart_cleaner_interface_test_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_samraidatacache_01_2d_OBJECTS =  \
 	samraidatacache_01_2d-samraidatacache_01.$(OBJEXT)
 samraidatacache_01_2d_OBJECTS = $(am_samraidatacache_01_2d_OBJECTS)
@@ -666,6 +686,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/poisson_01_3d-poisson_01.Po \
 	./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po \
 	./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po \
+	./$(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po \
+	./$(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po \
 	./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po \
 	./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po \
 	./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po \
@@ -721,6 +743,8 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
+	$(restart_cleaner_function_test_SOURCES) \
+	$(restart_cleaner_interface_test_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
@@ -759,6 +783,8 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
+	$(restart_cleaner_function_test_SOURCES) \
+	$(restart_cleaner_interface_test_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
@@ -1220,6 +1246,12 @@ interpolation_utilities_2d_SOURCES = interpolation_utilities.cpp
 interpolation_utilities_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 interpolation_utilities_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 interpolation_utilities_3d_SOURCES = interpolation_utilities.cpp
+restart_cleaner_function_test_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+restart_cleaner_function_test_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+restart_cleaner_function_test_SOURCES = restart_cleaner_function_test.cpp
+restart_cleaner_interface_test_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+restart_cleaner_interface_test_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+restart_cleaner_interface_test_SOURCES = restart_cleaner_interface_test.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1443,6 +1475,14 @@ prolongation_mat_3d$(EXEEXT): $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_
 	@rm -f prolongation_mat_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(prolongation_mat_3d_LINK) $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_3d_LDADD) $(LIBS)
 
+restart_cleaner_function_test$(EXEEXT): $(restart_cleaner_function_test_OBJECTS) $(restart_cleaner_function_test_DEPENDENCIES) $(EXTRA_restart_cleaner_function_test_DEPENDENCIES) 
+	@rm -f restart_cleaner_function_test$(EXEEXT)
+	$(AM_V_CXXLD)$(restart_cleaner_function_test_LINK) $(restart_cleaner_function_test_OBJECTS) $(restart_cleaner_function_test_LDADD) $(LIBS)
+
+restart_cleaner_interface_test$(EXEEXT): $(restart_cleaner_interface_test_OBJECTS) $(restart_cleaner_interface_test_DEPENDENCIES) $(EXTRA_restart_cleaner_interface_test_DEPENDENCIES) 
+	@rm -f restart_cleaner_interface_test$(EXEEXT)
+	$(AM_V_CXXLD)$(restart_cleaner_interface_test_LINK) $(restart_cleaner_interface_test_OBJECTS) $(restart_cleaner_interface_test_LDADD) $(LIBS)
+
 samraidatacache_01_2d$(EXEEXT): $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_DEPENDENCIES) $(EXTRA_samraidatacache_01_2d_DEPENDENCIES) 
 	@rm -f samraidatacache_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(samraidatacache_01_2d_LINK) $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_LDADD) $(LIBS)
@@ -1528,6 +1568,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_3d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po@am__quote@ # am--include-marker
@@ -2225,6 +2267,34 @@ prolongation_mat_3d-prolongation_mat.obj: prolongation_mat.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_3d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
 
+restart_cleaner_function_test-restart_cleaner_function_test.o: restart_cleaner_function_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_function_test_CXXFLAGS) $(CXXFLAGS) -MT restart_cleaner_function_test-restart_cleaner_function_test.o -MD -MP -MF $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Tpo -c -o restart_cleaner_function_test-restart_cleaner_function_test.o `test -f 'restart_cleaner_function_test.cpp' || echo '$(srcdir)/'`restart_cleaner_function_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Tpo $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='restart_cleaner_function_test.cpp' object='restart_cleaner_function_test-restart_cleaner_function_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_function_test_CXXFLAGS) $(CXXFLAGS) -c -o restart_cleaner_function_test-restart_cleaner_function_test.o `test -f 'restart_cleaner_function_test.cpp' || echo '$(srcdir)/'`restart_cleaner_function_test.cpp
+
+restart_cleaner_function_test-restart_cleaner_function_test.obj: restart_cleaner_function_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_function_test_CXXFLAGS) $(CXXFLAGS) -MT restart_cleaner_function_test-restart_cleaner_function_test.obj -MD -MP -MF $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Tpo -c -o restart_cleaner_function_test-restart_cleaner_function_test.obj `if test -f 'restart_cleaner_function_test.cpp'; then $(CYGPATH_W) 'restart_cleaner_function_test.cpp'; else $(CYGPATH_W) '$(srcdir)/restart_cleaner_function_test.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Tpo $(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='restart_cleaner_function_test.cpp' object='restart_cleaner_function_test-restart_cleaner_function_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_function_test_CXXFLAGS) $(CXXFLAGS) -c -o restart_cleaner_function_test-restart_cleaner_function_test.obj `if test -f 'restart_cleaner_function_test.cpp'; then $(CYGPATH_W) 'restart_cleaner_function_test.cpp'; else $(CYGPATH_W) '$(srcdir)/restart_cleaner_function_test.cpp'; fi`
+
+restart_cleaner_interface_test-restart_cleaner_interface_test.o: restart_cleaner_interface_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_interface_test_CXXFLAGS) $(CXXFLAGS) -MT restart_cleaner_interface_test-restart_cleaner_interface_test.o -MD -MP -MF $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Tpo -c -o restart_cleaner_interface_test-restart_cleaner_interface_test.o `test -f 'restart_cleaner_interface_test.cpp' || echo '$(srcdir)/'`restart_cleaner_interface_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Tpo $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='restart_cleaner_interface_test.cpp' object='restart_cleaner_interface_test-restart_cleaner_interface_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_interface_test_CXXFLAGS) $(CXXFLAGS) -c -o restart_cleaner_interface_test-restart_cleaner_interface_test.o `test -f 'restart_cleaner_interface_test.cpp' || echo '$(srcdir)/'`restart_cleaner_interface_test.cpp
+
+restart_cleaner_interface_test-restart_cleaner_interface_test.obj: restart_cleaner_interface_test.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_interface_test_CXXFLAGS) $(CXXFLAGS) -MT restart_cleaner_interface_test-restart_cleaner_interface_test.obj -MD -MP -MF $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Tpo -c -o restart_cleaner_interface_test-restart_cleaner_interface_test.obj `if test -f 'restart_cleaner_interface_test.cpp'; then $(CYGPATH_W) 'restart_cleaner_interface_test.cpp'; else $(CYGPATH_W) '$(srcdir)/restart_cleaner_interface_test.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Tpo $(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='restart_cleaner_interface_test.cpp' object='restart_cleaner_interface_test-restart_cleaner_interface_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restart_cleaner_interface_test_CXXFLAGS) $(CXXFLAGS) -c -o restart_cleaner_interface_test-restart_cleaner_interface_test.obj `if test -f 'restart_cleaner_interface_test.cpp'; then $(CYGPATH_W) 'restart_cleaner_interface_test.cpp'; else $(CYGPATH_W) '$(srcdir)/restart_cleaner_interface_test.cpp'; fi`
+
 samraidatacache_01_2d-samraidatacache_01.o: samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(samraidatacache_01_2d_CXXFLAGS) $(CXXFLAGS) -MT samraidatacache_01_2d-samraidatacache_01.o -MD -MP -MF $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo -c -o samraidatacache_01_2d-samraidatacache_01.o `test -f 'samraidatacache_01.cpp' || echo '$(srcdir)/'`samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
@@ -2515,6 +2585,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po
+	-rm -f ./$(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
@@ -2615,6 +2687,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/restart_cleaner_function_test-restart_cleaner_function_test.Po
+	-rm -f ./$(DEPDIR)/restart_cleaner_interface_test-restart_cleaner_interface_test.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po

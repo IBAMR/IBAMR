@@ -175,6 +175,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
+../src/utilities/RestartCleaner.cpp \
 ../src/utilities/SAMRAIDataCache.cpp \
 ../src/utilities/SecondaryHierarchy.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
