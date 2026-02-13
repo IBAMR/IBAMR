@@ -130,13 +130,17 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
                                                          const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const std::string& fill_pattern,
                                                          const int coarsest_ln,
                                                          const int finest_ln)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
-    initializeOperatorState(
-        std::vector<InterpolationTransactionComponent>(1, transaction_comp), hierarchy, coarsest_ln, finest_ln);
+    initializeOperatorState(std::vector<InterpolationTransactionComponent>({ transaction_comp }),
+                            hierarchy,
+                            fill_pattern,
+                            coarsest_ln,
+                            finest_ln);
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
@@ -146,6 +150,7 @@ void
 HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const std::string& fill_pattern,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -156,6 +161,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
     // Reset the transaction components.
     d_transaction_comps = transaction_comps;
+
+    // Reset the fill pattern.
+    d_fill_pattern = fill_pattern;
 
     // Cache hierarchy data.
     d_hierarchy = hierarchy;
@@ -336,7 +344,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
+        d_refine_scheds[dst_ln] =
+            d_refine_alg->createSchedule(d_fill_pattern, level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
     // Setup physical BC type.
@@ -363,7 +372,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTr
                    << "  invalid reset operation.  attempting to change the number of registered "
                       "interpolation transaction components.\n");
     }
-    resetTransactionComponents(std::vector<InterpolationTransactionComponent>(1, transaction_comp));
+    resetTransactionComponents(std::vector<InterpolationTransactionComponent>({ transaction_comp }));
 
     IBTK_TIMER_STOP(t_reset_transaction_component);
     return;
@@ -534,7 +543,7 @@ HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarch
 
     IBTK_TIMER_START(t_reinitialize_operator_state);
 
-    initializeOperatorState(d_transaction_comps, hierarchy);
+    initializeOperatorState(d_transaction_comps, hierarchy, d_fill_pattern);
 
     IBTK_TIMER_STOP(t_reinitialize_operator_state);
     return;

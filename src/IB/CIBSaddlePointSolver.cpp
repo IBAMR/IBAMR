@@ -528,7 +528,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, "DEFAULT_FILL", coarsest_ln, finest_ln);
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;

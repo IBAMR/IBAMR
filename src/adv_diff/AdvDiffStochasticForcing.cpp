@@ -195,14 +195,14 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
             ghost_fill_components[0] =
                 InterpolationTransactionComponent(d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
+            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy, "DEFAULT_FILL");
             ghost_fill_op.fillData(current_time);
             break;
         case MIDPOINT_RULE:
             hier_cc_data_ops->linearSum(d_C_half_cc_idx, 0.5, C_current_idx, 0.5, C_new_idx);
             ghost_fill_components[0] =
                 InterpolationTransactionComponent(d_C_half_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
+            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy, "DEFAULT_FILL");
             ghost_fill_op.fillData(half_time);
             break;
         case TRAPEZOIDAL_RULE:
@@ -211,7 +211,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
                 ghost_fill_components[0] = InterpolationTransactionComponent(
                     d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
+                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy, "DEFAULT_FILL");
                 ghost_fill_op.fillData(current_time);
             }
             else
@@ -219,7 +219,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 hier_cc_data_ops->copyData(d_C_new_cc_idx, C_new_idx);
                 ghost_fill_components[0] =
                     InterpolationTransactionComponent(d_C_new_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
+                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy, "DEFAULT_FILL");
                 ghost_fill_op.fillData(new_time);
             }
             break;

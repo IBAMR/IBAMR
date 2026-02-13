@@ -254,7 +254,7 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> itc = { ITC(
             d_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR") };
-        ghost_fill->initializeOperatorState(itc, hierarchy);
+        ghost_fill->initializeOperatorState(itc, hierarchy, "DEFAULT_FILL");
         HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
         hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
         hier_math_ops.setPatchHierarchy(hierarchy);

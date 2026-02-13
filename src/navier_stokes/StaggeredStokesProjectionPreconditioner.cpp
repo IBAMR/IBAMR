@@ -367,7 +367,7 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
                                                           fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
-    d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy, "DEFAULT_FILL");
 
     d_is_initialized = true;
 

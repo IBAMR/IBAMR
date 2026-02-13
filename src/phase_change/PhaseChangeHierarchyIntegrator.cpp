@@ -620,7 +620,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           H_bc_coef);
         HierarchyGhostCellInterpolation lf_bdry_bc_fill_op;
-        lf_bdry_bc_fill_op.initializeOperatorState(lf_bc_component, d_hierarchy);
+        lf_bdry_bc_fill_op.initializeOperatorState(lf_bc_component, d_hierarchy, "DEFAULT_FILL");
         lf_bdry_bc_fill_op.fillData(new_time);
 
         // Find gradient of liquid fraction.
@@ -885,7 +885,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      H_bc_coef);
     d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
+    d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     InterpolationTransactionComponent k_bc_component(d_T_diffusion_coef_cc_scratch_idx,
                                                      DATA_REFINE_TYPE,
@@ -895,7 +895,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_k_bc_coef);
     d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
+    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     // Reset the solution and rhs vectors.
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
