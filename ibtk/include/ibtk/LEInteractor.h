@@ -70,6 +70,35 @@ namespace IBTK
  * to interpolate data from Eulerian grid patches onto Lagrangian meshes and to
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
+ *
+ * Users specify a kernel for the Lagrangian-Eulerian interaction. These are the
+ * available kernel options with a description.
+ *
+ * | Kernel Name          | Description |
+ * |----------------------|-|
+ * | BSPLINE_3            | |
+ * | BSPLINE_4            | |
+ * | BSPLINE_5            | |
+ * | BSPLINE_6            | |
+ * | COMPOSITE_BSPLINE_23 | |
+ * | COMPOSITE_BSPLINE_32 | |
+ * | COMPOSITE_BSPLINE_34 | |
+ * | COMPOSITE_BSPLINE_43 | |
+ * | COMPOSITE_BSPLINE_45 | |
+ * | COMPOSITE_BSPLINE_54 | |
+ * | COMPOSITE_BSPLINE_56 | |
+ * | COMPOSITE_BSPLINE_65 | |
+ * | DISCONTINUOUS_LINEAR | |
+ * | PIECEWISE_CONSTANT   | |
+ * | PIECEWISE_LINEAR     | |
+ * | PIECEWISE_CUBIC      | |
+ * | IB_3                 | |
+ * | IB_4                 | |
+ * | IB_4_W8              | |
+ * | IB_5                 | |
+ * | IB_6                 | |
+ * | USER_DEFINED         | |
+ * | INVALID              | |
  */
 class LEInteractor
 {
