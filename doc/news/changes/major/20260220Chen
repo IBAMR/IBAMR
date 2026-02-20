@@ -1,0 +1,5 @@
+New: Added RestartCleaner, a utility class that automatically manages
+restart directories to prevent disk space exhaustion in long-running
+simulations. It supports a "keep most recent N" cleanup strategy.
+<br>
+(Meihan Chen, David Wells, 2026/02/20)

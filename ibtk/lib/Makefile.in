@@ -331,6 +331,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/RestartCleaner.cpp \
 	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SecondaryHierarchy.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
@@ -514,6 +515,7 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-RestartCleaner.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SAMRAIDataCache.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SecondaryHierarchy.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideDataSynchronization.$(OBJEXT) \
@@ -665,6 +667,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/RestartCleaner.cpp \
 	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SecondaryHierarchy.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
@@ -846,6 +849,7 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-RestartCleaner.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SAMRAIDataCache.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SecondaryHierarchy.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideDataSynchronization.$(OBJEXT) \
@@ -1128,6 +1132,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SecondaryHierarchy.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po \
@@ -1173,6 +1178,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SecondaryHierarchy.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po \
@@ -1794,6 +1800,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/RestartCleaner.cpp \
 	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SecondaryHierarchy.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
@@ -2391,6 +2398,9 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-RestartCleaner.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-SAMRAIDataCache.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2915,6 +2925,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-RestartCleaner.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-SAMRAIDataCache.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3311,6 +3324,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SecondaryHierarchy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
@@ -3356,6 +3370,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SecondaryHierarchy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
@@ -5011,6 +5026,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RefinePatchStrategySet.cpp' object='../src/utilities/libIBTK2d_a-RefinePatchStrategySet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.obj `if test -f '../src/utilities/RefinePatchStrategySet.cpp'; then $(CYGPATH_W) '../src/utilities/RefinePatchStrategySet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RefinePatchStrategySet.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-RestartCleaner.o: ../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-RestartCleaner.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Tpo -c -o ../src/utilities/libIBTK2d_a-RestartCleaner.o `test -f '../src/utilities/RestartCleaner.cpp' || echo '$(srcdir)/'`../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RestartCleaner.cpp' object='../src/utilities/libIBTK2d_a-RestartCleaner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-RestartCleaner.o `test -f '../src/utilities/RestartCleaner.cpp' || echo '$(srcdir)/'`../src/utilities/RestartCleaner.cpp
+
+../src/utilities/libIBTK2d_a-RestartCleaner.obj: ../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-RestartCleaner.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Tpo -c -o ../src/utilities/libIBTK2d_a-RestartCleaner.obj `if test -f '../src/utilities/RestartCleaner.cpp'; then $(CYGPATH_W) '../src/utilities/RestartCleaner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RestartCleaner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RestartCleaner.cpp' object='../src/utilities/libIBTK2d_a-RestartCleaner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-RestartCleaner.obj `if test -f '../src/utilities/RestartCleaner.cpp'; then $(CYGPATH_W) '../src/utilities/RestartCleaner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RestartCleaner.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o: ../src/utilities/SAMRAIDataCache.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
@@ -6972,6 +7001,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.obj `if test -f '../src/utilities/RefinePatchStrategySet.cpp'; then $(CYGPATH_W) '../src/utilities/RefinePatchStrategySet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RefinePatchStrategySet.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-RestartCleaner.o: ../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-RestartCleaner.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Tpo -c -o ../src/utilities/libIBTK3d_a-RestartCleaner.o `test -f '../src/utilities/RestartCleaner.cpp' || echo '$(srcdir)/'`../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RestartCleaner.cpp' object='../src/utilities/libIBTK3d_a-RestartCleaner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-RestartCleaner.o `test -f '../src/utilities/RestartCleaner.cpp' || echo '$(srcdir)/'`../src/utilities/RestartCleaner.cpp
+
+../src/utilities/libIBTK3d_a-RestartCleaner.obj: ../src/utilities/RestartCleaner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-RestartCleaner.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Tpo -c -o ../src/utilities/libIBTK3d_a-RestartCleaner.obj `if test -f '../src/utilities/RestartCleaner.cpp'; then $(CYGPATH_W) '../src/utilities/RestartCleaner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RestartCleaner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RestartCleaner.cpp' object='../src/utilities/libIBTK3d_a-RestartCleaner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-RestartCleaner.obj `if test -f '../src/utilities/RestartCleaner.cpp'; then $(CYGPATH_W) '../src/utilities/RestartCleaner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RestartCleaner.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o: ../src/utilities/SAMRAIDataCache.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
@@ -7761,6 +7804,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SecondaryHierarchy.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
@@ -7806,6 +7850,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SecondaryHierarchy.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
@@ -8096,6 +8141,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RestartCleaner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SecondaryHierarchy.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
@@ -8141,6 +8187,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RestartCleaner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SecondaryHierarchy.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po

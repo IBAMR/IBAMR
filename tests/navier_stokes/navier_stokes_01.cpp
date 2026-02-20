@@ -31,6 +31,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/RestartCleaner.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -79,6 +80,13 @@ main(int argc, char* argv[])
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+
+        // Initialize RestartCleaner if configured
+        Pointer<RestartCleaner> restart_cleaner;
+        if (dump_restart_data && input_db->isDatabase("RestartCleaner"))
+        {
+            restart_cleaner = new RestartCleaner("RestartCleaner", input_db->getDatabase("RestartCleaner"));
+        }
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -232,6 +240,10 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                if (restart_cleaner)
+                {
+                    restart_cleaner->cleanup();
+                }
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
@@ -242,6 +254,16 @@ main(int argc, char* argv[])
             {
                 output_data(patch_hierarchy, time_integrator, iteration_num, loop_time, postproc_data_dump_dirname);
             }
+        }
+
+        // Report RestartCleaner status for verification
+        if (restart_cleaner)
+        {
+            auto remaining = restart_cleaner->getAvailableRestartRestoreNumbers();
+            pout << "\n"
+                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                 << "RestartCleaner: " << remaining.size() << " restart directories remain\n"
+                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
         }
 
         // Determine the accuracy of the computed solution.
