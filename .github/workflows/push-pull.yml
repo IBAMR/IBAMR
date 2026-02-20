@@ -198,8 +198,8 @@ jobs:
 
   # build on macOS
   macos:
-    runs-on: macos-15
-    name: Build IBAMR (macOS 15)
+    runs-on: macos-26
+    name: Build IBAMR (macOS)
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /tmp/ibamr-ccache
