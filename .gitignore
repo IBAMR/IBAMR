@@ -17,6 +17,10 @@ compile_flags.txt
 .clang-tidy
 scripts/formatting/programs
 
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
 ### Linux ###
@@ -179,3 +183,5 @@ build-*.sh
 objs-*
 *.py
 *.sh
+!scripts/maintenance/rewrite_samrai_compatibility_file.py
+!scripts/maintenance/generate_samrai_legacy_wrappers.py

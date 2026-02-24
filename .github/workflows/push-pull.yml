@@ -374,6 +374,17 @@ jobs:
                 -I/usr/include/eigen3                    \
                 -I./build/ibtk/include                   \
                 -I./ibtk/include                         \
+                -I./ibtk/include/samrai_compatibility    \
+                -I./ibtk/include/samrai_compatibility/algs \
+                -I./ibtk/include/samrai_compatibility/appu \
+                -I./ibtk/include/samrai_compatibility/geom \
+                -I./ibtk/include/samrai_compatibility/hier \
+                -I./ibtk/include/samrai_compatibility/math \
+                -I./ibtk/include/samrai_compatibility/mesh \
+                -I./ibtk/include/samrai_compatibility/pdat \
+                -I./ibtk/include/samrai_compatibility/solv \
+                -I./ibtk/include/samrai_compatibility/tbox \
+                -I./ibtk/include/samrai_compatibility/xfer \
                 -I./include                              \
                 $1
               status=$?

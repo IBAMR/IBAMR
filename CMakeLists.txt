@@ -1337,8 +1337,31 @@ ADD_LIBRARY(IBTKHeaders INTERFACE)
 TARGET_INCLUDE_DIRECTORIES(
   IBTKHeaders
   INTERFACE
+  $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/include/samrai_compatibility/legacy>
   $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/samrai_compatibility/legacy>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>)
+
+# Allow compatibility aliases to be included as <SAMRAI*.h> without a module
+# subpath by exporting each module directory as an include path.
+SET(IBTK_SAMRAI_COMPAT_MODULE_DIRS
+  algs
+  appu
+  geom
+  hier
+  math
+  mesh
+  pdat
+  solv
+  tbox
+  xfer)
+FOREACH(_module ${IBTK_SAMRAI_COMPAT_MODULE_DIRS})
+  TARGET_INCLUDE_DIRECTORIES(
+    IBTKHeaders
+    INTERFACE
+    $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/include/samrai_compatibility/${_module}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/samrai_compatibility/${_module}>)
+ENDFOREACH()
 
 ADD_LIBRARY(IBAMRHeaders INTERFACE)
 TARGET_INCLUDE_DIRECTORIES(
@@ -1350,6 +1373,8 @@ TARGET_INCLUDE_DIRECTORIES(
 INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ibamr
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/include/ibtk
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/include/samrai_compatibility
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 INSTALL(TARGETS IBTKHeaders EXPORT IBAMRTargets)

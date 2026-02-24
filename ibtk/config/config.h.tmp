@@ -66,10 +66,6 @@ _Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #endif // #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 
-#include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/compiler_hints.h>
-#include <ibtk/ibtk_utilities.h>
-
 // Disable deprecated features in boost.
 #ifndef _HAS_AUTO_PTR_ETC
 #define _HAS_AUTO_PTR_ETC 0
