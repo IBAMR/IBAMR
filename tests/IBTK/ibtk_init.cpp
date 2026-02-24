@@ -12,8 +12,12 @@
 // ---------------------------------------------------------------------
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+
+#include "SAMRAIPointer.h"
 
 // Headers for basic PETSc objects
 #include <petscsys.h>
@@ -40,7 +44,7 @@ main(int argc, char* argv[])
     // Check if libMesh is initialized.
     TBOX_ASSERT(libMesh::initialized());
 #endif
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ibtk_init.output");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ibtk_init.output");
     // Check whether MPI is initialized
     int test;
     MPI_Initialized(&test);

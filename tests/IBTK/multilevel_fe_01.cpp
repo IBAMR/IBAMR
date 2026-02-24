@@ -15,11 +15,25 @@
 // FEDataManager so that a single FE mesh ends up on multiple patch levels.
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HierarchyCellDataOpsInteger.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsInteger.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitStrategy.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -88,10 +102,10 @@ setup_deformation_system(ReplicatedMesh& mesh, EquationSystems& equation_systems
     return X_system;
 }
 
-class TestTag : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class TestTag : public SAMRAIStandardTagAndInitStrategy
 {
 public:
-    TestTag(const Parallel::Communicator& comm, Pointer<Database>& input_db) : d_mesh(comm), d_es(d_mesh)
+    TestTag(const Parallel::Communicator& comm, SAMRAIPointer<Database>& input_db) : d_mesh(comm), d_es(d_mesh)
     {
         MeshTools::Generation::build_sphere(d_mesh, 0.5, 4, NDIM == 2 ? TRI3 : HEX8);
         MeshBase::element_iterator el_end = d_mesh.elements_end();
@@ -134,23 +148,23 @@ public:
         d_fe_data_manager->setCurrentCoordinatesSystemName(X_system.name());
     }
 
-    void initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void initializeLevelData(const SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                              const int /*level_number*/,
                              const double /*init_data_time*/,
                              const bool /*can_be_refined*/,
                              const bool /*initial_time*/,
-                             const tbox::Pointer<hier::BasePatchLevel<NDIM> > /*old_level*/ = nullptr,
+                             const SAMRAIPointer<SAMRAIBasePatchLevel> /*old_level*/ = nullptr,
                              const bool /*allocate_data*/ = true) override
     {
     }
 
-    void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void resetHierarchyConfiguration(const SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                      const int /*coarsest_level*/,
                                      const int /*finest_level*/) override
     {
     }
 
-    void applyGradientDetector(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                const int level_number,
                                const double error_data_time,
                                const int tag_index,
@@ -178,20 +192,20 @@ main(int argc, char** argv)
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "multilevel_fe_01.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "multilevel_fe_01.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     TestTag tag(init.comm(), input_db);
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+    SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
         "StandardTagAndInitialize", &tag, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-    Pointer<LoadBalancer<NDIM> > load_balancer =
-        new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-        new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+    SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+    SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+        new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+        new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
                                     box_generator,
@@ -205,7 +219,7 @@ main(int argc, char** argv)
         ++level_number;
     }
 #if 0
-    tbox::Array<int> tag_buffer;
+    SAMRAIArray<int> tag_buffer;
     const int finest_hier_ln = patch_hierarchy->getFinestLevelNumber();
     tag_buffer.resizeArray(finest_hier_ln + 1);
     for (int i = 0; i < tag_buffer.getSize(); ++i)
@@ -214,19 +228,19 @@ main(int argc, char** argv)
 #endif
 
     // plot stuff
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> ctx = var_db->getContext("context");
-    Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
-    const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
+    SAMRAIPointer<SAMRAICellVariable<double>> u_cc_var = new SAMRAICellVariable<double>("u_cc");
+    const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, SAMRAIIntVector(1));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(level);
         level->allocatePatchData(u_cc_idx, 0.0);
     }
 
     // Register variables for plotting.
-    Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+    SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
     TBOX_ASSERT(visit_data_writer);
     visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
     visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);

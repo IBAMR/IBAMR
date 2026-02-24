@@ -13,11 +13,14 @@
 
 // Config files
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
-#include <tbox/SAMRAIManager.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIManager.h"
 
 // Set up application namespace declarations
 #include <boost/core/demangle.hpp>
@@ -71,7 +74,7 @@ main(int argc, char** argv)
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
     size_check<double>();
     size_check<int>();

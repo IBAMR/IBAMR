@@ -1,12 +1,15 @@
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IndexUtilities.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <HierarchyDataOpsManager.h>
+#include "SAMRAIDatabase.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
 
 #include <cmath>
 #include <fstream>
@@ -22,7 +25,7 @@ main(int argc, char** argv)
     using namespace IBTK;
 
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
-    tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
 
     auto tuple = setup_hierarchy<NDIM>(app_initializer);
     auto patch_hierarchy = std::get<0>(tuple);
@@ -33,10 +36,10 @@ main(int argc, char** argv)
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::pout << "  Level = " << ln << '\n';
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (hier::PatchLevel<NDIM>::Iterator it(level); it; it++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator it(level); it; it++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(it());
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(it());
                 const auto index = IndexUtilities::getCellIndex(p, patch->getPatchGeometry(), patch->getBox());
                 IBTK::Vector c0, c1;
                 c0 = IndexUtilities::getCellCenter(*patch, index);

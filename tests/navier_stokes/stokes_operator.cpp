@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesOperator.h>
@@ -23,14 +25,24 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -53,30 +65,30 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Setup the Boundary Conditions
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -97,29 +109,29 @@ main(int argc, char* argv[])
         }
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // State variables: Velocity and pressure. Need to get both cell sides and centers
         // since we are using the MAC scheme.
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        Pointer<CellVariable<NDIM, double> > p_cc_var = new CellVariable<NDIM, double>("p_cc");
+        SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = new SAMRAISideVariable<double>("u_sc");
+        SAMRAIPointer<SAMRAICellVariable<double>> p_cc_var = new SAMRAICellVariable<double>("p_cc");
 
         // Results of operator "forces" and "divergence"
-        Pointer<SideVariable<NDIM, double> > f_sc_var = new SideVariable<NDIM, double>("f_sc");
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
+        SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = new SAMRAISideVariable<double>("f_sc");
+        SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = new SAMRAICellVariable<double>("f_cc");
 
         // Error terms.
-        Pointer<SideVariable<NDIM, double> > e_sc_var = new SideVariable<NDIM, double>("e_sc");
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
+        SAMRAIPointer<SAMRAISideVariable<double>> e_sc_var = new SAMRAISideVariable<double>("e_sc");
+        SAMRAIPointer<SAMRAICellVariable<double>> e_cc_var = new SAMRAICellVariable<double>("e_cc");
 
         // Register patch data indices...
-        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
-        const int p_cc_idx = var_db->registerVariableAndContext(p_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
-        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, SAMRAIIntVector(1));
+        const int p_cc_idx = var_db->registerVariableAndContext(p_cc_var, ctx, SAMRAIIntVector(1));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, SAMRAIIntVector(1));
+        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, SAMRAIIntVector(1));
+        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, SAMRAIIntVector(1));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, SAMRAIIntVector(1));
 
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -135,7 +147,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(f_sc_idx, 0.0);
             level->allocatePatchData(e_sc_idx, 0.0);
@@ -149,10 +161,10 @@ main(int argc, char* argv[])
         const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAISAMRAIVectorReal<double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAISAMRAIVectorReal<double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAISAMRAIVectorReal<double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAISAMRAIVectorReal<double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
         u_vec.addComponent(p_cc_var, p_cc_idx, h_cc_idx);
@@ -197,7 +209,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+            SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper =
+                new StaggeredStokesPhysicalBoundaryHelper();
             bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
             bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
             // Setup the stokes operator
@@ -212,8 +225,8 @@ main(int argc, char* argv[])
         }
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false));
+        e_vec.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&f_vec, false),
+                       SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&e_vec, false));
         // print out the errors in each norm
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
@@ -223,7 +236,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(u_sc_idx);
             level->deallocatePatchData(f_sc_idx);
             level->deallocatePatchData(e_sc_idx);

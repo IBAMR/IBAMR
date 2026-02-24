@@ -17,11 +17,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIterator.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 // C++ namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -37,7 +48,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+    QInit(const string& object_name, SAMRAIPointer<SAMRAIGridGeometry> grid_geom, SAMRAIPointer<Database> input_db)
         : CartGridFunction(object_name),
           d_object_name(object_name),
           d_grid_geom(grid_geom),
@@ -98,19 +109,19 @@ public:
      * Set the data on the patch interior to the exact answer.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > /*var*/,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> /*var*/,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool /*initial_time*/ = false,
-                        Pointer<PatchLevel<NDIM> > /*level*/ = nullptr)
+                        SAMRAIPointer<SAMRAIPatchLevel> /*level*/ = nullptr)
     {
-        Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(Q_data);
 #endif
-        const Box<NDIM>& patch_box = patch->getBox();
-        const hier::Index<NDIM>& patch_lower = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIIndex& patch_lower = patch_box.lower();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
@@ -123,9 +134,9 @@ public:
 
         if (d_init_type == "GAUSSIAN")
         {
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            for (SAMRAICellIterator ic(patch_box); ic; ic++)
             {
-                const hier::Index<NDIM>& i = ic();
+                const SAMRAIIndex& i = ic();
                 // NOTE: This assumes the lattice of Gaussians are being advected
                 // and diffused in the unit square.
                 std::array<int, NDIM> offset;
@@ -155,9 +166,9 @@ public:
         }
         else if (d_init_type == "ZALESAK")
         {
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            for (SAMRAICellIterator ic(patch_box); ic; ic++)
             {
-                const hier::Index<NDIM>& i = ic();
+                const SAMRAIIndex& i = ic();
                 r_squared = 0.0;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -215,7 +226,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db)
+    void getFromInput(SAMRAIPointer<Database> db)
     {
         if (db)
         {
@@ -254,7 +265,7 @@ private:
     /*
      * The grid geometry.
      */
-    Pointer<CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*
      * The center of the initial data.

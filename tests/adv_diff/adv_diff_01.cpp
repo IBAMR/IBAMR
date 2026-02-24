@@ -13,16 +13,27 @@
 
 // Config files
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -31,8 +42,6 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-
-#include <LocationIndexRobinBcCoefs.h>
 
 // Set up application namespace declarations
 #include "QInit.h"
@@ -62,9 +71,9 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -81,12 +90,12 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator;
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            SAMRAIPointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -105,30 +114,30 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Setup the advection velocity.
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = new SAMRAIFaceVariable<double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
         time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-        time_integrator->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn, false));
+        time_integrator->setAdvectionVelocityFunction(u_var, SAMRAIPointer<CartGridFunction>(&u_fcn, false));
 
         // Setup the advected and diffused quantity.
         const ConvectiveDifferencingType difference_form =
@@ -136,20 +145,20 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = new SAMRAICellVariable<double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        SAMRAILocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         const double kappa = app_initializer->getComponentDatabase("QInit")->getDouble("kappa");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setAdvectionVelocity(Q_var, u_var);
         time_integrator->setDiffusionCoefficient(Q_var, kappa);
         time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
-        time_integrator->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init, false));
+        time_integrator->setInitialConditions(Q_var, SAMRAIPointer<CartGridFunction>(&Q_init, false));
         time_integrator->setPhysicalBcCoef(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -225,8 +234,8 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        const SAMRAIPointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 
@@ -243,7 +252,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"

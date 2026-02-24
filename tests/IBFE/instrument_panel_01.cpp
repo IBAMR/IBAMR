@@ -12,11 +12,26 @@
 // ---------------------------------------------------------------------
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HierarchyDataOpsManager.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAILogger.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -129,15 +144,15 @@ main(int argc, char** argv)
     TimerManager::createManager(nullptr);
 
     // suppress warnings about using QGRID with too high of an order
-    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+    SAMRAILogger::getInstance()->setWarning(false);
 
     {
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
@@ -199,15 +214,15 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy =
+            new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry, false);
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const std::string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -228,25 +243,25 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
+        SAMRAIPointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -259,21 +274,21 @@ main(int argc, char** argv)
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -302,12 +317,12 @@ main(int argc, char** argv)
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         time_integrator->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
@@ -321,22 +336,22 @@ main(int argc, char** argv)
         // Force the velocity and pressure to agree with the analytic solutions.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-            Pointer<VariableContext> u_current_ctx = navier_stokes_integrator->getCurrentContext();
+            SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+            SAMRAIPointer<SAMRAIVariable> u_var = navier_stokes_integrator->getVelocityVariable();
+            SAMRAIPointer<VariableContext> u_current_ctx = navier_stokes_integrator->getCurrentContext();
             const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, u_current_ctx);
             u_init->setDataOnPatchHierarchy(u_current_idx, u_var, patch_hierarchy, 0.0);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-            Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+            SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+            SAMRAIPointer<SAMRAIVariable> p_var = navier_stokes_integrator->getPressureVariable();
+            SAMRAIPointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
             const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, p_current_ctx);
             p_init->setDataOnPatchHierarchy(p_current_idx, p_var, patch_hierarchy, 0.0);
         }
@@ -344,16 +359,16 @@ main(int argc, char** argv)
         //********************************************************************************
         // setting up some objects for measuring fluxes and mean pressures
         //********************************************************************************
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
-        Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        Pointer<VariableContext> u_current_ctx = navier_stokes_integrator->getCurrentContext();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAIVariable> p_var = navier_stokes_integrator->getPressureVariable();
+        SAMRAIPointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        SAMRAIPointer<SAMRAIVariable> u_var = navier_stokes_integrator->getVelocityVariable();
+        SAMRAIPointer<VariableContext> u_current_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, p_current_ctx);
         const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, u_current_ctx);
-        Pointer<SideVariable<NDIM, double> > u_copy_var = new SideVariable<NDIM, double>("u_copy");
-        Pointer<CellVariable<NDIM, double> > p_copy_var = new CellVariable<NDIM, double>("p_copy");
-        const IntVector<NDIM> ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
+        SAMRAIPointer<SAMRAISideVariable<double>> u_copy_var = new SAMRAISideVariable<double>("u_copy");
+        SAMRAIPointer<SAMRAICellVariable<double>> p_copy_var = new SAMRAICellVariable<double>("p_copy");
+        const SAMRAIIntVector ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
         const int u_copy_idx =
             var_db->registerVariableAndContext(u_copy_var, time_integrator->getScratchContext(), ib_ghosts);
         const int p_copy_idx =
@@ -362,7 +377,7 @@ main(int argc, char** argv)
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_copy_idx, 0.0);
             level->allocatePatchData(p_copy_idx, 0.0);
         }
@@ -370,10 +385,10 @@ main(int argc, char** argv)
         //***********************************************
         // get mean pressure and velocity on surface mesh
         //***********************************************
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(p_var, patch_hierarchy, true);
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_sc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(u_var, patch_hierarchy, true);
         hier_cc_data_ops->copyData(p_copy_idx, p_current_idx, true);
         hier_sc_data_ops->copyData(u_copy_idx, u_current_idx, true);
@@ -387,7 +402,7 @@ main(int argc, char** argv)
                                                                   "CONSERVATIVE_COARSEN",
                                                                   "LINEAR");
 
-        Pointer<HierarchyGhostCellInterpolation> p_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> p_hier_bdry_fill = new HierarchyGhostCellInterpolation();
         p_hier_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
         p_hier_bdry_fill->fillData(0.0);
 
@@ -399,7 +414,7 @@ main(int argc, char** argv)
                                                                   "CONSERVATIVE_COARSEN",
                                                                   "LINEAR");
 
-        Pointer<HierarchyGhostCellInterpolation> u_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> u_hier_bdry_fill = new HierarchyGhostCellInterpolation();
         u_hier_bdry_fill->initializeOperatorState(u_transaction_comp, patch_hierarchy);
         u_hier_bdry_fill->fillData(0.0);
 
@@ -424,7 +439,7 @@ main(int argc, char** argv)
             hier_math_ops.resetLevels(coarsest_ln, finest_ln);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(p_copy_idx)) level->allocatePatchData(p_copy_idx);
                 if (!level->checkAllocated(u_copy_idx)) level->allocatePatchData(u_copy_idx);
             }
@@ -465,13 +480,13 @@ main(int argc, char** argv)
 
             std::vector<std::string> velocity_strings;
             {
-                Pointer<Database> v_db = input_db->getDatabase("VelocityInitialConditions");
+                SAMRAIPointer<Database> v_db = input_db->getDatabase("VelocityInitialConditions");
                 for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
                     velocity_strings.push_back(v_db->getString("function_" + std::to_string(var_n)));
             }
             std::vector<std::string> pressure_strings;
             {
-                Pointer<Database> v_db = input_db->getDatabase("PressureInitialConditions");
+                SAMRAIPointer<Database> v_db = input_db->getDatabase("PressureInitialConditions");
                 pressure_strings.push_back(v_db->getString("function"));
             }
             ParsedFunction exact_velocity(velocity_strings);

@@ -11,13 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RestartCleaner.h>
 
-#include <tbox/MemoryDatabase.h>
-#include <tbox/SAMRAIManager.h>
+#include "SAMRAIMemoryDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIManager.h"
 
 // MPI header
 #include <mpi.h>
@@ -47,7 +50,7 @@ main(int argc, char** argv)
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Initialize with minimal configuration
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
 
     pout << "RestartCleaner interface test..." << std::endl;
 
@@ -57,7 +60,7 @@ main(int argc, char** argv)
         try
         {
             // Test that we can create SAMRAI Database objects (header inclusion test)
-            Pointer<MemoryDatabase> test_db = new MemoryDatabase("TestDB");
+            SAMRAIPointer<SAMRAIMemoryDatabase> test_db = new SAMRAIMemoryDatabase("TestDB");
             pout << "Header inclusion: successful" << std::endl;
         }
         catch (const std::exception& e)
@@ -90,7 +93,7 @@ main(int argc, char** argv)
                 }
             } cleanup_guard{ temp_dir };
 
-            Pointer<MemoryDatabase> db = new MemoryDatabase("BasicCleanerTest");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("BasicCleanerTest");
             db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -132,7 +135,7 @@ main(int argc, char** argv)
                 }
             } cleanup_guard{ temp_dir };
 
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DryRunConfig");
             db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 5);
             db->putBool("enable_logging", false);
@@ -176,7 +179,7 @@ main(int argc, char** argv)
             } cleanup_guard{ temp_dir };
 
             // Minimal database - only required parameter (restart_directory)
-            Pointer<MemoryDatabase> db = new MemoryDatabase("MinimalConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("MinimalConfig");
             db->putString("restart_directory", temp_dir);
             db->putBool("dry_run", true); // Use dry_run to avoid file operations
 

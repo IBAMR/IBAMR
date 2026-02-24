@@ -17,11 +17,23 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIFaceIndex.h"
+#include "SAMRAIFaceIterator.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 
@@ -37,8 +49,8 @@ public:
      * \brief Constructor.
      */
     UFunction(const std::string& object_name,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
-              SAMRAI::tbox::Pointer<Database> input_db)
+              SAMRAIPointer<SAMRAIGridGeometry> grid_geom,
+              SAMRAIPointer<Database> input_db)
         : CartGridFunction(object_name),
           d_object_name(object_name),
           d_grid_geom(grid_geom),
@@ -78,13 +90,13 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > /*var*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> /*var*/,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         const double /*data_time*/,
                         const bool /*initial_time*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > /*level*/)
+                        SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(u_data);
 #endif
@@ -98,9 +110,9 @@ public:
         }
         else if (d_init_type == "VORTEX")
         {
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIndex& patch_lower = patch_box.lower();
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
             const double* const x_lower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -109,10 +121,10 @@ public:
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (SAMRAI::pdat::FaceIterator<NDIM> it(patch_box, axis); it; it++)
+                for (SAMRAIFaceIterator it(patch_box, axis); it; it++)
                 {
-                    const SAMRAI::pdat::FaceIndex<NDIM>& i = it();
-                    const SAMRAI::hier::Index<NDIM>& cell_idx = i.toCell(1);
+                    const SAMRAIFaceIndex& i = it();
+                    const SAMRAIIndex& cell_idx = i.toCell(1);
 
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -152,7 +164,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db)
+    void getFromInput(SAMRAIPointer<Database> db)
     {
         if (db)
         {
@@ -192,7 +204,7 @@ private:
     /*
      * The grid geometry.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*
      * The center of the initial data.

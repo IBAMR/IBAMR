@@ -12,19 +12,27 @@
 // ---------------------------------------------------------------------
 
 // Config files
+#include "ibtk/samrai_compatibility_names.h"
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
 
 // other samrai stuff
-#include <HierarchyDataOpsManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -153,9 +161,9 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
@@ -222,15 +230,15 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy =
+            new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry, false);
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -251,25 +259,25 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
+        SAMRAIPointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -282,14 +290,14 @@ main(int argc, char** argv)
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Now for the actual test. The stored velocity field does not contain
         // ghost data, so we set up a new context and velocity field that does:
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ghost_ctx = var_db->getContext("u_ghost");
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        const SAMRAIPointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
+        const SAMRAIPointer<VariableContext> u_ghost_ctx = var_db->getContext("u_ghost");
 
         int n_ghosts = 3;
         if (app_initializer->getComponentDatabase("IBFEMethod")->keyExists("min_ghost_cell_width"))
@@ -300,7 +308,7 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_ghost_idx);
         }
         u_init->setDataOnPatchHierarchy(u_ghost_idx, u_var, patch_hierarchy, 0.0);
@@ -354,8 +362,8 @@ main(int argc, char** argv)
             QGauss X_qrule(NDIM, FIFTH);
             v_fe->attach_quadrature_rule(&v_qrule);
             X_fe->attach_quadrature_rule(&X_qrule);
-            const std::vector<std::vector<Real> >& v_phi = v_fe->get_phi();
-            const std::vector<std::vector<Real> >& X_phi = X_fe->get_phi();
+            const std::vector<std::vector<Real>>& v_phi = v_fe->get_phi();
+            const std::vector<std::vector<Real>>& X_phi = X_fe->get_phi();
             std::vector<dof_id_type> v_dof_indices;
             std::array<double, NDIM> max_norm_errors;
             std::fill(max_norm_errors.begin(), max_norm_errors.end(), 0.0);
@@ -363,7 +371,7 @@ main(int argc, char** argv)
 
             std::vector<std::string> fs;
             {
-                Pointer<Database> v_db = input_db->getDatabase("VelocityInitialConditions");
+                SAMRAIPointer<Database> v_db = input_db->getDatabase("VelocityInitialConditions");
                 for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                     fs.push_back(v_db->getString("function_" + std::to_string(var_n)));
             }
@@ -432,7 +440,7 @@ main(int argc, char** argv)
             // mass matrix
             if (input_db->getBoolWithDefault("print_diagonal_mass_matrix", false))
             {
-                Pointer<Database> db(new InputDatabase("database"));
+                SAMRAIPointer<Database> db(new InputDatabase("database"));
                 db->putBool("enable_logging", true);
 
                 FEProjector fe_projector(equation_systems, db);

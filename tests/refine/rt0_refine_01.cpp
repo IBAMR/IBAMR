@@ -13,20 +13,30 @@
 
 // Config files
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc objects
 #include <petscsys.h>
 
-// Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
-#include <SAMRAIVectorReal.h>
-#include <SideVariable.h>
-#include <StandardTagAndInitialize.h>
+// SAMRAI INCLUDES
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -60,41 +70,41 @@ main(int argc, char* argv[])
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     {
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = new SAMRAISideVariable<double>("u_sc");
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx);
-        Pointer<SideVariable<NDIM, double> > exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
+        SAMRAIPointer<SAMRAISideVariable<double>> exact_sc_var = new SAMRAISideVariable<double>("exact_sc");
         const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx);
         // u_cc_var is only for plotting (and testing): uncomment if output is desired
 // #define DO_PLOT
 #ifdef DO_PLOT
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
+        SAMRAIPointer<SAMRAICellVariable<double>> u_cc_var = new SAMRAICellVariable<double>("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx);
-        Pointer<CellVariable<NDIM, double> > exact_cc_var = new CellVariable<NDIM, double>("exact_cc", NDIM);
+        SAMRAIPointer<SAMRAICellVariable<double>> exact_cc_var = new SAMRAICellVariable<double>("exact_cc", NDIM);
         const int exact_cc_idx = var_db->registerVariableAndContext(exact_cc_var, ctx);
 #endif
 
@@ -110,7 +120,7 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(exact_sc_idx, 0.0);
 #ifdef DO_PLOT
@@ -119,7 +129,7 @@ main(int argc, char* argv[])
 #endif
         }
 
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_writer = app_initializer->getVisItDataWriter();
 
         // The rest is just book-keeping, this is the actual test:
         auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n)
@@ -129,30 +139,30 @@ main(int argc, char* argv[])
             u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
             u_fcn.setDataOnPatchHierarchy(exact_sc_idx, exact_sc_var, patch_hierarchy, 0.0);
 
-            solv::SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, 1);
+            SAMRAISAMRAIVectorReal<double> u_vec("u", patch_hierarchy, 0, 1);
             u_vec.addComponent(u_sc_var, u_sc_idx);
 
             const int fine_level_n = coarse_level_n + 1;
-            Pointer<PatchLevel<NDIM> > level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
-            Pointer<PatchLevel<NDIM> > level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
+            SAMRAIPointer<SAMRAIPatchLevel> level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
+            SAMRAIPointer<SAMRAIPatchLevel> level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
 
             // there should only be one patch on each patch level
-            Pointer<SideData<NDIM, double> > u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
-            Pointer<SideData<NDIM, double> > u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
-            const Box<NDIM> patch_box_0 = level_0->getPatch(0)->getBox();
-            const Box<NDIM> patch_box_1 = level_1->getPatch(0)->getBox();
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
+            const SAMRAIBox patch_box_0 = level_0->getPatch(0)->getBox();
+            const SAMRAIBox patch_box_1 = level_1->getPatch(0)->getBox();
 
-            Pointer<SideData<NDIM, double> > exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
-            Pointer<SideData<NDIM, double> > exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
 
-            const IntVector<NDIM> ratio = level_1->getRatioToCoarserLevel();
+            const SAMRAIIntVector ratio = level_1->getRatioToCoarserLevel();
             IBTK::CartSideDoubleRT0Refine refine_op;
             refine_op.refine(*level_1->getPatch(0), *level_0->getPatch(0), u_sc_idx, u_sc_idx, patch_box_1, ratio);
 
-            solv::SAMRAIVectorReal<NDIM, double> exact_vec("e", patch_hierarchy, coarse_level_n, fine_level_n);
+            SAMRAISAMRAIVectorReal<double> exact_vec("e", patch_hierarchy, coarse_level_n, fine_level_n);
             exact_vec.addComponent(exact_sc_var, exact_sc_idx);
-            exact_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false),
-                               Pointer<SAMRAIVectorReal<NDIM, double> >(&exact_vec, false));
+            exact_vec.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&u_vec, false),
+                               SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&exact_vec, false));
 
             pout << "test results for " << db_u_fcn_name << '\n';
             pout << "max norm of u_sc: " << u_vec.maxNorm() << '\n';

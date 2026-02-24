@@ -16,6 +16,8 @@
 #ifndef included_ibamr_tests_h
 #define included_ibamr_tests_h
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibamr/config.h>
 
 #include <ibtk/AppInitializer.h>
@@ -24,18 +26,30 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
-#include <tbox/Logger.h>
-#include <tbox/PIO.h>
-#include <tbox/SAMRAI_MPI.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianCellDoubleLinearRefine.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAILogger.h"
+#include "SAMRAIMemoryDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAI_MPI.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitStrategy.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
-#include <BergerRigoutsos.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 IBTK_DISABLE_EXTRA_WARNINGS
-#include <StandardTagAndInitialize.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #ifdef IBAMR_HAVE_LIBMESH
@@ -95,9 +109,8 @@ print_strings_on_plog_0(const std::string& out)
  * Print the parallel partitioning (i.e., the boxes) on all processes to plog
  * stream on processor 0.
  */
-template <int DIM>
 inline void
-print_partitioning_on_plog_0(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<DIM> >& patch_hierarchy,
+print_partitioning_on_plog_0(const SAMRAIPointer<SAMRAIPatchHierarchy>& patch_hierarchy,
                              const int coarsest_ln,
                              const int finest_ln)
 {
@@ -106,11 +119,11 @@ print_partitioning_on_plog_0(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHier
     std::ostringstream out;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<DIM> > patch_level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> patch_level = patch_hierarchy->getPatchLevel(ln);
         out << "rank: " << IBTK_MPI::getRank() << " level: " << ln << " boxes:\n";
-        for (typename hier::PatchLevel<DIM>::Iterator p(patch_level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
         {
-            const hier::Box<DIM> box = patch_level->getPatch(p())->getBox();
+            const SAMRAIBox box = patch_level->getPatch(p())->getBox();
             out << box << '\n';
         }
     }
@@ -237,7 +250,7 @@ FEMapCache::operator[](const FEMapCache::key_type& quad_key)
 // utility function for getting the number of components in the test subdatabase
 // of the input database.
 int
-get_n_f_components(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+get_n_f_components(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     auto test_db = input_db->getDatabase("test");
     int n_f_components = 0;
@@ -251,14 +264,13 @@ get_n_f_components(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 
 // A utility function that does the normal SAMRAI initialization stuff.
 template <int spacedim>
-std::tuple<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<spacedim> >,
-           SAMRAI::tbox::Pointer<SAMRAI::mesh::StandardTagAndInitialize<spacedim> >,
-           SAMRAI::tbox::Pointer<SAMRAI::mesh::BergerRigoutsos<spacedim> >,
-           SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<spacedim> >,
-           SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<spacedim> >,
+std::tuple<SAMRAIPointer<SAMRAIPatchHierarchy>,
+           SAMRAIPointer<SAMRAIStandardTagAndInitialize>,
+           SAMRAIPointer<SAMRAIBergerRigoutsos>,
+           SAMRAIPointer<SAMRAILoadBalancer>,
+           SAMRAIPointer<SAMRAIGriddingAlgorithm>,
            int>
-setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
-                SAMRAI::mesh::StandardTagAndInitStrategy<spacedim>* tag = nullptr)
+setup_hierarchy(SAMRAIPointer<IBTK::AppInitializer> app_initializer, SAMRAIStandardTagAndInitStrategy* tag = nullptr)
 {
     using namespace SAMRAI;
 
@@ -269,38 +281,36 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     if (input_db->keyExists("test")) test_db = input_db->getDatabase("test");
 
     // Set up basic SAMRAI stuff:
-    tbox::Pointer<geom::CartesianGridGeometry<spacedim> > grid_geometry =
-        new geom::CartesianGridGeometry<spacedim>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry =
+        new SAMRAICartesianGridGeometry("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
     // More questionable SAMRAI design decisions - we have to register refine
     // operations associated with different variables with the grid geometry class
-    grid_geometry->addSpatialRefineOperator(new geom::CartesianCellDoubleLinearRefine<spacedim>());
+    grid_geometry->addSpatialRefineOperator(new SAMRAICartesianCellDoubleLinearRefine());
     grid_geometry->addSpatialRefineOperator(new IBTK::CartSideDoubleSpecializedLinearRefine());
 
-    tbox::Pointer<hier::PatchHierarchy<spacedim> > patch_hierarchy =
-        new hier::PatchHierarchy<spacedim>("PatchHierarchy", grid_geometry);
-    tbox::Pointer<mesh::StandardTagAndInitialize<spacedim> > error_detector =
-        new mesh::StandardTagAndInitialize<spacedim>(
-            "StandardTagAndInitialize", tag, input_db->getDatabase("StandardTagAndInitialize"));
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+    SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
+        "StandardTagAndInitialize", tag, input_db->getDatabase("StandardTagAndInitialize"));
 
-    tbox::Pointer<mesh::BergerRigoutsos<spacedim> > box_generator = new mesh::BergerRigoutsos<spacedim>();
-    tbox::Pointer<mesh::LoadBalancer<spacedim> > load_balancer =
-        new mesh::LoadBalancer<spacedim>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
-    tbox::Pointer<mesh::GriddingAlgorithm<spacedim> > gridding_algorithm = new mesh::GriddingAlgorithm<spacedim>(
+    SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+    SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+        new SAMRAILoadBalancer("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm = new SAMRAIGriddingAlgorithm(
         "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // Set up a variable so that we can actually output the grid. Note that this
     // has to happen before we make any levels since this is where we set the
     // maximum ghost width.
-    auto* var_db = hier::VariableDatabase<spacedim>::getDatabase();
-    tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
+    auto* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariableContext> ctx = var_db->getContext("context");
 
     const int n_f_components = get_n_f_components(input_db);
 
-    tbox::Pointer<hier::Variable<spacedim> > f_var;
+    SAMRAIPointer<SAMRAIVariable> f_var;
     const std::string f_data_type = test_db->getStringWithDefault("f_data_type", "CELL");
     if (f_data_type == "CELL")
-        f_var = new pdat::CellVariable<spacedim, double>("f_cc", n_f_components);
+        f_var = new SAMRAICellVariable<double>("f_cc", n_f_components);
     else if (f_data_type == "SIDE")
     // This one is different since side-centered data already has implicitly
     // spacedim 'depth' in a different sense
@@ -308,16 +318,16 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     // TODO this should probably be clarified somehow
     {
         TBOX_ASSERT(n_f_components == spacedim);
-        f_var = new pdat::SideVariable<spacedim, double>("f_sc", 1);
+        f_var = new SAMRAISideVariable<double>("f_sc", 1);
     }
     else if (f_data_type == "NODE")
-        f_var = new pdat::SideVariable<spacedim, double>("f_nc", n_f_components);
+        f_var = new SAMRAISideVariable<double>("f_nc", n_f_components);
     else
         TBOX_ASSERT(false);
 
     // BSPLINE-3 needs 3 ghost cells
     const int ghost_width = test_db->getIntegerWithDefault("ghost_width", 3);
-    const int f_idx = var_db->registerVariableAndContext(f_var, ctx, hier::IntVector<spacedim>(ghost_width));
+    const int f_idx = var_db->registerVariableAndContext(f_var, ctx, SAMRAIIntVector(ghost_width));
 
     // set up the SAMRAI grid:
     gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -332,7 +342,7 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     const int finest_level = patch_hierarchy->getFinestLevelNumber();
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        tbox::Pointer<hier::PatchLevel<spacedim> > level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_idx, 0.0);
     }
 
@@ -340,14 +350,14 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     TBOX_ASSERT(visit_data_writer);
     // non-cell data cannot be plotted
     int plot_cc_idx = 0;
-    tbox::Pointer<hier::Variable<spacedim> > plot_cc_var;
+    SAMRAIPointer<SAMRAIVariable> plot_cc_var;
     if (f_data_type == "CELL")
         for (int d = 0; d < n_f_components; ++d)
             visit_data_writer->registerPlotQuantity(f_var->getName() + std::to_string(d), "SCALAR", f_idx, d);
     else
     {
-        plot_cc_var = new pdat::CellVariable<spacedim, double>("f_cc", n_f_components);
-        plot_cc_idx = var_db->registerVariableAndContext(plot_cc_var, ctx, hier::IntVector<spacedim>(0));
+        plot_cc_var = new SAMRAICellVariable<double>("f_cc", n_f_components);
+        plot_cc_idx = var_db->registerVariableAndContext(plot_cc_var, ctx, SAMRAIIntVector(0));
 
         for (int d = 0; d < n_f_components; ++d)
         {
@@ -357,12 +367,12 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     }
 
     // If it exists, set up an initial condition
-    tbox::Pointer<tbox::Database> f_db;
+    SAMRAIPointer<SAMRAIDatabase> f_db;
     if (test_db->keyExists("f"))
         f_db = test_db->getDatabase("f");
     else
     {
-        f_db = new tbox::MemoryDatabase("f_db");
+        f_db = new SAMRAIMemoryDatabase("f_db");
         if (n_f_components == 1)
         {
             f_db->putString("function", "0.0");
@@ -405,7 +415,7 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
  * Get rid of them as needed in the test suite by replacing its abort appender
  * with our own (see SAMRAI::tbox::Logger::setAbortAppender)
  */
-class TestAppender : public SAMRAI::tbox::Logger::Appender
+class TestAppender : public SAMRAILogger::Appender
 {
 public:
     virtual void logMessage(const std::string& message, const std::string&, const int) override

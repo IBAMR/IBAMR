@@ -11,20 +11,30 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 
-#include "BasePatchHierarchy.h"
-#include "PatchHierarchy.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIterator.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariableDatabase.h"
 #include "TagInterfaceRefinementCells.h"
-
-#include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-TagInterfaceRefinementCells::TagInterfaceRefinementCells(Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                         Pointer<CellVariable<NDIM, double> > scalar_var,
+TagInterfaceRefinementCells::TagInterfaceRefinementCells(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                         SAMRAIPointer<SAMRAICellVariable<double>> scalar_var,
                                                          double tag_min_val,
                                                          double tag_max_val)
     : d_adv_diff_solver(adv_diff_solver),
@@ -36,7 +46,7 @@ TagInterfaceRefinementCells::TagInterfaceRefinementCells(Pointer<AdvDiffHierarch
 } // TagInterfaceRefinementCells
 
 void
-callTagInterfaceRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+callTagInterfaceRefinementCellsCallbackFunction(const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                 const int level_number,
                                                 const double /*error_data_time*/,
                                                 const int tag_index,
@@ -51,22 +61,22 @@ callTagInterfaceRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
     // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int scalar_current_idx = var_db->mapVariableAndContextToIndex(
         ptr_tagger->d_scalar_var, ptr_tagger->d_adv_diff_solver->getCurrentContext());
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellData<NDIM, double> > scalar_data = patch->getPatchData(scalar_current_idx);
+        SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICellData<int>> tags_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<SAMRAICellData<double>> scalar_data = patch->getPatchData(scalar_current_idx);
 
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (SAMRAICellIterator ic(patch_box); ic; ic++)
         {
-            const hier::Index<NDIM>& i = ic();
+            const SAMRAIIndex& i = ic();
             const double scalar = (*scalar_data)(i);
 
             // if (scalar >= ptr_tagger->d_tag_min_val && scalar <= ptr_tagger->d_tag_max_val)

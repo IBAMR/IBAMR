@@ -11,11 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/IBTKInit.h>
 
-#include <tbox/Logger.h>
+#include "SAMRAILogger.h"
+#include "SAMRAIPointer.h"
 
 #include <ibtk/app_namespaces.h>
 
@@ -29,11 +32,11 @@ main(int argc, char** argv)
 
     // Since this is a test we do not want to print file names or line numbers
     // to output files:
-    Pointer<Logger::Appender> abort_append(new TestAppender());
-    Logger::getInstance()->setAbortAppender(abort_append);
+    SAMRAIPointer<SAMRAILogger::Appender> abort_append(new TestAppender());
+    SAMRAILogger::getInstance()->setAbortAppender(abort_append);
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "test.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "test.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     std::set<libMesh::subdomain_id_type> ids;
     for (libMesh::subdomain_id_type i = 0; i < 20; ++i) ids.insert(i);

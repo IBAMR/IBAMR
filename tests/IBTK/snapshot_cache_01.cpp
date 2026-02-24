@@ -13,6 +13,8 @@
 
 // Test verifying that we store, retrieve, and interpolate snapshots.
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
@@ -20,14 +22,25 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/snapshot_utilities.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <array>
 #include <utility>
@@ -35,16 +48,16 @@
 #include <ibtk/app_namespaces.h>
 
 std::unique_ptr<SnapshotCache> fill_data(const std::string& test_name,
-                                         Pointer<Variable<NDIM> > var,
-                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                         Pointer<muParserCartGridFunction> fcn,
+                                         SAMRAIPointer<SAMRAIVariable> var,
+                                         SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                         SAMRAIPointer<muParserCartGridFunction> fcn,
                                          const std::set<double>& time_pts,
                                          bool register_for_restart);
 
-void test_data(Pointer<Variable<NDIM> > var,
+void test_data(SAMRAIPointer<SAMRAIVariable> var,
                const std::unique_ptr<SnapshotCache>& snapshot_cache,
-               Pointer<PatchHierarchy<NDIM> > new_hierarchy,
-               Pointer<muParserCartGridFunction> fcn,
+               SAMRAIPointer<SAMRAIPatchHierarchy> new_hierarchy,
+               SAMRAIPointer<muParserCartGridFunction> fcn,
                const std::set<double>& interp_pts,
                const std::string& refine_type,
                const int wgt_idx);
@@ -60,8 +73,8 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         std::string restart_file_name = app_initializer->getRestartDumpDirectory();
 
         // Create major algorithm and data objects that comprise the
@@ -70,41 +83,40 @@ main(int argc, char* argv[])
         // start by setting up the same half-dozen objects.
         // Note we generate two patch hierarchies. We want to test our code that interpolates snapshots from one
         // hierarchy onto a different hierarchy.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > old_patch_hierarchy =
-            new PatchHierarchy<NDIM>("OldPatchHierarchy", grid_geometry);
-        Pointer<PatchHierarchy<NDIM> > new_patch_hierarchy =
-            new PatchHierarchy<NDIM>("NewPatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector =
-            new StandardTagAndInitialize<NDIM>("OldStandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIPatchHierarchy> old_patch_hierarchy =
+            new SAMRAIPatchHierarchy("OldPatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIPatchHierarchy> new_patch_hierarchy =
+            new SAMRAIPatchHierarchy("NewPatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> old_error_detector =
+            new SAMRAIStandardTagAndInitialize("OldStandardTagAndInitialize",
                                                nullptr,
                                                app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
-        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector =
-            new StandardTagAndInitialize<NDIM>("NewStandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> new_error_detector =
+            new SAMRAIStandardTagAndInitialize("NewStandardTagAndInitialize",
                                                nullptr,
                                                app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > old_gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("OldGriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> old_gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("OldGriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         old_error_detector,
                                         box_generator,
                                         load_balancer);
-        Pointer<GriddingAlgorithm<NDIM> > new_gridding_alg =
-            new GriddingAlgorithm<NDIM>("NewGriddingAlg",
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> new_gridding_alg =
+            new SAMRAIGriddingAlgorithm("NewGriddingAlg",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         new_error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Generate the two grids.
-        std::array<std::pair<Pointer<GriddingAlgorithm<NDIM> >, Pointer<PatchHierarchy<NDIM> > >, 2> grid_hier_pairs = {
-            std::make_pair(old_gridding_algorithm, old_patch_hierarchy),
-            std::make_pair(new_gridding_alg, new_patch_hierarchy)
-        };
+        std::array<std::pair<SAMRAIPointer<SAMRAIGriddingAlgorithm>, SAMRAIPointer<SAMRAIPatchHierarchy>>, 2>
+            grid_hier_pairs = { std::make_pair(old_gridding_algorithm, old_patch_hierarchy),
+                                std::make_pair(new_gridding_alg, new_patch_hierarchy) };
         for (auto& grid_hier_pair : grid_hier_pairs)
         {
             grid_hier_pair.first->makeCoarsestLevel(grid_hier_pair.second, 0.0);
@@ -117,7 +129,7 @@ main(int argc, char* argv[])
             }
         }
 
-        Pointer<muParserCartGridFunction> fcn =
+        SAMRAIPointer<muParserCartGridFunction> fcn =
             new muParserCartGridFunction("Fcn", app_initializer->getComponentDatabase("fcn"), grid_geometry);
         const double t_start = input_db->getDouble("t_start");
         const double t_end = input_db->getDouble("t_end");
@@ -131,18 +143,18 @@ main(int argc, char* argv[])
         bool register_for_restart = input_db->getBool("register_for_restart");
 
         // First fill in the data
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_var");
+        SAMRAIPointer<SAMRAICellVariable<double>> c_var = new SAMRAICellVariable<double>("c_var");
         std::unique_ptr<SnapshotCache> c_cache = nullptr;
-        Pointer<NodeVariable<NDIM, double> > n_var = new NodeVariable<NDIM, double>("n_var");
+        SAMRAIPointer<SAMRAINodeVariable<double>> n_var = new SAMRAINodeVariable<double>("n_var");
         std::unique_ptr<SnapshotCache> n_cache = nullptr;
-        Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_var");
+        SAMRAIPointer<SAMRAISideVariable<double>> s_var = new SAMRAISideVariable<double>("s_var");
         std::unique_ptr<SnapshotCache> s_cache = nullptr;
-        Pointer<EdgeVariable<NDIM, double> > e_var = new EdgeVariable<NDIM, double>("e_var");
+        SAMRAIPointer<SAMRAIEdgeVariable<double>> e_var = new SAMRAIEdgeVariable<double>("e_var");
         std::unique_ptr<SnapshotCache> e_cache = nullptr;
-        Pointer<FaceVariable<NDIM, double> > f_var = new FaceVariable<NDIM, double>("face");
+        SAMRAIPointer<SAMRAIFaceVariable<double>> f_var = new SAMRAIFaceVariable<double>("face");
         std::unique_ptr<SnapshotCache> f_cache = nullptr;
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = SAMRAIVariableDatabase::getDatabase();
         var_db->registerVariableAndContext(c_var, var_db->getContext("ctx"), 1);
         var_db->registerVariableAndContext(c_var, var_db->getContext("err"));
         var_db->registerVariableAndContext(n_var, var_db->getContext("ctx"), 1);
@@ -203,19 +215,19 @@ main(int argc, char* argv[])
 
 std::unique_ptr<SnapshotCache>
 fill_data(const std::string& test_name,
-          Pointer<Variable<NDIM> > var,
-          Pointer<PatchHierarchy<NDIM> > hierarchy,
-          Pointer<muParserCartGridFunction> fcn,
+          SAMRAIPointer<SAMRAIVariable> var,
+          SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+          SAMRAIPointer<muParserCartGridFunction> fcn,
           const std::set<double>& time_pts,
           bool register_for_restart)
 {
     // Actually do the test.
     // Create the index that we fill with data
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
     int var_idx = var_db->registerVariableAndContext(var, var_db->getContext("ctx"), 1 /*ghosts*/);
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
-    Pointer<GridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAIGridGeometry> grid_geom = hierarchy->getGridGeometry();
     std::unique_ptr<SnapshotCache> snapshot_cache =
         std::make_unique<SnapshotCache>(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart);
 
@@ -225,7 +237,7 @@ fill_data(const std::string& test_name,
         // Allocate patch data
         for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
             level->allocatePatchData(var_idx, t);
         }
         // Fill in patch data
@@ -234,7 +246,7 @@ fill_data(const std::string& test_name,
         snapshot_cache->storeSnapshot(var_idx, t, hierarchy);
         for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(var_idx);
         }
     }
@@ -243,30 +255,31 @@ fill_data(const std::string& test_name,
 }
 
 void
-test_data(Pointer<Variable<NDIM> > var,
+test_data(SAMRAIPointer<SAMRAIVariable> var,
           const std::unique_ptr<SnapshotCache>& snapshot_cache,
-          Pointer<PatchHierarchy<NDIM> > new_hierarchy,
-          Pointer<muParserCartGridFunction> fcn,
+          SAMRAIPointer<SAMRAIPatchHierarchy> new_hierarchy,
+          SAMRAIPointer<muParserCartGridFunction> fcn,
           const std::set<double>& interp_pts,
           const std::string& refine_type,
           const int wgt_idx)
 {
     // Actually do the test.
     // Create the index that we fill with data
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
     int var_idx = var_db->registerVariableAndContext(var, var_db->getContext("ctx"), 1 /*ghosts*/);
     int err_idx = var_db->registerVariableAndContext(var, var_db->getContext("err"));
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
-    auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops = hier_math_ops->getOperationsDouble(var, new_hierarchy);
+    auto hier_math_ops = SAMRAIHierarchyDataOpsManager::getManager();
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
+        hier_math_ops->getOperationsDouble(var, new_hierarchy);
 
     // Interpolate those values to other points on the "new" hierarchy
     for (const auto& t : interp_pts)
     {
         for (int ln = 0; ln <= new_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = new_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = new_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(err_idx, t);
             level->allocatePatchData(var_idx, t);
         }
@@ -281,7 +294,7 @@ test_data(Pointer<Variable<NDIM> > var,
 
         for (int ln = 0; ln <= new_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = new_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = new_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(err_idx);
             level->deallocatePatchData(var_idx);
         }

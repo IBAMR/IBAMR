@@ -11,14 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RestartCleaner.h>
 
-#include <tbox/Database.h>
-#include <tbox/MemoryDatabase.h>
-#include <tbox/SAMRAIManager.h>
+#include "SAMRAIDatabase.h"
+#include "SAMRAIMemoryDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIManager.h"
 
 #include <mpi.h>
 
@@ -156,7 +159,7 @@ main(int argc, char** argv)
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Initialize with proper configuration
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
 
     pout << "RestartCleaner functional test..." << std::endl;
     pout << "Testing complete end-to-end functionality with real file operations" << std::endl;
@@ -188,7 +191,7 @@ main(int argc, char** argv)
         try
         {
             // Create database configuration for parsing test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("ParsingTestConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("ParsingTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 20);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -245,7 +248,7 @@ main(int argc, char** argv)
             pout << "Directories before cleanup: " << dirs_before << std::endl;
 
             // Create database configuration for cleanup test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("CleanupTestConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("CleanupTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -305,7 +308,7 @@ main(int argc, char** argv)
             pout << "Directories before dry run: " << dirs_before << std::endl;
 
             // Create database configuration for dry run test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunTestConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DryRunTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 2);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -347,7 +350,7 @@ main(int argc, char** argv)
         try
         {
             // Create database configuration
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DatabaseTest");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DatabaseTest");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 4);
             db->putBool("enable_logging", true);
@@ -392,7 +395,7 @@ main(int argc, char** argv)
             std::filesystem::create_directories(empty_dir);
 
             // Create database configuration for empty directory test
-            Pointer<MemoryDatabase> db1 = new MemoryDatabase("EmptyDirTestConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db1 = new SAMRAIMemoryDatabase("EmptyDirTestConfig");
             db1->putString("restart_directory", empty_dir);
             db1->putInteger("keep_recent_files", 5);
             db1->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -418,7 +421,7 @@ main(int argc, char** argv)
             std::filesystem::create_directories(invalid_dir + "/restore_wrong_format");
 
             // Create database configuration for invalid content test
-            Pointer<MemoryDatabase> db2 = new MemoryDatabase("InvalidContentTestConfig");
+            SAMRAIPointer<SAMRAIMemoryDatabase> db2 = new SAMRAIMemoryDatabase("InvalidContentTestConfig");
             db2->putString("restart_directory", invalid_dir);
             db2->putInteger("keep_recent_files", 5);
             db2->putString("cleanup_strategy", "KEEP_RECENT_N");

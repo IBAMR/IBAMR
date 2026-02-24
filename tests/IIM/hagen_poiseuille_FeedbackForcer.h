@@ -14,7 +14,15 @@
 #ifndef included_hagen_poiseuille_FeedbackForcer
 #define included_hagen_poiseuille_FeedbackForcer
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
+
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -34,7 +42,7 @@ public:
     hagen_poiseuille_FeedbackForcer(const double height,
                                     const double diameter,
                                     const INSHierarchyIntegrator* fluid_solver,
-                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy);
+                                    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Destructor.
@@ -56,11 +64,11 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
+                        SAMRAIPointer<SAMRAIPatchLevel> patch_level = nullptr);
 
     //\}
 
@@ -95,7 +103,7 @@ private:
     const double d_H;
     const double d_D;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_patch_hierarchy;
 };
 
 #endif // #ifndef included_hagen_poiseuille_FeedbackForcer

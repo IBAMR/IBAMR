@@ -11,12 +11,15 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
 
-#include <tbox/SAMRAIManager.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIManager.h"
 
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -189,8 +192,8 @@ main(int argc, char** argv)
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     LibMeshInit& init = ibtk_init.getLibMeshInit();
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
 

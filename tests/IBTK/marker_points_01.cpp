@@ -11,9 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/MarkerPatchHierarchy.h>
+
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 
 #include <fstream>
 
@@ -70,23 +77,23 @@ int
 main(int argc, char** argv)
 {
     IBTK::IBTKInit ibtk_init(argc, argv);
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     const int N = input_db->getInteger("N");
 
-    IntVector<NDIM> ratio(2);
+    SAMRAIIntVector ratio(2);
     // Set up ctor arguments:
-    IntVector<NDIM> lower(0);
-    IntVector<NDIM> upper(ratio(0) * N);
-    Box<NDIM> patch_box(lower, upper);
-    std::vector<Box<NDIM> > nonoverlapping_patch_boxes;
+    SAMRAIIntVector lower(0);
+    SAMRAIIntVector upper(ratio(0) * N);
+    SAMRAIBox patch_box(lower, upper);
+    std::vector<SAMRAIBox> nonoverlapping_patch_boxes;
     {
-        IntVector<NDIM> mid(ratio(0) * N / 2);
+        SAMRAIIntVector mid(ratio(0) * N / 2);
         nonoverlapping_patch_boxes.emplace_back(lower, mid);
         nonoverlapping_patch_boxes.emplace_back(mid, upper);
     }
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry =
-        new CartesianGridGeometry<NDIM>("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry =
+        new SAMRAICartesianGridGeometry("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
 
     std::ofstream output("output");
     {

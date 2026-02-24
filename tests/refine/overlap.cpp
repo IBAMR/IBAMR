@@ -13,16 +13,27 @@
 
 // Config files
 
-#include <CellGeometry.h>
-#include <EdgeGeometry.h>
-#include <FaceGeometry.h>
-#include <NodeGeometry.h>
-#include <OuteredgeGeometry.h>
-#include <OuterfaceGeometry.h>
-#include <OuternodeGeometry.h>
-#include <OutersideGeometry.h>
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
+#include "SAMRAIBox.h"
+#include "SAMRAICellGeometry.h"
+#include "SAMRAICellOverlap.h"
+#include "SAMRAIEdgeGeometry.h"
+#include "SAMRAIEdgeOverlap.h"
+#include "SAMRAIFaceGeometry.h"
+#include "SAMRAIFaceOverlap.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeGeometry.h"
+#include "SAMRAINodeOverlap.h"
+#include "SAMRAIOuteredgeGeometry.h"
+#include "SAMRAIOuterfaceGeometry.h"
+#include "SAMRAIOuternodeGeometry.h"
+#include "SAMRAIOutersideGeometry.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideOverlap.h"
+
 #include <SAMRAI_config.h>
-#include <SideGeometry.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -41,10 +52,10 @@ main(int argc, char* argv[])
     // this test only works in serial
     TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cell_no_corners_pattern.log");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cell_no_corners_pattern.log");
 
     const int N = 10;
-    Box<NDIM> dst_box, src_box;
+    SAMRAIBox dst_box, src_box;
     for (int d = 0; d < NDIM; ++d)
     {
         dst_box.lower(d) = 0;
@@ -70,19 +81,19 @@ main(int argc, char* argv[])
                 tbox::plog << "dst_box: " << dst_box << "\n";
                 tbox::plog << "src_box: " << src_box << "\n";
 
-                Box<NDIM> src_mask = src_box;
+                SAMRAIBox src_mask = src_box;
 
-                CellGeometry<NDIM> cell_dst_geometry(dst_box, gcw);
-                CellGeometry<NDIM> cell_src_geometry(src_box, gcw);
+                SAMRAICellGeometry cell_dst_geometry(dst_box, gcw);
+                SAMRAICellGeometry cell_src_geometry(src_box, gcw);
 
-                Pointer<CellOverlap<NDIM> > cell_overlap;
+                SAMRAIPointer<SAMRAICellOverlap> cell_overlap;
 
                 tbox::plog << "cell overlap, overwrite_interior == false:\n";
                 cell_overlap = cell_dst_geometry.calculateOverlap(cell_dst_geometry,
                                                                   cell_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ false,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 cell_overlap->getDestinationBoxList().print(tbox::plog);
 
@@ -91,21 +102,21 @@ main(int argc, char* argv[])
                                                                   cell_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ true,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 cell_overlap->getDestinationBoxList().print(tbox::plog);
 
-                EdgeGeometry<NDIM> edge_dst_geometry(dst_box, gcw);
-                EdgeGeometry<NDIM> edge_src_geometry(src_box, gcw);
+                SAMRAIEdgeGeometry edge_dst_geometry(dst_box, gcw);
+                SAMRAIEdgeGeometry edge_src_geometry(src_box, gcw);
 
-                Pointer<EdgeOverlap<NDIM> > edge_overlap;
+                SAMRAIPointer<SAMRAIEdgeOverlap> edge_overlap;
 
                 tbox::plog << "edge overlap, overwrite_interior == false:\n";
                 edge_overlap = edge_dst_geometry.calculateOverlap(edge_dst_geometry,
                                                                   edge_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ false,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) edge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -114,21 +125,21 @@ main(int argc, char* argv[])
                                                                   edge_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ true,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) edge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
-                FaceGeometry<NDIM> face_dst_geometry(dst_box, gcw);
-                FaceGeometry<NDIM> face_src_geometry(src_box, gcw);
+                SAMRAIFaceGeometry face_dst_geometry(dst_box, gcw);
+                SAMRAIFaceGeometry face_src_geometry(src_box, gcw);
 
-                Pointer<FaceOverlap<NDIM> > face_overlap;
+                SAMRAIPointer<SAMRAIFaceOverlap> face_overlap;
 
                 tbox::plog << "face overlap, overwrite_interior == false:\n";
                 face_overlap = face_dst_geometry.calculateOverlap(face_dst_geometry,
                                                                   face_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ false,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) face_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -137,21 +148,21 @@ main(int argc, char* argv[])
                                                                   face_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ true,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) face_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
-                NodeGeometry<NDIM> node_dst_geometry(dst_box, gcw);
-                NodeGeometry<NDIM> node_src_geometry(src_box, gcw);
+                SAMRAINodeGeometry node_dst_geometry(dst_box, gcw);
+                SAMRAINodeGeometry node_src_geometry(src_box, gcw);
 
-                Pointer<NodeOverlap<NDIM> > node_overlap;
+                SAMRAIPointer<SAMRAINodeOverlap> node_overlap;
 
                 tbox::plog << "node overlap, overwrite_interior == false:\n";
                 node_overlap = node_dst_geometry.calculateOverlap(node_dst_geometry,
                                                                   node_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ false,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 node_overlap->getDestinationBoxList().print(tbox::plog);
 
@@ -160,21 +171,21 @@ main(int argc, char* argv[])
                                                                   node_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ true,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 node_overlap->getDestinationBoxList().print(tbox::plog);
 
-                SideGeometry<NDIM> side_dst_geometry(dst_box, gcw, 1);
-                SideGeometry<NDIM> side_src_geometry(src_box, gcw, 1);
+                SAMRAISideGeometry side_dst_geometry(dst_box, gcw, 1);
+                SAMRAISideGeometry side_src_geometry(src_box, gcw, 1);
 
-                Pointer<SideOverlap<NDIM> > side_overlap;
+                SAMRAIPointer<SAMRAISideOverlap> side_overlap;
 
                 tbox::plog << "side overlap, overwrite_interior == false:\n";
                 side_overlap = side_dst_geometry.calculateOverlap(side_dst_geometry,
                                                                   side_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ false,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) side_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -183,21 +194,21 @@ main(int argc, char* argv[])
                                                                   side_src_geometry,
                                                                   src_mask,
                                                                   /*overwrite_interior*/ true,
-                                                                  /*src_offset*/ IntVector<NDIM>(0),
+                                                                  /*src_offset*/ SAMRAIIntVector(0),
                                                                   /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis) side_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
-                OuteredgeGeometry<NDIM> oedge_dst_geometry(dst_box, gcw);
-                OuteredgeGeometry<NDIM> oedge_src_geometry(dst_box, gcw);
+                SAMRAIOuteredgeGeometry oedge_dst_geometry(dst_box, gcw);
+                SAMRAIOuteredgeGeometry oedge_src_geometry(dst_box, gcw);
 
-                Pointer<EdgeOverlap<NDIM> > oedge_overlap;
+                SAMRAIPointer<SAMRAIEdgeOverlap> oedge_overlap;
 
                 tbox::plog << "outer edge overlap, overwrite_interior == false:\n";
                 oedge_overlap = oedge_dst_geometry.calculateOverlap(oedge_dst_geometry,
                                                                     oedge_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oedge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -205,7 +216,7 @@ main(int argc, char* argv[])
                                                                     oedge_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oedge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -214,7 +225,7 @@ main(int argc, char* argv[])
                                                                     oedge_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oedge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -222,21 +233,21 @@ main(int argc, char* argv[])
                                                                     oedge_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oedge_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
-                OuterfaceGeometry<NDIM> oface_dst_geometry(dst_box, gcw);
-                OuterfaceGeometry<NDIM> oface_src_geometry(dst_box, gcw);
+                SAMRAIOuterfaceGeometry oface_dst_geometry(dst_box, gcw);
+                SAMRAIOuterfaceGeometry oface_src_geometry(dst_box, gcw);
 
-                Pointer<FaceOverlap<NDIM> > oface_overlap;
+                SAMRAIPointer<SAMRAIFaceOverlap> oface_overlap;
 
                 tbox::plog << "outer face overlap, overwrite_interior == false:\n";
                 oface_overlap = oface_dst_geometry.calculateOverlap(face_dst_geometry,
                                                                     oface_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oface_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -245,21 +256,21 @@ main(int argc, char* argv[])
                                                                     oface_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oface_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
-                OuternodeGeometry<NDIM> onode_dst_geometry(dst_box, gcw);
-                OuternodeGeometry<NDIM> onode_src_geometry(dst_box, gcw);
+                SAMRAIOuternodeGeometry onode_dst_geometry(dst_box, gcw);
+                SAMRAIOuternodeGeometry onode_src_geometry(dst_box, gcw);
 
-                Pointer<NodeOverlap<NDIM> > onode_overlap;
+                SAMRAIPointer<SAMRAINodeOverlap> onode_overlap;
 
                 tbox::plog << "outer node overlap, overwrite_interior == false:\n";
                 onode_overlap = onode_dst_geometry.calculateOverlap(onode_dst_geometry,
                                                                     onode_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 onode_overlap->getDestinationBoxList().print(tbox::plog);
 
@@ -267,7 +278,7 @@ main(int argc, char* argv[])
                                                                     onode_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 onode_overlap->getDestinationBoxList().print(tbox::plog);
 
@@ -276,7 +287,7 @@ main(int argc, char* argv[])
                                                                     onode_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 onode_overlap->getDestinationBoxList().print(tbox::plog);
 
@@ -284,21 +295,21 @@ main(int argc, char* argv[])
                                                                     onode_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 onode_overlap->getDestinationBoxList().print(tbox::plog);
 
-                OutersideGeometry<NDIM> oside_dst_geometry(dst_box, gcw);
-                OutersideGeometry<NDIM> oside_src_geometry(dst_box, gcw);
+                SAMRAIOutersideGeometry oside_dst_geometry(dst_box, gcw);
+                SAMRAIOutersideGeometry oside_src_geometry(dst_box, gcw);
 
-                Pointer<SideOverlap<NDIM> > oside_overlap;
+                SAMRAIPointer<SAMRAISideOverlap> oside_overlap;
 
                 tbox::plog << "outer side overlap, overwrite_interior == false:\n";
                 oside_overlap = oside_dst_geometry.calculateOverlap(side_dst_geometry,
                                                                     oside_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ false,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oside_overlap->getDestinationBoxList(axis).print(tbox::plog);
 
@@ -307,7 +318,7 @@ main(int argc, char* argv[])
                                                                     oside_src_geometry,
                                                                     src_mask,
                                                                     /*overwrite_interior*/ true,
-                                                                    /*src_offset*/ IntVector<NDIM>(0),
+                                                                    /*src_offset*/ SAMRAIIntVector(0),
                                                                     /*retry*/ true);
                 for (int axis = 0; axis < NDIM; ++axis) oside_overlap->getDestinationBoxList(axis).print(tbox::plog);
 

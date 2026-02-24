@@ -18,13 +18,27 @@
 // 4. Reinitialize the scratch hierarchy and load balance it correctly based on
 //    the values computed in step 1.
 
-// Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+// Headers for main SAMRAI objects
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIterator.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -50,40 +64,40 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // custom workload vars for primary hierarchy (ph) and secondary hierarchy (sh)
-        Pointer<CellVariable<NDIM, double> > ph_work_cc_var = new CellVariable<NDIM, double>("ph_work_cc");
-        Pointer<CellVariable<NDIM, double> > sh_work_cc_var = new CellVariable<NDIM, double>("sh_work_cc");
-        const int ph_work_cc_idx = var_db->registerVariableAndContext(ph_work_cc_var, ctx, IntVector<NDIM>(0));
-        const int sh_work_cc_idx = var_db->registerVariableAndContext(sh_work_cc_var, ctx, IntVector<NDIM>(0));
+        SAMRAIPointer<SAMRAICellVariable<double>> ph_work_cc_var = new SAMRAICellVariable<double>("ph_work_cc");
+        SAMRAIPointer<SAMRAICellVariable<double>> sh_work_cc_var = new SAMRAICellVariable<double>("sh_work_cc");
+        const int ph_work_cc_idx = var_db->registerVariableAndContext(ph_work_cc_var, ctx, SAMRAIIntVector(0));
+        const int sh_work_cc_idx = var_db->registerVariableAndContext(sh_work_cc_var, ctx, SAMRAIIntVector(0));
 
         // setup plotting
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
         visit_data_writer->registerPlotQuantity(ph_work_cc_var->getName(), "SCALAR", ph_work_cc_idx);
         visit_data_writer->registerPlotQuantity(sh_work_cc_var->getName(), "SCALAR", sh_work_cc_idx);
@@ -106,11 +120,11 @@ main(int argc, char* argv[])
         // hierarchy.
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(ph_work_cc_idx, 0.0);
             level->allocatePatchData(sh_work_cc_idx, 0.0);
         }
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
         hier_cc_data_ops.setToScalar(ph_work_cc_idx, 0.0);
         hier_cc_data_ops.setToScalar(sh_work_cc_idx, 0.0);
 
@@ -120,16 +134,16 @@ main(int argc, char* argv[])
         unsigned int index = 0;
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                const Patch<NDIM>& patch = *level->getPatch(p());
-                const Box<NDIM>& patch_box = patch.getBox();
-                Pointer<CellData<NDIM, double> > sh_work_cc_data = patch.getPatchData(sh_work_cc_idx);
-                Pointer<CellData<NDIM, double> > ph_work_cc_data = patch.getPatchData(ph_work_cc_idx);
-                for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+                const SAMRAIPatch& patch = *level->getPatch(p());
+                const SAMRAIBox& patch_box = patch.getBox();
+                SAMRAIPointer<SAMRAICellData<double>> sh_work_cc_data = patch.getPatchData(sh_work_cc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> ph_work_cc_data = patch.getPatchData(ph_work_cc_idx);
+                for (SAMRAICellIterator ic(patch_box); ic; ic++)
                 {
-                    const hier::Index<NDIM>& i = ic();
+                    const SAMRAIIndex& i = ic();
                     (*ph_work_cc_data)(i) = index;
                     (*sh_work_cc_data)(i) = current_rank == n_processes - 1 ? 100 + (index % 50) : 0;
                     ++index;
@@ -146,14 +160,14 @@ main(int argc, char* argv[])
 
         visit_data_writer->writePlotData(secondary_hierarchy.getSecondaryHierarchy(), 1, 1.0);
 
-        std::array<std::pair<Pointer<PatchHierarchy<NDIM> >, std::string>, 2> data{
+        std::array<std::pair<SAMRAIPointer<SAMRAIPatchHierarchy>, std::string>, 2> data{
             { { patch_hierarchy, "primary" }, { secondary_hierarchy.getSecondaryHierarchy(), "secondary" } }
         };
 
         for (const auto& pair : data)
         {
             std::vector<double> workload_per_processor(n_processes);
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(pair.first, 0, finest_level);
+            SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(pair.first, 0, finest_level);
             workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(sh_work_cc_idx, IBTK::invalid_index, true);
 
             const auto right_padding = std::size_t(std::log10(n_processes)) + 1;

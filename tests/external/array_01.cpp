@@ -14,17 +14,19 @@
 // Ensure that we can staticly allocate and deallocate tbox::Arrays before and
 // after some patches to SAMRAI.
 
-#include <tbox/Array.h>
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
+#include "SAMRAIArray.h"
 
 #include <fstream>
 
 #include <ibamr/app_namespaces.h>
 
-static tbox::Array<double> s_array_1;
-static tbox::Array<tbox::Array<double> > s_array_2(10);
-static tbox::Array<tbox::Array<double> > s_array_3(100);
-static tbox::Array<tbox::Array<double> > s_array_4(1000);
-static tbox::Array<tbox::Array<double> > s_array_5(10000);
+static SAMRAIArray<double> s_array_1;
+static SAMRAIArray<SAMRAIArray<double>> s_array_2(10);
+static SAMRAIArray<SAMRAIArray<double>> s_array_3(100);
+static SAMRAIArray<SAMRAIArray<double>> s_array_4(1000);
+static SAMRAIArray<SAMRAIArray<double>> s_array_5(10000);
 
 int
 main()

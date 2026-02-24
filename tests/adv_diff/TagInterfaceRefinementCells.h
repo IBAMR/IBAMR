@@ -36,26 +36,29 @@ namespace IBAMR
 class AdvDiffHierarchyIntegrator;
 }
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIPointer.h"
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
-void callTagInterfaceRefinementCellsCallbackFunction(
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double error_data_time,
-    const int tag_index,
-    const bool initial_time,
-    const bool uses_richardson_extrapolation_too,
-    void* ctx);
+void callTagInterfaceRefinementCellsCallbackFunction(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
+                                                     const int level_number,
+                                                     const double error_data_time,
+                                                     const int tag_index,
+                                                     const bool initial_time,
+                                                     const bool uses_richardson_extrapolation_too,
+                                                     void* ctx);
 
 struct TagInterfaceRefinementCells
 {
-    TagInterfaceRefinementCells(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > scalar_var,
+    TagInterfaceRefinementCells(SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                SAMRAIPointer<SAMRAICellVariable<double>> scalar_var,
                                 double tag_min_val,
                                 double tag_max_val);
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_scalar_var;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_scalar_var;
     double d_tag_min_val;
     double d_tag_max_val;
 };

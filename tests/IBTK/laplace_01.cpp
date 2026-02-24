@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/IBTKInit.h>
@@ -19,12 +21,24 @@
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/muParserCartGridFunction.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 #include <ibtk/app_namespaces.h>
 
@@ -48,8 +62,8 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const bool test_copied_vector = input_db->getBoolWithDefault("test_copied_vector", false);
         const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
         const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
@@ -58,41 +72,41 @@ main(int argc, char* argv[])
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // We create a variable for every vector we ultimately declare,
         // instead of creating and then cloning vectors. The rationale for
         // this is given below.
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
-        Pointer<CellVariable<NDIM, double> > f_approx_cc_var = new CellVariable<NDIM, double>("f_approx_cc");
+        SAMRAIPointer<SAMRAICellVariable<double>> u_cc_var = new SAMRAICellVariable<double>("u_cc");
+        SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = new SAMRAICellVariable<double>("f_cc");
+        SAMRAIPointer<SAMRAICellVariable<double>> e_cc_var = new SAMRAICellVariable<double>("e_cc");
+        SAMRAIPointer<SAMRAICellVariable<double>> f_approx_cc_var = new SAMRAICellVariable<double>("f_approx_cc");
 
         // Internally, SAMRAI keeps track of variables (and their
         // corresponding vectors, data, etc.) by converting them to
         // indices. Here we get the indices after notifying the variable
         // database about them.
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, IntVector<NDIM>(1));
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, SAMRAIIntVector(1));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, SAMRAIIntVector(1));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, SAMRAIIntVector(1));
+        const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, SAMRAIIntVector(1));
 
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         const int tag_buffer = std::numeric_limits<int>::max();
@@ -109,7 +123,7 @@ main(int argc, char* argv[])
         // hierarchy.
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -135,22 +149,22 @@ main(int argc, char* argv[])
         // to do linear algebra, we rely on SAMRAI's own vector class which
         // understands these relationships. We begin by initializing each
         // vector with the patch hierarchy:
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> f_standard("f_approx", patch_hierarchy, 0, finest_level);
+        SAMRAISAMRAIVectorReal<double> u_vec("u", patch_hierarchy, 0, finest_level);
+        SAMRAISAMRAIVectorReal<double> f_vec("f", patch_hierarchy, 0, finest_level);
+        SAMRAISAMRAIVectorReal<double> f_standard("f_approx", patch_hierarchy, 0, finest_level);
 
         f_vec.addComponent(f_cc_var, f_cc_idx, cv_cc_idx);
         SAMRAIScopedVectorDuplicate<double> f_duplicated(f_vec);
         SAMRAIScopedVectorCopy<double> f_copied(f_vec);
-        SAMRAIVectorReal<NDIM, double>* f_approx_vec_ptr = nullptr;
+        SAMRAISAMRAIVectorReal<double>* f_approx_vec_ptr = nullptr;
 
         if (test_copied_vector)
         {
-            f_approx_vec_ptr = &static_cast<SAMRAIVectorReal<NDIM, double>&>(f_copied);
+            f_approx_vec_ptr = &static_cast<SAMRAISAMRAIVectorReal<double>&>(f_copied);
         }
         else if (test_duplicated_vector)
         {
-            f_approx_vec_ptr = &static_cast<SAMRAIVectorReal<NDIM, double>&>(f_duplicated);
+            f_approx_vec_ptr = &static_cast<SAMRAISAMRAIVectorReal<double>&>(f_duplicated);
         }
         else if (test_standard_vector)
         {
@@ -162,7 +176,7 @@ main(int argc, char* argv[])
             TBOX_ERROR("unknown test configuration - should be copied, duplicated, or standard");
         }
 
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, finest_level);
+        SAMRAISAMRAIVectorReal<double> e_vec("e", patch_hierarchy, 0, finest_level);
 
         u_vec.addComponent(u_cc_var, u_cc_idx, cv_cc_idx);
         e_vec.addComponent(e_cc_var, e_cc_idx, cv_cc_idx);
@@ -190,7 +204,7 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategy<NDIM>* bc_coef = nullptr;
+        SAMRAIRobinBcCoefStrategy* bc_coef = nullptr;
         CCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);
@@ -213,16 +227,16 @@ main(int argc, char* argv[])
         // second argument to the constructor is false.
         if (test_copied_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_copied);
+            e_vec.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&f_vec, false), f_copied);
         }
         else if (test_duplicated_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_duplicated);
+            e_vec.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&f_vec, false), f_duplicated);
         }
         else
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                           Pointer<SAMRAIVectorReal<NDIM, double> >(&f_standard, false));
+            e_vec.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&f_vec, false),
+                           SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&f_standard, false));
         }
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
@@ -236,13 +250,13 @@ main(int argc, char* argv[])
             std::ostringstream out;
             for (int ln = 0; ln <= finest_level; ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<SAMRAIPatchLevel> patch_level = patch_hierarchy->getPatchLevel(ln);
                 out << std::setprecision(20);
                 out << "rank: " << IBTK_MPI::getRank() << " level: " << ln << " boxes:\n";
-                for (typename hier::PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+                for (typename SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
                 {
-                    const hier::Box<NDIM> box = patch_level->getPatch(p())->getBox();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geometry =
+                    const SAMRAIBox box = patch_level->getPatch(p())->getBox();
+                    SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geometry =
                         patch_level->getPatch(p())->getPatchGeometry();
                     out << "  " << box << '\n';
 
@@ -268,20 +282,20 @@ main(int argc, char* argv[])
         // on coarser levels which are covered by finer levels to zero.
         for (int ln = 0; ln < finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             BoxArray<NDIM> refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                const Patch<NDIM>& patch = *level->getPatch(p());
-                const Box<NDIM>& patch_box = patch.getBox();
-                Pointer<CellData<NDIM, double> > e_cc_data = patch.getPatchData(e_cc_idx);
+                const SAMRAIPatch& patch = *level->getPatch(p());
+                const SAMRAIBox& patch_box = patch.getBox();
+                SAMRAIPointer<SAMRAICellData<double>> e_cc_data = patch.getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM>& refined_box = refined_region_boxes[i];
+                    const SAMRAIBox& refined_box = refined_region_boxes[i];
                     // Box::operator* returns the intersection of two boxes.
-                    const Box<NDIM>& intersection = patch_box * refined_box;
+                    const SAMRAIBox& intersection = patch_box * refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
@@ -290,7 +304,7 @@ main(int argc, char* argv[])
             }
         }
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(f_approx_cc_var->getName(), "SCALAR", f_approx_cc_idx);

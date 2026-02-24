@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+// SAMRAI INCLUDES
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -24,6 +26,15 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/mesh.h>
@@ -35,12 +46,7 @@
 
 #include <boost/multi_array.hpp>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HierarchyDataOpsManager.h>
-#include <LoadBalancer.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 #include <mpi.h>
 
 #include <string>
@@ -75,9 +81,9 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
@@ -128,15 +134,15 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy =
+            new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry, false);
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -157,25 +163,25 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
+        SAMRAIPointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -192,7 +198,7 @@ main(int argc, char** argv)
 
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         const std::string& displacement_name = ib_method_ops->getCurrentCoordinatesSystemName();
-        std::unique_ptr<libMesh::PetscVector<double> > ib_vector =
+        std::unique_ptr<libMesh::PetscVector<double>> ib_vector =
             fe_data_manager->buildIBGhostedVector(displacement_name);
         Vec petsc_vec = ib_vector->vec();
 
