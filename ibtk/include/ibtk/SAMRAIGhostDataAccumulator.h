@@ -20,16 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
-
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAIVariable.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscvec.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIVariable.h>
 
 #include <vector>
 

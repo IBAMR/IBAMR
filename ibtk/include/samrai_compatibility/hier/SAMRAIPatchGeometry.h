@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/PatchGeometry.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/PatchGeometry.h")
 #include <SAMRAI/hier/PatchGeometry.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_PatchGeometry 1
 #else

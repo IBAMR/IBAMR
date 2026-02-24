@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIUtilities
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIUtilities
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Utilities.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Utilities.h")
 #include <SAMRAI/tbox/Utilities.h>
 #else
 #include <tbox/Utilities.h>

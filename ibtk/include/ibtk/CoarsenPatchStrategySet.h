@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAICoarsenPatchStrategy.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
+#include <SAMRAIBox.h>
+#include <SAMRAICoarsenPatchStrategy.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
 
 #include <vector>
 

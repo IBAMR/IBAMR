@@ -13,14 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

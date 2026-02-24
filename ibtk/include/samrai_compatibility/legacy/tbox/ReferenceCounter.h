@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_ReferenceCounter_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_ReferenceCounter_h
 
-#include "SAMRAIReferenceCounter.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIReferenceCounter.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_ReferenceCounter_h

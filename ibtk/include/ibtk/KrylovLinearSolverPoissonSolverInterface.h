@@ -20,11 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/PoissonSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPoissonSpecifications.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 

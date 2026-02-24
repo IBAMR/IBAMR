@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatchData.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAITransaction.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAITransaction.h>
 
 #include <iosfwd>
 #include <string>

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_VariableFillPattern_h
 #define included_IBTK_samrai_compatibility_legacy_VariableFillPattern_h
 
-#include "SAMRAIVariableFillPattern.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIVariableFillPattern.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_VariableFillPattern_h

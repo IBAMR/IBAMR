@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/xfer/CoarsenAlgorithm.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/xfer/CoarsenAlgorithm.h")
 #include <SAMRAI/xfer/CoarsenAlgorithm.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CoarsenAlgorithm 1
 #else

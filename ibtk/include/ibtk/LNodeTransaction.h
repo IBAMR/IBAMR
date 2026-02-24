@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNode.h"
-#include "ibtk/LTransaction.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LTransaction.h>
 
 /////////////////////////////// TYPEDEFS /////////////////////////////////////
 

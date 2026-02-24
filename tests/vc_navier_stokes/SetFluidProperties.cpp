@@ -12,16 +12,17 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
 #include "SetFluidProperties.h"
+
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 

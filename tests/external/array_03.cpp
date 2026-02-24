@@ -13,11 +13,11 @@
 
 // Verify that nested tbox::Array<tbox::Array<bool>> works correctly
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/IBTKInit.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 // SAMRAI INCLUDES
-#include "SAMRAIArray.h"
+#include <SAMRAIArray.h>
 
 #include <fstream>
 #include <string>

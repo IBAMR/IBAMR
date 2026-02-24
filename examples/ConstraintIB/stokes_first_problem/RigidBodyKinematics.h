@@ -20,11 +20,11 @@
 // SAMRAI INCLUDES
 #include <ibamr/ConstraintIBKinematics.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 // C++ INCLUDES
 #include <vector>

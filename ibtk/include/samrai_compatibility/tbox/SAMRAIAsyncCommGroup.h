@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIAsyncCommGroup
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIAsyncCommGroup
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/AsyncCommGroup.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/AsyncCommGroup.h")
 #include <SAMRAI/tbox/AsyncCommGroup.h>
 #else
 #include <tbox/AsyncCommGroup.h>

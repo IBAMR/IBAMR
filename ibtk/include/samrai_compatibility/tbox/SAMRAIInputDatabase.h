@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIInputDatabase
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIInputDatabase
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/InputDatabase.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/InputDatabase.h")
 #include <SAMRAI/tbox/InputDatabase.h>
 #else
 #include <tbox/InputDatabase.h>

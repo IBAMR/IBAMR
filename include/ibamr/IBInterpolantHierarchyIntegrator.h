@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBHierarchyIntegrator.h"
+#include <ibamr/IBHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 namespace IBAMR
 {

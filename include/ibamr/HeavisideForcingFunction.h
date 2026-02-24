@@ -20,17 +20,17 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICellVariable.h"
-#include "SAMRAIFaceVariable.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
+#include <SAMRAICellVariable.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBAMR

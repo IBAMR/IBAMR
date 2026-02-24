@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_solv_GhostCellRobinBcCoefs_h
 #define included_IBTK_samrai_compatibility_legacy_solv_GhostCellRobinBcCoefs_h
 
-#include "SAMRAIGhostCellRobinBcCoefs.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIGhostCellRobinBcCoefs.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_solv_GhostCellRobinBcCoefs_h

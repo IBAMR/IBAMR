@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_hier_ProcessorMapping_h
 #define included_IBTK_samrai_compatibility_legacy_hier_ProcessorMapping_h
 
-#include "SAMRAIProcessorMapping.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIProcessorMapping.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_hier_ProcessorMapping_h

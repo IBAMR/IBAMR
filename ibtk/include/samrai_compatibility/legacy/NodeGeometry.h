@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_NodeGeometry_h
 #define included_IBTK_samrai_compatibility_legacy_NodeGeometry_h
 
-#include "SAMRAINodeGeometry.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAINodeGeometry.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_NodeGeometry_h

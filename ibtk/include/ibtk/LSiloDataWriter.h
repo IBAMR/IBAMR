@@ -20,16 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISerializable.h"
+#include <petscao.h>
+#include <petscvec.h>
 
-#include "petscao.h"
-#include "petscvec.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
 
 #include <map>
 #include <set>

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_NodeFloatLinearTimeInterpolateOp_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_NodeFloatLinearTimeInterpolateOp_h
 
-#include "SAMRAINodeFloatLinearTimeInterpolateOp.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAINodeFloatLinearTimeInterpolateOp.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_NodeFloatLinearTimeInterpolateOp_h

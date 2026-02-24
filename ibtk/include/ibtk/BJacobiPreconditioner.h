@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <map>
 #include <string>

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/GhostCellRobinBcCoefs.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/GhostCellRobinBcCoefs.h")
 #include <SAMRAI/solv/GhostCellRobinBcCoefs.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_GhostCellRobinBcCoefs 1
 #else

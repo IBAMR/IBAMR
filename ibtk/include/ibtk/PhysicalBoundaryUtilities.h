@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIArray.h"
-#include "SAMRAIBoundaryBox.h"
-#include "SAMRAIBox.h"
-#include "SAMRAIPatch.h"
+#include <SAMRAIArray.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPatch.h>
 
 namespace SAMRAI
 {

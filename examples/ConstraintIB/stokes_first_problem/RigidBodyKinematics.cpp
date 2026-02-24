@@ -12,23 +12,24 @@
 // ---------------------------------------------------------------------
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "RigidBodyKinematics.h"
-#include "SAMRAIPIO.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIUtilities.h"
+
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "muParser.h"
+#include <muParser.h>
 
 #include <string>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

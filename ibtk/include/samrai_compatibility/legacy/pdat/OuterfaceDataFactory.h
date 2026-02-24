@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceDataFactory_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceDataFactory_h
 
-#include "SAMRAIOuterfaceDataFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIOuterfaceDataFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceDataFactory_h

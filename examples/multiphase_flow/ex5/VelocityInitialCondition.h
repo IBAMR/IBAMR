@@ -20,18 +20,18 @@
 // SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 
 // Application includes
-#include "LSLocateFluidInterface.h"
+#include <LSLocateFluidInterface.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
@@ -20,35 +20,35 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/BrinkmanAdvDiffBcHelper.h>
 #include <ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/IBInterpolantHierarchyIntegrator.h>
 
-#include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 

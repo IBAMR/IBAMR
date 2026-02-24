@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSetData.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LSetData.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIBox.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -181,7 +181,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LIndexSetData-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LIndexSetData-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

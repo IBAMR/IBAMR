@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PatchFactory_h
 #define included_IBTK_samrai_compatibility_legacy_PatchFactory_h
 
-#include "SAMRAIPatchFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PatchFactory_h

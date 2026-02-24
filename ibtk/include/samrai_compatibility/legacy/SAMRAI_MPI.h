@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_SAMRAI_MPI_h
 #define included_IBTK_samrai_compatibility_legacy_SAMRAI_MPI_h
 
-#include "SAMRAISAMRAI_MPI.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISAMRAI_MPI.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_SAMRAI_MPI_h

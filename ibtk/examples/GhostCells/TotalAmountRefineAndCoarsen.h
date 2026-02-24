@@ -17,16 +17,16 @@
 #define included_TotalAmountRefineAndCoarsen
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "IBTK_config.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICoarsenOperator.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAIVariable.h"
+#include <IBTK_config.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 

@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIMessageStream
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIMessageStream
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/MessageStream.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/MessageStream.h")
 #include <SAMRAI/tbox/MessageStream.h>
 #else
 #include <tbox/MessageStream.h>

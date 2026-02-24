@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <memory>
 
@@ -34,7 +34,7 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <libmesh/system.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include "SAMRAIPointer.h"
+#include <SAMRAIPointer.h>
 
 #include <string>
 

@@ -13,14 +13,14 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIManager.h"
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIManager.h>
 
 // Set up application namespace declarations
 #include <boost/core/demangle.hpp>

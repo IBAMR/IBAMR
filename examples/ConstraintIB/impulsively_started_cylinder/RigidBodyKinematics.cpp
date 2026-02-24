@@ -13,27 +13,27 @@
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "RigidBodyKinematics.h"
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "SAMRAIPIO.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIUtilities.h"
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 // IBAMR INCLUDES
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 
 // THIRD-PARTY INCLUDES
-#include "muParser.h"
+#include <muParser.h>
 
 namespace IBAMR
 {

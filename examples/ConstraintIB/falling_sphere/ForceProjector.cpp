@@ -14,23 +14,24 @@
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "ForceProjector.h"
-#include "SAMRAIArray.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIPIO.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIVariableDatabase.h"
 
-#include "ibamr/namespaces.h"
+#include <SAMRAIArray.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariableDatabase.h>
+
+#include <ibamr/namespaces.h>
 
 namespace IBTK
 {

@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIStatistic
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIStatistic
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Statistic.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Statistic.h")
 #include <SAMRAI/tbox/Statistic.h>
 #else
 #include <tbox/Statistic.h>

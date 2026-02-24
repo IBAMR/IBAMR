@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_FaceComplexConstantRefine_h
 #define included_IBTK_samrai_compatibility_legacy_FaceComplexConstantRefine_h
 
-#include "SAMRAIFaceComplexConstantRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIFaceComplexConstantRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_FaceComplexConstantRefine_h

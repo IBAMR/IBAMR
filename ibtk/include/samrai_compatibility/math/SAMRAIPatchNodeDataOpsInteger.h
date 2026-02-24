@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/math/PatchNodeDataOpsInteger.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/math/PatchNodeDataOpsInteger.h")
 #include <SAMRAI/math/PatchNodeDataOpsInteger.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_PatchNodeDataOpsInteger 1
 #else

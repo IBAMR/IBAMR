@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchEdgeDataOpsInteger_h
 #define included_IBTK_samrai_compatibility_legacy_math_PatchEdgeDataOpsInteger_h
 
-#include "SAMRAIPatchEdgeDataOpsInteger.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchEdgeDataOpsInteger.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchEdgeDataOpsInteger_h

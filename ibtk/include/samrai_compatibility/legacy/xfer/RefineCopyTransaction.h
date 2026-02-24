@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefineCopyTransaction_h
 #define included_IBTK_samrai_compatibility_legacy_xfer_RefineCopyTransaction_h
 
-#include "SAMRAIRefineCopyTransaction.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIRefineCopyTransaction.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefineCopyTransaction_h

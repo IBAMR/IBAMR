@@ -405,6 +405,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include \
 	-I${top_srcdir}/ibtk/include/samrai_compatibility/tbox \
 	-I${top_srcdir}/ibtk/include/samrai_compatibility/xfer \
 	-I${top_builddir}/config -I${top_builddir}/ibtk/config
+
 AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/ibtk/lib
 IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
 IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a

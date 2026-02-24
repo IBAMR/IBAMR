@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -21,22 +21,22 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAILocationIndexRobinBcCoefs.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>

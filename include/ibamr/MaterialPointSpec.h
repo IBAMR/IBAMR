@@ -20,18 +20,18 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
+#include <SAMRAIIntVector.h>
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
-#include "SAMRAIPointer.h"
+#include <libmesh/id_types.h>
 
-#include "libmesh/id_types.h"
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -255,7 +255,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/MaterialPointSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/MaterialPointSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

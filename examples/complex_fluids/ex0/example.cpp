@@ -17,34 +17,34 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIHierarchySideDataOpsReal.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <ibamr/app_namespaces.h>
 

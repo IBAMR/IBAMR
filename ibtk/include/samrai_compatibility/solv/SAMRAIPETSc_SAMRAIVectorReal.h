@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/PETSc_SAMRAIVectorReal.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/PETSc_SAMRAIVectorReal.h")
 #include <SAMRAI/solv/PETSc_SAMRAIVectorReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_PETSc_SAMRAIVectorReal 1
 #else

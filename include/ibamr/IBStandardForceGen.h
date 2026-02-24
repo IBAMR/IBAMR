@@ -20,17 +20,17 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/IBSpringForceFunctions.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/IBSpringForceFunctions.h>
 
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <petscmat.h>
 
-#include "petscmat.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <map>
 #include <set>

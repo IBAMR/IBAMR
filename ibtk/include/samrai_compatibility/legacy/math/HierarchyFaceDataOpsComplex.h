@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_HierarchyFaceDataOpsComplex_h
 #define included_IBTK_samrai_compatibility_legacy_math_HierarchyFaceDataOpsComplex_h
 
-#include "SAMRAIHierarchyFaceDataOpsComplex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIHierarchyFaceDataOpsComplex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_HierarchyFaceDataOpsComplex_h

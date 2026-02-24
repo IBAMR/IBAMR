@@ -20,14 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIMathUtilities.h"
-#include "SAMRAIUtilities.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
+
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIUtilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -418,7 +419,7 @@ struct LNodeIndexLocalPETScIndexEqual
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LNodeIndex-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LNodeIndex-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

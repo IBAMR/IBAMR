@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_HierarchySideDataOpsInteger_h
 #define included_IBTK_samrai_compatibility_legacy_math_HierarchySideDataOpsInteger_h
 
-#include "SAMRAIHierarchySideDataOpsInteger.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIHierarchySideDataOpsInteger.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_HierarchySideDataOpsInteger_h

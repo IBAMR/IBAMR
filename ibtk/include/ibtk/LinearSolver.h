@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/GeneralSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <iosfwd>
 #include <vector>

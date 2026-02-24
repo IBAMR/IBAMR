@@ -20,11 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/StreamableFactory.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/StreamableFactory.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <map>
 #include <vector>
@@ -214,7 +214,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/StreamableManager-inl.h" // IWYU pragma: keep
+#include <ibtk/private/StreamableManager-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
@@ -25,23 +25,22 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAISAMRAIVectorReal.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
-
 #include <petscsys.h>
 
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
 #include <SAMRAI_config.h>
 
 #include <ibamr/app_namespaces.h>

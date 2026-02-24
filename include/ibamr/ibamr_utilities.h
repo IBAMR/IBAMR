@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPIO.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIPIO.h>
+#include <SAMRAIPointer.h>
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBAMR_DO_ONCE(task)                                                                                            \

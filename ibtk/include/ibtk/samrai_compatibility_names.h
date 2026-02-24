@@ -16,10 +16,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_legacy_aliases.h"
+#include <ibtk/samrai_compatibility_legacy_aliases.h>
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-#include "samrai_compatibility/shim_aliases.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+#include <samrai_compatibility/shim_aliases.h>
 
 // Re-export SAMRAI compatibility aliases at global scope so converted code can
 // refer to SAMRAI* names directly without an IBTK:: prefix.

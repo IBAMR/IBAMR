@@ -20,11 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearOperator.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LinearOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 

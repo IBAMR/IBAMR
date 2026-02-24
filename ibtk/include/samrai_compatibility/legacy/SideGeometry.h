@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_SideGeometry_h
 #define included_IBTK_samrai_compatibility_legacy_SideGeometry_h
 
-#include "SAMRAISideGeometry.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISideGeometry.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_SideGeometry_h

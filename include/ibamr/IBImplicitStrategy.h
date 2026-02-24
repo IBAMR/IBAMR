@@ -20,16 +20,16 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBStrategy.h"
+#include <ibamr/IBStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICoarsenSchedule.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineSchedule.h"
+#include <petscmat.h>
+#include <petscvec.h>
 
-#include "petscmat.h"
-#include "petscvec.h"
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
 
 #include <vector>
 

@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAILogger
 #define included_IBTK_samrai_compatibility_tbox_SAMRAILogger
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Logger.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Logger.h")
 #include <SAMRAI/tbox/Logger.h>
 #else
 #include <tbox/Logger.h>

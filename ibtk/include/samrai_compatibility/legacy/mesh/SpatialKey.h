@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_mesh_SpatialKey_h
 #define included_IBTK_samrai_compatibility_legacy_mesh_SpatialKey_h
 
-#include "SAMRAISpatialKey.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISpatialKey.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_mesh_SpatialKey_h

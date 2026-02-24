@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
@@ -20,18 +20,18 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/equation_systems.h>

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_ArrayDataNormOpsComplex_h
 #define included_IBTK_samrai_compatibility_legacy_math_ArrayDataNormOpsComplex_h
 
-#include "SAMRAIArrayDataNormOpsComplex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIArrayDataNormOpsComplex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_ArrayDataNormOpsComplex_h

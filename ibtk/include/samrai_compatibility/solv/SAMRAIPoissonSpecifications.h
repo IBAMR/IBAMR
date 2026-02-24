@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_solv_SAMRAIPoissonSpecifications
 #define included_IBTK_samrai_compatibility_solv_SAMRAIPoissonSpecifications
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/PoissonSpecifications.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/PoissonSpecifications.h")
 #include <SAMRAI/solv/PoissonSpecifications.h>
 #else
 #include <PoissonSpecifications.h>

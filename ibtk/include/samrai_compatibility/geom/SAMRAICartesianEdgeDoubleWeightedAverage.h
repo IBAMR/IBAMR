@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/geom/CartesianEdgeDoubleWeightedAverage.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/geom/CartesianEdgeDoubleWeightedAverage.h")
 #include <SAMRAI/geom/CartesianEdgeDoubleWeightedAverage.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CartesianEdgeDoubleWeightedAverage 1
 #else

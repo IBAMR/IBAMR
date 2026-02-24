@@ -21,11 +21,11 @@
 // SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 namespace IBTK
 {

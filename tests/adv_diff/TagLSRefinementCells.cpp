@@ -12,19 +12,20 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIterator.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariableDatabase.h"
 #include "TagLSRefinementCells.h"
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <fstream>
 

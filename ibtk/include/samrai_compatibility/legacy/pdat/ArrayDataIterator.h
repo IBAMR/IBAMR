@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataIterator_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataIterator_h
 
-#include "SAMRAIArrayDataIterator.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIArrayDataIterator.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataIterator_h

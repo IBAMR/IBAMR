@@ -13,14 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-
-#include "SAMRAISAMRAIManager.h"
-#include "SAMRAISAMRAI_MPI.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
+
+#include <SAMRAISAMRAIManager.h>
+#include <SAMRAISAMRAI_MPI.h>
 
 #include <ibtk/app_namespaces.h>
 

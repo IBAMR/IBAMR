@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/PatchLevelFactory.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/PatchLevelFactory.h")
 #include <SAMRAI/hier/PatchLevelFactory.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_PatchLevelFactory 1
 #else

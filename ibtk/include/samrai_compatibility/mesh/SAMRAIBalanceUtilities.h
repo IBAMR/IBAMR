@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_mesh_SAMRAIBalanceUtilities
 #define included_IBTK_samrai_compatibility_mesh_SAMRAIBalanceUtilities
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/mesh/BalanceUtilities.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/mesh/BalanceUtilities.h")
 #include <SAMRAI/mesh/BalanceUtilities.h>
 #else
 #include <BalanceUtilities.h>

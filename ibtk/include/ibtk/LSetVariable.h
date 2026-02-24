@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIVariable.h"
+#include <SAMRAIVariable.h>
 
 #include <string>
 

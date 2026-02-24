@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PatchNodeDataOpsInteger_h
 #define included_IBTK_samrai_compatibility_legacy_PatchNodeDataOpsInteger_h
 
-#include "SAMRAIPatchNodeDataOpsInteger.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchNodeDataOpsInteger.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PatchNodeDataOpsInteger_h

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/appu/VisMaterialsDataStrategy.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/appu/VisMaterialsDataStrategy.h")
 #include <SAMRAI/appu/VisMaterialsDataStrategy.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_VisMaterialsDataStrategy 1
 #else

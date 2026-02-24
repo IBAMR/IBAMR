@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_solv_SAMRAICVODESolver
 #define included_IBTK_samrai_compatibility_solv_SAMRAICVODESolver
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/CVODESolver.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/CVODESolver.h")
 #include <SAMRAI/solv/CVODESolver.h>
 #else
 #include <CVODESolver.h>

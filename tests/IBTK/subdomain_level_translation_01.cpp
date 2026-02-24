@@ -11,14 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/IBTKInit.h>
 
-#include "SAMRAILogger.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAILogger.h>
+#include <SAMRAIPointer.h>
 
 #include <ibtk/app_namespaces.h>
 

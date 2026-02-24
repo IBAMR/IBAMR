@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableContext.h"
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
 
 #include <string>
 

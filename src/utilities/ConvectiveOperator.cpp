@@ -13,15 +13,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/ConvectiveOperator.h"
+#include <ibamr/ConvectiveOperator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <utility>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

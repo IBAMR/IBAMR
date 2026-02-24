@@ -36,12 +36,13 @@ namespace IBAMR
 class AdvDiffHierarchyIntegrator;
 }
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIPointer.h"
 #include <tbox/DescribedClass.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPointer.h>
 
 void callTagInterfaceRefinementCellsCallbackFunction(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                      const int level_number,

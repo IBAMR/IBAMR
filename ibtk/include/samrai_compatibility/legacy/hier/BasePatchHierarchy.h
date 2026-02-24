@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_hier_BasePatchHierarchy_h
 #define included_IBTK_samrai_compatibility_legacy_hier_BasePatchHierarchy_h
 
-#include "SAMRAIBasePatchHierarchy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_hier_BasePatchHierarchy_h

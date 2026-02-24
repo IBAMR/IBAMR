@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
@@ -19,35 +19,35 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellIterator.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAICoarsenAlgorithm.h"
-#include "SAMRAICoarsenSchedule.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAISideIterator.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-
 #include <petscsys.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <ibtk/app_namespaces.h>
 

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianSideFloatConservativeLinearRefine_h
 #define included_IBTK_samrai_compatibility_legacy_geom_CartesianSideFloatConservativeLinearRefine_h
 
-#include "SAMRAICartesianSideFloatConservativeLinearRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianSideFloatConservativeLinearRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianSideFloatConservativeLinearRefine_h

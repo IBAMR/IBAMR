@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LIndexSetData.h"
+#include <ibtk/LIndexSetData.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

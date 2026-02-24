@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_solv_KINSOLAbstractFunctions_h
 #define included_IBTK_samrai_compatibility_legacy_solv_KINSOLAbstractFunctions_h
 
-#include "SAMRAIKINSOLAbstractFunctions.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIKINSOLAbstractFunctions.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_solv_KINSOLAbstractFunctions_h

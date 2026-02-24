@@ -20,15 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAICoarsenOperator.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAIRefinePatchStrategy.h"
+#include <SAMRAIBox.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefinePatchStrategy.h>
 
 namespace SAMRAI
 {

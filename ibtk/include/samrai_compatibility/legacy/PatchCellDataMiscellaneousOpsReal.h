@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PatchCellDataMiscellaneousOpsReal_h
 #define included_IBTK_samrai_compatibility_legacy_PatchCellDataMiscellaneousOpsReal_h
 
-#include "SAMRAIPatchCellDataMiscellaneousOpsReal.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchCellDataMiscellaneousOpsReal.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PatchCellDataMiscellaneousOpsReal_h

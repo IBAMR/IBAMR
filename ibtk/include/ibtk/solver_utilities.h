@@ -20,23 +20,23 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAIIndex.h"
+#include <petscksp.h>
+#include <petscsnes.h>
 
-#include "petscksp.h"
-#include "petscsnes.h"
+#include <SAMRAIBox.h>
+#include <SAMRAIIndex.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "HYPRE_sstruct_ls.h"
-#include "HYPRE_sstruct_mv.h"
-#include "HYPRE_struct_ls.h"
-#include "HYPRE_struct_mv.h"
+#include <HYPRE_sstruct_ls.h>
+#include <HYPRE_sstruct_mv.h>
+#include <HYPRE_struct_ls.h>
+#include <HYPRE_struct_mv.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include "SAMRAICellData.h"
-#include "SAMRAISideData.h"
+#include <SAMRAICellData.h>
+#include <SAMRAISideData.h>
 
 #include <array>
 #include <vector>

@@ -11,18 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RestartCleaner.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIMemoryDatabase.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIManager.h"
-
+#include <SAMRAIDatabase.h>
+#include <SAMRAIMemoryDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIManager.h>
 #include <mpi.h>
 
 #include <algorithm>

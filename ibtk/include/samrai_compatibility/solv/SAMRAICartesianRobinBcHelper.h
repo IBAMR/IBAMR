@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/CartesianRobinBcHelper.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/CartesianRobinBcHelper.h")
 #include <SAMRAI/solv/CartesianRobinBcHelper.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CartesianRobinBcHelper 1
 #else

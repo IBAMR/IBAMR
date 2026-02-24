@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/LData.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

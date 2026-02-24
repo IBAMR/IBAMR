@@ -13,45 +13,45 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/SideSynchCopyFillPattern.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "BoxArray.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIBox.h"
-#include "SAMRAIBoxList.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellGeometry.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineClasses.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideGeometry.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIUtilities.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVariableFillPattern.h"
-
-#include "petscao.h"
-#include "petscsys.h"
-#include "petscvec.h"
+#include <petscao.h>
 #include <petsclog.h>
+#include <petscsys.h>
+#include <petscvec.h>
+
+#include <BoxArray.h>
+#include <MultiblockDataTranslator.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineClasses.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <algorithm>
 #include <array>
@@ -60,7 +60,7 @@
 #include <string>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

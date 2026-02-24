@@ -20,13 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
+
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 

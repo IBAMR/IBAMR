@@ -20,14 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/Streamable.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/Streamable.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -210,7 +210,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LNode-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LNode-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -20,15 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralOperator.h"
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/JacobianOperator.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/GeneralOperator.h>
+#include <ibtk/GeneralSolver.h>
+#include <ibtk/JacobianOperator.h>
+#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 namespace IBTK
 {

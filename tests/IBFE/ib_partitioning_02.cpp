@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
@@ -27,15 +27,6 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyDataOpsManager.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/centroid_partitioner.h>
@@ -50,6 +41,14 @@
 
 #include <boost/multi_array.hpp>
 
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitialize.h>
 #include <SAMRAI_config.h>
 #include <mpi.h>
 

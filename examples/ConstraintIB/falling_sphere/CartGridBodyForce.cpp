@@ -12,25 +12,26 @@
 // ---------------------------------------------------------------------
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "CartGridBodyForce.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIUtilities.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
+
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 ////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <SAMRAI_config.h>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBTK
 {

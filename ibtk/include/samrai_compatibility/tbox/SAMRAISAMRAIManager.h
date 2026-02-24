@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAISAMRAIManager
 #define included_IBTK_samrai_compatibility_tbox_SAMRAISAMRAIManager
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/SAMRAIManager.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/SAMRAIManager.h")
 #include <SAMRAI/tbox/SAMRAIManager.h>
 #else
 #include <tbox/SAMRAIManager.h>

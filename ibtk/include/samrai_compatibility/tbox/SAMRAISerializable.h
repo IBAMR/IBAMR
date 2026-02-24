@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAISerializable
 #define included_IBTK_samrai_compatibility_tbox_SAMRAISerializable
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Serializable.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Serializable.h")
 #include <SAMRAI/tbox/Serializable.h>
 #else
 #include <tbox/Serializable.h>

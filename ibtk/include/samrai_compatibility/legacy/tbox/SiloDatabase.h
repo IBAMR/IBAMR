@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabase_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabase_h
 
-#include "SAMRAISiloDatabase.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISiloDatabase.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabase_h

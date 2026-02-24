@@ -20,12 +20,12 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 namespace SAMRAI
 {
@@ -208,7 +208,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/IBAnchorPointSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/IBAnchorPointSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

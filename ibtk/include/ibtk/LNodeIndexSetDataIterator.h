@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LSetDataIterator.h"
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/LSetDataIterator.h>
 
 /////////////////////////////// TYPEDEFS /////////////////////////////////////
 

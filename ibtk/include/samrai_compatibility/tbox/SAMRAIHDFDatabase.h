@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIHDFDatabase
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIHDFDatabase
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/HDFDatabase.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/HDFDatabase.h")
 #include <SAMRAI/tbox/HDFDatabase.h>
 #else
 #include <tbox/HDFDatabase.h>

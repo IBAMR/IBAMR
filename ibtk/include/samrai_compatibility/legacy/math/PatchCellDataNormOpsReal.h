@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchCellDataNormOpsReal_h
 #define included_IBTK_samrai_compatibility_legacy_math_PatchCellDataNormOpsReal_h
 
-#include "SAMRAIPatchCellDataNormOpsReal.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchCellDataNormOpsReal.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchCellDataNormOpsReal_h

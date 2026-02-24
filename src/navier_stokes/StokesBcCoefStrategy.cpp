@@ -13,10 +13,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StokesBcCoefStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/StokesBcCoefStrategy.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBAMR
 {

@@ -21,11 +21,11 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <ibamr/app_namespaces.h>
 

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataAccess_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataAccess_h
 
-#include "SAMRAIArrayDataAccess.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIArrayDataAccess.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_ArrayDataAccess_h

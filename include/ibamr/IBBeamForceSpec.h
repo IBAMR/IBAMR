@@ -20,13 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <utility>
 #include <vector>
@@ -272,7 +272,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/IBBeamForceSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/IBBeamForceSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

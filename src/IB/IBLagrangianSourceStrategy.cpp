@@ -13,14 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBLagrangianSourceStrategy.h"
+#include <ibamr/IBLagrangianSourceStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

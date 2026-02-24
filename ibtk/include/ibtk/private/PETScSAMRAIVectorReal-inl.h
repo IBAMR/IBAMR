@@ -20,14 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
-#include "petsc/private/petscimpl.h" // IWYU pragma: keep
-#include "petsc/private/vecimpl.h"   // IWYU pragma: keep
+#include <petsc/private/petscimpl.h> // IWYU pragma: keep
+#include <petsc/private/vecimpl.h>   // IWYU pragma: keep
+
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

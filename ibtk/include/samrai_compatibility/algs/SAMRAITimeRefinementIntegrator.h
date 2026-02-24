@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/algs/TimeRefinementIntegrator.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/algs/TimeRefinementIntegrator.h")
 #include <SAMRAI/algs/TimeRefinementIntegrator.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_TimeRefinementIntegrator 1
 #else

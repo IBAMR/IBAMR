@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/math/PatchSideDataOpsReal.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/math/PatchSideDataOpsReal.h")
 #include <SAMRAI/math/PatchSideDataOpsReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_PatchSideDataOpsReal 1
 #else

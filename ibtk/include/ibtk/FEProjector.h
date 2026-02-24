@@ -20,21 +20,21 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
+#include <SAMRAIDatabase.h>
 
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FischerGuess.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAITimer.h"
-
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
 #include <libmesh/petsc_matrix.h>
 #include <libmesh/petsc_vector.h>
+
+#include <SAMRAIPointer.h>
+#include <SAMRAITimer.h>
 
 #include <map>
 #include <string>

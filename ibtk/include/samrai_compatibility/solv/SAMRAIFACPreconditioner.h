@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/FACPreconditioner.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/FACPreconditioner.h")
 #include <SAMRAI/solv/FACPreconditioner.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_FACPreconditioner 1
 #else

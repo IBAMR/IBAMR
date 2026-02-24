@@ -18,36 +18,11 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAIBoxList.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIHierarchySideDataOpsReal.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
@@ -59,6 +34,31 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <ibamr/app_namespaces.h>
 

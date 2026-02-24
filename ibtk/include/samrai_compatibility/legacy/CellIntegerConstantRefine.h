@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CellIntegerConstantRefine_h
 #define included_IBTK_samrai_compatibility_legacy_CellIntegerConstantRefine_h
 
-#include "SAMRAICellIntegerConstantRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICellIntegerConstantRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CellIntegerConstantRefine_h

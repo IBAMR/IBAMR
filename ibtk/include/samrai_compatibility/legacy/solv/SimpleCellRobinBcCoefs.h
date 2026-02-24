@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_solv_SimpleCellRobinBcCoefs_h
 #define included_IBTK_samrai_compatibility_legacy_solv_SimpleCellRobinBcCoefs_h
 
-#include "SAMRAISimpleCellRobinBcCoefs.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISimpleCellRobinBcCoefs.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_solv_SimpleCellRobinBcCoefs_h

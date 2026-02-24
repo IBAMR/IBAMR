@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSetDataIterator.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LSetDataIterator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIndex.h"
+#include <SAMRAIIndex.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

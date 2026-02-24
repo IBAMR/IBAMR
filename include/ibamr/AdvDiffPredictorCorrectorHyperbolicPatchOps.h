@@ -20,15 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 

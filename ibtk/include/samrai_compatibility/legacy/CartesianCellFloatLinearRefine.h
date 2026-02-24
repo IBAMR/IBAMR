@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellFloatLinearRefine_h
 #define included_IBTK_samrai_compatibility_legacy_CartesianCellFloatLinearRefine_h
 
-#include "SAMRAICartesianCellFloatLinearRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianCellFloatLinearRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellFloatLinearRefine_h

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_BoxGeneratorStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_BoxGeneratorStrategy_h
 
-#include "SAMRAIBoxGeneratorStrategy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIBoxGeneratorStrategy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_BoxGeneratorStrategy_h

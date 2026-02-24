@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_Database_h
 #define included_IBTK_samrai_compatibility_legacy_Database_h
 
-#include "SAMRAIDatabase.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIDatabase.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_Database_h

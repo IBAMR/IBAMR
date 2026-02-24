@@ -19,15 +19,15 @@
 // SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
-
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 

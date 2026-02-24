@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/math/HierarchyCellDataOpsReal.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/math/HierarchyCellDataOpsReal.h")
 #include <SAMRAI/math/HierarchyCellDataOpsReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_HierarchyCellDataOpsReal 1
 #else

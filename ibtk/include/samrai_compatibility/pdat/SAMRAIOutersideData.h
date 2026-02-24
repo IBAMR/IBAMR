@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/OutersideData.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/OutersideData.h")
 #include <SAMRAI/pdat/OutersideData.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_OutersideData 1
 #else

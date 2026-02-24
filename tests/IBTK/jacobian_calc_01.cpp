@@ -13,10 +13,9 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
-#include "SAMRAIPointer.h"
-
+#include <SAMRAIPointer.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic libMesh objects

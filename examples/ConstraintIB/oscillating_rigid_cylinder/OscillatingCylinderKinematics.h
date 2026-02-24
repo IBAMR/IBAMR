@@ -17,9 +17,9 @@
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 // C++ INCLUDES
 #include <iostream>
@@ -27,10 +27,10 @@
 #include <vector>
 
 // SAMRAI INCLUDES
-#include "SAMRAIArray.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIArray.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
 

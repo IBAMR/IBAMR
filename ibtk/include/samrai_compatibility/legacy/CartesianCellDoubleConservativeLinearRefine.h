@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellDoubleConservativeLinearRefine_h
 #define included_IBTK_samrai_compatibility_legacy_CartesianCellDoubleConservativeLinearRefine_h
 
-#include "SAMRAICartesianCellDoubleConservativeLinearRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianCellDoubleConservativeLinearRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellDoubleConservativeLinearRefine_h

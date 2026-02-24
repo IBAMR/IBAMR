@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/CellDataFactory.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/CellDataFactory.h")
 #include <SAMRAI/pdat/CellDataFactory.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CellDataFactory 1
 #else

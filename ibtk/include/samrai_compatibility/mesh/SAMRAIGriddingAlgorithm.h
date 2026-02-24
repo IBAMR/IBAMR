@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/mesh/GriddingAlgorithm.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/mesh/GriddingAlgorithm.h")
 #include <SAMRAI/mesh/GriddingAlgorithm.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_GriddingAlgorithm 1
 #else

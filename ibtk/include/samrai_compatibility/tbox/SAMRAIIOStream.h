@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIIOStream
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIIOStream
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/IOStream.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/IOStream.h")
 #include <SAMRAI/tbox/IOStream.h>
 #else
 #include <tbox/IOStream.h>

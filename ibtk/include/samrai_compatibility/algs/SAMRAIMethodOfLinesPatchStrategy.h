@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/algs/MethodOfLinesPatchStrategy.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/algs/MethodOfLinesPatchStrategy.h")
 #include <SAMRAI/algs/MethodOfLinesPatchStrategy.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_MethodOfLinesPatchStrategy 1
 #else

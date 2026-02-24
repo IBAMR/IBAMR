@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryUtilityStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_BoundaryUtilityStrategy_h
 
-#include "SAMRAIBoundaryUtilityStrategy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIBoundaryUtilityStrategy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryUtilityStrategy_h

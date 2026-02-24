@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_OuteredgeData_h
 #define included_IBTK_samrai_compatibility_legacy_OuteredgeData_h
 
-#include "SAMRAIOuteredgeData.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIOuteredgeData.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_OuteredgeData_h

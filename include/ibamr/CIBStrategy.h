@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ibtk_utilities.h>
 
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscmat.h>
+#include <petscvec.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Core>

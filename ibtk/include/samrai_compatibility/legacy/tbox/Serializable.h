@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Serializable_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_Serializable_h
 
-#include "SAMRAISerializable.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISerializable.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Serializable_h

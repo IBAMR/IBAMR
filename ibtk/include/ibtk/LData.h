@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISerializable.h"
+#include <petscvec.h>
 
-#include "petscvec.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -373,7 +373,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LData-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LData-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

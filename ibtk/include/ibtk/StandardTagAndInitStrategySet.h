@@ -20,15 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAIBasePatchLevel.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIStandardTagAndInitStrategy.h"
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitStrategy.h>
 
 #include <ostream>
 #include <string>

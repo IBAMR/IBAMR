@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_ArrayDataMiscellaneousOpsReal_h
 #define included_IBTK_samrai_compatibility_legacy_ArrayDataMiscellaneousOpsReal_h
 
-#include "SAMRAIArrayDataMiscellaneousOpsReal.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIArrayDataMiscellaneousOpsReal.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_ArrayDataMiscellaneousOpsReal_h

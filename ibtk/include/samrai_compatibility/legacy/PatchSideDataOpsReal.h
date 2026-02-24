@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PatchSideDataOpsReal_h
 #define included_IBTK_samrai_compatibility_legacy_PatchSideDataOpsReal_h
 
-#include "SAMRAIPatchSideDataOpsReal.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchSideDataOpsReal.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PatchSideDataOpsReal_h

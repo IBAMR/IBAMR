@@ -13,55 +13,55 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StaggeredStokesPETScMatUtilities.h"
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/SideSynchCopyFillPattern.h>
+#include <ibtk/compiler_hints.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "BoxArray.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIArray.h"
-#include "SAMRAIArrayData.h"
-#include "SAMRAIBoundaryBox.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellGeometry.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICoarseFineBoundary.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIMathUtilities.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchGeometry.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIPoissonSpecifications.h"
-#include "SAMRAIProcessorMapping.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideGeometry.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIUtilities.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVariableFillPattern.h"
-
-#include "petscmat.h"
 #include <petsclog.h>
+#include <petscmat.h>
+
+#include <BoxArray.h>
+#include <MultiblockDataTranslator.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIProcessorMapping.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <algorithm>
 #include <array>
@@ -70,7 +70,7 @@
 #include <set>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

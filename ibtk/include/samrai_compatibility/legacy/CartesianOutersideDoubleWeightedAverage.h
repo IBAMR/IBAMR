@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CartesianOutersideDoubleWeightedAverage_h
 #define included_IBTK_samrai_compatibility_legacy_CartesianOutersideDoubleWeightedAverage_h
 
-#include "SAMRAICartesianOutersideDoubleWeightedAverage.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianOutersideDoubleWeightedAverage.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CartesianOutersideDoubleWeightedAverage_h

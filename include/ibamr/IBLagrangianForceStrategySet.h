@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <petscmat.h>
 
-#include "petscmat.h"
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 

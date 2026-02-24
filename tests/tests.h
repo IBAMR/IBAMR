@@ -16,7 +16,7 @@
 #ifndef included_ibamr_tests_h
 #define included_ibamr_tests_h
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/config.h>
 
@@ -26,28 +26,28 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianCellDoubleLinearRefine.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAILogger.h"
-#include "SAMRAIMemoryDatabase.h"
-#include "SAMRAIPIO.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAI_MPI.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIStandardTagAndInitStrategy.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableContext.h"
-#include "SAMRAIVariableDatabase.h"
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianCellDoubleLinearRefine.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAILogger.h>
+#include <SAMRAIMemoryDatabase.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAI_MPI.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS

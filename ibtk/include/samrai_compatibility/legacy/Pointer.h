@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_Pointer_h
 #define included_IBTK_samrai_compatibility_legacy_Pointer_h
 
-#include "SAMRAIPointer.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPointer.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_Pointer_h

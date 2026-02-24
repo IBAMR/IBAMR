@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearOperator.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LinearOperator.h>
+#include <ibtk/LinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 namespace IBTK
 {

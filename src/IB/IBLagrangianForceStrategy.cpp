@@ -13,20 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIUtilities.h"
+#include <petscmat.h>
 
-#include "petscmat.h"
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <ostream>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

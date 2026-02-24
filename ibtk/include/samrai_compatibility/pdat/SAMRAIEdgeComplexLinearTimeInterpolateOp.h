@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/EdgeComplexLinearTimeInterpolateOp.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/EdgeComplexLinearTimeInterpolateOp.h")
 #include <SAMRAI/pdat/EdgeComplexLinearTimeInterpolateOp.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_EdgeComplexLinearTimeInterpolateOp 1
 #else

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/mesh/BergerRigoutsos.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/mesh/BergerRigoutsos.h")
 #include <SAMRAI/mesh/BergerRigoutsos.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_BergerRigoutsos 1
 #else

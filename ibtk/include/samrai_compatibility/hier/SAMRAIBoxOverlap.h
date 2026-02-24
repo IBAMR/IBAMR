@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/BoxOverlap.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/BoxOverlap.h")
 #include <SAMRAI/hier/BoxOverlap.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_BoxOverlap 1
 #else

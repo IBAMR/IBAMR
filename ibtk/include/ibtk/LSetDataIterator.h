@@ -20,15 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSet.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LSet.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAICellGeometry.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIIndexData.h"
-#include "SAMRAIIndexIterator.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIndexData.h>
+#include <SAMRAIIndexIterator.h>
 
 namespace SAMRAI
 {
@@ -136,7 +137,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LSetDataIterator-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LSetDataIterator-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

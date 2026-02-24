@@ -18,16 +18,16 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/FEMechanicsBase.h"
+#include <ibamr/FEMechanicsBase.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
+#include <libmesh/libmesh_common.h>
+#include <libmesh/numeric_vector.h>
+#include <libmesh/petsc_vector.h>
 
-#include "libmesh/libmesh_common.h"
-#include "libmesh/numeric_vector.h"
-#include "libmesh/petsc_vector.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

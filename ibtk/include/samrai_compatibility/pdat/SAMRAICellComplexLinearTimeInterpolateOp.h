@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/CellComplexLinearTimeInterpolateOp.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/CellComplexLinearTimeInterpolateOp.h")
 #include <SAMRAI/pdat/CellComplexLinearTimeInterpolateOp.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CellComplexLinearTimeInterpolateOp 1
 #else

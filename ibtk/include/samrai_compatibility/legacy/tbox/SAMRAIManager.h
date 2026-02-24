@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SAMRAIManager_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_SAMRAIManager_h
 
-#include "SAMRAISAMRAIManager.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISAMRAIManager.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SAMRAIManager_h

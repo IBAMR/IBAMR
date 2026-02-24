@@ -22,14 +22,14 @@
 
 #include <ibamr/IBHierarchyIntegrator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/MarkerPatchHierarchy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 

@@ -13,11 +13,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/MobilityFunctions.h"
+#include <ibamr/MobilityFunctions.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIUtilities.h"
+#include <SAMRAIUtilities.h>
 
 #include <cmath>
 #include <cstdlib>

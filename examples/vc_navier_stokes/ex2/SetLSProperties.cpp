@@ -13,12 +13,13 @@
 
 // APPLICATION INCLUDES
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIPointer.h"
 #include "SetLSProperties.h"
+
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPointer.h>
 
 #include <ibamr/app_namespaces.h>
 

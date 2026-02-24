@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_Index_h
 #define included_IBTK_samrai_compatibility_legacy_Index_h
 
-#include "SAMRAIIndex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIIndex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_Index_h

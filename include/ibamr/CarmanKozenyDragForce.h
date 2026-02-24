@@ -20,13 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/BrinkmanPenalizationStrategy.h"
+#include <ibamr/BrinkmanPenalizationStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICellVariable.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

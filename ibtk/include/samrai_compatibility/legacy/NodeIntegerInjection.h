@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_NodeIntegerInjection_h
 #define included_IBTK_samrai_compatibility_legacy_NodeIntegerInjection_h
 
-#include "SAMRAINodeIntegerInjection.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAINodeIntegerInjection.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_NodeIntegerInjection_h

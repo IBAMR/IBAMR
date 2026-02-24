@@ -11,15 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
-#include "ibamr/CFGiesekusStrategy.h"
-#include "ibamr/CFOldroydBStrategy.h"
-#include "ibamr/CFRoliePolyStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/CFGiesekusStrategy.h>
+#include <ibamr/CFOldroydBStrategy.h>
+#include <ibamr/CFRoliePolyStrategy.h>
 #include <ibamr/CFUpperConvectiveOperator.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/muParserCartGridFunction.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
@@ -27,31 +26,31 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
-#include "SAMRAIArray.h"
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIFaceVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAISAMRAIVectorReal.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
 
 #include <petscsys.h>
 
+#include <SAMRAIArray.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
 #include <SAMRAI_config.h>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // Dummy CF Strategy class that does nothing
 class DummyCFStrategy : public CFStrategy

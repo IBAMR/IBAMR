@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_mesh_StandardTagAndInitStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_mesh_StandardTagAndInitStrategy_h
 
-#include "SAMRAIStandardTagAndInitStrategy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIStandardTagAndInitStrategy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_mesh_StandardTagAndInitStrategy_h

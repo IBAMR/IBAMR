@@ -13,17 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FirstOrderStokesWaveGenerator.h"
+#include <ibamr/FirstOrderStokesWaveGenerator.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <cmath>
 #include <limits>
 
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 namespace IBAMR
 {

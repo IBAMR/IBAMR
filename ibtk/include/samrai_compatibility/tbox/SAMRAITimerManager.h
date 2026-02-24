@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAITimerManager
 #define included_IBTK_samrai_compatibility_tbox_SAMRAITimerManager
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/TimerManager.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/TimerManager.h")
 #include <SAMRAI/tbox/TimerManager.h>
 #else
 #include <tbox/TimerManager.h>

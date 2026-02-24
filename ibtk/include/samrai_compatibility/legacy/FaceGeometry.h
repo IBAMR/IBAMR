@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_FaceGeometry_h
 #define included_IBTK_samrai_compatibility_legacy_FaceGeometry_h
 
-#include "SAMRAIFaceGeometry.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIFaceGeometry.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_FaceGeometry_h

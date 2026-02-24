@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_NodeComplexInjection_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_NodeComplexInjection_h
 
-#include "SAMRAINodeComplexInjection.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAINodeComplexInjection.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_NodeComplexInjection_h

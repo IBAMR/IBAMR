@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_solv_SAMRAIKINSOLSolver
 #define included_IBTK_samrai_compatibility_solv_SAMRAIKINSOLSolver
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/KINSOLSolver.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/KINSOLSolver.h")
 #include <SAMRAI/solv/KINSOLSolver.h>
 #else
 #include <KINSOLSolver.h>

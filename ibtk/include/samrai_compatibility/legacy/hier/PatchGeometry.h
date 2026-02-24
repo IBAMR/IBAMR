@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_hier_PatchGeometry_h
 #define included_IBTK_samrai_compatibility_legacy_hier_PatchGeometry_h
 
-#include "SAMRAIPatchGeometry.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchGeometry.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_hier_PatchGeometry_h

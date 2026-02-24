@@ -12,18 +12,19 @@
 // ---------------------------------------------------------------------
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
 #include "SetFluidSolidViscosity.h"
+
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 

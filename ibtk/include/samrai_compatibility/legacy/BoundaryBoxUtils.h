@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryBoxUtils_h
 #define included_IBTK_samrai_compatibility_legacy_BoundaryBoxUtils_h
 
-#include "SAMRAIBoundaryBoxUtils.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIBoundaryBoxUtils.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryBoxUtils_h

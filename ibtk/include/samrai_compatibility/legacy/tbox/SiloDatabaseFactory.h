@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabaseFactory_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabaseFactory_h
 
-#include "SAMRAISiloDatabaseFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISiloDatabaseFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_SiloDatabaseFactory_h

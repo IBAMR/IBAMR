@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/SideDataFactory.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/SideDataFactory.h")
 #include <SAMRAI/pdat/SideDataFactory.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_SideDataFactory 1
 #else

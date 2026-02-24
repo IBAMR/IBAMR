@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/NonlinearSolverStrategy.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/NonlinearSolverStrategy.h")
 #include <SAMRAI/solv/NonlinearSolverStrategy.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_NonlinearSolverStrategy 1
 #else

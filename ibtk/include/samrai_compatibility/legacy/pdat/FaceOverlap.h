@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_FaceOverlap_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_FaceOverlap_h
 
-#include "SAMRAIFaceOverlap.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIFaceOverlap.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_FaceOverlap_h

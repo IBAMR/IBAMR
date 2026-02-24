@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/OuterfaceComplexConstantRefine.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/OuterfaceComplexConstantRefine.h")
 #include <SAMRAI/pdat/OuterfaceComplexConstantRefine.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_OuterfaceComplexConstantRefine 1
 #else

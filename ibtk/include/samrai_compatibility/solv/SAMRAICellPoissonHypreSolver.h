@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/CellPoissonHypreSolver.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/CellPoissonHypreSolver.h")
 #include <SAMRAI/solv/CellPoissonHypreSolver.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CellPoissonHypreSolver 1
 #else

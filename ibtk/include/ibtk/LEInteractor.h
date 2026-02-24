@@ -20,20 +20,20 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
-
-#include "SAMRAIArray.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICellData.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIEdgeData.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAINodeData.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <Eigen/Core>
+
+#include <SAMRAIArray.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIEdgeData.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
 
 #include <array>
 #include <string>

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/Box.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/Box.h")
 #include <SAMRAI/hier/Box.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_BOX 1
 #else

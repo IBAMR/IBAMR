@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_DatabaseFactory_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_DatabaseFactory_h
 
-#include "SAMRAIDatabaseFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIDatabaseFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_DatabaseFactory_h

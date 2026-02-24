@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_algs_TimeRefinementIntegrator_h
 #define included_IBTK_samrai_compatibility_legacy_algs_TimeRefinementIntegrator_h
 
-#include "SAMRAITimeRefinementIntegrator.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAITimeRefinementIntegrator.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_algs_TimeRefinementIntegrator_h

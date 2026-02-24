@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianCellComplexLinearRefine_h
 #define included_IBTK_samrai_compatibility_legacy_geom_CartesianCellComplexLinearRefine_h
 
-#include "SAMRAICartesianCellComplexLinearRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianCellComplexLinearRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianCellComplexLinearRefine_h

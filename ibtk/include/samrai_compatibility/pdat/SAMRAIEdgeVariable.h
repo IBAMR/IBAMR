@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/EdgeVariable.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/EdgeVariable.h")
 #include <SAMRAI/pdat/EdgeVariable.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_EdgeVariable 1
 #else

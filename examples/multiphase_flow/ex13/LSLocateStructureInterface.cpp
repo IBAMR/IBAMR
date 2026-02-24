@@ -12,21 +12,22 @@
 // ---------------------------------------------------------------------
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "LSLocateStructureInterface.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
+
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
 
 #include <ibamr/app_namespaces.h>
 

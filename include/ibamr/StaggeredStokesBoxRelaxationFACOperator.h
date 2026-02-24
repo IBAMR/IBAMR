@@ -20,18 +20,18 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBoxList.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <petscksp.h>
+#include <petscmat.h>
+#include <petscvec.h>
 
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscvec.h"
+#include <SAMRAIBoxList.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <array>
 #include <string>

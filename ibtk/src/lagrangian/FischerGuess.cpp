@@ -13,13 +13,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/FischerGuess.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include "SAMRAITimerManager.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <Eigen/Dense>
+
+#include <SAMRAITimerManager.h>
 
 #include <ibtk/app_namespaces.h>
 

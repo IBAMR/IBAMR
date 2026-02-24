@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/compiler_hints.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/compiler_hints.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIUtilities.h"
+#include <SAMRAIUtilities.h>
 
 #include <ostream>
 

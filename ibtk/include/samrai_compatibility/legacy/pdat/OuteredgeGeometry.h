@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuteredgeGeometry_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_OuteredgeGeometry_h
 
-#include "SAMRAIOuteredgeGeometry.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIOuteredgeGeometry.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuteredgeGeometry_h

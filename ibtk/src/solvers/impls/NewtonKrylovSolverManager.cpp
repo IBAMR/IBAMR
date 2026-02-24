@@ -13,23 +13,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/NewtonKrylovSolverManager.h"
-#include "ibtk/PETScNewtonKrylovSolver.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/NewtonKrylovSolver.h>
+#include <ibtk/NewtonKrylovSolverManager.h>
+#include <ibtk/PETScNewtonKrylovSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPIO.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIUtilities.h"
-#include "tbox/ShutdownRegistry.h"
+#include <tbox/ShutdownRegistry.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

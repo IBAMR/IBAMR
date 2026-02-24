@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CartesianFaceFloatWeightedAverage_h
 #define included_IBTK_samrai_compatibility_legacy_CartesianFaceFloatWeightedAverage_h
 
-#include "SAMRAICartesianFaceFloatWeightedAverage.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianFaceFloatWeightedAverage.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CartesianFaceFloatWeightedAverage_h

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_InputManager_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_InputManager_h
 
-#include "SAMRAIInputManager.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIInputManager.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_InputManager_h

@@ -20,16 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralOperator.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/GeneralOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <petscsnes.h>
+#include <petscsys.h>
+#include <petscvec.h>
 
-#include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 

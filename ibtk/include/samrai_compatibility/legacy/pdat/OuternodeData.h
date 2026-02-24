@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuternodeData_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_OuternodeData_h
 
-#include "SAMRAIOuternodeData.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIOuternodeData.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuternodeData_h

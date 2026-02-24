@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/geom/CartesianGridGeometry.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/geom/CartesianGridGeometry.h")
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CartesianGridGeometry 1
 #else

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_EdgeFloatConstantRefine_h
 #define included_IBTK_samrai_compatibility_legacy_EdgeFloatConstantRefine_h
 
-#include "SAMRAIEdgeFloatConstantRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIEdgeFloatConstantRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_EdgeFloatConstantRefine_h

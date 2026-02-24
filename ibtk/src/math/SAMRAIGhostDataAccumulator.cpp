@@ -13,31 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include "SAMRAIArrayData.h"
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellDataFactory.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchData.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideDataFactory.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIUtilities.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableContext.h"
-#include "SAMRAIVariableDatabase.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscis.h>
 #include <petscistypes.h>
@@ -45,6 +26,24 @@
 #include <petscvec.h>
 
 #include <MultiblockDataTranslator.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellDataFactory.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideDataFactory.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <algorithm>
 #include <numeric>

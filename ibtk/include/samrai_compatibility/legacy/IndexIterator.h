@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_IndexIterator_h
 #define included_IBTK_samrai_compatibility_legacy_IndexIterator_h
 
-#include "SAMRAIIndexIterator.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIIndexIterator.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_IndexIterator_h

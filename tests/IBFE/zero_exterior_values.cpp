@@ -13,14 +13,14 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAIArray.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAIIntVector.h"
+#include <SAMRAIArray.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIIntVector.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/FEDataManager.h>

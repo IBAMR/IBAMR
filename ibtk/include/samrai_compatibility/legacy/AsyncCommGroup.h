@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_AsyncCommGroup_h
 #define included_IBTK_samrai_compatibility_legacy_AsyncCommGroup_h
 
-#include "SAMRAIAsyncCommGroup.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIAsyncCommGroup.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_AsyncCommGroup_h

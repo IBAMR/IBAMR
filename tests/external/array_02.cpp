@@ -14,11 +14,11 @@
 // Test that SAMRAI::tbox::Array works as expected. This verifies that the new
 // pool-based implementation in IBSAMRAI2 is correct.
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/IBTKInit.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 // SAMRAI INCLUDES
-#include "SAMRAIArray.h"
+#include <SAMRAIArray.h>
 
 #include <fstream>
 #include <string>

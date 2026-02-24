@@ -20,11 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAIPatchHierarchy.h"
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
 
 #include <utility>
 #include <vector>
@@ -140,7 +140,7 @@ protected:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/PartitioningBox-inl.h" // IWYU pragma: keep
+#include <ibtk/private/PartitioningBox-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

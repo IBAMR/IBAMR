@@ -20,17 +20,17 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/JacobianOperator.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/JacobianOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <petscmat.h>
+#include <petscsnes.h>
+#include <petscsys.h>
+#include <petscvec.h>
 
-#include "petscmat.h"
-#include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 

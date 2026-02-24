@@ -13,19 +13,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FEProjector.h>
-
-#include "SAMRAIPointer.h"
-#include "SAMRAITimer.h"
-#include "SAMRAITimerManager.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
 #include <libmesh/elem.h>
 #include <libmesh/enum_preconditioner_type.h>
 #include <libmesh/enum_solver_type.h>
+
+#include <SAMRAIPointer.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 

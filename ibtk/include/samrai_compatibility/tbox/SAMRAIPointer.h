@@ -14,12 +14,12 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIPointer
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIPointer
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Pointer.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Pointer.h")
 #include <SAMRAI/tbox/Pointer.h>
 #define IBTK_SAMRAI_COMPAT_HAS_LEGACY_POINTER 1
-#elif IBTK_SAMRAI_HAS_INCLUDE(<tbox/Pointer.h>)
+#elif IBTK_SAMRAI_HAS_INCLUDE("tbox/Pointer.h")
 #include <tbox/Pointer.h>
 #define IBTK_SAMRAI_COMPAT_HAS_LEGACY_POINTER 1
 #else

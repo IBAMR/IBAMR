@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/BoundaryBox.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/BoundaryBox.h")
 #include <SAMRAI/hier/BoundaryBox.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_BoundaryBox 1
 #else

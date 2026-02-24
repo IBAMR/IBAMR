@@ -14,7 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_appu_CartesianBoundaryUtilities3_h
 #define included_IBTK_samrai_compatibility_legacy_appu_CartesianBoundaryUtilities3_h
 
-#include "SAMRAICartesianBoundaryUtilities3.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <SAMRAICartesianBoundaryUtilities3.h>
+#include <samrai_compatibility/samrai_compatibility_environment.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_appu_CartesianBoundaryUtilities3_h

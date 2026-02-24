@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Statistic_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_Statistic_h
 
-#include "SAMRAIStatistic.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIStatistic.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Statistic_h

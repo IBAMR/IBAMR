@@ -454,7 +454,20 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/config -I${top_builddir}/ibtk/config
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/algs \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/appu \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/geom \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/hier \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/math \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/mesh \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/pdat \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/solv \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/tbox \
+	-I${top_srcdir}/ibtk/include/samrai_compatibility/xfer \
+	-I${top_builddir}/config -I${top_builddir}/ibtk/config
+
 AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/ibtk/lib
 IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
 IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a

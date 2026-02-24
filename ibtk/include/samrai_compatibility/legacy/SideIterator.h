@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_SideIterator_h
 #define included_IBTK_samrai_compatibility_legacy_SideIterator_h
 
-#include "SAMRAISideIterator.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISideIterator.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_SideIterator_h

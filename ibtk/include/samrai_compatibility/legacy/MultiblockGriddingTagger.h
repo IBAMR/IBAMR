@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_MultiblockGriddingTagger_h
 #define included_IBTK_samrai_compatibility_legacy_MultiblockGriddingTagger_h
 
-#include "SAMRAIMultiblockGriddingTagger.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIMultiblockGriddingTagger.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_MultiblockGriddingTagger_h

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/NodeVariable.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/NodeVariable.h")
 #include <SAMRAI/pdat/NodeVariable.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_NodeVariable 1
 #else

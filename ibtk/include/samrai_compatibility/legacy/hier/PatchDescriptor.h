@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_hier_PatchDescriptor_h
 #define included_IBTK_samrai_compatibility_legacy_hier_PatchDescriptor_h
 
-#include "SAMRAIPatchDescriptor.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchDescriptor.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_hier_PatchDescriptor_h

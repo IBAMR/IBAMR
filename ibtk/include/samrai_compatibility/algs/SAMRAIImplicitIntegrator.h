@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/algs/ImplicitIntegrator.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/algs/ImplicitIntegrator.h")
 #include <SAMRAI/algs/ImplicitIntegrator.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_ImplicitIntegrator 1
 #else

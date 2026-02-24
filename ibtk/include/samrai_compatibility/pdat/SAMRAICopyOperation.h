@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/CopyOperation.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/CopyOperation.h")
 #include <SAMRAI/pdat/CopyOperation.h>
 #else
 #include <CopyOperation.h>

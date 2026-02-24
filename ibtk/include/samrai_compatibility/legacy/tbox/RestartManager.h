@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_RestartManager_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_RestartManager_h
 
-#include "SAMRAIRestartManager.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIRestartManager.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_RestartManager_h

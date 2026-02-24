@@ -20,16 +20,17 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBRodForceSpec.h"
+#include <ibamr/IBRodForceSpec.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <array>
 #include <vector>

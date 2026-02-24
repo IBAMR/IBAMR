@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIParser
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIParser
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Parser.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Parser.h")
 #include <SAMRAI/tbox/Parser.h>
 #else
 #include <tbox/Parser.h>

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/geom/GridGeometry.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/geom/GridGeometry.h")
 #include <SAMRAI/geom/GridGeometry.h>
 #define IBTK_SAMRAI_COMPAT_GRID_GEOM_IN_GEOM_NS 1
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_GridGeometry 1

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_Transaction_h
 #define included_IBTK_samrai_compatibility_legacy_Transaction_h
 
-#include "SAMRAITransaction.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAITransaction.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_Transaction_h

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/FaceDoubleLinearTimeInterpolateOp.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/FaceDoubleLinearTimeInterpolateOp.h")
 #include <SAMRAI/pdat/FaceDoubleLinearTimeInterpolateOp.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_FaceDoubleLinearTimeInterpolateOp 1
 #else

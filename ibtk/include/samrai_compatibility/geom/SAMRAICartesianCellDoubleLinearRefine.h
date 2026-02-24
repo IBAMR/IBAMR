@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/geom/CartesianCellDoubleLinearRefine.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/geom/CartesianCellDoubleLinearRefine.h")
 #include <SAMRAI/geom/CartesianCellDoubleLinearRefine.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CartesianCellDoubleLinearRefine 1
 #else

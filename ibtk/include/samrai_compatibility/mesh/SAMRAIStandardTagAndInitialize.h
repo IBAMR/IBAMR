@@ -16,7 +16,7 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
 // SAMRAI may provide helper functions in headers/sources that are intentionally
 // unused in some build configurations.
@@ -28,7 +28,7 @@
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/mesh/StandardTagAndInitialize.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/mesh/StandardTagAndInitialize.h")
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_StandardTagAndInitialize 1
 #else

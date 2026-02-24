@@ -20,15 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIDatabase.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -269,7 +270,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LSet-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LSet-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

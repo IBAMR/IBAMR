@@ -13,7 +13,7 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
@@ -21,29 +21,29 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAICoarsenAlgorithm.h"
-#include "SAMRAICoarsenOperator.h"
-#include "SAMRAICoarsenSchedule.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIHierarchySideDataOpsReal.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
-#include "SAMRAISAMRAIVectorReal.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBImplicitStaggeredHierarchyIntegrator.h>

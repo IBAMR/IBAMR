@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_solv_SAMRAISundialsAbstractVector
 #define included_IBTK_samrai_compatibility_solv_SAMRAISundialsAbstractVector
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/SundialsAbstractVector.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/SundialsAbstractVector.h")
 #include <SAMRAI/solv/SundialsAbstractVector.h>
 #else
 #include <SundialsAbstractVector.h>

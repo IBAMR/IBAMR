@@ -13,7 +13,7 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
@@ -21,30 +21,30 @@
 #include <petscsys.h>
 
 // Headers for main SAMRAI objects
-#include "ibtk/muParserCartGridFunction.h"
+#include <ibtk/muParserCartGridFunction.h>
 
-#include "SAMRAIArray.h"
-#include "SAMRAIBergerRigoutsos.h"
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellIterator.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIGriddingAlgorithm.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIStandardTagAndInitialize.h"
-#include "SAMRAIVariableDatabase.h"
+#include <SAMRAIArray.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFGiesekusStrategy.h"
-#include "ibamr/CFOldroydBStrategy.h"
-#include "ibamr/CFRoliePolyStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/CFGiesekusStrategy.h>
+#include <ibamr/CFOldroydBStrategy.h>
+#include <ibamr/CFRoliePolyStrategy.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -55,7 +55,7 @@
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>

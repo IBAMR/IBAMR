@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchSideDataNormOpsComplex_h
 #define included_IBTK_samrai_compatibility_legacy_math_PatchSideDataNormOpsComplex_h
 
-#include "SAMRAIPatchSideDataNormOpsComplex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchSideDataNormOpsComplex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_math_PatchSideDataNormOpsComplex_h

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/geom/CartesianSideDoubleConservativeLinearRefine.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/geom/CartesianSideDoubleConservativeLinearRefine.h")
 #include <SAMRAI/geom/CartesianSideDoubleConservativeLinearRefine.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CartesianSideDoubleConservativeLinearRefine 1
 #else

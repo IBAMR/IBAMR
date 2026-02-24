@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/xfer/StandardCoarsenTransactionFactory.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/xfer/StandardCoarsenTransactionFactory.h")
 #include <SAMRAI/xfer/StandardCoarsenTransactionFactory.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_StandardCoarsenTransactionFactory 1
 #else

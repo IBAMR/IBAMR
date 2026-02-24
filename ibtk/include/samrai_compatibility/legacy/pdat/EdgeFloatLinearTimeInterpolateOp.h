@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_EdgeFloatLinearTimeInterpolateOp_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_EdgeFloatLinearTimeInterpolateOp_h
 
-#include "SAMRAIEdgeFloatLinearTimeInterpolateOp.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIEdgeFloatLinearTimeInterpolateOp.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_EdgeFloatLinearTimeInterpolateOp_h

@@ -13,11 +13,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/JacobianOperator.h"
+#include <ibtk/JacobianOperator.h>
 
 #include <utility>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

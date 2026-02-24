@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/math/ArrayDataNormOpsReal.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/math/ArrayDataNormOpsReal.h")
 #include <SAMRAI/math/ArrayDataNormOpsReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_ArrayDataNormOpsReal 1
 #else

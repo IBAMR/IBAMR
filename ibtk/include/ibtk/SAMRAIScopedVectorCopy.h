@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIPointer.h"
-#include "SAMRAISAMRAIVectorReal.h"
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,7 +54,7 @@ public:
 };
 } // namespace IBTK
 
-#include "ibtk/private/SAMRAIScopedVectorCopy-inl.h"
+#include <ibtk/private/SAMRAIScopedVectorCopy-inl.h>
 
 //////////////////////////////////////////////////////////////////////////////
 

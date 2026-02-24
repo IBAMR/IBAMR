@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_SideOverlap_h
 #define included_IBTK_samrai_compatibility_legacy_SideOverlap_h
 
-#include "SAMRAISideOverlap.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAISideOverlap.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_SideOverlap_h

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/CellIterator.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/CellIterator.h")
 #include <SAMRAI/pdat/CellIterator.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CellIterator 1
 #else

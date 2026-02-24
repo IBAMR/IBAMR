@@ -18,15 +18,16 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "SAMRAIBasePatchHierarchy.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
 #include <tbox/DescribedClass.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 

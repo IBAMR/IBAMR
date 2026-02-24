@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_MemoryDatabase_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_MemoryDatabase_h
 
-#include "SAMRAIMemoryDatabase.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIMemoryDatabase.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_MemoryDatabase_h

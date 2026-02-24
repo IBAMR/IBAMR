@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAISAMRAI_MPI
 #define included_IBTK_samrai_compatibility_tbox_SAMRAISAMRAI_MPI
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/SAMRAI_MPI.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/SAMRAI_MPI.h")
 #include <SAMRAI/tbox/SAMRAI_MPI.h>
 #else
 #include <tbox/SAMRAI_MPI.h>

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_algs_OuternodeSumTransactionFactory_h
 #define included_IBTK_samrai_compatibility_legacy_algs_OuternodeSumTransactionFactory_h
 
-#include "SAMRAIOuternodeSumTransactionFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIOuternodeSumTransactionFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_algs_OuternodeSumTransactionFactory_h

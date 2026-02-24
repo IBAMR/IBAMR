@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/NodeDoubleInjection.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/NodeDoubleInjection.h")
 #include <SAMRAI/pdat/NodeDoubleInjection.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_NodeDoubleInjection 1
 #else

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellFloatWeightedAverage_h
 #define included_IBTK_samrai_compatibility_legacy_CartesianCellFloatWeightedAverage_h
 
-#include "SAMRAICartesianCellFloatWeightedAverage.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICartesianCellFloatWeightedAverage.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_CartesianCellFloatWeightedAverage_h

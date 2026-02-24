@@ -11,13 +11,11 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
-
-#include "SAMRAIPointer.h"
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
@@ -25,6 +23,7 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 
+#include <SAMRAIPointer.h>
 #include <SAMRAI_config.h>
 
 #include <ibamr/app_namespaces.h>

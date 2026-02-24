@@ -20,22 +20,22 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/PETScLevelSolver.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICellVariable.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineSchedule.h"
-#include "SAMRAISAMRAIVectorReal.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIVariableContext.h"
+#include <petscvec.h>
 
-#include "petscvec.h"
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariableContext.h>
 
 #include <set>
 #include <string>

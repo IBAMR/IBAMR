@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_CellDoubleConstantRefine_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_CellDoubleConstantRefine_h
 
-#include "SAMRAICellDoubleConstantRefine.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICellDoubleConstantRefine.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_CellDoubleConstantRefine_h

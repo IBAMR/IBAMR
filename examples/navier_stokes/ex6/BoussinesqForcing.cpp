@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "BoussinesqForcing.h"
 
@@ -20,19 +20,19 @@
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include "SAMRAIBox.h"
-#include "SAMRAICellData.h"
-#include "SAMRAIHierarchyDataOpsManager.h"
-#include "SAMRAIHierarchyDataOpsReal.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideGeometry.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAIVariable.h"
-#include "SAMRAIVariableDatabase.h"
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

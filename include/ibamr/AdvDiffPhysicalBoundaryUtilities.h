@@ -20,13 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAICellData.h"
-#include "SAMRAIFaceData.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRobinBcCoefStrategy.h"
+#include <SAMRAICellData.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 

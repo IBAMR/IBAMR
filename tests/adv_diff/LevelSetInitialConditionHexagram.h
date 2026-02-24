@@ -17,15 +17,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 

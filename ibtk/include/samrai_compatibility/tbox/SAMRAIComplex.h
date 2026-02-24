@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIComplex
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIComplex
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/Complex.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/Complex.h")
 #include <SAMRAI/tbox/Complex.h>
 #else
 #include <tbox/Complex.h>

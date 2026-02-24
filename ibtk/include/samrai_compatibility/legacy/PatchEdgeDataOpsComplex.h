@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PatchEdgeDataOpsComplex_h
 #define included_IBTK_samrai_compatibility_legacy_PatchEdgeDataOpsComplex_h
 
-#include "SAMRAIPatchEdgeDataOpsComplex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIPatchEdgeDataOpsComplex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PatchEdgeDataOpsComplex_h

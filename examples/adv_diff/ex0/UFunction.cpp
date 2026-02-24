@@ -12,20 +12,21 @@
 // ---------------------------------------------------------------------
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAIFaceData.h"
-#include "SAMRAIFaceIndex.h"
-#include "SAMRAIFaceIterator.h"
-#include "SAMRAIGridGeometry.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIVariable.h"
 #include "UFunction.h"
+
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceIndex.h>
+#include <SAMRAIFaceIterator.h>
+#include <SAMRAIGridGeometry.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 

@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_hier_SAMRAIVariableContext
 #define included_IBTK_samrai_compatibility_hier_SAMRAIVariableContext
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/VariableContext.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/VariableContext.h")
 #include <SAMRAI/hier/VariableContext.h>
 #else
 #include <VariableContext.h>

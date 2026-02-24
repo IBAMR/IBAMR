@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAIRestartManager
 #define included_IBTK_samrai_compatibility_tbox_SAMRAIRestartManager
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/RestartManager.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/RestartManager.h")
 #include <SAMRAI/tbox/RestartManager.h>
 #else
 #include <tbox/RestartManager.h>

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/SideOverlap.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/SideOverlap.h")
 #include <SAMRAI/pdat/SideOverlap.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_SideOverlap 1
 #else

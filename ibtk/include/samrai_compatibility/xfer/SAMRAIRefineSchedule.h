@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/xfer/RefineSchedule.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/xfer/RefineSchedule.h")
 #include <SAMRAI/xfer/RefineSchedule.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_RefineSchedule 1
 #else

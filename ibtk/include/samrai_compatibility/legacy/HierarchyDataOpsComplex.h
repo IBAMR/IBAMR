@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_HierarchyDataOpsComplex_h
 #define included_IBTK_samrai_compatibility_legacy_HierarchyDataOpsComplex_h
 
-#include "SAMRAIHierarchyDataOpsComplex.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIHierarchyDataOpsComplex.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_HierarchyDataOpsComplex_h

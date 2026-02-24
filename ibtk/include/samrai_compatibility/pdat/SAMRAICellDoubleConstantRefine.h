@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/CellDoubleConstantRefine.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/CellDoubleConstantRefine.h")
 #include <SAMRAI/pdat/CellDoubleConstantRefine.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_CellDoubleConstantRefine 1
 #else

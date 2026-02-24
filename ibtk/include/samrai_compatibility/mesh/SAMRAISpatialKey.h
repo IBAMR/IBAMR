@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_mesh_SAMRAISpatialKey
 #define included_IBTK_samrai_compatibility_mesh_SAMRAISpatialKey
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/mesh/SpatialKey.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/mesh/SpatialKey.h")
 #include <SAMRAI/mesh/SpatialKey.h>
 #else
 #include <SpatialKey.h>

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Clock_h
 #define included_IBTK_samrai_compatibility_legacy_tbox_Clock_h
 
-#include "SAMRAIClock.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIClock.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_tbox_Clock_h

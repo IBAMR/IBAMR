@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_MemoryDatabaseFactory_h
 #define included_IBTK_samrai_compatibility_legacy_MemoryDatabaseFactory_h
 
-#include "SAMRAIMemoryDatabaseFactory.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIMemoryDatabaseFactory.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_MemoryDatabaseFactory_h

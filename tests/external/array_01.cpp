@@ -14,9 +14,9 @@
 // Ensure that we can staticly allocate and deallocate tbox::Arrays before and
 // after some patches to SAMRAI.
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 // SAMRAI INCLUDES
-#include "SAMRAIArray.h"
+#include <SAMRAIArray.h>
 
 #include <fstream>
 

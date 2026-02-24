@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_pdat_SAMRAIArrayDataAccess
 #define included_IBTK_samrai_compatibility_pdat_SAMRAIArrayDataAccess
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/ArrayDataAccess.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/ArrayDataAccess.h")
 #include <SAMRAI/pdat/ArrayDataAccess.h>
 #else
 #include <ArrayDataAccess.h>

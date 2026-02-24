@@ -14,25 +14,26 @@
 //////////////////////////////////// INCLUDES ////////////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "IBEELKinematics3d.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAIMathUtilities.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIUtilities.h"
 
 #include <boost/math/quadrature/gauss_kronrod.hpp>
+
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <cmath>
 #include <iostream>
 #include <sstream>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

@@ -14,37 +14,36 @@
 // GENERAL CONFIGURATION
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
-
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellData.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAICellIterator.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAICoarseFineBoundary.h"
-#include "SAMRAICoarsenAlgorithm.h"
-#include "SAMRAICoarsenOperator.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIHierarchySideDataOpsReal.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchGeometry.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAISideIterator.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 #include <SAMRAI_config.h>
 
 // IBAMR INCLUDES
@@ -57,7 +56,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
-#include "BoxArray.h"
+#include <BoxArray.h>
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *

@@ -20,20 +20,19 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/box_utilities.h>
-
-#include "SAMRAIBox.h"
-#include "SAMRAIBoxList.h"
-#include "SAMRAIIntVector.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPIO.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIProcessorMapping.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <BoxArray.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIProcessorMapping.h>
 
 #include <algorithm>
 #include <set>

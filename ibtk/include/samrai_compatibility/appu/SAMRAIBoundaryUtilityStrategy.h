@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_appu_SAMRAIBoundaryUtilityStrategy
 #define included_IBTK_samrai_compatibility_appu_SAMRAIBoundaryUtilityStrategy
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/appu/BoundaryUtilityStrategy.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/appu/BoundaryUtilityStrategy.h")
 #include <SAMRAI/appu/BoundaryUtilityStrategy.h>
 #else
 #include <BoundaryUtilityStrategy.h>

@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/hier/PatchHierarchy.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/hier/PatchHierarchy.h")
 #include <SAMRAI/hier/PatchHierarchy.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_PATCH_HIERARCHY 1
 #else

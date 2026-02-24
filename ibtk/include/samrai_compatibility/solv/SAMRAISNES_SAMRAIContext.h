@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/SNES_SAMRAIContext.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/SNES_SAMRAIContext.h")
 #include <SAMRAI/solv/SNES_SAMRAIContext.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_SNES_SAMRAIContext 1
 #else

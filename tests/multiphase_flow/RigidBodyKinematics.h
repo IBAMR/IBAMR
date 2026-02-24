@@ -13,17 +13,17 @@
 
 // Config files
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAIDatabase.h"
-#include "SAMRAILoadBalancer.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIStandardTagAndInitialize.h"
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBKinematics.h>

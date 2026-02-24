@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_CellComplexLinearTimeInterpolateOp_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_CellComplexLinearTimeInterpolateOp_h
 
-#include "SAMRAICellComplexLinearTimeInterpolateOp.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAICellComplexLinearTimeInterpolateOp.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_CellComplexLinearTimeInterpolateOp_h

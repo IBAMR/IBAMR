@@ -14,9 +14,9 @@
 #ifndef included_IBTK_samrai_compatibility_tbox_SAMRAISiloDatabaseFactory
 #define included_IBTK_samrai_compatibility_tbox_SAMRAISiloDatabaseFactory
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/tbox/SiloDatabaseFactory.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/tbox/SiloDatabaseFactory.h")
 #include <SAMRAI/tbox/SiloDatabaseFactory.h>
 #else
 #include <tbox/SiloDatabaseFactory.h>

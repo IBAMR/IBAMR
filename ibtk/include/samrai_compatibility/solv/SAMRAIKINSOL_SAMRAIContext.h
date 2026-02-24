@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/KINSOL_SAMRAIContext.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/KINSOL_SAMRAIContext.h")
 #include <SAMRAI/solv/KINSOL_SAMRAIContext.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_KINSOL_SAMRAIContext 1
 #else

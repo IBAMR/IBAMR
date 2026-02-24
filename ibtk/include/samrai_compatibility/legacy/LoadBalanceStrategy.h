@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_LoadBalanceStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_LoadBalanceStrategy_h
 
-#include "SAMRAILoadBalanceStrategy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAILoadBalanceStrategy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_LoadBalanceStrategy_h

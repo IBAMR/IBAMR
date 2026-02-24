@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefineTimeTransaction_h
 #define included_IBTK_samrai_compatibility_legacy_xfer_RefineTimeTransaction_h
 
-#include "SAMRAIRefineTimeTransaction.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIRefineTimeTransaction.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefineTimeTransaction_h

@@ -14,7 +14,8 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_ImplicitEquationStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_ImplicitEquationStrategy_h
 
-#include "SAMRAIImplicitEquationStrategy.h"
-#include "samrai_compatibility/samrai_compatibility_environment.h"
+#include <samrai_compatibility/samrai_compatibility_environment.h>
+
+#include <SAMRAIImplicitEquationStrategy.h>
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_ImplicitEquationStrategy_h

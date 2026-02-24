@@ -16,9 +16,9 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/pdat/OuterfaceGeometry.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/pdat/OuterfaceGeometry.h")
 #include <SAMRAI/pdat/OuterfaceGeometry.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_OuterfaceGeometry 1
 #else

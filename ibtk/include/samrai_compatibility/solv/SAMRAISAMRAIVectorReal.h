@@ -16,13 +16,13 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/samrai_compatibility_detect.h"
+#include <samrai_compatibility/samrai_compatibility_detect.h>
 
-#if IBTK_SAMRAI_HAS_INCLUDE(<SAMRAI/solv/SAMRAIVectorReal.h>)
+#if IBTK_SAMRAI_HAS_INCLUDE("SAMRAI/solv/SAMRAIVectorReal.h")
 #include <SAMRAI/solv/SAMRAIVectorReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_SAMRAIVECTORREAL 1
 #else
-#include "SAMRAIVectorReal.h"
+#include <SAMRAIVectorReal.h>
 #define IBTK_SAMRAI_COMPAT_UNTEMPLATED_DIM_SAMRAIVECTORREAL 0
 #endif
 

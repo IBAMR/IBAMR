@@ -14,27 +14,26 @@
 // GENERAL CONFIGURATION
 
 // SAMRAI INCLUDES
-#include "ibtk/samrai_compatibility_names.h"
-
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianGridGeometry.h"
-#include "SAMRAICellVariable.h"
-#include "SAMRAICoarsenAlgorithm.h"
-#include "SAMRAICoarsenOperator.h"
-#include "SAMRAIHierarchyCellDataOpsReal.h"
-#include "SAMRAIHierarchySideDataOpsReal.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchHierarchy.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAIRefineAlgorithm.h"
-#include "SAMRAIRefineOperator.h"
-#include "SAMRAISideVariable.h"
-#include "SAMRAIVariableDatabase.h"
-#include "SAMRAIVisItDataWriter.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 #include <SAMRAI_config.h>
 
 // IBAMR INCLUDES

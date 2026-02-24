@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/samrai_compatibility_names.h"
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "VelocityInitialCondition.h"
 
@@ -20,18 +20,18 @@
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include "SAMRAIBox.h"
-#include "SAMRAICartesianPatchGeometry.h"
-#include "SAMRAICellIndex.h"
-#include "SAMRAIHierarchyDataOpsManager.h"
-#include "SAMRAIIndex.h"
-#include "SAMRAIPatch.h"
-#include "SAMRAIPatchLevel.h"
-#include "SAMRAIPointer.h"
-#include "SAMRAISideData.h"
-#include "SAMRAISideGeometry.h"
-#include "SAMRAISideIndex.h"
-#include "SAMRAIVariable.h"
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIVariable.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 // Various options to setting side-centered initial velocities
