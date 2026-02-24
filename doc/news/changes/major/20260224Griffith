@@ -1,0 +1,3 @@
+Improved: Added a SAMRAI compatibility layer for one-to-one IBSAMRAI2/SAMRAI 4.5.0 classes, including compatibility alias headers, legacy include wrappers, and migration tooling. Adopted the SAMRAI compatibility aliases across IBTK and IBAMR library code, examples, and tests, with corresponding include/style normalization and migration documentation.
+<br>
+(Boyce Griffith, 2026/02/24)

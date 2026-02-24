@@ -1,0 +1,3 @@
+Changed: Updated project formatting configuration to use C++11 style in clang-format and reformatted affected files accordingly.
+<br>
+(Boyce Griffith, 2026/02/24)
