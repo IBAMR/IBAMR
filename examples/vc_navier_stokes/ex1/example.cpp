@@ -12,16 +12,30 @@
 // ---------------------------------------------------------------------
 
 // Config files
+#include "ibtk/samrai_compatibility_names.h"
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
@@ -40,8 +54,8 @@
 #include "SetFluidProperties.h"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> ins_integrator,
+void output_data(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+                 SAMRAIPointer<INSHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
@@ -79,8 +93,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -101,7 +115,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredConservativeHierarchyIntegrator> time_integrator;
+        SAMRAIPointer<INSVCStaggeredConservativeHierarchyIntegrator> time_integrator;
         const string discretization_form =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "CONSERVATIVE");
         if (discretization_form == "CONSERVATIVE")
@@ -115,34 +129,34 @@ main(int argc, char* argv[])
             TBOX_ERROR("NON_CONSERVATIVE discretization form not supported for this example");
         }
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -165,13 +179,13 @@ main(int argc, char* argv[])
         }
 
         // Create a density and viscosity field for testing purposes
-        Pointer<SideVariable<NDIM, double> > rho_var = new SideVariable<NDIM, double>("rho_var");
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu_var");
+        SAMRAIPointer<SAMRAISideVariable<double>> rho_var = new SAMRAISideVariable<double>("rho_var");
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_var = new SAMRAICellVariable<double>("mu_var");
         time_integrator->registerMassDensityVariable(rho_var);
         time_integrator->registerViscosityVariable(mu_var);
-        Pointer<CartGridFunction> rho_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> rho_fcn = new muParserCartGridFunction(
             "rho_fcn", app_initializer->getComponentDatabase("DensityFunction"), grid_geometry);
-        Pointer<CartGridFunction> mu_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> mu_fcn = new muParserCartGridFunction(
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties", rho_fcn, mu_fcn);
 
@@ -180,7 +194,7 @@ main(int argc, char* argv[])
         time_integrator->registerMassDensityInitialConditions(rho_fcn);
 
         // Set the boundary conditions for density and viscosity
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef;
+        SAMRAIRobinBcCoefStrategy* rho_bc_coef;
         if (periodic_shift.min() > 0)
         {
             rho_bc_coef = nullptr;
@@ -199,7 +213,7 @@ main(int argc, char* argv[])
             }
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef;
+        SAMRAIRobinBcCoefStrategy* mu_bc_coef;
         if (periodic_shift.min() > 0)
         {
             mu_bc_coef = nullptr;
@@ -233,7 +247,7 @@ main(int argc, char* argv[])
         // Create body force function specification objects (when necessary).
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -241,13 +255,13 @@ main(int argc, char* argv[])
         // Create mass density source function object for this manufactured solution
         if (input_db->keyExists("DensitySourceFunction"))
         {
-            Pointer<CartGridFunction> rho_src = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> rho_src = new muParserCartGridFunction(
                 "rho_src", app_initializer->getComponentDatabase("DensitySourceFunction"), grid_geometry);
             time_integrator->registerMassDensitySourceTerm(rho_src);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -328,22 +342,22 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
+        const SAMRAIPointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM> > p_var = time_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<SAMRAIVariable> p_var = time_integrator->getPressureVariable();
+        const SAMRAIPointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
 
-        const Pointer<Variable<NDIM> > r_var = time_integrator->getMassDensityVariable();
-        const Pointer<VariableContext> r_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<SAMRAIVariable> r_var = time_integrator->getMassDensityVariable();
+        const SAMRAIPointer<VariableContext> r_ctx = time_integrator->getCurrentContext();
 
         const int r_idx = var_db->mapVariableAndContextToIndex(r_var, r_ctx);
         const int r_cloned_idx = var_db->registerClonedPatchDataIndex(r_var, r_idx);
@@ -367,10 +381,10 @@ main(int argc, char* argv[])
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> u_cc_var = u_var;
         if (u_cc_var)
         {
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
 
             pout << "Error in u_cc at time " << loop_time << ":\n"
@@ -383,10 +397,10 @@ main(int argc, char* argv[])
             u_err[2] = hier_cc_data_ops.maxNorm(u_idx, wgt_sc_idx);
         }
 
-        Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+        SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = u_var;
         if (u_sc_var)
         {
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            SAMRAIHierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
             pout << "Error in u_sc at time " << loop_time << ":\n"
                  << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
@@ -398,7 +412,7 @@ main(int argc, char* argv[])
             u_err[2] = hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx);
         }
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
         pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
@@ -409,10 +423,10 @@ main(int argc, char* argv[])
         p_err[1] = hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx);
         p_err[2] = hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx);
 
-        Pointer<SideVariable<NDIM, double> > r_sc_var = r_var;
+        SAMRAIPointer<SAMRAISideVariable<double>> r_sc_var = r_var;
         if (r_sc_var)
         {
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            SAMRAIHierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.subtract(r_idx, r_idx, r_cloned_idx);
             pout << "Error in rho_sc at time " << loop_time << ":\n"
                  << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(r_idx, wgt_sc_idx) << "\n"
@@ -439,8 +453,8 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-            Pointer<INSHierarchyIntegrator> ins_integrator,
+output_data(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+            SAMRAIPointer<INSHierarchyIntegrator> ins_integrator,
             const int iteration_num,
             const double loop_time,
             const string& data_dump_dirname)
@@ -451,9 +465,9 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     char temp_buf[128];
     std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    SAMRAIPointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(),
                                                            ins_integrator->getCurrentContext()));

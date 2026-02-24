@@ -17,11 +17,17 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>
@@ -37,7 +43,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db);
+    QInit(const string& object_name, SAMRAIPointer<SAMRAIGridGeometry> grid_geom, SAMRAIPointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -56,11 +62,11 @@ public:
      * Set the data on the patch interior to the exact answer.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > level = nullptr);
+                        SAMRAIPointer<SAMRAIPatchLevel> level = nullptr);
 
 protected:
 private:
@@ -94,7 +100,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db);
+    void getFromInput(SAMRAIPointer<Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -105,7 +111,7 @@ private:
     /*
      * The grid geometry.
      */
-    Pointer<CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*
      * The center of the initial data.

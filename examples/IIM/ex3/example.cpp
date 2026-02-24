@@ -11,15 +11,28 @@
 //
 // ---------------------------------------------------------------------
 
+// Headers for basic SAMRAI objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBStrategySet.h>
 #include <ibamr/IIMethod.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVisItDataWriter.h"
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
@@ -40,11 +53,6 @@
 #include <libmesh/mesh_triangle_interface.h>
 #include <libmesh/parallel.h>
 #include <libmesh/quadrature.h>
-
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -97,13 +105,13 @@ calculateGeomQuantitiesOfStructure(double& vol,                             // v
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
 
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
@@ -219,7 +227,7 @@ tether_force_function(VectorValue<double>& F,
                       Elem* const elem,
                       const unsigned short /*side*/,
                       const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                       double /*current_time*/,
                       void* /*ctx*/)
 {
@@ -278,22 +286,22 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> TAU_dof_indices(NDIM);
     std::unique_ptr<FEBase> fe_tau(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
 
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     fe_tau->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
-    const vector<vector<double> >& phi = fe->get_phi();
-    const vector<vector<double> >& phi_tau = fe_tau->get_phi();
+    const vector<vector<double>>& phi = fe->get_phi();
+    const vector<vector<double>>& phi_tau = fe_tau->get_phi();
 
     boost::multi_array<double, 2> x_node, TAU_node;
     VectorValue<double> F_qp, x_qp, W_qp, TAU_qp, R_qp;
@@ -445,8 +453,8 @@ using namespace ModelData;
 // Function prototypes
 static ofstream position_stream, velocity_stream, CL_stream, CD_stream;
 
-void postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_CL_CD(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+                       SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator,
                        Mesh& mesh,
                        EquationSystems* equation_systems,
                        const int iteration_num,
@@ -480,13 +488,13 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         dx = input_db->getDouble("DX");
 
-        Pointer<Database> airfoil_params_db = app_initializer->getComponentDatabase("AirfoilParams");
+        SAMRAIPointer<Database> airfoil_params_db = app_initializer->getComponentDatabase("AirfoilParams");
 
         AirfoilParams airfoil_params;
         airfoil_params.rho_s = airfoil_params_db->getDoubleWithDefault("RHOS", 1.0);
@@ -559,7 +567,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -572,28 +580,28 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid option is: STAGGERED");
         }
-        Pointer<IIMethod> ib_method_ops =
+        SAMRAIPointer<IIMethod> ib_method_ops =
             new IIMethod("IIMethod",
                          app_initializer->getComponentDatabase("IIMethod"),
                          &bndry_mesh,
                          app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -660,21 +668,21 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -703,13 +711,13 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -992,8 +1000,8 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+postprocess_CL_CD(SAMRAIPointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
+                  SAMRAIPointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                   Mesh& mesh,
                   EquationSystems* equation_systems,
                   const int /*iteration_num*/,
@@ -1014,7 +1022,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> TAU_dof_indices(NDIM);
     std::unique_ptr<FEBase> fe_tau(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
@@ -1026,21 +1034,21 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
     U_vec->localize(*U_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
 
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     fe_tau->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
-    const vector<vector<double> >& phi = fe->get_phi();
-    const vector<vector<double> >& phi_tau = fe_tau->get_phi();
-    const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+    const vector<vector<double>>& phi = fe->get_phi();
+    const vector<vector<double>>& phi_tau = fe_tau->get_phi();
+    const vector<vector<VectorValue<double>>>& dphi = fe->get_dphi();
 
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
-    std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
+    std::vector<const std::vector<libMesh::VectorValue<double>>*> grad_var_data;
     void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF_qp;

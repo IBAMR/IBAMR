@@ -12,11 +12,29 @@
 // ---------------------------------------------------------------------
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <StandardTagAndInitialize.h>
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
@@ -46,9 +64,9 @@ RectangularInterface rectangle;
 // Struct to reset solid level set
 struct SolidLevelSetResetter
 {
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
-    Pointer<CellVariable<NDIM, double> > ls_solid_var;
-    Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var;
+    SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
 };
 
 void
@@ -66,29 +84,29 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
     b << rectangle.W / 2.0, rectangle.H / 2.0;
 
     // Set a large value away from the solid body.
-    Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int ls_solid_idx =
         var_db->mapVariableAndContextToIndex(resetter->ls_solid_var, resetter->adv_diff_integrator->getNewContext());
 
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> patch_level = patch_hier->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const SAMRAIIndex& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_solid_idx);
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                const hier::Index<NDIM>& ci = it();
+                const SAMRAIIndex& ci = it();
                 IBTK::Vector coord = IBTK::Vector::Zero();
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -154,8 +172,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -190,31 +208,31 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator =
+        SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator =
             new INSVCStaggeredConservativeHierarchyIntegrator(
                 "INSVCStaggeredConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
 
         // Set up the advection diffusion hierarchy integrator
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
         // Cartesian grid geometry and AMR algorithm objects
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                navier_stokes_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -222,13 +240,13 @@ main(int argc, char* argv[])
 
         // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        SAMRAIPointer<SAMRAICellVariable<double>> phi_var_solid = new SAMRAICellVariable<double>(ls_name_solid);
 
         // Create level sets for gas/liquid interface.
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
-        Pointer<RelaxationLSMethod> level_set_gas_ops =
+        SAMRAIPointer<SAMRAICellVariable<double>> phi_var_gas = new SAMRAICellVariable<double>(ls_name_gas);
+        SAMRAIPointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface* ptr_LSLocateGasInterface =
             new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
@@ -252,16 +270,16 @@ main(int argc, char* argv[])
             phi_var_gas, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // Solid level set initial conditions
-        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", rectangle);
+        SAMRAIPointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", rectangle);
         adv_diff_integrator->setInitialConditions(phi_var_solid, phi_solid_init);
 
         // Gas level set initial conditions
-        Pointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
             "phi_gas_init", app_initializer->getComponentDatabase("GasLevelSetInitialCondition"), grid_geometry);
         adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
 
         // Lagrange multiplier to conserve mass of the phases.
-        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ phi_var_gas, phi_var_solid };
+        std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars{ phi_var_gas, phi_var_solid };
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
             "LevelSetMassLossFixer",
             adv_diff_integrator,
@@ -279,8 +297,8 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
         // Setup the advected and diffused fluid quantities.
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<hier::Variable<NDIM> > rho_var = new SideVariable<NDIM, double>("rho");
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_var = new SAMRAICellVariable<double>("mu");
+        SAMRAIPointer<SAMRAIVariable> rho_var = new SAMRAISideVariable<double>("rho");
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
@@ -329,21 +347,21 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<std::unique_ptr<RobinBcCoefStrategy<NDIM> > > u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<std::unique_ptr<SAMRAIRobinBcCoefStrategy>> u_bc_coefs(NDIM);
         if (periodic_shift.min() == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -368,7 +386,7 @@ main(int argc, char* argv[])
             });
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > rho_bc_coef;
+        std::unique_ptr<SAMRAIRobinBcCoefStrategy> rho_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -376,7 +394,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > mu_bc_coef;
+        std::unique_ptr<SAMRAIRobinBcCoefStrategy> mu_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -384,7 +402,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > phi_bc_coef;
+        std::unique_ptr<SAMRAIRobinBcCoefStrategy> phi_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -395,7 +413,7 @@ main(int argc, char* argv[])
 
         // LS reinit boundary conditions, which is set to be the same as the BCs
         // for advection
-        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = phi_bc_coef.get();
+        SAMRAIRobinBcCoefStrategy* ls_reinit_bcs = phi_bc_coef.get();
         level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
 
         // Class GravityForcing can be utilized to apply the gravitational force $ \rho g $
@@ -406,7 +424,7 @@ main(int argc, char* argv[])
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         rectangle.g_y = grav_const[1];
         const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FLOW");
-        Pointer<CartGridFunction> grav_force;
+        SAMRAIPointer<CartGridFunction> grav_force;
         if (grav_type == "FULL")
         {
             grav_force =
@@ -427,26 +445,26 @@ main(int argc, char* argv[])
                                                            << "Valid options are: FLOW, FULL");
         }
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+        SAMRAIPointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
                                             phi_var_gas);
 
-        Pointer<SpongeLayerForceFunction> sponge_fcn =
+        SAMRAIPointer<SpongeLayerForceFunction> sponge_fcn =
             new SpongeLayerForceFunction("SpongeLayerForceFunction",
                                          app_initializer->getComponentDatabase("SpongeLayerForceFunction"),
                                          navier_stokes_integrator,
                                          grid_geometry);
 
-        Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
+        SAMRAIPointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(grav_force);
         eul_forces->addFunction(surface_tension_force);
         eul_forces->addFunction(sponge_fcn);
         navier_stokes_integrator->registerBodyForceFunction(eul_forces);
 
         // Configure the Brinkman penalization object to do the rigid body dynamics.
-        Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
+        SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
             new BrinkmanPenalizationRigidBodyDynamics("Brinkman Body",
                                                       phi_var_solid,
                                                       adv_diff_integrator,
@@ -465,7 +483,7 @@ main(int argc, char* argv[])
         solid_level_set_resetter.bp_rbd = bp_rbd;
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             navier_stokes_integrator->registerVisItDataWriter(visit_data_writer);

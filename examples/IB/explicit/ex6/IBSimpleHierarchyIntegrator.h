@@ -17,8 +17,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+// SAMRAI INCLUDES
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
+
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -39,9 +46,9 @@ public:
      * \warning This simple example class does not support restarting.
      */
     IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                Pointer<Database> input_db,
-                                Pointer<IBMethod> ib_method_ops,
-                                Pointer<INSHierarchyIntegrator> ins_hier_integrator);
+                                SAMRAIPointer<Database> input_db,
+                                SAMRAIPointer<IBMethod> ib_method_ops,
+                                SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator);
 
     /*!
      * The destructor for class IBSimpleHierarchyIntegrator does
@@ -66,8 +73,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                       SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg);
 
 protected:
     /*!
@@ -107,7 +114,7 @@ private:
     /*
      * Pointers to Lagrangian data objects.
      */
-    Pointer<LData> d_X_current_data, d_X_new_data, d_U_data, d_F_data;
+    SAMRAIPointer<LData> d_X_current_data, d_X_new_data, d_U_data, d_F_data;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

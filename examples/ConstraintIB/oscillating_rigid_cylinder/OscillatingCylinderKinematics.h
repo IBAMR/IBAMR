@@ -19,16 +19,18 @@
 // IBAMR INCLUDES
 #include "ibamr/ConstraintIBKinematics.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
 // C++ INCLUDES
 #include <iostream>
 #include <map>
 #include <vector>
 
 // SAMRAI INCLUDES
-#include "PatchHierarchy.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
 
@@ -49,9 +51,9 @@ public:
      * \brief Constructor.
      */
     OscillatingCylinderKinematics(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  SAMRAIPointer<SAMRAIDatabase> input_db,
                                   IBTK::LDataManager* l_data_manager,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                  SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                   bool register_for_restart = true);
 
     /*!
@@ -71,13 +73,13 @@ public:
      * Get the kinematics velocity at new time for OscillatingCylinder on the specified level.
      *
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * Get the kinematics velocity at current time for OscillatingCylinder on the specified level.
      *
      */
-    virtual const std::vector<std::vector<double> >& getCurrentKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getCurrentKinematicsVelocity(const int level) const;
 
     /*!
      * Set the shape of OscillatingCylinder at new time for the structure on all levels.
@@ -87,9 +89,9 @@ public:
     /*!
      * Get the shape of structure at new time  on the specified level.
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
 private:
     /*!
@@ -120,8 +122,8 @@ private:
     /*!
      * New and current kinematics velocity. New shape of the body.
      */
-    std::vector<std::vector<std::vector<double> > > d_new_kinematics_vel, d_current_kinematics_vel;
-    std::vector<std::vector<double> > d_new_shape;
+    std::vector<std::vector<std::vector<double>>> d_new_kinematics_vel, d_current_kinematics_vel;
+    std::vector<std::vector<double>> d_new_shape;
 
     /*!
      * Max speed and frequency of oscillation

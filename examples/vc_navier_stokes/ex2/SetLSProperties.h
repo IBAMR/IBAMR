@@ -18,11 +18,13 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+// SAMRAI INCLUDES
 #include <ibamr/LSInitStrategy.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Pointer.h>
+#include "SAMRAIPointer.h"
 
 namespace IBTK
 {
@@ -37,7 +39,7 @@ class HierarchyMathOps;
  */
 
 void callSetLSCallbackFunction(int ls_idx,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int integrator_step,
                                const double current_time,
                                const bool initial_time,
@@ -52,7 +54,7 @@ public:
     /*!
      * The only constructor of this class.
      */
-    SetLSProperties(const std::string& object_name, SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops);
+    SetLSProperties(const std::string& object_name, SAMRAIPointer<IBAMR::LSInitStrategy> ls_ops);
 
     /*!
      * Destructor for this class.
@@ -63,7 +65,7 @@ public:
      * Set the density based on the current level set information
      */
     void setLSPatchData(int ls_idx,
-                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                        SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                         const int integrator_step,
                         const double current_time,
                         const bool initial_time,
@@ -90,7 +92,7 @@ private:
      */
     std::string d_object_name;
 
-    SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
+    SAMRAIPointer<IBAMR::LSInitStrategy> d_ls_ops;
 
 }; // SetLSProperties
 

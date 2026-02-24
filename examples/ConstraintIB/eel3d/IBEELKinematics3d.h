@@ -15,12 +15,15 @@
 #define included_IBEELKinematics3d
 
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
+// SAMRAI INCLUDES
 #include "ibamr/ConstraintIBKinematics.h"
 
-#include "PatchHierarchy.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 #include <iostream>
 #include <vector>
@@ -46,9 +49,9 @@ public:
      * \brief Constructor.
      */
     IBEELKinematics3d(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      SAMRAIPointer<SAMRAIDatabase> input_db,
                       IBTK::LDataManager* l_data_manager,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                      SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                       bool register_for_restart = true);
 
     /*!
@@ -69,7 +72,7 @@ public:
      * \brief Get the kinematics velocity on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of eel at specified time. The shape should have
@@ -85,12 +88,12 @@ public:
      * to it.
      * \see IBAMR::ConstraintIBKinematics::getShape
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Write state necessary for restarted runs.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
 private:
     /*!
@@ -122,7 +125,7 @@ private:
     /*!
      * \brief Set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void setImmersedBodyLayout(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Set eel kinematics velocity.
@@ -138,8 +141,8 @@ private:
      * d_IBWidthHeight stores width and height of a cross section.
      * width of cross section of eel varies with arc length.
      */
-    std::vector<std::pair<int, int> > d_IBPts;
-    std::vector<std::pair<double, double> > d_IBWidthHeight;
+    std::vector<std::pair<int, int>> d_IBPts;
+    std::vector<std::pair<double, double>> d_IBWidthHeight;
 
     /*!
      * Eulerian Mesh width parameters.
@@ -154,8 +157,8 @@ private:
     /*!
      * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<double>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.
@@ -165,7 +168,7 @@ private:
     /*!
      * Curvatures from input file.
      */
-    SAMRAI::tbox::Array<double> d_interp_coefs;
+    SAMRAIArray<double> d_interp_coefs;
 
     /*!
      * Tau tail from the input file.

@@ -11,9 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
+// Headers for basic SAMRAI objects
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/AppInitializer.h>
+
+#include "SAMRAIPointer.h"
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
@@ -58,7 +62,7 @@ solid_surface_force_function(VectorValue<double>& F,
                              Elem* const elem,
                              const unsigned short int side,
                              const vector<const vector<double>*>& /*var_data*/,
-                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                              double time,
                              void* /*ctx*/)
 {
@@ -85,7 +89,7 @@ PK1_dev_stress_function_mod(TensorValue<double>& PP,
                             const libMesh::Point& /*X*/,
                             Elem* const /*elem*/,
                             const vector<const vector<double>*>& /*var_data*/,
-                            const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double /*time*/,
                             void* /*ctx*/)
 {
@@ -102,7 +106,7 @@ PK1_dev_stress_function_unmod(TensorValue<double>& PP,
                               const libMesh::Point& /*X*/,
                               Elem* const /*elem*/,
                               const vector<const vector<double>*>& /*var_data*/,
-                              const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                              const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                               double /*time*/,
                               void* /*ctx*/)
 {
@@ -116,7 +120,7 @@ PK1_dev_stress_function_dev(TensorValue<double>& PP,
                             const libMesh::Point& /*X*/,
                             Elem* const /*elem*/,
                             const vector<const vector<double>*>& /*var_data*/,
-                            const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double /*time*/,
                             void* /*ctx*/)
 {
@@ -132,7 +136,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         Elem* const /*elem*/,
                         const vector<const vector<double>*>& /*var_data*/,
-                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -146,7 +150,7 @@ solid_body_force_function(VectorValue<double>& F,
                           const libMesh::Point& /*X*/,
                           Elem* const /*elem*/,
                           const vector<const vector<double>*>& var_data,
-                          const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                          const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                           double /*time*/,
                           void* /*ctx*/)
 {
@@ -217,8 +221,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -308,7 +312,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<FEMechanicsExplicitIntegrator> fem_solver =
+        SAMRAIPointer<FEMechanicsExplicitIntegrator> fem_solver =
             new FEMechanicsExplicitIntegrator("FEMechanicsExplicitIntegrator",
                                               app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
                                               &mesh);
@@ -429,12 +433,12 @@ main(int argc, char* argv[])
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            vector<vector<unsigned int> > X_dof_indices(NDIM);
+            vector<vector<unsigned int>> X_dof_indices(NDIM);
             unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
             unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const vector<double>& JxW = fe->get_JxW();
-            const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            const vector<vector<VectorValue<double>>>& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
             const auto el_begin = mesh.active_local_elements_begin();

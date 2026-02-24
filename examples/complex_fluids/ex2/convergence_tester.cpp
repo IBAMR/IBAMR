@@ -13,6 +13,36 @@
 
 // GENERAL CONFIGURATION
 
+// SAMRAI INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellIterator.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarseFineBoundary.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenOperator.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchGeometry.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineOperator.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAISideIterator.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
+
 #include <petscsys.h>
 
 #include <SAMRAI_config.h>
@@ -28,9 +58,6 @@
 #include <ibtk/IBTK_MPI.h>
 
 #include "BoxArray.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarseFineBoundary.h"
-#include "PatchGeometry.h"
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -47,11 +74,11 @@ main(int argc, char* argv[])
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     // Retrieve "Main" section of the input database.
-    Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+    SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
     int coarse_hier_dump_interval = 0;
     int fine_hier_dump_interval = 0;
@@ -91,48 +118,50 @@ main(int argc, char* argv[])
     }
 
     // Create major algorithm and data objects that comprise application.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = new CartesianGridGeometry<NDIM>(
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = new SAMRAICartesianGridGeometry(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
-    Pointer<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
-    Pointer<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
+    SAMRAIPointer<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
+    SAMRAIPointer<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    Pointer<SideVariable<NDIM, double> > U_var = new SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
+    SAMRAIPointer<SAMRAISideVariable<double>> U_var =
+        new SAMRAISideVariable<double>("INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    Pointer<CellVariable<NDIM, double> > IDX_var = new CellVariable<NDIM, double>("Indicator");
+    SAMRAIPointer<SAMRAICellVariable<double>> IDX_var = new SAMRAICellVariable<double>("Indicator");
     const int I_idx = var_db->registerVariableAndContext(IDX_var, current_ctx);
 
-    Pointer<CellVariable<NDIM, double> > P_var = new CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P");
+    SAMRAIPointer<SAMRAICellVariable<double>> P_var =
+        new SAMRAICellVariable<double>("INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
-    Pointer<VariableContext> s_c_ctx = var_db->getContext("AdvDiffSemiImplicitHierarchyIntegrator::CURRENT");
-    Pointer<VariableContext> s_s_ctx = var_db->getContext("AdvDiffSemiImplicitHierarchyIntegrator::SCRATCH");
+    SAMRAIPointer<VariableContext> s_c_ctx = var_db->getContext("AdvDiffSemiImplicitHierarchyIntegrator::CURRENT");
+    SAMRAIPointer<VariableContext> s_s_ctx = var_db->getContext("AdvDiffSemiImplicitHierarchyIntegrator::SCRATCH");
 
-    Pointer<CellVariable<NDIM, double> > S_var =
-        new CellVariable<NDIM, double>("ComplexFluidForcing::W_cc", NDIM * (NDIM + 1) / 2);
+    SAMRAIPointer<SAMRAICellVariable<double>> S_var =
+        new SAMRAICellVariable<double>("ComplexFluidForcing::W_cc", NDIM * (NDIM + 1) / 2);
     const int S_idx = var_db->registerVariableAndContext(S_var, s_c_ctx);
     const int S_interp_idx = var_db->registerClonedPatchDataIndex(S_var, S_idx);
     const int S_scratch_idx = var_db->registerVariableAndContext(S_var, scratch_ctx, 2);
 
-    Pointer<CellVariable<NDIM, double> > Sxx_var = new CellVariable<NDIM, double>("Sxx");
-    Pointer<CellVariable<NDIM, double> > Syy_var = new CellVariable<NDIM, double>("Syy");
-    Pointer<CellVariable<NDIM, double> > Sxy_var = new CellVariable<NDIM, double>("Sxy");
-    Pointer<CellVariable<NDIM, double> > U_draw_var = new CellVariable<NDIM, double>("U", NDIM);
+    SAMRAIPointer<SAMRAICellVariable<double>> Sxx_var = new SAMRAICellVariable<double>("Sxx");
+    SAMRAIPointer<SAMRAICellVariable<double>> Syy_var = new SAMRAICellVariable<double>("Syy");
+    SAMRAIPointer<SAMRAICellVariable<double>> Sxy_var = new SAMRAICellVariable<double>("Sxy");
+    SAMRAIPointer<SAMRAICellVariable<double>> U_draw_var = new SAMRAICellVariable<double>("U", NDIM);
     const int Sxx_idx = var_db->registerVariableAndContext(Sxx_var, s_c_ctx);
     const int Syy_idx = var_db->registerVariableAndContext(Syy_var, s_c_ctx);
     const int Sxy_idx = var_db->registerVariableAndContext(Sxy_var, s_c_ctx);
     const int U_draw_idx = var_db->registerVariableAndContext(U_draw_var, s_c_ctx);
     // Set up visualization plot file writer.
-    Pointer<VisItDataWriter<NDIM> > visit_data_writer =
-        new VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+    SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer =
+        new SAMRAIVisItDataWriter("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
     visit_data_writer->registerPlotQuantity("Indicator", "SCALAR", I_idx);
     visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
     visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
@@ -202,21 +231,21 @@ main(int argc, char* argv[])
         hier_data.setFlag(P_idx);
         hier_data.setFlag(S_idx);
 
-        Pointer<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
+        SAMRAIPointer<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
         coarse_hier_db->open(coarse_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > coarse_patch_hierarchy =
-            new PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
+        SAMRAIPointer<SAMRAIPatchHierarchy> coarse_patch_hierarchy =
+            new SAMRAIPatchHierarchy("CoarsePatchHierarchy", grid_geom, false);
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
         coarse_hier_db->close();
 
-        Pointer<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
+        SAMRAIPointer<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
         fine_hier_db->open(fine_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > fine_patch_hierarchy = new PatchHierarchy<NDIM>(
+        SAMRAIPointer<SAMRAIPatchHierarchy> fine_patch_hierarchy = new SAMRAIPatchHierarchy(
             "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -228,13 +257,13 @@ main(int argc, char* argv[])
         loop_time = fine_loop_time;
         pout << "     loop time = " << loop_time << endl;
 
-        Pointer<PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy =
+        SAMRAIPointer<SAMRAIPatchHierarchy> coarsened_fine_patch_hierarchy =
             fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
         // Setup hierarchy operations objects.
-        HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(
+        SAMRAIHierarchyCellDataOpsReal<double> coarse_hier_cc_data_ops(
             coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
-        HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(
+        SAMRAIHierarchySideDataOpsReal<double> coarse_hier_sc_data_ops(
             coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
         HierarchyMathOps hier_math_ops("hier_math_ops", coarse_patch_hierarchy);
         hier_math_ops.setPatchHierarchy(coarse_patch_hierarchy);
@@ -245,7 +274,7 @@ main(int argc, char* argv[])
         // Allocate patch data.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarse_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(S_interp_idx, loop_time);
@@ -261,7 +290,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(S_interp_idx, loop_time);
@@ -272,7 +301,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_idx, loop_time);
             level->allocatePatchData(P_idx, loop_time);
             level->allocatePatchData(S_idx, loop_time);
@@ -287,11 +316,11 @@ main(int argc, char* argv[])
         // Synchronize the coarse hierarchy data.
         for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
-            Pointer<PatchLevel<NDIM> > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<SAMRAIPatchLevel> finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
-            CoarsenAlgorithm<NDIM> coarsen_alg;
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            SAMRAICoarsenAlgorithm coarsen_alg;
+            SAMRAIPointer<SAMRAICoarsenOperator> coarsen_op;
 
             coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -308,11 +337,11 @@ main(int argc, char* argv[])
         // Synchronize the fine hierarchy data.
         for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
-            Pointer<PatchLevel<NDIM> > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<SAMRAIPatchLevel> finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-            CoarsenAlgorithm<NDIM> coarsen_alg;
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            SAMRAICoarsenAlgorithm coarsen_alg;
+            SAMRAIPointer<SAMRAICoarsenOperator> coarsen_op;
 
             coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -329,16 +358,16 @@ main(int argc, char* argv[])
         // Coarsen data from the fine hierarchy to the coarsened fine hierarchy.
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > src_level = fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
-            for (PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
+            SAMRAIPointer<SAMRAICoarsenOperator> coarsen_op;
+            for (SAMRAIPatchLevel::Iterator p(dst_level); p; p++)
             {
-                Pointer<Patch<NDIM> > dst_patch = dst_level->getPatch(p());
-                Pointer<Patch<NDIM> > src_patch = src_level->getPatch(p());
-                const Box<NDIM>& coarse_box = dst_patch->getBox();
-                TBOX_ASSERT(Box<NDIM>::coarsen(src_patch->getBox(), 2) == coarse_box);
+                SAMRAIPointer<SAMRAIPatch> dst_patch = dst_level->getPatch(p());
+                SAMRAIPointer<SAMRAIPatch> src_patch = src_level->getPatch(p());
+                const SAMRAIBox& coarse_box = dst_patch->getBox();
+                TBOX_ASSERT(SAMRAIBox::coarsen(src_patch->getBox(), 2) == coarse_box);
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, 2);
@@ -356,11 +385,11 @@ main(int argc, char* argv[])
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             pout << "Interpolating on level " << ln << "\n";
-            Pointer<PatchLevel<NDIM> > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
-            RefineAlgorithm<NDIM> refine_alg;
-            Pointer<RefineOperator<NDIM> > refine_op;
+            SAMRAIRefineAlgorithm refine_alg;
+            SAMRAIPointer<SAMRAIRefineOperator> refine_op;
 
             refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
             refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);
@@ -383,20 +412,20 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarse_patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& box = patch->getBox();
-                Pointer<CellData<NDIM, double> > U_draw_data = patch->getPatchData(U_draw_idx);
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_interp_idx);
-                for (CellIterator<NDIM> i(box); i; i++)
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                const SAMRAIBox& box = patch->getBox();
+                SAMRAIPointer<SAMRAICellData<double>> U_draw_data = patch->getPatchData(U_draw_idx);
+                SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_interp_idx);
+                for (SAMRAICellIterator i(box); i; i++)
                 {
-                    CellIndex<NDIM> idx = i();
-                    SideIndex<NDIM> idx_b(idx, 1, 0);
-                    SideIndex<NDIM> idx_u(idx, 1, 1);
-                    SideIndex<NDIM> idx_l(idx, 0, 0);
-                    SideIndex<NDIM> idx_r(idx, 0, 1);
+                    SAMRAICellIndex idx = i();
+                    SAMRAISideIndex idx_b(idx, 1, 0);
+                    SAMRAISideIndex idx_u(idx, 1, 1);
+                    SAMRAISideIndex idx_l(idx, 0, 0);
+                    SAMRAISideIndex idx_r(idx, 0, 1);
                     (*U_draw_data)(idx, 0) = 0.5 * ((*U_data)(idx_l) + (*U_data)(idx_r));
                     (*U_draw_data)(idx, 1) = 0.5 * ((*U_data)(idx_b) + (*U_data)(idx_u));
                 }
@@ -413,14 +442,14 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarse_patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(S_interp_idx);
-                Pointer<CellData<NDIM, double> > Sxx_data = patch->getPatchData(Sxx_idx);
-                Pointer<CellData<NDIM, double> > Syy_data = patch->getPatchData(Syy_idx);
-                Pointer<CellData<NDIM, double> > Sxy_data = patch->getPatchData(Sxy_idx);
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICellData<double>> S_data = patch->getPatchData(S_interp_idx);
+                SAMRAIPointer<SAMRAICellData<double>> Sxx_data = patch->getPatchData(Sxx_idx);
+                SAMRAIPointer<SAMRAICellData<double>> Syy_data = patch->getPatchData(Syy_idx);
+                SAMRAIPointer<SAMRAICellData<double>> Sxy_data = patch->getPatchData(Sxy_idx);
                 Sxx_data->copyDepth(0, *S_data, 0);
                 Syy_data->copyDepth(0, *S_data, 1);
                 Sxy_data->copyDepth(0, *S_data, 2);
@@ -429,22 +458,22 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarse_patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& box = patch->getBox();
-                const hier::Index<NDIM>& idx_low = box.lower();
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                const SAMRAIBox& box = patch->getBox();
+                const SAMRAIIndex& idx_low = box.lower();
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
-                Pointer<CellData<NDIM, double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
-                Pointer<CellData<NDIM, double> > I_data = patch->getPatchData(I_idx);
-                Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> I_data = patch->getPatchData(I_idx);
+                SAMRAIPointer<SAMRAISideData<double>> wgt_sc_data = patch->getPatchData(wgt_sc_idx);
                 I_data->fillAll(1.0);
-                for (CellIterator<NDIM> i(box); i; i++)
+                for (SAMRAICellIterator i(box); i; i++)
                 {
-                    CellIndex<NDIM> idx = *i;
+                    SAMRAICellIndex idx = *i;
                     std::vector<double> x;
                     x.resize(NDIM);
                     for (int d = 0; d < NDIM; ++d) x[d] = xlow[d] + dx[d] * (idx(d) - idx_low(d) + 0.5);
@@ -459,9 +488,9 @@ main(int argc, char* argv[])
                 }
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator<NDIM> i(box, axis); i; i++)
+                    for (SAMRAISideIterator i(box, axis); i; i++)
                     {
-                        const SideIndex<NDIM>& idx = *i;
+                        const SAMRAISideIndex& idx = *i;
                         std::vector<double> x;
                         x.resize(NDIM);
                         for (int d = 0; d < NDIM; ++d)
@@ -480,20 +509,20 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = coarse_patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& box = patch->getBox();
-                Pointer<CellData<NDIM, double> > U_draw_data = patch->getPatchData(U_draw_idx);
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_interp_idx);
-                for (CellIterator<NDIM> i(box); i; i++)
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                const SAMRAIBox& box = patch->getBox();
+                SAMRAIPointer<SAMRAICellData<double>> U_draw_data = patch->getPatchData(U_draw_idx);
+                SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_interp_idx);
+                for (SAMRAICellIterator i(box); i; i++)
                 {
-                    CellIndex<NDIM> idx = i();
-                    SideIndex<NDIM> idx_b(idx, 1, 0);
-                    SideIndex<NDIM> idx_u(idx, 1, 1);
-                    SideIndex<NDIM> idx_l(idx, 0, 0);
-                    SideIndex<NDIM> idx_r(idx, 0, 1);
+                    SAMRAICellIndex idx = i();
+                    SAMRAISideIndex idx_b(idx, 1, 0);
+                    SAMRAISideIndex idx_u(idx, 1, 1);
+                    SAMRAISideIndex idx_l(idx, 0, 0);
+                    SAMRAISideIndex idx_r(idx, 0, 1);
                     (*U_draw_data)(idx, 0) = 0.5 * ((*U_data)(idx_l) + (*U_data)(idx_r));
                     (*U_draw_data)(idx, 1) = 0.5 * ((*U_data)(idx_b) + (*U_data)(idx_u));
                 }

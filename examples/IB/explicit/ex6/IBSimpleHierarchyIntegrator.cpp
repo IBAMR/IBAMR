@@ -11,7 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+// SAMRAI INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "IBSimpleHierarchyIntegrator.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariableDatabase.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -27,9 +34,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<IBMethod> ib_method_ops,
-                                                         Pointer<INSHierarchyIntegrator> ins_hier_integrator)
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<IBMethod> ib_method_ops,
+                                                         SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -54,7 +61,7 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
     d_X_current_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, finest_level_num);
     d_X_new_data = l_data_manager->createLData("X_new", finest_level_num, NDIM);
@@ -71,7 +78,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:
@@ -129,7 +136,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     // "current" data (defined at time level n) or some other velocity field
     // here.  We use the "current" Lagrangian position data to define the
     // locations to where the velocities are interpolated.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -168,8 +175,8 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                           SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

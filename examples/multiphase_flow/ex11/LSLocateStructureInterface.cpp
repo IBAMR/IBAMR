@@ -11,19 +11,30 @@
 //
 // ---------------------------------------------------------------------
 
+// SAMRAI INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
 
 #include "LSLocateStructureInterface.h"
-
-#include <CartesianGridGeometry.h>
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
 
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 void
 callLSLocateStructureInterfaceCallbackFunction(int D_idx,
-                                               Pointer<HierarchyMathOps> hier_math_ops,
+                                               SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                double time,
                                                bool initial_time,
                                                void* ctx)
@@ -37,8 +48,8 @@ callLSLocateStructureInterfaceCallbackFunction(int D_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object_name,
-                                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                       Pointer<CellVariable<NDIM, double> > ls_var,
+                                                       SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                       SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                                                        LDataManager* lag_data_manager,
                                                        BargeInterface* barge)
     : d_object_name(object_name),
@@ -59,7 +70,7 @@ LSLocateStructureInterface::~LSLocateStructureInterface()
 
 void
 LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
-                                                 Pointer<HierarchyMathOps> hier_math_ops,
+                                                 SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                  double time,
                                                  bool initial_time)
 {
@@ -71,11 +82,11 @@ LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
 
 void
 LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
-                                                           Pointer<HierarchyMathOps> hier_math_ops,
+                                                           SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                            double /*time*/,
                                                            bool /*initial_time*/)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -117,21 +128,21 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
     // Analytical distance away from the rectangle
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            SAMRAIPointer<SAMRAICellData<double>> D_data = patch->getPatchData(D_idx);
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                SAMRAICellIndex ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector X = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const SAMRAIIndex& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -171,7 +182,7 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
 
 void
 LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
-                                             Pointer<HierarchyMathOps> hier_math_ops)
+                                             SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     double xmin = std::numeric_limits<double>::max();
     double xmax = -std::numeric_limits<double>::max();
@@ -184,10 +195,10 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
 
     IBTK::Vector c_xmin, c_xmax, c_ymin, c_ymax;
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<SAMRAIPointer<LData>> X_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -196,7 +207,7 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
 
         // Get pointer to LData
         boost::multi_array_ref<double, 2>& X_boost_data = *X_data[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)

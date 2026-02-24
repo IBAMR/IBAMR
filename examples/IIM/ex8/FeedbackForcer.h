@@ -16,10 +16,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// SAMRAI INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-#include <Patch.h>
-#include <Variable.h>
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -40,7 +46,7 @@ public:
                    const double center2,
                    const double diameter,
                    const INSHierarchyIntegrator* fluid_solver,
-                   Pointer<PatchHierarchy<NDIM> > patch_hierarchy);
+                   SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Destructor.
@@ -62,11 +68,11 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
+                        SAMRAIPointer<SAMRAIPatchLevel> patch_level = nullptr);
 
     //\}
 
@@ -100,7 +106,7 @@ private:
 
     const double d_XC1, d_XC2, d_D;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_patch_hierarchy;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

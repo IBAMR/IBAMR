@@ -13,6 +13,8 @@
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "RigidBodyKinematics.h"
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,8 +22,10 @@
 // SAMRAI INCLUDES
 #include "ibtk/IBTK_MPI.h"
 
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 // IBAMR INCLUDES
 #include "ibamr/namespaces.h"
@@ -39,9 +43,9 @@ static const double PII = 3.14159265358979323846264338327950288419716939937510;
 } // namespace
 
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
-                                         Pointer<Database> input_db,
+                                         SAMRAIPointer<Database> input_db,
                                          LDataManager* l_data_manager,
-                                         Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                                         SAMRAIPointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_parser_time(0.0),
@@ -101,7 +105,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln == finest_ln);
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int total_lag_pts = idx_range[0].second - idx_range[0].first;
     for (int d = 0; d < NDIM; ++d) d_kinematics_vel[d].resize(total_lag_pts);
 
@@ -128,7 +132,7 @@ RigidBodyKinematics::~RigidBodyKinematics()
 } //~RigidBodyKinematics
 
 void
-RigidBodyKinematics::putToDatabase(Pointer<Database> db)
+RigidBodyKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -141,8 +145,8 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 void
 RigidBodyKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -180,7 +184,7 @@ RigidBodyKinematics::setRigidBodySpecificVelocity(const double time,
         TBOX_ASSERT(finest_ln == coarsest_ln);
     }
 #endif
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int nodes_this_ln = idx_range[0].second - idx_range[0].first;
     for (int d = 0; d < NDIM; ++d)
         for (int idx = 0; idx < nodes_this_ln; ++idx) d_kinematics_vel[d][idx] = vel_parser[d];
@@ -207,7 +211,7 @@ RigidBodyKinematics::setKinematicsVelocity(const double new_time,
     return;
 } // setKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 RigidBodyKinematics::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
@@ -221,7 +225,7 @@ RigidBodyKinematics::setShape(const double /*time*/,
     return;
 } // setShape
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 RigidBodyKinematics::getShape(const int /*level*/) const
 {
     return d_shape;

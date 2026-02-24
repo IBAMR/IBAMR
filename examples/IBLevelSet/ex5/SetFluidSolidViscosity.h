@@ -18,13 +18,14 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+// SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Pointer.h>
-
-#include <Variable.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 namespace IBTK
 {
@@ -40,8 +41,8 @@ class HierarchyMathOps;
  * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
 void callSetFluidSolidViscosityCallbackFunction(int mu_idx,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
-                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                SAMRAIPointer<SAMRAIVariable> mu_var,
+                                                SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                 const int cycle_num,
                                                 const double time,
                                                 const double current_time,
@@ -69,8 +70,8 @@ public:
      * Set the density based on the current level set information
      */
     void setViscosityPatchData(int mu_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               SAMRAIPointer<SAMRAIVariable> mu_var,
+                               SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
                                const double current_time,

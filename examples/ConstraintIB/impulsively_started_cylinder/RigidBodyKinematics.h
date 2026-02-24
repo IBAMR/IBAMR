@@ -19,13 +19,15 @@
 // IBAMR INCLUDES
 #include "ibamr/ConstraintIBKinematics.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
 // IBTK INCLUDES
 #include "ibtk/LDataManager.h"
 
 // SAMRAI INCLUDES
-#include "PatchHierarchy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 // C++ INCLUDES
 #include "string"
@@ -52,9 +54,9 @@ public:
      * \brief Constructor.
      */
     RigidBodyKinematics(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        SAMRAIPointer<SAMRAIDatabase> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                         bool register_for_restart = true);
 
     /*!
@@ -75,7 +77,7 @@ public:
      * \brief Get the kinematics velocity on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of rigid body at new time on all levels.
@@ -87,12 +89,12 @@ public:
      * \brief Get the shape of rigid body at new time on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getShape
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
 private:
     /*!
@@ -148,8 +150,8 @@ private:
     /*!
      * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<double>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.

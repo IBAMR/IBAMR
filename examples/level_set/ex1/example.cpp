@@ -12,17 +12,36 @@
 // ---------------------------------------------------------------------
 
 // Config files
+#include "ibtk/samrai_compatibility_names.h"
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HyperbolicLevelIntegrator.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include "SAMRAIBergerRigoutsos.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHyperbolicLevelIntegrator.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitialize.h"
+#include "SAMRAITimeRefinementIntegrator.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
@@ -34,9 +53,6 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
-
-#include <LocationIndexRobinBcCoefs.h>
-#include <TimeRefinementIntegrator.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -66,9 +82,9 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "advect.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "advect.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -108,39 +124,39 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
+        SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
+        SAMRAIPointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
             new AdvectorPredictorCorrectorHyperbolicPatchOps(
                 "AdvectorPredictorCorrectorHyperbolicPatchOps",
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
                 explicit_predictor,
                 grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
-            new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
+        SAMRAIPointer<SAMRAIHyperbolicLevelIntegrator> hyp_level_integrator =
+            new SAMRAIHyperbolicLevelIntegrator("HyperbolicLevelIntegrator",
                                                 app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
                                                 hyp_patch_ops,
                                                 true,
                                                 using_refined_timestepping);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                hyp_level_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        SAMRAIPointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        SAMRAIPointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator =
-            new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
+        SAMRAIPointer<SAMRAITimeRefinementIntegrator> time_integrator =
+            new SAMRAITimeRefinementIntegrator("TimeRefinementIntegrator",
                                                app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
                                                patch_hierarchy,
                                                hyp_level_integrator,
@@ -156,8 +172,8 @@ main(int argc, char* argv[])
         {
             pout << "advection velocity u is NOT discretely divergence free.\n";
         }
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
-        Pointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = new SAMRAIFaceVariable<double>("u");
+        SAMRAIPointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
             "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry);
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
@@ -169,8 +185,8 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = new SAMRAICellVariable<double>("Q");
+        SAMRAILocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
         hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
@@ -178,12 +194,12 @@ main(int argc, char* argv[])
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Level set initial conditions
-        Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> Q_init = new muParserCartGridFunction(
             "Q_init", app_initializer->getComponentDatabase("QInitFunction"), grid_geometry);
         hyp_patch_ops->setInitialConditions(Q_var, Q_init);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
@@ -194,22 +210,22 @@ main(int argc, char* argv[])
         circle.R = input_db->getDouble("R");
         input_db->getDoubleArray("X0", circle.X0.data(), NDIM);
 
-        Pointer<VariableContext> current_ctx = hyp_level_integrator->getCurrentContext();
-        Pointer<VariableContext> scratch_ctx = hyp_level_integrator->getScratchContext();
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIPointer<VariableContext> current_ctx = hyp_level_integrator->getCurrentContext();
+        SAMRAIPointer<VariableContext> scratch_ctx = hyp_level_integrator->getScratchContext();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, current_ctx);
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, scratch_ctx);
 
-        Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
+        SAMRAIPointer<SAMRAICellVariable<double>> E_var = new SAMRAICellVariable<double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, scratch_ctx);
 
         // Heaviside
-        Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("H");
+        SAMRAIPointer<SAMRAICellVariable<double>> H_var = new SAMRAICellVariable<double>("H");
         const int H_idx = var_db->registerVariableAndContext(H_var, scratch_ctx);
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(Q_scratch_idx))
                 level->allocatePatchData(Q_scratch_idx, time_integrator->getIntegratorTime());
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
@@ -227,9 +243,9 @@ main(int argc, char* argv[])
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        Pointer<HierarchyMathOps> hier_math_ops =
+        SAMRAIPointer<HierarchyMathOps> hier_math_ops =
             new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
-        Pointer<RelaxationLSMethod> level_set_ops =
+        SAMRAIPointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("LevelSet"));
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&circular_interface_neighborhood, (void*)&circle);
         level_set_ops->registerPhysicalBoundaryCondition(&physical_bc_coef);
@@ -242,23 +258,23 @@ main(int argc, char* argv[])
         // Compute L1 error from analytical solution
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                Pointer<CellData<NDIM, double> > Q_scratch_data = patch->getPatchData(Q_scratch_idx);
-                Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                const SAMRAIBox& patch_box = patch->getBox();
+                SAMRAIPointer<SAMRAICellData<double>> E_data = patch->getPatchData(E_idx);
+                SAMRAIPointer<SAMRAICellData<double>> Q_scratch_data = patch->getPatchData(Q_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_idx);
+                for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    SAMRAICellIndex ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector coord = IBTK::Vector::Zero();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
-                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                    const SAMRAIIndex& patch_lower_idx = patch_box.lower();
                     const double* const patch_dx = patch_geom->getDx();
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -281,7 +297,7 @@ main(int argc, char* argv[])
             }
         }
 
-        HierarchyCellDataOpsReal<NDIM, double> cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         cc_data_ops.subtract(E_idx, E_idx, Q_scratch_idx);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
         pout << "Error in Q after level set initialization:" << std::endl
@@ -298,21 +314,21 @@ main(int argc, char* argv[])
         // Compute L1 Norm for specific regions
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(Q_scratch_idx);
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                Pointer<CellData<NDIM, double> > W_data = patch->getPatchData(wgt_cc_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                const SAMRAIBox& patch_box = patch->getBox();
+                SAMRAIPointer<SAMRAICellData<double>> D_data = patch->getPatchData(Q_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> E_data = patch->getPatchData(E_idx);
+                SAMRAIPointer<SAMRAICellData<double>> W_data = patch->getPatchData(wgt_cc_idx);
+                for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    SAMRAICellIndex ci(it());
                     const double phi = (*D_data)(ci);
                     const double err = (*E_data)(ci);
                     const double dV = (*W_data)(ci);
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                     const double* const patch_dx = patch_geom->getDx();
 
                     if (std::abs(phi) < 1.2 * patch_dx[0])
@@ -342,7 +358,7 @@ main(int argc, char* argv[])
         cc_data_ops.copyData(Q_current_idx, Q_scratch_idx);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             if (level->checkAllocated(Q_scratch_idx)) level->deallocatePatchData(Q_scratch_idx);
         }
 

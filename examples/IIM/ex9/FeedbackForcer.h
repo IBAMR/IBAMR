@@ -16,12 +16,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// SAMRAI INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-#include "BcData.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include <Patch.h>
-#include <Variable.h>
+#include "BcData.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -39,7 +44,7 @@ public:
      * \brief Constructor
      */
     FeedbackForcer(const INSHierarchyIntegrator* fluid_solver,
-                   Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                   SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                    const BcData& bc_data);
 
     /*!
@@ -62,11 +67,11 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
+                        SAMRAIPointer<SAMRAIPatchLevel> patch_level = nullptr);
 
     //\}
 
@@ -99,7 +104,7 @@ private:
     FeedbackForcer& operator=(const FeedbackForcer& that);
 
     const INSHierarchyIntegrator* const d_fluid_solver;
-    Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_patch_hierarchy;
     const BcData d_bc_data;
 };
 

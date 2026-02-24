@@ -11,6 +11,20 @@
 //
 // ---------------------------------------------------------------------
 
+// SAMRAI INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIFaceIndex.h"
+#include "SAMRAIFaceIterator.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 #include "UFunction.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,7 +35,9 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-UFunction::UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+UFunction::UFunction(const string& object_name,
+                     SAMRAIPointer<SAMRAIGridGeometry> grid_geom,
+                     SAMRAIPointer<Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
@@ -57,13 +73,13 @@ UFunction::~UFunction()
 
 void
 UFunction::setDataOnPatch(const int data_idx,
-                          Pointer<Variable<NDIM> > /*var*/,
-                          Pointer<Patch<NDIM> > patch,
+                          SAMRAIPointer<SAMRAIVariable> /*var*/,
+                          SAMRAIPointer<SAMRAIPatch> patch,
                           const double /*data_time*/,
                           const bool /*initial_time*/,
-                          Pointer<PatchLevel<NDIM> > /*level*/)
+                          SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
-    Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
 #endif
@@ -77,9 +93,9 @@ UFunction::setDataOnPatch(const int data_idx,
     }
     else if (d_init_type == "VORTEX")
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        const hier::Index<NDIM>& patch_lower = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIIndex& patch_lower = patch_box.lower();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
@@ -88,10 +104,10 @@ UFunction::setDataOnPatch(const int data_idx,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (FaceIterator<NDIM> it(patch_box, axis); it; it++)
+            for (SAMRAIFaceIterator it(patch_box, axis); it; it++)
             {
-                const FaceIndex<NDIM>& i = it();
-                const hier::Index<NDIM>& cell_idx = i.toCell(1);
+                const SAMRAIFaceIndex& i = it();
+                const SAMRAIIndex& cell_idx = i.toCell(1);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -128,7 +144,7 @@ UFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-UFunction::getFromInput(Pointer<Database> db)
+UFunction::getFromInput(SAMRAIPointer<Database> db)
 {
     if (db)
     {

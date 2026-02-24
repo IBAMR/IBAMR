@@ -13,9 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "VelocityBcCoefs.h"
+// SAMRAI INCLUDES
+#include "ibtk/samrai_compatibility_names.h"
 
-#include <CartesianPatchGeometry.h>
+#include "SAMRAIArrayData.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAIVariable.h"
+#include "VelocityBcCoefs.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 namespace
@@ -75,12 +86,12 @@ VelocityBcCoefs::~VelocityBcCoefs()
 } // ~VelocityBcCoefs
 
 void
-VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                            Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                            Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                            const Pointer<Variable<NDIM> >& /*variable*/,
-                            const Patch<NDIM>& patch,
-                            const BoundaryBox<NDIM>& bdry_box,
+VelocityBcCoefs::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                            SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                            SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
+                            const SAMRAIPointer<SAMRAIVariable>& /*variable*/,
+                            const SAMRAIPatch& patch,
+                            const SAMRAIBoundaryBox& bdry_box,
                             double fill_time) const
 {
     // bdry_box is for filling ghost data
@@ -98,15 +109,15 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data.isNull());
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const SAMRAIBox& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bcoef_data.isNull() || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(gcoef_data.isNull() || bc_coef_box == gcoef_data->getBox());
 #endif
 
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower(); // pointer to lower coordinates of patch
 
@@ -122,10 +133,10 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     //    z_max = d_input_db->getDoubleWithDefault("Z_MAX", z_max);
 
     // Loops through cells of bc_coef_box, which is box over which we need BC's
-    for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+    for (SAMRAIBox::Iterator bc(bc_coef_box); bc; bc++)
     {
-        const hier::Index<NDIM>& i = bc();
-        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+        const SAMRAIIndex& i = bc();
+        const SAMRAISideIndex i_s(i, axis, SAMRAISideIndex::Lower);
         double dummy;
         double& a = (!acoef_data.isNull() ? (*acoef_data)(i, 0) : dummy);
         double& b = (!bcoef_data.isNull() ? (*bcoef_data)(i, 0) : dummy);
@@ -222,7 +233,7 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 VelocityBcCoefs::numberOfExtensionsFillable() const
 {
     return 128;

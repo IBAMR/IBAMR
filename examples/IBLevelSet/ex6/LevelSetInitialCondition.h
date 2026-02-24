@@ -16,7 +16,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -63,11 +71,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(nullptr));
+                        SAMRAIPointer<SAMRAIPatchLevel> patch_level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr));
 
     //\}
 

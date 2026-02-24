@@ -17,12 +17,14 @@
 
 //////////////////////////////////INCLUDES///////////////////////////////////////////////
 
+// SAMRAI INCLUDES
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Patch.h"
-#include "PatchLevel.h"
-#include "Variable.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 namespace IBTK
 {
@@ -73,12 +75,11 @@ public:
      * This method copies the body force calculated a \textit{piori} on the  patch interior passed to this method.
      */
     virtual void setDataOnPatch(const int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                SAMRAIPointer<SAMRAIVariable> var,
+                                SAMRAIPointer<SAMRAIPatch> patch,
                                 const double data_time,
                                 const bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
+                                SAMRAIPointer<SAMRAIPatchLevel> patch_level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr));
 
 }; // CartGridBodyForce
 

@@ -17,12 +17,16 @@
 #define included_TagLSRefinementCells
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+// SAMRAI INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "BasePatchHierarchy.h"
-#include "PatchHierarchy.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
 #include <string>
 
@@ -36,7 +40,7 @@
  * \param ctx is the pointer to TagLSRefinementCells class object.
  */
 
-void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+void callTagLSRefinementCellsCallbackFunction(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                               const int level_number,
                                               const double error_data_time,
                                               const int tag_index,
@@ -46,8 +50,8 @@ void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier
 
 struct TagLSRefinementCells
 {
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_gas_var;
     double d_tag_value;
     double d_tag_abs_thresh;
 };

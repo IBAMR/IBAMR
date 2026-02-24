@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "GravityForcing.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -18,14 +20,23 @@
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
+#include "SAMRAIBox.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAIVariable.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 GravityForcing::GravityForcing(const std::string& object_name,
-                               Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
+                               SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
                                std::vector<double> grav_const)
     : d_object_name(object_name), d_ins_hierarchy_integrator(ins_hierarchy_integrator), d_grav_const(grav_const)
 {
@@ -47,8 +58,8 @@ GravityForcing::isTimeDependent() const
 
 void
 GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                        Pointer<Variable<NDIM> > /*var*/,
-                                        Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                        SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                        SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                         const double /*data_time*/,
                                         const bool /*initial_time*/,
                                         const int coarsest_ln_in,
@@ -65,18 +76,18 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
-            Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-            const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& box = patch->getBox();
+            SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(data_idx);
+            const SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    SAMRAISideIndex s_i(it(), axis, SAMRAISideIndex::Lower);
                     (*f_data)(s_i) = ((*rho_data)(s_i)) * d_grav_const[axis];
                 }
             }
@@ -87,15 +98,15 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 GravityForcing::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
+                               SAMRAIPointer<SAMRAIVariable> /*var*/,
+                               SAMRAIPointer<SAMRAIPatch> patch,
                                const double /*data_time*/,
                                const bool initial_time,
-                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                               SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
 {
     if (initial_time)
     {
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(data_idx);
         f_data->fillAll(0.0);
     }
     // Intentionally left blank
