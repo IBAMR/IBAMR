@@ -114,8 +114,8 @@ main()
     const int tailNs = static_cast<int>(ceil((LENGTH_FISH - LENGTH_TILLHEAD) / dx));
     const int bodyNs = headNs + tailNs + 1;
 
-    std::vector<std::pair<int, int> > immersedBodyData(bodyNs);
-    std::vector<std::pair<double, double> > immersedBodyWidthHeight(bodyNs);
+    std::vector<std::pair<int, int>> immersedBodyData(bodyNs);
+    std::vector<std::pair<double, double>> immersedBodyWidthHeight(bodyNs);
 
     for (int i = 1; i <= headNs + 1; ++i)
     {
@@ -151,7 +151,7 @@ main()
     input[6] = time_period;
 
     // Find the deformed shape. Rotate the shape about center of mass.
-    std::vector<std::vector<double> > shape_new(3);
+    std::vector<std::vector<double>> shape_new(3);
     for (int i = 1; i <= bodyNs; ++i)
     {
         const int numPtsInSection = immersedBodyData[i - 1].first;
