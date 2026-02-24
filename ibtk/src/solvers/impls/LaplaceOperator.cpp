@@ -15,13 +15,14 @@
 
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/LinearOperator.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <string>
 #include <utility>
@@ -40,8 +41,8 @@ namespace IBTK
 LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
     : LinearOperator(std::move(object_name), homogeneous_bc),
       d_poisson_spec(d_object_name + "::poisson_spec"),
-      d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
+      d_default_bc_coef(new SAMRAILocationIndexRobinBcCoefs(d_object_name + "::default_bc_coef",
+                                                            SAMRAIPointer<SAMRAIDatabase>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef.get())
 {
     // Initialize the Poisson specifications.
@@ -50,7 +51,7 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
+    auto p_default_bc_coef = dynamic_cast<SAMRAILocationIndexRobinBcCoefs*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
@@ -60,27 +61,27 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
 } // LaplaceOperator()
 
 void
-LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+LaplaceOperator::setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
 
-const PoissonSpecifications&
+const SAMRAIPoissonSpecifications&
 LaplaceOperator::getPoissonSpecifications() const
 {
     return d_poisson_spec;
 } // getPoissonSpecifications
 
 void
-LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
+LaplaceOperator::setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
+    setPhysicalBcCoefs(std::vector<SAMRAIRobinBcCoefStrategy*>(1, bc_coef));
     return;
 } // setPhysicalBcCoef
 
 void
-LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+LaplaceOperator::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -97,7 +98,7 @@ LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*
     return;
 } // setPhysicalBcCoefs
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>&
+const std::vector<SAMRAIRobinBcCoefStrategy*>&
 LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;

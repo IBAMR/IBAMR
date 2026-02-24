@@ -18,13 +18,14 @@
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAITimer.h"
 
 #include "petscis.h"
 #include "petscvec.h"
@@ -47,37 +48,37 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_vec_duplicate;
-static Timer* t_vec_dot;
-static Timer* t_vec_m_dot;
-static Timer* t_vec_norm;
-static Timer* t_vec_t_dot;
-static Timer* t_vec_m_t_dot;
-static Timer* t_vec_scale;
-static Timer* t_vec_copy;
-static Timer* t_vec_set;
-static Timer* t_vec_swap;
-static Timer* t_vec_axpy;
-static Timer* t_vec_axpby;
-static Timer* t_vec_maxpy;
-static Timer* t_vec_aypx;
-static Timer* t_vec_waxpy;
-static Timer* t_vec_axpbypcz;
-static Timer* t_vec_pointwise_mult;
-static Timer* t_vec_pointwise_divide;
-static Timer* t_vec_get_size;
-static Timer* t_vec_get_local_size;
-static Timer* t_vec_max;
-static Timer* t_vec_min;
-static Timer* t_vec_set_random;
-static Timer* t_vec_destroy;
-static Timer* t_vec_dot_local;
-static Timer* t_vec_t_dot_local;
-static Timer* t_vec_norm_local;
-static Timer* t_vec_m_dot_local;
-static Timer* t_vec_m_t_dot_local;
-static Timer* t_vec_max_pointwise_divide;
-static Timer* t_vec_dot_norm2;
+static SAMRAITimer* t_vec_duplicate;
+static SAMRAITimer* t_vec_dot;
+static SAMRAITimer* t_vec_m_dot;
+static SAMRAITimer* t_vec_norm;
+static SAMRAITimer* t_vec_t_dot;
+static SAMRAITimer* t_vec_m_t_dot;
+static SAMRAITimer* t_vec_scale;
+static SAMRAITimer* t_vec_copy;
+static SAMRAITimer* t_vec_set;
+static SAMRAITimer* t_vec_swap;
+static SAMRAITimer* t_vec_axpy;
+static SAMRAITimer* t_vec_axpby;
+static SAMRAITimer* t_vec_maxpy;
+static SAMRAITimer* t_vec_aypx;
+static SAMRAITimer* t_vec_waxpy;
+static SAMRAITimer* t_vec_axpbypcz;
+static SAMRAITimer* t_vec_pointwise_mult;
+static SAMRAITimer* t_vec_pointwise_divide;
+static SAMRAITimer* t_vec_get_size;
+static SAMRAITimer* t_vec_get_local_size;
+static SAMRAITimer* t_vec_max;
+static SAMRAITimer* t_vec_min;
+static SAMRAITimer* t_vec_set_random;
+static SAMRAITimer* t_vec_destroy;
+static SAMRAITimer* t_vec_dot_local;
+static SAMRAITimer* t_vec_t_dot_local;
+static SAMRAITimer* t_vec_norm_local;
+static SAMRAITimer* t_vec_m_dot_local;
+static SAMRAITimer* t_vec_m_t_dot_local;
+static SAMRAITimer* t_vec_max_pointwise_divide;
+static SAMRAITimer* t_vec_dot_norm2;
 
 #define PSVR_CAST1(v) (static_cast<PETScSAMRAIVectorReal*>(v->data))
 #define PSVR_CAST2(v) (static_cast<PETScSAMRAIVectorReal*>(v->data)->d_samrai_vector)
@@ -110,7 +111,7 @@ static Timer* t_vec_dot_norm2;
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
+PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> > samrai_vector,
                                              bool vector_created_via_duplicate,
                                              MPI_Comm comm)
     : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)
@@ -229,7 +230,8 @@ PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     PetscFunctionBeginUser;
     PSVR_CHECK1(v);
     PetscErrorCode ierr;
-    Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> > samrai_vec =
+        PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
     static const bool vector_created_via_duplicate = true;
     MPI_Comm comm;

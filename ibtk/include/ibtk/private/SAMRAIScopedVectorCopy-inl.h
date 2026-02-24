@@ -20,33 +20,31 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Pointer.h>
-
-#include <SAMRAIVectorReal.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 template <typename TYPE>
-SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(
-    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >& vector,
-    const std::string& name)
+SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >& vector,
+                                                     const std::string& name)
     : SAMRAIScopedVectorCopy(checked_dereference(vector), name)
 {
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector,
+SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAISAMRAIVectorReal<TYPE>& vector,
                                                      const std::string& name)
     : SAMRAIScopedVectorDuplicate<TYPE>(vector, name)
 {
-    this->d_vector->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >(
-                                   const_cast<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>*>(&vector), false),
-                               false);
+    this->d_vector->copyVector(
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >(const_cast<SAMRAISAMRAIVectorReal<TYPE>*>(&vector), false), false);
 }
 } // namespace IBTK
 

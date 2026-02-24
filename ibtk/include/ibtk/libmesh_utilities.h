@@ -20,12 +20,14 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIUtilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "libmesh/bounding_box.h"

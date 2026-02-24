@@ -20,14 +20,17 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #ifdef IBTK_HAVE_LIBMESH
+
+#include "SAMRAIPointer.h"
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_vector.h>
 #include <libmesh/system.h>
 
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 

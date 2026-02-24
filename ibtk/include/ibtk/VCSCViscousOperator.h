@@ -21,6 +21,9 @@
 #include <ibtk/config.h>
 
 #include "ibtk/SCLaplaceOperator.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAISAMRAIVectorReal.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -83,8 +86,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -95,8 +97,8 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by

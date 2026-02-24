@@ -16,18 +16,19 @@
 #include "ibtk/AppInitializer.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "VisItDataWriter.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/InputDatabase.h"
-#include "tbox/InputManager.h"
-#include "tbox/NullDatabase.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIInputDatabase.h"
+#include "SAMRAIInputManager.h"
+#include "SAMRAINullDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVisItDataWriter.h"
 
 #include <petsclog.h>
 #include <petscsys.h>
@@ -75,13 +76,13 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(
+        SAMRAIRestartManager::getManager()->openRestartFile(
             d_restart_read_dirname, d_restart_restore_num, IBTK_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.
-    d_input_db = new InputDatabase("input_db");
-    InputManager::getManager()->parseInputFile(input_filename, d_input_db);
+    d_input_db = new SAMRAIInputDatabase("input_db");
+    SAMRAIInputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
     // Set custom PETSc options file when one is specified.
     if (d_input_db->keyExists("petsc_options_file"))
@@ -91,7 +92,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Process "Main" section of the input database.
-    Pointer<Database> main_db = new NullDatabase();
+    SAMRAIPointer<SAMRAIDatabase> main_db = new SAMRAINullDatabase();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -106,11 +107,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     {
         if (log_all_nodes)
         {
-            PIO::logAllNodes(log_file_name);
+            SAMRAIPIO::logAllNodes(log_file_name);
         }
         else
         {
-            PIO::logOnlyNodeZero(log_file_name);
+            SAMRAIPIO::logOnlyNodeZero(log_file_name);
         }
     }
 
@@ -137,12 +138,12 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Avoid some warnings by unconditionally creating the timer database, even if
     // we never use it:
     {
-        Pointer<Database> timer_manager_db;
+        SAMRAIPointer<SAMRAIDatabase> timer_manager_db;
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
         }
-        TimerManager::createManager(timer_manager_db);
+        SAMRAITimerManager::createManager(timer_manager_db);
     }
 
     // Configure visualization options.
@@ -194,7 +195,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     std::string viz_writers_key_name;
-    Array<std::string> viz_writers_arr;
+    SAMRAIArray<std::string> viz_writers_arr;
     if (main_db->keyExists("viz_writer"))
     {
         viz_writers_key_name = "viz_writer";
@@ -240,7 +241,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
-                new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+                new SAMRAIVisItDataWriter("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
         }
 
         if (viz_writer == "Silo")
@@ -359,11 +360,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
 AppInitializer::~AppInitializer()
 {
-    InputManager::freeManager();
+    SAMRAIInputManager::freeManager();
     return;
 } // ~AppInitializer
 
-Pointer<Database>
+SAMRAIPointer<SAMRAIDatabase>
 AppInitializer::getInputDatabase()
 {
     return d_input_db;
@@ -387,7 +388,7 @@ AppInitializer::getRestartRestoreNumber() const
     return d_restart_restore_num;
 }
 
-Pointer<Database>
+SAMRAIPointer<SAMRAIDatabase>
 AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
     if (!d_is_from_restart && !suppress_warning)
@@ -395,10 +396,10 @@ AppInitializer::getRestartDatabase(const bool suppress_warning)
         pout << "WARNING: AppInitializer::getRestartDatabase(): Not a restarted run, restart "
                 "database is empty\n";
     }
-    return RestartManager::getManager()->getRootDatabase();
+    return SAMRAIRestartManager::getManager()->getRootDatabase();
 } // getRestartDatabase
 
-Pointer<Database>
+SAMRAIPointer<SAMRAIDatabase>
 AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
 {
     const bool db_exists = d_input_db->isDatabase(component_name);
@@ -407,7 +408,7 @@ AppInitializer::getComponentDatabase(const std::string& component_name, const bo
         pout << "WARNING: AppInitializer::getComponentDatabase(): Database corresponding to "
                 "component `"
              << component_name << "' not found in input\n";
-        return new NullDatabase();
+        return new SAMRAINullDatabase();
     }
     else
     {
@@ -439,13 +440,13 @@ AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter<NDIM> >
+SAMRAIPointer<SAMRAIVisItDataWriter>
 AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter
 
-Pointer<LSiloDataWriter>
+SAMRAIPointer<LSiloDataWriter>
 AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;

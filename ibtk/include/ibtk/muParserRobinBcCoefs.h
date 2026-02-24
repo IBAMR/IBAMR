@@ -21,11 +21,17 @@
 #include <ibtk/config.h>
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArrayData.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIVariable.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "muParser.h"
@@ -83,15 +89,15 @@ namespace IBTK
  * linear solvers in IBTK are presently designed to support spatially and
  * temporally varying \em inhomogeneous boundary coefficients.
  */
-class muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class muParserRobinBcCoefs : public SAMRAIRobinBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor
      */
     muParserRobinBcCoefs(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
+                         SAMRAIPointer<SAMRAIDatabase> input_db,
+                         SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom);
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -126,12 +132,12 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-                    const SAMRAI::hier::Patch<NDIM>& patch,
-                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+                    const SAMRAIPointer<SAMRAIVariable>& variable,
+                    const SAMRAIPatch& patch,
+                    const SAMRAIBoundaryBox& bdry_box,
                     double fill_time = 0.0) const override;
 
     /*
@@ -149,7 +155,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
+    SAMRAIIntVector numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -206,7 +212,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

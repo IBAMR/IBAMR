@@ -20,12 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIUtilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core" // IWYU pragma: export
@@ -138,7 +141,7 @@ get_data_time_str(const double data_time, const double current_time, const doubl
  * Get the smallest cell width on the specified level. This operation is
  * collective.
  */
-double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
+double get_min_patch_dx(const SAMRAIPatchLevel& patch_level);
 
 template <class T, unsigned N>
 inline std::array<T, N>
@@ -301,7 +304,7 @@ static const int invalid_index = -1;
  * Deallocate a SAMRAIVectorReal.
  */
 inline void
-deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+deallocate_vector_data(SAMRAISAMRAIVectorReal<double>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {
@@ -332,7 +335,7 @@ deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
  * Free the components of a SAMRAIVectorReal.
  */
 inline void
-free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+free_vector_components(SAMRAISAMRAIVectorReal<double>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {
@@ -368,7 +371,7 @@ free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
  */
 template <class T>
 const T&
-checked_dereference(const SAMRAI::tbox::Pointer<T>& p)
+checked_dereference(const SAMRAIPointer<T>& p)
 {
 #ifndef NDEBUG
     TBOX_ASSERT(p);
@@ -381,7 +384,7 @@ checked_dereference(const SAMRAI::tbox::Pointer<T>& p)
  */
 template <class T>
 T&
-checked_dereference(SAMRAI::tbox::Pointer<T>& p)
+checked_dereference(SAMRAIPointer<T>& p)
 {
 #ifndef NDEBUG
     TBOX_ASSERT(p);

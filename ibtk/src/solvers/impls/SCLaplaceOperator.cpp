@@ -20,14 +20,18 @@
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "VariableFillPattern.h"
-#include "tbox/Timer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideDataFactory.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAITimer.h"
+#include "SAMRAIVariableFillPattern.h"
 
 #include <algorithm>
 #include <string>
@@ -57,14 +61,16 @@ namespace
 static const int SIDEG = 1;
 
 // Timers.
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static SAMRAITimer* t_apply;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SCLaplaceOperator::SCLaplaceOperator(std::string object_name, Pointer<Database> input_db, const bool homogeneous_bc)
+SCLaplaceOperator::SCLaplaceOperator(std::string object_name,
+                                     SAMRAIPointer<Database> input_db,
+                                     const bool homogeneous_bc)
     : LaplaceOperator(std::move(object_name), homogeneous_bc)
 {
     if (input_db)
@@ -79,7 +85,7 @@ SCLaplaceOperator::SCLaplaceOperator(std::string object_name, Pointer<Database> 
     }
 
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));
+    setPhysicalBcCoefs(std::vector<SAMRAIRobinBcCoefStrategy*>(NDIM, nullptr));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
@@ -97,7 +103,7 @@ SCLaplaceOperator::~SCLaplaceOperator()
 } // ~SCLaplaceOperator()
 
 void
-SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+SCLaplaceOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -106,15 +112,15 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-side centered vector components" << std::endl);
         }
-        Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double> > x_factory = x_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double> > y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -151,8 +157,8 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > y_sc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_idx, x_sc_var, d_no_fill, 0.0);
@@ -164,8 +170,8 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 } // apply
 
 void
-SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                           const SAMRAIVectorReal<NDIM, double>& out)
+SCLaplaceOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                           const SAMRAISAMRAIVectorReal<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 

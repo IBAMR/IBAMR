@@ -21,9 +21,13 @@
 #include <ibtk/config.h>
 
 #include "ibtk/LSet.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "IndexData.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICellGeometry.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIndexData.h"
+#include "SAMRAIIndexIterator.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI
@@ -119,11 +123,11 @@ public:
      * \brief Return a const reference to the cell index referred to by the
      * iterator.
      */
-    const SAMRAI::hier::Index<NDIM>& getCellIndex() const;
+    const SAMRAIIndex& getCellIndex() const;
 
 private:
-    SAMRAI::hier::Box<NDIM> d_box;
-    SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > d_index_it;
+    SAMRAIBox d_box;
+    SAMRAIIndexIterator<LSet<T>, SAMRAICellGeometry> d_index_it;
     LSet<T>* d_node_set;
     typename LSet<T>::iterator d_node_it;
 };

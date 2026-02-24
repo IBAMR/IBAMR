@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Pointer.h>
-
-#include <SAMRAIVectorReal.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -45,13 +45,12 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.
      */
-    SAMRAIScopedVectorCopy(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >& vector,
-                           const std::string& name = "");
+    SAMRAIScopedVectorCopy(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >& vector, const std::string& name = "");
 
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.
      */
-    SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector, const std::string& name = "");
+    SAMRAIScopedVectorCopy(const SAMRAISAMRAIVectorReal<TYPE>& vector, const std::string& name = "");
 };
 } // namespace IBTK
 

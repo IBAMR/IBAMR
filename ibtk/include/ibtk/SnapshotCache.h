@@ -20,20 +20,23 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-#include <CellVariable.h>
-#include <EdgeVariable.h>
-#include <FaceVariable.h>
-#include <HierarchyDataOpsReal.h>
-#include <IntVector.h>
-#include <NodeVariable.h>
-#include <PatchHierarchy.h>
-#include <SideVariable.h>
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include <map>
 #include <set>
@@ -54,10 +57,10 @@ namespace IBTK
  * This class stores snapshots in a list ordered by increasing time values. Iterators to the stored snapshots are
  * provided via the begin(), end(), and getSnapshot() methods.
  */
-class SnapshotCache : public SAMRAI::tbox::Serializable
+class SnapshotCache : public SAMRAISerializable
 {
 public:
-    using value_type = std::pair<double, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > >;
+    using value_type = std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy> >;
     using iterator = std::vector<value_type>::iterator;
     using const_iterator = std::vector<value_type>::const_iterator;
 
@@ -73,9 +76,9 @@ public:
      * maximum ghost cell width needed to perform any needed refinement operation upon snapshot retrieval.
      */
     SnapshotCache(std::string object_name,
-                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+                  SAMRAIPointer<SAMRAIVariable> var,
+                  SAMRAIPointer<SAMRAIDatabase> input_db,
+                  SAMRAIPointer<SAMRAIGridGeometry> grid_geom,
                   bool register_for_restart = true);
 
     /*!
@@ -94,7 +97,7 @@ public:
      * getSnapshot() instead and copy the data manually. Data is not allocated in this class until this function is
      * called.
      */
-    void storeSnapshot(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void storeSnapshot(int u_idx, double time, SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * Get a copy of the snapshot time and patch hierarchy pair. If a snapshot is not present within the provided
@@ -139,7 +142,7 @@ public:
     /*!
      * Write the snapshot cache to a database. This writes both the time points and the snapshotted patch hierarchies.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * Get the patch index owned by this class.
@@ -152,7 +155,7 @@ public:
     /*!
      * Get the variable owned by this class.
      */
-    inline SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVariable()
+    inline SAMRAIPointer<SAMRAIVariable> getVariable()
     {
         return d_snapshot_var;
     }
@@ -162,7 +165,7 @@ private:
      * Read stored information from the restart files. Note the GridGeometry object is required in order to construct
      * the snapshotted patch hierarchies.
      */
-    void getFromRestart(SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom);
+    void getFromRestart(SAMRAIPointer<SAMRAIGridGeometry> grid_geom);
 
     /*!
      * \brief Copy constructor.
@@ -189,10 +192,10 @@ private:
     /*
      * Data for tracking snapshots.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_snapshot_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ctx;
+    SAMRAIPointer<SAMRAIVariable> d_snapshot_var;
+    SAMRAIPointer<SAMRAIVariableContext> d_ctx;
     int d_snapshot_idx = IBTK::invalid_index;
-    SAMRAI::hier::IntVector<NDIM> d_gcw = 1;
+    SAMRAIIntVector d_gcw = 1;
 
     /*!
      * Vector of snapshots consisting of time points and hierarchies. Each hierarchy allocates data only with the patch

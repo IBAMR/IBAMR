@@ -14,6 +14,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/Streamable.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIIntVector.h"
 
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -35,7 +38,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-Streamable::registerPeriodicShift(const IntVector<NDIM>& /*offset*/, const Vector& /*displacement*/)
+Streamable::registerPeriodicShift(const SAMRAIIntVector& /*offset*/, const Vector& /*displacement*/)
 {
     // intentionally blank
     return;

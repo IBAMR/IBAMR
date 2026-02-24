@@ -14,6 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CoarsenPatchStrategySet.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
 
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -46,22 +51,22 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     return;
 } // ~CoarsenPatchStrategySet
 
-IntVector<NDIM>
+SAMRAIIntVector
 CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
-    IntVector<NDIM> width = 0;
+    SAMRAIIntVector width = 0;
     for (const auto& strategy : d_strategy_set)
     {
-        width = IntVector<NDIM>::max(width, strategy->getCoarsenOpStencilWidth());
+        width = SAMRAIIntVector::max(width, strategy->getCoarsenOpStencilWidth());
     }
     return width;
 } // getCoarsenOpStencilWidth
 
 void
-CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
-                                           const Patch<NDIM>& fine,
-                                           const Box<NDIM>& coarse_box,
-                                           const IntVector<NDIM>& ratio)
+CoarsenPatchStrategySet::preprocessCoarsen(SAMRAIPatch& coarse,
+                                           const SAMRAIPatch& fine,
+                                           const SAMRAIBox& coarse_box,
+                                           const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -71,10 +76,10 @@ CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
 } // preprocessCoarsen
 
 void
-CoarsenPatchStrategySet::postprocessCoarsen(Patch<NDIM>& coarse,
-                                            const Patch<NDIM>& fine,
-                                            const Box<NDIM>& coarse_box,
-                                            const IntVector<NDIM>& ratio)
+CoarsenPatchStrategySet::postprocessCoarsen(SAMRAIPatch& coarse,
+                                            const SAMRAIPatch& fine,
+                                            const SAMRAIBox& coarse_box,
+                                            const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {

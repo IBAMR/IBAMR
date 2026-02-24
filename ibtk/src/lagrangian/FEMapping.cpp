@@ -13,8 +13,10 @@
 
 #include "ibtk/FEMapping.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include "libmesh/dense_matrix.h"
 #include "libmesh/elem.h"

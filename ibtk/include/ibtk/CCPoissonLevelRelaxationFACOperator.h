@@ -23,11 +23,14 @@
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "PoissonSpecifications.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBoxList.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 #include "petscksp.h"
 #include "petscmat.h"
@@ -113,7 +116,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonLevelRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        SAMRAIPointer<SAMRAIDatabase> input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -125,11 +128,11 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * CCPoissonLevelRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonLevelRelaxationFACOperator(
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonLevelRelaxationFACOperator(
             object_name + "::CCPoissonLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
@@ -166,8 +169,8 @@ public:
      * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
      * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAISAMRAIVectorReal<double>& error,
+                     const SAMRAISAMRAIVectorReal<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -181,8 +184,8 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    bool solveCoarsestLevel(SAMRAISAMRAIVectorReal<double>& error,
+                            const SAMRAISAMRAIVectorReal<double>& residual,
                             int coarsest_ln) override;
 
     /*!
@@ -194,9 +197,9 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAISAMRAIVectorReal<double>& residual,
+                         const SAMRAISAMRAIVectorReal<double>& solution,
+                         const SAMRAISAMRAIVectorReal<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -206,8 +209,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAISAMRAIVectorReal<double>& solution,
+                                            const SAMRAISAMRAIVectorReal<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -250,19 +253,19 @@ private:
     std::string d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER, d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
     int d_level_solver_max_iterations = 1;
-    std::vector<SAMRAI::tbox::Pointer<PoissonSolver> > d_level_solvers;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+    std::vector<SAMRAIPointer<PoissonSolver> > d_level_solvers;
+    SAMRAIPointer<SAMRAIDatabase> d_level_solver_db;
 
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<PoissonSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAIDatabase> d_coarse_solver_db;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<SAMRAIBoxList> > d_patch_bc_box_overlap;
 };
 } // namespace IBTK
 

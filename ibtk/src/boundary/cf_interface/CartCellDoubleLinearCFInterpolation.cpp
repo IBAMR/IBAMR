@@ -14,20 +14,23 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartCellDoubleLinearCFInterpolation.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BoundaryBox.h"
 #include "BoxArray.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CoarseFineBoundary.h"
-#include "GridGeometry.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineOperator.h"
-#include "tbox/Array.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICoarseFineBoundary.h"
+#include "SAMRAIGridGeometry.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineOperator.h"
 
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -82,15 +85,15 @@ CartCellDoubleLinearCFInterpolation::~CartCellDoubleLinearCFInterpolation()
 } // ~CartCellDoubleLinearCFInterpolation
 
 void
-CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
+CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(SAMRAIPatch& /*patch*/,
                                                                    const double /*fill_time*/,
-                                                                   const IntVector<NDIM>& /*ghost_width_to_fill*/)
+                                                                   const SAMRAIIntVector& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM>
+SAMRAIIntVector
 CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
 {
 #if !defined(NDEBUG)
@@ -100,20 +103,20 @@ CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
 } // getRefineOpStencilWidth
 
 void
-CartCellDoubleLinearCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                      const Patch<NDIM>& /*coarse*/,
-                                                      const Box<NDIM>& /*fine_box*/,
-                                                      const IntVector<NDIM>& /*ratio*/)
+CartCellDoubleLinearCFInterpolation::preprocessRefine(SAMRAIPatch& /*fine*/,
+                                                      const SAMRAIPatch& /*coarse*/,
+                                                      const SAMRAIBox& /*fine_box*/,
+                                                      const SAMRAIIntVector& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
 void
-CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
-                                                       const Patch<NDIM>& coarse,
-                                                       const Box<NDIM>& fine_box,
-                                                       const IntVector<NDIM>& ratio)
+CartCellDoubleLinearCFInterpolation::postprocessRefine(SAMRAIPatch& fine,
+                                                       const SAMRAIPatch& coarse,
+                                                       const SAMRAIBox& fine_box,
+                                                       const SAMRAIIntVector& ratio)
 {
     for (const auto& patch_data_index : d_patch_data_indices)
     {
@@ -163,7 +166,7 @@ CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSelector
 } // setPatchDataIndices
 
 void
-CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+CartCellDoubleLinearCFInterpolation::setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -173,21 +176,21 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<ND
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
     d_cf_boundary.resize(finest_level_number + 1);
-    const IntVector<NDIM>& max_ghost_width = getRefineOpStencilWidth();
+    const SAMRAIIntVector& max_ghost_width = getRefineOpStencilWidth();
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = SAMRAICoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<GridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAIGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const BoxArray<NDIM>& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& ratio = level->getRatio();
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        const SAMRAIIntVector& ratio = level->getRatio();
         d_domain_boxes[ln] = BoxArray<NDIM>(domain_boxes);
         d_domain_boxes[ln].refine(ratio);
         d_periodic_shift[ln] = grid_geom->getPeriodicShift(ratio);
@@ -206,9 +209,9 @@ CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 } // clearPatchHierarchy
 
 void
-CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
-                                                            const IntVector<NDIM>& ratio,
-                                                            const IntVector<NDIM>& /*ghost_width_to_fill*/)
+CartCellDoubleLinearCFInterpolation::computeNormalExtension(SAMRAIPatch& patch,
+                                                            const SAMRAIIntVector& ratio,
+                                                            const SAMRAIIntVector& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -224,10 +227,11 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
     const int patch_num = patch.getPatchNumber();
     const int patch_level_num = patch.getPatchLevelNumber();
 #if !defined(NDEBUG)
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
+    SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
     TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
 #endif
-    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
+    const SAMRAIArray<SAMRAIBoundaryBox>& cf_bdry_codim1_boxes =
+        d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -237,7 +241,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<CellData<NDIM, double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double> > data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
@@ -250,13 +254,13 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
         }
 #endif
         const int data_depth = data->getDepth();
-        const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-        const Box<NDIM>& patch_box = patch.getBox();
+        const SAMRAIIntVector ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        const SAMRAIBox& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {
-            const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
-            const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+            const SAMRAIBoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
+            const SAMRAIBox bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
             const unsigned int location_index = bdry_box.getLocationIndex();
             for (int depth = 0; depth < data_depth; ++depth)
             {

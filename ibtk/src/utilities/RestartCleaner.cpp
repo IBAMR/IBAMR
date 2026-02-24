@@ -15,9 +15,12 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/RestartCleaner.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -36,7 +39,7 @@ const std::regex RestartCleaner::s_restart_dir_pattern("restore\\.([0-9]{6,})");
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db)
     : d_object_name(object_name),
       d_restart_base_path(),
       d_strategy(parseStrategy(input_db->getStringWithDefault("cleanup_strategy", "KEEP_RECENT_N"))),

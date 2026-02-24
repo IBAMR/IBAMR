@@ -15,8 +15,9 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelSet.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include <tbox/Utilities.h>
+#include "SAMRAIUtilities.h"
 
 #include <set>
 #include <vector>

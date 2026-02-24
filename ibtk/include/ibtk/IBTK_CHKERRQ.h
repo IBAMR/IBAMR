@@ -21,8 +21,9 @@
 #include <ibtk/config.h>
 
 #include "ibtk/compiler_hints.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIUtilities.h"
 
 #include <ostream>
 
@@ -41,7 +42,7 @@ namespace IBTK
     {                                                                                                                  \
         std::ostringstream tboxos;                                                                                     \
         CHKERRCONTINUE(ierr);                                                                                          \
-        SAMRAI::tbox::Utilities::abort(tboxos.str().c_str(), __FILE__, __LINE__);                                      \
+        SAMRAIUtilities::abort(tboxos.str().c_str(), __FILE__, __LINE__);                                              \
     }
 } // namespace IBTK
 

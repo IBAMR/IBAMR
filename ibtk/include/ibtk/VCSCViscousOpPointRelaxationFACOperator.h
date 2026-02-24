@@ -21,6 +21,12 @@
 #include <ibtk/config.h>
 
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -67,7 +73,7 @@ public:
      * \brief Constructor.
      */
     VCSCViscousOpPointRelaxationFACOperator(std::string object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            SAMRAIPointer<SAMRAIDatabase> input_db,
                                             std::string default_options_prefix);
 
     /*!
@@ -79,13 +85,12 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * VCSCViscousOpPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-            new VCSCViscousOpPointRelaxationFACOperator(
-                object_name + "::VCSCViscousOpPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new VCSCViscousOpPointRelaxationFACOperator(
+            object_name + "::VCSCViscousOpPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
@@ -108,8 +113,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAISAMRAIVectorReal<double>& error,
+                     const SAMRAISAMRAIVectorReal<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -124,9 +129,9 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAISAMRAIVectorReal<double>& residual,
+                         const SAMRAISAMRAIVectorReal<double>& solution,
+                         const SAMRAISAMRAIVectorReal<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -138,8 +143,8 @@ public:
      * \param dst destination residual
      * \param dst_ln destination level number
      */
-    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void restrictResidual(const SAMRAISAMRAIVectorReal<double>& src,
+                          SAMRAISAMRAIVectorReal<double>& dst,
                           int dst_ln) override;
 
     //\}
@@ -153,19 +158,19 @@ public:
     /*!
      * \brief Set the scaling of the viscous operator and right-hand side
      */
-    void setOperatorScaling(SAMRAI::tbox::Array<double> A_scale);
+    void setOperatorScaling(SAMRAIArray<double> A_scale);
 
     /*!
      * \brief Get the coarse level solver
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> getCoarseSolver();
+    SAMRAIPointer<PoissonSolver> getCoarseSolver();
 
 protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAISAMRAIVectorReal<double>& solution,
+                                            const SAMRAISAMRAIVectorReal<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -205,7 +210,7 @@ private:
     /*
      * Array to indicate the scaling of the viscous operator and RHS.
      */
-    SAMRAI::tbox::Array<double> d_A_scale;
+    SAMRAIArray<double> d_A_scale;
 };
 } // namespace IBTK
 

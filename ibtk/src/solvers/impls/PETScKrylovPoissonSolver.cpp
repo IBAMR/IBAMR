@@ -14,8 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Database.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
 
 #include <utility>
 
@@ -30,7 +32,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(std::string object_name,
-                                                   Pointer<Database> input_db,
+                                                   SAMRAIPointer<SAMRAIDatabase> input_db,
                                                    std::string default_options_prefix)
     : PETScKrylovLinearSolver(std::move(object_name), input_db, std::move(default_options_prefix))
 {

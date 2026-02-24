@@ -17,8 +17,11 @@
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "PoissonSpecifications.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <vector>
 
@@ -42,46 +45,46 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     PoissonSolver::setPoissonSpecifications(poisson_spec);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPoissonSpecifications(d_poisson_spec);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
 } // setPoissonSpecifications
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     PoissonSolver::setPhysicalBcCoef(bc_coef);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoef
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoefs

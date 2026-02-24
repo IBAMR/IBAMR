@@ -15,19 +15,22 @@
 
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "EdgeData.h" // IWYU pragma: keep
-#include "FaceData.h" // IWYU pragma: keep
-#include "FaceGeometry.h"
-#include "NodeData.h"
-#include "NodeGeometry.h"
-#include "SideData.h" // IWYU pragma: keep
-#include "SideGeometry.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAIEdgeData.h" // IWYU pragma: keep
+#include "SAMRAIFaceData.h" // IWYU pragma: keep
+#include "SAMRAIFaceGeometry.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeData.h"
+#include "SAMRAINodeGeometry.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideData.h" // IWYU pragma: keep
+#include "SAMRAISideGeometry.h"
+#include "SAMRAIUtilities.h"
 
 #include <array>
 #include <ostream>
@@ -1494,11 +1497,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
-                   const Pointer<CellData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
+                   const SAMRAIPointer<SAMRAICellData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1507,7 +1510,7 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src->getPointer();
     const int U_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
@@ -1528,8 +1531,8 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1591,11 +1594,11 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
-                   const Pointer<FaceData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1608,7 +1611,7 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
@@ -1629,8 +1632,8 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1687,9 +1690,9 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
-                   const Pointer<FaceData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1699,7 +1702,7 @@ PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1712,7 +1715,7 @@ PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
     const double* const u2 = src->getPointer(2);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -1733,8 +1736,8 @@ PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1775,11 +1778,11 @@ PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
-                   const Pointer<SideData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
+                   const SAMRAIPointer<SAMRAISideData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1792,7 +1795,7 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
@@ -1813,8 +1816,8 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1871,9 +1874,9 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
-                   const Pointer<SideData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAISideData<double> > dst,
+                   const SAMRAIPointer<SAMRAISideData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1883,7 +1886,7 @@ PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1896,7 +1899,7 @@ PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
     const double* const u2 = src->getPointer(2);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -1917,8 +1920,8 @@ PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1959,11 +1962,11 @@ PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
-                   const Pointer<SideData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                   const SAMRAIPointer<SAMRAISideData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1976,7 +1979,7 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
@@ -1997,8 +2000,8 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2055,9 +2058,9 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
-                   const Pointer<SideData<NDIM, double> > src,
-                   const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::curl(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
+                   const SAMRAIPointer<SAMRAISideData<double> > src,
+                   const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -2067,7 +2070,7 @@ PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2080,7 +2083,7 @@ PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
     const double* const u2 = src->getPointer(2);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -2101,8 +2104,8 @@ PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2143,9 +2146,9 @@ PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
 } // curl
 
 void
-PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
-                  const Pointer<NodeData<NDIM, double> > src,
-                  const Pointer<Patch<NDIM> > patch,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
+                  const SAMRAIPointer<SAMRAINodeData<double> > src,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2159,7 +2162,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2169,7 +2172,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     const double* const u0 = src->getPointer(0);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -2218,14 +2221,14 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+        SAMRAIIntVector op_gcw = SAMRAIIntVector(1);
 
-        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
-        NodeData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        SAMRAIIntVector u_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), src->getGhostCellWidth());
+        SAMRAINodeData<double> u_data(patch_box, src->getDepth(), u_gcw);
         const double* const u0 = u_data.getPointer(0);
         const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
         u_data.fillAll(0.0);
-        Box<NDIM> copy_box = patch_box;
+        SAMRAIBox copy_box = patch_box;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             const int lower = 0;
@@ -2235,13 +2238,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         }
         u_data.copyOnBox(*src, copy_box);
 
-        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
-        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        SAMRAIIntVector w_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), dst->getGhostCellWidth());
+        SAMRAISideData<double> w_data(patch_box, dst->getDepth(), w_gcw);
         double* const w0 = w_data.getPointer(0);
         double* const w1 = w_data.getPointer(1);
         const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
 
-        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+        const SAMRAIBox op_box = SAMRAIBox::grow(patch_box, op_gcw);
 
         N_TO_S_ROT_FC(
             w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1), op_box.upper(1), dx);
@@ -2255,9 +2258,9 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
-                  const Pointer<CellData<NDIM, double> > src,
-                  const Pointer<Patch<NDIM> > patch,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
+                  const SAMRAIPointer<SAMRAICellData<double> > src,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2271,7 +2274,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2281,7 +2284,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     const double* const u0 = src->getPointer(0);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -2314,8 +2317,8 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2339,14 +2342,14 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+        SAMRAIIntVector op_gcw = SAMRAIIntVector(1);
 
-        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
-        CellData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        SAMRAIIntVector u_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), src->getGhostCellWidth());
+        SAMRAICellData<double> u_data(patch_box, src->getDepth(), u_gcw);
         const double* const u0 = u_data.getPointer(0);
         const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
         u_data.fillAll(0.0);
-        Box<NDIM> copy_box = patch_box;
+        SAMRAIBox copy_box = patch_box;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             const int lower = 0;
@@ -2356,13 +2359,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         }
         u_data.copyOnBox(*src, copy_box);
 
-        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
-        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        SAMRAIIntVector w_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), dst->getGhostCellWidth());
+        SAMRAISideData<double> w_data(patch_box, dst->getDepth(), w_gcw);
         double* const w0 = w_data.getPointer(0);
         double* const w1 = w_data.getPointer(1);
         const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
 
-        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+        const SAMRAIBox op_box = SAMRAIBox::grow(patch_box, op_gcw);
 
         C_TO_S_ROT_FC(
             w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1), op_box.upper(1), dx);
@@ -2376,9 +2379,9 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
-                  const Pointer<EdgeData<NDIM, double> > src,
-                  const Pointer<Patch<NDIM> > patch,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
+                  const SAMRAIPointer<SAMRAIEdgeData<double> > src,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2392,7 +2395,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2405,7 +2408,7 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     const double* const u2 = src->getPointer(2);
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -2459,16 +2462,16 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+        SAMRAIIntVector op_gcw = SAMRAIIntVector(1);
 
-        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
-        EdgeData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        SAMRAIIntVector u_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), src->getGhostCellWidth());
+        SAMRAIEdgeData<double> u_data(patch_box, src->getDepth(), u_gcw);
         const double* const u0 = u_data.getPointer(0);
         const double* const u1 = u_data.getPointer(1);
         const double* const u2 = u_data.getPointer(2);
         const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
         u_data.fillAll(0.0);
-        Box<NDIM> copy_box = patch_box;
+        SAMRAIBox copy_box = patch_box;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             const int lower = 0;
@@ -2478,14 +2481,14 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         }
         u_data.copyOnBox(*src, copy_box);
 
-        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
-        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        SAMRAIIntVector w_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), dst->getGhostCellWidth());
+        SAMRAISideData<double> w_data(patch_box, dst->getDepth(), w_gcw);
         double* const w0 = w_data.getPointer(0);
         double* const w1 = w_data.getPointer(1);
         double* const w2 = w_data.getPointer(1);
         const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
 
-        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+        const SAMRAIBox op_box = SAMRAIBox::grow(patch_box, op_gcw);
 
         E_TO_S_ROT_FC(w0,
                       w1,
@@ -2512,9 +2515,9 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
-                  const Pointer<SideData<NDIM, double> > src,
-                  const Pointer<Patch<NDIM> > patch,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
+                  const SAMRAIPointer<SAMRAISideData<double> > src,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2534,27 +2537,27 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         NULL_USE(fill_time);
 #endif
 #if (NDIM == 3)
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
-        const Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAIBox& patch_box = patch->getBox();
 
-        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+        SAMRAIIntVector op_gcw = SAMRAIIntVector(1);
 
-        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
-        SideData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        SAMRAIIntVector u_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), src->getGhostCellWidth());
+        SAMRAISideData<double> u_data(patch_box, src->getDepth(), u_gcw);
         const double* const u0 = src->getPointer(0);
         const double* const u1 = src->getPointer(1);
         const double* const u2 = src->getPointer(2);
         const int u_ghosts = (src->getGhostCellWidth()).max();
 
-        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
-        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        SAMRAIIntVector w_gcw = SAMRAIIntVector::max(SAMRAIIntVector(2), dst->getGhostCellWidth());
+        SAMRAISideData<double> w_data(patch_box, dst->getDepth(), w_gcw);
         double* const w0 = w_data.getPointer(0);
         double* const w1 = w_data.getPointer(1);
         double* const w2 = w_data.getPointer(1);
         const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
 
-        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+        const SAMRAIBox op_box = SAMRAIBox::grow(patch_box, op_gcw);
 
 #if !defined(NDEBUG)
         if (w_ghosts != (dst->getGhostCellWidth()).min())
@@ -2575,8 +2578,8 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                        << "  src == dst." << std::endl);
         }
 
-        const Box<NDIM>& U_box = src->getGhostBox();
-        const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+        const SAMRAIBox& U_box = src->getGhostBox();
+        const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
         if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
         {
@@ -2622,16 +2625,16 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 } // rot
 
 void
-PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
                   const double alpha,
-                  const Pointer<CellData<NDIM, double> > src1,
+                  const SAMRAIPointer<SAMRAICellData<double> > src1,
                   const double beta,
-                  const Pointer<CellData<NDIM, double> > src2,
-                  const Pointer<Patch<NDIM> > patch,
+                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2640,7 +2643,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer();
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -2667,8 +2670,8 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
                    << "  src1 == src2 but beta is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2754,16 +2757,16 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
 } // div
 
 void
-PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
                   const double alpha,
-                  const Pointer<FaceData<NDIM, double> > src1,
+                  const SAMRAIPointer<SAMRAIFaceData<double> > src1,
                   const double beta,
-                  const Pointer<CellData<NDIM, double> > src2,
-                  const Pointer<Patch<NDIM> > patch,
+                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2776,7 +2779,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -2869,16 +2872,16 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
 } // div
 
 void
-PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
                   const double alpha,
-                  const Pointer<SideData<NDIM, double> > src1,
+                  const SAMRAIPointer<SAMRAISideData<double> > src1,
                   const double beta,
-                  const Pointer<CellData<NDIM, double> > src2,
-                  const Pointer<Patch<NDIM> > patch,
+                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2891,7 +2894,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -2984,15 +2987,15 @@ PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
 } // div
 
 void
-PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAICellData<double> > dst,
                    const double alpha,
-                   const Pointer<CellData<NDIM, double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double> > src1,
                    const double beta,
-                   const Pointer<CellData<NDIM, double> > src2,
-                   const Pointer<Patch<NDIM> > patch,
+                   const SAMRAIPointer<SAMRAICellData<double> > src2,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const G = dst->getPointer();
@@ -3001,7 +3004,7 @@ PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer(l);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (G_ghosts != (dst->getGhostCellWidth()).min())
@@ -3036,8 +3039,8 @@ PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
                    << "  src1 == src2 but beta is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3123,16 +3126,16 @@ PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
                    const double alpha,
-                   const Pointer<CellData<NDIM, double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double> > src1,
                    const double beta,
-                   const Pointer<FaceData<NDIM, double> > src2,
-                   const Pointer<Patch<NDIM> > patch,
+                   const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3145,7 +3148,7 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     const double* const U = src1->getPointer(l);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
@@ -3160,8 +3163,8 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3255,16 +3258,16 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
                    const double alpha,
-                   const Pointer<CellData<NDIM, double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double> > src1,
                    const double beta,
-                   const Pointer<SideData<NDIM, double> > src2,
-                   const Pointer<Patch<NDIM> > patch,
+                   const SAMRAIPointer<SAMRAISideData<double> > src2,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3277,7 +3280,7 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     const double* const U = src1->getPointer(l);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
@@ -3292,8 +3295,8 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3387,16 +3390,16 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
-                   const Pointer<FaceData<NDIM, double> > alpha,
-                   const Pointer<CellData<NDIM, double> > src1,
+PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
+                   const SAMRAIPointer<SAMRAICellData<double> > src1,
                    const double beta,
-                   const Pointer<FaceData<NDIM, double> > src2,
-                   const Pointer<Patch<NDIM> > patch,
+                   const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3416,7 +3419,7 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     const double* const U = src1->getPointer(l);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
@@ -3453,8 +3456,8 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3666,16 +3669,16 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
-                   const Pointer<SideData<NDIM, double> > alpha,
-                   const Pointer<CellData<NDIM, double> > src1,
+PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
+                   const SAMRAIPointer<SAMRAISideData<double> > alpha,
+                   const SAMRAIPointer<SAMRAICellData<double> > src1,
                    const double beta,
-                   const Pointer<SideData<NDIM, double> > src2,
-                   const Pointer<Patch<NDIM> > patch,
+                   const SAMRAIPointer<SAMRAISideData<double> > src2,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3695,7 +3698,7 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     const double* const U = src1->getPointer(l);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
@@ -3724,8 +3727,8 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3933,14 +3936,14 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
 } // grad
 
 void
-PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
-                     const Pointer<FaceData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
+                     const SAMRAIPointer<SAMRAIFaceData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != NDIM * src->getDepth())
@@ -4008,14 +4011,14 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
-                     const Pointer<SideData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
+                     const SAMRAIPointer<SAMRAISideData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != NDIM * src->getDepth())
@@ -4083,14 +4086,14 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
-                     const Pointer<CellData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+                     const SAMRAIPointer<SAMRAICellData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (NDIM * dst->getDepth() != src->getDepth())
@@ -4111,8 +4114,8 @@ PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4166,14 +4169,14 @@ PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
-                     const Pointer<CellData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAISideData<double> > dst,
+                     const SAMRAIPointer<SAMRAICellData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (NDIM * dst->getDepth() != src->getDepth())
@@ -4194,8 +4197,8 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4249,9 +4252,9 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
-                     const Pointer<NodeData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
+                     const SAMRAIPointer<SAMRAINodeData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM == 3)
     TBOX_ERROR("Node to cell PatchMathOps::interp():\n"
@@ -4264,7 +4267,7 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4297,8 +4300,8 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4322,9 +4325,9 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
-                     const Pointer<EdgeData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
+                     const SAMRAIPointer<SAMRAIEdgeData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM == 2)
     TBOX_ERROR("Edge to cell PatchMathOps::interp():\n"
@@ -4337,7 +4340,7 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4370,8 +4373,8 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    const Box<NDIM>& v_box = src->getGhostBox();
-    const Box<NDIM> v_box_shrunk = Box<NDIM>::grow(v_box, -1);
+    const SAMRAIBox& v_box = src->getGhostBox();
+    const SAMRAIBox v_box_shrunk = SAMRAIBox::grow(v_box, -1);
 
     if ((!v_box_shrunk.contains(patch_box.lower())) || (!v_box_shrunk.contains(patch_box.upper())))
     {
@@ -4406,9 +4409,9 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
-                     const Pointer<CellData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch,
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                     const SAMRAIPointer<SAMRAICellData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch,
                      const bool dst_ghost_interp) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4416,7 +4419,7 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     // We need at least one layer of ghost points to interpolate nodal data
     TBOX_ASSERT(V_ghosts >= 1);
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4447,8 +4450,8 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
         }
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4495,14 +4498,14 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
-                     const Pointer<FaceData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                     const SAMRAIPointer<SAMRAIFaceData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != NDIM * src->getDepth())
@@ -4523,8 +4526,8 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& v_box = src->getGhostBox();
-    const Box<NDIM> v_box_shrunk = Box<NDIM>::grow(v_box, -1);
+    const SAMRAIBox& v_box = src->getGhostBox();
+    const SAMRAIBox v_box_shrunk = SAMRAIBox::grow(v_box, -1);
 
     if ((!v_box_shrunk.contains(patch_box.lower())) || (!v_box_shrunk.contains(patch_box.upper())))
     {
@@ -4578,14 +4581,14 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
-                     const Pointer<SideData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                     const SAMRAIPointer<SAMRAISideData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != NDIM * src->getDepth())
@@ -4606,8 +4609,8 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& v_box = src->getGhostBox();
-    const Box<NDIM> v_box_shrunk = Box<NDIM>::grow(v_box, -1);
+    const SAMRAIBox& v_box = src->getGhostBox();
+    const SAMRAIBox v_box_shrunk = SAMRAIBox::grow(v_box, -1);
 
     if ((!v_box_shrunk.contains(patch_box.lower())) || (!v_box_shrunk.contains(patch_box.upper())))
     {
@@ -4661,9 +4664,9 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
-                     const Pointer<CellData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch,
+PatchMathOps::interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
+                     const SAMRAIPointer<SAMRAICellData<double> > src,
+                     const SAMRAIPointer<SAMRAIPatch> patch,
                      const bool dst_ghost_interp) const
 {
 #if (NDIM == 2)
@@ -4678,7 +4681,7 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4709,8 +4712,8 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
         }
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4760,14 +4763,14 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
 } // interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
-                              const Pointer<CellData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAISideData<double> > dst,
+                              const SAMRAIPointer<SAMRAICellData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (NDIM * dst->getDepth() != src->getDepth())
@@ -4788,8 +4791,8 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4843,9 +4846,9 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
-                              const Pointer<CellData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch,
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                              const SAMRAIPointer<SAMRAICellData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch,
                               const bool dst_ghost_interp) const
 {
 #if (NDIM == 3)
@@ -4861,7 +4864,7 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4892,8 +4895,8 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
         }
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -4937,9 +4940,9 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
-                              const Pointer<CellData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch,
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
+                              const SAMRAIPointer<SAMRAICellData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch,
                               const bool dst_ghost_interp) const
 {
 #if (NDIM == 2)
@@ -4954,7 +4957,7 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (dst->getDepth() != src->getDepth())
@@ -4985,8 +4988,8 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
         }
     }
 
-    const Box<NDIM>& V_box = src->getGhostBox();
-    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+    const SAMRAIBox& V_box = src->getGhostBox();
+    const SAMRAIBox V_box_shrunk = SAMRAIBox::grow(V_box, -1);
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -5036,18 +5039,18 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
                       const double alpha,
                       const double beta,
-                      const Pointer<CellData<NDIM, double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double> > src1,
                       const double gamma,
-                      const Pointer<CellData<NDIM, double> > src2,
-                      const Pointer<Patch<NDIM> > patch,
+                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5056,7 +5059,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer(m);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
@@ -5083,8 +5086,8 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -5207,18 +5210,18 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
                       const double alpha,
                       const double beta,
-                      const Pointer<SideData<NDIM, double> > src1,
+                      const SAMRAIPointer<SAMRAISideData<double> > src1,
                       const double gamma,
-                      const Pointer<SideData<NDIM, double> > src2,
-                      const Pointer<Patch<NDIM> > patch,
+                      const SAMRAIPointer<SAMRAISideData<double> > src2,
+                      const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     std::array<double*, NDIM> F;
@@ -5235,7 +5238,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     }
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
@@ -5262,8 +5265,8 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -5412,18 +5415,18 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
-                      const Pointer<FaceData<NDIM, double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
+                      const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
                       const double beta,
-                      const Pointer<CellData<NDIM, double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double> > src1,
                       const double gamma,
-                      const Pointer<CellData<NDIM, double> > src2,
-                      const Pointer<Patch<NDIM> > patch,
+                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5439,7 +5442,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer(m);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
@@ -5472,8 +5475,8 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -5628,18 +5631,18 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
-                      const Pointer<SideData<NDIM, double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
+                      const SAMRAIPointer<SAMRAISideData<double> > alpha,
                       const double beta,
-                      const Pointer<CellData<NDIM, double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double> > src1,
                       const double gamma,
-                      const Pointer<CellData<NDIM, double> > src2,
-                      const Pointer<Patch<NDIM> > patch,
+                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5655,7 +5658,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer(m);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
@@ -5688,8 +5691,8 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src1->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src1->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -5844,22 +5847,22 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
 } // laplace
 
 void
-PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
                          const double alpha,
                          const double beta,
-                         const Pointer<NodeData<NDIM, double> > coef1,
-                         const Pointer<SideData<NDIM, double> > coef2,
-                         const Pointer<SideData<NDIM, double> > src1,
+                         const SAMRAIPointer<SAMRAINodeData<double> > coef1,
+                         const SAMRAIPointer<SAMRAISideData<double> > coef2,
+                         const SAMRAIPointer<SAMRAISideData<double> > src1,
                          const double gamma_in,
-                         const Pointer<SideData<NDIM, double> > src2_in,
-                         const Pointer<Patch<NDIM> > patch,
+                         const SAMRAIPointer<SAMRAISideData<double> > src2_in,
+                         const SAMRAIPointer<SAMRAIPatch> patch,
                          const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
 {
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -5885,12 +5888,12 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideData<NDIM, double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SAMRAISideData<double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (f_ghosts != (dst->getGhostCellWidth()).min())
@@ -5935,8 +5938,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& mu_box = coef1->getGhostBox();
-    const Box<NDIM> mu_box_shrunk = Box<NDIM>::grow(mu_box, -1);
+    const SAMRAIBox& mu_box = coef1->getGhostBox();
+    const SAMRAIBox mu_box_shrunk = SAMRAIBox::grow(mu_box, -1);
 
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
@@ -5944,8 +5947,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << "  coef1 has insufficient ghost cell width" << std::endl);
     }
 
-    const Box<NDIM>& u_box = src1->getGhostBox();
-    const Box<NDIM> u_box_shrunk = Box<NDIM>::grow(u_box, -1);
+    const SAMRAIBox& u_box = src1->getGhostBox();
+    const SAMRAIBox u_box_shrunk = SAMRAIBox::grow(u_box, -1);
 
     if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
     {
@@ -6022,22 +6025,22 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
                          const double alpha,
                          const double beta,
-                         const Pointer<EdgeData<NDIM, double> > coef1,
-                         const Pointer<SideData<NDIM, double> > coef2,
-                         const Pointer<SideData<NDIM, double> > src1,
+                         const SAMRAIPointer<SAMRAIEdgeData<double> > coef1,
+                         const SAMRAIPointer<SAMRAISideData<double> > coef2,
+                         const SAMRAIPointer<SAMRAISideData<double> > src1,
                          const double gamma_in,
-                         const Pointer<SideData<NDIM, double> > src2_in,
-                         const Pointer<Patch<NDIM> > patch,
+                         const SAMRAIPointer<SAMRAISideData<double> > src2_in,
+                         const SAMRAIPointer<SAMRAIPatch> patch,
                          const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
 {
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -6068,13 +6071,13 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideData<NDIM, double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SAMRAISideData<double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const double* const v2 = src2->getPointer(2, n);
     const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (f_ghosts != (dst->getGhostCellWidth()).min())
@@ -6119,8 +6122,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << "  src1 == src2 but gamma is nonzero." << std::endl);
     }
 
-    const Box<NDIM>& mu_box = coef1->getGhostBox();
-    const Box<NDIM> mu_box_shrunk = Box<NDIM>::grow(mu_box, -1);
+    const SAMRAIBox& mu_box = coef1->getGhostBox();
+    const SAMRAIBox mu_box_shrunk = SAMRAIBox::grow(mu_box, -1);
 
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
@@ -6128,8 +6131,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << "  coef1 has insufficient ghost cell width" << std::endl);
     }
 
-    const Box<NDIM>& u_box = src1->getGhostBox();
-    const Box<NDIM> u_box_shrunk = Box<NDIM>::grow(u_box, -1);
+    const SAMRAIBox& u_box = src1->getGhostBox();
+    const SAMRAIBox u_box_shrunk = SAMRAIBox::grow(u_box, -1);
 
     if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
     {
@@ -6214,12 +6217,12 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
                                 const double alpha,
-                                const Pointer<CellData<NDIM, double> > src1,
+                                const SAMRAIPointer<SAMRAICellData<double> > src1,
                                 const double beta,
-                                const Pointer<CellData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -6230,7 +6233,7 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     const double* const U = src1->getPointer(j);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6317,12 +6320,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
-                                const Pointer<CellData<NDIM, double> > alpha,
-                                const Pointer<CellData<NDIM, double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
+                                const SAMRAIPointer<SAMRAICellData<double> > alpha,
+                                const SAMRAIPointer<SAMRAICellData<double> > src1,
                                 const double beta,
-                                const Pointer<CellData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6337,7 +6340,7 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     const double* const A = alpha->getPointer(l);
     const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6438,12 +6441,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
-                                const Pointer<CellData<NDIM, double> > alpha,
-                                const Pointer<CellData<NDIM, double> > src1,
-                                const Pointer<CellData<NDIM, double> > beta,
-                                const Pointer<CellData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
+                                const SAMRAIPointer<SAMRAICellData<double> > alpha,
+                                const SAMRAIPointer<SAMRAICellData<double> > src1,
+                                const SAMRAIPointer<SAMRAICellData<double> > beta,
+                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6472,7 +6475,7 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     const double* const B = beta->getPointer(m);
     const int B_ghosts = (beta->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6560,12 +6563,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
                                 const double alpha,
-                                const Pointer<FaceData<NDIM, double> > src1,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
                                 const double beta,
-                                const Pointer<FaceData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -6578,8 +6581,8 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         const double* const U = src1->getPointer(axis, j);
         const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAIFaceGeometry::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6667,12 +6670,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
-                                const Pointer<FaceData<NDIM, double> > alpha,
-                                const Pointer<FaceData<NDIM, double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
                                 const double beta,
-                                const Pointer<FaceData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6689,8 +6692,8 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         const double* const A = alpha->getPointer(axis, l);
         const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAIFaceGeometry::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6792,12 +6795,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
-                                const Pointer<FaceData<NDIM, double> > alpha,
-                                const Pointer<FaceData<NDIM, double> > src1,
-                                const Pointer<FaceData<NDIM, double> > beta,
-                                const Pointer<FaceData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > beta,
+                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6828,8 +6831,8 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         const double* const B = beta->getPointer(axis, m);
         const int B_ghosts = (beta->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAIFaceGeometry::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -6918,12 +6921,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
                                 const double alpha,
-                                const Pointer<NodeData<NDIM, double> > src1,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
                                 const double beta,
-                                const Pointer<NodeData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -6934,8 +6937,8 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     const double* const U = src1->getPointer(j);
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7022,12 +7025,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
-                                const Pointer<NodeData<NDIM, double> > alpha,
-                                const Pointer<NodeData<NDIM, double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                                const SAMRAIPointer<SAMRAINodeData<double> > alpha,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
                                 const double beta,
-                                const Pointer<NodeData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7042,8 +7045,8 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     const double* const A = alpha->getPointer(l);
     const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7144,12 +7147,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
-                                const Pointer<NodeData<NDIM, double> > alpha,
-                                const Pointer<NodeData<NDIM, double> > src1,
-                                const Pointer<NodeData<NDIM, double> > beta,
-                                const Pointer<NodeData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                                const SAMRAIPointer<SAMRAINodeData<double> > alpha,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
+                                const SAMRAIPointer<SAMRAINodeData<double> > beta,
+                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7178,8 +7181,8 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     const double* const B = beta->getPointer(m);
     const int B_ghosts = (beta->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7267,12 +7270,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
                                 const double alpha,
-                                const Pointer<SideData<NDIM, double> > src1,
+                                const SAMRAIPointer<SAMRAISideData<double> > src1,
                                 const double beta,
-                                const Pointer<SideData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -7285,8 +7288,8 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         const double* const U = src1->getPointer(axis, j);
         const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAISideGeometry::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7374,12 +7377,12 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
-                                const Pointer<SideData<NDIM, double> > alpha,
-                                const Pointer<SideData<NDIM, double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
+                                const SAMRAIPointer<SAMRAISideData<double> > alpha,
+                                const SAMRAIPointer<SAMRAISideData<double> > src1,
                                 const double beta,
-                                const Pointer<SideData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7396,8 +7399,8 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         const double* const A = alpha->getPointer(axis, l);
         const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAISideGeometry::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7499,12 +7502,12 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
-                                const Pointer<SideData<NDIM, double> > alpha,
-                                const Pointer<SideData<NDIM, double> > src1,
-                                const Pointer<SideData<NDIM, double> > beta,
-                                const Pointer<SideData<NDIM, double> > src2,
-                                const Pointer<Patch<NDIM> > patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
+                                const SAMRAIPointer<SAMRAISideData<double> > alpha,
+                                const SAMRAIPointer<SAMRAISideData<double> > src1,
+                                const SAMRAIPointer<SAMRAISideData<double> > beta,
+                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7535,8 +7538,8 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         const double* const B = beta->getPointer(axis, m);
         const int B_ghosts = (beta->getGhostCellWidth()).max();
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAIBox data_box = SAMRAISideGeometry::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -7625,9 +7628,9 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
-                              const Pointer<CellData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
+                              const SAMRAIPointer<SAMRAICellData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7636,7 +7639,7 @@ PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -7690,9 +7693,9 @@ PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
-                              const Pointer<CellData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
+                              const SAMRAIPointer<SAMRAICellData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7701,7 +7704,7 @@ PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -7755,9 +7758,9 @@ PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
-                               const Pointer<CellData<NDIM, double> > src,
-                               const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAICellData<double> > dst,
+                               const SAMRAIPointer<SAMRAICellData<double> > src,
+                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7766,7 +7769,7 @@ PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -7820,9 +7823,9 @@ PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
-                              const Pointer<NodeData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                              const SAMRAIPointer<SAMRAINodeData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7831,8 +7834,8 @@ PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -7886,9 +7889,9 @@ PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
-                              const Pointer<NodeData<NDIM, double> > src,
-                              const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                              const SAMRAIPointer<SAMRAINodeData<double> > src,
+                              const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7897,8 +7900,8 @@ PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -7952,9 +7955,9 @@ PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
-                               const Pointer<NodeData<NDIM, double> > src,
-                               const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAINodeData<double> > dst,
+                               const SAMRAIPointer<SAMRAINodeData<double> > src,
+                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7963,8 +7966,8 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
     const int V_ghosts = (src->getGhostCellWidth()).max();
     const int V_depth = src->getDepth();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIBox data_box = SAMRAINodeGeometry::toNodeBox(patch_box);
 
 #if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
@@ -8018,12 +8021,12 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
-                          Pointer<CellData<NDIM, double> > dst2,
-                          const Pointer<SideData<NDIM, double> > src,
-                          const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst1,
+                          SAMRAIPointer<SAMRAICellData<double> > dst2,
+                          const SAMRAIPointer<SAMRAISideData<double> > src,
+                          const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const E_diag = dst1->getPointer();
@@ -8039,7 +8042,7 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
 #endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (E_diag_ghosts != (dst1->getGhostCellWidth()).min())
@@ -8072,8 +8075,8 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
                    << "  src == dst2." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -8138,11 +8141,11 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
 } // strain
 
 void
-PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
-                          const Pointer<SideData<NDIM, double> > src,
-                          const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst,
+                          const SAMRAIPointer<SAMRAISideData<double> > src,
+                          const SAMRAIPointer<SAMRAIPatch> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     const int E_ghosts = (dst->getGhostCellWidth()).max();
@@ -8155,7 +8158,7 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
 #endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
     if (E_ghosts != (dst->getGhostCellWidth()).min())
@@ -8176,8 +8179,8 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    const Box<NDIM>& U_box = src->getGhostBox();
-    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+    const SAMRAIBox& U_box = src->getGhostBox();
+    const SAMRAIBox U_box_shrunk = SAMRAIBox::grow(U_box, -1);
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -8229,10 +8232,10 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
     }
     else if (E_depth == NDIM * NDIM)
     {
-        Pointer<CellData<NDIM, double> > E_diag =
-            new CellData<NDIM, double>(patch_box, NDIM, IntVector<NDIM>(E_ghosts));
-        Pointer<CellData<NDIM, double> > E_offDiag =
-            new CellData<NDIM, double>(patch_box, NDIM == 2 ? 1 : 3, IntVector<NDIM>(E_ghosts));
+        SAMRAIPointer<SAMRAICellData<double> > E_diag =
+            new SAMRAICellData<double>(patch_box, NDIM, SAMRAIIntVector(E_ghosts));
+        SAMRAIPointer<SAMRAICellData<double> > E_offDiag =
+            new SAMRAICellData<double>(patch_box, NDIM == 2 ? 1 : 3, SAMRAIIntVector(E_ghosts));
 
         S_TO_C_STRAIN_FC(E_diag->getPointer(),
                          E_ghosts,

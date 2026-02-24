@@ -13,14 +13,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
-#include <tbox/RestartManager.h>
-
-#include <CartesianGridGeometry.h>
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIBoxList.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAISideData.h"
 
 // At this point SAMRAI has already defined these macros, but older versions
 // hdf5.h will unconditionally define them too. Get around it by undefining and
@@ -64,24 +76,24 @@ static Timer* t_midpoint_step;
 static Timer* t_trapezoidal_step;
 static Timer* t_prune_and_redistribute;
 
-std::vector<std::vector<hier::Box<NDIM> > >
-compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level,
-                                   const Pointer<BasePatchLevel<NDIM> >& f_level)
+std::vector<std::vector<SAMRAIBox> >
+compute_nonoverlapping_patch_boxes(const SAMRAIPointer<SAMRAIBasePatchLevel>& c_level,
+                                   const SAMRAIPointer<SAMRAIBasePatchLevel>& f_level)
 {
-    const Pointer<PatchLevel<NDIM> > coarse_level = c_level;
-    const Pointer<PatchLevel<NDIM> > fine_level = f_level;
+    const SAMRAIPointer<SAMRAIPatchLevel> coarse_level = c_level;
+    const SAMRAIPointer<SAMRAIPatchLevel> fine_level = f_level;
     TBOX_ASSERT(coarse_level);
     TBOX_ASSERT(fine_level);
     TBOX_ASSERT(coarse_level->getLevelNumber() + 1 == fine_level->getLevelNumber());
 
-    const IntVector<NDIM> ratio = fine_level->getRatioToCoarserLevel();
+    const SAMRAIIntVector ratio = fine_level->getRatioToCoarserLevel();
 
     // Get all (including those not on this processor) fine-level boxes:
-    BoxList<NDIM> finer_box_list;
+    SAMRAIBoxList finer_box_list;
     long combined_size = 0;
     for (int i = 0; i < fine_level->getNumberOfPatches(); ++i)
     {
-        Box<NDIM> patch_box = fine_level->getBoxForPatch(i);
+        SAMRAIBox patch_box = fine_level->getBoxForPatch(i);
         patch_box.coarsen(ratio);
         combined_size += patch_box.size();
         finer_box_list.addItem(patch_box);
@@ -90,18 +102,18 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
 
     // Remove said boxes from each coarse-level patch:
     const auto rank = IBTK_MPI::getRank();
-    std::vector<std::vector<Box<NDIM> > > result;
+    std::vector<std::vector<SAMRAIBox> > result;
     long coarse_size = 0;
     for (int i = 0; i < coarse_level->getNumberOfPatches(); ++i)
     {
-        BoxList<NDIM> coarse_box_list;
+        SAMRAIBoxList coarse_box_list;
         coarse_box_list.addItem(coarse_level->getBoxForPatch(i));
         coarse_size += coarse_box_list.getFirstItem().size();
         coarse_box_list.removeIntersections(finer_box_list);
 
         const bool patch_is_local = rank == coarse_level->getMappingForPatch(i);
         if (patch_is_local) result.emplace_back();
-        typename tbox::List<Box<NDIM> >::Iterator it(coarse_box_list);
+        typename tbox::List<SAMRAIBox>::Iterator it(coarse_box_list);
         while (it)
         {
             if (patch_is_local) result.back().push_back(*it);
@@ -174,18 +186,18 @@ collect_markers(const std::vector<double>& local_positions,
 void
 do_interpolation(const int data_idx,
                  const std::vector<double>& positions,
-                 const Pointer<Patch<NDIM> > patch,
+                 const SAMRAIPointer<SAMRAIPatch> patch,
                  const std::string& kernel,
                  std::vector<double>& velocities)
 {
-    Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
-    Pointer<CellData<NDIM, double> > cc_data = data;
-    Pointer<SideData<NDIM, double> > sc_data = data;
+    SAMRAIPointer<SAMRAIPatchData> data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAICellData<double> > cc_data = data;
+    SAMRAIPointer<SAMRAISideData<double> > sc_data = data;
     const bool is_cc_data = cc_data;
     const bool is_sc_data = sc_data;
     // Only interpolate things within 1 cell of the patch box - we aren't
     // guaranteed to have more ghost data than that
-    Box<NDIM> interp_box = data->getBox();
+    SAMRAIBox interp_box = data->getBox();
     interp_box.grow(1);
 #ifndef NDEBUG
     std::fill(velocities.begin(), velocities.end(), std::numeric_limits<double>::signaling_NaN());
@@ -218,17 +230,17 @@ do_interpolation(const int data_idx,
 }
 } // namespace
 
-MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
-                         const std::vector<Box<NDIM> >& nonoverlapping_patch_boxes,
-                         const Pointer<CartesianGridGeometry<NDIM> >& grid_geom,
-                         const IntVector<NDIM>& ratio)
+MarkerPatch::MarkerPatch(const SAMRAIBox& patch_box,
+                         const std::vector<SAMRAIBox>& nonoverlapping_patch_boxes,
+                         const SAMRAIPointer<SAMRAICartesianGridGeometry>& grid_geom,
+                         const SAMRAIIntVector& ratio)
     : d_patch_box(patch_box), d_nonoverlapping_patch_boxes(nonoverlapping_patch_boxes)
 {
-    for (const Box<NDIM>& box : nonoverlapping_patch_boxes)
+    for (const SAMRAIBox& box : nonoverlapping_patch_boxes)
     {
         TBOX_ASSERT(patch_box.contains(box));
     }
-    d_domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    d_domain_box = SAMRAIBox::refine(grid_geom->getPhysicalDomain()[0], ratio);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_x_lo[d] = grid_geom->getXLower()[d];
@@ -316,7 +328,7 @@ MarkerPatch::size() const
 }
 
 MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
-                                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                           SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                            const std::vector<IBTK::Point>& positions,
                                            const std::vector<IBTK::Point>& velocities,
                                            const bool register_for_restart)
@@ -325,10 +337,10 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
       d_num_markers(positions.size()),
       d_hierarchy(patch_hierarchy),
       d_markers_outside_domain(
-          Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()),
-          std::vector<Box<NDIM> >{ Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()) },
+          SAMRAIBox(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()),
+          std::vector<SAMRAIBox>{ SAMRAIBox(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()) },
           d_hierarchy->getGridGeometry(),
-          IntVector<NDIM>(1))
+          SAMRAIIntVector(1))
 {
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
     t_reinit = set_timer("IBTK::MarkerPatchHierarchy::reinit()");
@@ -342,7 +354,7 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
     // someone might want to add them later in a simulation. One possibility
     // is that we restart at step N and then we add markers at step N + M: we
     // have a restart file but we don't have a marker database in it.
-    auto* restart_manager = RestartManager::getManager();
+    auto* restart_manager = SAMRAIRestartManager::getManager();
     auto restart_db = restart_manager->getRootDatabase();
     if (register_for_restart)
     {
@@ -362,7 +374,7 @@ MarkerPatchHierarchy::~MarkerPatchHierarchy()
 {
     if (d_register_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
 }
 
@@ -373,7 +385,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
     IBTK_TIMER_START(t_reinit);
     d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
@@ -401,10 +413,10 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
     //    patch in the present level.
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > finer_level =
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> finer_level =
             ln == d_hierarchy->getFinestLevelNumber() ? nullptr : d_hierarchy->getPatchLevel(ln + 1);
-        const IntVector<NDIM>& ratio = current_level->getRatio();
+        const SAMRAIIntVector& ratio = current_level->getRatio();
 
         // If there is no finer level then each Patch has exactly one
         // nonoverlapping box
@@ -414,8 +426,8 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
             {
                 if (rank == current_level->getMappingForPatch(i))
                 {
-                    const Box<NDIM> box = current_level->getPatch(i)->getBox();
-                    d_marker_patches[ln].emplace_back(box, std::vector<Box<NDIM> >{ box }, grid_geom, ratio);
+                    const SAMRAIBox box = current_level->getPatch(i)->getBox();
+                    d_marker_patches[ln].emplace_back(box, std::vector<SAMRAIBox>{ box }, grid_geom, ratio);
                     insert_markers(d_marker_patches[ln].back());
                 }
             }
@@ -423,7 +435,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         // otherwise we need to subtract off the boxes on the finer level first.
         else
         {
-            const std::vector<std::vector<hier::Box<NDIM> > > nonoverlapping_patch_boxes =
+            const std::vector<std::vector<SAMRAIBox> > nonoverlapping_patch_boxes =
                 compute_nonoverlapping_patch_boxes(current_level, finer_level);
             unsigned int local_num = 0;
             for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
@@ -446,7 +458,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         d_markers_outside_domain.d_positions.resize(0);
         d_markers_outside_domain.d_velocities.resize(0);
 
-        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         const double* const domain_x_lower = grid_geom->getXLower();
         const double* const domain_x_upper = grid_geom->getXUpper();
         for (unsigned int k = 0; k < positions.size(); ++k)
@@ -492,7 +504,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
 }
 
 void
-MarkerPatchHierarchy::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+MarkerPatchHierarchy::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     TBOX_ASSERT(d_num_markers <= std::numeric_limits<int>::max());
     db->putInteger("num_markers", int(d_num_markers));
@@ -668,7 +680,7 @@ MarkerPatchHierarchy::writeH5Part(const std::string& filename,
 }
 
 void
-MarkerPatchHierarchy::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+MarkerPatchHierarchy::getFromDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     // the database does not store information present in the patch hierarchy,
     // so reconstruct the marker patches first:
@@ -787,12 +799,12 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                SAMRAIPointer<SAMRAIPatch> patch = current_level->getPatch(p);
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
                 do_interpolation(u_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
                 ++local_patch_num;
@@ -809,13 +821,13 @@ MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, con
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                SAMRAIPointer<SAMRAIPatch> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
@@ -841,13 +853,13 @@ MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, co
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                SAMRAIPointer<SAMRAIPatch> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 std::vector<double> new_positions(marker_patch.d_positions);
@@ -889,13 +901,13 @@ MarkerPatchHierarchy::midpointStep(const double dt,
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                SAMRAIPointer<SAMRAIPatch> patch = current_level->getPatch(p);
 
                 // 1. Do a half of a forward Euler step:
                 std::vector<double> half_positions(marker_patch.d_positions);
@@ -934,13 +946,13 @@ MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, cons
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                SAMRAIPointer<SAMRAIPatch> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 std::vector<double> new_positions(marker_patch.d_positions);
@@ -1014,10 +1026,10 @@ MarkerPatchHierarchy::pruneAndRedistribute()
         collect_markers(moved_positions, moved_velocities, moved_indices);
 
     // 3. Apply periodicity constraints.
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
-    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
+    const SAMRAIIntVector periodic_shift = grid_geom->getPeriodicShift();
     for (unsigned int k = 0; k < new_indices.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)

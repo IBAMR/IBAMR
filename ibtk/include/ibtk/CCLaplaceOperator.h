@@ -23,13 +23,15 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIVariableFillPattern.h"
 
 #include <string>
 #include <vector>
@@ -52,7 +54,7 @@ public:
      * coefficients and boundary conditions to default values.
      */
     CCLaplaceOperator(std::string object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
+                      SAMRAIPointer<SAMRAIDatabase> input_db = nullptr,
                       bool homogeneous_bc = true);
 
     /*!
@@ -91,8 +93,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -103,8 +104,8 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -153,12 +154,12 @@ private:
     int d_ncomp = 0;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    SAMRAIPointer<SAMRAIVariableFillPattern> d_fill_pattern;
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    SAMRAIPointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost

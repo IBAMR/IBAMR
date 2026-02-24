@@ -21,15 +21,19 @@
 #include <ibtk/config.h>
 
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/box_utilities.h>
 
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
+#include "SAMRAIBox.h"
+#include "SAMRAIBoxList.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIProcessorMapping.h"
 
-#include <Box.h>
 #include <BoxArray.h>
-#include <BoxList.h>
-#include <LoadBalancer.h>
 
 #include <algorithm>
 #include <set>
@@ -61,23 +65,23 @@ namespace IBTK
  * constraints; i.e., to take full advantage of this class one must set up the
  * GriddingAlgorithm objects to have very large maximum box sizes.
  */
-class MergingLoadBalancer : public SAMRAI::mesh::LoadBalancer<NDIM>
+class MergingLoadBalancer : public SAMRAILoadBalancer
 {
 public:
     // use parent constructor
-    using SAMRAI::mesh::LoadBalancer<NDIM>::LoadBalancer;
+    using SAMRAILoadBalancer::LoadBalancer;
 
     virtual void loadBalanceBoxes(SAMRAI::hier::BoxArray<NDIM>& out_boxes,
-                                  SAMRAI::hier::ProcessorMapping& mapping,
-                                  const SAMRAI::hier::BoxList<NDIM>& in_boxes,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAIProcessorMapping& mapping,
+                                  const SAMRAIBoxList& in_boxes,
+                                  const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   int level_number,
                                   const SAMRAI::hier::BoxArray<NDIM>& physical_domain,
-                                  const SAMRAI::hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
-                                  const SAMRAI::hier::IntVector<NDIM>& min_size,
-                                  const SAMRAI::hier::IntVector<NDIM>& max_size,
-                                  const SAMRAI::hier::IntVector<NDIM>& cut_factor,
-                                  const SAMRAI::hier::IntVector<NDIM>& bad_interval) const override;
+                                  const SAMRAIIntVector& ratio_to_hierarchy_level_zero,
+                                  const SAMRAIIntVector& min_size,
+                                  const SAMRAIIntVector& max_size,
+                                  const SAMRAIIntVector& cut_factor,
+                                  const SAMRAIIntVector& bad_interval) const override;
 };
 } // namespace IBTK
 

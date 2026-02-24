@@ -18,17 +18,18 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataFactory.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CellGeometry.h"
-#include "IndexDataFactory.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchDataFactory.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICellGeometry.h"
+#include "SAMRAIIndexDataFactory.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchDataFactory.h"
+#include "SAMRAIPointer.h"
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
-#include "tbox/Pointer.h"
 
 #include <algorithm>
 #include <utility>
@@ -44,52 +45,52 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LSetDataFactory<T>::LSetDataFactory(IntVector<NDIM> ghosts)
-    : IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >(std::move(ghosts))
+LSetDataFactory<T>::LSetDataFactory(SAMRAIIntVector ghosts)
+    : SAMRAIIndexDataFactory<LSet<T>, SAMRAICellGeometry>(std::move(ghosts))
 {
     // intentionally blank
     return;
 } // LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+SAMRAIPointer<SAMRAIPatchDataFactory>
+LSetDataFactory<T>::cloneFactory(const SAMRAIIntVector& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+SAMRAIPointer<SAMRAIPatchData>
+LSetDataFactory<T>::allocate(const SAMRAIBox& box, SAMRAIPointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd =
-        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
-    return Pointer<PatchData<NDIM> >(pd, pool);
+    SAMRAIPatchData* pd =
+        new (pool) LSetData<T>(box, SAMRAIIndexDataFactory<LSet<T>, SAMRAICellGeometry>::getGhostCellWidth());
+    return SAMRAIPointer<SAMRAIPatchData>(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+SAMRAIPointer<SAMRAIPatchData>
+LSetDataFactory<T>::allocate(const SAMRAIPatch& patch, SAMRAIPointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
 size_t
-LSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+LSetDataFactory<T>::getSizeOfMemory(const SAMRAIBox& /*box*/) const
 {
     return Arena::align(sizeof(LSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
 bool
-LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+LSetDataFactory<T>::validCopyTo(const SAMRAIPointer<SAMRAIPatchDataFactory>& dst_pdf) const
 {
-    Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
+    SAMRAIPointer<LSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

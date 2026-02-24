@@ -20,10 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include "petscao.h"
 #include "petscvec.h"
@@ -58,7 +61,7 @@ namespace IBTK
  * For more information about Silo, see the Silo manual <A
  * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
  */
-class LSiloDataWriter : public SAMRAI::tbox::Serializable
+class LSiloDataWriter : public SAMRAISerializable
 {
 public:
     /*!
@@ -86,7 +89,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -112,8 +115,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianBlock(const std::string& name,
-                                         const SAMRAI::hier::IntVector<NDIM>& nelem,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic,
+                                         const SAMRAIIntVector& nelem,
+                                         const SAMRAIIntVector& periodic,
                                          int first_lag_idx,
                                          int level_number);
 
@@ -125,8 +128,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(const std::string& name,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
+                                              const std::vector<SAMRAIIntVector>& nelem,
+                                              const std::vector<SAMRAIIntVector>& periodic,
                                               const std::vector<int>& first_lag_idx,
                                               int level_number);
 
@@ -144,19 +147,19 @@ public:
      * \brief Register the coordinates of the curvilinear mesh with the Silo
      * data writer.
      */
-    void registerCoordsData(SAMRAI::tbox::Pointer<LData> coords_data, int level_number);
+    void registerCoordsData(SAMRAIPointer<LData> coords_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
      */
-    void registerVariableData(const std::string& var_name, SAMRAI::tbox::Pointer<LData> var_data, int level_number);
+    void registerVariableData(const std::string& var_name, SAMRAIPointer<LData> var_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a
      * specified starting depth and data depth.
      */
     void registerVariableData(const std::string& var_name,
-                              SAMRAI::tbox::Pointer<LData> var_data,
+                              SAMRAIPointer<LData> var_data,
                               int start_depth,
                               int var_depth,
                               int level_number);
@@ -193,7 +196,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
 private:
@@ -266,7 +269,7 @@ private:
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = 0, d_finest_ln = 0;
 
     /*
@@ -281,8 +284,8 @@ private:
      */
     std::vector<int> d_nblocks;
     std::vector<std::vector<std::string> > d_block_names;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_nelems;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_periodic;
+    std::vector<std::vector<SAMRAIIntVector> > d_block_nelems;
+    std::vector<std::vector<SAMRAIIntVector> > d_block_periodic;
     std::vector<std::vector<int> > d_block_first_lag_idx;
 
     /*
@@ -292,8 +295,8 @@ private:
     std::vector<int> d_nmbs;
     std::vector<std::vector<std::string> > d_mb_names;
     std::vector<std::vector<int> > d_mb_nblocks;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_nelems;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_periodic;
+    std::vector<std::vector<std::vector<SAMRAIIntVector> > > d_mb_nelems;
+    std::vector<std::vector<std::vector<SAMRAIIntVector> > > d_mb_periodic;
     std::vector<std::vector<std::vector<int> > > d_mb_first_lag_idx;
 
     /*
@@ -307,12 +310,12 @@ private:
     /*
      * Coordinates and variable data for plotting.
      */
-    std::vector<SAMRAI::tbox::Pointer<LData> > d_coords_data;
+    std::vector<SAMRAIPointer<LData> > d_coords_data;
 
     std::vector<int> d_nvars;
     std::vector<std::vector<std::string> > d_var_names;
     std::vector<std::vector<int> > d_var_start_depths, d_var_plot_depths, d_var_depths;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LData> > > d_var_data;
+    std::vector<std::vector<SAMRAIPointer<LData> > > d_var_data;
 
     /*
      * Data for obtaining local data.

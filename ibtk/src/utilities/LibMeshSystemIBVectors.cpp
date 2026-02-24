@@ -13,9 +13,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/LibMeshSystemIBVectors.h>
 
-#include <tbox/Utilities.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_vector.h>

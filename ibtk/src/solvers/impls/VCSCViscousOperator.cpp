@@ -20,17 +20,20 @@
 #include "ibtk/VCSCViscousOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "EdgeVariable.h"
 #include "MultiblockDataTranslator.h"
-#include "NodeVariable.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideDataFactory.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAITimer.h"
+#include "SAMRAIVariableFillPattern.h"
 
 #include <algorithm>
 #include <string>
@@ -69,9 +72,9 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static SAMRAITimer* t_apply;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -80,7 +83,7 @@ VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool hom
     : SCLaplaceOperator(std::move(object_name), nullptr, homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));
+    setPhysicalBcCoefs(std::vector<SAMRAIRobinBcCoefStrategy*>(NDIM, nullptr));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::apply()");
@@ -101,7 +104,7 @@ VCSCViscousOperator::~VCSCViscousOperator()
 } // ~VCSCViscousOperator()
 
 void
-VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+VCSCViscousOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -110,15 +113,15 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-side centered vector components" << std::endl);
         }
-        Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double> > x_factory = x_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double> > y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -162,8 +165,8 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAISideVariable<double> > y_sc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->vc_laplace(y_idx,
@@ -172,13 +175,13 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     beta,
                                     d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                    Pointer<NodeVariable<NDIM, double> >(nullptr),
+                                    SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
 #elif (NDIM == 3)
-                                    Pointer<EdgeVariable<NDIM, double> >(nullptr),
+                                    SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
 #endif
                                     x_idx,
                                     x_sc_var,
-                                    Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                                    SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                                     d_solution_time,
                                     d_D_interp_type,
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);
@@ -190,8 +193,8 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
 } // apply
 
 void
-VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                             const SAMRAIVectorReal<NDIM, double>& out)
+VCSCViscousOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                             const SAMRAISAMRAIVectorReal<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 

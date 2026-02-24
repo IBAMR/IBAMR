@@ -20,8 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include "petscvec.h"
 
@@ -48,7 +51,7 @@ namespace IBTK
  * \brief Class LData provides storage for a single scalar- or vector-valued
  * Lagrangian quantity.
  */
-class LData : public SAMRAI::tbox::Serializable
+class LData : public SAMRAISerializable
 {
 public:
     /*!
@@ -84,7 +87,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    LData(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * \brief Virtual destructor.
@@ -279,7 +282,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 private:
     /*!

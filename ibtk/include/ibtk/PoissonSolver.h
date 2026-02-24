@@ -21,9 +21,11 @@
 #include <ibtk/config.h>
 
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <memory>
 #include <string>
@@ -62,7 +64,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    virtual void setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -74,7 +76,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    virtual void setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -87,16 +89,16 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs);
 
 protected:
     // Specialized solver initialization.
     void initSpecialized(const std::string& object_name, bool homogeneous_bc) override;
 
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec = SAMRAI::solv::PoissonSpecifications("");
-    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    SAMRAIPoissonSpecifications d_poisson_spec = SAMRAIPoissonSpecifications("");
+    std::unique_ptr<SAMRAIRobinBcCoefStrategy> d_default_bc_coef;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
 
 private:
     /*!

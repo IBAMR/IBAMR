@@ -22,12 +22,13 @@
 
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 #include "petscksp.h"
 #include "petscmat.h"
@@ -114,7 +115,7 @@ public:
      * PETSc KSP solver framework.
      */
     PETScKrylovLinearSolver(std::string object_name,
-                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                            SAMRAIPointer<SAMRAIDatabase> input_db,
                             std::string default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -139,10 +140,9 @@ public:
     /*!
      * \brief Static function to construct a PETScKrylovLinearSolver.
      */
-    static SAMRAI::tbox::Pointer<KrylovLinearSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAIPointer<KrylovLinearSolver> allocate_solver(const std::string& object_name,
+                                                             SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                             const std::string& default_options_prefix)
     {
         return new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -177,7 +177,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A) override;
+    void setOperator(SAMRAIPointer<LinearOperator> A) override;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -185,7 +185,7 @@ public:
      *
      * \note If the preconditioner is nullptr, no preconditioning is performed.
      */
-    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = nullptr) override;
+    void setPreconditioner(SAMRAIPointer<LinearSolver> pc_solver = nullptr) override;
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -193,10 +193,9 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    void setNullSpace(
-        bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
+    void setNullSpace(bool contains_constant_vec,
+                      const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& nullspace_basis_vecs =
+                          std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -235,8 +234,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -279,8 +277,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                               const SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -398,7 +396,7 @@ private:
     bool d_user_provided_mat = false;
     bool d_user_provided_pc = false;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace = false;

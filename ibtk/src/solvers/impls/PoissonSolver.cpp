@@ -14,13 +14,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <string>
 
@@ -35,21 +36,21 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+PoissonSolver::setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
 
 void
-PoissonSolver::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
+PoissonSolver::setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
+    setPhysicalBcCoefs(std::vector<SAMRAIRobinBcCoefStrategy*>(1, bc_coef));
     return;
 } // setPhysicalBcCoef
 
 void
-PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+PoissonSolver::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -70,15 +71,15 @@ void
 PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homogeneous_bc*/)
 {
     // Initialize the Poisson specifications.
-    PoissonSpecifications poisson_spec(object_name + "::poisson_spec");
+    SAMRAIPoissonSpecifications poisson_spec(object_name + "::poisson_spec");
     poisson_spec.setCZero();
     poisson_spec.setDConstant(-1.0);
     setPoissonSpecifications(poisson_spec);
 
     // Initialize the boundary conditions.
-    d_default_bc_coef = std::make_unique<LocationIndexRobinBcCoefs<NDIM> >(object_name + "::default_bc_coef",
-                                                                           Pointer<Database>(nullptr));
-    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
+    d_default_bc_coef = std::make_unique<SAMRAILocationIndexRobinBcCoefs>(object_name + "::default_bc_coef",
+                                                                          SAMRAIPointer<SAMRAIDatabase>(nullptr));
+    auto p_default_bc_coef = dynamic_cast<SAMRAILocationIndexRobinBcCoefs*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);

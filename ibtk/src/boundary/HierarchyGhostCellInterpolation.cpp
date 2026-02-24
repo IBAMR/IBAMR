@@ -24,32 +24,37 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "CoarsenPatchStrategy.h"
-#include "CoarsenSchedule.h"
-#include "EdgeVariable.h"
-#include "NodeVariable.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchGeometry.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "RefineSchedule.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenOperator.h"
+#include "SAMRAICoarsenPatchStrategy.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchGeometry.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineOperator.h"
+#include "SAMRAIRefinePatchStrategy.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAITimer.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVariableFillPattern.h"
 
 #include <algorithm>
 #include <memory>
@@ -77,15 +82,15 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_initialize_operator_state;
-static Timer* t_reset_transaction_component;
-static Timer* t_reset_transaction_components;
-static Timer* t_reinitialize_operator_state;
-static Timer* t_deallocate_operator_state;
-static Timer* t_fill_data;
-static Timer* t_fill_data_coarsen;
-static Timer* t_fill_data_refine;
-static Timer* t_fill_data_set_physical_bcs;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_reset_transaction_component;
+static SAMRAITimer* t_reset_transaction_components;
+static SAMRAITimer* t_reinitialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
+static SAMRAITimer* t_fill_data;
+static SAMRAITimer* t_fill_data_coarsen;
+static SAMRAITimer* t_fill_data_refine;
+static SAMRAITimer* t_fill_data_set_physical_bcs;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -94,22 +99,22 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
 {
     // Setup Timers.
     IBTK_DO_ONCE(
-        t_initialize_operator_state =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::initializeOperatorState()");
-        t_reset_transaction_component =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::resetTransactionComponent()");
-        t_reset_transaction_components =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::resetTransactionComponents()");
-        t_reinitialize_operator_state =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::reinitializeOperatorState()");
-        t_deallocate_operator_state =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::deallocateOperatorState()");
-        t_fill_data = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()");
+        t_initialize_operator_state = SAMRAITimerManager::getManager()->getTimer(
+            "IBTK::HierarchyGhostCellInterpolation::initializeOperatorState()");
+        t_reset_transaction_component = SAMRAITimerManager::getManager()->getTimer(
+            "IBTK::HierarchyGhostCellInterpolation::resetTransactionComponent()");
+        t_reset_transaction_components = SAMRAITimerManager::getManager()->getTimer(
+            "IBTK::HierarchyGhostCellInterpolation::resetTransactionComponents()");
+        t_reinitialize_operator_state = SAMRAITimerManager::getManager()->getTimer(
+            "IBTK::HierarchyGhostCellInterpolation::reinitializeOperatorState()");
+        t_deallocate_operator_state = SAMRAITimerManager::getManager()->getTimer(
+            "IBTK::HierarchyGhostCellInterpolation::deallocateOperatorState()");
+        t_fill_data = SAMRAITimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()");
         t_fill_data_coarsen =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[coarsen]");
+            SAMRAITimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[coarsen]");
         t_fill_data_refine =
-            TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[refine]");
-        t_fill_data_set_physical_bcs = TimerManager::getManager()->getTimer(
+            SAMRAITimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[refine]");
+        t_fill_data_set_physical_bcs = SAMRAITimerManager::getManager()->getTimer(
             "IBTK::HierarchyGhostCellInterpolation::fillData()[set_physical_bcs]"););
     return;
 } // HierarchyGhostCellInterpolation
@@ -129,7 +134,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                          const int coarsest_ln,
                                                          const int finest_ln)
 {
@@ -145,7 +150,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTran
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -168,21 +173,21 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                  d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()););
 
     // Setup cached coarsen algorithms and schedules.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_alg = new SAMRAICoarsenAlgorithm();
     for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = transaction_comp.d_src_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<SAMRAICoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -198,8 +203,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(src_ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
+            SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(src_ln);
+            SAMRAIPointer<SAMRAIPatchLevel> coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
             d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
         }
     }
@@ -209,23 +214,23 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_extrap_bc_ops.resize(d_transaction_comps.size());
     d_cc_robin_bc_ops.resize(d_transaction_comps.size());
     d_sc_robin_bc_ops.resize(d_transaction_comps.size());
-    d_refine_alg = new RefineAlgorithm<NDIM>();
-    std::vector<RefinePatchStrategy<NDIM>*> refine_patch_strategies;
+    d_refine_alg = new SAMRAIRefineAlgorithm();
+    std::vector<SAMRAIRefinePatchStrategy*> refine_patch_strategies;
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
         const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
-        Pointer<Variable<NDIM> > var;
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariable<NDIM, double> > cc_var = var;
-        Pointer<NodeVariable<NDIM, double> > nc_var = var;
-        Pointer<SideVariable<NDIM, double> > sc_var = var;
-        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<FaceVariable<NDIM, double> > fc_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+        SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+        SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
+        SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
+        SAMRAIPointer<SAMRAIRefineOperator> refine_op = nullptr;
         d_cf_bdry_ops[comp_idx] = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        SAMRAIPointer<SAMRAIVariableFillPattern> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (cc_var)
         {
             if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
@@ -308,7 +313,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             refine_patch_strategies.push_back(d_extrap_bc_ops[comp_idx]);
         }
 
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
+        const std::vector<SAMRAIRobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
         for (const auto& robin_bc_coef : robin_bc_coefs)
         {
@@ -335,7 +340,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(dst_ln);
         d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
@@ -389,21 +394,21 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     d_transaction_comps = transaction_comps;
 
     // Reset cached coarsen algorithms and schedules.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_alg = new SAMRAICoarsenAlgorithm();
     for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = transaction_comp.d_src_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<SAMRAICoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -421,19 +426,19 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     }
 
     // Reset cached refine algorithms and schedules.
-    d_refine_alg = new RefineAlgorithm<NDIM>();
+    d_refine_alg = new SAMRAIRefineAlgorithm();
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
-        Pointer<Variable<NDIM> > var;
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariable<NDIM, double> > cc_var = var;
-        Pointer<NodeVariable<NDIM, double> > nc_var = var;
-        Pointer<SideVariable<NDIM, double> > sc_var = var;
-        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+        SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+        SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
+        SAMRAIPointer<SAMRAIRefineOperator> refine_op = nullptr;
+        SAMRAIPointer<SAMRAIVariableFillPattern> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         if (cc_var)
         {
@@ -489,7 +494,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
 
 #endif
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
+        const std::vector<SAMRAIRobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
 #if !defined(NDEBUG)
         bool null_bc_coefs = true;
         for (const auto& robin_bc_coef : robin_bc_coefs)
@@ -528,7 +533,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 } // resetTransactionComponents
 
 void
-HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
+HierarchyGhostCellInterpolation::reinitializeOperatorState(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy)
 {
     if (!d_is_initialized) return;
 
@@ -599,17 +604,17 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(dst_ln);
+        const SAMRAIIntVector& ratio = level->getRatioToCoarserLevel();
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (d_cf_bdry_ops[comp_idx])
                 {
                     const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
-                    const IntVector<NDIM>& ghost_width_to_fill = patch->getPatchData(dst_data_idx)->getGhostCellWidth();
+                    const SAMRAIIntVector& ghost_width_to_fill = patch->getPatchData(dst_data_idx)->getGhostCellWidth();
                     d_cf_bdry_ops[comp_idx]->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
                 }
             }
@@ -621,10 +626,10 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_set_physical_bcs);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
@@ -632,7 +637,7 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
                     if (d_cc_robin_bc_ops[comp_idx])
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
-                        const IntVector<NDIM>& ghost_width_to_fill =
+                        const SAMRAIIntVector& ghost_width_to_fill =
                             patch->getPatchData(dst_data_idx)->getGhostCellWidth();
                         d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
                             *patch, fill_time, ghost_width_to_fill);
@@ -640,7 +645,7 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
                     if (d_sc_robin_bc_ops[comp_idx])
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
-                        const IntVector<NDIM>& ghost_width_to_fill =
+                        const SAMRAIIntVector& ghost_width_to_fill =
                             patch->getPatchData(dst_data_idx)->getGhostCellWidth();
                         d_sc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
                             *patch, fill_time, ghost_width_to_fill);

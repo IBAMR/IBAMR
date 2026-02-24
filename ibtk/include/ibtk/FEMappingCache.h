@@ -20,11 +20,17 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include <memory>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/libmesh_utilities.h>
+
+#include "SAMRAIPointer.h"
 
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
@@ -32,7 +38,6 @@
 #include <libmesh/quadrature.h>
 
 #include <map>
-#include <memory>
 #include <tuple>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

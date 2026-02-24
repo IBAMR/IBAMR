@@ -18,33 +18,37 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 #include "ibtk/solver_utilities.h"
 
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
 #include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchGeometry.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideDataFactory.h"
-#include "SideIndex.h"
-#include "VariableDatabase.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellDataFactory.h"
+#include "SAMRAICoarseFineBoundary.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchDescriptor.h"
+#include "SAMRAIPatchGeometry.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideDataFactory.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAITimer.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -53,11 +57,12 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include "HYPRE_struct_mv.h"
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include "SAMRAIPointer.h"
+
 #include <mpi.h>
 
 #include <algorithm>
 #include <map>
-#include <memory>
 #include <numeric>
 #include <ostream>
 #include <string>
@@ -72,10 +77,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_solve_system_hypre;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_system;
+static SAMRAITimer* t_solve_system_hypre;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 
 // hypre solver options.
 enum HypreStructRAPType
@@ -95,7 +100,7 @@ enum HypreStructRelaxType
 
 struct IndexComp
 {
-    bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
+    bool operator()(const SAMRAIIndex& lhs, const SAMRAIIndex& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -112,7 +117,7 @@ struct IndexComp
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     SAMRAIPointer<SAMRAIDatabase> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_rap_type(RAP_TYPE_GALERKIN), d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
@@ -169,14 +174,14 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_n
     }
 
     // Setup Timers.
-    IBTK_DO_ONCE(t_solve_system =
-                     TimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::solveSystem()");
-                 t_solve_system_hypre =
-                     TimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::solveSystem()[hypre]");
-                 t_initialize_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::initializeSolverState()");
-                 t_deallocate_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::deallocateSolverState()"););
+    IBTK_DO_ONCE(
+        t_solve_system = SAMRAITimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::solveSystem()");
+        t_solve_system_hypre =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::solveSystem()[hypre]");
+        t_initialize_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::initializeSolverState()");
+        t_deallocate_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::CCPoissonHypreLevelSolver::deallocateSolverState()"););
     return;
 } // CCPoissonHypreLevelSolver
 
@@ -187,7 +192,7 @@ CCPoissonHypreLevelSolver::~CCPoissonHypreLevelSolver()
 } // ~CCPoissonHypreLevelSolver
 
 bool
-CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+CCPoissonHypreLevelSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -221,8 +226,8 @@ CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
 } // solveSystem
 
 void
-CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                 const SAMRAIVectorReal<NDIM, double>& b)
+CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                                                 const SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -234,7 +239,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<SAMRAIPatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -292,13 +297,13 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary = new SAMRAICoarseFineBoundary(*d_hierarchy, d_level_num, SAMRAIIntVector(1));
     }
 
     // Allocate and initialize the hypre data structures.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    SAMRAIPointer<SAMRAICellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -306,8 +311,8 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     }
     else
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<SideDataFactory<NDIM, double> > pdat_factory =
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAISideDataFactory<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
@@ -361,14 +366,14 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    const SAMRAIIntVector& ratio = d_level->getRatio();
+    const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
+        const SAMRAIBox& patch_box = d_level->getPatch(p())->getBox();
         std::array<HYPRE_Int, NDIM> lower = hypre_array(patch_box.lower());
         std::array<HYPRE_Int, NDIM> upper = hypre_array(patch_box.upper());
         HYPRE_StructGridSetExtents(d_grid, lower.data(), upper.data());
@@ -391,7 +396,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = 2 * NDIM + 1;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), SAMRAIIndex(0));
         for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
         {
             for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -411,7 +416,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), SAMRAIIndex(0));
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -489,18 +494,18 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     std::vector<HYPRE_Int> stencil_indices(stencil_size);
     std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
     std::vector<double> mat_vals(stencil_size, 0.0);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        CellData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAICellData<double> matrix_coefs(patch_box, stencil_size, SAMRAIIntVector(0));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
             PoissonUtilities::computeMatrixCoefficients(
                 matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
-            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            for (SAMRAIBox::Iterator b(patch_box); b; b++)
             {
-                hier::Index<NDIM> i = b();
+                SAMRAIIndex i = b();
                 for (unsigned int j = 0; j < stencil_size; ++j)
                 {
                     mat_vals[j] = matrix_coefs(i, j);
@@ -523,19 +528,19 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 void
 CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
-    static const IntVector<NDIM> no_ghosts = 0;
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    static const SAMRAIIntVector no_ghosts = 0;
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        Pointer<CellData<NDIM, double> > C_data;
+        SAMRAIPointer<SAMRAICellData<double> > C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -548,14 +553,14 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         }
         else
         {
-            C_data = new CellData<NDIM, double>(patch_box, 1, no_ghosts);
+            C_data = new SAMRAICellData<double>(patch_box, 1, no_ghosts);
             if (d_poisson_spec.cIsZero())
                 C_data->fill(0.0);
             else
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<SideData<NDIM, double> > D_data;
+        SAMRAIPointer<SAMRAISideData<double> > D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -573,7 +578,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         std::array<HYPRE_Int, stencil_size> stencil_indices;
         std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
 
-        std::map<hier::Index<NDIM>, int, IndexComp> stencil_index_map;
+        std::map<SAMRAIIndex, int, IndexComp> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -589,10 +594,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     {
 #endif
 #if (NDIM == 2)
-                        const hier::Index<NDIM> i(x_offset, y_offset);
+                        const SAMRAIIndex i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                        const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
+                        const SAMRAIIndex i(x_offset, y_offset, z_offset);
 #endif
                         stencil_index_map[i] = stencil_index++;
 #if (NDIM == 3)
@@ -604,10 +609,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
         // Set the matrix coefficients to correspond to a second-order accurate
         // finite difference stencil for the Laplace operator.
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (SAMRAIBox::Iterator b(patch_box); b; b++)
         {
-            hier::Index<NDIM> i = b();
-            static const hier::Index<NDIM> i_stencil_center(0);
+            SAMRAIIndex i = b();
+            static const SAMRAIIndex i_stencil_center(0);
             const int stencil_center = stencil_index_map[i_stencil_center];
 
             std::vector<double> mat_vals(stencil_size, 0.0);
@@ -618,21 +623,21 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             {
                 const double& h = dx[axis];
                 {
-                    hier::Index<NDIM> i_stencil_lower(0);
+                    SAMRAIIndex i_stencil_lower(0);
                     --i_stencil_lower[axis];
                     const int stencil_lower = stencil_index_map[i_stencil_lower];
 
-                    const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                    const SAMRAISideIndex ilower(i, axis, SAMRAISideIndex::Lower);
                     const double& D_lower = (*D_data)(ilower, axis);
                     mat_vals[stencil_lower] += D_lower / (h * h);
                     mat_vals[stencil_center] -= D_lower / (h * h);
                 }
                 {
-                    hier::Index<NDIM> i_stencil_upper(0);
+                    SAMRAIIndex i_stencil_upper(0);
                     ++i_stencil_upper[axis];
                     const int stencil_upper = stencil_index_map[i_stencil_upper];
 
-                    const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                    const SAMRAISideIndex iupper(i, axis, SAMRAISideIndex::Upper);
                     const double& D_upper = (*D_data)(iupper, axis);
                     mat_vals[stencil_upper] += D_upper / (h * h);
                     mat_vals[stencil_center] -= D_upper / (h * h);
@@ -661,12 +666,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     // Lower side fluxes.
                     if (!skip_lower_side_fluxes)
                     {
-                        const SideIndex<NDIM> ilower(i, norm_axis, SideIndex<NDIM>::Lower);
+                        const SAMRAISideIndex ilower(i, norm_axis, SAMRAISideIndex::Lower);
                         for (int norm_shift = -1; norm_shift <= 0; ++norm_shift)
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                hier::Index<NDIM> i_stencil(0);
+                                SAMRAIIndex i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -685,12 +690,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     // Upper side fluxes.
                     if (!skip_upper_side_fluxes)
                     {
-                        const SideIndex<NDIM> iupper(i, norm_axis, SideIndex<NDIM>::Upper);
+                        const SAMRAISideIndex iupper(i, norm_axis, SAMRAISideIndex::Upper);
                         for (int norm_shift = 0; norm_shift <= 1; ++norm_shift)
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                hier::Index<NDIM> i_stencil(0);
+                                SAMRAIIndex i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -1012,30 +1017,30 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
-        const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        const SAMRAIBox x_ghost_box = SAMRAIBox::grow(patch_box, 1);
+        SAMRAIPointer<SAMRAICellData<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        SAMRAIPointer<SAMRAICellData<double> > b_data = patch->getPatchData(b_idx);
+        const SAMRAIArray<SAMRAIBoundaryBox>& type_1_cf_bdry =
+            level_zero ? SAMRAIArray<SAMRAIBoundaryBox>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_physical_bdry || at_cf_bdry)
         {
-            CellData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            SAMRAICellData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             if (at_physical_bdry)
             {
@@ -1153,11 +1158,11 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
 

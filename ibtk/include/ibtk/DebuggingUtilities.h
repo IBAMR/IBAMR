@@ -21,8 +21,10 @@
 #include <ibtk/config.h>
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Pointer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 #include <string>
 
@@ -53,7 +55,7 @@ public:
      * \brief Check a cell-centered variable for NaN or unusually large values.
      */
     static bool checkCellDataForNaNs(int patch_data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                      bool interior_only = true,
                                      int coarsest_ln = invalid_level_number,
                                      int finest_ln = invalid_level_number);
@@ -62,7 +64,7 @@ public:
      * \brief Check a face-centered variable for NaN or unusually large values.
      */
     static bool checkFaceDataForNaNs(int patch_data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                      bool interior_only = true,
                                      int coarsest_ln = invalid_level_number,
                                      int finest_ln = invalid_level_number);
@@ -71,7 +73,7 @@ public:
      * \brief Check a node-centered variable for NaN or unusually large values.
      */
     static bool checkNodeDataForNaNs(int patch_data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                      bool interior_only = true,
                                      int coarsest_ln = invalid_level_number,
                                      int finest_ln = invalid_level_number);
@@ -80,7 +82,7 @@ public:
      * \brief Check a side-centered variable for NaN or unusually large values.
      */
     static bool checkSideDataForNaNs(int patch_data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                      bool interior_only = true,
                                      int coarsest_ln = invalid_level_number,
                                      int finest_ln = invalid_level_number);
@@ -89,7 +91,7 @@ public:
      * \brief Save the local portion of a cell-centered variable to disk.
      */
     static void saveCellData(int patch_data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              const std::string& filename,
                              const std::string& dirname);
 
@@ -97,7 +99,7 @@ public:
      * \brief Save the local portion of a face-centered variable to disk.
      */
     static void saveFaceData(int patch_data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              const std::string& filename,
                              const std::string& dirname);
 
@@ -105,7 +107,7 @@ public:
      * \brief Save the local portion of a node-centered variable to disk.
      */
     static void saveNodeData(int patch_data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              const std::string& filename,
                              const std::string& dirname);
 
@@ -113,14 +115,14 @@ public:
      * \brief Save the local portion of a side-centered variable to disk.
      */
     static void saveSideData(int patch_data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              const std::string& filename,
                              const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a Lagrangian variable to disk.
      */
-    static void saveLagrangianData(SAMRAI::tbox::Pointer<LData> lag_data,
+    static void saveLagrangianData(SAMRAIPointer<LData> lag_data,
                                    bool save_ghost_nodes,
                                    const std::string& filename,
                                    const std::string& dirname);

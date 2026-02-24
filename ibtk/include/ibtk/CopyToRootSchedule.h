@@ -20,11 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "IntVector.h"
-#include "PatchData.h"
-#include "PatchLevel.h"
-#include "tbox/Pointer.h"
-#include "tbox/Schedule.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISchedule.h"
 
 #include <string>
 #include <vector>
@@ -54,15 +56,13 @@ public:
     /*!
      * \brief Constructor
      */
-    CopyToRootSchedule(int root_proc,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                       int src_patch_data_idx);
+    CopyToRootSchedule(int root_proc, SAMRAIPointer<SAMRAIPatchLevel> patch_level, int src_patch_data_idx);
 
     /*!
      * \brief Constructor
      */
     CopyToRootSchedule(int root_proc,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                       SAMRAIPointer<SAMRAIPatchLevel> patch_level,
                        std::vector<int> src_patch_data_idxs);
 
     /*!
@@ -80,7 +80,7 @@ public:
      *
      * \note Patch data objects are allocated only on the root MPI process.
      */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > >& getRootPatchData() const;
+    const std::vector<SAMRAIPointer<SAMRAIPatchData> >& getRootPatchData() const;
 
 private:
     /*!
@@ -113,10 +113,10 @@ private:
     void commonClassCtor();
 
     const int d_root_proc;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;
+    SAMRAIPointer<SAMRAIPatchLevel> d_patch_level;
     const std::vector<int> d_src_patch_data_idxs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > > d_root_patch_data;
-    SAMRAI::tbox::Schedule d_schedule;
+    std::vector<SAMRAIPointer<SAMRAIPatchData> > d_root_patch_data;
+    SAMRAISchedule d_schedule;
 };
 } // namespace IBTK
 

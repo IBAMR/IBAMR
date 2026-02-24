@@ -22,7 +22,10 @@
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 #include "petsc/private/petscimpl.h" // IWYU pragma: keep
 #include "petsc/private/vecimpl.h"   // IWYU pragma: keep
 
@@ -33,9 +36,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline Vec
-PETScSAMRAIVectorReal::createPETScVector(
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
-    MPI_Comm comm)
+PETScSAMRAIVectorReal::createPETScVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> > samrai_vec, MPI_Comm comm)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(samrai_vec);
@@ -59,9 +60,7 @@ PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
 }
 
 inline void
-PETScSAMRAIVectorReal::getSAMRAIVector(
-    Vec petsc_vec,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec, SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >* samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
@@ -76,9 +75,8 @@ PETScSAMRAIVectorReal::getSAMRAIVector(
 }
 
 inline void
-PETScSAMRAIVectorReal::restoreSAMRAIVector(
-    Vec petsc_vec,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+PETScSAMRAIVectorReal::restoreSAMRAIVector(Vec petsc_vec,
+                                           SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >* samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
@@ -96,9 +94,8 @@ PETScSAMRAIVectorReal::restoreSAMRAIVector(
 }
 
 inline void
-PETScSAMRAIVectorReal::getSAMRAIVectorRead(
-    Vec petsc_vec,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+PETScSAMRAIVectorReal::getSAMRAIVectorRead(Vec petsc_vec,
+                                           SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >* samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
@@ -113,9 +110,8 @@ PETScSAMRAIVectorReal::getSAMRAIVectorRead(
 }
 
 inline void
-PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(
-    Vec petsc_vec,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(Vec petsc_vec,
+                                               SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >* samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
@@ -131,9 +127,8 @@ PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(
 }
 
 inline void
-PETScSAMRAIVectorReal::replaceSAMRAIVector(
-    Vec petsc_vec,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec)
+PETScSAMRAIVectorReal::replaceSAMRAIVector(Vec petsc_vec,
+                                           SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> > samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);

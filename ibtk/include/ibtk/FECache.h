@@ -20,11 +20,16 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include <memory>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/QuadratureCache.h>
 
-#include <tbox/Utilities.h>
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
@@ -33,7 +38,6 @@
 #include <libmesh/fe.h>
 
 #include <map>
-#include <memory>
 #include <tuple>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

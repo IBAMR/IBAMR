@@ -17,8 +17,10 @@
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/LSetVariable.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Variable.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 #include <utility>
@@ -35,7 +37,7 @@ namespace IBTK
 
 template <class T>
 LSetVariable<T>::LSetVariable(std::string name)
-    : Variable<NDIM>(std::move(name), new LSetDataFactory<T>(IntVector<NDIM>(0)))
+    : SAMRAIVariable(std::move(name), new LSetDataFactory<T>(SAMRAIIntVector(0)))
 {
     // intentionally blank
     return;

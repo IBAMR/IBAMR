@@ -20,10 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "BoxList.h"
-#include "IntVector.h"
-#include "RefinePatchStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAIBoxList.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIRefinePatchStrategy.h"
 
 #include <vector>
 
@@ -45,7 +48,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy objects to be employed by a single
  * SAMRAI::xfer::RefineSchedule.
  */
-class RefinePatchStrategySet : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RefinePatchStrategySet : public SAMRAIRefinePatchStrategy
 {
 public:
     /*!
@@ -81,16 +84,16 @@ public:
      *all
      *registered scratch components.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    void setPhysicalBoundaryConditions(SAMRAIPatch& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                       const SAMRAIIntVector& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+    SAMRAIIntVector getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -109,10 +112,10 @@ public:
      *fine
      *patches.
      */
-    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                          const SAMRAI::hier::Patch<NDIM>& coarse,
-                          const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void preprocessRefine(SAMRAIPatch& fine,
+                          const SAMRAIPatch& coarse,
+                          const SAMRAIBox& fine_box,
+                          const SAMRAIIntVector& ratio) override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -131,10 +134,10 @@ public:
      *fine
      *patches.
      */
-    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void postprocessRefine(SAMRAIPatch& fine,
+                           const SAMRAIPatch& coarse,
+                           const SAMRAIBox& fine_box,
+                           const SAMRAIIntVector& ratio) override;
 
     /*!
      * Function to perform user-defined refine operations.  This member function
@@ -151,10 +154,10 @@ public:
      *and
      *fine patches.
      */
-    void preprocessRefineBoxes(SAMRAI::hier::Patch<NDIM>& fine,
-                               const SAMRAI::hier::Patch<NDIM>& coarse,
-                               const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
-                               const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void preprocessRefineBoxes(SAMRAIPatch& fine,
+                               const SAMRAIPatch& coarse,
+                               const SAMRAIBoxList& fine_boxes,
+                               const SAMRAIIntVector& ratio) override;
 
     /*!
      * Function to perform user-defined refine operations.  This member function
@@ -171,10 +174,10 @@ public:
      *and
      *fine patches.
      */
-    void postprocessRefineBoxes(SAMRAI::hier::Patch<NDIM>& fine,
-                                const SAMRAI::hier::Patch<NDIM>& coarse,
-                                const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
-                                const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void postprocessRefineBoxes(SAMRAIPatch& fine,
+                                const SAMRAIPatch& coarse,
+                                const SAMRAIBoxList& fine_boxes,
+                                const SAMRAIIntVector& ratio) override;
 
 protected:
 private:
@@ -208,7 +211,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.
      */
-    std::vector<SAMRAI::xfer::RefinePatchStrategy<NDIM>*> d_strategy_set;
+    std::vector<SAMRAIRefinePatchStrategy*> d_strategy_set;
 
     /*!
      * \brief Boolean value that indicates whether this class should provide

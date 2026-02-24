@@ -18,10 +18,12 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 #include "petscmat.h"
 
@@ -60,13 +62,13 @@ PETScMatLOWrapper::getPETScMat() const
 } // getPETScMat
 
 void
-PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+PETScMatLOWrapper::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&y, false));
 
     // Apply the operator.
     int ierr = MatMult(d_petsc_mat, d_petsc_x, d_petsc_y);
@@ -75,16 +77,16 @@ PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 } // apply
 
 void
-PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                            SAMRAIVectorReal<NDIM, double>& y,
-                            SAMRAIVectorReal<NDIM, double>& z)
+PETScMatLOWrapper::applyAdd(SAMRAISAMRAIVectorReal<double>& x,
+                            SAMRAISAMRAIVectorReal<double>& y,
+                            SAMRAISAMRAIVectorReal<double>& z)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&z, false));
 
     // Apply the operator.
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z);
@@ -93,8 +95,8 @@ PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
 } // applyAdd
 
 void
-PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                           const SAMRAIVectorReal<NDIM, double>& out)
+PETScMatLOWrapper::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                           const SAMRAISAMRAIVectorReal<double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");

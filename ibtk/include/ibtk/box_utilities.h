@@ -20,7 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include <Box.h>
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
 
 #include <vector>
 
@@ -35,7 +37,7 @@ namespace IBTK
  * returned set of boxes is formed by merging boxes in @p boxes along
  * their longest edges.
  */
-std::vector<SAMRAI::hier::Box<NDIM> > merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& boxes);
+std::vector<SAMRAIBox> merge_boxes_by_longest_edge(const std::vector<SAMRAIBox>& boxes);
 
 } // namespace IBTK
 

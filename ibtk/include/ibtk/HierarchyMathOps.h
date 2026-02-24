@@ -24,29 +24,32 @@
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CartesianGridGeometry.h"
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "FaceVariable.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HierarchyFaceDataOpsReal.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "NodeVariable.h"
-#include "OuteredgeVariable.h"
-#include "OuterfaceVariable.h"
-#include "OuternodeVariable.h"
-#include "OutersideVariable.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
-#include "SideVariable.h"
-#include "VariableContext.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenOperator.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchyFaceDataOpsReal.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIOuteredgeVariable.h"
+#include "SAMRAIOuterfaceVariable.h"
+#include "SAMRAIOuternodeVariable.h"
+#include "SAMRAIOutersideVariable.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariableContext.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 #include <string>
 #include <vector>
@@ -100,7 +103,7 @@ public:
      * Does nothing interesting.
      */
     HierarchyMathOps(std::string name,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                      int coarsest_ln = invalid_level_number,
                      int finest_ln = invalid_level_number,
                      std::string coarsen_op_name = "CONSERVATIVE_COARSEN");
@@ -118,7 +121,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -142,7 +145,7 @@ public:
      * If a cell is not refined in the hierarchy, its weight is set to its
      * volume.  If a cell is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellWeightVariable() const;
+    SAMRAIPointer<SAMRAICellVariable<double> > getCellWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -161,7 +164,7 @@ public:
      * If a face is not refined in the hierarchy, its weight is set to its
      * volume.  If a face is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > getFaceWeightVariable() const;
+    SAMRAIPointer<SAMRAIFaceVariable<double> > getFaceWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -180,7 +183,7 @@ public:
      * If a side is not refined in the hierarchy, its weight is set to its
      * volume.  If a side is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getSideWeightVariable() const;
+    SAMRAIPointer<SAMRAISideVariable<double> > getSideWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -202,7 +205,7 @@ public:
     /*!
      * \brief Get the patch hierarchy object associated with the class.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    SAMRAIPointer<SAMRAIPatchHierarchy> getPatchHierarchy() const;
 
     //\{ \name Mathematical operations.
 
@@ -224,10 +227,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -242,10 +245,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -260,10 +263,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -278,10 +281,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -296,10 +299,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -314,11 +317,11 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
               bool dst_cf_bdry_synch,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time,
               bool src_cf_bdry_synch);
 
@@ -334,10 +337,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAIEdgeVariable<double> > dst_var,
               int src_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+              SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -352,13 +355,12 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
              int src_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+             SAMRAIPointer<SAMRAINodeVariable<double> > src_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
              double src_ghost_fill_time,
-             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
-                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+             const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs = std::vector<SAMRAIRobinBcCoefStrategy*>());
 
     /*!
      * \brief Compute the side-centered rot of a node-centered scalar field
@@ -372,13 +374,12 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
              int src_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+             SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
              double src_ghost_fill_time,
-             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
-                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+             const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs = std::vector<SAMRAIRobinBcCoefStrategy*>());
 
     /*!
      * \brief Compute the side-centered rot of a edge-centered vector field
@@ -392,13 +393,12 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
              int src_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+             SAMRAIPointer<SAMRAIEdgeVariable<double> > src_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
              double src_ghost_fill_time,
-             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
-                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+             const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs = std::vector<SAMRAIRobinBcCoefStrategy*>());
 
     /*!
      * \brief Compute the side-centered rot of a side-centered vector field
@@ -412,13 +412,12 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
              int src_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+             SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
              double src_ghost_fill_time,
-             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
-                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+             const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs = std::vector<SAMRAIRobinBcCoefStrategy*>());
 
     /*!
      * \brief Compute the cell-centered divergence of a cell-centered vector
@@ -432,15 +431,15 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
              double alpha,
              int src1_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
              double src1_ghost_fill_time,
              double beta = 0.0,
              int src2_idx = invalid_index,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+             SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -458,16 +457,16 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
              double alpha,
              int src1_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             SAMRAIPointer<SAMRAIFaceVariable<double> > src1_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
              double src1_ghost_fill_time,
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = invalid_index,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+             SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -485,16 +484,16 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+             SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
              double alpha,
              int src1_idx,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+             SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
              double src1_ghost_fill_time,
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = invalid_index,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+             SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -510,15 +509,15 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               double alpha,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -535,16 +534,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
               bool dst_cf_bdry_synch,
               double alpha,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -561,16 +560,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
               bool dst_cf_bdry_synch,
               double alpha,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -585,16 +584,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               int alpha_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > alpha_var,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -609,16 +608,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
               int alpha_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+              SAMRAIPointer<SAMRAISideVariable<double> > alpha_var,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -638,17 +637,17 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
               bool dst_cf_bdry_synch,
               int alpha_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > alpha_var,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAIFaceVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -668,17 +667,17 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+              SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
               bool dst_cf_bdry_synch,
               int alpha_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+              SAMRAIPointer<SAMRAISideVariable<double> > alpha_var,
               int src1_idx,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+              SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = invalid_index,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr,
+              SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr,
               int src1_depth = 0);
 
     /*!
@@ -694,10 +693,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAIFaceVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -714,10 +713,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -736,11 +735,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -758,11 +757,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -776,10 +775,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAINodeVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -794,10 +793,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAIEdgeVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -812,11 +811,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -832,11 +831,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAIFaceVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -853,11 +852,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -874,11 +873,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                SAMRAIPointer<SAMRAIEdgeVariable<double> > dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -897,11 +896,11 @@ public:
      * \see resetLevels
      */
     void harmonic_interp(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                          bool dst_cf_bdry_synch,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                         SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          double src_ghost_fill_time);
 
     /*!
@@ -918,10 +917,10 @@ public:
      * \see resetLevels
      */
     void harmonic_interp(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                         SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          double src_ghost_fill_time);
 
     /*!
@@ -938,10 +937,10 @@ public:
      * \see resetLevels
      */
     void harmonic_interp(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAIEdgeVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                         SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          double src_ghost_fill_time);
 
     /*!
@@ -960,10 +959,10 @@ public:
      * \see resetLevels
      */
     void interp_ghosted(int dst_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                        SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                         int src_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                        SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                         double src_ghost_fill_time);
 
     /*!
@@ -983,10 +982,10 @@ public:
      * \see resetLevels
      */
     void interp_ghosted(int dst_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                        SAMRAIPointer<SAMRAIEdgeVariable<double> > dst_var,
                         int src_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                        SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                         double src_ghost_fill_time);
 
     /*!
@@ -1007,10 +1006,10 @@ public:
      * \see resetLevels
      */
     void harmonic_interp_ghosted(int dst_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                                 SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                                  int src_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                                 SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                  double src_ghost_fill_time);
 
     /*!
@@ -1031,10 +1030,10 @@ public:
      * \see resetLevels
      */
     void harmonic_interp_ghosted(int dst_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                                 SAMRAIPointer<SAMRAIEdgeVariable<double> > dst_var,
                                  int src_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
-                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                                 SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                  double src_ghost_fill_time);
 
     /*!
@@ -1054,15 +1053,15 @@ public:
      * \see resetLevels
      */
     void laplace(int dst_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                 SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                 const SAMRAIPoissonSpecifications& poisson_spec,
                  int src1_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                 SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = invalid_index,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+                 SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
                  int dst_depth = 0,
                  int src1_depth = 0,
                  int src2_depth = 0);
@@ -1085,15 +1084,15 @@ public:
      * \see resetLevels
      */
     void laplace(int dst_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                 SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
+                 const SAMRAIPoissonSpecifications& poisson_spec,
                  int src1_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                 SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = invalid_index,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr);
+                 SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr);
 
     /*!
      * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
@@ -1109,21 +1108,21 @@ public:
      * \see resetLevels
      */
     void vc_laplace(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                    SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                     double alpha,
                     double beta,
                     int coef1_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef1_var,
+                    SAMRAIPointer<SAMRAINodeVariable<double> > coef1_var,
                     int src1_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-                    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                    SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
                     IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
                     int coef2_idx = invalid_index,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = nullptr,
+                    SAMRAIPointer<SAMRAISideVariable<double> > coef2_var = nullptr,
                     double gamma = 0.0,
                     int src2_idx = invalid_index,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr);
+                    SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr);
 
     /*!
      * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
@@ -1139,21 +1138,21 @@ public:
      * \see resetLevels
      */
     void vc_laplace(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                    SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                     double alpha,
                     double beta,
                     int coef1_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > coef1_var,
+                    SAMRAIPointer<SAMRAIEdgeVariable<double> > coef1_var,
                     int src1_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-                    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                    SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
                     IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
                     int coef2_idx = invalid_index,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = nullptr,
+                    SAMRAIPointer<SAMRAISideVariable<double> > coef2_var = nullptr,
                     double gamma = 0.0,
                     int src2_idx = invalid_index,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr);
+                    SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -1162,13 +1161,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                            double alpha,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1180,14 +1179,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1200,15 +1199,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
                            int beta_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > beta_var = nullptr,
+                           SAMRAIPointer<SAMRAICellVariable<double> > beta_var = nullptr,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAICellVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1222,13 +1221,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
                            double alpha,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1240,14 +1239,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1260,15 +1259,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src1_var,
                            int beta_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > beta_var = nullptr,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > beta_var = nullptr,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAIFaceVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1282,13 +1281,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                            double alpha,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1300,14 +1299,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1320,15 +1319,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src1_var,
                            int beta_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > beta_var = nullptr,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > beta_var = nullptr,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAINodeVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1342,13 +1341,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                            double alpha,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1360,14 +1359,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1380,15 +1379,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
                            int alpha_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > alpha_var,
                            int src1_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
                            int beta_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > beta_var = nullptr,
+                           SAMRAIPointer<SAMRAISideVariable<double> > beta_var = nullptr,
                            int src2_idx = invalid_index,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr,
+                           SAMRAIPointer<SAMRAISideVariable<double> > src2_var = nullptr,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1402,9 +1401,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL1Norm(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+                         SAMRAIPointer<SAMRAICellVariable<double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1413,9 +1412,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL2Norm(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+                         SAMRAIPointer<SAMRAICellVariable<double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1424,9 +1423,9 @@ public:
      * \see resetLevels
      */
     void pointwiseMaxNorm(int dst_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                          SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                           int src_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+                          SAMRAIPointer<SAMRAICellVariable<double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
@@ -1435,9 +1434,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL1Norm(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+                         SAMRAIPointer<SAMRAINodeVariable<double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1446,9 +1445,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL2Norm(int dst_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                          int src_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+                         SAMRAIPointer<SAMRAINodeVariable<double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1457,9 +1456,9 @@ public:
      * \see resetLevels
      */
     void pointwiseMaxNorm(int dst_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                          SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
                           int src_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+                          SAMRAIPointer<SAMRAINodeVariable<double> > src_var);
 
     /*!
      * \brief Compute the cell-centered strain rate of a side-centered vector field
@@ -1474,12 +1473,12 @@ public:
      * \see resetLevels
      */
     void strain_rate(int dst1_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst1_var,
+                     SAMRAIPointer<SAMRAICellVariable<double> > dst1_var,
                      int dst2_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst2_var,
+                     SAMRAIPointer<SAMRAICellVariable<double> > dst2_var,
                      int src_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                     SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+                     SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                      double src_ghost_fill_time);
 
     /*!
@@ -1494,10 +1493,10 @@ public:
      * \see resetLevels
      */
     void strain_rate(int dst_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                     SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
                      int src_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                     SAMRAIPointer<SAMRAISideVariable<double> > src_var,
+                     SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                      double src_ghost_fill_time);
 
     /*!
@@ -1507,8 +1506,7 @@ public:
      *
      * @warning
      */
-    void enforceHangingNodeConstraints(int dst_idx,
-                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var);
+    void enforceHangingNodeConstraints(int dst_idx, SAMRAIPointer<SAMRAINodeVariable<double> > dst_var);
 
 private:
     /*!
@@ -1591,24 +1589,24 @@ private:
     std::string d_object_name;
 
     // Patch hierarchy information.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch Variables. Since nodal data is used for both scalar and vector
     // quantities we create both (and corresponding outernode) sets of
     // variables.
     SAMRAIDataCache d_cached_eulerian_data;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_s_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_v_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_ec_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuteredgeVariable<NDIM, double> > d_oe_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_s_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_v_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double> > d_fc_var;
+    SAMRAIPointer<SAMRAINodeVariable<double> > d_nc_s_var;
+    SAMRAIPointer<SAMRAINodeVariable<double> > d_nc_v_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > d_sc_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_ec_var;
+    SAMRAIPointer<SAMRAIOuteredgeVariable<double> > d_oe_var;
+    SAMRAIPointer<SAMRAIOuterfaceVariable<double> > d_of_var;
+    SAMRAIPointer<SAMRAIOuternodeVariable<double> > d_on_s_var;
+    SAMRAIPointer<SAMRAIOuternodeVariable<double> > d_on_v_var;
+    SAMRAIPointer<SAMRAIOutersideVariable<double> > d_os_var;
     int d_ec_idx = IBTK::invalid_index, d_fc_idx = IBTK::invalid_index, d_nc_s_idx = IBTK::invalid_index,
         d_nc_v_idx = IBTK::invalid_index, d_oe_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index,
         d_of_idx = IBTK::invalid_index, d_on_s_idx = IBTK::invalid_index, d_on_v_idx = IBTK::invalid_index,
@@ -1616,36 +1614,36 @@ private:
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_of_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_s_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_v_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_oe_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_s_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_v_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_oe_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_s_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_v_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_oe_coarsen_scheds;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_of_coarsen_op;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_on_s_coarsen_op;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_on_v_coarsen_op;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_os_coarsen_op;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_oe_coarsen_op;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_of_coarsen_alg;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_on_s_coarsen_alg;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_on_v_coarsen_alg;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_os_coarsen_alg;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_oe_coarsen_alg;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_of_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_on_s_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_on_v_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_os_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_oe_coarsen_scheds;
 
     // Hierarchy data operations.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
 
     // Patch math operations.
     PatchMathOps d_patch_math_ops;
 
     // The cell weights are used to compute norms of data defined on the patch
     // hierarchy.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_wgt_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_wgt_fc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wgt_sc_var;
+    SAMRAIPointer<SAMRAIVariableContext> d_context;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_wgt_cc_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double> > d_wgt_fc_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > d_wgt_sc_var;
     int d_wgt_cc_idx = IBTK::invalid_index, d_wgt_fc_idx = IBTK::invalid_index, d_wgt_sc_idx = IBTK::invalid_index;
     bool d_using_wgt_cc = false, d_using_wgt_fc = false, d_using_wgt_sc = false;
     double d_volume = 0.0;

@@ -15,8 +15,9 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include <tbox/Utilities.h>
+#include "SAMRAIUtilities.h"
 
 #include <algorithm>
 #include <map>

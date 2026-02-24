@@ -20,13 +20,16 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/Database.h>
-
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <PatchHierarchy.h>
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include <deque>
 #include <iosfwd>
@@ -55,10 +58,10 @@ public:
      * @param[in] grid_geom The grid geometry.
      * @param[in] ratio The ratio of the Path's level to the coarsest level.
      */
-    MarkerPatch(const SAMRAI::hier::Box<NDIM>& patch_box,
-                const std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlapping_patch_boxes,
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                const SAMRAI::hier::IntVector<NDIM>& ratio);
+    MarkerPatch(const SAMRAIBox& patch_box,
+                const std::vector<SAMRAIBox>& nonoverlapping_patch_boxes,
+                const SAMRAIPointer<SAMRAICartesianGridGeometry>& grid_geom,
+                const SAMRAIIntVector& ratio);
 
     /**
      * Add a marker point.
@@ -97,13 +100,13 @@ private:
     std::vector<double> d_velocities;
 
     // Box for the patch itself.
-    SAMRAI::hier::Box<NDIM> d_patch_box;
+    SAMRAIBox d_patch_box;
 
     // The unique subset of index space assigned to this Patch.
-    std::vector<SAMRAI::hier::Box<NDIM> > d_nonoverlapping_patch_boxes;
+    std::vector<SAMRAIBox> d_nonoverlapping_patch_boxes;
 
     // Data for computing cell indices. Passed along to IndexUtilities::getCellIndex();
-    SAMRAI::hier::Box<NDIM> d_domain_box;
+    SAMRAIBox d_domain_box;
     std::array<double, NDIM> d_x_lo;
     std::array<double, NDIM> d_x_up;
     std::array<double, NDIM> d_dx;
@@ -118,7 +121,7 @@ private:
  * points are akin to IB points except they are simply advected by the fluid
  * and do not apply any force upon it.
  */
-class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
+class MarkerPatchHierarchy : public SAMRAISerializable
 {
 public:
     /**
@@ -130,7 +133,7 @@ public:
      * their array index.
      */
     MarkerPatchHierarchy(const std::string& name,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                         SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                          const std::vector<IBTK::Point>& positions,
                          const std::vector<IBTK::Point>& velocities,
                          const bool register_for_restart = true);
@@ -147,7 +150,7 @@ public:
      * function relies on the constructor to set up all geometric and index
      * space data and only saves the markers themselves.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * Write the particles to a single H5Part file.
@@ -164,7 +167,7 @@ public:
     /**
      * Load the marker points from a database.
      */
-    virtual void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void getFromDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
     /**
      * Get the MarkerPatch associated with the present level and local patch number.
@@ -252,7 +255,7 @@ protected:
 
     std::size_t d_num_markers;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
 
     std::vector<std::deque<MarkerPatch> > d_marker_patches;
 

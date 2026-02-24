@@ -21,10 +21,12 @@
 #include <ibtk/config.h>
 
 #include "ibtk/LSetData.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
 
 #include <vector>
 
@@ -58,7 +60,7 @@ public:
      * interior of the index space and the ghosts vector describes the ghost
      * nodes in each coordinate direction.
      */
-    LIndexSetData(SAMRAI::hier::Box<NDIM> box, SAMRAI::hier::IntVector<NDIM> ghosts);
+    LIndexSetData(SAMRAIBox box, SAMRAIIntVector ghosts);
 
     /*!
      * The virtual destructor for an LIndexSetData object.
@@ -68,8 +70,7 @@ public:
     /*!
      * \brief Update the cached indexing data.
      */
-    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                           const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
+    void cacheLocalIndices(SAMRAIPointer<SAMRAIPatch> patch, const SAMRAIIntVector& periodic_shift);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that

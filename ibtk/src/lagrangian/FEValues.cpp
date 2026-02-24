@@ -14,12 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/FEValues.h>
 
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#include "SAMRAIPIO.h"
+#include "SAMRAIUtilities.h"
 
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"

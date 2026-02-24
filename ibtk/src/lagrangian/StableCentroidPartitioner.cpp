@@ -14,9 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/StableCentroidPartitioner.h>
 
-#include <tbox/PIO.h>
+#include "SAMRAIPIO.h"
 
 #include <libmesh/elem.h>
 #include <libmesh/id_types.h>

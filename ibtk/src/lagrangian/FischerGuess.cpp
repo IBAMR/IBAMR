@@ -13,10 +13,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/FischerGuess.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include <tbox/TimerManager.h>
+#include "SAMRAITimerManager.h"
 
 #include <Eigen/Dense>
 
@@ -33,8 +34,8 @@ static Timer* t_guess;
 FischerGuess::FischerGuess()
 {
     using namespace SAMRAI::tbox;
-    IBTK_DO_ONCE(t_submit = TimerManager::getManager()->getTimer("IBTK::FischerGuess::submit()");
-                 t_guess = TimerManager::getManager()->getTimer("IBTK::FischerGuess::guess()"););
+    IBTK_DO_ONCE(t_submit = SAMRAITimerManager::getManager()->getTimer("IBTK::FischerGuess::submit()");
+                 t_guess = SAMRAITimerManager::getManager()->getTimer("IBTK::FischerGuess::guess()"););
 }
 
 FischerGuess::FischerGuess(const int n_vectors) : FischerGuess()

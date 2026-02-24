@@ -20,10 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "ComponentSelector.h"
-#include "IntVector.h"
-#include "RefinePatchStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAIComponentSelector.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIRefinePatchStrategy.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <set>
 #include <vector>
@@ -54,7 +58,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy that are generally not needed for filling
  * ghost cell values at physical boundaries.
  */
-class RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RobinPhysBdryPatchStrategy : public SAMRAIRefinePatchStrategy
 {
 public:
     /*!
@@ -80,7 +84,7 @@ public:
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
+    void setPatchDataIndices(const SAMRAIComponentSelector& patch_data_indices);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -88,7 +92,7 @@ public:
      *
      * \note \a bc_coef cannot be nullptr.
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -96,7 +100,7 @@ public:
      *
      * \note None of the elements of \a bc_coefs can be nullptr.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
@@ -137,10 +141,10 @@ public:
      *fine
      *patches.
      */
-    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                          const SAMRAI::hier::Patch<NDIM>& coarse,
-                          const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void preprocessRefine(SAMRAIPatch& fine,
+                          const SAMRAIPatch& coarse,
+                          const SAMRAIBox& fine_box,
+                          const SAMRAIIntVector& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -162,10 +166,10 @@ public:
      *fine
      *patches.
      */
-    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void postprocessRefine(SAMRAIPatch& fine,
+                           const SAMRAIPatch& coarse,
+                           const SAMRAIBox& fine_box,
+                           const SAMRAIIntVector& ratio) override;
 
     //\}
 
@@ -183,9 +187,9 @@ public:
      *all
      *registered scratch components.
      */
-    virtual void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
+    virtual void accumulateFromPhysicalBoundaryData(SAMRAIPatch& patch,
                                                     double fill_time,
-                                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                                    const SAMRAIIntVector& ghost_width_to_fill);
 
 protected:
     /*
@@ -201,7 +205,7 @@ protected:
      * The boolean value indicates whether homogeneous boundary conditions
      * should be used.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
     bool d_homogeneous_bc = false;
 
 private:

@@ -14,11 +14,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "Variable.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 #include <utility>
@@ -41,8 +44,8 @@ CartGridFunction::CartGridFunction(std::string object_name) : d_object_name(std:
 
 void
 CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                          Pointer<Variable<NDIM> > var,
-                                          Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                          SAMRAIPointer<SAMRAIVariable> var,
+                                          SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                           const double data_time,
                                           const bool initial_time,
                                           const int coarsest_ln_in,
@@ -62,15 +65,15 @@ CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                      Pointer<Variable<NDIM> > var,
-                                      Pointer<PatchLevel<NDIM> > level,
+                                      SAMRAIPointer<SAMRAIVariable> var,
+                                      SAMRAIPointer<SAMRAIPatchLevel> level,
                                       const double data_time,
                                       const bool initial_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
         setDataOnPatch(data_idx, var, level->getPatch(p()), data_time, initial_time, level);
     }

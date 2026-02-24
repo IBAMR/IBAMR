@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/samrai_compatibility_layer.h>
+#include "ibtk/samrai_compatibility_layer.h"
 
 //////////////////////////////////////////////////////////////////////////////
 

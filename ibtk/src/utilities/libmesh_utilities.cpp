@@ -16,8 +16,9 @@
 #include "ibtk/FECache.h"
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIUtilities.h"
 
 #include "libmesh/bounding_box.h"
 #include "libmesh/dof_map.h"
@@ -42,9 +43,13 @@
 
 #include <petscsys.h>
 
+#include <memory>
+
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
+
+#include "SAMRAIPointer.h"
 
 #include <mpi.h>
 
@@ -52,7 +57,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cmath>
 #include <fstream>
 #include <limits>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <tuple>

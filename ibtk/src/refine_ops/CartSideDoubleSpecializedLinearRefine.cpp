@@ -14,10 +14,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "SideVariable.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 
@@ -114,10 +119,10 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+CartSideDoubleSpecializedLinearRefine::findRefineOperator(const SAMRAIPointer<SAMRAIVariable>& var,
                                                           const std::string& op_name) const
 {
-    const Pointer<SideVariable<NDIM, double> > sc_var = var;
+    const SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -133,23 +138,23 @@ CartSideDoubleSpecializedLinearRefine::getOperatorPriority() const
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM>
+SAMRAIIntVector
 CartSideDoubleSpecializedLinearRefine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
 void
-CartSideDoubleSpecializedLinearRefine::refine(Patch<NDIM>& fine,
-                                              const Patch<NDIM>& coarse,
+CartSideDoubleSpecializedLinearRefine::refine(SAMRAIPatch& fine,
+                                              const SAMRAIPatch& coarse,
                                               const int dst_component,
                                               const int src_component,
-                                              const Box<NDIM>& fine_box,
-                                              const IntVector<NDIM>& ratio) const
+                                              const SAMRAIBox& fine_box,
+                                              const SAMRAIIntVector& ratio) const
 {
     // Get the patch data.
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(src_component);
+    SAMRAIPointer<SAMRAISideData<double> > fdata = fine.getPatchData(dst_component);
+    SAMRAIPointer<SAMRAISideData<double> > cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
@@ -157,13 +162,13 @@ CartSideDoubleSpecializedLinearRefine::refine(Patch<NDIM>& fine,
 #endif
     const int data_depth = fdata->getDepth();
 
-    const Box<NDIM>& fdata_box = fdata->getBox();
+    const SAMRAIBox& fdata_box = fdata->getBox();
     const int fdata_gcw = fdata->getGhostCellWidth().max();
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata_gcw == fdata->getGhostCellWidth().min());
 #endif
 
-    const Box<NDIM>& cdata_box = cdata->getBox();
+    const SAMRAIBox& cdata_box = cdata->getBox();
     const int cdata_gcw = cdata->getGhostCellWidth().max();
 #if !defined(NDEBUG)
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());

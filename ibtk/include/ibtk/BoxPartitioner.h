@@ -20,6 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include <memory>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/PartitioningBox.h>
@@ -30,7 +34,8 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <libmesh/system.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include <memory>
+#include "SAMRAIPointer.h"
+
 #include <string>
 
 namespace libMesh
