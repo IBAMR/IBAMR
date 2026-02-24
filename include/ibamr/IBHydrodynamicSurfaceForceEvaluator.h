@@ -24,22 +24,28 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CellVariable.h"
-#include "RobinBcCoefStrategy.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+
+#include <memory>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include "SAMRAIPointer.h"
+
 #include <iosfwd>
 #include <limits>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -92,10 +98,10 @@ public:
      * \brief Default constructor.
      */
     IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
-                                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                        SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr);
+                                        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+                                        SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                        SAMRAIPointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
+                                        SAMRAIPointer<SAMRAIDatabase> db = nullptr);
 
     /*!
      * \brief Virtual destructor.
@@ -166,12 +172,12 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * Fill required patch data and ghost cells.
      */
-    void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    void fillPatchData(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                        double fill_time,
                        bool use_current_ctx,
                        bool use_new_ctx);
@@ -184,17 +190,17 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_solid_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * \brief Pointer to incompressible Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> d_fluid_solver;
+    SAMRAIPointer<IBAMR::INSHierarchyIntegrator> d_fluid_solver;
 
     /*!
      * \brief Level set patch data index.

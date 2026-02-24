@@ -25,34 +25,39 @@
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "GriddingAlgorithm.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "LoadBalancer.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAISAMRAI_MPI.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
@@ -89,11 +94,15 @@
 
 #include "petscvec.h"
 
+#include <memory>
+
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
+
+#include "SAMRAIPointer.h"
 
 #include <algorithm>
 #include <array>
@@ -101,7 +110,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <iomanip>
 #include <limits>
 #include <map>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -176,7 +184,7 @@ const std::array<std::string, NDIM> IIMethod::VELOCITY_JUMP_SYSTEM_NAME = { { "v
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IIMethod::IIMethod(const std::string& object_name,
-                   Pointer<Database> input_db,
+                   SAMRAIPointer<SAMRAIDatabase> input_db,
                    MeshBase* mesh,
                    int max_level_number,
                    bool register_for_restart,
@@ -194,7 +202,7 @@ IIMethod::IIMethod(const std::string& object_name,
 } // IIMethod
 
 IIMethod::IIMethod(const std::string& object_name,
-                   Pointer<Database> input_db,
+                   SAMRAIPointer<SAMRAIDatabase> input_db,
                    const std::vector<MeshBase*>& meshes,
                    int max_level_number,
                    bool register_for_restart,
@@ -220,7 +228,7 @@ IIMethod::~IIMethod()
     }
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -365,14 +373,14 @@ IIMethod::getSurfaceForceIntegral(const unsigned int part) const
     return d_lag_surface_force_integral[part];
 } // getSurfaceForceIntegral
 
-const IntVector<NDIM>&
+const SAMRAIIntVector&
 IIMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IIMethod::setupTagBuffer(SAMRAIArray<int>& tag_buffer, SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -664,7 +672,7 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
     if (d_compute_fluid_traction)
     {
         // Evaluate the fluid forces on the interface.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
                                                                     getINSHierarchyIntegrator()->getScratchContext());
         calculateInterfacialFluidForces(p_data_idx, d_new_time); // TODO: Should this be half_time?
@@ -801,8 +809,8 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
 void
 IIMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -829,21 +837,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
     std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = { d_X_IB_ghost_vecs };
 
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (SAMRAIMathUtilities<double>::equalEps(data_time, d_current_time))
     {
         vec_collection_update.push_back(d_X_current_vecs);
         vec_collection_update.push_back(d_U_current_vecs);
         vec_collection_update.push_back(d_U_n_current_vecs);
         vec_collection_update.push_back(d_U_t_current_vecs);
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time))
     {
         vec_collection_update.push_back(d_X_half_vecs);
         vec_collection_update.push_back(d_U_half_vecs);
         vec_collection_update.push_back(d_U_n_half_vecs);
         vec_collection_update.push_back(d_U_t_half_vecs);
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_new_time))
     {
         vec_collection_update.push_back(d_X_new_vecs);
         vec_collection_update.push_back(d_U_new_vecs);
@@ -877,21 +885,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][2] : nullptr,
 #endif
         };
-        if (MathUtilities<double>::equalEps(data_time, d_current_time))
+        if (SAMRAIMathUtilities<double>::equalEps(data_time, d_current_time))
         {
             U_vec = d_U_current_vecs[part];
             U_n_vec = d_U_n_current_vecs[part];
             U_t_vec = d_U_t_current_vecs[part];
             X_vec = d_X_current_vecs[part];
         }
-        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+        else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time))
         {
             U_vec = d_U_half_vecs[part];
             U_n_vec = d_U_n_half_vecs[part];
             U_t_vec = d_U_t_half_vecs[part];
             X_vec = d_X_half_vecs[part];
         }
-        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+        else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_new_time))
         {
             U_vec = d_U_new_vecs[part];
             U_n_vec = d_U_n_new_vecs[part];
@@ -1014,19 +1022,19 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n;
         std::array<VectorValue<double>, 2> dx_dxi;
 
-        Pointer<PatchLevel<NDIM> > level =
+        SAMRAIPointer<SAMRAIPatchLevel> level =
             d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
             const std::vector<Elem*>& patch_elems =
                 d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1188,18 +1196,18 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             //
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
-            const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
+            const SAMRAIBox& interp_box = patch->getBox();
+            SAMRAIPointer<SAMRAIPatchData> u_data = patch->getPatchData(u_data_idx);
 
-            const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(u_ghost_num));
+            const SAMRAIBox ghost_box = SAMRAIBox::grow(patch->getBox(), SAMRAIIntVector(u_ghost_num));
 
-            Pointer<CellData<NDIM, double> > u_cc_data = u_data;
+            SAMRAIPointer<SAMRAICellData<double> > u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideData<NDIM, double> > u_sc_data = u_data;
+            SAMRAIPointer<SAMRAISideData<double> > u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
@@ -1213,7 +1221,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 LEInteractor::interpolate(
                     U_out_qp, NDIM, x_out_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
-                const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
+                const SAMRAIIntVector& u_gcw = u_sc_data->getGhostCellWidth();
                 const int u_depth = u_sc_data->getDepth();
                 TBOX_ASSERT(u_depth == 1);
 
@@ -1222,21 +1230,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 for (unsigned int k = 0; k < n_qpoints_patch; ++k)
                 {
                     const double* const x = &x_qp[NDIM * k];
-                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
+                    const SAMRAIIndex i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
                     if (interp_box.contains(i)) local_indices.push_back(k);
                     // Some kind of assertation can be applied here using the indices of the cells away from the
                     // interfce
                 }
                 if (local_indices.empty()) continue;
-                hier::Index<NDIM> ic_lower, ic_upper, ic_center;
+                SAMRAIIndex ic_lower, ic_upper, ic_center;
                 std::array<std::array<double, 2>, NDIM> w, wr;
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
-                Box<NDIM> side_boxes[NDIM];
+                SAMRAIBox side_boxes[NDIM];
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                    side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
                 }
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -1250,8 +1258,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     x_lower_axis[axis] -= 0.5 * patch_dx[axis];
                     x_upper_axis[axis] += 0.5 * patch_dx[axis];
 
-                    const hier::Index<NDIM>& ilower = side_boxes[axis].lower();
-                    const hier::Index<NDIM>& iupper = side_boxes[axis].upper();
+                    const SAMRAIIndex& ilower = side_boxes[axis].lower();
+                    const SAMRAIIndex& iupper = side_boxes[axis].upper();
 
                     typedef boost::multi_array_types::extent_range range;
                     boost::const_multi_array_ref<double, NDIM> u_sc_data_array(
@@ -1318,13 +1326,13 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                         for (int d = 0; d < NDIM; ++d) norm_vec(d) = n_qp[s * NDIM + d];
 
-                        Box<NDIM> stencil_box(ic_lower, ic_upper);
+                        SAMRAIBox stencil_box(ic_lower, ic_upper);
 
                         for (int d = 0; d < NDIM; ++d)
                         {
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
-                                const hier::Index<NDIM>& ic = b();
+                                const SAMRAIIndex& ic = b();
                                 for (int j = 0; j < NDIM; ++j) wrc(j) = wr[j][ic_upper[j] - ic[j]];
 #if (NDIM == 2)
                                 interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
@@ -1339,7 +1347,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         {
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
-                                const hier::Index<NDIM>& ic = b();
+                                const SAMRAIIndex& ic = b();
                                 for (int j = 0; j < NDIM; ++j)
                                 {
                                     du_jump(j) = DU_jump_qp[d][s * NDIM + j];
@@ -1369,7 +1377,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                         for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
-                            const hier::Index<NDIM>& ic = b();
+                            const SAMRAIIndex& ic = b();
 #if (NDIM == 2)
 
                             U_axis[s] +=
@@ -1600,15 +1608,15 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     NumericVector<double>* X_vec = nullptr;
 
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (SAMRAIMathUtilities<double>::equalEps(data_time, d_current_time))
     {
         X_vec = d_X_current_vecs[part];
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time))
     {
         X_vec = d_X_half_vecs[part];
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_new_time))
     {
         X_vec = d_X_new_vecs[part];
     }
@@ -1738,22 +1746,22 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
-    Pointer<PatchLevel<NDIM> > level =
+    SAMRAIPointer<SAMRAIPatchLevel> level =
         d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1900,7 +1908,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
             qp_offset += n_qp;
         }
 
-        const Box<NDIM>& interp_box = patch->getBox();
+        const SAMRAIBox& interp_box = patch->getBox();
         std::vector<int> local_indices;
         local_indices.clear();
         const int upper_bound = n_qp_patch;
@@ -1910,7 +1918,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const XX = &x_qp[NDIM * k];
-            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
+            const SAMRAIIndex i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
         }
 
@@ -2037,7 +2045,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         INSERT_VALUES,
         SCATTER_FORWARD);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
@@ -2053,15 +2061,15 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     P_out_rhs_vec->zero();
     DenseVector<double> P_out_rhs_e;
 
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (SAMRAIMathUtilities<double>::equalEps(data_time, d_current_time))
     {
         X_vec = d_X_current_vecs[part];
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time))
     {
         X_vec = d_X_half_vecs[part];
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (SAMRAIMathUtilities<double>::equalEps(data_time, d_new_time))
     {
         X_vec = d_X_new_vecs[part];
     }
@@ -2117,24 +2125,24 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<double> P_i_qp, P_o_qp, P_in_qp, P_out_qp, P_jump_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
-    Pointer<PatchLevel<NDIM> > level =
+    SAMRAIPointer<SAMRAIPatchLevel> level =
         d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
     X_ghost_vec->close();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
 
@@ -2288,11 +2296,11 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         // Note: Values are interpolated only to those quadrature points that
         // are within the patch interior
 
-        const Box<NDIM>& interp_box = patch->getBox();
+        const SAMRAIBox& interp_box = patch->getBox();
 
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
+        SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
 
-        const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
+        const SAMRAIBox ghost_box = SAMRAIBox::grow(patch->getBox(), SAMRAIIntVector(p_ghost_num));
 
         LEInteractor::interpolate(P_i_qp, 1, x_in_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
@@ -2308,18 +2316,18 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const xx = &x_qp[NDIM * k];
-            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
+            const SAMRAIIndex i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
 
             const double* const x_i = &x_in_qp[NDIM * k];
-            const hier::Index<NDIM> ip = IndexUtilities::getCellIndex(
+            const SAMRAIIndex ip = IndexUtilities::getCellIndex(
                 x_i, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(ip) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
                                          << " the pressure interpolation ghost width hasn't beeen properly set"
                                          << std::endl);
             const double* const x_o = &x_out_qp[NDIM * k];
-            const hier::Index<NDIM> op = IndexUtilities::getCellIndex(
+            const SAMRAIIndex op = IndexUtilities::getCellIndex(
                 x_o, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(op) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
@@ -2427,10 +2435,10 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
-    RefineAlgorithm<NDIM> ghost_fill_alg_p;
+    SAMRAIRefineAlgorithm ghost_fill_alg_p;
     // TODO: Can we cache this algorithm/schedule?
     ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
-    Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
+    SAMRAIPointer<SAMRAIRefineSchedule> ghost_fill_schd_p =
         ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -2548,7 +2556,7 @@ void
 IIMethod::computeLagrangianForce(const double data_time)
 {
     IBAMR_TIMER_START(t_compute_lagrangian_force);
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time));
     batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -2891,7 +2899,7 @@ IIMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+        SAMRAISAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
 
         // Solve for F.
         F_rhs_vec->close();
@@ -2905,8 +2913,8 @@ IIMethod::computeLagrangianForce(const double data_time)
                                                           *P_jump_rhs_vec,
                                                           PRESSURE_JUMP_SYSTEM_NAME,
                                                           d_default_interp_spec.use_consistent_mass_matrix);
-            P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
-            surface_area = SAMRAI_MPI::sumReduction(surface_area);
+            P_jump_rhs_integral = SAMRAISAMRAI_MPI::sumReduction(P_jump_rhs_integral);
+            surface_area = SAMRAISAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
             P_jump_vec->close();
         }
@@ -2930,10 +2938,10 @@ IIMethod::computeLagrangianForce(const double data_time)
 void
 IIMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
                       const double data_time)
 {
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time));
     IBAMR_TIMER_START(t_spread_force);
 
     std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
@@ -3043,13 +3051,13 @@ IIMethod::initializeFEEquationSystems()
 {
     if (d_fe_equation_systems_initialized) return;
 
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts, nullptr);
     d_fe_data_managers.resize(d_num_parts, nullptr);
-    IntVector<NDIM> min_ghost_width(0);
+    SAMRAIIntVector min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache = std::make_unique<SAMRAIDataCache>();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -3061,7 +3069,7 @@ IIMethod::initializeFEEquationSystems()
 
         // Create FE data managers.
         const std::string manager_name = "IIMethod FEDataManager::" + std::to_string(part);
-        Pointer<InputDatabase> fe_data_manager_db(new InputDatabase(manager_name + "::input_db"));
+        SAMRAIPointer<InputDatabase> fe_data_manager_db(new InputDatabase(manager_name + "::input_db"));
 
         d_fe_data_managers[part] = FEDataManager::getManager(fe_data,
                                                              manager_name,
@@ -3072,7 +3080,7 @@ IIMethod::initializeFEEquationSystems()
                                                              d_default_workload_spec,
                                                              min_ghost_width,
                                                              d_eulerian_data_cache);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+        d_ghosts = SAMRAIIntVector::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
         d_fe_data_managers[part]->setCurrentCoordinatesSystemName(COORDS_SYSTEM_NAME);
         if (from_restart)
         {
@@ -3170,7 +3178,7 @@ IIMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     initializeFEEquationSystems();
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
@@ -3267,17 +3275,17 @@ IIMethod::initializeFEData()
 void
 IIMethod::registerEulerianVariables()
 {
-    d_p_var = new CellVariable<NDIM, double>(d_object_name + "::p");
+    d_p_var = new SAMRAICellVariable<double>(d_object_name + "::p");
     registerVariable(d_p_scratch_idx, d_p_var, d_ghosts);
     return;
 } // registerEulerianVariables
 
 void
-IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                   Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IIMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                    int /*u_data_idx*/,
-                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
                                    int /*integrator_step*/,
                                    double /*init_data_time*/,
                                    bool /*initial_time*/)
@@ -3300,7 +3308,7 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IIMethod::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3312,8 +3320,8 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
 } // addWorkloadEstimate
 
 void
-IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::beginDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                  SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3322,8 +3330,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // beginDataRedistribution
 
 void
-IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::endDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -3338,12 +3346,12 @@ IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // endDataRedistribution
 
 void
-IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                               int /*level_number*/,
                               double /*init_data_time*/,
                               bool /*can_be_refined*/,
                               bool /*initial_time*/,
-                              Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                              SAMRAIPointer<SAMRAIBasePatchLevel> /*old_level*/,
                               bool /*allocate_data*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3354,7 +3362,7 @@ IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::resetHierarchyConfiguration(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                       int /*coarsest_level*/,
                                       int /*finest_level*/)
 {
@@ -3367,7 +3375,7 @@ IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarc
 } // resetHierarchyConfiguration
 
 void
-IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IIMethod::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
                                 int level_number,
                                 double error_data_time,
                                 int tag_index,
@@ -3375,7 +3383,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
                                 bool uses_richardson_extrapolation_too)
 {
     IBAMR_TIMER_START(t_apply_gradient_detector);
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -3389,7 +3397,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
 } // applyGradientDetector
 
 void
-IIMethod::putToDatabase(Pointer<Database> db)
+IIMethod::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     db->putInteger("IIM_VERSION", IIM_VERSION);
     return;
@@ -3415,7 +3423,7 @@ namespace
 {
 struct IndexOrder
 {
-    inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
+    inline bool operator()(const SAMRAIIndex& lhs, const SAMRAIIndex& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -3504,50 +3512,48 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n, jn;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    const SAMRAIIntVector& ratio = level->getRatio();
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        std::array<Box<NDIM>, NDIM> side_ghost_boxes;
+        const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+        const SAMRAIBox& patch_box = patch->getBox();
+        const SAMRAICellIndex& patch_lower = patch_box.lower();
+        std::array<SAMRAIBox, NDIM> side_ghost_boxes;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+            side_ghost_boxes[d] = SAMRAISideGeometry::toSideBox(f_data->getGhostBox(), d);
         }
 
-        Box<NDIM> side_boxes[NDIM];
+        SAMRAIBox side_boxes[NDIM];
         for (int d = 0; d < NDIM; ++d)
         {
-            side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+            side_boxes[d] = SAMRAISideGeometry::toSideBox(patch_box, d);
         }
 
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
+        std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersection_normals;
+        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_normals;
 
-        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
+        std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
             intersection_u_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersection_u_normals;
+        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_u_normals;
 
-        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_points, intersectionSide_u_ref_coords;
-        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
         // Loop over the elements.
@@ -3618,25 +3624,25 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                 }
                 elem->point(k) = x;
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
+            SAMRAIBox box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
                           IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-            box.grow(IntVector<NDIM>(1));
+            box.grow(SAMRAIIntVector(1));
             box = box * patch_box;
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Box<NDIM> extended_box = patch_box;
-                extended_box.grow(IntVector<NDIM>(1));
-                Box<NDIM> extended_side_box = patch_box;
-                extended_side_box.grow(IntVector<NDIM>(2));
+                SAMRAIBox extended_box = patch_box;
+                extended_box.grow(SAMRAIIntVector(1));
+                SAMRAIBox extended_side_box = patch_box;
+                extended_side_box.grow(SAMRAIIntVector(2));
                 if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
-                Box<NDIM> side_u_boxes[NDIM];
+                SAMRAIBox side_u_boxes[NDIM];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    side_u_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_side_box, d);
+                    side_u_boxes[d] = SAMRAISideGeometry::toSideBox(extended_side_box, d);
                 }
 
                 // Setup a unit vector pointing in the coordinate direction of
@@ -3645,7 +3651,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                 q(axis) = 1.0;
 
                 // Loop over the relevant range of indices.
-                Box<NDIM> axis_box = box;
+                SAMRAIBox axis_box = box;
                 axis_box.lower(axis) = 0;
                 axis_box.upper(axis) = 0;
 
@@ -3655,7 +3661,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
                 for (BoxIterator<NDIM> b(axis_box); b; b++)
                 {
-                    const hier::Index<NDIM>& i_c = b();
+                    const SAMRAIIndex& i_c = b();
                     libMesh::Point r;
                     std::array<libMesh::Point, NDIM - 1> rs;
 
@@ -3701,7 +3707,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const libMesh::Point x = r + intersections[k].first * q;
                             const libMesh::Point& xi = intersections[k].second;
-                            SideIndex<NDIM> i_s(i_c, axis, 0);
+                            SAMRAISideIndex i_s(i_c, axis, 0);
                             i_s(axis) =
                                 static_cast<int>(std::round((x(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
                             if (extended_box.contains(i_s))
@@ -3728,7 +3734,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 bool found_same_intersection_point = false;
                                 for (int shift = -1; shift <= 1; ++shift)
                                 {
-                                    SideIndex<NDIM> i_s_prime = i_s;
+                                    SAMRAISideIndex i_s_prime = i_s;
                                     i_s_prime(axis) += shift;
                                     const std::vector<libMesh::Point>& candidate_coords =
                                         intersection_points[axis][i_s_prime];
@@ -3778,11 +3784,11 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             libMesh::Point xu = r + intersections[k].first * q;
                             const libMesh::Point& xui = intersections[k].second;
-                            SideIndex<NDIM> i_s_um(i_c, axis, 0);
-                            hier::Index<NDIM> i_c_neighbor = i_c;
+                            SAMRAISideIndex i_s_um(i_c, axis, 0);
+                            SAMRAIIndex i_c_neighbor = i_c;
                             i_c_neighbor(axis) += 1;
 
-                            SideIndex<NDIM> i_s_up(i_c_neighbor, axis, 0);
+                            SAMRAISideIndex i_s_up(i_c_neighbor, axis, 0);
                             i_s_up(axis) = static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
                                            patch_lower[axis];
                             i_s_um(axis) = static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
@@ -3807,7 +3813,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
                                 for (int shift = -1; shift <= 1; ++shift)
                                 {
-                                    SideIndex<NDIM> i_s_prime = i_s_um;
+                                    SAMRAISideIndex i_s_prime = i_s_um;
                                     i_s_prime(axis) += shift;
                                     const std::vector<libMesh::Point>& candidate_coords =
                                         intersection_u_points[axis][i_s_prime];
@@ -3879,18 +3885,18 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                             {
                                 libMesh::Point xu = rs[j] + intersectionsSide[j][k].first * q;
                                 const libMesh::Point& xui = intersectionsSide[j][k].second;
-                                SideIndex<NDIM> i_s_up;
-                                SideIndex<NDIM> i_s_um;
+                                SAMRAISideIndex i_s_up;
+                                SAMRAISideIndex i_s_um;
 
                                 if (xu(axis) - x_lower[axis] > 0.0)
                                 {
                                     if (fmod(xu(axis) - x_lower[axis], dx[axis]) >= 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SAMRAISideIndex i_side_um(i_c, SideDim[axis][j], 0);
+                                        SAMRAIIndex i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
-                                        SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
+                                        SAMRAISideIndex i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis])) +
@@ -3903,10 +3909,10 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     }
                                     else if (fmod((xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SAMRAISideIndex i_side_up(i_c, SideDim[axis][j], 0);
+                                        SAMRAIIndex i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
-                                        SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
+                                        SAMRAISideIndex i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
                                             patch_lower[axis];
@@ -3925,11 +3931,11 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 {
                                     if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SAMRAISideIndex i_side_um(i_c, SideDim[axis][j], 0);
+                                        SAMRAIIndex i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
-                                        SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
+                                        SAMRAISideIndex i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis])) +
@@ -3942,10 +3948,10 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     }
                                     else
                                     {
-                                        SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SAMRAISideIndex i_side_up(i_c, SideDim[axis][j], 0);
+                                        SAMRAIIndex i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
-                                        SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
+                                        SAMRAISideIndex i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
                                             patch_lower[axis];
@@ -3982,7 +3988,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
                                     for (int shift = -1; shift <= 1; ++shift)
                                     {
-                                        SideIndex<NDIM> i_s_prime = i_s_um;
+                                        SAMRAISideIndex i_s_prime = i_s_um;
                                         i_s_prime(SideDim[axis][j]) += shift;
                                         const std::vector<libMesh::Point>& candidate_coords =
                                             intersectionSide_u_points[j][axis][i_s_prime];
@@ -4066,8 +4072,8 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
                                           const libMesh::VectorValue<double>& n,
                                           const libMesh::Point& x,
                                           const libMesh::Point& xi,
-                                          const SideIndex<NDIM>& i_s,
-                                          const SideIndex<NDIM>& i_s_prime,
+                                          const SAMRAISideIndex& i_s,
+                                          const SAMRAISideIndex& i_s_prime,
                                           const std::vector<libMesh::Point>& candidate_coords,
                                           const std::vector<libMesh::Point>& candidate_ref_coords,
                                           const std::vector<libMesh::VectorValue<double> >& candidate_normals)
@@ -4223,7 +4229,7 @@ IIMethod::initializeVelocity(const unsigned int part)
 
 void
 IIMethod::commonConstructor(const std::string& object_name,
-                            Pointer<Database> input_db,
+                            SAMRAIPointer<SAMRAIDatabase> input_db,
                             const std::vector<libMesh::MeshBase*>& meshes,
                             int max_level_number,
                             bool register_for_restart,
@@ -4235,7 +4241,7 @@ IIMethod::commonConstructor(const std::string& object_name,
     d_registered_for_restart = false;
     if (register_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
     d_libmesh_restart_read_dir = restart_read_dirname;
@@ -4296,8 +4302,8 @@ IIMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        mesh_has_first_order_elems = SAMRAISAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
+        mesh_has_second_order_elems = SAMRAISAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {
@@ -4334,7 +4340,7 @@ IIMethod::commonConstructor(const std::string& object_name,
     }
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -4358,7 +4364,7 @@ IIMethod::commonConstructor(const std::string& object_name,
 } // commonConstructor
 
 void
-IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+IIMethod::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -4493,8 +4499,8 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 void
 IIMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

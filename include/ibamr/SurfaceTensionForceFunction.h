@@ -25,12 +25,20 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "PatchLevel.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArray.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideData.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 
@@ -84,9 +92,9 @@ public:
      * \brief Constructor.
      */
     SurfaceTensionForceFunction(const std::string& object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                SAMRAIPointer<SAMRAIDatabase> input_db,
                                 const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var);
+                                const SAMRAIPointer<SAMRAIVariable> level_set_var);
 
     /*!
      * \brief Destructor.
@@ -152,8 +160,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAIPointer<SAMRAIVariable> var,
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = IBTK::invalid_level_number,
@@ -163,18 +171,17 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
+                        SAMRAIPointer<SAMRAIPatchLevel> level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr)) override;
 
     /*!
      * \brief Function to Mask surface tension force to act only on the liquid-gas interface.
      */
     using MaskSurfaceTensionForcePtr = void (*)(int F_idx,
-                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                 int cycle_num,
                                                 double time,
                                                 double current_time,
@@ -190,7 +197,7 @@ public:
      * \brief Function to compute the variable surface tension coefficient.
      */
     using ComputeSurfaceTensionCoefficientPtr = void (*)(int F_idx,
-                                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                         SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                          int cycle_num,
                                                          double time,
                                                          double current_time,
@@ -210,14 +217,14 @@ protected:
     int getMinimumGhostWidth(const std::string& kernel_fcn);
 
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
+    const SAMRAIPointer<SAMRAIVariable> d_ls_var;
     TimeSteppingType d_ts_type;
     int d_C_idx = IBTK::invalid_index, d_phi_idx = IBTK::invalid_index;
     std::string d_kernel_fcn;
     double d_sigma = std::numeric_limits<double>::signaling_NaN(),
            d_num_interface_cells = std::numeric_limits<double>::signaling_NaN();
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
 
 private:
     /*!
@@ -253,7 +260,7 @@ private:
     void convertToHeaviside(int phi_idx,
                             int coarsest_ln,
                             int finest_ln,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                            SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * Mollify data.
@@ -262,26 +269,26 @@ private:
                      int coarsest_ln,
                      int finest_ln,
                      double data_time,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
+                     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
+                            SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
+                            SAMRAIPointer<SAMRAIPatchLevel> level);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
+                            SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
+                            SAMRAIPointer<SAMRAIPatchLevel> level);
 
     /*!
      * Get the stencil size for the kernel.

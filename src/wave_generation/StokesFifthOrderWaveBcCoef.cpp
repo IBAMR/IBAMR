@@ -15,16 +15,20 @@
 
 #include "ibamr/StokesFifthOrderWaveBcCoef.h"
 
-#include "ArrayData.h"
-#include "BoundaryBox.h"
-#include "Box.h"
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "tbox/Database.h"
+#include "SAMRAIArrayData.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 #include <cmath>
 #include <limits>
@@ -47,8 +51,8 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 StokesFifthOrderWaveBcCoef::StokesFifthOrderWaveBcCoef(std::string object_name,
                                                        const int comp_idx,
-                                                       Pointer<Database> input_db,
-                                                       Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                                       SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                       SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -74,18 +78,18 @@ StokesFifthOrderWaveBcCoef::~StokesFifthOrderWaveBcCoef()
 } // ~StokesFifthOrderWaveBcCoef
 
 void
-StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                       const Pointer<Variable<NDIM> >& variable,
-                                       const Patch<NDIM>& patch,
-                                       const BoundaryBox<NDIM>& bdry_box,
+StokesFifthOrderWaveBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
+                                       SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
+                                       SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+                                       const SAMRAIPointer<SAMRAIVariable>& variable,
+                                       const SAMRAIPatch& patch,
+                                       const SAMRAIBoundaryBox& bdry_box,
                                        double fill_time) const
 {
     // Get pgeom info.
-    const Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
@@ -95,8 +99,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     auto alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
     // Get physical domain box extents on patch box level.
-    const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], pgeom->getRatio());
+    const SAMRAIBox domain_box = SAMRAIBox::refine(d_grid_geom->getPhysicalDomain()[0], pgeom->getRatio());
     const int dir = (NDIM == 2) ? 1 : (NDIM == 3) ? 2 : -1;
 
     // We take location index = 0, i.e., x_lower to be the wave inlet.
@@ -108,19 +111,19 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     else
     {
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+        const SAMRAIBox& bc_coef_box = (acoef_data ? acoef_data->getBox() :
                                         bcoef_data ? bcoef_data->getBox() :
                                         gcoef_data ? gcoef_data->getBox() :
-                                                     Box<NDIM>());
+                                                     SAMRAIBox());
 #if !defined(NDEBUG)
         TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
         TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
         TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
 #endif
 
-        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+        for (SAMRAIBox::Iterator b(bc_coef_box); b; b++)
         {
-            const SAMRAI::hier::Index<NDIM>& i = b();
+            const SAMRAIIndex& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
@@ -160,7 +163,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 StokesFifthOrderWaveBcCoef::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
@@ -170,9 +173,9 @@ StokesFifthOrderWaveBcCoef::numberOfExtensionsFillable() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-StokesFifthOrderWaveBcCoef::getFromInput(Pointer<Database> input_db)
+StokesFifthOrderWaveBcCoef::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
-    Pointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
+    SAMRAIPointer<SAMRAIDatabase> wave_db = input_db->getDatabase("wave_parameters_db");
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db->isDatabase("wave_parameters_db"));
 #endif

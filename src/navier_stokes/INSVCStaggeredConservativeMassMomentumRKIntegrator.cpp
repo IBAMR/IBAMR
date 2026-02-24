@@ -19,39 +19,40 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchHierarchy.h"
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarseFineBoundary.h"
-#include "FaceData.h"
-#include "HierarchyDataOpsManager.h"
-#include "HierarchySideDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICoarseFineBoundary.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAITimer.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <array>
 #include <limits>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -1012,17 +1013,17 @@ static const int NOGHOSTS = 0;
 static const int CF_GHOST_WIDTH = 1;
 
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_integrate;
-static Timer* t_initialize_integrator;
-static Timer* t_deallocate_integrator;
+static SAMRAITimer* t_apply_convective_operator;
+static SAMRAITimer* t_integrate;
+static SAMRAITimer* t_initialize_integrator;
+static SAMRAITimer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMassMomentumRKIntegrator(
     std::string object_name,
-    Pointer<Database> input_db)
+    SAMRAIPointer<SAMRAIDatabase> input_db)
     : STSMassFluxIntegrator(object_name, input_db)
 {
     if (input_db)
@@ -1098,59 +1099,59 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMa
             << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context =
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariableContext> context =
         var_db->getContext("INSVCStaggeredConservativeMassMomentumRKIntegrator::CONTEXT");
 
-    d_V_var = new SideVariable<NDIM, double>(d_object_name + "::V");
+    d_V_var = new SAMRAISideVariable<double>(d_object_name + "::V");
     d_V_scratch_idx = var_db->registerVariableAndContext(
-        d_V_var, var_db->getContext(d_object_name + "::V::SCRATCH"), IntVector<NDIM>(d_velocity_limiter_gcw));
+        d_V_var, var_db->getContext(d_object_name + "::V::SCRATCH"), SAMRAIIntVector(d_velocity_limiter_gcw));
     d_V_composite_idx = var_db->registerVariableAndContext(
-        d_V_var, var_db->getContext(d_object_name + "::V::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
+        d_V_var, var_db->getContext(d_object_name + "::V::COMPOSITE"), SAMRAIIntVector(NOGHOSTS));
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_V_scratch_idx >= 0);
     TBOX_ASSERT(d_V_composite_idx >= 0);
 #endif
 
-    d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::RHO_SC");
+    d_rho_var = new SAMRAISideVariable<double>(d_object_name + "::RHO_SC");
     d_rho_scratch_idx = var_db->registerVariableAndContext(
-        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
+        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::SCRATCH"), SAMRAIIntVector(d_density_limiter_gcw));
     d_rho_composite_idx = var_db->registerVariableAndContext(
-        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
+        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::COMPOSITE"), SAMRAIIntVector(NOGHOSTS));
     d_rho_new_idx = var_db->registerVariableAndContext(
-        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::NEW"), IntVector<NDIM>(NOGHOSTS));
+        d_rho_var, var_db->getContext(d_object_name + "::RHO_SC::NEW"), SAMRAIIntVector(NOGHOSTS));
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_scratch_idx >= 0);
     TBOX_ASSERT(d_rho_new_idx >= 0);
 #endif
 
-    d_S_var = new SideVariable<NDIM, double>(d_object_name + "::S");
-    d_S_scratch_idx = var_db->registerVariableAndContext(d_S_var, context, IntVector<NDIM>(NOGHOSTS));
+    d_S_var = new SAMRAISideVariable<double>(d_object_name + "::S");
+    d_S_scratch_idx = var_db->registerVariableAndContext(d_S_var, context, SAMRAIIntVector(NOGHOSTS));
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_S_scratch_idx >= 0);
 #endif
 
-    d_E_var = new SideVariable<NDIM, double>(d_object_name + "::E");
-    d_E_scratch_idx = var_db->registerVariableAndContext(d_E_var, context, IntVector<NDIM>(NOGHOSTS));
+    d_E_var = new SAMRAISideVariable<double>(d_object_name + "::E");
+    d_E_scratch_idx = var_db->registerVariableAndContext(d_E_var, context, SAMRAIIntVector(NOGHOSTS));
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_E_scratch_idx >= 0);
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator =
-                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
-                                                           "applyConvectiveOperator()");
-                  t_integrate = TimerManager::getManager()->getTimer(
+    IBAMR_DO_ONCE(t_apply_convective_operator = SAMRAITimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
+                      "applyConvectiveOperator()");
+                  t_integrate = SAMRAITimerManager::getManager()->getTimer(
                       "IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate("
                       ")");
-                  t_initialize_integrator =
-                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
-                                                           "initializeSTSIntegrator()");
-                  t_deallocate_integrator =
-                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
-                                                           "deallocateSTSIntegrator()"););
+                  t_initialize_integrator = SAMRAITimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
+                      "initializeSTSIntegrator()");
+                  t_deallocate_integrator = SAMRAITimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator::"
+                      "deallocateSTSIntegrator()"););
     return;
 } // INSVCStaggeredConservativeMassMomentumRKIntegrator
 
@@ -1164,9 +1165,9 @@ void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 {
     // Get hierarchy operation object
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
     d_hier_sc_data_ops =
-        hier_ops_manager->getOperationsDouble(new SideVariable<NDIM, double>("sc_var"), d_hierarchy, true);
+        hier_ops_manager->getOperationsDouble(new SAMRAISideVariable<double>("sc_var"), d_hierarchy, true);
 
     IBAMR_TIMER_START(t_integrate)
 #if !defined(NDEBUG)
@@ -1329,42 +1330,42 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector& patch_lower = patch_box.lower();
+            const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(d_N_idx);
-            Pointer<SideData<NDIM, double> > V_data = patch->getPatchData(d_V_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-            Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
-            Pointer<SideData<NDIM, double> > E_data = patch->getPatchData(d_E_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double> > N_data = patch->getPatchData(d_N_idx);
+            SAMRAIPointer<SAMRAISideData<double> > V_data = patch->getPatchData(d_V_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
+            SAMRAIPointer<SAMRAISideData<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<SAMRAISideData<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double> > E_data = patch->getPatchData(d_E_scratch_idx);
 
             // Define variables that live on the "faces" of control
             // volumes centered about side-centered staggered velocity
             // components
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            std::array<Box<NDIM>, NDIM> side_boxes;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+            const SAMRAIIntVector ghosts = SAMRAIIntVector(1);
+            std::array<SAMRAIBox, NDIM> side_boxes;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> V_adv_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> V_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> P_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                V_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                V_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                R_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                P_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
+                V_adv_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
+                V_half_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
+                R_half_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
+                P_half_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
             }
             // Interpolate velocity components onto "faces" using simple averages.
             computeAdvectionVelocity(V_adv_data, V_data, patch_lower, patch_upper, side_boxes);
@@ -1409,16 +1410,16 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                  dt,
                                  dx);
 
-            Pointer<SideData<NDIM, double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+            SAMRAIPointer<SAMRAISideData<double> > V_cur_data = patch->getPatchData(d_V_current_idx);
             computeErrorOfMassConservationEquation(
                 E_data, R_new_data, R_cur_data, V_adv_data, R_half_data, side_boxes, dt, dx);
 
             // subtract Error*U from the convective operator.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                    SAMRAISideIndex si(it(), axis, SAMRAISideIndex::Lower);
 
                     (*N_data)(si) -= (*V_cur_data)(si) * (*E_data)(si);
                 }
@@ -1472,12 +1473,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
-    Pointer<BasePatchHierarchy<NDIM> > base_hierarchy)
+    SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy)
 {
     IBAMR_TIMER_START(t_initialize_integrator);
 
     // Get the hierarchy configuration.
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
 
     if (d_is_initialized) deallocateSTSIntegrator();
@@ -1520,16 +1521,16 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
 
     // Create the coarse-fine boundary boxes.
     d_cf_boundary.resize(d_finest_ln + 1);
-    const IntVector<NDIM>& max_ghost_width = CF_GHOST_WIDTH;
+    const SAMRAIIntVector& max_ghost_width = CF_GHOST_WIDTH;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = SAMRAICoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
     }
 
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
@@ -1574,7 +1575,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
     // Deallocate data.
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
@@ -1598,7 +1599,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
@@ -1617,7 +1618,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::getUpdatedSideCenteredDensit
 } // getUpdatedSideCenteredDensityPatchDataIndex
 
 void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
+INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassDensitySourceTerm(
+    const SAMRAIPointer<CartGridFunction> S_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(S_fcn);
@@ -1629,11 +1631,11 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassDensitySourceTerm(con
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeAdvectionVelocity(
-    std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const Pointer<SideData<NDIM, double> > U_data,
-    const IntVector<NDIM>& patch_lower,
-    const IntVector<NDIM>& patch_upper,
-    const std::array<Box<NDIM>, NDIM>& side_boxes)
+    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
+    const SAMRAIPointer<SAMRAISideData<double> > U_data,
+    const SAMRAIIntVector& patch_lower,
+    const SAMRAIIntVector& patch_upper,
+    const std::array<SAMRAIBox, NDIM>& side_boxes)
 {
 #if (NDIM == 2)
     NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -1715,12 +1717,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeAdvectionVelocity(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
-    std::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const Pointer<SideData<NDIM, double> > Q_data,
-    const IntVector<NDIM>& patch_lower,
-    const IntVector<NDIM>& patch_upper,
-    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> Q_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
+    const SAMRAIPointer<SAMRAISideData<double> > Q_data,
+    const SAMRAIIntVector& patch_lower,
+    const SAMRAIIntVector& patch_upper,
+    const std::array<SAMRAIBox, NDIM>& side_boxes,
     const LimiterType& convective_limiter)
 {
     switch (convective_limiter)
@@ -2116,17 +2118,17 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<SideData<NDIM, double> > dQ_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_L_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_R_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_scratch1_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SAMRAISideData<double> > dQ_data =
+                new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SAMRAISideData<double> > Q_L_data =
+                new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SAMRAISideData<double> > Q_R_data =
+                new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SAMRAISideData<double> > Q_scratch1_data =
+                new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #if (NDIM == 3)
-            Pointer<SideData<NDIM, double> > Q_scratch2_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SAMRAISideData<double> > Q_scratch2_data =
+                new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
             GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -2191,14 +2193,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeConvectiveDerivative(
-    Pointer<SideData<NDIM, double> > N_data,
-    std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
-    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    SAMRAIPointer<SAMRAISideData<double> > N_data,
+    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> P_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_data,
+    const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double* const dx,
-    const Pointer<Patch<NDIM> >& /*patch*/)
+    const SAMRAIPointer<SAMRAIPatch>& /*patch*/)
 {
 // Compute the upwinded momentum P_half = R_half * U_half
 #if (NDIM == 2)
@@ -2361,16 +2363,16 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeConvectiveDerivative(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeDensityUpdate(
-    Pointer<SideData<NDIM, double> > R_data,
+    SAMRAIPointer<SAMRAISideData<double> > R_data,
     const double& a0,
-    const Pointer<SideData<NDIM, double> > R0_data,
+    const SAMRAIPointer<SAMRAISideData<double> > R0_data,
     const double& a1,
-    const Pointer<SideData<NDIM, double> > R1_data,
+    const SAMRAIPointer<SAMRAISideData<double> > R1_data,
     const double& a2,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const Pointer<SideData<NDIM, double> > S_data,
-    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
+    const SAMRAIPointer<SAMRAISideData<double> > S_data,
+    const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
 {
@@ -2453,12 +2455,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeDensityUpdate(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeErrorOfMassConservationEquation(
-    Pointer<SideData<NDIM, double> > E_data,
-    const Pointer<SideData<NDIM, double> > Rnew_data,
-    const Pointer<SideData<NDIM, double> > Rold_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    SAMRAIPointer<SAMRAISideData<double> > E_data,
+    const SAMRAIPointer<SAMRAISideData<double> > Rnew_data,
+    const SAMRAIPointer<SAMRAISideData<double> > Rold_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
+    const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
 {
@@ -2534,32 +2536,33 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::enforceDivergenceFreeConditi
 #endif
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(U_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(U_idx);
             const int patch_ln = patch->getPatchLevelNumber();
             const int patch_num = patch->getPatchNumber();
-            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_ln].getBoundaries(patch_num, 1);
+            const SAMRAIArray<SAMRAIBoundaryBox>& cf_bdry_codim1_boxes =
+                d_cf_boundary[patch_ln].getBoundaries(patch_num, 1);
             const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
             if (n_cf_bdry_codim1_boxes == 0) continue;
 
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM> ghost_width_to_fill = CF_GHOST_WIDTH;
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector ghost_width_to_fill = CF_GHOST_WIDTH;
             for (int n = 0; n < n_cf_bdry_codim1_boxes; ++n)
             {
-                const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[n];
+                const SAMRAIBoundaryBox& bdry_box = cf_bdry_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
                 const bool is_lower = location_index % 2 == 0;
-                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-                for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
+                const SAMRAIBox bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+                for (SAMRAIBox::Iterator b(bc_fill_box); b; b++)
                 {
                     // Place i_s on the c-f interface.
-                    hier::Index<NDIM> i_s = b();
+                    SAMRAIIndex i_s = b();
 
                     // Work out from the coarse-fine interface to fill the ghost cell
                     // values so that the velocity field satisfies the discrete
@@ -2569,14 +2572,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::enforceDivergenceFreeConditi
                     {
                         // Determine the ghost cell value so that the divergence of
                         // the velocity field is zero in the ghost cell.
-                        SideIndex<NDIM> i_g_s(
-                            i_s, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                        SAMRAISideIndex i_g_s(
+                            i_s, bdry_normal_axis, is_lower ? SAMRAISideIndex::Lower : SAMRAISideIndex::Upper);
                         (*u_data)(i_g_s) = 0.0;
                         double div_u_g = 0.0;
                         for (unsigned int axis = 0; axis < NDIM; ++axis)
                         {
-                            const SideIndex<NDIM> i_g_s_upper(i_s, axis, SideIndex<NDIM>::Upper);
-                            const SideIndex<NDIM> i_g_s_lower(i_s, axis, SideIndex<NDIM>::Lower);
+                            const SAMRAISideIndex i_g_s_upper(i_s, axis, SAMRAISideIndex::Upper);
+                            const SAMRAISideIndex i_g_s_lower(i_s, axis, SAMRAISideIndex::Lower);
                             div_u_g +=
                                 ((*u_data)(i_g_s_upper) - (*u_data)(i_g_s_lower)) * dx[bdry_normal_axis] / dx[axis];
                         }

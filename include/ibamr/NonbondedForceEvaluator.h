@@ -24,11 +24,14 @@
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArray.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 #include <vector>
 
@@ -64,24 +67,24 @@ public:
     // q_j will experience force -out_force.
     //
     // parameters are passed in the double* params.
-    using NonBddForceFcnPtr = void (*)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
+    using NonBddForceFcnPtr = void (*)(double* D, const SAMRAIArray<double> params, double* out_force);
 
     // Class constructor.
-    NonbondedForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+    NonbondedForceEvaluator(SAMRAIPointer<SAMRAIDatabase> input_db,
+                            SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry);
 
     // Function to evaluate forces.
     void evaluateForces(int mstr_petsc_idx,
                         int search_petsc_idx,
-                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                        SAMRAIPointer<IBTK::LData> X_data,
                         std::vector<int> cell_offset,
-                        SAMRAI::tbox::Pointer<IBTK::LData> F_data);
+                        SAMRAIPointer<IBTK::LData> F_data);
 
     // Implementation of computeLagrangianForce.
-    void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void computeLagrangianForce(SAMRAIPointer<IBTK::LData> F_data,
+                                SAMRAIPointer<IBTK::LData> X_data,
+                                SAMRAIPointer<IBTK::LData> U_data,
+                                const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -106,10 +109,10 @@ private:
     double d_regrid_alpha;
 
     // parameters for force function:
-    SAMRAI::tbox::Array<double> d_parameters;
+    SAMRAIArray<double> d_parameters;
 
     // grid geometry
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geometry;
 
     // spring force function pointer, to evaluate the force between particles:
     // TODO: Add species, make this a map from species1 x species2 -> Force Function Pointer

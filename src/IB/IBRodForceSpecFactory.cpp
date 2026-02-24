@@ -17,11 +17,12 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 #include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
 
-#include <memory>
 #include <vector>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -60,12 +61,12 @@ IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const SAMRAIIntVector& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
-    Pointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
+    SAMRAIPointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)

@@ -22,7 +22,13 @@
 
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
 
 #include <string>
 
@@ -77,12 +83,11 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        std::string object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
-        bool register_for_restart = true);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(std::string object_name,
+                                                SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+                                                SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom,
+                                                bool register_for_restart = true);
 
     /*!
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
@@ -94,10 +99,7 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
-                                       double time,
-                                       double dt,
-                                       bool at_synchronization) override;
+    void conservativeDifferenceOnPatch(SAMRAIPatch& patch, double time, double dt, bool at_synchronization) override;
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -111,7 +113,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void preprocessAdvanceLevelState(const SAMRAIPointer<SAMRAIPatchLevel>& level,
                                      double current_time,
                                      double dt,
                                      bool first_step,
@@ -130,7 +132,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void postprocessAdvanceLevelState(const SAMRAIPointer<SAMRAIPatchLevel>& level,
                                       double current_time,
                                       double dt,
                                       bool first_step,

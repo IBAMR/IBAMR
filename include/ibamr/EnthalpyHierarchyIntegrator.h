@@ -22,6 +22,16 @@
 
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideVariable.h"
+
 namespace IBTK
 {
 class CartGridFunction;
@@ -73,7 +83,7 @@ public:
      * manager when requested.
      */
     EnthalpyHierarchyIntegrator(const std::string& object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                SAMRAIPointer<SAMRAIDatabase> input_db,
                                 bool register_for_restart = true);
 
     /*!
@@ -92,9 +102,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                       SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -122,12 +131,12 @@ public:
     /*!
      * Set boundary conditions for \f$ h \f$ variable.
      */
-    void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
+    void setEnthalpyBcCoef(SAMRAIRobinBcCoefStrategy* h_bc_coef);
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*!
@@ -167,7 +176,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db, bool is_from_restart);
 
     /*!
      * \brief Read object state from the restart file and initialize class data
@@ -204,12 +213,12 @@ private:
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_T_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_dT_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_h_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > d_grad_T_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_T_pre_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_dh_dT_var;
 
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
+    SAMRAIRobinBcCoefStrategy* d_h_bc_coef = nullptr;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the

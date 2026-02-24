@@ -16,16 +16,19 @@
 #include "ibamr/INSProjectionBcCoef.h"
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "ArrayData.h"
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArrayData.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
 
 #include <algorithm>
 #include <limits>
@@ -50,7 +53,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                          const bool homogeneous_bc)
     : d_bc_coefs(NDIM, nullptr)
 {
@@ -60,7 +63,7 @@ INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<N
 } // INSProjectionBcCoef
 
 void
-INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -120,12 +123,12 @@ INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                const Pointer<Variable<NDIM> >& variable,
-                                const Patch<NDIM>& patch,
-                                const BoundaryBox<NDIM>& bdry_box,
+INSProjectionBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+                                const SAMRAIPointer<SAMRAIVariable>& variable,
+                                const SAMRAIPatch& patch,
+                                const SAMRAIBoundaryBox& bdry_box,
                                 double /*fill_time*/) const
 {
 #if !defined(NDEBUG)
@@ -136,7 +139,7 @@ INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const SAMRAIBox& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
@@ -155,9 +158,9 @@ INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (SAMRAIBox::Iterator it(bc_coef_box); it; it++)
     {
-        const hier::Index<NDIM>& i = it();
+        const SAMRAIIndex& i = it();
         double dummy_val;
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
@@ -187,7 +190,7 @@ INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -196,10 +199,10 @@ INSProjectionBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    SAMRAIIntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = SAMRAIIntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

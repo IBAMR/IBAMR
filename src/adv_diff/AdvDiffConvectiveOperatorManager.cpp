@@ -21,12 +21,15 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 
-#include "CellVariable.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIUtilities.h"
 #include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
 
 #include <map>
 #include <ostream>
@@ -86,13 +89,13 @@ AdvDiffConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
+SAMRAIPointer<ConvectiveOperator>
 AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                    const std::string& operator_object_name,
-                                                   Pointer<CellVariable<NDIM, double> > Q_var,
-                                                   Pointer<Database> input_db,
+                                                   SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                   SAMRAIPointer<SAMRAIDatabase> input_db,
                                                    ConvectiveDifferencingType difference_form,
-                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                   const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs) const
 {
     auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

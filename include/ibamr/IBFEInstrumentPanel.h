@@ -20,6 +20,13 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+
 #ifdef IBAMR_HAVE_LIBMESH
 
 #include "ibamr/IBFEMethod.h"
@@ -43,7 +50,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, int part);
+    IBFEInstrumentPanel(SAMRAIPointer<SAMRAIDatabase> input_db, int part);
 
     /*!
      * \brief Default destructor.
@@ -64,7 +71,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                             IBAMR::IBFEMethod* ib_method_ops,
                             double data_time);
 
@@ -154,7 +161,7 @@ private:
     /*!
      * \brief Get data from input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * \brief Initialize data that depend on the FE equation systems for
@@ -171,7 +178,7 @@ private:
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_u_corr_map,
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_normal_map,
                                     std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                     const IBFEMethod* ib_method_ops);
 
     /*!
@@ -261,7 +268,7 @@ private:
     /*!
      * \brief Nodeset IDs on the structure mesh that specify the mesh nodes that form the perimeter of each meter mesh.
      */
-    SAMRAI::tbox::Array<int> d_perimeter_nodeset_ids;
+    SAMRAIArray<int> d_perimeter_nodeset_ids;
 
     /*!
      * \brief Meter radius data.

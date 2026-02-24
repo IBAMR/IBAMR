@@ -19,25 +19,27 @@
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellVariable.h"
-#include "FaceData.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <ostream>
 #include <string>
@@ -109,9 +111,9 @@ namespace IBAMR
 
 INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator(
     std::string object_name,
-    Pointer<Database> input_db,
+    SAMRAIPointer<SAMRAIDatabase> input_db,
     const ConvectiveDifferencingType difference_form,
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+    std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs)
     : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
@@ -129,8 +131,9 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSCollocatedWavePropConvectiveOperator::CONTEXT");
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariableContext> context =
+        var_db->getContext("INSCollocatedWavePropConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedWavePropConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -140,8 +143,8 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
     }
     else
     {
-        d_U_var = new CellVariable<NDIM, double>(U_var_name, NDIM);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(d_k + 1));
+        d_U_var = new SAMRAICellVariable<double>(U_var_name, NDIM);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, SAMRAIIntVector(d_k + 1));
     }
 
 #if !defined(NDEBUG)
@@ -171,7 +174,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -196,24 +199,24 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector& patch_lower = patch_box.lower();
+            const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            const IntVector<NDIM> N_gcw = N_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-            const IntVector<NDIM> U_gcw = U_data->getGhostCellWidth();
-            Pointer<FaceData<NDIM, double> > U_sp_data = patch->getPatchData(d_u_idx);
-            const IntVector<NDIM> U_sp_gcw = U_sp_data->getGhostCellWidth();
+            SAMRAIPointer<SAMRAICellData<double> > N_data = patch->getPatchData(N_idx);
+            const SAMRAIIntVector N_gcw = N_data->getGhostCellWidth();
+            SAMRAIPointer<SAMRAICellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            const SAMRAIIntVector U_gcw = U_data->getGhostCellWidth();
+            SAMRAIPointer<SAMRAIFaceData<double> > U_sp_data = patch->getPatchData(d_u_idx);
+            const SAMRAIIntVector U_sp_gcw = U_sp_data->getGhostCellWidth();
 
             // Do differencing
             for (int d = 0; d < NDIM; ++d)
@@ -259,7 +262,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 
@@ -267,8 +270,8 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
 } // applyConvectiveOperator
 
 void
-INSCollocatedWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                 const SAMRAIVectorReal<NDIM, double>& out)
+INSCollocatedWavePropConvectiveOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                                                 const SAMRAISAMRAIVectorReal<double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
 

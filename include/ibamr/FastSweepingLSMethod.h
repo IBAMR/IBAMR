@@ -23,8 +23,14 @@
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAICellData.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include <string>
 #include <vector>
@@ -70,7 +76,7 @@ public:
      * \brief Constructor.
      */
     FastSweepingLSMethod(std::string object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr,
+                         SAMRAIPointer<SAMRAIDatabase> db = nullptr,
                          bool register_for_restart = true);
 
     /*!
@@ -82,7 +88,7 @@ public:
      * \brief Initialize level set data using the fast-sweeping method.
      */
     void initializeLSData(int D_idx,
-                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                          SAMRAIPointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
                           bool initial_time) override;
@@ -96,19 +102,19 @@ private:
     /*!
      * \brief Do one fast sweep over the hierarchy.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
+    void fastSweep(SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
 
     /*!
      * \brief Do one fast sweep over a patch.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                   const SAMRAI::hier::Box<NDIM>& domain_box) const;
+    void fastSweep(SAMRAIPointer<SAMRAICellData<double> > dist_data,
+                   const SAMRAIPointer<SAMRAIPatch> patch,
+                   const SAMRAIBox& domain_box) const;
 
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * Read object state from the restart file and initialize class data

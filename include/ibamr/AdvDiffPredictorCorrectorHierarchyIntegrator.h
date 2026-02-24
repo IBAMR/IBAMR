@@ -24,11 +24,20 @@
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 
-#include "HyperbolicLevelIntegrator.h"
-#include "IntVector.h"
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "MultiblockDataTranslator.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHyperbolicLevelIntegrator.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIStandardTagAndInitStrategy.h"
+#include "SAMRAITimeRefinementIntegrator.h"
+#include "SAMRAITimeRefinementLevelStrategy.h"
 
 #include <string>
 
@@ -77,10 +86,10 @@ namespace IBAMR
  * \see AdvDiffPredictorCorrectorHyperbolicPatchOps
  * \see HierarchyIntegrator
  * \see AdvectorExplicitPredictorPatchOps
- * \see SAMRAI::algs::HyperbolicLevelIntegrator
- * \see SAMRAI::mesh::StandardTagAndInitStrategy
- * \see SAMRAI::algs::TimeRefinementIntegrator
- * \see SAMRAI::algs::TimeRefinementLevelStrategy
+ * \see SAMRAIHyperbolicLevelIntegrator
+ * \see SAMRAIStandardTagAndInitStrategy
+ * \see SAMRAITimeRefinementIntegrator
+ * \see SAMRAITimeRefinementLevelStrategy
  */
 class AdvDiffPredictorCorrectorHierarchyIntegrator : public AdvDiffHierarchyIntegrator
 {
@@ -91,11 +100,10 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    AdvDiffPredictorCorrectorHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        bool register_for_restart = true);
+    AdvDiffPredictorCorrectorHierarchyIntegrator(const std::string& object_name,
+                                                 SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                 SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+                                                 bool register_for_restart = true);
 
     /*!
      * The destructor for class AdvDiffPredictorCorrectorHierarchyIntegrator unregisters
@@ -108,13 +116,13 @@ public:
      * Return a pointer to the level integrator object used to integrate the
      * advective terms.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > getHyperbolicLevelIntegrator() const;
+    SAMRAIPointer<SAMRAIHyperbolicLevelIntegrator> getHyperbolicLevelIntegrator() const;
 
     /*!
      * Return a pointer to the patch strategy object used to specify the
      * numerical routines used to integrate the advective terms.
      */
-    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> getHyperbolicPatchStrategy() const;
+    SAMRAIPointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> getHyperbolicPatchStrategy() const;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -125,9 +133,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                       SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -170,28 +177,27 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelDataSpecialized(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                        SAMRAIPointer<SAMRAIBasePatchLevel> old_level,
                                         bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to gradient criteria specified by the
      * AdvectorExplicitPredictorPatchOps object.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetectorSpecialized(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -228,17 +234,17 @@ private:
     operator=(const AdvDiffPredictorCorrectorHierarchyIntegrator& that) = delete;
 
     /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
+     * The SAMRAIHyperbolicLevelIntegrator supplies generic operations
      * use to handle the explicit integration of advection terms.
      *
      * The advection patch strategy supplies the advection-specific operations
      * needed to treat data on patches in the AMR grid hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
+    SAMRAIPointer<SAMRAIHyperbolicLevelIntegrator> d_hyp_level_integrator;
+    SAMRAIPointer<SAMRAIDatabase> d_hyp_level_integrator_db;
+    SAMRAIPointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
+    SAMRAIPointer<SAMRAIDatabase> d_hyp_patch_ops_db;
+    SAMRAIPointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
 };
 } // namespace IBAMR
 

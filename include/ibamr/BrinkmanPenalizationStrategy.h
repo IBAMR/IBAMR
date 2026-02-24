@@ -21,10 +21,11 @@
 #include <ibamr/config.h>
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include <limits>
 #include <string>
@@ -38,7 +39,7 @@ namespace IBAMR
  * \brief BrinkmanPenalizationStrategy is an abstract class that provides an interface
  * to implement Brinkman penalization body force in the momentum equation.
  */
-class BrinkmanPenalizationStrategy : public SAMRAI::tbox::Serializable
+class BrinkmanPenalizationStrategy : public SAMRAISerializable
 {
 public:
     /*
@@ -98,7 +99,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*
      * \brief Get the name of the object.

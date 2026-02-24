@@ -22,8 +22,10 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Pointer.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 
 #include <string>
 #include <vector>
@@ -210,8 +212,8 @@ private:
          * \brief Build an IBInstrumentationSpec object by unpacking data from
          * the data stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
+        SAMRAIPointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                     const SAMRAIIntVector& offset) override;
 
     private:
         /*!

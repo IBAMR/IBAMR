@@ -30,37 +30,39 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "CoarsenSchedule.h"
-#include "FaceData.h"
-#include "FaceVariable.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "RefineSchedule.h"
-#include "SAMRAIVectorReal.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellDataFactory.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenOperator.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineOperator.h"
+#include "SAMRAIRefinePatchStrategy.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <string>
 #include <vector>
@@ -107,10 +109,10 @@ public:
      * \brief Class constructor.
      */
     AdvDiffWavePropConvectiveOperator(std::string object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                      SAMRAIPointer<SAMRAIDatabase> input_db,
                                       const ConvectiveDifferencingType difference_form,
-                                      std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> conc_bc_coefs);
+                                      std::vector<SAMRAIRobinBcCoefStrategy*> conc_bc_coefs);
     /*!
      * \brief Destructor.
      */
@@ -119,12 +121,12 @@ public:
     /*!
      * \brief Static function to construct an AdvDiffWavePropConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    static SAMRAIPointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                      SAMRAIPointer<SAMRAIDatabase> input_db,
                       const ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs)
+                      const std::vector<SAMRAIRobinBcCoefStrategy*>& conc_bc_coefs)
     {
         return new AdvDiffWavePropConvectiveOperator(object_name, Q_var, input_db, difference_form, conc_bc_coefs);
     }
@@ -164,8 +166,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -207,22 +209,22 @@ private:
     AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg_Q;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds_Q;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg_Q;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy_Q;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds_Q;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg_Q;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_coarsen_scheds_Q;
+    SAMRAIPointer<SAMRAIRefineAlgorithm> d_ghostfill_alg_Q;
+    SAMRAIPointer<SAMRAIRefinePatchStrategy> d_ghostfill_strategy_Q;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_ghostfill_scheds_Q;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
     int d_Q_scratch_idx = 0;
 
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
+    const std::vector<SAMRAIRobinBcCoefStrategy*> d_conc_bc_coefs;
     // Reconstruction Order (2*k-1)
     // Currently only available for k=3
     int d_k = 3;

@@ -30,22 +30,24 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "VariableContext.h"
-#include "VariableFillPattern.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBoxList.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenOperator.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineOperator.h"
+#include "SAMRAIRefinePatchStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableFillPattern.h"
 
 #include "petscao.h"
 #include "petscmat.h"
@@ -122,7 +124,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesIBLevelRelaxationFACOperator(std::string object_name,
-                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                SAMRAIPointer<SAMRAIDatabase> input_db,
                                                 const std::string& default_options_prefix);
 
     /*!
@@ -134,14 +136,12 @@ public:
      * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
      * StaggeredStokesIBLevelRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAIPointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                                const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_operator =
-            new StaggeredStokesIBLevelRelaxationFACOperator(
-                object_name + "::StaggeredStokesIBLevelRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAIPointer<IBTK::FACPreconditionerStrategy> fac_operator = new StaggeredStokesIBLevelRelaxationFACOperator(
+            object_name + "::StaggeredStokesIBLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate_solver
 
@@ -177,7 +177,7 @@ public:
     /*!
      * \brief Get the Staggered Stokes IB level solver.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesPETScLevelSolver> getStaggeredStokesPETScLevelSolver(int ln) const;
+    SAMRAIPointer<StaggeredStokesPETScLevelSolver> getStaggeredStokesPETScLevelSolver(int ln) const;
 
     /*!
      * \brief Get the Eulerian elasticity level operator.
@@ -209,9 +209,9 @@ public:
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAISAMRAIVectorReal<double>& residual,
+                         const SAMRAISAMRAIVectorReal<double>& solution,
+                         const SAMRAISAMRAIVectorReal<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -229,8 +229,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAISAMRAIVectorReal<double>& error,
+                     const SAMRAISAMRAIVectorReal<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -242,8 +242,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAISAMRAIVectorReal<double>& solution,
+                                            const SAMRAISAMRAIVectorReal<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -294,8 +294,8 @@ private:
     std::string d_level_solver_type = "PETSC_LEVEL_SOLVER", d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
     int d_level_solver_max_iterations = 10;
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> > d_level_solvers;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+    std::vector<SAMRAIPointer<IBAMR::StaggeredStokesPETScLevelSolver> > d_level_solvers;
+    SAMRAIPointer<SAMRAIDatabase> d_level_solver_db;
 
     /*
      * Velocity and pressure prolongation type.
@@ -312,8 +312,8 @@ private:
      */
     std::vector<std::vector<int> > d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int> > d_u_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int> > d_p_dof_index_var;
 
     /*
      * The time stepping type.
@@ -341,8 +341,8 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAIBoxList, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAIBoxList> > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

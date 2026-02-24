@@ -20,8 +20,17 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include "SAMRAICellVariable.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBAMR
@@ -37,9 +46,9 @@ public:
      * \brief Class constructor.
      */
     HeavisideForcingFunction(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > U_adv_var);
+                             SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                             SAMRAIPointer<SAMRAICellVariable<double> > H_var,
+                             SAMRAIPointer<SAMRAIFaceVariable<double> > U_adv_var);
 
     /*!
      * \brief Empty destructor.
@@ -60,8 +69,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAIPointer<SAMRAIVariable> var,
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -71,11 +80,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level = nullptr) override;
+                        SAMRAIPointer<SAMRAIPatchLevel> patch_level = nullptr) override;
 
     //\}
 
@@ -98,17 +107,17 @@ private:
     /*!
      * Pointer to advection-diffusion solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Liquid fraction variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_H_var;
 
     /*!
      * Advection velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double> > d_U_adv_var;
 };
 } // namespace IBAMR
 

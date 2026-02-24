@@ -21,11 +21,14 @@
 #include <ibamr/config.h>
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Index.h"
-#include "IntVector.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -68,7 +71,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor.
@@ -128,13 +131,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyIndependentData(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyDependentData(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -145,7 +148,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -197,7 +200,7 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * Output log data to the provided output stream.
@@ -232,7 +235,7 @@ private:
      */
     struct IndexFortranOrder
     {
-        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
+        inline bool operator()(const SAMRAIIndex& lhs, const SAMRAIIndex& rhs) const
         {
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -252,7 +255,7 @@ private:
         const IBTK::Vector* dA;
     };
 
-    using WebPatchMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder>;
+    using WebPatchMap = std::multimap<SAMRAIIndex, WebPatch, IndexFortranOrder>;
     std::vector<WebPatchMap> d_web_patch_map;
 
     struct WebCentroid
@@ -261,7 +264,7 @@ private:
         const IBTK::Vector* X;
     };
 
-    using WebCentroidMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder>;
+    using WebCentroidMap = std::multimap<SAMRAIIndex, WebCentroid, IndexFortranOrder>;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*

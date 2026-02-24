@@ -18,8 +18,11 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 
 #include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Database.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -40,10 +43,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                                                   Pointer<FACPreconditionerStrategy> fac_strategy,
-                                                                   Pointer<Database> input_db,
-                                                                   const std::string& default_options_prefix)
+StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(
+    const std::string& object_name,
+    SAMRAIPointer<FACPreconditionerStrategy> fac_strategy,
+    SAMRAIPointer<SAMRAIDatabase> input_db,
+    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
     // intentionally blank
@@ -54,7 +58,7 @@ void
 StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
@@ -64,27 +68,28 @@ StaggeredStokesFACPreconditioner::setComponentsHaveNullSpace(const bool has_velo
                                                              const bool has_pressure_nullspace)
 {
     StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 
     return;
 } // setComponentsHaveNullSpace
 
 void
-StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                     RobinBcCoefStrategy<NDIM>* P_bc_coef)
+StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                                     SAMRAIRobinBcCoefStrategy* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     return;
 } // setPhysicalBcCoefs
 
 void
-StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 } // setPhysicalBoundaryHelper

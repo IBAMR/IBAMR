@@ -24,15 +24,20 @@
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "CellVariable.h"
-#include "EdgeVariable.h" // IWYU pragma: keep
-#include "IntVector.h"
-#include "NodeVariable.h" // IWYU pragma: keep
-#include "PatchLevel.h"
-#include "VariableContext.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArray.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIEdgeVariable.h" // IWYU pragma: keep
+#include "SAMRAIIntVector.h"
+#include "SAMRAINodeVariable.h" // IWYU pragma: keep
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include <string>
 #include <vector>
@@ -77,7 +82,7 @@ public:
      * grid.
      */
     INSStaggeredStochasticForcing(std::string object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  SAMRAIPointer<SAMRAIDatabase> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
@@ -101,8 +106,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAIPointer<SAMRAIVariable> var,
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = IBTK::invalid_level_number,
@@ -111,13 +116,13 @@ public:
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                        const double data_time,
-                        const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
+    void
+    setDataOnPatch(const int data_idx,
+                   SAMRAIPointer<SAMRAIVariable> var,
+                   SAMRAIPointer<SAMRAIPatch> patch,
+                   const double data_time,
+                   const bool initial_time = false,
+                   SAMRAIPointer<SAMRAIPatchLevel> patch_level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr)) override;
 
     //\}
 
@@ -171,7 +176,7 @@ private:
      */
     double d_std = std::numeric_limits<double>::quiet_NaN();
     int d_num_rand_vals = 0;
-    std::vector<SAMRAI::tbox::Array<double> > d_weights;
+    std::vector<SAMRAIArray<double> > d_weights;
 
     /*!
      * Boundary condition scalings.
@@ -182,17 +187,17 @@ private:
      * VariableContext and Variable objects for storing the components of the
      * stochastic stresses.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
+    SAMRAIPointer<SAMRAIVariableContext> d_context;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_W_cc_var;
     int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
+    SAMRAIPointer<SAMRAINodeVariable<double> > d_W_nc_var;
     int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_W_ec_var;
     int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif

@@ -19,22 +19,27 @@
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchLevel.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenPatchStrategy.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "RefineAlgorithm.h"
-#include "RefinePatchStrategy.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAICoarsenAlgorithm.h"
+#include "SAMRAICoarsenPatchStrategy.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILoadBalancer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefinePatchStrategy.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include <algorithm>
 #include <memory>
@@ -106,7 +111,7 @@ IBStrategy::registerEulerianCommunicationAlgorithms()
 } // registerEulerianCommunicationAlgorithms
 
 void
-IBStrategy::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBStrategy::setupTagBuffer(SAMRAIArray<int>& tag_buffer, SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -217,7 +222,7 @@ IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 void
 IBStrategy::spreadFluidSource(int /*q_data_idx*/,
                               RobinPhysBdryPatchStrategy* /*q_phys_bdry_op*/,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*q_prolongation_scheds*/,
                               double /*data_time*/)
 {
     // intentionally blank
@@ -226,8 +231,8 @@ IBStrategy::spreadFluidSource(int /*q_data_idx*/,
 
 void
 IBStrategy::interpolatePressure(int /*p_data_idx*/,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
-                                const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
+                                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*p_synch_scheds*/,
+                                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*p_ghost_fill_scheds*/,
                                 double /*data_time*/)
 {
     // intentionally blank
@@ -256,11 +261,11 @@ IBStrategy::postprocessData()
 } // postprocessData
 
 void
-IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
+IBStrategy::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                     SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/,
                                      int /*u_data_idx*/,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
+                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -270,42 +275,42 @@ IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*
 } // initializePatchHierarchy
 
 void
-IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/, int /*workload_data_idx*/)
+IBStrategy::registerLoadBalancer(SAMRAIPointer<SAMRAILoadBalancer> /*load_balancer*/, int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 } // registerLoadBalancer
 
 void
-IBStrategy::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int /*workload_data_idx*/)
+IBStrategy::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/, const int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 } // addWorkloadEstimate
 
 void
-IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBStrategy::beginDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                    SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
 void
-IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBStrategy::endDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                  SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // endDataRedistribution
 
 void
-IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                 int /*level_number*/,
                                 double /*init_data_time*/,
                                 bool /*can_be_refined*/,
                                 bool /*initial_time*/,
-                                Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                SAMRAIPointer<SAMRAIBasePatchLevel> /*old_level*/,
                                 bool /*allocate_data*/)
 {
     // intentionally blank
@@ -313,7 +318,7 @@ IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/
 } // initializeLevelData
 
 void
-IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::resetHierarchyConfiguration(SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                         int /*coarsest_level*/,
                                         int /*finest_level*/)
 {
@@ -322,7 +327,7 @@ IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hie
 } // resetHierarchyConfiguration
 
 void
-IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                   int /*level_number*/,
                                   double /*error_data_time*/,
                                   int /*tag_index*/,
@@ -334,7 +339,7 @@ IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy
 } // applyGradientDetector
 
 void
-IBStrategy::putToDatabase(Pointer<Database> /*db*/)
+IBStrategy::putToDatabase(SAMRAIPointer<SAMRAIDatabase> /*db*/)
 {
     // intentionally blank
     return;
@@ -351,7 +356,7 @@ IBStrategy::getINSHierarchyIntegrator() const
     return d_ib_solver->d_ins_hier_integrator;
 } // getINSHierarchyIntegrator
 
-Pointer<HierarchyDataOpsReal<NDIM, double> >
+SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> >
 IBStrategy::getVelocityHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -360,7 +365,7 @@ IBStrategy::getVelocityHierarchyDataOps() const
     return d_ib_solver->d_hier_velocity_data_ops;
 } // getVelocityHierarchyDataOps
 
-Pointer<HierarchyDataOpsReal<NDIM, double> >
+SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> >
 IBStrategy::getPressureHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -369,7 +374,7 @@ IBStrategy::getPressureHierarchyDataOps() const
     return d_ib_solver->d_hier_pressure_data_ops;
 } // getPressureHierarchyDataOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 IBStrategy::getHierarchyMathOps() const
 {
 #if !defined(NDEBUG)
@@ -382,11 +387,11 @@ void
 IBStrategy::registerVariable(int& current_idx,
                              int& new_idx,
                              int& scratch_idx,
-                             Pointer<Variable<NDIM> > variable,
-                             const IntVector<NDIM>& scratch_ghosts,
+                             SAMRAIPointer<SAMRAIVariable> variable,
+                             const SAMRAIIntVector& scratch_ghosts,
                              const std::string& coarsen_name,
                              const std::string& refine_name,
-                             Pointer<CartGridFunction> init_fcn,
+                             SAMRAIPointer<CartGridFunction> init_fcn,
                              const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -406,9 +411,9 @@ IBStrategy::registerVariable(int& current_idx,
 
 void
 IBStrategy::registerVariable(int& idx,
-                             Pointer<Variable<NDIM> > variable,
-                             const IntVector<NDIM>& ghosts,
-                             Pointer<VariableContext> ctx,
+                             SAMRAIPointer<SAMRAIVariable> variable,
+                             const SAMRAIIntVector& ghosts,
+                             SAMRAIPointer<SAMRAIVariableContext> ctx,
                              const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -420,59 +425,59 @@ IBStrategy::registerVariable(int& idx,
 
 void
 IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
-                                             Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                             std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
+                                             SAMRAIPointer<SAMRAIRefineAlgorithm> ghostfill_alg,
+                                             std::unique_ptr<SAMRAIRefinePatchStrategy> ghostfill_patch_strategy)
 {
     d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, std::move(ghostfill_patch_strategy));
 } // registerGhostfillRefineAlgorithm
 
 void
 IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
-                                           Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-                                           std::unique_ptr<RefinePatchStrategy<NDIM> > prolong_patch_strategy)
+                                           SAMRAIPointer<SAMRAIRefineAlgorithm> prolong_alg,
+                                           std::unique_ptr<SAMRAIRefinePatchStrategy> prolong_patch_strategy)
 {
     d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, std::move(prolong_patch_strategy));
 } // registerProlongRefineAlgorithm
 
 void
 IBStrategy::registerCoarsenAlgorithm(const std::string& name,
-                                     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                     std::unique_ptr<CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy)
+                                     SAMRAIPointer<SAMRAICoarsenAlgorithm> coarsen_alg,
+                                     std::unique_ptr<SAMRAICoarsenPatchStrategy> coarsen_patch_strategy)
 {
     d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, std::move(coarsen_patch_strategy));
 } // registerCoarsenAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> >
+SAMRAIPointer<SAMRAIRefineAlgorithm>
 IBStrategy::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineAlgorithm(name);
 } // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> >
+SAMRAIPointer<SAMRAIRefineAlgorithm>
 IBStrategy::getProlongRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineAlgorithm(name);
 } // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithm<NDIM> >
+SAMRAIPointer<SAMRAICoarsenAlgorithm>
 IBStrategy::getCoarsenAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getCoarsenAlgorithm(name);
 } // getCoarsenAlgorithm
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
 IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
 } // getGhostfillRefineSchedules
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
 IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
 } // getProlongRefineSchedules
 
-const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >&
 IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);

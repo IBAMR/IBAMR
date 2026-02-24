@@ -22,11 +22,15 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
 
-#include "PoissonSpecifications.h"
-#include "tbox/Database.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAITimer.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
 
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
@@ -37,18 +41,18 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_solve_mobility_system;
-static Timer* t_solve_body_mobility_system;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_mobility_system;
+static SAMRAITimer* t_solve_body_mobility_system;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 } // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
 CIBMobilitySolver::CIBMobilitySolver(std::string object_name,
-                                     Pointer<Database> input_db,
-                                     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                                     Pointer<CIBStrategy> cib_strategy)
+                                     SAMRAIPointer<SAMRAIDatabase> input_db,
+                                     SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                                     SAMRAIPointer<CIBStrategy> cib_strategy)
     : d_object_name(std::move(object_name)),
       d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures()),
       d_cib_strategy(cib_strategy)
@@ -84,13 +88,13 @@ CIBMobilitySolver::CIBMobilitySolver(std::string object_name,
     }
 
     IBAMR_DO_ONCE(t_solve_mobility_system =
-                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveMobilitySystem()");
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveMobilitySystem()");
                   t_solve_body_mobility_system =
-                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveBodyMobilitySystem()");
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveBodyMobilitySystem()");
                   t_initialize_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::initializeSolverState()");
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::initializeSolverState()");
                   t_deallocate_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
 
     return;
 } // CIBMobilitySolver
@@ -193,7 +197,7 @@ CIBMobilitySolver::setTimeInterval(double current_time, double new_time)
 } // setTimeInterval
 
 void
-CIBMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications& u_problem_coefs)
+CIBMobilitySolver::setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& u_problem_coefs)
 {
     if (d_mobility_solver_type == KRYLOV)
     {
@@ -203,8 +207,8 @@ CIBMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications&
 } // setVelocityPoissonSpecifications
 
 void
-CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                      RobinBcCoefStrategy<NDIM>* p_bc_coef)
+CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs,
+                                      SAMRAIRobinBcCoefStrategy* p_bc_coef)
 {
     if (d_mobility_solver_type == KRYLOV)
     {
@@ -214,7 +218,7 @@ CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM
 } // setPhysicalBcCoefs
 
 void
-CIBMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+CIBMobilitySolver::setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     if (d_mobility_solver_type == KRYLOV)
     {
@@ -398,7 +402,7 @@ CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
 ////////////////////////////// PRIVATE ///////////////////////////////////////
 
 void
-CIBMobilitySolver::getFromInput(Pointer<Database> input_db)
+CIBMobilitySolver::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     // Get the mobility solver type.
     const std::string solver_type = input_db->getString("mobility_solver_type");

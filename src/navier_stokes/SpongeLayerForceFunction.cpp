@@ -19,24 +19,26 @@
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
 #include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include <cmath>
 #include <string>
@@ -70,11 +72,11 @@ smooth_kernel(const double r)
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_name,
-                                                   const Pointer<Database> input_db,
+                                                   const SAMRAIPointer<SAMRAIDatabase> input_db,
                                                    const INSHierarchyIntegrator* fluid_solver,
-                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+                                                   SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry)
     : CartGridFunction(object_name),
-      d_forcing_enabled(array_constant<Array<bool>, 2 * NDIM>(Array<bool>(NDIM))),
+      d_forcing_enabled(array_constant<SAMRAIArray<bool>, 2 * NDIM>(SAMRAIArray<bool>(NDIM))),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
@@ -107,18 +109,18 @@ SpongeLayerForceFunction::isTimeDependent() const
 
 void
 SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM> > /*var*/,
-                                         Pointer<Patch<NDIM> > patch,
+                                         SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                         SAMRAIPointer<SAMRAIPatch> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevel<NDIM> > /*level*/)
+                                         SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -129,9 +131,9 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<PatchData<NDIM> > u_current_data =
+    SAMRAIPointer<SAMRAIPatchData> u_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<PatchData<NDIM> > u_new_data =
+    SAMRAIPointer<SAMRAIPatchData> u_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -146,23 +148,23 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_data,
-                                             Pointer<CellData<NDIM, double> > U_current_data,
-                                             Pointer<CellData<NDIM, double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
+                                             SAMRAIPointer<SAMRAICellData<double> > U_current_data,
+                                             SAMRAIPointer<SAMRAICellData<double> > U_new_data,
                                              const double kappa,
-                                             Pointer<Patch<NDIM> > patch)
+                                             SAMRAIPointer<SAMRAIPatch> patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const SAMRAIIntVector& ratio = pgeom->getRatio();
+    const SAMRAIBox domain_box = SAMRAIBox::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -172,7 +174,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_
         {
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis, side))
             {
-                Box<NDIM> bdry_box = domain_box;
+                SAMRAIBox bdry_box = domain_box;
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
@@ -182,9 +184,9 @@ SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box<NDIM>::Iterator b(bdry_box * patch_box); b; b++)
+                for (SAMRAIBox::Iterator b(bdry_box * patch_box); b; b++)
                 {
-                    const hier::Index<NDIM>& i = b();
+                    const SAMRAIIndex& i = b();
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i, d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
@@ -200,23 +202,23 @@ SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_
 } // setDataOnPatchCell
 
 void
-SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                             Pointer<SideData<NDIM, double> > U_current_data,
-                                             Pointer<SideData<NDIM, double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
+                                             SAMRAIPointer<SAMRAISideData<double> > U_current_data,
+                                             SAMRAIPointer<SAMRAISideData<double> > U_new_data,
                                              const double kappa,
-                                             Pointer<Patch<NDIM> > patch)
+                                             SAMRAIPointer<SAMRAIPatch> patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const SAMRAIIntVector& ratio = pgeom->getRatio();
+    const SAMRAIBox domain_box = SAMRAIBox::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -226,7 +228,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_
         {
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis, side))
             {
-                Box<NDIM> bdry_box = domain_box;
+                SAMRAIBox bdry_box = domain_box;
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
@@ -236,10 +238,10 @@ SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d)); b; b++)
+                for (SAMRAIBox::Iterator b(SAMRAISideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                 {
-                    const hier::Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
+                    const SAMRAIIndex& i = b();
+                    const SAMRAISideIndex i_s(i, d, SAMRAISideIndex::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

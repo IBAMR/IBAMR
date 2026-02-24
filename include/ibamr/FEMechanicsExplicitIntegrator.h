@@ -20,6 +20,11 @@
 
 #include "ibamr/FEMechanicsBase.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+
 #include "libmesh/libmesh_common.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
@@ -43,7 +48,7 @@ public:
      * \brief Constructor for a single-part model.
      */
     FEMechanicsExplicitIntegrator(const std::string& object_name,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                                  const SAMRAIPointer<SAMRAIDatabase>& input_db,
                                   libMesh::MeshBase* mesh,
                                   bool register_for_restart = true,
                                   const std::string& restart_read_dirname = "",
@@ -53,7 +58,7 @@ public:
      * \brief Constructor for a multi-part model.
      */
     FEMechanicsExplicitIntegrator(const std::string& object_name,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                                  const SAMRAIPointer<SAMRAIDatabase>& input_db,
                                   const std::vector<libMesh::MeshBase*>& meshes,
                                   bool register_for_restart = true,
                                   const std::string& restart_read_dirname = "",
@@ -164,7 +169,7 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*!
@@ -211,12 +216,12 @@ private:
     /*!
      * Implementation of class constructor.
      */
-    void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    void commonConstructor(const SAMRAIPointer<SAMRAIDatabase>& input_db);
 
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
+    void getFromInput(const SAMRAIPointer<SAMRAIDatabase>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

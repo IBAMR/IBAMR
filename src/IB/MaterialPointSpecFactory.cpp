@@ -17,9 +17,11 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 #include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
 
 #include <algorithm>
 #include <vector>
@@ -60,10 +62,10 @@ MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const SAMRAIIntVector& /*offset*/)
 {
-    Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
+    SAMRAIPointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
     stream.unpack(&ret_val->d_point_idx, 1);
     stream.unpack(&ret_val->d_weight, 1);
     int subdomain_id;

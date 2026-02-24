@@ -23,9 +23,11 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
-#include "Variable.h"
-#include "VariableContext.h"
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIPointer.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include <string>
 
@@ -39,19 +41,19 @@ struct WaveGenerationData
     /*
      * Pointers to the fluid and advection-diffusion integrators.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+    SAMRAIPointer<SAMRAIVariable> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.
      *  \note We modify the phi value after the end of each timestep.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
+    SAMRAIPointer<SAMRAIVariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the generation zone, and the damping coefficient.
@@ -75,19 +77,19 @@ struct WaveDampingData
     /*
      * Pointers to the fluid and advection-diffusion integrators.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+    SAMRAIPointer<SAMRAIVariable> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.
      *  \note We modify the phi value after the end of each timestep.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
+    SAMRAIPointer<SAMRAIVariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the damping zone, water depth, and damping coefficient.

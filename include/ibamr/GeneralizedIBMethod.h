@@ -24,9 +24,17 @@
 #include "ibamr/IBMethod.h"
 
 #include "ibtk/LData.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Variable.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIVariable.h"
 
 #include <string>
 #include <vector>
@@ -84,7 +92,7 @@ public:
      * \brief Constructor.
      */
     GeneralizedIBMethod(std::string object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        SAMRAIPointer<SAMRAIDatabase> input_db,
                         bool register_for_restart = true);
 
     /*!
@@ -95,7 +103,7 @@ public:
     /*!
      * Supply a Lagrangian force object.
      */
-    void registerIBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
+    void registerIBKirchhoffRodForceGen(SAMRAIPointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
 
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.
@@ -122,11 +130,10 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void interpolateVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time) override;
+    void interpolateVelocity(int u_data_idx,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             double data_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -156,11 +163,10 @@ public:
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
-    void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time) override;
+    void spreadForce(int f_data_idx,
+                     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     double data_time) override;
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -171,15 +177,14 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time) override;
+    void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                  SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
+                                  int u_data_idx,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  int integrator_step,
+                                  double init_data_time,
+                                  bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -187,24 +192,24 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                             SAMRAIPointer<SAMRAIBasePatchLevel> old_level,
                              bool allocate_data) override;
 
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_f_var, d_w_var, d_n_var;
+    SAMRAIPointer<SAMRAIVariable> d_f_var, d_w_var, d_n_var;
     int d_f_idx, d_w_idx, d_n_idx;
 
     /*
@@ -216,14 +221,14 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_D_current_data, d_D_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_N_current_data, d_N_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData> > d_D_current_data, d_D_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData> > d_N_current_data, d_N_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData> > d_W_current_data, d_W_new_data;
 
     /*
      * The force and torque generator.
      */
-    SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
+    SAMRAIPointer<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
     bool d_ib_force_and_torque_fcn_needs_init;
 
 private:
@@ -262,7 +267,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

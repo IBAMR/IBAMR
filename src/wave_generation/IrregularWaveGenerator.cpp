@@ -17,9 +17,11 @@
 #include "ibamr/RNG.h"
 
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Database.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include <algorithm>
 #include <cmath>
@@ -35,7 +37,7 @@ static const unsigned SEED = 1234567;
 }
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IrregularWaveGenerator::IrregularWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
+IrregularWaveGenerator::IrregularWaveGenerator(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db)
     : StokesWaveGeneratorStrategy(object_name, input_db)
 {
     // Get wave parameters.
@@ -176,9 +178,9 @@ IrregularWaveGenerator::printWaveData(ofstream& ostream) const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IrregularWaveGenerator::getFromInput(Pointer<Database> input_db)
+IrregularWaveGenerator::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
-    Pointer<Database> wave_db = input_db;
+    SAMRAIPointer<SAMRAIDatabase> wave_db = input_db;
     if (input_db->isDatabase("wave_parameters_db"))
     {
         wave_db = input_db->getDatabase("wave_parameters_db");

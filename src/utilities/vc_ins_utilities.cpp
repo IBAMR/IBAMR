@@ -15,9 +15,28 @@
 #include "ibamr/vc_ins_utilities.h"
 
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
+
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISideData.h"
+#include "SAMRAISideGeometry.h"
+#include "SAMRAISideIndex.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -30,8 +49,8 @@ namespace VCINSUtilities
 {
 void
 callSetDensityCallbackFunction(int rho_idx,
-                               Pointer<Variable<NDIM> > rho_var,
-                               Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               SAMRAIPointer<SAMRAIVariable> rho_var,
+                               SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
                                const double current_time,
@@ -48,8 +67,8 @@ callSetDensityCallbackFunction(int rho_idx,
 
 void
 callSetViscosityCallbackFunction(int mu_idx,
-                                 Pointer<Variable<NDIM> > mu_var,
-                                 Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                 SAMRAIPointer<SAMRAIVariable> mu_var,
+                                 SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                  const int cycle_num,
                                  const double time,
                                  const double current_time,
@@ -65,8 +84,8 @@ callSetViscosityCallbackFunction(int mu_idx,
 } // callSetDensityCallBackFunction
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
-                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       Pointer<CellVariable<NDIM, double> > ls_var,
+                                       SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_var,
                                        const double rho_liquid,
                                        const double rho_gas,
                                        const double mu_liquid,
@@ -87,9 +106,9 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
 } // SetFluidProperties
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
-                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       Pointer<CellVariable<NDIM, double> > ls_gas_var,
-                                       Pointer<CellVariable<NDIM, double> > ls_solid_var,
+                                       SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
+                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
                                        const double rho_liquid,
                                        const double rho_gas,
                                        const double rho_solid,
@@ -120,15 +139,15 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
 
 void
 SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
-                                                   Pointer<Variable<NDIM> > rho_var,
-                                                   SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                   SAMRAIPointer<SAMRAIVariable> rho_var,
+                                                   SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                    const int /*cycle_num*/,
                                                    const double time,
                                                    const double current_time,
                                                    const double new_time)
 {
     // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     int ls_idx = IBTK::invalid_index;
     if (IBTK::rel_equal_eps(time, current_time))
     {
@@ -144,33 +163,33 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
     }
 
     // Set the density based on the level set
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Normal way to set cell centered density
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > rho_cc_var = rho_var;
     if (rho_cc_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
-                Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
+                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_idx);
+                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(rho_idx);
 
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    SAMRAICellIndex ci(it());
                     const double phi = (*ls_data)(ci);
                     const double h_phi = IBTK::smooth_heaviside(phi, alpha);
 
@@ -180,12 +199,12 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
         }
     }
 
-    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         // Note, this method requires ghost cells to be filled for the level set variable
-        RobinBcCoefStrategy<NDIM>* ls_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
-        IntVector<NDIM> cell_ghosts = 1;
+        SAMRAIRobinBcCoefStrategy* ls_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
+        SAMRAIIntVector cell_ghosts = 1;
         const int ls_scratch_idx = var_db->registerVariableAndContext(
             d_ls_gas_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -201,33 +220,33 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                                                          "LINEAR",
                                                          false,
                                                          ls_bc_coef);
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(ls_transaction, patch_hierarchy);
         hier_bdry_fill->fillData(time);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_scratch_idx);
-                Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
+                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_idx);
 // Various options to setting side-centered densities
 #define SMOOTH_SC_RHO_2_PHASE 1
 #define DESJARDINS_SC_RHO_2_PHASE 0
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                    for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                     {
-                        SideIndex<NDIM> si(it(), axis, 0);
+                        SAMRAISideIndex si(it(), axis, 0);
                         const double phi_lower = (*ls_data)(si.toCell(0));
                         const double phi_upper = (*ls_data)(si.toCell(1));
 #if (DESJARDINS_SC_RHO_2_PHASE)
@@ -272,15 +291,15 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
 
 void
 SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
-                                                   Pointer<Variable<NDIM> > rho_var,
-                                                   SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                   SAMRAIPointer<SAMRAIVariable> rho_var,
+                                                   SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                    const int /*cycle_num*/,
                                                    const double time,
                                                    const double current_time,
                                                    const double new_time)
 {
     // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     int ls_solid_idx = IBTK::invalid_index;
     int ls_gas_idx = IBTK::invalid_index;
@@ -310,22 +329,22 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Set the density based on the cell centered level set
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > rho_cc_var = rho_var;
 
     if (rho_cc_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
 
                 double vol_cell = 1.0;
@@ -333,15 +352,15 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                 const double beta = d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-                const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
-                Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
+                const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+                const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
+                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(rho_idx);
 
                 // Li et al, 2015
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    SAMRAICellIndex ci(it());
                     const double phi_s = (*ls_solid_data)(ci);
                     const double phi_g = (*ls_gas_data)(ci);
 
@@ -359,13 +378,13 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     }
 
     // Setting side centered density directly
-    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         // Note, this method requires ghost cells to be filled for the level set variable
-        RobinBcCoefStrategy<NDIM>* ls_solid_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var).front();
-        RobinBcCoefStrategy<NDIM>* ls_gas_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
-        IntVector<NDIM> cell_ghosts = 1;
+        SAMRAIRobinBcCoefStrategy* ls_solid_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var).front();
+        SAMRAIRobinBcCoefStrategy* ls_gas_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
+        SAMRAIIntVector cell_ghosts = 1;
         const int ls_solid_scratch_idx = var_db->registerVariableAndContext(
             d_ls_solid_var, var_db->getContext(d_object_name + "::SOLID::SCRATCH"), cell_ghosts);
         const int ls_gas_scratch_idx = var_db->registerVariableAndContext(
@@ -393,22 +412,22 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                                     "LINEAR",
                                                                     false,
                                                                     ls_gas_bc_coef);
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(ls_transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(time);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
-                const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
-                Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
+                const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
+                const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_idx);
 
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
@@ -424,9 +443,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 // Compute the indicators for both level sets
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                    for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                     {
-                        SideIndex<NDIM> si(it(), axis, 0);
+                        SAMRAISideIndex si(it(), axis, 0);
                         const double phi_solid_lower = (*ls_solid_data)(si.toCell(0));
                         const double phi_solid_upper = (*ls_solid_data)(si.toCell(1));
                         const double phi_gas_lower = (*ls_gas_data)(si.toCell(0));
@@ -516,15 +535,15 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // setDensityPatchData3PhaseFlows
 
     void SetFluidProperties::setViscosityPatchData2PhaseFlows(int mu_idx,
-                                                              Pointer<Variable<NDIM> > /*mu_var*/,
-                                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                              SAMRAIPointer<SAMRAIVariable> /*mu_var*/,
+                                                              SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                               const int /*cycle_num*/,
                                                               const double time,
                                                               const double current_time,
                                                               const double new_time)
     {
         // Get the current level set information
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         int ls_idx = IBTK::invalid_index;
         if (IBTK::rel_equal_eps(time, current_time))
         {
@@ -540,30 +559,30 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         }
 
         // Set the density based on the level set
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
+                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_idx);
                 if (!ls_data) TBOX_ERROR("This statement should not be reached");
-                Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
+                SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_idx);
 
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    SAMRAICellIndex ci(it());
                     const double phi = (*ls_data)(ci);
 
                     double h_phi = IBTK::smooth_heaviside(phi, alpha);
@@ -576,15 +595,15 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // setViscosityPatchData2PhaseFlows
 
     void SetFluidProperties::setViscosityPatchData3PhaseFlows(int mu_idx,
-                                                              Pointer<Variable<NDIM> > mu_var,
-                                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                              SAMRAIPointer<SAMRAIVariable> mu_var,
+                                                              SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                               const int /*cycle_num*/,
                                                               const double time,
                                                               const double current_time,
                                                               const double new_time)
     {
         // Get the current level set information
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         int ls_solid_idx = IBTK::invalid_index;
         int ls_gas_idx = IBTK::invalid_index;
 
@@ -614,20 +633,20 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             TBOX_ERROR("This statement should not be reached");
         }
 
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-        Pointer<CellVariable<NDIM, double> > mu_cc_var = mu_var;
+        SAMRAIPointer<SAMRAICellVariable<double> > mu_cc_var = mu_var;
         if (mu_cc_var)
         {
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                    SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                     const double* const patch_dx = patch_geom->getDx();
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
@@ -636,14 +655,14 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                     const double beta =
                         d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-                    const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
-                    Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
+                    const SAMRAIBox& patch_box = patch->getBox();
+                    const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+                    const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
+                    SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_idx);
 
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    for (SAMRAIBox::Iterator it(patch_box); it; it++)
                     {
-                        CellIndex<NDIM> ci(it());
+                        SAMRAICellIndex ci(it());
                         const double phi_s = (*ls_solid_data)(ci);
                         const double phi_g = (*ls_gas_data)(ci);
                         const double Hphi_s = IBTK::smooth_heaviside(phi_s, beta);
@@ -671,7 +690,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // setViscosityPatchData3PhaseFlows
 
     GravityForcing::GravityForcing(const std::string& object_name,
-                                   Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
+                                   SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
                                    std::vector<double> grav_const)
         : d_object_name(object_name), d_ins_hierarchy_integrator(ins_hierarchy_integrator), d_grav_const(grav_const)
     {
@@ -680,9 +699,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // GravityForcing
 
     GravityForcing::GravityForcing(const std::string& object_name,
-                                   Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                                   Pointer<CellVariable<NDIM, double> > ls_gas_var,
-                                   Pointer<Database> input_db,
+                                   SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                                   SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
+                                   SAMRAIPointer<Database> input_db,
                                    std::vector<double> grav_const)
         : d_object_name(object_name),
           d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
@@ -703,8 +722,8 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // isTimeDependent
 
     void GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                 Pointer<Variable<NDIM> > var,
-                                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                 SAMRAIPointer<SAMRAIVariable> var,
+                                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                  const double data_time,
                                                  const bool initial_time,
                                                  const int coarsest_ln_in,
@@ -713,7 +732,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
         const int finest_ln =
             (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
         if (d_grav_type == "FLOW")
         {
@@ -725,7 +744,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             const bool ls_gas_new_is_allocated = d_adv_diff_hierarchy_integrator->isAllocatedPatchData(ls_gas_new_idx);
             int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
 
-            IntVector<NDIM> cell_ghosts = 1;
+            SAMRAIIntVector cell_ghosts = 1;
             d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
                 d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
 
@@ -750,7 +769,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                   "LINEAR",
                                                   false,
                                                   d_adv_diff_hierarchy_integrator->getPhysicalBcCoefs(d_ls_gas_var));
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
             hier_bdry_fill->fillData(data_time);
         }
@@ -772,20 +791,20 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     } // setDataOnPatchHierarchy
 
     void GravityForcing::setDataOnPatch(const int data_idx,
-                                        Pointer<Variable<NDIM> > /*var*/,
-                                        Pointer<Patch<NDIM> > patch,
+                                        SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                        SAMRAIPointer<SAMRAIPatch> patch,
                                         const double /*data_time*/,
                                         const bool initial_time,
-                                        Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                        SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
     {
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(data_idx);
         if (initial_time)
         {
             f_data->fillAll(0.0);
             return;
         }
 
-        const Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAIBox& patch_box = patch->getBox();
         if (d_grav_type == "FULL")
         {
             // Get interpolated density variable
@@ -795,12 +814,12 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             TBOX_ASSERT(rho_ins_idx >= 0);
 #endif
 
-            const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+            const SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    SAMRAISideIndex s_i(it(), axis, SAMRAISideIndex::Lower);
                     (*f_data)(s_i) = ((*rho_data)(s_i)) * d_grav_const[axis];
                 }
             }
@@ -808,9 +827,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         else if (d_grav_type == "FLOW")
         {
             // Set the gravity force. In this version, the gravity force is reconstructed from the flow density field.
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(d_ls_gas_scratch_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(d_ls_gas_scratch_idx);
 
             double alpha = 1.0;
             for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
@@ -818,9 +837,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    SAMRAISideIndex s_i(it(), axis, SAMRAISideIndex::Lower);
 
                     // Reconstruct density
                     double phi_gas_lower = (*ls_gas_data)(s_i.toCell(0));

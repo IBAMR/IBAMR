@@ -26,12 +26,15 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
 
 #include <string>
 #include <vector>
@@ -77,14 +80,14 @@ public:
     /*!
      * \brief Provide a velocity subdomain solver.
      */
-    virtual void setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    virtual void setVelocitySubdomainSolver(SAMRAIPointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
-     * \brief Set the PoissonSpecifications object used to specify the
+     * \brief Set the SAMRAIPoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override;
+    void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs) override;
 
     /*!
      * \brief Indicate whether the preconditioner needs a pressure subdomain
@@ -95,16 +98,16 @@ public:
     /*!
      * \brief Provide a pressure subdomain solver.
      */
-    virtual void setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    virtual void setPressureSubdomainSolver(SAMRAIPointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
-     * \brief Set the PoissonSpecifications object used to specify the
+     * \brief Set the SAMRAIPoissonSpecifications object used to specify the
      * coefficients for the pressure-Poisson problem.
      */
-    virtual void setPressurePoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& P_problem_coefs);
+    virtual void setPressurePoissonSpecifications(const SAMRAIPoissonSpecifications& P_problem_coefs);
 
     /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * \brief Set the SAMRAIRobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
      * \note Any of the elements of \a U_bc_coefs may be nullptr.  In this case,
@@ -114,12 +117,12 @@ public:
      *
      * \param U_bc_coefs  vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     * \param P_bc_coef   SAMRAIPointer to object that can set the Robin boundary condition
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAIRobinBcCoefStrategy* P_bc_coef) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -138,8 +141,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                               const SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -158,22 +161,22 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullSpace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
-                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
+    void correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec,
+                          SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
-    SAMRAI::solv::PoissonSpecifications d_P_problem_coefs;
+    SAMRAIPointer<IBTK::PoissonSolver> d_velocity_solver;
+    SAMRAIPoissonSpecifications d_P_problem_coefs;
     const bool d_needs_pressure_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+    SAMRAIPointer<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx = IBTK::invalid_index, d_pressure_wgt_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
     /*!

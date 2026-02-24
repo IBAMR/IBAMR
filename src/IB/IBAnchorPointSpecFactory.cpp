@@ -17,9 +17,11 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 #include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -57,10 +59,10 @@ IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream, const SAMRAIIntVector& /*offset*/)
 {
-    Pointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
+    SAMRAIPointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
     stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
 } // unpackStream

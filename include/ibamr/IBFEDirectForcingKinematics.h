@@ -20,11 +20,13 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
 #include <ibtk/ibtk_utilities.h>
 
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
@@ -61,7 +63,7 @@ namespace IBAMR
  * \brief Class IBFEDirectForcingKinematics is a helper class that provides direct
  * forcing IBMethod functionality to the IBFEMethod class.
  */
-class IBFEDirectForcingKinematics : public SAMRAI::tbox::Serializable
+class IBFEDirectForcingKinematics : public SAMRAISerializable
 {
 public:
     /*!
@@ -75,8 +77,8 @@ public:
      * \brief Constructor.
      */
     IBFEDirectForcingKinematics(std::string object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method_ops,
+                                SAMRAIPointer<SAMRAIDatabase> input_db,
+                                SAMRAIPointer<IBAMR::IBFEMethod> ibfe_method_ops,
                                 int part,
                                 bool register_for_restart = true);
 
@@ -200,7 +202,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*!
@@ -221,7 +223,7 @@ protected:
     /*
      * IBFE method and the part number registered with IBFE method.
      */
-    SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> d_ibfe_method_ops;
+    SAMRAIPointer<IBAMR::IBFEMethod> d_ibfe_method_ops;
     int d_part;
 
     /*
@@ -296,7 +298,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

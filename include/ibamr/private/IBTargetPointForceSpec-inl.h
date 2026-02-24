@@ -23,9 +23,10 @@
 #include "ibamr/IBTargetPointForceSpec.h"
 
 #include "ibtk/StreamableManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIUtilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

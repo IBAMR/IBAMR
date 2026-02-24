@@ -17,8 +17,10 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/MathUtilities.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPointer.h"
 
 #include "petscis.h"
 #include "petscistypes.h"
@@ -28,7 +30,6 @@
 #include "Eigen/Core"
 
 #include <algorithm>
-#include <memory>
 
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 

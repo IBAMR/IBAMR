@@ -20,6 +20,11 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+
 #ifdef IBAMR_HAVE_LIBMESH
 
 #include "ibamr/ibamr_enums.h"
@@ -29,7 +34,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
-#include "tbox/Serializable.h"
+#include "SAMRAISerializable.h"
 
 #include "libmesh/coupling_matrix.h"
 #include "libmesh/enum_fe_family.h"
@@ -56,7 +61,7 @@ namespace IBAMR
  *     documentation of IBTK::FEProjector for more information.</li>
  * </ol>
  */
-class FEMechanicsBase : public SAMRAI::tbox::Serializable
+class FEMechanicsBase : public SAMRAISerializable
 {
 public:
     IBTK_DEPRECATED(
@@ -76,7 +81,7 @@ public:
      * Constructor for a single-part model.
      */
     FEMechanicsBase(const std::string& object_name,
-                    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                    const SAMRAIPointer<SAMRAIDatabase>& input_db,
                     libMesh::MeshBase* mesh,
                     bool register_for_restart = true,
                     const std::string& restart_read_dirname = "",
@@ -86,7 +91,7 @@ public:
      * Constructor for a multi-part model.
      */
     FEMechanicsBase(const std::string& object_name,
-                    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                    const SAMRAIPointer<SAMRAIDatabase>& input_db,
                     const std::vector<libMesh::MeshBase*>& meshes,
                     bool register_for_restart = true,
                     const std::string& restart_read_dirname = "",
@@ -478,7 +483,7 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * For technical reasons this class does not use SAMRAI's RestartManager, so
@@ -597,7 +602,7 @@ protected:
     /*!
      * Cached input databases.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_projector_db;
+    SAMRAIPointer<SAMRAIDatabase> d_fe_projector_db;
 
     /*!
      * Indicates whether the integrator should output logging messages.
@@ -778,7 +783,7 @@ private:
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
-                           const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                           const SAMRAIPointer<SAMRAIDatabase>& input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
                            bool register_for_restart,
                            const std::string& restart_read_dirname,
@@ -787,7 +792,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
+    void getFromInput(const SAMRAIPointer<SAMRAIDatabase>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

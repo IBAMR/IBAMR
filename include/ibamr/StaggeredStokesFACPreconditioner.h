@@ -23,9 +23,12 @@
 #include "ibamr/StaggeredStokesSolver.h"
 
 #include "ibtk/FACPreconditioner.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
 
 #include <string>
 #include <vector>
@@ -56,7 +59,7 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief Class StaggeredStokesFACPreconditioner is a FACPreconditioner that has
+ * \brief Class StaggeredStokesFACPreconditioner is a IBTK::FACPreconditioner that has
  * been specialized for Stokes problems.
  */
 class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
@@ -66,8 +69,8 @@ public:
      * Constructor.
      */
     StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     SAMRAIPointer<IBTK::FACPreconditionerStrategy> fac_strategy,
+                                     SAMRAIPointer<SAMRAIDatabase> input_db,
                                      const std::string& default_options_prefix);
 
     /*!
@@ -76,11 +79,11 @@ public:
     ~StaggeredStokesFACPreconditioner() = default;
 
     /*!
-     * \brief Set the PoissonSpecifications object used to specify the
+     * \brief Set the SAMRAIPoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override;
+    void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs) override;
 
     /*!
      * \brief Set if velocity and pressure have nullspace.
@@ -88,7 +91,7 @@ public:
     void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override;
 
     /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * \brief Set the SAMRAIRobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
      * \note Any of the elements of \a U_bc_coefs may be nullptr.  In this case,
@@ -98,18 +101,18 @@ public:
      *
      * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     * \param P_bc_coef   SAMRAIPointer to object that can set the Robin boundary condition
      *coefficients
      *for the pressure
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                            SAMRAIRobinBcCoefStrategy* P_bc_coef) override;
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    void setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
 private:
     /*!

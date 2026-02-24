@@ -20,6 +20,11 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIBox.h"
+#include "SAMRAICellIndex.h"
+
 #ifdef IBAMR_HAVE_LIBMESH
 
 #include "ibamr/IBFEMethod.h"
@@ -28,8 +33,8 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
-#include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 
 #include "libmesh/boundary_mesh.h"
 
@@ -53,7 +58,7 @@ public:
      * \brief The only constructor of this class.
      */
     FESurfaceDistanceEvaluator(std::string object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                               SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
                                const int gcw = 1,
@@ -77,7 +82,7 @@ public:
     /*!
      * \brief Get the map maintaining triangle-cell intersection and neighbors.
      */
-    const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
+    const std::map<SAMRAICellIndex, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
@@ -89,7 +94,7 @@ public:
      * \brief Update the sign of the distance function away from the finite element mesh.
      */
     void updateSignAwayFromInterface(int d_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                     SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                      double large_distance = s_large_distance);
 
     /*!
@@ -171,7 +176,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_patch_hierarchy;
 
     /*!
      * Volume mesh object
@@ -208,8 +213,7 @@ private:
      * and its neighboring cells within the ghost cell width. Note that the elements contained in thie
      * map belong to the original solid mesh.
      */
-    std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>
-        d_cell_elem_neighbor_map;
+    std::map<SAMRAICellIndex, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder> d_cell_elem_neighbor_map;
 
     /*!
      * Map the node and the set of elements sharing this node.
@@ -228,7 +232,7 @@ private:
     /*!
      * Object to create a bounding box for sign update sweeping algorithm.
      */
-    SAMRAI::hier::Box<NDIM> d_large_struct_box;
+    SAMRAIBox d_large_struct_box;
 };
 
 } // namespace IBAMR

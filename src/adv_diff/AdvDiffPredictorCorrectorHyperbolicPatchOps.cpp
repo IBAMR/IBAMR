@@ -20,27 +20,28 @@
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellVariable.h"
-#include "FaceData.h"
-#include "FaceVariable.h"
-#include "HyperbolicLevelIntegrator.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchCellDataOpsReal.h"
-#include "PatchData.h"
-#include "PatchLevel.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIHyperbolicLevelIntegrator.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchCellDataOpsReal.h"
+#include "SAMRAIPatchData.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <map>
 #include <ostream>
@@ -162,9 +163,9 @@ namespace IBAMR
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
     std::string object_name,
-    Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+    SAMRAIPointer<SAMRAIDatabase> input_db,
+    SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(std::move(object_name),
                                                    input_db,
@@ -177,47 +178,47 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
 } // AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch<NDIM>& patch,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(SAMRAIPatch& patch,
                                                                            const double /*time*/,
                                                                            const double dt,
                                                                            bool /*at_synchronization*/)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& ilower = patch_box.lower();
+    const SAMRAIIndex& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellData<NDIM, double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            Pointer<FaceVariable<NDIM, double> > flux_integral_var = d_flux_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM, double> > q_integral_var = d_q_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM, double> > u_integral_var = d_u_integral_var[u_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double> > flux_integral_var = d_flux_integral_var[Q_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double> > q_integral_var = d_q_integral_var[Q_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double> > u_integral_var = d_u_integral_var[u_var];
 
-            Pointer<FaceData<NDIM, double> > flux_integral_data =
+            SAMRAIPointer<SAMRAIFaceData<double> > flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     Pointer<PatchData<NDIM> >(nullptr));
-            Pointer<FaceData<NDIM, double> > q_integral_data =
+                                     SAMRAIPointer<SAMRAIPatchData>(nullptr));
+            SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(nullptr));
-            Pointer<FaceData<NDIM, double> > u_integral_data =
+                                                        SAMRAIPointer<SAMRAIPatchData>(nullptr));
+            SAMRAIPointer<SAMRAIFaceData<double> > u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(nullptr));
+                                                        SAMRAIPointer<SAMRAIPatchData>(nullptr));
 
-            const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-            const IntVector<NDIM>& flux_integral_data_ghost_cells =
+            const SAMRAIIntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
+            const SAMRAIIntVector& flux_integral_data_ghost_cells =
                 (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& q_integral_data_ghost_cells =
+            const SAMRAIIntVector& q_integral_data_ghost_cells =
                 (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& u_integral_data_ghost_cells =
+            const SAMRAIIntVector& u_integral_data_ghost_cells =
                 (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
 
             switch (d_Q_difference_form[Q_var])
@@ -327,11 +328,11 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
             }
             case ADVECTIVE:
             {
-                CellData<NDIM, double> N_data(patch_box, Q_data->getDepth(), 0);
+                SAMRAICellData<double> N_data(patch_box, Q_data->getDepth(), 0);
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
-                PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+                SAMRAIPatchCellDataOpsReal<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
-                    Q_data, -1.0 / (dt * dt), Pointer<CellData<NDIM, double> >(&N_data, false), patch_box);
+                    Q_data, -1.0 / (dt * dt), SAMRAIPointer<SAMRAICellData<double> >(&N_data, false), patch_box);
                 break;
             }
             default:
@@ -355,7 +356,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
 } // conservativeDifferenceOnPatch
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const SAMRAIPointer<SAMRAIPatchLevel>& level,
                                                                          double current_time,
                                                                          double /*dt*/,
                                                                          bool /*first_step*/,
@@ -369,7 +370,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
         }
@@ -378,7 +379,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
 } // preprocessAdvanceLevelState
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const SAMRAIPointer<SAMRAIPatchLevel>& level,
                                                                           double current_time,
                                                                           double dt,
                                                                           bool /*first_step*/,
@@ -392,7 +393,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time + dt);
         }

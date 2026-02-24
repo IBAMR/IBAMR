@@ -15,8 +15,11 @@
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 
-#include "tbox/Database.h"
-#include "tbox/RestartManager.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
 
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
@@ -32,7 +35,7 @@ BrinkmanPenalizationStrategy::BrinkmanPenalizationStrategy(std::string object_na
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
     return;
 } // BrinkmanPenalizationStrategy
@@ -41,7 +44,7 @@ BrinkmanPenalizationStrategy::~BrinkmanPenalizationStrategy()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -73,7 +76,7 @@ BrinkmanPenalizationStrategy::postprocessComputeBrinkmanPenalization(double /*cu
 } // postprocessComputeBrinkmanPenalization
 
 void
-BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
+BrinkmanPenalizationStrategy::putToDatabase(SAMRAIPointer<SAMRAIDatabase> /*db*/)
 {
     return;
 } // putToDatabase

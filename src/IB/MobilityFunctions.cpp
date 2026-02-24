@@ -15,7 +15,9 @@
 
 #include "ibamr/MobilityFunctions.h"
 
-#include "tbox/Utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIUtilities.h"
 
 #include <cmath>
 #include <cstdlib>

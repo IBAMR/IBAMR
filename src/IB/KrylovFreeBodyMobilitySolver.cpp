@@ -20,14 +20,15 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 
+#include "ibtk/samrai_compatibility_names.h"
 #include "ibtk/solver_utilities.h"
 
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAITimer.h"
+#include "SAMRAITimerManager.h"
+#include "SAMRAIUtilities.h"
 
 #include "petscksp.h"
 #include "petscmat.h"
@@ -50,17 +51,17 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_system;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(std::string object_name,
-                                                           Pointer<Database> input_db,
+                                                           SAMRAIPointer<SAMRAIDatabase> input_db,
                                                            std::string default_options_prefix,
-                                                           Pointer<CIBStrategy> cib_strategy,
+                                                           SAMRAIPointer<CIBStrategy> cib_strategy,
                                                            MPI_Comm petsc_comm)
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
@@ -82,12 +83,12 @@ KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(std::string object_na
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
     }
 
-    IBAMR_DO_ONCE(
-        t_solve_system = TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::solveSystem()");
-        t_initialize_solver_state =
-            TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::initializeSolverState()");
-        t_deallocate_solver_state =
-            TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::deallocateSolverState()"););
+    IBAMR_DO_ONCE(t_solve_system =
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::solveSystem()");
+                  t_initialize_solver_state = SAMRAITimerManager::getManager()->getTimer(
+                      "IBAMR::KrylovFreeBodyMobilitySolver::initializeSolverState()");
+                  t_deallocate_solver_state = SAMRAITimerManager::getManager()->getTimer(
+                      "IBAMR::KrylovFreeBodyMobilitySolver::deallocateSolverState()"););
 } // KrylovFreeBodyMobilitySolver
 
 KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
@@ -108,7 +109,7 @@ KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
 } // ~KrylovFreeBodyMobilitySolver
 
 void
-KrylovFreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobility_solver)
+KrylovFreeBodyMobilitySolver::setMobilitySolver(SAMRAIPointer<CIBMobilitySolver> mobility_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(mobility_solver);

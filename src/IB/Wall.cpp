@@ -15,10 +15,14 @@
 
 #include "ibamr/Wall.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "tbox/Database.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
 
 #include <cmath>
 
@@ -32,11 +36,13 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry, double wall_ghost_dist)
+Wall::Wall(SAMRAIPointer<SAMRAIDatabase> wall_db,
+           SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry,
+           double wall_ghost_dist)
 {
     // get geometry for the wall force box and scaling from cells to numerical
     // postions
-    const Box<NDIM> domain_box = grid_geometry->getPhysicalDomain()[0];
+    const SAMRAIBox domain_box = grid_geometry->getPhysicalDomain()[0];
     const double* dx = grid_geometry->getDx();
 
     // get direction the wall is facing, dim
@@ -88,7 +94,7 @@ Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid
         TBOX_ERROR("walls must have a force_distance parameter");
     }
 
-    Box<NDIM> force_box = domain_box;
+    SAMRAIBox force_box = domain_box;
 
     if (d_side == 0)
     {
@@ -150,7 +156,7 @@ Wall::registerWallForceFcn(WallForceFcnPtr wall_force_fcn)
     return;
 } // registerWallForceFcn
 
-Box<NDIM>
+SAMRAIBox
 Wall::getForceArea()
 {
     return d_force_area;

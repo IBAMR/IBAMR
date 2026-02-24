@@ -22,7 +22,10 @@
 
 #include "ibamr/WaveUtilities.h"
 
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
 
 #include <string>
 
@@ -45,7 +48,7 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    StokesWaveGeneratorStrategy(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    StokesWaveGeneratorStrategy(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor of the class.
@@ -117,7 +120,7 @@ protected:
     /*!
      * Get wave parameters from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
 }; // StokesWaveGeneratorStrategy
 

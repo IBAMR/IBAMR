@@ -32,27 +32,29 @@
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellVariable.h"
-#include "FaceData.h"
-#include "FaceVariable.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIFaceVariable.h"
+#include "SAMRAIIndex.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <string>
 #include <vector>
@@ -90,23 +92,23 @@ public:
      * "DEFAULT", "CENTERED", "CUI", "PPM", or "WAVE_PROP"
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                              SAMRAIPointer<SAMRAIDatabase> input_db,
                               const std::string& convective_op_type,
                               ConvectiveDifferencingType difference_type,
-                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+                              const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coefs,
+                              const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs);
 
     /*!
      * Constructor that takes in a convective operator
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                              SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
+                              SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                              SAMRAIPointer<SAMRAIDatabase> input_db,
+                              SAMRAIPointer<ConvectiveOperator> convective_op,
                               ConvectiveDifferencingType difference_type,
-                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+                              const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coefs,
+                              const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs);
 
     CFUpperConvectiveOperator() = delete;
 
@@ -119,8 +121,8 @@ public:
 
     void applyConvectiveOperator(int Q_idx, int Y_idx) override;
 
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     void deallocateOperatorState() override;
 
@@ -129,28 +131,28 @@ public:
      * evolved version of the tensor, and therefore must first be converted from the square root or logarithm to the
      * tensor.
      */
-    void registerCFStrategy(SAMRAI::tbox::Pointer<IBAMR::CFStrategy> cf_strategy);
+    void registerCFStrategy(SAMRAIPointer<IBAMR::CFStrategy> cf_strategy);
 
 private:
-    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void commonConstructor(SAMRAIPointer<SAMRAIDatabase> input_db);
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > d_u_adv_var;
     int d_u_scratch_idx = IBTK::invalid_index;
 
     // Source function data.
-    SAMRAI::tbox::Pointer<IBAMR::CFStrategy> d_cf_strategy;
+    SAMRAIPointer<IBAMR::CFStrategy> d_cf_strategy;
     int d_s_idx = IBTK::invalid_index;
 
     // Convective Operator
-    SAMRAI::tbox::Pointer<IBAMR::ConvectiveOperator> d_convec_oper;
+    SAMRAIPointer<IBAMR::ConvectiveOperator> d_convec_oper;
     int d_Q_convec_idx = IBTK::invalid_index;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_Q_bc_coefs;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    const std::vector<SAMRAIRobinBcCoefStrategy*> d_Q_bc_coefs;
+    const std::vector<SAMRAIRobinBcCoefStrategy*> d_u_bc_coefs;
     TensorEvolutionType d_evolve_type = STANDARD;
     std::string d_interp_type = "LINEAR";
 };

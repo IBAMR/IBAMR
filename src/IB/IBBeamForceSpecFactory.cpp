@@ -17,11 +17,12 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 #include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
 
-#include <memory>
 #include <vector>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -60,12 +61,12 @@ IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const SAMRAIIntVector& /*offset*/)
 {
     int num_beams;
     stream.unpack(&num_beams, 1);
-    Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
+    SAMRAIPointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
     stream.unpack(tmp_neighbor_idxs.data(), 2 * num_beams);

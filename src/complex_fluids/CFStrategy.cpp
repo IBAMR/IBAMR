@@ -14,8 +14,9 @@
 #include "ibamr/CFStrategy.h"
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIUtilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <unsupported/Eigen/MatrixFunctions>

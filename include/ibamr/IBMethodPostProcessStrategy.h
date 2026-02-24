@@ -20,6 +20,10 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
 #include "tbox/DescribedClass.h"
 
 #include <vector>
@@ -75,10 +79,10 @@ public:
     virtual void postprocessData(int u_idx,
                                  int p_idx,
                                  int f_idx,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 const std::vector<SAMRAIPointer<IBTK::LData> >& F_data,
+                                 const std::vector<SAMRAIPointer<IBTK::LData> >& X_data,
+                                 const std::vector<SAMRAIPointer<IBTK::LData> >& U_data,
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  int coarsest_level_number,
                                  int finest_level_number,
                                  double data_time,

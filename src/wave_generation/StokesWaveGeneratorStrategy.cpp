@@ -15,7 +15,10 @@
 
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 
-#include "tbox/Database.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
 
 #include <limits>
 
@@ -27,7 +30,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StokesWaveGeneratorStrategy::StokesWaveGeneratorStrategy(const std::string& object_name, Pointer<Database> input_db)
+StokesWaveGeneratorStrategy::StokesWaveGeneratorStrategy(const std::string& object_name,
+                                                         SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     d_object_name = object_name;
 #if !defined(NDEBUG)
@@ -73,9 +77,9 @@ StokesWaveGeneratorStrategy::getGravity() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-StokesWaveGeneratorStrategy::getFromInput(Pointer<Database> input_db)
+StokesWaveGeneratorStrategy::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
-    Pointer<Database> wave_db = input_db;
+    SAMRAIPointer<SAMRAIDatabase> wave_db = input_db;
     if (input_db->isDatabase("wave_parameters_db"))
     {
         wave_db = input_db->getDatabase("wave_parameters_db");

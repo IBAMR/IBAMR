@@ -22,6 +22,12 @@
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -63,11 +69,11 @@ public:
      * \brief Constructor of the class.
      */
     CarmanKozenyDragForce(std::string object_name,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                          SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                          SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                          SAMRAIPointer<SAMRAICellVariable<double> > H_var,
+                          SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+                          SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                          SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
+                          SAMRAIPointer<SAMRAIDatabase> input_db,
                           bool register_for_restart = true);
 
     /*
@@ -100,24 +106,24 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*!
      * \brief Pointers to solvers.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
 
     /*!
      * \brief Heaviside variable defining the gas-pcm interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_H_var;
 
     /*!
      * \brief Liquid fraction variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_var;
 
 private:
     /*!
@@ -146,7 +152,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

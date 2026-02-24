@@ -23,9 +23,12 @@
 #include "ibamr/IBLagrangianSourceStrategy.h"
 
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include <string>
 #include <vector>
@@ -56,7 +59,7 @@ namespace IBAMR
  * \brief Class IBStandardSourceGen provides support for distributed internal
  * fluid sources/sinks.
  */
-class IBStandardSourceGen : public IBLagrangianSourceStrategy, public SAMRAI::tbox::Serializable
+class IBStandardSourceGen : public IBLagrangianSourceStrategy, public SAMRAISerializable
 {
 public:
     /*!
@@ -134,7 +137,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -147,7 +150,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    unsigned int getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    unsigned int getNumSources(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                int level_number,
                                double data_time,
                                IBTK::LDataManager* l_data_manager) override;
@@ -162,8 +165,8 @@ public:
      */
     void getSourceLocations(std::vector<IBTK::Point>& X_src,
                             std::vector<double>& r_src,
-                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAIPointer<IBTK::LData> X_data,
+                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                             int level_number,
                             double data_time,
                             IBTK::LDataManager* l_data_manager) override;
@@ -172,7 +175,7 @@ public:
      * \brief Set the normalized pressures at the sources.
      */
     void setSourcePressures(const std::vector<double>& P_src,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                             int level_number,
                             double data_time,
                             IBTK::LDataManager* l_data_manager) override;
@@ -186,7 +189,7 @@ public:
      * the strengths of all of the distributed sources/sinks.
      */
     void computeSourceStrengths(std::vector<double>& Q_src,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                 int level_number,
                                 double data_time,
                                 IBTK::LDataManager* l_data_manager) override;
@@ -196,7 +199,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 private:
     /*!

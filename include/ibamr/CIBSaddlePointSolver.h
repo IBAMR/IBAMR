@@ -21,9 +21,16 @@
 #include <ibamr/config.h>
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/samrai_compatibility_names.h"
 
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIVariableFillPattern.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 #include "petscksp.h"
 
@@ -118,9 +125,9 @@ public:
      * PETSc KSP solver framework.
      */
     CIBSaddlePointSolver(std::string object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                         SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                         SAMRAIPointer<SAMRAIDatabase> input_db,
+                         SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                         SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                          std::string default_options_prefix,
                          MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -144,7 +151,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& u_problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -161,25 +168,25 @@ public:
      * \param p_bc_coef   Pointer to object that can set the Robin boundary
      * condition coefficients for the pressure.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs,
+                            SAMRAIRobinBcCoefStrategy* p_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(SAMRAIPointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Return the linear operator for the saddle-point solver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearOperator> getA() const;
+    SAMRAIPointer<IBTK::LinearOperator> getA() const;
 
     /*!
      * \brief Return the Stokes solver used in the preconditioner of the
      * solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
+    SAMRAIPointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
 
     //\{
     // Return the scaling factors used by scale the system of equations.
@@ -259,7 +266,7 @@ public:
     /*!
      * \brief Get the mobility solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> getCIBMobilitySolver() const;
+    SAMRAIPointer<IBAMR::CIBMobilitySolver> getCIBMobilitySolver() const;
 
     //////////////////////////////////////////////////////////////////////////////
 private:
@@ -286,7 +293,7 @@ private:
     /*!
      * \brief Get options from input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      *\brief Routine to destroy KSP object.
@@ -296,8 +303,8 @@ private:
     /*!
      * \brief Initialize the Stokes solver needed in the preconditioning step.
      */
-    void initializeStokesSolver(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
+    void initializeStokesSolver(const SAMRAISAMRAIVectorReal<double>& sol_vec,
+                                const SAMRAISAMRAIVectorReal<double>& rhs_vec);
 
     /*!
      * \brief Routine to setup KSP object.
@@ -354,7 +361,7 @@ private:
     MPI_Comm d_petsc_comm;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr;
-    SAMRAI::tbox::Pointer<IBAMR::CIBStaggeredStokesOperator> d_A;
+    SAMRAIPointer<IBAMR::CIBStaggeredStokesOperator> d_A;
 
     int d_max_iterations = 10000, d_current_iterations;
     double d_abs_residual_tol = 1.0e-50, d_rel_residual_tol = 1.0e-5;
@@ -363,11 +370,11 @@ private:
     bool d_enable_logging = false;
 
     // Preconditioner stuff
-    SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mob_solver;
+    SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
+    SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_LInv;
+    SAMRAIPointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
+    SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    SAMRAIPointer<IBAMR::CIBMobilitySolver> d_mob_solver;
 
     // Book-keeping
     const unsigned int d_num_rigid_parts;
@@ -377,15 +384,15 @@ private:
     bool d_normalize_spread_force = false;
 
     // Velocity BCs and cached communication operators for interpolation operation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_u_bc_coefs;
+    SAMRAIPointer<SAMRAIVariableFillPattern> d_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Null space vectors for LInv
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

@@ -37,38 +37,40 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "CellVariable.h"
-#include "ComponentSelector.h"
-#include "EdgeVariable.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HierarchyDataOpsReal.h"
-#include "HierarchyEdgeDataOpsReal.h"
-#include "HierarchyFaceDataOpsReal.h"
-#include "HierarchyNodeDataOpsReal.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
-#include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
-#include "NodeVariable.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VisItDataWriter.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIComponentSelector.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIEdgeVariable.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIHierarchyEdgeDataOpsReal.h"
+#include "SAMRAIHierarchyFaceDataOpsReal.h"
+#include "SAMRAIHierarchyNodeDataOpsReal.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAILocationIndexRobinBcCoefs.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAINodeVariable.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
+#include "SAMRAIVisItDataWriter.h"
 
 #include <algorithm>
 #include <deque>
@@ -112,9 +114,10 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(std::string object_name,
-                                                                                             Pointer<Database> input_db,
-                                                                                             bool register_for_restart)
+INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(
+    std::string object_name,
+    SAMRAIPointer<SAMRAIDatabase> input_db,
+    bool register_for_restart)
     : INSVCStaggeredHierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
       d_rho_sc_bc_coefs(NDIM, nullptr)
 {
@@ -133,7 +136,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     }
 
     // Initialize conservative mass and momentum integrator.
-    Pointer<Database> mass_momentum_db = input_db->getDatabase("mass_momentum_integrator_db");
+    SAMRAIPointer<SAMRAIDatabase> mass_momentum_db = input_db->getDatabase("mass_momentum_integrator_db");
     if (mass_momentum_db->getString("density_time_stepping_type") == "SSPRK3" ||
         mass_momentum_db->getString("density_time_stepping_type") == "SSPRK2")
         d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
@@ -146,16 +149,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
 
     // Side centered state variable for density and interpolated density variable
     // for plotting.
-    d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
-    d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
+    d_rho_sc_var = new SAMRAISideVariable<double>(d_object_name + "::rho_sc");
+    d_rho_interp_cc_var = new SAMRAICellVariable<double>(d_object_name + "::rho_interp_cc", NDIM);
 
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -164,8 +167,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     // Get the density variable, which must be side-centered and maintained by the
     // INS integrator for
     // this conservative discretization form.
-    const IntVector<NDIM> side_ghosts = SIDEG;
-    const IntVector<NDIM> no_ghosts = 0;
+    const SAMRAIIntVector side_ghosts = SIDEG;
+    const SAMRAIIntVector no_ghosts = 0;
     if (INSVCStaggeredHierarchyIntegrator::d_rho_var)
     {
         d_rho_sc_var = INSVCStaggeredHierarchyIntegrator::d_rho_var;
@@ -202,7 +205,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Set various objects with conservative time integrator.
-    Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+    SAMRAIPointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
     rho_p_rk_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
     d_rho_p_integrator->setDensityBoundaryConditions(d_rho_sc_bc_coefs);
     if (d_S_fcn) rho_p_rk_integrator->setMassDensitySourceTerm(d_S_fcn);
@@ -211,8 +214,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 } // initializeHierarchyIntegrator
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+INSVCStaggeredConservativeHierarchyIntegrator::initializePatchHierarchy(
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
     return;
@@ -271,7 +275,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Get the current value of viscosity
     if (!d_mu_is_const)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         int mu_current_idx;
         if (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var)
         {
@@ -354,7 +358,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         TBOX_ERROR("this statement should not be reached");
     }
 
-    PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
+    SAMRAIPoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
     U_rhs_problem_coefs.setCConstant(-K_rhs * lambda);
 
     // rhs_D_{ec,nc} = K * mu
@@ -387,7 +391,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);
 
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr,
@@ -405,9 +409,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(nullptr),
+                                SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
+                                SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,
@@ -452,7 +456,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
@@ -555,7 +559,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
 
     if (!d_mu_is_const)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         int mu_new_idx;
         if (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var)
         {
@@ -749,7 +753,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int U_adv_diff_new_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
@@ -818,7 +822,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(con
 } // postprocessIntegrateHierarchy
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
+INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec)
 {
     INSVCStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
     return;
@@ -826,12 +831,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(const Pointer<SAM
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensityBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>* rho_bc_coef)
+    SAMRAIRobinBcCoefStrategy* rho_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
-    std::vector<RobinBcCoefStrategy<NDIM>*> rho_sc_bc_coefs(NDIM);
+    std::vector<SAMRAIRobinBcCoefStrategy*> rho_sc_bc_coefs(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) rho_sc_bc_coefs[d] = rho_bc_coef;
     d_rho_sc_bc_coefs = rho_sc_bc_coefs;
     return;
@@ -839,7 +844,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensityBoundaryCondit
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
+    const std::vector<SAMRAIRobinBcCoefStrategy*>& rho_sc_bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -850,7 +855,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensityBoundaryCondit
 } // registerMassDensityBoundaryConditions
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFunction> S_fcn)
+INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(SAMRAIPointer<CartGridFunction> S_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -875,7 +880,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::getNumberOfCycles() const
     return d_num_cycles;
 } // getNumberOfCycles
 
-Pointer<ConvectiveOperator>
+SAMRAIPointer<ConvectiveOperator>
 INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveOperator()
 {
     d_convective_op.setNull();
@@ -887,12 +892,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveOperator()
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level,
+    const SAMRAIPointer<SAMRAIBasePatchLevel> base_old_level,
     const bool allocate_data)
 {
     INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
@@ -902,7 +907,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -915,7 +920,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecia
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+    const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index,
@@ -932,9 +937,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupPlotDataSpecialized()
 {
     INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized();
 
-    Pointer<VariableContext> ctx = getCurrentContext();
+    SAMRAIPointer<SAMRAIVariableContext> ctx = getCurrentContext();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     static const bool synch_cf_interface = true;
 
     // Put interpolated rho onto cell centers for plotting purposes.
@@ -974,14 +979,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
     const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
     // Setup the solver vectors.
-    SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
     rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     // Allocate temporary data.
-    ComponentSelector scratch_idxs;
+    SAMRAIComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_U_scratch_idx);
     scratch_idxs.setFlag(d_P_scratch_idx);
     scratch_idxs.setFlag(d_pressure_D_idx);
@@ -991,12 +996,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
     }
 
     // Setup the regrid Poisson solver.
-    Pointer<PoissonSolver> regrid_projection_solver =
+    SAMRAIPointer<PoissonSolver> regrid_projection_solver =
         CCPoissonSolverManager::getManager()->allocateSolver(d_regrid_projection_solver_type,
                                                              d_object_name + "::regrid_projection_solver",
                                                              d_regrid_projection_solver_db,
@@ -1005,7 +1010,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
                                                              d_object_name + "::regrid_projection_precond",
                                                              d_regrid_projection_precond_db,
                                                              "regrid_projection_pc_");
-    PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
+    SAMRAIPoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
 
     // Get the current value of density
@@ -1035,7 +1040,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
 
     regrid_projection_spec.setDPatchDataId(d_pressure_D_idx);
 
-    LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
+    SAMRAILocationIndexRobinBcCoefs Phi_bc_coef;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -1095,7 +1100,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
                                                        d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
@@ -1115,7 +1120,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection(const bool initi
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -1152,8 +1157,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     default:
         TBOX_ERROR("this statement should not be reached");
     }
-    PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
-    PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
+    SAMRAIPoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
+    SAMRAIPoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1384,8 +1389,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
-    const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
-    const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
     const double current_time,
     const double new_time,
     const int /*cycle_num*/)
@@ -1475,8 +1480,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
-    const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
-    const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
     const double current_time,
     const double /*new_time*/,
     const int /*cycle_num*/)

@@ -26,32 +26,34 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "CartesianGridGeometry.h"
-#include "CellVariable.h"
-#include "CoarsenSchedule.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIBasePatchHierarchy.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIHierarchySideDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIMathUtilities.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineAlgorithm.h"
+#include "SAMRAIRefineOperator.h"
+#include "SAMRAIRefineSchedule.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAISideVariable.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include "petscvec.h"
 #include <petscsys.h>
@@ -133,7 +135,7 @@ set_rotation_matrix(const std::vector<Eigen::Vector3d>& rot_vel,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBInterpolantMethod::IBInterpolantMethod(std::string object_name,
-                                         Pointer<Database> input_db,
+                                         SAMRAIPointer<SAMRAIDatabase> input_db,
                                          int no_structures,
                                          bool register_for_restart)
     : d_num_rigid_parts(no_structures),
@@ -143,7 +145,7 @@ IBInterpolantMethod::IBInterpolantMethod(std::string object_name,
     // Register object with the restart manager.
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     // Set some default values.
@@ -159,7 +161,7 @@ IBInterpolantMethod::IBInterpolantMethod(std::string object_name,
                         LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -187,7 +189,7 @@ IBInterpolantMethod::~IBInterpolantMethod()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -196,7 +198,7 @@ IBInterpolantMethod::~IBInterpolantMethod()
 void
 IBInterpolantMethod::registerEulerianVariables()
 {
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
+    const SAMRAIIntVector ib_ghosts = getMinimumGhostCellWidth();
     for (auto& q_pair : d_q_interp_idx)
     {
         const std::string& var_name = q_pair.first;
@@ -210,8 +212,8 @@ IBInterpolantMethod::registerEulerianVariables()
 void
 IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
 {
-    Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+    SAMRAIPointer<SAMRAIRefineAlgorithm> ghost_fill_alg = new SAMRAIRefineAlgorithm();
+    SAMRAIPointer<SAMRAIRefineOperator> refine_op = nullptr;
 
     for (const auto& q_pair : d_q_interp_idx)
     {
@@ -226,8 +228,8 @@ IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
 void
 IBInterpolantMethod::registerVariableAndHierarchyIntegrator(const std::string& var_name,
                                                             const int var_depth,
-                                                            Pointer<Variable<NDIM> > var,
-                                                            Pointer<HierarchyIntegrator> hier_integrator)
+                                                            SAMRAIPointer<SAMRAIVariable> var,
+                                                            SAMRAIPointer<HierarchyIntegrator> hier_integrator)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_q_var.find(var_name) == d_q_var.end());
@@ -245,7 +247,7 @@ IBInterpolantMethod::registerVariableAndHierarchyIntegrator(const std::string& v
 } // registerVariableAndHierarchyIntegrator
 
 void
-IBInterpolantMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
+IBInterpolantMethod::registerLInitStrategy(SAMRAIPointer<LInitStrategy> l_initializer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
@@ -289,7 +291,7 @@ IBInterpolantMethod::getStructureHandle(const int lag_idx) const
 } // getStructureHandle
 
 void
-IBInterpolantMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+IBInterpolantMethod::registerLSiloDataWriter(SAMRAIPointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -299,14 +301,15 @@ IBInterpolantMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_write
     return;
 } // registerLSiloDataWriter
 
-const IntVector<NDIM>&
+const SAMRAIIntVector&
 IBInterpolantMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IBInterpolantMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBInterpolantMethod::setupTagBuffer(SAMRAIArray<int>& tag_buffer,
+                                    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -419,10 +422,11 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
 } // postprocessIntegrateData
 
 void
-IBInterpolantMethod::interpolateVelocity(const int /*u_data_idx*/,
-                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                                         const double /*data_time*/)
+IBInterpolantMethod::interpolateVelocity(
+    const int /*u_data_idx*/,
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+    const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl);
     return;
@@ -432,9 +436,9 @@ void
 IBInterpolantMethod::interpolateQ(const double data_time)
 {
     int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData> >* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<Pointer<LData> >* Q_data;
+    std::vector<SAMRAIPointer<LData> >* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -445,7 +449,7 @@ IBInterpolantMethod::interpolateQ(const double data_time)
         d_l_data_manager->interp(q_data_idx,
                                  *Q_data,
                                  *X_data,
-                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(finest_ln + 1, nullptr),
+                                 std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(finest_ln + 1, nullptr),
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
                                  data_time);
     }
@@ -513,7 +517,7 @@ IBInterpolantMethod::updateMeshPosition(double current_time,
         boost::multi_array_ref<double, 2>& X_new_array = *d_X_new_data[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X0_array =
             *(d_l_data_manager->getLData("X0", ln)->getLocalFormVecArray());
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -572,7 +576,7 @@ IBInterpolantMethod::computeLagrangianForce(double /*data_time*/)
 void
 IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,
                                  RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                                 const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
                                  const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::spreadForce(). This method is not implemented." << std::endl);
@@ -583,9 +587,9 @@ void
 IBInterpolantMethod::spreadQ(double data_time)
 {
     int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(finest_ln);
-    const IntVector<NDIM>& ratio = finest_level->getRatio();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAIPatchLevel> finest_level = d_hierarchy->getPatchLevel(finest_ln);
+    const SAMRAIIntVector& ratio = finest_level->getRatio();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* dx0 = grid_geom->getDx();
     std::array<double, NDIM> dx;
     PetscScalar vol = 1.0;
@@ -595,9 +599,9 @@ IBInterpolantMethod::spreadQ(double data_time)
         vol *= dx[i];
     }
 
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData> >* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<Pointer<LData> >* Q_data;
+    std::vector<SAMRAIPointer<LData> >* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -629,11 +633,11 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(double data_time)
 
 void
 IBInterpolantMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
     int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
     int /*integrator_step*/,
     double /*init_data_time*/,
     bool initial_time)
@@ -656,7 +660,7 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     // Initialize initial center of mass of structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X0_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<SAMRAIPointer<LData> > X0_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X0_data_vec[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
     computeCenterOfMass(d_center_of_mass_initial, X0_data_vec);
 
@@ -669,35 +673,35 @@ IBInterpolantMethod::initializePatchHierarchy(
 } // initializePatchHierarchy
 
 void
-IBInterpolantMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBInterpolantMethod::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy, const int workload_data_idx)
 {
     d_l_data_manager->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
 } // addWorkloadEstimate
 
 void
-IBInterpolantMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                             Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBInterpolantMethod::beginDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                             SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
 void
-IBInterpolantMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                           Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBInterpolantMethod::endDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                           SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 } // endDataRedistribution
 
 void
-IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBInterpolantMethod::initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                          int level_number,
                                          double init_data_time,
                                          bool can_be_refined,
                                          bool initial_time,
-                                         Pointer<BasePatchLevel<NDIM> > old_level,
+                                         SAMRAIPointer<SAMRAIBasePatchLevel> old_level,
                                          bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -711,7 +715,8 @@ IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hier
         {
             const std::string& Q_name = Q_pair.first;
             const int Q_depth = d_q_depth[Q_name];
-            Pointer<LData> Q_data = d_l_data_manager->createLData(Q_name, level_number, Q_depth, /*manage_data*/ true);
+            SAMRAIPointer<LData> Q_data =
+                d_l_data_manager->createLData(Q_name, level_number, Q_depth, /*manage_data*/ true);
         }
     }
 
@@ -719,7 +724,7 @@ IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hier
 } // initializeLevelData
 
 void
-IBInterpolantMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBInterpolantMethod::resetHierarchyConfiguration(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                  int coarsest_level,
                                                  int finest_level)
 {
@@ -732,14 +737,14 @@ IBInterpolantMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM
 } // resetHierarchyConfiguration
 
 void
-IBInterpolantMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBInterpolantMethod::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
                                            int level_number,
                                            double error_data_time,
                                            int tag_index,
                                            bool initial_time,
                                            bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -753,7 +758,7 @@ IBInterpolantMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > ba
 } // applyGradientDetector
 
 void
-IBInterpolantMethod::putToDatabase(Pointer<Database> db)
+IBInterpolantMethod::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     db->putInteger("IB_INTERPOLANT_METHOD_VERSION", IB_INTERPOLANT_METHOD_VERSION);
     db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
@@ -784,7 +789,7 @@ IBInterpolantMethod::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBInterpolantMethod::getPositionData(std::vector<Pointer<LData> >** X_data, double data_time)
+IBInterpolantMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -808,10 +813,10 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
 {
     int q_hier_idx = invalid_index;
 
-    Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    SAMRAIPointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
+    SAMRAIPointer<SAMRAIVariable> var = d_q_var[var_name];
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getCurrentContext());
@@ -828,17 +833,17 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
     if (cc_var)
     {
-        HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.copyData(q_data_idx, q_hier_idx);
     }
 
     if (sc_var)
     {
-        HierarchySideDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchySideDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.copyData(q_data_idx, q_hier_idx);
     }
 
@@ -848,19 +853,19 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
 void
 IBInterpolantMethod::zeroOutEulerianData(const std::string& var_name, int q_data_idx)
 {
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    SAMRAIPointer<SAMRAIVariable> var = d_q_var[var_name];
 
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
     if (cc_var)
     {
-        HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.setToScalar(q_data_idx, 0.0);
     }
 
     if (sc_var)
     {
-        HierarchySideDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchySideDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.setToScalar(q_data_idx, 0.0);
     }
 
@@ -872,10 +877,10 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
 {
     int q_hier_idx = invalid_index;
 
-    Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    SAMRAIPointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
+    SAMRAIPointer<SAMRAIVariable> var = d_q_var[var_name];
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getCurrentContext());
@@ -892,17 +897,17 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
     if (cc_var)
     {
-        HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.copyData(q_hier_idx, q_data_idx);
     }
 
     if (sc_var)
     {
-        HierarchySideDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
+        SAMRAIHierarchySideDataOpsReal<double> hier_data_ops(d_hierarchy);
         hier_data_ops.copyData(q_hier_idx, q_data_idx);
     }
 
@@ -910,7 +915,9 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
 } // copyEulerianDataToIntegrator
 
 void
-IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<LData> >** Q_data, double data_time)
+IBInterpolantMethod::getQData(const std::string& var_name,
+                              std::vector<SAMRAIPointer<LData> >** Q_data,
+                              double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -929,7 +936,7 @@ IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<L
 
 void
 IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
-                                         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data)
+                                         std::vector<SAMRAIPointer<IBTK::LData> >& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -945,7 +952,7 @@ IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         const boost::multi_array_ref<double, 2>& X_data_array = *X_data[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -982,7 +989,7 @@ IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBInterpolantMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+IBInterpolantMethod::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -1040,8 +1047,8 @@ IBInterpolantMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 void
 IBInterpolantMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

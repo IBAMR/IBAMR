@@ -26,9 +26,11 @@
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPointer.h"
 
 #include <array>
 #include <functional>
@@ -416,7 +418,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBStandardInitializer(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBStandardInitializer(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor.
@@ -525,16 +527,16 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                             unsigned int global_index_offset,
-                                                                             int level_number) const override;
+    std::vector<SAMRAIPointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
+                                                                     unsigned int global_index_offset,
+                                                                     int level_number) const override;
 
     /*!
      * Read input values, indicated above, from given database.
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*
      * The boolean value determines whether file read batons are employed to
@@ -554,7 +556,7 @@ private:
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
+    SAMRAIPointer<IBTK::LSiloDataWriter> d_silo_writer;
 
     /*
      * The base filenames of the structures are used to generate unique names

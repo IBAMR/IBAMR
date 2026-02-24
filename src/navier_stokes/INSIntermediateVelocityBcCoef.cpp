@@ -16,11 +16,15 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "ArrayData.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIArrayData.h"
+#include "SAMRAIBoundaryBox.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIVariable.h"
 
 #include <algorithm>
 #include <limits>
@@ -50,7 +54,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
-                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                              const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_bc_coefs(NDIM, nullptr)
 {
@@ -60,7 +64,7 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
 } // INSIntermediateVelocityBcCoef
 
 void
-INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
@@ -120,12 +124,12 @@ INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                          const Pointer<Variable<NDIM> >& variable,
-                                          const Patch<NDIM>& patch,
-                                          const BoundaryBox<NDIM>& bdry_box,
+INSIntermediateVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
+                                          SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
+                                          SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+                                          const SAMRAIPointer<SAMRAIVariable>& variable,
+                                          const SAMRAIPatch& patch,
+                                          const SAMRAIBoundaryBox& bdry_box,
                                           double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -140,7 +144,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& aco
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -149,10 +153,10 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    SAMRAIIntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = SAMRAIIntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

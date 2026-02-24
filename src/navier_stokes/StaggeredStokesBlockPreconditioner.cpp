@@ -20,17 +20,19 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIHierarchyDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIPoissonSpecifications.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAIUtilities.h"
 
 #include <ostream>
 #include <string>
@@ -72,7 +74,7 @@ StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 } // needsVelocitySubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(SAMRAIPointer<PoissonSolver> velocity_solver)
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver()) {
         pout << d_object_name << "::setVelocitySubdomainSolver():\n"
@@ -84,7 +86,7 @@ StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSo
 } // setVelocitySubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     if (d_velocity_solver) d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
@@ -98,7 +100,7 @@ StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
 } // needsPressureSubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(SAMRAIPointer<PoissonSolver> pressure_solver)
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver()) {
         pout << d_object_name << "::setPressureSubdomainSolver():\n"
@@ -110,7 +112,7 @@ StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSo
 } // setPressureSubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const PoissonSpecifications& P_problem_coefs)
+StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const SAMRAIPoissonSpecifications& P_problem_coefs)
 {
     d_P_problem_coefs = P_problem_coefs;
     if (d_pressure_solver) d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
@@ -118,8 +120,8 @@ StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const Poiss
 } // setPressurePoissonSpecifications
 
 void
-StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                       RobinBcCoefStrategy<NDIM>* P_bc_coef)
+StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                                       SAMRAIRobinBcCoefStrategy* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -131,8 +133,8 @@ StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBc
 } // setPhysicalBcCoefs
 
 void
-StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                          const SAMRAIVectorReal<NDIM, double>& b)
+StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                                                          const SAMRAISAMRAIVectorReal<double>& b)
 {
     // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
@@ -147,7 +149,7 @@ StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal
 #endif
 
     // Setup hierarchy operators.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
 
     d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
     d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
@@ -178,13 +180,13 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesBlockPreconditioner::correctNullSpace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
-                                                     Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
+StaggeredStokesBlockPreconditioner::correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec,
+                                                     SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec)
 {
     auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
+        const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& U_nul_vecs =
             p_velocity_solver->getNullSpaceBasisVectors();
         if (!U_nul_vecs.empty())
         {

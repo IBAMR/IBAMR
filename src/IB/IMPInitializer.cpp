@@ -26,22 +26,25 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianGridGeometry.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAIUtilities.h"
+
+#include <memory>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "libmesh/elem.h"
@@ -60,10 +63,11 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include "SAMRAIPointer.h"
+
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <memory>
 #include <numeric>
 #include <ostream>
 #include <string>
@@ -95,9 +99,9 @@ static const double POINT_FACTOR = 2.0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IMPInitializer::IMPInitializer(std::string object_name,
-                               Pointer<Database> input_db,
-                               Pointer<PatchHierarchy<NDIM> > hierarchy,
-                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+                               SAMRAIPointer<SAMRAIDatabase> input_db,
+                               SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                               SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
     : d_object_name(std::move(object_name)),
       d_hierarchy(hierarchy),
       d_gridding_alg(gridding_alg),
@@ -138,13 +142,13 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const dx0 = grid_geom->getDx();
     double dx[NDIM];
     std::copy(dx0, dx0 + NDIM, dx);
     for (int ln = 1; ln <= level_number; ++ln)
     {
-        const IntVector<NDIM> ratio = d_gridding_alg->getRatioToCoarserLevel(ln);
+        const SAMRAIIntVector ratio = d_gridding_alg->getRatioToCoarserLevel(ln);
         for (unsigned int d = 0; d < NDIM; ++d) dx[d] /= static_cast<double>(ratio(d));
     }
     const double dx_min = *std::min_element(dx, dx + NDIM);
@@ -215,7 +219,7 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
 } // registerMesh
 
 void
-IMPInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+IMPInitializer::registerLSiloDataWriter(SAMRAIPointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -225,7 +229,7 @@ IMPInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     d_silo_writer = silo_writer;
 
     // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
+    SAMRAIRestartManager* restart_manager = SAMRAIRestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Initialize the Silo data writer only if we are not starting from a
@@ -247,19 +251,19 @@ IMPInitializer::getLevelHasLagrangianData(const int level_number, const bool /*c
 } // getLevelHasLagrangianData
 
 bool
-IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM> > hierarchy) const
+IMPInitializer::getIsAllLagrangianDataInDomain(const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy) const
 {
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
     int point_outside = 0;
     for (unsigned int ln = 0; ln < d_num_vertex.size(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             std::vector<std::pair<int, int> > patch_vertices; // TODO do we need this call?
             getPatchVertices(patch_vertices, patch, ln, false);
             for (const auto& point_idx : patch_vertices)
@@ -289,7 +293,7 @@ IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM
 }
 
 unsigned int
-IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IMPInitializer::computeGlobalNodeCountOnPatchLevel(const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*can_be_refined*/,
@@ -299,7 +303,7 @@ IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<
 }
 
 unsigned int
-IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IMPInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                   const int level_number,
                                                   const double /*init_data_time*/,
                                                   const bool can_be_refined,
@@ -308,10 +312,10 @@ IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<N
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -346,9 +350,9 @@ unsigned int
 IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                            const unsigned int global_index_offset,
                                            const unsigned int local_index_offset,
-                                           Pointer<LData> X_data,
-                                           Pointer<LData> U_data,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           SAMRAIPointer<LData> X_data,
+                                           SAMRAIPointer<LData> U_data,
+                                           const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                            const int level_number,
                                            const double /*init_data_time*/,
                                            const bool can_be_refined,
@@ -356,7 +360,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                            LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
@@ -366,14 +370,14 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = invalid_index;
     int local_node_count = 0;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const SAMRAIIntVector& ratio = level->getRatio();
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
 
-        Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        SAMRAIPointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -388,7 +392,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Get the coordinates of the present vertex.
             const libMesh::Point& X = getVertexPosn(point_idx, level_number);
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
+            const SAMRAICellIndex idx = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
             for (int d = 0; d < NDIM; ++d)
             {
                 X_array[local_petsc_idx][d] = X(d);
@@ -417,13 +421,13 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            static const IntVector<NDIM> periodic_offset(0);
+            static const SAMRAIIntVector periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
-            Pointer<MaterialPointSpec> point_spec =
+            SAMRAIPointer<MaterialPointSpec> point_spec =
                 new MaterialPointSpec(lagrangian_idx,
                                       d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                                       d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
-            std::vector<Pointer<Streamable> > node_data(1, point_spec);
+            std::vector<SAMRAIPointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx,
                                           global_petsc_idx,
                                           local_petsc_idx,
@@ -450,7 +454,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 } // initializeDataOnPatchLevel
 
 void
-IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IMPInitializer::tagCellsForInitialRefinement(const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                              const int level_number,
                                              const double /*error_data_time*/,
                                              const int tag_index)
@@ -458,15 +462,15 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    const IntVector<NDIM>& ratio = level->getRatio();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = level->getGridGeometry();
+    const SAMRAIIntVector& ratio = level->getRatio();
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
 
-        Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -480,7 +484,7 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
             for (const auto& point_idx : patch_vertices)
             {
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
+                const SAMRAICellIndex i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
         }
@@ -554,7 +558,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
 
 void
 IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                 const Pointer<Patch<NDIM> > patch,
+                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                  const int level_number,
                                  const bool /*can_be_refined*/) const
 {
@@ -563,7 +567,7 @@ IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertic
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
 
@@ -617,7 +621,7 @@ IMPInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int 
 } // getVertexPosn
 
 void
-IMPInitializer::getFromInput(Pointer<Database> /*db*/)
+IMPInitializer::getFromInput(SAMRAIPointer<SAMRAIDatabase> /*db*/)
 {
     return;
 } // getFromInput

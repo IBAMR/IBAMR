@@ -22,8 +22,14 @@
 
 #include "ibamr/ibamr_enums.h"
 
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICellData.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIFaceData.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAISerializable.h"
 
 #include <string>
 
@@ -86,7 +92,7 @@ namespace IBAMR
  *
  * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
+class AdvectorExplicitPredictorPatchOps : public SAMRAISerializable
 {
 public:
     /*!
@@ -100,7 +106,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      SAMRAIPointer<SAMRAIDatabase> input_db,
                                       bool register_for_restart = true);
 
     /*!
@@ -120,8 +126,7 @@ public:
      *
      * \return The maximum stable timestep.
      */
-    double computeStableDtOnPatch(const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                                  const SAMRAI::hier::Patch<NDIM>& patch) const;
+    double computeStableDtOnPatch(const SAMRAIFaceData<double>& u_ADV, const SAMRAIPatch& patch) const;
 
     /*!
      * \brief Compute the advective derivative \f$ \vec{N}^{n+\frac{1}{2}} =
@@ -129,10 +134,10 @@ public:
      * q^{n+\frac{1}{2}} \f$ using the specified advection velocity and
      * predicted face-centered values.
      */
-    void computeAdvectiveDerivative(SAMRAI::pdat::CellData<NDIM, double>& N,
-                                    const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                                    const SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                                    const SAMRAI::hier::Patch<NDIM>& patch) const;
+    void computeAdvectiveDerivative(SAMRAICellData<double>& N,
+                                    const SAMRAIFaceData<double>& u_ADV,
+                                    const SAMRAIFaceData<double>& q_half,
+                                    const SAMRAIPatch& patch) const;
 
     /*!
      * \brief Compute the time integral of the advective fluxes \f$ \vec{f} \f$
@@ -157,10 +162,10 @@ public:
      * MAC advection velocity.  Analogous formulae hold in other spatial
      * dimensions.
      */
-    void computeFlux(SAMRAI::pdat::FaceData<NDIM, double>& flux,
-                     const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                     const SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                     const SAMRAI::hier::Patch<NDIM>& patch,
+    void computeFlux(SAMRAIFaceData<double>& flux,
+                     const SAMRAIFaceData<double>& u_ADV,
+                     const SAMRAIFaceData<double>& q_half,
+                     const SAMRAIPatch& patch,
                      double dt) const;
 
     /*!
@@ -184,10 +189,10 @@ public:
      *
      * \see predictValueWithSourceTerm
      */
-    void predictValue(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                      const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                      const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                      const SAMRAI::hier::Patch<NDIM>& patch,
+    void predictValue(SAMRAIFaceData<double>& q_half,
+                      const SAMRAIFaceData<double>& u_ADV,
+                      const SAMRAICellData<double>& Q,
+                      const SAMRAIPatch& patch,
                       double dt) const;
 
     /*!
@@ -211,11 +216,11 @@ public:
      *
      * \see predictValue
      */
-    void predictValueWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                                    const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                                    const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                                    const SAMRAI::pdat::CellData<NDIM, double>& F,
-                                    const SAMRAI::hier::Patch<NDIM>& patch,
+    void predictValueWithSourceTerm(SAMRAIFaceData<double>& q_half,
+                                    const SAMRAIFaceData<double>& u_ADV,
+                                    const SAMRAICellData<double>& Q,
+                                    const SAMRAICellData<double>& F,
+                                    const SAMRAIPatch& patch,
                                     double dt) const;
 
     /*!
@@ -239,10 +244,10 @@ public:
      *
      * \see predictNormalVelocityWithSourceTerm
      */
-    void predictNormalVelocity(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
-                               const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                               const SAMRAI::pdat::CellData<NDIM, double>& V,
-                               const SAMRAI::hier::Patch<NDIM>& patch,
+    void predictNormalVelocity(SAMRAIFaceData<double>& v_half,
+                               const SAMRAIFaceData<double>& u_ADV,
+                               const SAMRAICellData<double>& V,
+                               const SAMRAIPatch& patch,
                                double dt) const;
 
     /*!
@@ -267,11 +272,11 @@ public:
      *
      * \see predictNormalVelocity
      */
-    void predictNormalVelocityWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
-                                             const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                                             const SAMRAI::pdat::CellData<NDIM, double>& V,
-                                             const SAMRAI::pdat::CellData<NDIM, double>& F,
-                                             const SAMRAI::hier::Patch<NDIM>& patch,
+    void predictNormalVelocityWithSourceTerm(SAMRAIFaceData<double>& v_half,
+                                             const SAMRAIFaceData<double>& u_ADV,
+                                             const SAMRAICellData<double>& V,
+                                             const SAMRAICellData<double>& F,
+                                             const SAMRAIPatch& patch,
                                              double dt) const;
 
     /*!
@@ -283,10 +288,10 @@ public:
      * and transverse velocity components at each cell face, i.e., \p v_half
      * must \em NOT be a MAC velocity field.
      */
-    void enforceIncompressibility(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
-                                  const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                                  const SAMRAI::pdat::FaceData<NDIM, double>& grad_phi,
-                                  const SAMRAI::hier::Patch<NDIM>& patch) const;
+    void enforceIncompressibility(SAMRAIFaceData<double>& v_half,
+                                  const SAMRAIFaceData<double>& u_ADV,
+                                  const SAMRAIFaceData<double>& grad_phi,
+                                  const SAMRAIPatch& patch) const;
 
     /*! \brief Get the number of ghosts cells required by the limiter for cell-centered and
      *  face/side-centered variables.
@@ -308,7 +313,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 private:
     /*!
@@ -341,16 +346,16 @@ private:
     /*
      * Private functions used to compute the predicted values/fluxes.
      */
-    void predict(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                 const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                 const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                 const SAMRAI::hier::Patch<NDIM>& patch,
+    void predict(SAMRAIFaceData<double>& q_half,
+                 const SAMRAIFaceData<double>& u_ADV,
+                 const SAMRAICellData<double>& Q,
+                 const SAMRAIPatch& patch,
                  double dt) const;
-    void predictWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                               const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
-                               const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                               const SAMRAI::pdat::CellData<NDIM, double>& F,
-                               const SAMRAI::hier::Patch<NDIM>& patch,
+    void predictWithSourceTerm(SAMRAIFaceData<double>& q_half,
+                               const SAMRAIFaceData<double>& u_ADV,
+                               const SAMRAICellData<double>& Q,
+                               const SAMRAICellData<double>& F,
+                               const SAMRAIPatch& patch,
                                double dt) const;
 
     /*
@@ -361,7 +366,7 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart);
     void getFromRestart();
 
     /*

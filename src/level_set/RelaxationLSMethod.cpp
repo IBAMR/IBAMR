@@ -20,25 +20,26 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIBasePatchLevel.h"
+#include "SAMRAIBox.h"
+#include "SAMRAICartesianPatchGeometry.h"
+#include "SAMRAICellData.h"
+#include "SAMRAICellIndex.h"
+#include "SAMRAICellVariable.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIHierarchyCellDataOpsReal.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatch.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <algorithm>
 #include <cmath>
@@ -219,7 +220,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+RelaxationLSMethod::RelaxationLSMethod(std::string object_name,
+                                       SAMRAIPointer<SAMRAIDatabase> db,
+                                       bool register_for_restart)
     : LSInitStrategy(std::move(object_name), register_for_restart)
 {
     // Some default values.
@@ -234,7 +237,7 @@ RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database
 
 void
 RelaxationLSMethod::initializeLSData(int D_idx,
-                                     Pointer<HierarchyMathOps> hier_math_ops,
+                                     SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                      int integrator_step,
                                      double time,
                                      bool initial_time)
@@ -252,23 +255,23 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     }
     const bool constrain_ls_mass = (d_apply_mass_constraint && !initial_time);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > D_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double> > D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     // Create a temporary variable to hold previous iteration values with
     // appropriate ghost cell width since it is not guaranteed that D_idx will
     // have proper ghost cell width.
-    IntVector<NDIM> cell_ghosts;
-    IntVector<NDIM> no_ghosts = 0;
+    SAMRAIIntVector cell_ghosts;
+    SAMRAIIntVector no_ghosts = 0;
     if (d_ls_order == FIRST_ORDER_LS)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
@@ -327,11 +330,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
     InterpolationTransactionComponent H_transcation(
         H_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
-    Pointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out relaxation
     double diff_L2_norm = 1.0e12;
@@ -484,8 +487,8 @@ RelaxationLSMethod::setApplyVolumeRedistribution(bool apply_volume_redistributio
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
-                          Pointer<HierarchyMathOps> hier_math_ops,
+RelaxationLSMethod::relax(SAMRAIPointer<HierarchyGhostCellInterpolation> D_fill_op,
+                          SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                           int dist_idx,
                           int dist_init_idx,
                           int dist_copy_idx,
@@ -493,7 +496,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
                           const int iter,
                           const double time) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -503,33 +506,33 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
         D_fill_op->fillData(time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-                const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-                Pointer<CellData<NDIM, double> > dt_data = patch->getPatchData(dt_idx);
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAICellData<double> > dist_data = patch->getPatchData(dist_idx);
+                const SAMRAIPointer<SAMRAICellData<double> > dist_init_data = patch->getPatchData(dist_init_idx);
+                SAMRAIPointer<SAMRAICellData<double> > dt_data = patch->getPatchData(dt_idx);
                 relax(dist_data, dist_init_data, dt_data, patch, iter);
             }
         }
     }
     else if (d_ls_ts == TVD_RK2_TS)
     {
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
         for (int stage = 0; stage < 2; ++stage)
         {
             D_fill_op->fillData(time);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-                    const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-                    Pointer<CellData<NDIM, double> > dt_data = patch->getPatchData(dt_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                    SAMRAIPointer<SAMRAICellData<double> > dist_data = patch->getPatchData(dist_idx);
+                    const SAMRAIPointer<SAMRAICellData<double> > dist_init_data = patch->getPatchData(dist_init_idx);
+                    SAMRAIPointer<SAMRAICellData<double> > dt_data = patch->getPatchData(dt_idx);
                     relax(dist_data, dist_init_data, dt_data, patch, iter);
                 }
             }
@@ -546,10 +549,10 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
 } // relax
 
 void
-RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
-                          const Pointer<CellData<NDIM, double> > dist_init_data,
-                          Pointer<CellData<NDIM, double> > dt_data,
-                          const Pointer<Patch<NDIM> > patch,
+RelaxationLSMethod::relax(SAMRAIPointer<SAMRAICellData<double> > dist_data,
+                          const SAMRAIPointer<SAMRAICellData<double> > dist_init_data,
+                          SAMRAIPointer<SAMRAICellData<double> > dt_data,
+                          const SAMRAIPointer<SAMRAIPatch> patch,
                           const int iter) const
 {
     double* const D = dist_data->getPointer(0);
@@ -578,8 +581,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
     }
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Here we are solving Hamilton-Jacobi equation of the type
@@ -698,20 +701,20 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 } // relax
 
 void
-RelaxationLSMethod::computeHamiltonian(Pointer<HierarchyMathOps> hier_math_ops, int ham_idx, int dist_idx) const
+RelaxationLSMethod::computeHamiltonian(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int ham_idx, int dist_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > ham_data = patch->getPatchData(ham_idx);
-            const Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICellData<double> > ham_data = patch->getPatchData(ham_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > dist_data = patch->getPatchData(dist_idx);
             computeHamiltonian(ham_data, dist_data, patch);
         }
     }
@@ -720,9 +723,9 @@ RelaxationLSMethod::computeHamiltonian(Pointer<HierarchyMathOps> hier_math_ops, 
 } // computeHamiltonian
 
 void
-RelaxationLSMethod::computeHamiltonian(Pointer<CellData<NDIM, double> > ham_data,
-                                       const Pointer<CellData<NDIM, double> > dist_data,
-                                       const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::computeHamiltonian(SAMRAIPointer<SAMRAICellData<double> > ham_data,
+                                       const SAMRAIPointer<SAMRAICellData<double> > dist_data,
+                                       const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const H = ham_data->getPointer(0);
     const double* const P = dist_data->getPointer(0);
@@ -742,8 +745,8 @@ RelaxationLSMethod::computeHamiltonian(Pointer<CellData<NDIM, double> > ham_data
     }
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     if (d_ls_order == THIRD_ORDER_ENO_LS)
@@ -806,26 +809,26 @@ RelaxationLSMethod::computeHamiltonian(Pointer<CellData<NDIM, double> > ham_data
 } // computeHamiltonian
 
 void
-RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
+RelaxationLSMethod::applyMassConstraint(SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                         int dist_idx,
                                         int dist_copy_idx,
                                         int dist_init_idx,
                                         int ham_init_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
-            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-            const Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICellData<double> > dist_data = patch->getPatchData(dist_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > ham_init_data = patch->getPatchData(ham_init_idx);
             applyMassConstraint(dist_data, dist_copy_data, dist_init_data, ham_init_data, patch);
         }
     }
@@ -834,11 +837,11 @@ RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
 } // applyMassConstraint
 
 void
-RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_data,
-                                        const Pointer<CellData<NDIM, double> > dist_copy_data,
-                                        const Pointer<CellData<NDIM, double> > dist_init_data,
-                                        const Pointer<CellData<NDIM, double> > ham_init_data,
-                                        const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::applyMassConstraint(SAMRAIPointer<SAMRAICellData<double> > dist_data,
+                                        const SAMRAIPointer<SAMRAICellData<double> > dist_copy_data,
+                                        const SAMRAIPointer<SAMRAICellData<double> > dist_init_data,
+                                        const SAMRAIPointer<SAMRAICellData<double> > ham_init_data,
+                                        const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dist_data->getPointer(0);
     const double* const C = dist_copy_data->getPointer(0);
@@ -868,8 +871,8 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
     }
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS || d_ls_order == FIFTH_ORDER_WENO_LS)
@@ -902,14 +905,14 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
 } // applyMassConstraint
 
 void
-RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_math_ops,
+RelaxationLSMethod::applyVolumeRedistribution(SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                               int lambda_idx,
                                               int dist_idx,
                                               int dist_init_idx,
                                               int ham_idx,
                                               int dt_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -923,19 +926,19 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
     // that enforces integral of H(phi) to be constant at all times
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
-            const Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > phi_init_data = patch->getPatchData(dist_init_idx);
-            const Pointer<CellData<NDIM, double> > ham_data = patch->getPatchData(ham_idx);
-            Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(lambda_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIPointer<SAMRAICellData<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(dist_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > phi_init_data = patch->getPatchData(dist_init_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > ham_data = patch->getPatchData(ham_idx);
+            SAMRAIPointer<SAMRAICellData<double> > lambda_data = patch->getPatchData(lambda_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
             for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
@@ -943,9 +946,9 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
             const double num_cells = 1.0;
             const double alpha = num_cells * cell_size;
 
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                SAMRAICellIndex ci(it());
 
                 const double phi = (*phi_data)(ci);
                 const double phi0 = (*phi_init_data)(ci);
@@ -969,18 +972,18 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
     // Correct the distance function using lambda
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(lambda_idx);
-            const Pointer<CellData<NDIM, double> > dt_data = patch->getPatchData(dt_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(dist_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > lambda_data = patch->getPatchData(lambda_idx);
+            const SAMRAIPointer<SAMRAICellData<double> > dt_data = patch->getPatchData(dt_idx);
 
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                SAMRAICellIndex ci(it());
                 const double dt = (*dt_data)(ci);
 
                 if (dt <= 0.0) continue;
@@ -994,7 +997,7 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
 } // applyVolumeRedistribution
 
 void
-RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
+RelaxationLSMethod::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     std::string ls_order = "THIRD_ORDER_ENO";
     ls_order = input_db->getStringWithDefault("order", ls_order);

@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/samrai_compatibility_names.h"
+
 #ifdef IBAMR_HAVE_LIBMESH
 
 #include "ibamr/IBFEMethod.h"
@@ -28,10 +30,10 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/libmesh_utilities.h"
 
-#include "Variable.h"
-#include "VariableContext.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
 
 #include "libmesh/compare_types.h"
 #include "libmesh/enum_fe_family.h"
@@ -257,8 +259,8 @@ public:
         const std::string& var_name,
         libMesh::FEFamily var_fe_family,
         libMesh::Order var_fe_order,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+        SAMRAIPointer<SAMRAIVariable> var,
+        SAMRAIPointer<SAMRAIVariableContext> ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
 
     /*!
@@ -269,8 +271,8 @@ public:
         const std::string& var_name,
         libMesh::FEFamily var_fe_family,
         libMesh::Order var_fe_order,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+        SAMRAIPointer<SAMRAIVariable> var,
+        SAMRAIPointer<SAMRAIVariableContext> ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
         const IBTK::FEDataManager::InterpSpec& interp_spec);
 
@@ -337,8 +339,8 @@ protected:
      * Eulerian interpolation data.
      */
     std::vector<libMesh::System*> d_scalar_interp_var_systems;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scalar_interp_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
+    std::vector<SAMRAIPointer<SAMRAIVariable> > d_scalar_interp_vars;
+    std::vector<SAMRAIPointer<SAMRAIVariableContext> > d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
         d_scalar_interp_fill_transactions;

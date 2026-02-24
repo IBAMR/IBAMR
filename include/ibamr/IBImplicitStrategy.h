@@ -22,6 +22,12 @@
 
 #include "ibamr/IBStrategy.h"
 
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAICoarsenSchedule.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRefineSchedule.h"
+
 #include "petscmat.h"
 #include "petscvec.h"
 
@@ -105,11 +111,11 @@ public:
      * specified time within the current time interval for use in evaluating the
      * residual of the linearized problem.
      */
-    virtual void interpolateLinearizedVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time) = 0;
+    virtual void
+    interpolateLinearizedVelocity(int u_data_idx,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  double data_time) = 0;
 
     /*!
      * Compute the Lagrangian force of the linearized problem for the specified
@@ -126,11 +132,10 @@ public:
      * Spread the Lagrangian force of the linearized problem to the Cartesian
      * grid at the specified time within the current time interval.
      */
-    virtual void spreadLinearizedForce(
-        int f_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-        double data_time) = 0;
+    virtual void spreadLinearizedForce(int f_data_idx,
+                                       IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                                       double data_time) = 0;
 
     /*!
      * Construct the IB interpolation operator.

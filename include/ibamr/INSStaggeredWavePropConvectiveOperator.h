@@ -26,12 +26,15 @@
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SideVariable.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAISAMRAIVectorReal.h"
+#include "SAMRAISideVariable.h"
 
 #include <string>
 #include <vector>
@@ -75,9 +78,9 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredWavePropConvectiveOperator(std::string object_name,
-                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                           SAMRAIPointer<SAMRAIDatabase> input_db,
                                            ConvectiveDifferencingType difference_form,
-                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                                           std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -87,11 +90,10 @@ public:
     /*!
      * \brief Static function to construct an INSStaggeredWavePropConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                      ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    static SAMRAIPointer<ConvectiveOperator> allocate_operator(const std::string& object_name,
+                                                               SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                               ConvectiveDifferencingType difference_form,
+                                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
     {
         return new INSStaggeredWavePropConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
@@ -136,8 +138,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -181,20 +183,20 @@ private:
     INSStaggeredWavePropConvectiveOperator& operator=(const INSStaggeredWavePropConvectiveOperator& that) = delete;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
     std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    SAMRAIPointer<SAMRAISideVariable<double> > d_U_var;
     int d_U_scratch_idx = IBTK::invalid_index;
 
     // Reconstruction order 2*k-1.

@@ -21,8 +21,9 @@
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Utilities.h"
+#include "SAMRAIUtilities.h"
 
 #include "libmesh/dof_map.h"
 #include "libmesh/enum_fe_family.h"
@@ -41,13 +42,16 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 
+#include <memory>
+
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include <memory>
+#include "SAMRAIPointer.h"
+
 #include <string>
 #include <utility>
 #include <vector>

@@ -23,11 +23,14 @@
 #include "ibamr/INSStaggeredWavePropConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRobinBcCoefStrategy.h"
+#include "SAMRAIUtilities.h"
 #include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
 
 #include <map>
 #include <ostream>
@@ -89,12 +92,12 @@ INSStaggeredConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
+SAMRAIPointer<ConvectiveOperator>
 INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                         const std::string& operator_object_name,
-                                                        Pointer<Database> input_db,
+                                                        SAMRAIPointer<SAMRAIDatabase> input_db,
                                                         const ConvectiveDifferencingType difference_form,
-                                                        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                        const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs) const
 {
     auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

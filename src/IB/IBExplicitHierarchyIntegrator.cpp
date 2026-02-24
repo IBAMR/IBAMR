@@ -24,21 +24,22 @@
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "GriddingAlgorithm.h"
-#include "HierarchyDataOpsManager.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PatchSideDataOpsReal.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIGriddingAlgorithm.h"
+#include "SAMRAIHierarchyDataOpsManager.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPIO.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPatchSideDataOpsReal.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include <algorithm>
 #include <ostream>
@@ -71,9 +72,9 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_name,
-                                                             Pointer<Database> input_db,
-                                                             Pointer<IBStrategy> ib_method_ops,
-                                                             Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                                             SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                             SAMRAIPointer<IBStrategy> ib_method_ops,
+                                                             SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                                              bool register_for_restart)
     : IBHierarchyIntegrator(std::move(object_name), input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
@@ -89,7 +90,7 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_
         if (input_db->keyExists("viz_dump_dirname"))
         {
             d_viz_dump_dirname = input_db->getString("viz_dump_dirname");
-            Utilities::recursiveMkdir(d_viz_dump_dirname);
+            SAMRAIUtilities::recursiveMkdir(d_viz_dump_dirname);
         }
     }
 
@@ -111,7 +112,7 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_
     }
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
 } // IBExplicitHierarchyIntegrator
@@ -180,7 +181,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
 {
     IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -384,7 +385,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                                              const bool skip_synchronize_new_state_data,
                                                              const int num_cycles)
 {
-    auto ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
+    auto ops = SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
 
     auto velocity_ghost_update = [&](const std::vector<int>& indices)
     {
@@ -409,7 +410,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     // Update the marker points, should they exist:
     if (d_markers && !d_marker_velocities_set)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                        d_ins_hier_integrator->getCurrentContext());
         // Clear any ghost data outside the domain:
@@ -423,7 +424,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     }
 
     // The last thing we need to do (before we really postprocess) is update the structure velocity:
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -488,8 +489,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 } // postprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                             Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                             SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -503,15 +504,15 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
 } // initializeHierarchyIntegrator
 
 void
-IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBExplicitHierarchyIntegrator::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                        SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     IBHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
     // Check if there is marker data to load from restart
-    if (RestartManager::getManager()->isFromRestart())
+    if (SAMRAIRestartManager::getManager()->isFromRestart())
     {
-        Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+        SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
         if (restart_db->keyExists(d_object_name + "::markers"))
         {
             if (d_marker_kernel.size() == 0)
@@ -525,7 +526,7 @@ IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<N
             d_marker_velocities_set = true;
             if (d_u_half_idx == IBTK::invalid_index)
             {
-                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
                 d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
                 d_ib_data.setFlag(d_u_half_idx);
             }
@@ -561,7 +562,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const std::vector<IBTK::Point>& marker
     // Ensure that whichever patch data indices we need to exist are present.
     if (d_u_half_idx == IBTK::invalid_index)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
         d_ib_data.setFlag(d_u_half_idx);
     }
@@ -647,7 +648,7 @@ IBExplicitHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 void
-IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
@@ -659,8 +660,8 @@ IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 void
 IBExplicitHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

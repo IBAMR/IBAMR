@@ -19,16 +19,17 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIIntVector.h"
+#include "SAMRAIPatchHierarchy.h"
+#include "SAMRAIPatchLevel.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAIUtilities.h"
+#include "SAMRAIVariable.h"
+#include "SAMRAIVariableContext.h"
+#include "SAMRAIVariableDatabase.h"
 
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -79,7 +80,7 @@ IBFEPostProcessor::registerScalarVariable(const std::string& name,
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     auto& system = equation_systems->add_system<System>(name + " reconstruction system");
-    RestartManager* restart_manager = RestartManager::getManager();
+    SAMRAIRestartManager* restart_manager = SAMRAIRestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
     if (!is_from_restart) system.add_variable(name, fe_order, fe_family);
     d_scalar_var_systems.push_back(&system);
@@ -101,7 +102,7 @@ IBFEPostProcessor::registerVectorVariable(const std::string& name,
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     auto& system = equation_systems->add_system<System>(name + " reconstruction system");
-    RestartManager* restart_manager = RestartManager::getManager();
+    SAMRAIRestartManager* restart_manager = SAMRAIRestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
     for (unsigned int i = 0; i < dim; ++i)
     {
@@ -127,7 +128,7 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     auto& system = equation_systems->add_system<System>(var_name + " reconstruction system");
-    RestartManager* restart_manager = RestartManager::getManager();
+    SAMRAIRestartManager* restart_manager = SAMRAIRestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
     for (unsigned int i = 0; i < var_dim; ++i)
     {
@@ -152,8 +153,8 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx,
+    SAMRAIPointer<SAMRAIVariable> var,
+    SAMRAIPointer<SAMRAIVariableContext> ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
     registerInterpolatedScalarEulerianVariable(var_name,
@@ -171,14 +172,14 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx,
+    SAMRAIPointer<SAMRAIVariable> var,
+    SAMRAIPointer<SAMRAIVariableContext> ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
     const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     auto& system = equation_systems->add_system<System>(var_name + " interpolation system");
-    RestartManager* restart_manager = RestartManager::getManager();
+    SAMRAIRestartManager* restart_manager = SAMRAIRestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
     if (!is_from_restart) system.add_variable(var_name, var_fe_order, var_fe_family);
     d_scalar_interp_var_systems.push_back(&system);
@@ -220,7 +221,7 @@ IBFEPostProcessor::postProcessData(const double data_time)
 void
 IBFEPostProcessor::interpolateVariables(const double data_time)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = d_fe_data_manager->getPatchHierarchy();
     const int coarsest_ln = d_fe_data_manager->getCoarsestPatchLevelNumber();
     const int finest_ln = d_fe_data_manager->getFinestPatchLevelNumber();
 
@@ -235,12 +236,12 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
         if (data_idx < 0 || scratch_idx < 0)
         {
             TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<hier::Variable<NDIM> > data_var = d_scalar_interp_vars[k];
-            Pointer<VariableContext> data_ctx = d_scalar_interp_ctxs[k];
+            SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+            SAMRAIPointer<SAMRAIVariable> data_var = d_scalar_interp_vars[k];
+            SAMRAIPointer<SAMRAIVariableContext> data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
             TBOX_ASSERT(data_idx >= 0);
-            Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
+            SAMRAIPointer<SAMRAIVariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
             const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1;
             scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
@@ -251,7 +252,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
@@ -279,7 +280,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     // Deallocate Eulerian scratch space.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];

@@ -15,7 +15,9 @@
 
 #include "ibamr/ConvectiveOperator.h"
 
-#include "SAMRAIVectorReal.h"
+#include "ibtk/samrai_compatibility_names.h"
+
+#include "SAMRAISAMRAIVectorReal.h"
 
 #include <utility>
 
@@ -69,7 +71,7 @@ ConvectiveOperator::getConvectiveDifferencingType() const
 } // getConvectiveDifferencingType
 
 void
-ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+ConvectiveOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);

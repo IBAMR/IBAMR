@@ -16,11 +16,13 @@
 #include "ibamr/ConstraintIBKinematics.h"
 
 #include "ibtk/LDataManager.h"
+#include "ibtk/samrai_compatibility_names.h"
 
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAIArray.h"
+#include "SAMRAIDatabase.h"
+#include "SAMRAIPointer.h"
+#include "SAMRAIRestartManager.h"
+#include "SAMRAIUtilities.h"
 
 #include <string>
 
@@ -28,12 +30,12 @@
 
 namespace IBAMR
 {
-ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
+ConstraintIBKinematics::StructureParameters::StructureParameters(SAMRAIPointer<SAMRAIDatabase> input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
-    tbox::Array<std::string> struct_names = input_db->getStringArray("structure_names");
-    tbox::Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
+    SAMRAIArray<std::string> struct_names = input_db->getStringArray("structure_names");
+    SAMRAIArray<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(!struct_names.isNull());
@@ -82,7 +84,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
             << std::endl);
     }
 
-    tbox::Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
+    SAMRAIArray<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
     const int level_tagged = tagged_pt_identifier[0];
     const int relative_idx_tagged = tagged_pt_identifier[1];
     for (int i = 0; i < struct_levels.size(); ++i)
@@ -106,7 +108,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
 } // StructureParameters
 
 ConstraintIBKinematics::ConstraintIBKinematics(std::string object_name,
-                                               Pointer<Database> input_db,
+                                               SAMRAIPointer<SAMRAIDatabase> input_db,
                                                LDataManager* l_data_manager,
                                                bool register_for_restart)
     : d_object_name(std::move(object_name)),
@@ -116,7 +118,7 @@ ConstraintIBKinematics::ConstraintIBKinematics(std::string object_name,
     // Set the object name and register it with the restart manager.
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     return;
@@ -127,7 +129,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -135,7 +137,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
 } // ~ConstraintIBKinematics
 
 void
-ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
+ConstraintIBKinematics::putToDatabase(SAMRAIPointer<SAMRAIDatabase> /*db*/)
 {
     // intentionally left blank
     return;
