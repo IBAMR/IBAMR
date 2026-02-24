@@ -422,8 +422,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(SAMRAIPatch&
     // Get the patch data.
     for (int patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > fdata = fine.getPatchData(patch_data_index);
-        SAMRAIPointer<SAMRAICellData<double> > cdata = coarse.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> fdata = fine.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> cdata = coarse.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
@@ -586,8 +586,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(SAMRAIPatch&
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > fdata = fine.getPatchData(patch_data_index);
-        SAMRAIPointer<SAMRAICellData<double> > cdata = coarse.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> fdata = fine.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> cdata = coarse.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
@@ -699,7 +699,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(SAMRAIP
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
@@ -790,7 +790,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(SAMRAIP
     // Get the patch data.
     for (int patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif

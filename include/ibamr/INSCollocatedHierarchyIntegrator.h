@@ -281,43 +281,43 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
 
     /*
      * Hierarchy operators and solvers.
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_scratch_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_rhs_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_adv_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_N_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_Phi_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_Phi_rhs_vec;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_rhs_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_adv_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_N_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_Phi_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_Phi_rhs_vec;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
     bool d_vectors_need_init;
     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
 
     /*!
      * Fluid solver variables.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_U_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_u_ADV_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_P_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_F_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_N_old_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_U_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_u_ADV_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_P_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_F_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_N_old_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Omega_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_u_ADV_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Omega_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_u_ADV_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Grad_P_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Phi_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Grad_Phi_cc_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_Grad_Phi_fc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_F_div_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Grad_P_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Grad_Phi_cc_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_Grad_Phi_fc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_F_div_var;
 
     std::string d_u_ADV_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_u_ADV_refine_type = "CONSERVATIVE_LINEAR_REFINE";

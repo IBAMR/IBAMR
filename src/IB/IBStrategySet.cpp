@@ -163,8 +163,8 @@ IBStrategySet::updateFixedLEOperators()
 
 void
 IBStrategySet::interpolateVelocity(int u_data_idx,
-                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -217,7 +217,7 @@ IBStrategySet::computeLagrangianForce(double data_time)
 void
 IBStrategySet::spreadForce(int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                            double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -251,7 +251,7 @@ IBStrategySet::computeLagrangianFluidSource(double data_time)
 void
 IBStrategySet::spreadFluidSource(int q_data_idx,
                                  RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                 const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& q_prolongation_scheds,
+                                 const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& q_prolongation_scheds,
                                  double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -263,8 +263,8 @@ IBStrategySet::spreadFluidSource(int q_data_idx,
 
 void
 IBStrategySet::interpolatePressure(int p_data_idx,
-                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& p_synch_scheds,
-                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& p_ghost_fill_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& p_synch_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& p_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -308,8 +308,8 @@ void
 IBStrategySet::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                         SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)

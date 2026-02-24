@@ -229,7 +229,7 @@ protected:
     /**
      * Managed libMesh::FE objects of specified dimension and family.
      */
-    std::map<key_type, std::unique_ptr<libMesh::FEBase> > d_fes;
+    std::map<key_type, std::unique_ptr<libMesh::FEBase>> d_fes;
 };
 
 inline FECache::FECache(const unsigned int dim, const libMesh::FEType& fe_type, const FEUpdateFlags flags)

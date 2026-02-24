@@ -59,8 +59,8 @@ computeNetInflowPhysicalBoundary(SAMRAIPointer<HierarchyMathOps> hier_math_ops, 
                 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
             if (physical_codim1_boxes.size() == 0) continue;
 
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_idx);
-            SAMRAIPointer<SAMRAISideData<double> > wgt_data = patch->getPatchData(wgt_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAISideData<double>> wgt_data = patch->getPatchData(wgt_sc_idx);
             const double* const dx = pgeom->getDx();
 
             for (int n = 0; n < physical_codim1_boxes.size(); ++n)

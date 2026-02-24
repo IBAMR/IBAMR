@@ -57,7 +57,7 @@ public:
      * \brief Class constructor.
      */
     CellConvectiveOperator(std::string object_name,
-                           SAMRAIPointer<SAMRAICellVariable<double> > Q_cell_var,
+                           SAMRAIPointer<SAMRAICellVariable<double>> Q_cell_var,
                            int Q_min_ghost_cell_width,
                            SAMRAIPointer<SAMRAIDatabase> input_db,
                            ConvectiveDifferencingType difference_form,
@@ -201,10 +201,10 @@ private:
     SAMRAIPointer<SAMRAIRefineOperator> d_Q_cell_refine_op;
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_Q_cell_refine_alg;
     SAMRAIPointer<SAMRAIRefinePatchStrategy> d_Q_cell_refine_bdry_op;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_Q_cell_refine_scheds;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_Q_cell_refine_scheds;
     SAMRAIPointer<SAMRAICoarsenOperator> d_q_flux_coarsen_op, d_q_interp_coarsen_op;
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_q_flux_coarsen_scheds, d_q_interp_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_q_flux_coarsen_scheds, d_q_interp_coarsen_scheds;
     const std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
@@ -212,8 +212,8 @@ private:
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
 
     // Scratch data.
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_cell_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_q_flux_var, d_q_interp_var, d_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_cell_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_q_flux_var, d_q_interp_var, d_u_var;
     int d_Q_scratch_idx, d_Q_ghost_idx, d_q_flux_idx, d_q_interp_idx;
 };
 } // namespace IBAMR

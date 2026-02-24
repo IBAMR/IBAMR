@@ -204,10 +204,10 @@ private:
 
     // Cached communications algorithms and schedules.
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_coarsen_scheds;
 
     std::array<SAMRAIPointer<SAMRAIRefineAlgorithm>, NDIM> d_refine_alg;
-    std::array<std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >, NDIM> d_refine_scheds;
+    std::array<std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

@@ -172,8 +172,8 @@ template <typename T>
 inline void
 IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op)
 {
-    std::vector<std::pair<T, int> > recv(n);
-    std::vector<std::pair<T, int> > send(n);
+    std::vector<std::pair<T, int>> recv(n);
+    std::vector<std::pair<T, int>> send(n);
     for (int i = 0; i < n; ++i)
     {
         send[i].first = x[i];

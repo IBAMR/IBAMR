@@ -639,17 +639,17 @@ protected:
      * EquationSystems objects, one per part. These contain the actual matrices
      * and solution vectors for each relevant libMesh system.
      */
-    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
 
     /// System names for key variables.
     const std::string d_current_coordinates_system_name, d_displacement_system_name, d_force_system_name,
         d_pressure_system_name, d_velocity_system_name;
 
     /// FEData objects provide key FE data management.
-    std::vector<std::shared_ptr<IBTK::FEData> > d_fe_data;
+    std::vector<std::shared_ptr<IBTK::FEData>> d_fe_data;
 
     /// FEProjector objects provide L2 projection functionality.
-    std::vector<std::shared_ptr<IBTK::FEProjector> > d_fe_projectors;
+    std::vector<std::shared_ptr<IBTK::FEProjector>> d_fe_projectors;
 
     /// Vectors of pointers to the systems for each part (for position,
     /// velocity, force, and pressure).
@@ -727,7 +727,7 @@ protected:
     /*!
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
-    std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
+    std::vector<std::vector<PK1StressFcnData>> d_PK1_stress_fcn_data;
 
     /*!
      * Functions used to compute additional body and surface forces on the

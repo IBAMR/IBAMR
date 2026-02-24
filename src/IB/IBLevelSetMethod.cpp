@@ -132,8 +132,8 @@ IBLevelSetMethod::updateFixedLEOperators()
 
 void
 IBLevelSetMethod::interpolateVelocity(int u_data_idx,
-                                      const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                      const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -178,7 +178,7 @@ IBLevelSetMethod::computeLagrangianForce(double data_time)
 void
 IBLevelSetMethod::spreadForce(int f_data_idx,
                               RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                               double data_time)
 {
     if (d_ib_method_ops) d_ib_method_ops->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -206,7 +206,7 @@ IBLevelSetMethod::computeLagrangianFluidSource(double data_time)
 void
 IBLevelSetMethod::spreadFluidSource(int q_data_idx,
                                     RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& q_prolongation_scheds,
+                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& q_prolongation_scheds,
                                     double data_time)
 {
     if (d_ib_method_ops)
@@ -218,8 +218,8 @@ IBLevelSetMethod::spreadFluidSource(int q_data_idx,
 
 void
 IBLevelSetMethod::interpolatePressure(int p_data_idx,
-                                      const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& p_synch_scheds,
-                                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& p_ghost_fill_scheds,
+                                      const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& p_synch_scheds,
+                                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& p_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -257,8 +257,8 @@ void
 IBLevelSetMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                            SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                            int u_data_idx,
-                                           const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                           const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                            int integrator_step,
                                            double init_data_time,
                                            bool initial_time)

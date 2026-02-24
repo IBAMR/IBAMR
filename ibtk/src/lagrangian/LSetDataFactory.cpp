@@ -90,7 +90,7 @@ template <class T>
 bool
 LSetDataFactory<T>::validCopyTo(const SAMRAIPointer<SAMRAIPatchDataFactory>& dst_pdf) const
 {
-    SAMRAIPointer<LSetDataFactory<T> > lnidf = dst_pdf;
+    SAMRAIPointer<LSetDataFactory<T>> lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

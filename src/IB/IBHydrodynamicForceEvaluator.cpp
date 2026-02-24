@@ -91,7 +91,7 @@ IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(std::string object_na
     d_u_idx = var_db->registerVariableAndContext(d_u_var, u_ctx, /*ghost_width*/ 1);
     d_p_idx = var_db->registerVariableAndContext(d_p_var, p_ctx, /*ghost_width*/ 1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > wgt_var = new SAMRAISideVariable<double>(d_object_name + "::wgt_var", 1);
+    SAMRAIPointer<SAMRAISideVariable<double>> wgt_var = new SAMRAISideVariable<double>(d_object_name + "::wgt_var", 1);
     SAMRAIPointer<SAMRAIVariableContext> face_wgt_ctx = var_db->getContext(d_object_name + "::face_wgt_ctx");
     SAMRAIPointer<SAMRAIVariableContext> vol_wgt_ctx = var_db->getContext(d_object_name + "::vol_wgt_ctx");
     d_face_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, face_wgt_ctx, /*ghost_width*/ 0);
@@ -363,8 +363,8 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
                 SAMRAIBox trim_box = patch_box * integration_box;
 
                 // Loop over the box and compute momentum.
-                SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_idx);
-                SAMRAIPointer<SAMRAISideData<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SAMRAISideData<double>> vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -531,8 +531,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 SAMRAIBox trim_box = patch_box * integration_box;
 
                 // Loop over the box and compute momentum.
-                SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_idx);
-                SAMRAIPointer<SAMRAISideData<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SAMRAISideData<double>> vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -662,9 +662,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 }
 
                 // Integrate over boundary boxes.
-                SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(d_p_idx);
-                SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_idx);
-                SAMRAIPointer<SAMRAISideData<double> > face_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(d_p_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SAMRAISideData<double>> face_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     for (int upperlower = 0; upperlower <= 1; ++upperlower)
@@ -866,7 +866,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(SAMRAIPointer<SAM
     std::stringstream strct_id_stream;
     strct_id_stream << strct_id;
     std::string struct_no = strct_id_stream.str();
-    SAMRAIPointer<SAMRAICellVariable<double> > inside_strct_var = new SAMRAICellVariable<double>("box" + struct_no, 1);
+    SAMRAIPointer<SAMRAICellVariable<double>> inside_strct_var = new SAMRAICellVariable<double>("box" + struct_no, 1);
     SAMRAIPointer<SAMRAIVariableContext> ctx = var_db->getContext("box" + struct_no);
     fobj.inside_strct_idx = var_db->registerVariableAndContext(inside_strct_var, ctx, (SAMRAIIntVector)0);
 
@@ -883,7 +883,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(SAMRAIPointer<SAM
 
     // Set the plot data for the initial box
     SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
         hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
     hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
 
@@ -908,7 +908,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(SAMRAIPointer<SAM
             SAMRAIBox trim_box = patch_box * integration_box;
 
             // Set plot variable to strct_id + 1
-            SAMRAIPointer<SAMRAICellData<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            SAMRAIPointer<SAMRAICellData<double>> inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
             inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
@@ -933,7 +933,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(SAMRAIPointer<SAMRA
     std::stringstream strct_id_stream;
     strct_id_stream << strct_id;
     std::string struct_no = strct_id_stream.str();
-    SAMRAIPointer<SAMRAICellVariable<double> > inside_strct_var = var_db->getVariable("box" + struct_no);
+    SAMRAIPointer<SAMRAICellVariable<double>> inside_strct_var = var_db->getVariable("box" + struct_no);
 
     int coarsest_ln = 0;
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -945,7 +945,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(SAMRAIPointer<SAMRA
 
     // Set the plot data for the new box to 0
     SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
         hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
     hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
 
@@ -970,7 +970,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(SAMRAIPointer<SAMRA
             SAMRAIBox trim_box = patch_box * integration_box;
 
             // Set plot variable to strct_id + 1
-            SAMRAIPointer<SAMRAICellData<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            SAMRAIPointer<SAMRAICellData<double>> inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
             inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
@@ -1030,7 +1030,7 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(SAMRAIPointer<SAMRAIPatchHiera
                                     * dx[2]
 #endif
                 ;
-            SAMRAIPointer<SAMRAISideData<double> > face_wgt_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> face_wgt_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 SAMRAIArrayData<double>& axis_data = face_wgt_sc_data->getArrayData(axis);
@@ -1123,7 +1123,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(SAMRAIPointer<SAMRAIPatchHierar
                                     * dx[2]
 #endif
                 ;
-            SAMRAIPointer<SAMRAISideData<double> > wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
             wgt_sc_data->fillAll(cell_vol);
             // Rescale values along the edges of the patches.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1220,7 +1220,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
     {
         // Fill velocity data from integrator index.
         SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_sc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_u_var, patch_hierarchy, true);
         hier_sc_data_ops->copyData(d_u_idx, u_src_idx, true);
 
@@ -1247,7 +1247,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
         // Fill pressure data from integrator index
         SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
 
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_cc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_p_var, patch_hierarchy, true);
         hier_cc_data_ops->copyData(d_p_idx, p_src_idx, true);
 

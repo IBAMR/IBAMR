@@ -445,17 +445,17 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAICellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
             const SAMRAIIntVector& U_data_gcw = U_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data = patch->getPatchData(d_u_idx);
             const SAMRAIIntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const SAMRAIIntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
@@ -531,9 +531,9 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data = patch->getPatchData(d_u_idx);
                 const SAMRAIIntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                SAMRAIPointer<SAMRAIFaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const SAMRAIIntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -619,14 +619,14 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            SAMRAIPointer<SAMRAICellData<double> > N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_data = patch->getPatchData(N_idx);
             const SAMRAIIntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data = patch->getPatchData(d_u_idx);
                 const SAMRAIIntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                SAMRAIPointer<SAMRAIFaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_extrap_data = patch->getPatchData(d_u_extrap_idx);
                 const SAMRAIIntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -685,7 +685,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
 
             if (d_difference_form == CONSERVATIVE)
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const SAMRAIIntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -720,7 +720,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const SAMRAIIntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {

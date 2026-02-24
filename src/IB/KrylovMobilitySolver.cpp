@@ -121,7 +121,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
-      d_samrai_temp(2, SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >(nullptr)),
+      d_samrai_temp(2, SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar>>(nullptr)),
       d_ins_integrator(navier_stokes_integrator),
       d_cib_strategy(cib_strategy)
 {
@@ -471,7 +471,7 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     Vec *vx, *vb;
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(b, nullptr, &vb);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > vx0, vb0;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> vx0, vb0;
 
     // Create the RHS Vec to be used in the KSP object.
     VecDuplicate(vb[1], &d_petsc_b);
@@ -635,10 +635,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAISAMRAIVectorReal<double
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAISideData<double> > nul_data =
+                    SAMRAIPointer<SAMRAISideData<double>> nul_data =
                         patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                     nul_data->getArrayData(k).fillAll(1.0);
-                    SAMRAIPointer<SAMRAISideData<double> > U_nul_data =
+                    SAMRAIPointer<SAMRAISideData<double>> U_nul_data =
                         patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                     U_nul_data->getArrayData(k).fillAll(1.0);
                 }
@@ -663,10 +663,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAISAMRAIVectorReal<double
     const int b_u_idx = rhs_vec.getComponentDescriptorIndex(0);
     const int b_p_idx = rhs_vec.getComponentDescriptorIndex(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > x_u_sc_var = sol_vec.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > x_p_cc_var = sol_vec.getComponentVariable(1);
-    SAMRAIPointer<SAMRAISideVariable<double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> x_u_sc_var = sol_vec.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> x_p_cc_var = sol_vec.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> b_u_sc_var = rhs_vec.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> b_p_cc_var = rhs_vec.getComponentVariable(1);
 
     SAMRAISAMRAIVectorReal<double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
     SAMRAISAMRAIVectorReal<double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
@@ -891,7 +891,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
     ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
                                nullptr,
-                               std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                               std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                                half_time);
     if (solver->d_normalize_spread_force)
     {
@@ -923,8 +923,8 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     // 3b) Interpolate velocity
     solver->d_cib_strategy->setInterpolatedVelocityVector(y, half_time);
     ib_method_ops->interpolateVelocity(u_data_idx,
-                                       std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                                       std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                                       std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                                       std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                                        half_time);
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 

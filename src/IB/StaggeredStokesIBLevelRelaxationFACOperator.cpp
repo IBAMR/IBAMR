@@ -356,8 +356,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<
     const int U_scratch_idx = d_side_scratch_idx;
     const int P_scratch_idx = d_cell_scratch_idx;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > e_level = getLevelSAMRAIVectorReal(error, level_num);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > r_level = getLevelSAMRAIVectorReal(residual, level_num);
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> e_level = getLevelSAMRAIVectorReal(error, level_num);
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> r_level = getLevelSAMRAIVectorReal(residual, level_num);
 
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
@@ -367,8 +367,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
-            SAMRAIPointer<SAMRAISideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAISideData<double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
             const SAMRAIBox& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
@@ -382,8 +382,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<
                                                         SAMRAIIntVector(0));
             }
 
-            SAMRAIPointer<SAMRAICellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
-            SAMRAIPointer<SAMRAICellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> P_error_data = error.getComponentPatchData(1, *patch);
+            SAMRAIPointer<SAMRAICellData<double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
             const SAMRAIBox& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
@@ -411,8 +411,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-                    SAMRAIPointer<SAMRAISideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
-                    SAMRAIPointer<SAMRAISideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> U_error_data = error.getComponentPatchData(0, *patch);
+                    SAMRAIPointer<SAMRAISideData<double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         U_error_data->getArrayData(axis).copy(
@@ -421,8 +421,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<
                             SAMRAIIntVector(0));
                     }
 
-                    SAMRAIPointer<SAMRAICellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
-                    SAMRAIPointer<SAMRAICellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> P_error_data = error.getComponentPatchData(1, *patch);
+                    SAMRAIPointer<SAMRAICellData<double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
                     P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
                                                       d_patch_cell_bc_box_overlap[level_num][patch_counter],
                                                       SAMRAIIntVector(0));

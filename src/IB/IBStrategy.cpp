@@ -222,7 +222,7 @@ IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 void
 IBStrategy::spreadFluidSource(int /*q_data_idx*/,
                               RobinPhysBdryPatchStrategy* /*q_phys_bdry_op*/,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*q_prolongation_scheds*/,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*q_prolongation_scheds*/,
                               double /*data_time*/)
 {
     // intentionally blank
@@ -231,8 +231,8 @@ IBStrategy::spreadFluidSource(int /*q_data_idx*/,
 
 void
 IBStrategy::interpolatePressure(int /*p_data_idx*/,
-                                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*p_synch_scheds*/,
-                                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*p_ghost_fill_scheds*/,
+                                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*p_synch_scheds*/,
+                                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*p_ghost_fill_scheds*/,
                                 double /*data_time*/)
 {
     // intentionally blank
@@ -264,8 +264,8 @@ void
 IBStrategy::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                      SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/,
                                      int /*u_data_idx*/,
-                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -356,7 +356,7 @@ IBStrategy::getINSHierarchyIntegrator() const
     return d_ib_solver->d_ins_hier_integrator;
 } // getINSHierarchyIntegrator
 
-SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> >
+SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>>
 IBStrategy::getVelocityHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -365,7 +365,7 @@ IBStrategy::getVelocityHierarchyDataOps() const
     return d_ib_solver->d_hier_velocity_data_ops;
 } // getVelocityHierarchyDataOps
 
-SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> >
+SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>>
 IBStrategy::getPressureHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -465,19 +465,19 @@ IBStrategy::getCoarsenAlgorithm(const std::string& name) const
     return d_ib_solver->getCoarsenAlgorithm(name);
 } // getCoarsenAlgorithm
 
-const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
 } // getGhostfillRefineSchedules
 
-const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
 } // getProlongRefineSchedules
 
-const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>&
 IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);

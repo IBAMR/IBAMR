@@ -1133,19 +1133,19 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
 } // postprocessIntegrateHierarchy
 
 void
-AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                                              const bool output_lf_var)
 {
     d_lf_var = lf_var;
     d_output_lf = output_lf_var;
 
-    SAMRAIPointer<SAMRAICellDataFactory<double> > lf_factory = lf_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> lf_factory = lf_var->getPatchDataFactory();
     const int lf_depth = lf_factory->getDefaultDepth();
-    SAMRAIPointer<SAMRAICellVariable<double> > lf_rhs_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> lf_rhs_var =
         new SAMRAICellVariable<double>(lf_var->getName() + "::lf_rhs", lf_depth);
-    SAMRAIPointer<SAMRAICellVariable<double> > lf_F_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> lf_F_var =
         new SAMRAICellVariable<double>(lf_var->getName() + "::F", lf_depth);
-    SAMRAIPointer<SAMRAISideVariable<double> > lf_diff_coef_var =
+    SAMRAIPointer<SAMRAISideVariable<double>> lf_diff_coef_var =
         new SAMRAISideVariable<double>(lf_var->getName() + "::diff_coef", lf_depth);
 
     // Set default values.
@@ -1160,7 +1160,7 @@ AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAMRA
 } // registerLiquidFractionVariable
 
 SAMRAIPointer<PoissonSolver>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1183,8 +1183,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<
 } // getAllenCahnEquationHelmholtzSolver
 
 SAMRAIPointer<LaplaceOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(
-    SAMRAIPointer<SAMRAICellVariable<double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1200,7 +1199,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(
 } // getAllenCahnEquationHelmholtzRHSOperator
 
 void
-AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                                               SAMRAIRobinBcCoefStrategy* lf_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -1217,8 +1216,8 @@ AllenCahnHierarchyIntegrator::getLiquidFractionPhysicalBcCoef()
 } // getLiquidFractionPhysicalBcCoef
 
 SAMRAIPointer<CellConvectiveOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
-                                                                     SAMRAIPointer<SAMRAICellVariable<double> > H_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
+                                                                     SAMRAIPointer<SAMRAICellVariable<double>> H_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lf_var);
@@ -1281,11 +1280,11 @@ AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_new_data = patch->getPatchData(H_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_current_data = patch->getPatchData(H_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_new_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_current_data = patch->getPatchData(d_lf_current_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_current_data = patch->getPatchData(H_current_idx);
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_scratch_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -1352,15 +1351,15 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(d_T_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > chemical_potential_data =
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> chemical_potential_data =
                 patch->getPatchData(d_chemical_potential_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Div_U_F_data = patch->getPatchData(Div_U_F_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -1449,9 +1448,9 @@ AllenCahnHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_idx,
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_firstder_data = patch->getPatchData(g_firstder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_secondder_data = patch->getPatchData(g_secondder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(liquid_fraction_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_firstder_data = patch->getPatchData(g_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_secondder_data = patch->getPatchData(g_secondder_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAICellIndex ci(it());
@@ -1494,9 +1493,9 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(T_idx);
-            SAMRAIPointer<SAMRAICellData<double> > q_firstder_data = patch->getPatchData(q_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(liquid_fraction_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<SAMRAICellData<double>> q_firstder_data = patch->getPatchData(q_firstder_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAICellIndex ci(it());
@@ -1601,13 +1600,13 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(d_T_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_scratch_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            SAMRAIPointer<SAMRAICellData<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            SAMRAIPointer<SAMRAICellData<double>> g_secondder_data = patch->getPatchData(d_g_secondder_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {

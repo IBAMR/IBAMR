@@ -131,8 +131,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -165,7 +165,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -180,8 +180,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -221,9 +221,9 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAIPointer<IBTK::LData> > d_D_current_data, d_D_new_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_N_current_data, d_N_new_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_D_current_data, d_D_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_N_current_data, d_N_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_W_current_data, d_W_new_data;
 
     /*
      * The force and torque generator.

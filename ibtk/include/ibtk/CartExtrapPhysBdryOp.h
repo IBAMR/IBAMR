@@ -237,7 +237,7 @@ private:
      */
     void
     setPhysicalBoundaryConditions_cell(SAMRAIPatch& patch,
-                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes);
+                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -245,7 +245,7 @@ private:
      */
     void
     setPhysicalBoundaryConditions_face(SAMRAIPatch& patch,
-                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes);
+                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -253,7 +253,7 @@ private:
      */
     void
     setPhysicalBoundaryConditions_node(SAMRAIPatch& patch,
-                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes);
+                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -261,7 +261,7 @@ private:
      */
     void
     setPhysicalBoundaryConditions_side(SAMRAIPatch& patch,
-                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes);
+                                       const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*
      * The patch data indices corresponding to the "scratch" patch data that

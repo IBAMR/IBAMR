@@ -81,7 +81,7 @@ public:
      */
     AdvDiffStochasticForcing(std::string object_name,
                              SAMRAIPointer<SAMRAIDatabase> input_db,
-                             SAMRAIPointer<SAMRAICellVariable<double> > C_var,
+                             SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -163,7 +163,7 @@ private:
      * Pointer to the concentration variable associated with this source term
      * generator.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_C_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -181,7 +181,7 @@ private:
      */
     double d_std = std::numeric_limits<double>::quiet_NaN();
     int d_num_rand_vals = 0;
-    std::vector<SAMRAIArray<double> > d_weights;
+    std::vector<SAMRAIArray<double>> d_weights;
 
     /*!
      * Boundary condition scalings.
@@ -193,10 +193,10 @@ private:
      * stochastic fluxes.
      */
     SAMRAIPointer<SAMRAIVariableContext> d_context;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_C_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_C_cc_var;
     int d_C_current_cc_idx = IBTK::invalid_index, d_C_half_cc_idx = IBTK::invalid_index,
         d_C_new_cc_idx = IBTK::invalid_index;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_F_sc_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_F_sc_var;
     int d_F_sc_idx = IBTK::invalid_index;
     std::vector<int> d_F_sc_idxs;
 };

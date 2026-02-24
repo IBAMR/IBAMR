@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefinePatchStrategy_h
 #define included_IBTK_samrai_compatibility_legacy_xfer_RefinePatchStrategy_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAIRefinePatchStrategy.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_xfer_RefinePatchStrategy_h

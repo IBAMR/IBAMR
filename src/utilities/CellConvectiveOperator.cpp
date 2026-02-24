@@ -223,7 +223,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
-                                               SAMRAIPointer<SAMRAICellVariable<double> > Q_cell_var,
+                                               SAMRAIPointer<SAMRAICellVariable<double>> Q_cell_var,
                                                const int Q_min_ghost_cell_width,
                                                SAMRAIPointer<Database> input_db,
                                                const ConvectiveDifferencingType difference_form,
@@ -249,7 +249,7 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
 
     if (d_Q_cell_var)
     {
-        SAMRAIPointer<SAMRAICellDataFactory<double> > Q_pdat_fac = d_Q_cell_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> Q_pdat_fac = d_Q_cell_var->getPatchDataFactory();
         const int Q_depth = Q_pdat_fac->getDefaultDepth();
 
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
@@ -321,9 +321,9 @@ CellConvectiveOperator::interpolateToFaceOnHierarchy(int q_interp_idx, int Q_cel
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > q_interp_data = patch->getPatchData(q_interp_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_idx);
 
             // Enforce physical boundary conditions at inflow boundaries.
             //
@@ -381,9 +381,9 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_c
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > q_flux_data = patch->getPatchData(q_flux_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_idx);
 
             // Enforce physical boundary conditions at inflow boundaries.
             //
@@ -455,11 +455,11 @@ CellConvectiveOperator::computeAdvectiveDerivativeOnHierarchy(int N_cell_idx,
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            SAMRAIPointer<SAMRAICellData<double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_idx);
             const auto& u_data_gcw = u_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAIFaceData<double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_interp_data = patch->getPatchData(q_interp_idx);
             const auto& q_interp_data_gcw = q_interp_data->getGhostCellWidth();
 
             for (int d = 0; d < N_cell_data->getDepth(); ++d)
@@ -548,12 +548,12 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            SAMRAIPointer<SAMRAICellData<double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(N_cell_data_gcw.min() == N_cell_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_flux_data = patch->getPatchData(q_flux_idx);
             const auto& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_flux_data_gcw.min() == q_flux_data_gcw.max());
@@ -637,22 +637,22 @@ CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            SAMRAIPointer<SAMRAICellData<double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(N_cell_data_gcw.min() == N_cell_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_flux_data = patch->getPatchData(q_flux_idx);
             const auto& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_flux_data_gcw.min() == q_flux_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> q_interp_data = patch->getPatchData(q_interp_idx);
             const auto& q_interp_data_gcw = q_interp_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
-            SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_idx);
             const auto& u_data_gcw = u_data->getGhostCellWidth();
             for (int d = 0; d < N_cell_data->getDepth(); ++d)
             {

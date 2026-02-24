@@ -274,8 +274,8 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  SAMRAIPointer<SAMRAICellData<double> > C_data,
-                                                  SAMRAIPointer<SAMRAISideData<double> > D_data,
+                                                  SAMRAIPointer<SAMRAICellData<double>> C_data,
+                                                  SAMRAIPointer<SAMRAISideData<double>> D_data,
                                                   SAMRAIPointer<SAMRAIPatch> patch,
                                                   const SAMRAIIntVector& ghost_cell_width);
 
@@ -284,8 +284,8 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                     SAMRAIPointer<SAMRAICellData<double> > C_data,
-                                                     SAMRAIPointer<SAMRAISideData<double> > D_data,
+                                                     SAMRAIPointer<SAMRAICellData<double>> C_data,
+                                                     SAMRAIPointer<SAMRAISideData<double>> D_data,
                                                      SAMRAIPointer<SAMRAIPatch> patch,
                                                      const SAMRAIIntVector& ghost_cell_width);
 
@@ -299,15 +299,15 @@ private:
      * Mappings from patch indices to patch operators.
      */
     std::string d_petsc_options_prefix = "cc_poisson_fac_";
-    std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<Mat> > d_patch_mat;
-    std::vector<std::vector<KSP> > d_patch_ksp;
+    std::vector<std::vector<Vec>> d_patch_vec_e, d_patch_vec_f;
+    std::vector<std::vector<Mat>> d_patch_mat;
+    std::vector<std::vector<KSP>> d_patch_ksp;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAIBoxList> > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAIBox> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAIBoxList>> d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAIBox>>> d_patch_neighbor_overlap;
 };
 } // namespace IBTK
 

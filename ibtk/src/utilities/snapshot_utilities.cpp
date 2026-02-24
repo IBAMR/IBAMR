@@ -46,7 +46,7 @@ update_snapshot(SnapshotCache& cache,
                 double tol)
 {
     // Make sure we are on a stored snapshot.
-    const std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy> >& snapshot = cache.getSnapshot(time, tol);
+    const std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy>>& snapshot = cache.getSnapshot(time, tol);
     if (!snapshot.second || !IBTK::abs_equal_eps(snapshot.first, time, tol))
         TBOX_ERROR("Snapshot at time: " << time << " with tolerance " << tol << " does not exist!\n");
 
@@ -92,7 +92,7 @@ fill_snapshot_on_hierarchy(SnapshotCache& cache,
                            const double tol)
 {
     // Make sure we are on a stored snapshot.
-    const std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy> >& snapshot = cache.getSnapshot(time, tol);
+    const std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy>>& snapshot = cache.getSnapshot(time, tol);
     if (!snapshot.second || !IBTK::abs_equal_eps(snapshot.first, time, tol))
         TBOX_ERROR("Snapshot at time: " << time << " with tolerance " << tol << " does not exist!\n");
 
@@ -146,7 +146,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
                       const int scr_idx,
                       SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                       const std::string& refine_type,
-                      SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops,
+                      SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops,
                       const double period)
 {
     // If there's only one snapshot, return it
@@ -193,7 +193,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
         auto var_db = SAMRAIVariableDatabase::getDatabase();
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(u_idx, var);
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
             hier_math_ops->getOperationsDouble(cache.getVariable(), hierarchy, true);
     }
 

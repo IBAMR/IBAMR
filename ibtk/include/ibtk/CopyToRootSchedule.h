@@ -80,7 +80,7 @@ public:
      *
      * \note Patch data objects are allocated only on the root MPI process.
      */
-    const std::vector<SAMRAIPointer<SAMRAIPatchData> >& getRootPatchData() const;
+    const std::vector<SAMRAIPointer<SAMRAIPatchData>>& getRootPatchData() const;
 
 private:
     /*!
@@ -115,7 +115,7 @@ private:
     const int d_root_proc;
     SAMRAIPointer<SAMRAIPatchLevel> d_patch_level;
     const std::vector<int> d_src_patch_data_idxs;
-    std::vector<SAMRAIPointer<SAMRAIPatchData> > d_root_patch_data;
+    std::vector<SAMRAIPointer<SAMRAIPatchData>> d_root_patch_data;
     SAMRAISchedule d_schedule;
 };
 } // namespace IBTK

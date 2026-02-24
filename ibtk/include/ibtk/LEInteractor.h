@@ -141,8 +141,8 @@ public:
     template <class T>
     static void interpolate(SAMRAIPointer<LData> Q_data,
                             SAMRAIPointer<LData> X_data,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -166,8 +166,8 @@ public:
     template <class T>
     static void interpolate(SAMRAIPointer<LData> Q_data,
                             SAMRAIPointer<LData> X_data,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAINodeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -191,8 +191,8 @@ public:
     template <class T>
     static void interpolate(SAMRAIPointer<LData> Q_data,
                             SAMRAIPointer<LData> X_data,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -216,8 +216,8 @@ public:
     template <class T>
     static void interpolate(SAMRAIPointer<LData> Q_data,
                             SAMRAIPointer<LData> X_data,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -243,8 +243,8 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -270,8 +270,8 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAINodeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -297,8 +297,8 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -324,8 +324,8 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            SAMRAIPointer<LIndexSetData<T> > idx_data,
-                            SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                            SAMRAIPointer<LIndexSetData<T>> idx_data,
+                            SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const SAMRAIIntVector& periodic_shift,
@@ -350,7 +350,7 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -373,32 +373,8 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
-                            SAMRAIPointer<SAMRAIPatch> patch,
-                            const SAMRAIBox& interp_box,
-                            const std::string& interp_fcn = "IB_4");
-
-    /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
-     * positions of the nodes of the Lagrangian mesh are specified by X_data.
-     *
-     * \note X_data must provide the canonical location of the node---i.e.,
-     * each node location must lie within the extents of the physical domain.
-     *
-     * \note The interpolation operator implements the operation
-     *
-     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
-     *
-     * This is the standard regularized delta function interpolation operation.
-     *
-     * \warning This method does \em not support periodic offsets for positions.
-     */
-    static void interpolate(std::vector<double>& Q_data,
-                            int Q_depth,
-                            const std::vector<double>& X_data,
-                            int X_depth,
-                            SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                            SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -422,7 +398,7 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<SAMRAINodeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -446,8 +422,7 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -471,7 +446,32 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                            SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
+                            SAMRAIPointer<SAMRAIPatch> patch,
+                            const SAMRAIBox& interp_box,
+                            const std::string& interp_fcn = "IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note X_data must provide the canonical location of the node---i.e.,
+     * each node location must lie within the extents of the physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -497,7 +497,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -523,8 +523,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                            SAMRAIPointer<SAMRAICellData<double> > q_data,
+                            SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                            SAMRAIPointer<SAMRAICellData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -550,7 +550,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                            SAMRAIPointer<SAMRAINodeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -576,7 +576,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -602,8 +602,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                            SAMRAIPointer<SAMRAISideData<double> > q_data,
+                            SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                            SAMRAIPointer<SAMRAISideData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -629,7 +629,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                            SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const SAMRAIBox& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -653,10 +653,10 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                        SAMRAIPointer<LData> Q_data,
                        SAMRAIPointer<LData> X_data,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -681,10 +681,10 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                        SAMRAIPointer<LData> Q_data,
                        SAMRAIPointer<LData> X_data,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -709,10 +709,10 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                        SAMRAIPointer<LData> Q_data,
                        SAMRAIPointer<LData> X_data,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -737,10 +737,10 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                        SAMRAIPointer<LData> Q_data,
                        SAMRAIPointer<LData> X_data,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -765,12 +765,12 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -795,12 +795,12 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -825,12 +825,12 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -855,12 +855,12 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       SAMRAIPointer<LIndexSetData<T> > idx_data,
+                       SAMRAIPointer<LIndexSetData<T>> idx_data,
                        SAMRAIPointer<SAMRAIPatch> patch,
                        const SAMRAIBox& spread_box,
                        const SAMRAIIntVector& periodic_shift,
@@ -884,7 +884,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -911,8 +911,8 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                       SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                       SAMRAIPointer<SAMRAICellData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -939,7 +939,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -966,7 +966,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -993,8 +993,8 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                       SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                       SAMRAIPointer<SAMRAISideData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -1021,7 +1021,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
@@ -1048,7 +1048,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1077,8 +1077,8 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                       SAMRAIPointer<SAMRAICellData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                       SAMRAIPointer<SAMRAICellData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1107,7 +1107,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1136,7 +1136,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1165,8 +1165,8 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                       SAMRAIPointer<SAMRAISideData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                       SAMRAIPointer<SAMRAISideData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1195,7 +1195,7 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+    static void spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
@@ -1367,7 +1367,7 @@ private:
                                   const SAMRAIBox& box,
                                   SAMRAIPointer<SAMRAIPatch> patch,
                                   const SAMRAIIntVector& periodic_shift,
-                                  SAMRAIPointer<LIndexSetData<T> > idx_data);
+                                  SAMRAIPointer<LIndexSetData<T>> idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box

@@ -135,7 +135,7 @@ FaceDataSynchronization::initializeOperatorState(
         const int data_idx = transaction_comp.d_data_idx;
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
+        SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
@@ -236,7 +236,7 @@ FaceDataSynchronization::resetTransactionComponents(
         const int data_idx = transaction_comp.d_data_idx;
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
+        SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"

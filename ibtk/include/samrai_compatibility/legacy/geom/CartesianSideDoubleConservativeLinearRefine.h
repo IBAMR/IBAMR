@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianSideDoubleConservativeLinearRefine_h
 #define included_IBTK_samrai_compatibility_legacy_geom_CartesianSideDoubleConservativeLinearRefine_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAICartesianSideDoubleConservativeLinearRefine.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_geom_CartesianSideDoubleConservativeLinearRefine_h

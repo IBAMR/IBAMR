@@ -153,7 +153,7 @@ public:
      * \brief Indicate if are solving a time independent problem for the transport variable Q.
      * Default option is false, which means Q is assumed to vary with time.
      */
-    void setTransportQuantityTimeIndependent(SAMRAIPointer<SAMRAICellVariable<double> > Q_var, bool Q_time_independent);
+    void setTransportQuantityTimeIndependent(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, bool Q_time_independent);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
@@ -162,7 +162,7 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    virtual void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                              const bool output_Q = true) override;
 
 protected:
@@ -175,16 +175,16 @@ protected:
     /*!
      * Additional variables required for Brinkman penalization
      */
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAICellVariable<double> > > d_Q_Cb_map,
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAICellVariable<double>>> d_Q_Cb_map,
         d_Q_Cb_rhs_map, d_Q_Fb_map;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAISideVariable<double> > > d_Q_Db_map,
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAISideVariable<double>>> d_Q_Db_map,
         d_Q_Db_rhs_map;
 
     /*!
      * Flag to zero out the temporal term contribution when the Brinkman approach
      * is used.
      */
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, bool> d_Q_time_independent;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, bool> d_Q_time_independent;
 
     /*!
      * Brinkman penalization object registred with this integrator.

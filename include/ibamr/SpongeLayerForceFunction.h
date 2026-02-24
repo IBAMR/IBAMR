@@ -140,18 +140,18 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
-                            SAMRAIPointer<SAMRAICellData<double> > U_current_data,
-                            SAMRAIPointer<SAMRAICellData<double> > U_new_data,
+    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> F_data,
+                            SAMRAIPointer<SAMRAICellData<double>> U_current_data,
+                            SAMRAIPointer<SAMRAICellData<double>> U_new_data,
                             double kappa,
                             SAMRAIPointer<SAMRAIPatch> patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
-                            SAMRAIPointer<SAMRAISideData<double> > U_current_data,
-                            SAMRAIPointer<SAMRAISideData<double> > U_new_data,
+    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
+                            SAMRAIPointer<SAMRAISideData<double>> U_current_data,
+                            SAMRAIPointer<SAMRAISideData<double>> U_new_data,
                             double kappa,
                             SAMRAIPointer<SAMRAIPatch> patch);
 

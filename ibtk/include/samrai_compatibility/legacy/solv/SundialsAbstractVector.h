@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_solv_SundialsAbstractVector_h
 #define included_IBTK_samrai_compatibility_legacy_solv_SundialsAbstractVector_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAISundialsAbstractVector.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_solv_SundialsAbstractVector_h

@@ -177,38 +177,38 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    void registerAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double> > u_var);
+    void registerAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
-    void setAdvectionVelocityIsDivergenceFree(SAMRAIPointer<SAMRAIFaceVariable<double> > u_var, bool is_div_free);
+    void setAdvectionVelocityIsDivergenceFree(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var, bool is_div_free);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular advection velocity.
      */
-    void setAdvectionVelocityFunction(SAMRAIPointer<SAMRAIFaceVariable<double> > u_var,
+    void setAdvectionVelocityFunction(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var,
                                       SAMRAIPointer<IBTK::CartGridFunction> u_fcn);
 
     /*!
      * Register a cell-centered source term.
      */
-    void registerSourceTerm(SAMRAIPointer<SAMRAICellVariable<double> > F_var);
+    void registerSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> F_var);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular source term.
      */
-    void setSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double> > F_var,
+    void setSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double>> F_var,
                                SAMRAIPointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double> > Q_var);
+    void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -217,8 +217,8 @@ public:
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                              SAMRAIPointer<SAMRAIFaceVariable<double> > u_var);
+    void setAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                              SAMRAIPointer<SAMRAIFaceVariable<double>> u_var);
 
     /*!
      * Set the cell-centered source term to be used with a particular
@@ -227,34 +227,34 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setSourceTerm(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                       SAMRAIPointer<SAMRAICellVariable<double> > F_var);
+    void setSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                       SAMRAIPointer<SAMRAICellVariable<double>> F_var);
 
     /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setConvectiveDifferencingType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setConvectiveDifferencingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditions(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setInitialConditions(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                               SAMRAIPointer<IBTK::CartGridFunction> Q_init);
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double> > Q_var, SAMRAIRobinBcCoefStrategy* Q_bc_coef);
+    void setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, SAMRAIRobinBcCoefStrategy* Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                             std::vector<SAMRAIRobinBcCoefStrategy*> Q_bc_coef);
 
     /*!
@@ -366,25 +366,25 @@ protected:
      * \brief Get a pointer to the requested flux integral patch data on the
      * specified patch.
      */
-    SAMRAIPointer<SAMRAIFaceData<double> > getFluxIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                               SAMRAIPatch& patch,
-                                                               SAMRAIPointer<SAMRAIVariableContext> context);
+    SAMRAIPointer<SAMRAIFaceData<double>> getFluxIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                              SAMRAIPatch& patch,
+                                                              SAMRAIPointer<SAMRAIVariableContext> context);
 
     /*!
      * \brief Get a pointer to the requested q integral patch data on the
      * specified patch.
      */
-    SAMRAIPointer<SAMRAIFaceData<double> > getQIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                            SAMRAIPatch& patch,
-                                                            SAMRAIPointer<SAMRAIVariableContext> context);
+    SAMRAIPointer<SAMRAIFaceData<double>> getQIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                           SAMRAIPatch& patch,
+                                                           SAMRAIPointer<SAMRAIVariableContext> context);
 
     /*!
      * \brief Get a pointer to the requested u integral patch data on the
      * specified patch.
      */
-    SAMRAIPointer<SAMRAIFaceData<double> > getUIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                            SAMRAIPatch& patch,
-                                                            SAMRAIPointer<SAMRAIVariableContext> context);
+    SAMRAIPointer<SAMRAIFaceData<double>> getUIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                           SAMRAIPatch& patch,
+                                                           SAMRAIPointer<SAMRAIVariableContext> context);
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the patch
@@ -401,33 +401,32 @@ protected:
     /*
      * Advection velocity data.
      */
-    std::set<SAMRAIPointer<SAMRAIFaceVariable<double> > > d_u_var;
-    std::map<SAMRAIPointer<SAMRAIFaceVariable<double> >, bool> d_u_is_div_free;
-    std::map<SAMRAIPointer<SAMRAIFaceVariable<double> >, SAMRAIPointer<IBTK::CartGridFunction> > d_u_fcn;
+    std::set<SAMRAIPointer<SAMRAIFaceVariable<double>>> d_u_var;
+    std::map<SAMRAIPointer<SAMRAIFaceVariable<double>>, bool> d_u_is_div_free;
+    std::map<SAMRAIPointer<SAMRAIFaceVariable<double>>, SAMRAIPointer<IBTK::CartGridFunction>> d_u_fcn;
     bool d_compute_init_velocity = true, d_compute_half_velocity = true, d_compute_final_velocity = true;
 
     /*
      * Source term data.
      */
-    std::set<SAMRAIPointer<SAMRAICellVariable<double> > > d_F_var;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<IBTK::CartGridFunction> > d_F_fcn;
+    std::set<SAMRAIPointer<SAMRAICellVariable<double>>> d_F_var;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<IBTK::CartGridFunction>> d_F_fcn;
 
     /*
      * Transported quantities.
      */
-    std::set<SAMRAIPointer<SAMRAICellVariable<double> > > d_Q_var;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAIFaceVariable<double> > > d_Q_u_map;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAICellVariable<double> > > d_Q_F_map;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<IBTK::CartGridFunction> > d_Q_init;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, std::vector<SAMRAIRobinBcCoefStrategy*> > d_Q_bc_coef;
+    std::set<SAMRAIPointer<SAMRAICellVariable<double>>> d_Q_var;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAIFaceVariable<double>>> d_Q_u_map;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAICellVariable<double>>> d_Q_F_map;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, ConvectiveDifferencingType> d_Q_difference_form;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<IBTK::CartGridFunction>> d_Q_init;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, std::vector<SAMRAIRobinBcCoefStrategy*>> d_Q_bc_coef;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAIFaceVariable<double> > >
-        d_flux_integral_var;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAIFaceVariable<double>>> d_flux_integral_var;
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
@@ -437,8 +436,8 @@ protected:
      * These values must also be maintained in the case in which the advection
      * velocity is not discretely divergence free.
      */
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAIFaceVariable<double> > > d_q_integral_var;
-    std::map<SAMRAIPointer<SAMRAIFaceVariable<double> >, SAMRAIPointer<SAMRAIFaceVariable<double> > > d_u_integral_var;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAIFaceVariable<double>>> d_q_integral_var;
+    std::map<SAMRAIPointer<SAMRAIFaceVariable<double>>, SAMRAIPointer<SAMRAIFaceVariable<double>>> d_u_integral_var;
 
     /*
      * Boolean indicating whether or not to overwrite tag data (default is

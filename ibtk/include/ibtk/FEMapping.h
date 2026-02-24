@@ -121,12 +121,12 @@ public:
     /*!
      * Get the contravariants.
      */
-    virtual const std::vector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const = 0;
+    virtual const std::vector<Eigen::Matrix<double, spacedim, dim>>& getContravariants() const = 0;
 
     /*!
      * Get the covariants.
      */
-    virtual const std::vector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const = 0;
+    virtual const std::vector<Eigen::Matrix<double, spacedim, dim>>& getCovariants() const = 0;
 
     /*!
      * Standard 'quadrature key' alias - all the information to completely
@@ -138,7 +138,7 @@ public:
      * Return a pointer to the correct mapping for a given quadrature key and
      * update flags object.
      */
-    static std::unique_ptr<FEMapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
+    static std::unique_ptr<FEMapping<dim, spacedim>> build(const key_type key, const FEUpdateFlags update_flags);
 
     virtual ~FEMapping() = default;
 
@@ -260,7 +260,7 @@ public:
         return d_quadrature_points;
     }
 
-    virtual const std::vector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const override
+    virtual const std::vector<Eigen::Matrix<double, spacedim, dim>>& getContravariants() const override
     {
 #ifndef NDEBUG
         TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_contravariants);
@@ -268,7 +268,7 @@ public:
         return d_contravariants;
     }
 
-    virtual const std::vector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const override
+    virtual const std::vector<Eigen::Matrix<double, spacedim, dim>>& getCovariants() const override
     {
 #ifndef NDEBUG
         TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_covariants);
@@ -290,13 +290,13 @@ protected:
     /*!
      * Array of contravariants.
      */
-    std::vector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+    std::vector<Eigen::Matrix<double, spacedim, dim>> d_contravariants;
 
     /*!
      * Array of covariants (i.e., the transpose of the inverse of the
      * covariants when dim == spacedim)
      */
-    std::vector<Eigen::Matrix<double, spacedim, dim> > d_covariants;
+    std::vector<Eigen::Matrix<double, spacedim, dim>> d_covariants;
 
     /*!
      * Array of Jacobians.
@@ -605,11 +605,11 @@ protected:
 
 // Specialization of build for 2D
 template <>
-std::unique_ptr<FEMapping<2, 2> > FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags);
+std::unique_ptr<FEMapping<2, 2>> FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags);
 
 // Specialization of build for 3D
 template <>
-std::unique_ptr<FEMapping<3, 3> > FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags);
+std::unique_ptr<FEMapping<3, 3>> FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags);
 
 } // namespace IBTK
 

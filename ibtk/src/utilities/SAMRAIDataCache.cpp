@@ -97,50 +97,50 @@ get_data_characteristics(const int idx, int& depth, int& ghost_width)
     // TODO: Make this more generic and extensible.
     bool convertable = false;
     std::pair<int, int> characteristics;
-    if (can_convert_to<SAMRAICellVariable<T> >(var))
+    if (can_convert_to<SAMRAICellVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAICellDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAICellDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIEdgeVariable<T> >(var))
+    else if (can_convert_to<SAMRAIEdgeVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIEdgeDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIEdgeDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIFaceVariable<T> >(var))
+    else if (can_convert_to<SAMRAIFaceVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIFaceDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIFaceDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAINodeVariable<T> >(var))
+    else if (can_convert_to<SAMRAINodeVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAINodeDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAINodeDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIOuteredgeVariable<T> >(var))
+    else if (can_convert_to<SAMRAIOuteredgeVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIOuteredgeDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIOuteredgeDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIOuterfaceVariable<T> >(var))
+    else if (can_convert_to<SAMRAIOuterfaceVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIOuterfaceDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIOuterfaceDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIOuternodeVariable<T> >(var))
+    else if (can_convert_to<SAMRAIOuternodeVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIOuternodeDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIOuternodeDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAIOutersideVariable<T> >(var))
+    else if (can_convert_to<SAMRAIOutersideVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAIOutersideDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAIOutersideDataFactory<T>>(patch_descriptor, idx);
     }
-    else if (can_convert_to<SAMRAISideVariable<T> >(var))
+    else if (can_convert_to<SAMRAISideVariable<T>>(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SAMRAISideDataFactory<T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SAMRAISideDataFactory<T>>(patch_descriptor, idx);
     }
     depth = characteristics.first;
     ghost_width = characteristics.second;

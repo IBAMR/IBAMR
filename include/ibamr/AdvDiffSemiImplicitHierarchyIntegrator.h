@@ -170,21 +170,21 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                      const bool Q_output = true) override;
 
     /*!
      * Set the convective time stepping method to use for a particular
      * transported quantity Q.
      */
-    void setConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                        TimeSteppingType convective_time_stepping_type);
 
     /*!
      * Get the convective time stepping method being used for a particular
      * transported quantity Q.
      */
-    TimeSteppingType getConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var) const;
+    TimeSteppingType getConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -193,7 +193,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setInitialConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setInitialConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                               TimeSteppingType init_convective_time_stepping_type);
 
     /*!
@@ -203,25 +203,25 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    TimeSteppingType getInitialConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var) const;
+    TimeSteppingType getInitialConvectiveTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver for a
      * particular transported quantity Q.
      */
-    void setConvectiveOperatorType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var, const std::string& op_type);
+    void setConvectiveOperatorType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, const std::string& op_type);
 
     /*!
      * \brief Get the convective operator type used by the solver for a
      * particular transported quantity Q.
      */
-    const std::string& getConvectiveOperatorType(SAMRAIPointer<SAMRAICellVariable<double> > Q_var) const;
+    const std::string& getConvectiveOperatorType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    void setConvectiveOperatorInputDatabase(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setConvectiveOperatorInputDatabase(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                             SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
@@ -229,13 +229,13 @@ public:
      * solver for a particular transported quantity Q.
      */
     SAMRAIPointer<SAMRAIDatabase>
-    getConvectiveOperatorInputDatabase(SAMRAIPointer<SAMRAICellVariable<double> > Q_var) const;
+    getConvectiveOperatorInputDatabase(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
      */
-    void setConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    void setConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                SAMRAIPointer<ConvectiveOperator> convective_op);
 
     /*!
@@ -245,7 +245,7 @@ public:
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
-    virtual SAMRAIPointer<ConvectiveOperator> getConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double> > Q_var);
+    virtual SAMRAIPointer<ConvectiveOperator> getConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double>> Q_var);
 
     /*!
      * Indicate that all of the convective operators should be (re-)initialized
@@ -257,7 +257,7 @@ public:
      * Indicate that the convective operator should be (re-)initialized before
      * the next time step.
      */
-    void setConvectiveOperatorNeedsInit(SAMRAIPointer<SAMRAICellVariable<double> > Q_var);
+    void setConvectiveOperatorNeedsInit(SAMRAIPointer<SAMRAICellVariable<double>> Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -323,21 +323,21 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
 
     /*!
      * Transported quantities.
      */
-    std::set<SAMRAIPointer<SAMRAICellVariable<double> > > d_N_var, d_N_old_var;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAICellVariable<double> > > d_Q_N_map,
+    std::set<SAMRAIPointer<SAMRAICellVariable<double>>> d_N_var, d_N_old_var;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAICellVariable<double>>> d_Q_N_map,
         d_Q_N_old_map;
 
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, TimeSteppingType> d_Q_convective_time_stepping_type,
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, TimeSteppingType> d_Q_convective_time_stepping_type,
         d_Q_init_convective_time_stepping_type;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, std::string> d_Q_convective_op_type;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<SAMRAIDatabase> > d_Q_convective_op_input_db;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, SAMRAIPointer<ConvectiveOperator> > d_Q_convective_op;
-    std::map<SAMRAIPointer<SAMRAICellVariable<double> >, bool> d_Q_convective_op_needs_init;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, std::string> d_Q_convective_op_type;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAIDatabase>> d_Q_convective_op_input_db;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<ConvectiveOperator>> d_Q_convective_op;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, bool> d_Q_convective_op_needs_init;
 
 private:
     /*!

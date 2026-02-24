@@ -98,15 +98,15 @@ CCLaplaceOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorRe
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        SAMRAIPointer<SAMRAICellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAICellVariable<double>> x_cc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAICellVariable<double>> y_cc_var = y.getComponentVariable(comp);
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-cell centered vector components" << std::endl);
         }
-        SAMRAIPointer<SAMRAICellDataFactory<double> > x_factory = x_cc_var->getPatchDataFactory();
-        SAMRAIPointer<SAMRAICellDataFactory<double> > y_factory = y_cc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> x_factory = x_cc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> y_factory = y_cc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -144,8 +144,8 @@ CCLaplaceOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorRe
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        SAMRAIPointer<SAMRAICellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAICellVariable<double>> x_cc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SAMRAICellVariable<double>> y_cc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
@@ -159,7 +159,7 @@ CCLaplaceOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorRe
                                      0.0,
                                      0.0,
                                      -1,
-                                     SAMRAIPointer<SAMRAICellVariable<double> >(nullptr),
+                                     SAMRAIPointer<SAMRAICellVariable<double>>(nullptr),
                                      l,
                                      l);
         }

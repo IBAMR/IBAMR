@@ -33,7 +33,7 @@ namespace IBTK
 {
 template <typename TYPE>
 SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >& vector,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>& vector,
     const std::string& name)
     : SAMRAIScopedVectorDuplicate(checked_dereference(vector), name)
 {
@@ -55,18 +55,18 @@ SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAISAMRAIVectorReal<TYPE>&()
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >()
+SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>()
 {
-    return SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&*d_vector, false);
+    return SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&*d_vector, false);
 }
 
 template <typename TYPE>
-std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> > >
+std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>>
 SAMRAIScopedVectorDuplicate<TYPE>::getComponentVectors() const
 {
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> > > comps;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>> comps;
     for (int comp = 0; comp < d_vector->getNumberOfComponents(); ++comp)
     {
         comps.emplace_back(new SAMRAISAMRAIVectorReal<TYPE>(d_vector->getName() + "_component_" + std::to_string(comp),

@@ -168,7 +168,7 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAIBox>& input_boxes)
 
         // 1.5. Remove any entries that correspond to just a single face
         {
-            std::vector<std::pair<SAMRAIIndex, SAMRAIIndex> > faces_to_remove;
+            std::vector<std::pair<SAMRAIIndex, SAMRAIIndex>> faces_to_remove;
             for (const auto& pair : face_to_boxes)
                 if (pair.second.size() < 2) faces_to_remove.push_back(pair.first);
             for (const auto& face : faces_to_remove) face_to_boxes.erase(face);
@@ -177,7 +177,7 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAIBox>& input_boxes)
         if (face_to_boxes.size() == 0) break;
 
         // 2. sort faces by size in *descending* order:
-        std::vector<std::pair<SAMRAIIndex, SAMRAIIndex> > faces;
+        std::vector<std::pair<SAMRAIIndex, SAMRAIIndex>> faces;
         for (const auto& pair : face_to_boxes) faces.push_back(pair.first);
         // Since some faces have equal magnitudes but don't refer to the same
         // slice of index space, use a stable sort to get platform-independent

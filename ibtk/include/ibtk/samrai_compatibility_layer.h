@@ -16,11 +16,10 @@
 
 #include <ibtk/config.h>
 
-#include "samrai_compatibility/tbox/SAMRAIPointer.h"
-
 #include "ibtk/samrai_compatibility_names.h"
 
 #include "SAMRAIPointer.h"
+#include "samrai_compatibility/tbox/SAMRAIPointer.h"
 
 namespace IBTK
 {

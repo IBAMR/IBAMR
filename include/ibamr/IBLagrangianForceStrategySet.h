@@ -173,7 +173,7 @@ private:
     /*!
      * \brief The set of IBLagrangianForceStrategy objects.
      */
-    std::vector<SAMRAIPointer<IBLagrangianForceStrategy> > d_strategy_set;
+    std::vector<SAMRAIPointer<IBLagrangianForceStrategy>> d_strategy_set;
 };
 } // namespace IBAMR
 

@@ -86,7 +86,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
             SAMRAIPointer<SAMRAIPatchGeometry> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
                 SAMRAIBox bc_coef_box;
                 SAMRAIBoundaryBox trimmed_bdry_box;
                 const SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes =
@@ -97,9 +97,9 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     const SAMRAIBoundaryBox& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,
@@ -151,7 +151,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
                 enforceDivergenceFreeConditionAtBoundary(u_data, patch, bdry_tag);
             }
         }
@@ -161,7 +161,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
-    SAMRAIPointer<SAMRAISideData<double> > u_data,
+    SAMRAIPointer<SAMRAISideData<double>> u_data,
     SAMRAIPointer<SAMRAIPatch> patch,
     const short int bdry_tag) const
 {
@@ -172,7 +172,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const double* const dx = pgeom->getDx();
     const SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {

@@ -147,28 +147,28 @@ PETScNewtonKrylovSolver::setOperator(SAMRAIPointer<GeneralOperator> F)
     resetSNESFunction();
 }
 
-SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >
+SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>
 PETScNewtonKrylovSolver::getSolutionVector() const
 {
     Vec petsc_x;
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
     IBTK_CHKERRQ(ierr);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(petsc_x, &samrai_x);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x_ptr(samrai_x, false);
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x_ptr(samrai_x, false);
     PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(petsc_x, &samrai_x);
     return samrai_x_ptr;
 }
 
-SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >
+SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>
 PETScNewtonKrylovSolver::getFunctionVector() const
 {
     Vec petsc_f;
     int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, nullptr, nullptr);
     IBTK_CHKERRQ(ierr);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_f;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_f;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(petsc_f, &samrai_f);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_f_ptr(samrai_f, false);
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_f_ptr(samrai_f, false);
     PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(petsc_f, &samrai_f);
     return samrai_f_ptr;
 }
@@ -199,12 +199,12 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISA
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
     // Solve the system using a PETSc SNES object.
-    d_b->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&b, false));
+    d_b->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&b, false));
     d_F->setHomogeneousBc(d_homogeneous_bc);
     d_F->modifyRhsForBcs(*d_b);
     SAMRAIPointer<LinearOperator> A = d_F;
     if (A) A->setHomogeneousBc(true);
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
     if (A) A->setHomogeneousBc(d_homogeneous_bc);
@@ -581,7 +581,7 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* 
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_F);
 #endif
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x, samrai_f;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x, samrai_f;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(f, &samrai_f);
     newton_solver->d_F->apply(*samrai_x, *samrai_f);
@@ -600,7 +600,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/,
 #endif
     if (newton_solver->d_J)
     {
-        SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x;
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x;
         PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
         newton_solver->d_J->formJacobian(*samrai_x);
         PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
@@ -635,7 +635,7 @@ PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
 #endif
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x, samrai_y;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x, samrai_y;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
     newton_solver->d_J->apply(*samrai_x, *samrai_y);

@@ -61,7 +61,7 @@ public:
     /*!
      * \brief The container class.
      */
-    using DataSet = std::vector<SAMRAIPointer<T> >;
+    using DataSet = std::vector<SAMRAIPointer<T>>;
 
     /*!
      * \brief The type of object, T, stored in the collection.

@@ -108,7 +108,7 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_i
     // actually compute fluid sources: in that case zero everything out.
     if (initial_time)
     {
-        SAMRAIPointer<SAMRAICellData<double> > q_cc_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> q_cc_data = patch->getPatchData(data_idx);
         TBOX_ASSERT(q_cc_data);
         q_cc_data->fillAll(0.0);
     }

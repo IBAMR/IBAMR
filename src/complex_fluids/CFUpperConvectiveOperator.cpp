@@ -181,7 +181,7 @@ extern "C"
 namespace IBAMR
 {
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                     SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                      SAMRAIPointer<SAMRAIDatabase> input_db,
                                                      const std::string& convective_op_type,
                                                      ConvectiveDifferencingType difference_form,
@@ -200,7 +200,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
 } // Constructor
 
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                     SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                      SAMRAIPointer<SAMRAIDatabase> input_db,
                                                      SAMRAIPointer<ConvectiveOperator> convective_op,
                                                      ConvectiveDifferencingType difference_form,
@@ -274,8 +274,8 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
-            SAMRAIPointer<SAMRAIFaceData<double> > u_f_data = patch->getPatchData(d_u_idx);
-            SAMRAIPointer<SAMRAISideData<double> > u_s_data = patch->getPatchData(d_u_scratch_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_f_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_s_data = patch->getPatchData(d_u_scratch_idx);
             const SAMRAIBox box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -307,21 +307,21 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_scratch_idx);
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> p_geom = patch->getPatchGeometry();
             const double* dx = p_geom->getDx();
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector patch_lower = patch_box.lower();
             const SAMRAIIntVector patch_upper = patch_box.upper();
-            SAMRAIPointer<SAMRAICellData<double> > Q_data = patch->getPatchData(Q_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Y_data = patch->getPatchData(Y_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(Q_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Y_data = patch->getPatchData(Y_idx);
             const SAMRAIIntVector Q_data_gcw = Q_data->getGhostCellWidth();
 
             const SAMRAIIntVector u_data_gcw = u_data->getGhostCellWidth();
             const SAMRAIIntVector Y_data_gcw = Y_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAICellData<double> > C_data = patch->getPatchData(d_Q_convec_idx);
+            SAMRAIPointer<SAMRAICellData<double>> C_data = patch->getPatchData(d_Q_convec_idx);
             const SAMRAIIntVector C_data_gcw = C_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAICellData<double> > S_data = patch->getPatchData(d_s_idx);
+            SAMRAIPointer<SAMRAICellData<double>> S_data = patch->getPatchData(d_s_idx);
             const SAMRAIIntVector S_data_gcw = S_data->getGhostCellWidth();
 
             switch (d_evolve_type)

@@ -276,8 +276,8 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
-    std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
-    std::vector<std::vector<double> > nodal_X0_values(NDIM);
+    std::vector<std::vector<numeric_index_type>> nodal_X_indices(NDIM);
+    std::vector<std::vector<double>> nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         nodal_X_indices[d].reserve(total_local_nodes);
@@ -360,8 +360,8 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
-    std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
-    std::vector<std::vector<double> > nodal_X0_values(NDIM);
+    std::vector<std::vector<numeric_index_type>> nodal_X_indices(NDIM);
+    std::vector<std::vector<double>> nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         nodal_X_indices[d].reserve(total_local_nodes);
@@ -558,14 +558,14 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
     System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
     std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
     auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
@@ -626,14 +626,14 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
     System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
     std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
     int ierr;
@@ -715,8 +715,8 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
 
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
-    std::vector<std::vector<numeric_index_type> > nodal_indices(NDIM);
-    std::vector<std::vector<double> > nodal_X_values(NDIM);
+    std::vector<std::vector<numeric_index_type>> nodal_indices(NDIM);
+    std::vector<std::vector<double>> nodal_X_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         nodal_indices[d].reserve(total_local_nodes);
@@ -805,15 +805,15 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     System& U_system = equation_systems->get_system(d_ibfe_method_ops->getVelocitySystemName());
     DofMap& X_dof_map = X_system.get_dof_map();
     DofMap& U_dof_map = U_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> U_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = U_dof_map.variable_type(0);
     std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
     std::unique_ptr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
     FEBase* fe = fe_autoptr.get();
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     int ierr;
     X_petsc.close();

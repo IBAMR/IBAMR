@@ -391,7 +391,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);
 
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const SAMRAIPointer<SAMRAISideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr,
@@ -409,9 +409,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAINodeVariable<double>>(nullptr),
 #elif (NDIM == 3)
-                                SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAIEdgeVariable<double>>(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,
@@ -823,7 +823,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(con
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec)
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec)
 {
     INSVCStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
     return;
@@ -1389,8 +1389,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
     const double current_time,
     const double new_time,
     const int /*cycle_num*/)
@@ -1480,8 +1480,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
     const double current_time,
     const double /*new_time*/,
     const int /*cycle_num*/)

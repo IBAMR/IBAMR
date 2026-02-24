@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceComplexLinearTimeInterpolateOp_h
 #define included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceComplexLinearTimeInterpolateOp_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAIOuterfaceComplexLinearTimeInterpolateOp.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_pdat_OuterfaceComplexLinearTimeInterpolateOp_h

@@ -243,7 +243,7 @@ private:
      */
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     std::vector<SAMRAICoarseFineBoundary> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray<NDIM> > d_domain_boxes;
+    std::vector<SAMRAI::hier::BoxArray<NDIM>> d_domain_boxes;
     std::vector<SAMRAIIntVector> d_periodic_shift;
 };
 } // namespace IBTK

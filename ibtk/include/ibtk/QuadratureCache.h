@@ -101,7 +101,7 @@ protected:
     /**
      * Managed libMesh::Quadrature objects.
      */
-    std::map<key_type, std::unique_ptr<libMesh::QBase> > d_quadratures;
+    std::map<key_type, std::unique_ptr<libMesh::QBase>> d_quadratures;
 };
 
 inline QuadratureCache::QuadratureCache(const unsigned int dim) : d_dim(dim)

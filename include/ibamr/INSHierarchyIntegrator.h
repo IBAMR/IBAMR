@@ -256,7 +256,7 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    SAMRAIPointer<SAMRAIFaceVariable<double> > getAdvectionVelocityVariable() const;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
@@ -517,8 +517,8 @@ protected:
      * The AdvDiffHierarchyIntegrator is used to provide time integration
      * capability for quantities transported by the fluid velocity field.
      */
-    std::vector<SAMRAIPointer<AdvDiffHierarchyIntegrator> > d_adv_diff_hier_integrators;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_U_adv_diff_var;
+    std::vector<SAMRAIPointer<AdvDiffHierarchyIntegrator>> d_adv_diff_hier_integrators;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_U_adv_diff_var;
 
     /*!
      * Current CFL number.

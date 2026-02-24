@@ -64,8 +64,8 @@ public:
      * vectors are not orthonormal, the solver may normalize them in place.
      */
     virtual void setNullSpace(bool nullspace_contains_constant_vec,
-                              const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-                                  std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >());
+                              const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs =
+                                  std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>());
 
     /*!
      * \brief Get whether the nullspace of the linear system contains th
@@ -76,7 +76,7 @@ public:
     /*!
      * \brief Get the basis vectors for the nullspace of the linear system.
      */
-    virtual const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& getNullSpaceBasisVectors() const;
+    virtual const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& getNullSpaceBasisVectors() const;
 
     //\}
 
@@ -115,7 +115,7 @@ protected:
 
     // Null space data.
     bool d_nullspace_contains_constant_vec = false;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nullspace_basis_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nullspace_basis_vecs;
 
 private:
     /*!

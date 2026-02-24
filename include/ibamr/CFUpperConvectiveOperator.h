@@ -92,7 +92,7 @@ public:
      * "DEFAULT", "CENTERED", "CUI", "PPM", or "WAVE_PROP"
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                              SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                               SAMRAIPointer<SAMRAIDatabase> input_db,
                               const std::string& convective_op_type,
                               ConvectiveDifferencingType difference_type,
@@ -103,7 +103,7 @@ public:
      * Constructor that takes in a convective operator
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                              SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                               SAMRAIPointer<SAMRAIDatabase> input_db,
                               SAMRAIPointer<ConvectiveOperator> convective_op,
                               ConvectiveDifferencingType difference_type,
@@ -140,8 +140,8 @@ private:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_u_adv_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_u_adv_var;
     int d_u_scratch_idx = IBTK::invalid_index;
 
     // Source function data.

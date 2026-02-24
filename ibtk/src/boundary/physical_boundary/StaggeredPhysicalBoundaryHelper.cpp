@@ -72,8 +72,8 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_d
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                SAMRAIPointer<SAMRAISideData<double> > u_out_data = patch->getPatchData(u_out_data_idx);
-                SAMRAIPointer<SAMRAISideData<double> > u_in_data = patch->getPatchData(u_in_data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_out_data = patch->getPatchData(u_out_data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> u_in_data = patch->getPatchData(u_in_data_idx);
                 copyDataAtDirichletBoundaries(u_out_data, u_in_data, patch);
             }
         }
@@ -82,8 +82,8 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_d
 } // copyDataAtDirichletBoundaries
 
 void
-StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(SAMRAIPointer<SAMRAISideData<double> > u_out_data,
-                                                               SAMRAIPointer<SAMRAISideData<double> > u_in_data,
+StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(SAMRAIPointer<SAMRAISideData<double>> u_out_data,
+                                                               SAMRAIPointer<SAMRAISideData<double>> u_in_data,
                                                                SAMRAIPointer<SAMRAIPatch> patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
@@ -91,7 +91,7 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(SAMRAIPointer<SAM
     const int patch_num = patch->getPatchNumber();
     const SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -127,7 +127,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<int> > mask_data = patch->getPatchData(mask_data_idx);
+            SAMRAIPointer<SAMRAISideData<int>> mask_data = patch->getPatchData(mask_data_idx);
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 setupMaskingFunction(mask_data, patch);
@@ -142,7 +142,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
 } // setupMaskingFunction
 
 void
-StaggeredPhysicalBoundaryHelper::setupMaskingFunction(SAMRAIPointer<SAMRAISideData<int> > mask_data,
+StaggeredPhysicalBoundaryHelper::setupMaskingFunction(SAMRAIPointer<SAMRAISideData<int>> mask_data,
                                                       SAMRAIPointer<SAMRAIPatch> patch) const
 {
     mask_data->fillAll(0);
@@ -151,7 +151,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(SAMRAIPointer<SAMRAISideDa
     const int patch_num = patch->getPatchNumber();
     const SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -186,7 +186,7 @@ StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(SAMRAIPointer
     const int patch_num = patch->getPatchNumber();
     const SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -232,7 +232,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<SAMRAIRobinBc
                 SAMRAIArray<SAMRAIBoundaryBox>& physical_codim1_boxes = d_physical_codim1_boxes[ln][patch_num];
                 physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-                std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > >& dirichlet_bdry_locs =
+                std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>& dirichlet_bdry_locs =
                     d_dirichlet_bdry_locs[ln][patch_num];
                 dirichlet_bdry_locs.resize(n_physical_codim1_boxes);
                 SAMRAIBox bc_coef_box;
@@ -242,9 +242,9 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<SAMRAIRobinBc
                     const SAMRAIBoundaryBox& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data;
+                    SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data;
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,

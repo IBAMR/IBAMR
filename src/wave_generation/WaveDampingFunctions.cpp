@@ -124,11 +124,11 @@ MassConservationFunctor::operator()(const double& alpha)
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_idx);
-            SAMRAIPointer<SAMRAICellData<double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > I_data = patch->getPatchData(d_I_idx);
-            SAMRAIPointer<SAMRAICellData<double> > dI_data = patch->getPatchData(d_dI_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_new_data = patch->getPatchData(d_phi_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_current_data = patch->getPatchData(d_phi_current_idx);
+            SAMRAIPointer<SAMRAICellData<double>> I_data = patch->getPatchData(d_I_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dI_data = patch->getPatchData(d_dI_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -253,7 +253,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
     int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_hier_integrator->getVelocityVariable(),
                                                          ptr_wave_damper->d_ins_hier_integrator->getNewContext());
 
-    SAMRAIPointer<SAMRAICellVariable<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
             "WaveDampingStrategy::callRelaxationZoneCallbackFunction: Level "
@@ -277,7 +277,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_new_idx);
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -318,7 +318,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_new_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAIIndex i = it();
@@ -364,7 +364,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const std::string var_name = "callConservedWaveAbsorbingCallbackFunction::I_var";
     SAMRAIIntVector no_ghosts = 0;
-    SAMRAIPointer<SAMRAICellVariable<double> > I_var = var_db->getVariable(var_name);
+    SAMRAIPointer<SAMRAICellVariable<double>> I_var = var_db->getVariable(var_name);
     if (!I_var) I_var = new SAMRAICellVariable<double>(var_name);
     const int I_idx =
         var_db->registerVariableAndContext(I_var, var_db->getContext(var_name + "::INTEGRAND"), no_ghosts);
@@ -388,7 +388,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     // Get the required patch data
     int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_hier_integrator->getVelocityVariable(),
                                                          ptr_wave_damper->d_ins_hier_integrator->getNewContext());
-    SAMRAIPointer<SAMRAICellVariable<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
             "WaveDampingStrategy::"
@@ -466,7 +466,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_new_idx);
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -506,7 +506,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_new_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAIIndex i = it();

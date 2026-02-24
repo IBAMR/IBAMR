@@ -65,7 +65,7 @@ MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
                                          bad_interval);
 
     // pairs of processors and boxes
-    std::vector<std::pair<int, SAMRAIBox> > new_boxes;
+    std::vector<std::pair<int, SAMRAIBox>> new_boxes;
 
     const int n_nodes = IBTK_MPI::getNodes();
     for (int r = 0; r < n_nodes; ++r)

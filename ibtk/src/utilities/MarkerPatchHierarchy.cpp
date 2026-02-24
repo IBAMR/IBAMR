@@ -76,7 +76,7 @@ static Timer* t_midpoint_step;
 static Timer* t_trapezoidal_step;
 static Timer* t_prune_and_redistribute;
 
-std::vector<std::vector<SAMRAIBox> >
+std::vector<std::vector<SAMRAIBox>>
 compute_nonoverlapping_patch_boxes(const SAMRAIPointer<SAMRAIBasePatchLevel>& c_level,
                                    const SAMRAIPointer<SAMRAIBasePatchLevel>& f_level)
 {
@@ -102,7 +102,7 @@ compute_nonoverlapping_patch_boxes(const SAMRAIPointer<SAMRAIBasePatchLevel>& c_
 
     // Remove said boxes from each coarse-level patch:
     const auto rank = IBTK_MPI::getRank();
-    std::vector<std::vector<SAMRAIBox> > result;
+    std::vector<std::vector<SAMRAIBox>> result;
     long coarse_size = 0;
     for (int i = 0; i < coarse_level->getNumberOfPatches(); ++i)
     {
@@ -127,7 +127,7 @@ compute_nonoverlapping_patch_boxes(const SAMRAIPointer<SAMRAIBasePatchLevel>& c_
     return result;
 }
 
-std::tuple<std::vector<double>, std::vector<double>, std::vector<int> >
+std::tuple<std::vector<double>, std::vector<double>, std::vector<int>>
 collect_markers(const std::vector<double>& local_positions,
                 const std::vector<double>& local_velocities,
                 const std::vector<int>& local_indices)
@@ -191,8 +191,8 @@ do_interpolation(const int data_idx,
                  std::vector<double>& velocities)
 {
     SAMRAIPointer<SAMRAIPatchData> data = patch->getPatchData(data_idx);
-    SAMRAIPointer<SAMRAICellData<double> > cc_data = data;
-    SAMRAIPointer<SAMRAISideData<double> > sc_data = data;
+    SAMRAIPointer<SAMRAICellData<double>> cc_data = data;
+    SAMRAIPointer<SAMRAISideData<double>> sc_data = data;
     const bool is_cc_data = cc_data;
     const bool is_sc_data = sc_data;
     // Only interpolate things within 1 cell of the patch box - we aren't
@@ -271,7 +271,7 @@ MarkerPatch::contains(const IBTK::Point& position) const
     return false;
 }
 
-std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 MarkerPatch::prune()
 {
     std::vector<int> indices;
@@ -435,7 +435,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         // otherwise we need to subtract off the boxes on the finer level first.
         else
         {
-            const std::vector<std::vector<SAMRAIBox> > nonoverlapping_patch_boxes =
+            const std::vector<std::vector<SAMRAIBox>> nonoverlapping_patch_boxes =
                 compute_nonoverlapping_patch_boxes(current_level, finer_level);
             unsigned int local_num = 0;
             for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
@@ -739,7 +739,7 @@ MarkerPatchHierarchy::getNumberOfMarkers() const
     return d_num_markers;
 }
 
-std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 MarkerPatchHierarchy::collectAllMarkers() const
 {
     IBTK_TIMER_START(t_collect_all_markers);

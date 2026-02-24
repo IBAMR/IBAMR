@@ -74,7 +74,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
         {
             const int patch_num = p();
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
-            SAMRAIPointer<SAMRAICellData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> patch_data = patch->getPatchData(patch_data_idx);
             const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (SAMRAIBox::Iterator it(data_box); it; it++)
             {
@@ -122,7 +122,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
         {
             const int patch_num = p();
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
-            SAMRAIPointer<SAMRAIFaceData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> patch_data = patch->getPatchData(patch_data_idx);
             const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -174,7 +174,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
         {
             const int patch_num = p();
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
-            SAMRAIPointer<SAMRAINodeData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> patch_data = patch->getPatchData(patch_data_idx);
             const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (SAMRAIBox::Iterator it(SAMRAINodeGeometry::toNodeBox(data_box)); it; it++)
             {
@@ -223,7 +223,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
         {
             const int patch_num = p();
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
-            SAMRAIPointer<SAMRAISideData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> patch_data = patch->getPatchData(patch_data_idx);
             const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -285,7 +285,7 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
                     const int patch_num = p();
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -342,7 +342,7 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     const int patch_num = p();
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAIFaceData<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAIFaceData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -402,7 +402,7 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     const int patch_num = p();
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAINodeData<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAINodeData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -459,7 +459,7 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
                     const int patch_num = p();
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAISideData<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +

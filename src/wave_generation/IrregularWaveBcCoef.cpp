@@ -161,9 +161,9 @@ IrregularWaveBcCoef::~IrregularWaveBcCoef()
 } // ~IrregularWaveBcCoef
 
 void
-IrregularWaveBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+IrregularWaveBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                 const SAMRAIPointer<SAMRAIVariable>& variable,
                                 const SAMRAIPatch& patch,
                                 const SAMRAIBoundaryBox& bdry_box,

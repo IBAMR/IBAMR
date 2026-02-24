@@ -46,7 +46,7 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector but does not copy values.
      */
-    SAMRAIScopedVectorDuplicate(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >& vector,
+    SAMRAIScopedVectorDuplicate(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>& vector,
                                 const std::string& name = "");
 
     /*!
@@ -66,12 +66,12 @@ public:
      * to a vector. Since this pointer is non-owning it is not an implementation
      * of reference-counting to this object.
      */
-    operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >();
+    operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>();
 
     /*!
      * Get the components of the vectors.
      */
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> > > getComponentVectors() const;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>> getComponentVectors() const;
 
     /*!
      * Destructor. Removes the cloned patch index and deallocates data.
@@ -79,7 +79,7 @@ public:
     ~SAMRAIScopedVectorDuplicate();
 
 protected:
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> > d_vector;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>> d_vector;
 };
 } // namespace IBTK
 

@@ -173,7 +173,7 @@ PETScKrylovLinearSolver::setPreconditioner(SAMRAIPointer<LinearSolver> pc_solver
 void
 PETScKrylovLinearSolver::setNullSpace(
     const bool contains_constant_vec,
-    const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+    const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs)
 {
     deallocateNullSpaceData();
     KrylovLinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
@@ -200,11 +200,11 @@ PETScKrylovLinearSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISA
     resetKSPOptions();
 
     // Solve the system using a PETSc KSP object.
-    d_b->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&b, false));
+    d_b->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
     d_A->modifyRhsForBcs(*d_b);
     d_A->setHomogeneousBc(true);
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -714,7 +714,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x, samrai_y;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x, samrai_y;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
     krylov_solver->d_A->apply(*samrai_x, *samrai_y);
@@ -742,7 +742,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     krylov_solver->d_pc_solver->setInitialGuessNonzero(false);
 
     // Apply the preconditioner.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x, samrai_y;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x, samrai_y;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
     krylov_solver->d_pc_solver->solveSystem(*samrai_y, *samrai_x);

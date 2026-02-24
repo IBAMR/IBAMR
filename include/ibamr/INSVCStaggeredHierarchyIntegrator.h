@@ -227,7 +227,7 @@ public:
     /*!
      * Explicitly remove nullspace components from a solution vector.
      */
-    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec);
+    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec);
 
     /*!
      * Register a variable mass density variable with the hierarchy integrator.
@@ -320,13 +320,13 @@ public:
      * \note If multiple advection diffusion integrators are registered, you can specify which advection diffusion
      * integrator is used to evolve the viscosity.
      */
-    void setTransportedViscosityVariable(SAMRAIPointer<SAMRAICellVariable<double> > mu_adv_diff_var,
+    void setTransportedViscosityVariable(SAMRAIPointer<SAMRAICellVariable<double>> mu_adv_diff_var,
                                          unsigned int adv_diff_idx = 0);
 
     /*!
      * \brief Get the transported viscosity variable that is being manintained by an advection-diffusion integrator
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > getTransportedViscosityVariable() const;
+    SAMRAIPointer<SAMRAICellVariable<double>> getTransportedViscosityVariable() const;
 
     /*!
      * \brief Get the side-centered density patch data index, which will always be the newest one used in the linear
@@ -399,7 +399,7 @@ public:
     /*!
      * \brief Get the Brinkman penalization objects registered with this class.
      */
-    const std::vector<SAMRAIPointer<IBAMR::BrinkmanPenalizationStrategy> >& getBrinkmanPenalizationStrategy() const
+    const std::vector<SAMRAIPointer<IBAMR::BrinkmanPenalizationStrategy>>& getBrinkmanPenalizationStrategy() const
     {
         return d_brinkman_force;
     } // getBrinkmanPenalizationStrategy
@@ -528,11 +528,11 @@ protected:
     /*!
      * Hierarchy operations objects.
      */
-    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyNodeDataOpsReal<double> > d_hier_nc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyEdgeDataOpsReal<double> > d_hier_ec_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyNodeDataOpsReal<double>> d_hier_nc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyEdgeDataOpsReal<double>> d_hier_ec_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -557,16 +557,16 @@ protected:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_scratch_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_rhs_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_adv_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_N_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_P_scratch_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_P_rhs_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_sol_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_rhs_vec;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nul_vecs;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_rhs_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_adv_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_N_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_P_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_P_rhs_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_sol_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_rhs_vec;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace = false;
 
     std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
@@ -578,42 +578,42 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_old_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_U_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_P_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_F_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_F_cc_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_N_old_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_old_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_U_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_F_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_F_cc_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_N_old_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Omega_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Omega_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_U_var;
 
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_regrid_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_src_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_indicator_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_F_div_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_regrid_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_src_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_indicator_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_F_div_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_EE_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_EE_var;
 
     SAMRAIPointer<SAMRAIVariable> d_rho_var, d_mu_var;
 
-    SAMRAIPointer<SAMRAISideVariable<double> > d_pressure_D_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_pressure_rhs_D_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_pressure_D_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_pressure_rhs_D_var;
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_velocity_D_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_velocity_rhs_D_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_velocity_D_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_velocity_rhs_D_var;
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_velocity_D_var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_velocity_rhs_D_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> d_velocity_D_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> d_velocity_rhs_D_var;
 #endif
-    SAMRAIPointer<SAMRAICellVariable<double> > d_velocity_D_cc_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_velocity_C_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_velocity_L_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_velocity_rhs_C_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_velocity_D_cc_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_velocity_C_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_velocity_L_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_velocity_rhs_C_var;
 
-    SAMRAIPointer<SAMRAISideVariable<double> > d_N_full_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_N_full_var;
 
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
@@ -630,9 +630,9 @@ protected:
      * Interpolated material property variables.
      */
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_mu_interp_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_mu_interp_var;
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_mu_interp_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> d_mu_interp_var;
 #endif
 
     /*!
@@ -644,14 +644,14 @@ protected:
     /*!
      * Brinkman force strategy objects registered with this integrator.
      */
-    std::vector<SAMRAIPointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
+    std::vector<SAMRAIPointer<IBAMR::BrinkmanPenalizationStrategy>> d_brinkman_force;
 
     /*!
      * Temporary storage variables that contain intermediate quantities
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_temp_sc_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_temp_sc_var;
     int d_temp_sc_idx;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_temp_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_temp_cc_var;
     int d_temp_cc_idx;
 
     /*
@@ -728,7 +728,7 @@ protected:
     /*
      * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_mu_adv_diff_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_mu_adv_diff_var;
 
     /*
      * Index to track which advection diffusion integrator maintains the viscosity.

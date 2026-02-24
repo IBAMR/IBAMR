@@ -287,8 +287,8 @@ public:
      * specified time within the current time interval.
      */
     virtual void interpolateVelocity(int u_data_idx,
-                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                      double data_time) = 0;
 
     /*!
@@ -349,7 +349,7 @@ public:
      */
     virtual void spreadForce(int f_data_idx,
                              IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                              double data_time) = 0;
 
     /*!
@@ -375,7 +375,7 @@ public:
      */
     virtual void spreadFluidSource(int q_data_idx,
                                    IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& q_prolongation_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& q_prolongation_scheds,
                                    double data_time);
 
     /*!
@@ -385,8 +385,8 @@ public:
      * An empty default implementation is provided.
      */
     virtual void interpolatePressure(int p_data_idx,
-                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& p_synch_scheds,
-                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& p_ghost_fill_scheds,
+                                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& p_synch_scheds,
+                                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& p_ghost_fill_scheds,
                                      double data_time);
 
     /*!
@@ -424,8 +424,8 @@ public:
     virtual void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                           SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                           int u_data_idx,
-                                          const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                          const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                          const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                          const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                           int integrator_step,
                                           double init_data_time,
                                           bool initial_time);
@@ -530,13 +530,13 @@ protected:
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * velocity-like variables.
      */
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > getVelocityHierarchyDataOps() const;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> getVelocityHierarchyDataOps() const;
 
     /*!
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * pressure-like variables.
      */
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > getPressureHierarchyDataOps() const;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> getPressureHierarchyDataOps() const;
 
     /*!
      * Return a pointer to a HierarchyMathOps object.
@@ -616,21 +616,21 @@ protected:
     /*!
      * Get ghost cell-filling refine schedules.
      */
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& getGhostfillRefineSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& getGhostfillRefineSchedules(const std::string& name) const;
 
     /*!
      * Get data-prolonging refine schedules.
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& getProlongRefineSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& getProlongRefineSchedules(const std::string& name) const;
 
     /*!
      * Get coarsen schedules.
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& getCoarsenSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& getCoarsenSchedules(const std::string& name) const;
 
     /*!
      * The IBHierarchyIntegrator object that is using this strategy class.

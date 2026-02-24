@@ -378,17 +378,17 @@ private:
     // Cached communications algorithms and schedules.
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg;
     std::unique_ptr<SAMRAICoarsenPatchStrategy> d_coarsen_strategy;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_coarsen_scheds;
 
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_refine_alg;
     std::unique_ptr<SAMRAIRefinePatchStrategy> d_refine_strategy;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_refine_scheds;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
-    std::vector<SAMRAIPointer<CoarseFineBoundaryRefinePatchStrategy> > d_cf_bdry_ops;
-    std::vector<SAMRAIPointer<CartExtrapPhysBdryOp> > d_extrap_bc_ops;
-    std::vector<SAMRAIPointer<CartCellRobinPhysBdryOp> > d_cc_robin_bc_ops;
-    std::vector<SAMRAIPointer<CartSideRobinPhysBdryOp> > d_sc_robin_bc_ops;
+    std::vector<SAMRAIPointer<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
+    std::vector<SAMRAIPointer<CartExtrapPhysBdryOp>> d_extrap_bc_ops;
+    std::vector<SAMRAIPointer<CartCellRobinPhysBdryOp>> d_cc_robin_bc_ops;
+    std::vector<SAMRAIPointer<CartSideRobinPhysBdryOp>> d_sc_robin_bc_ops;
 };
 } // namespace IBTK
 

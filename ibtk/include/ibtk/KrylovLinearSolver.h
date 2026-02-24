@@ -117,7 +117,7 @@ protected:
     // Solver components.
     SAMRAIPointer<LinearOperator> d_A;
     SAMRAIPointer<LinearSolver> d_pc_solver;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_x, d_b;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_x, d_b;
 
 private:
     /*!

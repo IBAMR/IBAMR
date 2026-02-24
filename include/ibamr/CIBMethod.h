@@ -269,8 +269,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -280,8 +280,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -290,7 +290,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -519,7 +519,7 @@ protected:
     /*!
      * Vector of Lagrnagian indices of all structures.
      */
-    std::vector<std::pair<int, int> > d_struct_lag_idx_range;
+    std::vector<std::pair<int, int>> d_struct_lag_idx_range;
 
     /*!
      * The object used to write out data for postprocessing by the visIt
@@ -561,7 +561,7 @@ private:
      * \brief Compute center of mass of structures.
      */
     void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
-                                std::vector<SAMRAIPointer<IBTK::LData> >& X_data);
+                                std::vector<SAMRAIPointer<IBTK::LData>>& X_data);
 
     /*!
      * \brief Set regularization weight for Lagrangian markers.

@@ -62,7 +62,7 @@ public:
      * \brief Constructor of the class.
      */
     LevelSetContainer(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      SAMRAIPointer<SAMRAICellVariable<double> > ls_var,
+                      SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
     {
@@ -71,7 +71,7 @@ public:
     } // LevelSetContainer
 
     LevelSetContainer(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      std::vector<SAMRAIPointer<SAMRAICellVariable<double> > > ls_vars,
+                      std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
     {
@@ -99,14 +99,14 @@ public:
         return d_adv_diff_integrator;
     } // getAdvDiffHierarchyIntegrator
 
-    SAMRAIPointer<SAMRAICellVariable<double> > getLevelSetVariable(int idx = 0) const
+    SAMRAIPointer<SAMRAICellVariable<double>> getLevelSetVariable(int idx = 0) const
     {
         return d_ls_vars[idx];
     } // getLSVariable
 
 private:
     SAMRAIPointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-    std::vector<SAMRAIPointer<SAMRAICellVariable<double> > > d_ls_vars;
+    std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> d_ls_vars;
     double d_ncells = 1.0;
 };
 
@@ -120,7 +120,7 @@ public:
      * \brief Constructor of the class.
      */
     TagLSRefinementCells(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                         SAMRAIPointer<SAMRAICellVariable<double> > ls_var,
+                         SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                          double tag_min_value = 0.0,
                          double tag_max_value = 0.0)
         : d_ls_container(adv_diff_integrator, ls_var), d_tag_min_value(tag_min_value), d_tag_max_value(tag_max_value)
@@ -197,7 +197,7 @@ public:
      */
     LevelSetMassLossFixer(std::string object_name,
                           SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          std::vector<SAMRAIPointer<SAMRAICellVariable<double> > > ls_vars,
+                          std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars,
                           SAMRAIPointer<SAMRAIDatabase> input_db = nullptr,
                           bool register_for_restart = true);
 

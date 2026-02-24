@@ -139,7 +139,7 @@ SideDataSynchronization::initializeOperatorState(
         const int data_idx = transaction_comp.d_data_idx;
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
@@ -240,7 +240,7 @@ SideDataSynchronization::resetTransactionComponents(
         const int data_idx = transaction_comp.d_data_idx;
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"

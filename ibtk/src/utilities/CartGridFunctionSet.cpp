@@ -107,7 +107,7 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
         SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(var,
                                                                          hierarchy,
                                                                          /* get_unique */ true);
@@ -145,11 +145,11 @@ CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> ec_var = var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
 #endif
@@ -168,36 +168,36 @@ CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (cc_var)
             {
-                SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
-                SAMRAIPointer<SAMRAICellData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SAMRAICellData<double>> cloned_data = patch->getPatchData(cloned_data_idx);
                 SAMRAIPatchCellDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (ec_var)
             {
-                SAMRAIPointer<SAMRAIEdgeData<double> > data = patch->getPatchData(data_idx);
-                SAMRAIPointer<SAMRAIEdgeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SAMRAIEdgeData<double>> data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SAMRAIEdgeData<double>> cloned_data = patch->getPatchData(cloned_data_idx);
                 SAMRAIPatchEdgeDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (fc_var)
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > data = patch->getPatchData(data_idx);
-                SAMRAIPointer<SAMRAIFaceData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> cloned_data = patch->getPatchData(cloned_data_idx);
                 SAMRAIPatchFaceDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (nc_var)
             {
-                SAMRAIPointer<SAMRAINodeData<double> > data = patch->getPatchData(data_idx);
-                SAMRAIPointer<SAMRAINodeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SAMRAINodeData<double>> data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SAMRAINodeData<double>> cloned_data = patch->getPatchData(cloned_data_idx);
                 SAMRAIPatchNodeDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (sc_var)
             {
-                SAMRAIPointer<SAMRAISideData<double> > data = patch->getPatchData(data_idx);
-                SAMRAIPointer<SAMRAISideData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SAMRAISideData<double>> cloned_data = patch->getPatchData(cloned_data_idx);
                 SAMRAIPatchSideDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
@@ -224,11 +224,11 @@ CartGridFunctionSet::setDataOnPatch(int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch);
 #endif
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> ec_var = var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
 #endif
@@ -236,27 +236,27 @@ CartGridFunctionSet::setDataOnPatch(int data_idx,
     SAMRAIPointer<SAMRAIPatchData> cloned_data;
     if (cc_var)
     {
-        SAMRAIPointer<SAMRAICellData<double> > p_data = data;
+        SAMRAIPointer<SAMRAICellData<double>> p_data = data;
         cloned_data = new SAMRAICellData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (ec_var)
     {
-        SAMRAIPointer<SAMRAIEdgeData<double> > p_data = data;
+        SAMRAIPointer<SAMRAIEdgeData<double>> p_data = data;
         cloned_data = new SAMRAIEdgeData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (fc_var)
     {
-        SAMRAIPointer<SAMRAIFaceData<double> > p_data = data;
+        SAMRAIPointer<SAMRAIFaceData<double>> p_data = data;
         cloned_data = new SAMRAIFaceData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (nc_var)
     {
-        SAMRAIPointer<SAMRAINodeData<double> > p_data = data;
+        SAMRAIPointer<SAMRAINodeData<double>> p_data = data;
         cloned_data = new SAMRAINodeData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (sc_var)
     {
-        SAMRAIPointer<SAMRAISideData<double> > p_data = data;
+        SAMRAIPointer<SAMRAISideData<double>> p_data = data;
         cloned_data = new SAMRAISideData<double>(
             p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
@@ -278,36 +278,36 @@ CartGridFunctionSet::setDataOnPatch(int data_idx,
         d_fcns[k]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
         if (cc_var)
         {
-            SAMRAIPointer<SAMRAICellData<double> > p_data = data;
-            SAMRAIPointer<SAMRAICellData<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SAMRAICellData<double>> p_data = data;
+            SAMRAIPointer<SAMRAICellData<double>> p_cloned_data = cloned_data;
             SAMRAIPatchCellDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (ec_var)
         {
-            SAMRAIPointer<SAMRAIEdgeData<double> > p_data = data;
-            SAMRAIPointer<SAMRAIEdgeData<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SAMRAIEdgeData<double>> p_data = data;
+            SAMRAIPointer<SAMRAIEdgeData<double>> p_cloned_data = cloned_data;
             SAMRAIPatchEdgeDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (fc_var)
         {
-            SAMRAIPointer<SAMRAIFaceData<double> > p_data = data;
-            SAMRAIPointer<SAMRAIFaceData<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SAMRAIFaceData<double>> p_data = data;
+            SAMRAIPointer<SAMRAIFaceData<double>> p_cloned_data = cloned_data;
             SAMRAIPatchFaceDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (nc_var)
         {
-            SAMRAIPointer<SAMRAINodeData<double> > p_data = data;
-            SAMRAIPointer<SAMRAINodeData<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SAMRAINodeData<double>> p_data = data;
+            SAMRAIPointer<SAMRAINodeData<double>> p_cloned_data = cloned_data;
             SAMRAIPatchNodeDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (sc_var)
         {
-            SAMRAIPointer<SAMRAISideData<double> > p_data = data;
-            SAMRAIPointer<SAMRAISideData<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SAMRAISideData<double>> p_data = data;
+            SAMRAIPointer<SAMRAISideData<double>> p_cloned_data = cloned_data;
             SAMRAIPatchSideDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }

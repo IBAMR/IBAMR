@@ -83,7 +83,7 @@ public:
            const libMesh::Point& /*s*/,
            libMesh::Elem* /*elem*/,
            const std::vector<const std::vector<double>*>& /*system_var_data*/,
-           const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+           const std::vector<const std::vector<libMesh::VectorValue<double>>*>& /*system_grad_var_data*/,
            double /*data_time*/,
            void* /*ctx*/)
     {
@@ -102,7 +102,7 @@ public:
            const libMesh::Point& /*s*/,
            libMesh::Elem* /*elem*/,
            const std::vector<const std::vector<double>*>& /*system_var_data*/,
-           const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+           const std::vector<const std::vector<libMesh::VectorValue<double>>*>& /*system_grad_var_data*/,
            double /*data_time*/,
            void* /*ctx*/)
     {
@@ -123,7 +123,7 @@ public:
         const libMesh::Point& s,
         libMesh::Elem* elem,
         const std::vector<const std::vector<double>*>& system_var_data,
-        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+        const std::vector<const std::vector<libMesh::VectorValue<double>>*>& system_grad_var_data,
         double data_time,
         void* ctx)
     {
@@ -149,7 +149,7 @@ public:
         const libMesh::Point& /*s*/,
         libMesh::Elem* /*elem*/,
         const std::vector<const std::vector<double>*>& system_var_data,
-        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        const std::vector<const std::vector<libMesh::VectorValue<double>>*>& /*system_grad_var_data*/,
         double /*data_time*/,
         void* /*ctx*/)
     {
@@ -171,7 +171,7 @@ public:
         const libMesh::Point& /*s*/,
         libMesh::Elem* /*elem*/,
         const std::vector<const std::vector<double>*>& system_var_data,
-        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        const std::vector<const std::vector<libMesh::VectorValue<double>>*>& /*system_grad_var_data*/,
         double /*data_time*/,
         void* /*ctx*/)
     {
@@ -193,7 +193,7 @@ public:
         const libMesh::Point& /*s*/,
         libMesh::Elem* /*elem*/,
         const std::vector<const std::vector<double>*>& system_var_data,
-        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        const std::vector<const std::vector<libMesh::VectorValue<double>>*>& /*system_grad_var_data*/,
         double /*data_time*/,
         void* /*ctx*/)
     {
@@ -314,7 +314,7 @@ protected:
      */
     std::vector<libMesh::System*> d_scalar_var_systems;
     std::vector<IBTK::ScalarMeshFcnPtr> d_scalar_var_fcns;
-    std::vector<std::vector<IBTK::SystemData> > d_scalar_var_system_data;
+    std::vector<std::vector<IBTK::SystemData>> d_scalar_var_system_data;
     std::vector<void*> d_scalar_var_fcn_ctxs;
 
     /*!
@@ -322,7 +322,7 @@ protected:
      */
     std::vector<libMesh::System*> d_vector_var_systems;
     std::vector<IBTK::VectorMeshFcnPtr> d_vector_var_fcns;
-    std::vector<std::vector<IBTK::SystemData> > d_vector_var_system_data;
+    std::vector<std::vector<IBTK::SystemData>> d_vector_var_system_data;
     std::vector<void*> d_vector_var_fcn_ctxs;
     std::vector<unsigned int> d_vector_var_dims;
 
@@ -331,7 +331,7 @@ protected:
      */
     std::vector<libMesh::System*> d_tensor_var_systems;
     std::vector<IBTK::TensorMeshFcnPtr> d_tensor_var_fcns;
-    std::vector<std::vector<IBTK::SystemData> > d_tensor_var_system_data;
+    std::vector<std::vector<IBTK::SystemData>> d_tensor_var_system_data;
     std::vector<void*> d_tensor_var_fcn_ctxs;
     std::vector<unsigned int> d_tensor_var_dims;
 
@@ -339,8 +339,8 @@ protected:
      * Eulerian interpolation data.
      */
     std::vector<libMesh::System*> d_scalar_interp_var_systems;
-    std::vector<SAMRAIPointer<SAMRAIVariable> > d_scalar_interp_vars;
-    std::vector<SAMRAIPointer<SAMRAIVariableContext> > d_scalar_interp_ctxs;
+    std::vector<SAMRAIPointer<SAMRAIVariable>> d_scalar_interp_vars;
+    std::vector<SAMRAIPointer<SAMRAIVariableContext>> d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
         d_scalar_interp_fill_transactions;

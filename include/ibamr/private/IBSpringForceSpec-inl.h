@@ -59,7 +59,7 @@ inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
 inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
                                             const std::vector<int>& slave_idxs,
                                             const std::vector<int>& force_fcn_idxs,
-                                            const std::vector<std::vector<double> >& parameters)
+                                            const std::vector<std::vector<double>>& parameters)
     : d_master_idx(master_idx), d_slave_idxs(slave_idxs), d_force_fcn_idxs(force_fcn_idxs), d_parameters(parameters)
 {
 #if !defined(NDEBUG)
@@ -123,13 +123,13 @@ IBSpringForceSpec::getForceFunctionIndices()
     return d_force_fcn_idxs;
 } // getForceFunctionIndices
 
-inline const std::vector<std::vector<double> >&
+inline const std::vector<std::vector<double>>&
 IBSpringForceSpec::getParameters() const
 {
     return d_parameters;
 } // getParameters
 
-inline std::vector<std::vector<double> >&
+inline std::vector<std::vector<double>>&
 IBSpringForceSpec::getParameters()
 {
     return d_parameters;

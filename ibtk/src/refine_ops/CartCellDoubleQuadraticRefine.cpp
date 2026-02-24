@@ -79,7 +79,7 @@ bool
 CartCellDoubleQuadraticRefine::findRefineOperator(const SAMRAIPointer<SAMRAIVariable>& var,
                                                   const std::string& op_name) const
 {
-    const SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+    const SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -110,8 +110,8 @@ CartCellDoubleQuadraticRefine::refine(SAMRAIPatch& fine,
                                       const SAMRAIIntVector& ratio) const
 {
     // Get the patch data.
-    SAMRAIPointer<SAMRAICellData<double> > fdata = fine.getPatchData(dst_component);
-    SAMRAIPointer<SAMRAICellData<double> > cdata = coarse.getPatchData(src_component);
+    SAMRAIPointer<SAMRAICellData<double>> fdata = fine.getPatchData(dst_component);
+    SAMRAIPointer<SAMRAICellData<double>> cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);

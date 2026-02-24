@@ -337,7 +337,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         const int W_new_idx = var_db->mapVariableAndContextToIndex(d_C_cc_var, d_adv_diff_integrator->getNewContext());
         const bool W_new_is_allocated = d_adv_diff_integrator->isAllocatedPatchData(W_new_idx);
         SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_cc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
         if (d_adv_diff_integrator->getCurrentCycleNumber() == 0 || !W_new_is_allocated)
         {
@@ -352,7 +352,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     }
 
     SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_cc_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
         hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
 
     // Fill in boundary conditions for evolved quantity.
@@ -498,16 +498,16 @@ CFINSForcing::setDataOnPatch(const int data_idx,
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> p_geom = patch->getPatchGeometry();
     const double* dx = p_geom->getDx();
     // NOTE: We precomputed the stress, which is stored in d_C_scratch_idx.
-    SAMRAIPointer<SAMRAICellData<double> > sig_data = patch->getPatchData(d_C_scratch_idx);
-    SAMRAIPointer<SAMRAICellData<double> > div_sig_draw_data =
+    SAMRAIPointer<SAMRAICellData<double>> sig_data = patch->getPatchData(d_C_scratch_idx);
+    SAMRAIPointer<SAMRAICellData<double>> div_sig_draw_data =
         d_div_sig_idx_draw != IBTK::invalid_index ? patch->getPatchData(d_div_sig_idx_draw) : nullptr;
     if (d_log_div_sig || d_div_sig_draw || d_div_sig_abs_tag || d_div_sig_rel_tag) div_sig_draw_data->fillAll(0.0);
-    SAMRAIPointer<SAMRAISideData<double> > div_sig_sc_data = patch->getPatchData(data_idx);
-    SAMRAIPointer<SAMRAICellData<double> > div_sig_cc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> div_sig_sc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> div_sig_cc_data = patch->getPatchData(data_idx);
     // If we are drawing the stress tensor, print it out.
     if (d_stress_draw)
     {
-        SAMRAIPointer<SAMRAICellData<double> > stress_data_draw = patch->getPatchData(d_stress_idx_draw);
+        SAMRAIPointer<SAMRAICellData<double>> stress_data_draw = patch->getPatchData(d_stress_idx_draw);
         for (SAMRAICellIterator ci(patch_box); ci; ci++)
         {
             SAMRAICellIndex idx = *ci;
@@ -678,7 +678,7 @@ CFINSForcing::checkPositiveDefinite(const int data_idx,
             const SAMRAIBox& box = patch->getBox();
             const SAMRAIPointer<SAMRAIPatchGeometry> p_geom = patch->getPatchGeometry();
             if (initial_time) return;
-            SAMRAIPointer<SAMRAICellData<double> > s_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> s_data = patch->getPatchData(data_idx);
             for (SAMRAICellIterator it(box); it; it++)
             {
                 const SAMRAICellIndex& ci = *it;
@@ -714,7 +714,7 @@ CFINSForcing::squareMatrix(const int data_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (initial_time) return;
-            SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
             const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
             const SAMRAIPointer<SAMRAIPatchGeometry> p_geom = patch->getPatchGeometry();
 
@@ -753,7 +753,7 @@ CFINSForcing::findDeterminant(const int data_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(i());
             const SAMRAIBox& box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
             for (SAMRAICellIterator it(box); it; it++)
             {
                 SAMRAICellIndex i = *it;
@@ -790,7 +790,7 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
             const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (SAMRAICellIterator it(box); it; it++)
             {
@@ -824,8 +824,8 @@ CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > C_data = patch->getPatchData(C_cc_idx);
-            SAMRAIPointer<SAMRAICellData<double> > conform_data_draw = patch->getPatchData(d_conform_idx_draw);
+            SAMRAIPointer<SAMRAICellData<double>> C_data = patch->getPatchData(C_cc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> conform_data_draw = patch->getPatchData(d_conform_idx_draw);
 #if (NDIM == 2)
             conform_data_draw->copyDepth(0, *C_data, 0);
             conform_data_draw->copyDepth(1, *C_data, 2);
@@ -862,7 +862,7 @@ CFINSForcing::projectTensor(const int data_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             if (initial_time) return;
-            SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
             const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (SAMRAICellIterator it(box); it; it++)
             {
@@ -918,9 +918,9 @@ CFINSForcing::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> hier
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > C_data = patch->getPatchData(d_div_sig_idx_draw);
+            SAMRAIPointer<SAMRAICellData<double>> C_data = patch->getPatchData(d_div_sig_idx_draw);
             if (!C_data) continue;
-            SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
             const SAMRAIBox& box = patch->getBox();
             for (SAMRAICellIterator ic(box); ic; ic++)
             {

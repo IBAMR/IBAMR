@@ -129,7 +129,7 @@ GeneralOperator::applyAdd(SAMRAISAMRAIVectorReal<double>& x,
     // Guard against the case that y == z.
     SAMRAIScopedVectorCopy<double> zz(z);
     apply(x, zz);
-    z.add(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&y, false), zz);
+    z.add(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&y, false), zz);
     return;
 } // applyAdd
 

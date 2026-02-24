@@ -106,7 +106,7 @@ protected:
     /**
      * Managed IBTK::FEMapping objects.
      */
-    std::map<key_type, std::unique_ptr<FEMapping<dim, spacedim> > > d_mappings;
+    std::map<key_type, std::unique_ptr<FEMapping<dim, spacedim>>> d_mappings;
 };
 
 template <int dim, int spacedim>

@@ -213,10 +213,10 @@ private:
     /*!
      * Solver variables.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_h_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_grad_T_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_pre_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_dh_dT_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_h_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_grad_T_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_pre_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_dh_dT_var;
 
     SAMRAIRobinBcCoefStrategy* d_h_bc_coef = nullptr;
 

@@ -87,8 +87,8 @@ public:
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method.
      */
-    static void constructPatchLevelASMSubdomains(std::vector<std::set<int> >& is_overlap,
-                                                 std::vector<std::set<int> >& is_nonoverlap,
+    static void constructPatchLevelASMSubdomains(std::vector<std::set<int>>& is_overlap,
+                                                 std::vector<std::set<int>>& is_nonoverlap,
                                                  const SAMRAIIntVector& box_size,
                                                  const SAMRAIIntVector& overlap_size,
                                                  const std::vector<int>& num_dofs_per_proc,
@@ -101,7 +101,7 @@ public:
      * \brief Partition the patch level into subdomains suitable to be used for
      * PCFieldSplit preconditioner.
      */
-    static void constructPatchLevelFields(std::vector<std::set<int> >& is_field,
+    static void constructPatchLevelFields(std::vector<std::set<int>>& is_field,
                                           std::vector<std::string>& is_field_name,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int u_dof_index_idx,

@@ -66,8 +66,8 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(SAMRAIPointer<SAMRAICellData<double> > Q_data,
-                                              SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data,
+    static void setPhysicalBoundaryConditions(SAMRAIPointer<SAMRAICellData<double>> Q_data,
+                                              SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data,
                                               SAMRAIPointer<SAMRAIPatch> patch,
                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                               const double fill_time,

@@ -153,7 +153,7 @@ bool
 CartSideDoubleRT0Coarsen::findCoarsenOperator(const SAMRAIPointer<SAMRAIVariable>& var,
                                               const std::string& op_name) const
 {
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -183,8 +183,8 @@ CartSideDoubleRT0Coarsen::coarsen(SAMRAIPatch& coarse,
                                   const SAMRAIBox& coarse_box,
                                   const SAMRAIIntVector& ratio) const
 {
-    SAMRAIPointer<SAMRAISideData<double> > cdata = coarse.getPatchData(dst_component);
-    SAMRAIPointer<SAMRAISideData<double> > fdata = fine.getPatchData(src_component);
+    SAMRAIPointer<SAMRAISideData<double>> cdata = coarse.getPatchData(dst_component);
+    SAMRAIPointer<SAMRAISideData<double>> fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)

@@ -60,20 +60,20 @@ LSetData<T>::LSetData(SAMRAIBox box, SAMRAIIntVector ghosts)
 
 #include "ibtk/LNodeSet.h"
 
-template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
+template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
 template class IBTK::LSetData<IBTK::LNode>;
 
 #include "ibtk/LNodeIndexSet.h"
 
-template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
+template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
+template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
 template class IBTK::LSetData<IBTK::LNodeIndex>;
 
 //////////////////////////////////////////////////////////////////////////////

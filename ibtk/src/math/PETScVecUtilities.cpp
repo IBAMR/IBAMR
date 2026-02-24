@@ -78,14 +78,14 @@ PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > data_cc_var = data_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > data_sc_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> data_cc_var = data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> data_sc_var = data_var;
     if (data_cc_var)
     {
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
+        SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -95,7 +95,7 @@ PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+        SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
@@ -119,14 +119,14 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > data_cc_var = data_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > data_sc_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> data_cc_var = data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> data_sc_var = data_var;
     if (data_cc_var)
     {
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
+        SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -136,7 +136,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+        SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
@@ -173,8 +173,8 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, SAMRAIPointer<
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > data_cc_var = data_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > data_sc_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> data_cc_var = data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> data_sc_var = data_var;
     SAMRAIPointer<SAMRAIRefineSchedule> data_synch_sched;
     if (data_cc_var)
     {
@@ -213,8 +213,8 @@ PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
-    SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
@@ -241,8 +241,8 @@ PETScVecUtilities::constructPatchLevelAO(AO& ao,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
-    SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level, ao_offset);
@@ -277,9 +277,9 @@ PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -318,9 +318,9 @@ PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<double> > data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -362,9 +362,9 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<double> > data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -399,9 +399,9 @@ PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<double> > data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -436,7 +436,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         local_dof_count += depth * SAMRAICellGeometry::toCellBox(patch_box).size();
     }
@@ -456,7 +456,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
         for (SAMRAIBox::Iterator b(SAMRAICellGeometry::toCellBox(patch_box)); b; b++)
@@ -484,11 +484,11 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
-    SAMRAIPointer<SAMRAISideVariable<int> > patch_num_var =
+    SAMRAIPointer<SAMRAISideVariable<int>> patch_num_var =
         new SAMRAISideVariable<int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SAMRAISideVariable<bool> > mastr_loc_var =
+    SAMRAIPointer<SAMRAISideVariable<bool>> mastr_loc_var =
         new SAMRAISideVariable<bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
@@ -498,11 +498,11 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
         patch_num_data->fillAll(patch_num);
-        SAMRAIPointer<SAMRAISideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -533,10 +533,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        SAMRAIPointer<SAMRAISideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (SAMRAIBox::Iterator b(SAMRAISideGeometry::toSideBox(patch_box, component_axis)); b; b++)
@@ -568,10 +568,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
-        SAMRAIPointer<SAMRAISideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         std::array<SAMRAIBox, NDIM> data_boxes;
         SAMRAIBoxList data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -653,7 +653,7 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         for (SAMRAIBox::Iterator b(SAMRAICellGeometry::toCellBox(patch_box)); b; b++)
         {
@@ -721,7 +721,7 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
 
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)

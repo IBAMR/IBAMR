@@ -58,8 +58,8 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
 CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
-                                             SAMRAIPointer<SAMRAICellVariable<double> > H_var,
-                                             SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+                                             SAMRAIPointer<SAMRAICellVariable<double>> H_var,
+                                             SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                              SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                              SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                              SAMRAIPointer<SAMRAIDatabase> input_db,
@@ -145,11 +145,11 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_scratch_idx);
-        SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_scratch_idx);
+        SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -255,11 +255,11 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_scratch_idx);
-        SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_scratch_idx);
+        SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {

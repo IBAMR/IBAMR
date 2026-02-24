@@ -60,7 +60,7 @@ namespace IBTK
 class SnapshotCache : public SAMRAISerializable
 {
 public:
-    using value_type = std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy> >;
+    using value_type = std::pair<double, SAMRAIPointer<SAMRAIPatchHierarchy>>;
     using iterator = std::vector<value_type>::iterator;
     using const_iterator = std::vector<value_type>::const_iterator;
 

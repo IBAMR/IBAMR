@@ -91,7 +91,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAISAMRAIVectorReal<double>& u)
     }
     else
     {
-        d_op_u->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&u, false), false);
+        d_op_u->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
         ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, nullptr);
         IBTK_CHKERRQ(ierr);
@@ -102,7 +102,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAISAMRAIVectorReal<double>& u)
     }
 }
 
-SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >
+SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>
 PETScMFFDJacobianOperator::getBaseVector() const
 {
     if (d_nonlinear_solver)
@@ -111,9 +111,9 @@ PETScMFFDJacobianOperator::getBaseVector() const
         Vec u;
         int ierr = SNESGetSolution(snes, &u);
         IBTK_CHKERRQ(ierr);
-        SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_u;
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_u;
         PETScSAMRAIVectorReal::getSAMRAIVector(u, &samrai_u);
-        SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_u_ptr = samrai_u;
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_u_ptr = samrai_u;
         PETScSAMRAIVectorReal::restoreSAMRAIVector(u, &samrai_u);
         return samrai_u_ptr;
     }
@@ -125,9 +125,9 @@ PETScMFFDJacobianOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAI
 {
     // Compute the action of the operator.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >(&x, false));
+                                               SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar>>(&x, false));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
-                                               SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> >(&y, false));
+                                               SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar>>(&y, false));
     int ierr = MatMult(d_petsc_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
 }
@@ -214,7 +214,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
     TBOX_ASSERT(jac_op);
     TBOX_ASSERT(jac_op->d_F);
 #endif
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > samrai_x, samrai_f;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> samrai_x, samrai_f;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(f, &samrai_f);
     jac_op->d_F->apply(*samrai_x, *samrai_f);

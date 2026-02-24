@@ -287,9 +287,9 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 } // muParserRobinBcCoefs
 
 void
-muParserRobinBcCoefs::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                 SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                 SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+muParserRobinBcCoefs::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                 SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                 SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                  const SAMRAIPointer<SAMRAIVariable>& /*variable*/,
                                  const SAMRAIPatch& patch,
                                  const SAMRAIBoundaryBox& bdry_box,

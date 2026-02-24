@@ -279,9 +279,9 @@ private:
 
     // Drawing stuff
     std::unique_ptr<SAMRAIVisItDataWriter> d_visit_data_writer;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_mean_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_mean_var;
     int d_mean_idx = IBTK::invalid_index;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_dev_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_dev_var;
     int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
     bool d_output_data = true;

@@ -118,7 +118,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > D_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
@@ -245,7 +245,7 @@ FastSweepingLSMethod::fastSweep(SAMRAIPointer<HierarchyMathOps> hier_math_ops, i
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > dist_data = patch->getPatchData(dist_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dist_data = patch->getPatchData(dist_idx);
             fastSweep(dist_data, patch, domain_boxes[0]);
         }
     }
@@ -254,7 +254,7 @@ FastSweepingLSMethod::fastSweep(SAMRAIPointer<HierarchyMathOps> hier_math_ops, i
 } // fastSweep
 
 void
-FastSweepingLSMethod::fastSweep(SAMRAIPointer<SAMRAICellData<double> > dist_data,
+FastSweepingLSMethod::fastSweep(SAMRAIPointer<SAMRAICellData<double>> dist_data,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const SAMRAIBox& domain_box) const
 {

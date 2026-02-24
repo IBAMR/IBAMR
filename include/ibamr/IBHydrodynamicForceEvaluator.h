@@ -374,8 +374,8 @@ private:
     /*!
      * \brief Fluid velocity and pressure with appropriate ghost width.
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_u_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_p_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_p_var;
     int d_u_idx, d_p_idx;
 
     /*!

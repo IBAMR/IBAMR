@@ -128,7 +128,7 @@ public:
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    void registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+    void registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                         const bool output_lf_var = true) override;
 
     /*!
@@ -145,7 +145,7 @@ public:
      * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
-    void setLiquidFractionPhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+    void setLiquidFractionPhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                          SAMRAIRobinBcCoefStrategy* lf_bc_coef);
 
     /*!
@@ -160,8 +160,8 @@ public:
      * function will initialize a default convective operator.
      */
     SAMRAIPointer<CellConvectiveOperator>
-    getAllenCahnEquationConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
-                                           SAMRAIPointer<SAMRAICellVariable<double> > H_var);
+    getAllenCahnEquationConvectiveOperator(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
+                                           SAMRAIPointer<SAMRAICellVariable<double>> H_var);
 
     /*!
      * Write out specialized object state to the given database.
@@ -245,34 +245,34 @@ private:
      * Get the solver for the Allen-Cahn equation.
      */
     SAMRAIPointer<IBTK::PoissonSolver>
-    getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double> > lf_var);
+    getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> lf_var);
 
     /*!
      * Get the operator to use to evaluate the right-hand side of the Allen-Cahn equation.
      */
     SAMRAIPointer<IBTK::LaplaceOperator>
-    getAllenCahnEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double> > lf_var);
+    getAllenCahnEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> lf_var);
 
     /*!
      * Solver variables.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_F_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_lf_diffusion_coef_var, d_lf_diffusion_coef_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_H_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_N_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_N_old_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_C_var, d_lf_temp_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_g_firstder_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_g_secondder_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_q_firstder_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_chemical_potential_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_grad_lf_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_u_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_lf_N_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_lf_interp_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_H_interp_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_lf_flux_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_F_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_lf_diffusion_coef_var, d_lf_diffusion_coef_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_H_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_N_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_N_old_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_C_var, d_lf_temp_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_g_firstder_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_g_secondder_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_q_firstder_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_chemical_potential_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_grad_lf_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_lf_N_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_lf_interp_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_H_interp_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_lf_flux_var;
 
     /*!
      * Cartgrid functions to be used to set the Allen-Cahn equation source term.
@@ -303,7 +303,7 @@ private:
     SAMRAIPointer<IBTK::LaplaceOperator> d_lf_rhs_op = nullptr;
     SAMRAIPointer<IBTK::PoissonSolver> d_lf_solver = nullptr;
     bool d_lf_solver_needs_init, d_lf_rhs_op_needs_init;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_lf_sol, d_lf_rhs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_lf_sol, d_lf_rhs;
 
     TimeSteppingType d_lf_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
     TimeSteppingType d_lf_convective_time_stepping_type = d_default_convective_time_stepping_type;

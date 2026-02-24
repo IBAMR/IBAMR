@@ -275,14 +275,14 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                     {
                         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                        SAMRAIPointer<SAMRAICellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
+                        SAMRAIPointer<SAMRAICellData<double>> W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
-                        SAMRAIPointer<SAMRAINodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idxs[k]);
+                        SAMRAIPointer<SAMRAINodeData<double>> W_nc_data = patch->getPatchData(d_W_nc_idxs[k]);
                         genrandn(W_nc_data->getArrayData(), SAMRAINodeGeometry::toNodeBox(W_nc_data->getBox()));
 #endif
 #if (NDIM == 3)
-                        SAMRAIPointer<SAMRAIEdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idxs[k]);
+                        SAMRAIPointer<SAMRAIEdgeData<double>> W_ec_data = patch->getPatchData(d_W_ec_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
                             genrandn(W_ec_data->getArrayData(d), SAMRAIEdgeGeometry::toEdgeBox(W_ec_data->getBox(), d));
@@ -300,7 +300,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
         const SAMRAIArray<double>& weights = d_weights[cycle_num];
         SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_cc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_cc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -308,7 +308,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_cc_data_ops->axpy(d_W_cc_idx, weights[k], d_W_cc_idxs[k], d_W_cc_idx);
 #if (NDIM == 2)
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_nc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_nc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_nc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -317,7 +317,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_nc_data_ops->axpy(d_W_nc_idx, weights[k], d_W_nc_idxs[k], d_W_nc_idx);
 #endif
 #if (NDIM == 3)
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_ec_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_ec_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_ec_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -336,12 +336,12 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                 const SAMRAIBox& patch_box = patch->getBox();
-                SAMRAIPointer<SAMRAICellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)
-                SAMRAIPointer<SAMRAINodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+                SAMRAIPointer<SAMRAINodeData<double>> W_nc_data = patch->getPatchData(d_W_nc_idx);
 #endif
 #if (NDIM == 3)
-                SAMRAIPointer<SAMRAIEdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+                SAMRAIPointer<SAMRAIEdgeData<double>> W_ec_data = patch->getPatchData(d_W_ec_idx);
 #endif
                 if (d_stress_tensor_type == SYMMETRIC || d_stress_tensor_type == SYMMETRIC_TRACELESS)
                 {
@@ -417,7 +417,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 const double* const patch_x_lower = pgeom->getXLower();
                 const double* const patch_x_upper = pgeom->getXUpper();
                 const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-                SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+                SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     touches_regular_bdry[axis].resizeArray(2);
@@ -447,9 +447,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const SAMRAIBox bc_coef_box = compute_tangential_extension(
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), bdry_tangent_axis);
-                    SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                     // Temporarily reset the patch geometry object associated
                     // with the patch so that boundary conditions are set at the
@@ -520,12 +520,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
                         const SAMRAIBox bc_coef_box = compute_tangential_extension(
                             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), edge_axis);
-                        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data =
-                            new SAMRAIArrayData<double>(bc_coef_box, 1);
-                        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data =
-                            new SAMRAIArrayData<double>(bc_coef_box, 1);
-                        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data =
-                            new SAMRAIArrayData<double>(bc_coef_box, 1);
+                        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                         // Temporarily reset the patch geometry object
                         // associated with the patch so that boundary conditions
@@ -631,7 +628,7 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                               const bool initial_time,
                                               SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
 {
-    SAMRAIPointer<SAMRAISideData<double> > divW_sc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> divW_sc_data = patch->getPatchData(data_idx);
     const SAMRAIIntVector divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
     divW_sc_data->fillAll(0.0);
     if (initial_time) return;
@@ -644,10 +641,10 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
     const double scale = d_std * std::sqrt(2.0 * mu / (dt * dV));
-    SAMRAIPointer<SAMRAICellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+    SAMRAIPointer<SAMRAICellData<double>> W_cc_data = patch->getPatchData(d_W_cc_idx);
     const SAMRAIIntVector W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+    SAMRAIPointer<SAMRAINodeData<double>> W_nc_data = patch->getPatchData(d_W_nc_idx);
     const SAMRAIIntVector W_nc_ghosts = W_nc_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);
@@ -671,7 +668,7 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                            divW_sc1);
 #endif
 #if (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+    SAMRAIPointer<SAMRAIEdgeData<double>> W_ec_data = patch->getPatchData(d_W_ec_idx);
     const SAMRAIIntVector W_ec_ghosts = W_ec_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);

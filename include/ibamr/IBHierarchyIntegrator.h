@@ -386,9 +386,9 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > d_hier_velocity_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > d_hier_pressure_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> d_hier_velocity_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> d_hier_pressure_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
 
     /*
      * Eulerian variables.

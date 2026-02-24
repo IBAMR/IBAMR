@@ -424,8 +424,8 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
 void
 IBInterpolantMethod::interpolateVelocity(
     const int /*u_data_idx*/,
-    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
     const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl);
@@ -436,9 +436,9 @@ void
 IBInterpolantMethod::interpolateQ(const double data_time)
 {
     int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<SAMRAIPointer<LData> >* Q_data;
+    std::vector<SAMRAIPointer<LData>>* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -449,7 +449,7 @@ IBInterpolantMethod::interpolateQ(const double data_time)
         d_l_data_manager->interp(q_data_idx,
                                  *Q_data,
                                  *X_data,
-                                 std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(finest_ln + 1, nullptr),
+                                 std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(finest_ln + 1, nullptr),
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
                                  data_time);
     }
@@ -576,7 +576,7 @@ IBInterpolantMethod::computeLagrangianForce(double /*data_time*/)
 void
 IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,
                                  RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-                                 const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
+                                 const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*f_prolongation_scheds*/,
                                  const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::spreadForce(). This method is not implemented." << std::endl);
@@ -599,9 +599,9 @@ IBInterpolantMethod::spreadQ(double data_time)
         vol *= dx[i];
     }
 
-    std::vector<SAMRAIPointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<SAMRAIPointer<LData> >* Q_data;
+    std::vector<SAMRAIPointer<LData>>* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -636,8 +636,8 @@ IBInterpolantMethod::initializePatchHierarchy(
     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
     SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
     int /*u_data_idx*/,
-    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
     int /*integrator_step*/,
     double /*init_data_time*/,
     bool initial_time)
@@ -660,7 +660,7 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     // Initialize initial center of mass of structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> > X0_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
+    std::vector<SAMRAIPointer<LData>> X0_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X0_data_vec[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
     computeCenterOfMass(d_center_of_mass_initial, X0_data_vec);
 
@@ -789,7 +789,7 @@ IBInterpolantMethod::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBInterpolantMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, double data_time)
+IBInterpolantMethod::getPositionData(std::vector<SAMRAIPointer<LData>>** X_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -833,8 +833,8 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     }
 
     // Copy integrator data into q_data_idx
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     if (cc_var)
     {
         SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
@@ -855,8 +855,8 @@ IBInterpolantMethod::zeroOutEulerianData(const std::string& var_name, int q_data
 {
     SAMRAIPointer<SAMRAIVariable> var = d_q_var[var_name];
 
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     if (cc_var)
     {
         SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
@@ -897,8 +897,8 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     }
 
     // Copy integrator data into q_data_idx
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     if (cc_var)
     {
         SAMRAIHierarchyCellDataOpsReal<double> hier_data_ops(d_hierarchy);
@@ -915,9 +915,7 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
 } // copyEulerianDataToIntegrator
 
 void
-IBInterpolantMethod::getQData(const std::string& var_name,
-                              std::vector<SAMRAIPointer<LData> >** Q_data,
-                              double data_time)
+IBInterpolantMethod::getQData(const std::string& var_name, std::vector<SAMRAIPointer<LData>>** Q_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -936,7 +934,7 @@ IBInterpolantMethod::getQData(const std::string& var_name,
 
 void
 IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
-                                         std::vector<SAMRAIPointer<IBTK::LData> >& X_data)
+                                         std::vector<SAMRAIPointer<IBTK::LData>>& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

@@ -75,9 +75,9 @@ public:
      * The symmetric tensor in patch data index <code>C_idx</code> is stored using Voigt notation.
      */
     virtual void computeRelaxation(int R_idx,
-                                   SAMRAIPointer<SAMRAICellVariable<double> > R_var,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> R_var,
                                    int C_idx,
-                                   SAMRAIPointer<SAMRAICellVariable<double> > C_var,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                                    TensorEvolutionType evolve_type,
                                    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                    double data_time) = 0;
@@ -90,7 +90,7 @@ public:
      * information in <code>sig_idx</code>.
      */
     virtual void computeStress(int sig_idx,
-                               SAMRAIPointer<SAMRAICellVariable<double> > sig_var,
+                               SAMRAIPointer<SAMRAICellVariable<double>> sig_var,
                                SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                double data_time) = 0;
 

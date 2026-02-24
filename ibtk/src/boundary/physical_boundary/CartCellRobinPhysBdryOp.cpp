@@ -360,7 +360,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(SAMRAIPatch& patch,
     // that the proper number of boundary condition objects have been provided.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -428,7 +428,7 @@ CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(SAMRAIPatch& patch,
     // that the proper number of boundary condition objects have been provided.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
@@ -491,7 +491,7 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> var;
@@ -518,9 +518,9 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
         const SAMRAIBoundaryBox trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
         const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
             SAMRAIRobinBcCoefStrategy* bc_coef = d_bc_coefs[d];
@@ -705,7 +705,7 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
 
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
 #if !defined(NDEBUG)
@@ -764,7 +764,7 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
 
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
 #if !defined(NDEBUG)

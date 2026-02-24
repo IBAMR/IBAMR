@@ -134,7 +134,7 @@ IBInterpolantHierarchyIntegrator::integrateHierarchySpecialized(const double cur
 
     // Move the mesh to new location.
     SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
-    const std::vector<SAMRAIPointer<BrinkmanPenalizationStrategy> >& brinkman_force =
+    const std::vector<SAMRAIPointer<BrinkmanPenalizationStrategy>>& brinkman_force =
         vc_ins_integrator->getBrinkmanPenalizationStrategy();
     const std::size_t num_objects = brinkman_force.size();
     std::vector<Eigen::Vector3d> U(num_objects), W(num_objects);

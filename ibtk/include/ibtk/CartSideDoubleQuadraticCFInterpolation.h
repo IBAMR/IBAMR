@@ -307,7 +307,7 @@ private:
      */
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     std::vector<SAMRAICoarseFineBoundary> d_cf_boundary;
-    SAMRAIPointer<SAMRAISideVariable<int> > d_sc_indicator_var =
+    SAMRAIPointer<SAMRAISideVariable<int>> d_sc_indicator_var =
         new SAMRAISideVariable<int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
     int d_sc_indicator_idx = IBTK::invalid_index;
 };

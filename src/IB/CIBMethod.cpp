@@ -435,7 +435,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     if (d_output_eul_lambda)
     {
         // Prepare the LData to spread
-        std::vector<SAMRAIPointer<LData> > spread_lag_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr)),
+        std::vector<SAMRAIPointer<LData>> spread_lag_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr)),
             position_lag_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
@@ -449,7 +449,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAICellData<double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                SAMRAIPointer<SAMRAICellData<double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -512,8 +512,8 @@ void
 CIBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                     SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                     int u_data_idx,
-                                    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                     int integrator_step,
                                     double init_data_time,
                                     bool initial_time)
@@ -556,7 +556,7 @@ CIBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarch
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAICellData<double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                SAMRAIPointer<SAMRAICellData<double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -610,7 +610,7 @@ CIBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarch
 
     // Initialize initial center of mass of structures.
     std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    std::vector<SAMRAIPointer<LData> > X0_unshifted_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
+    std::vector<SAMRAIPointer<LData>> X0_unshifted_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -629,8 +629,8 @@ CIBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarch
 
 void
 CIBMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     if (d_lag_velvec_is_initialized)
@@ -638,7 +638,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
-        std::vector<SAMRAIPointer<LData> >*U_half_data, *X_half_data;
+        std::vector<SAMRAIPointer<LData>>*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
@@ -654,7 +654,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 void
 CIBMethod::spreadForce(int f_data_idx,
                        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                        double data_time)
 {
     if (d_constraint_force_is_initialized)
@@ -700,7 +700,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.
-    std::vector<SAMRAIPointer<LData> >* X_half_data;
+    std::vector<SAMRAIPointer<LData>>* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -971,7 +971,7 @@ CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 
     const int struct_ln = getStructuresLevelNumber();
 
-    std::vector<SAMRAIPointer<LData> >* F_half_data;
+    std::vector<SAMRAIPointer<LData>>* F_half_data;
     bool* F_half_needs_ghost_fill;
     getForceData(&F_half_data, &F_half_needs_ghost_fill, d_half_time);
     Vec F_half = (*F_half_data)[struct_ln]->getVec();
@@ -1058,7 +1058,7 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > p_data = patch->getPatchData(f_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> p_data = patch->getPatchData(f_data_idx);
             const SAMRAIBox& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -1100,7 +1100,7 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 #endif
 
     const int struct_ln = getStructuresLevelNumber();
-    std::vector<SAMRAIPointer<LData> >* U_half_data;
+    std::vector<SAMRAIPointer<LData>>* U_half_data;
     getVelocityData(&U_half_data, d_half_time);
     VecCopy((*U_half_data)[struct_ln]->getVec(), V);
     VecScale(V, scale);
@@ -1450,7 +1450,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
     else
     {
-        std::vector<SAMRAIPointer<LData> >* X_half_data;
+        std::vector<SAMRAIPointer<LData>>* X_half_data;
         bool* X_half_needs_ghost_fill;
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
         X = (*X_half_data)[struct_ln]->getVec();
@@ -1794,7 +1794,7 @@ CIBMethod::getFromRestart()
 
 void
 CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
-                                  std::vector<SAMRAIPointer<LData> >& X_data)
+                                  std::vector<SAMRAIPointer<LData>>& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

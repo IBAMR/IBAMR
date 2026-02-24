@@ -165,7 +165,7 @@ compute_mu_harmonic_avg(const SAMRAIIndex& i, const SAMRAIEdgeData<double>& mu_d
 } // compute_mu_harmonic_avg
 
 inline double
-get_mu_edge(const SAMRAIIndex& i, const int perp, const SAMRAIPointer<SAMRAIEdgeData<double> > mu_data)
+get_mu_edge(const SAMRAIIndex& i, const int perp, const SAMRAIPointer<SAMRAIEdgeData<double>> mu_data)
 {
     const SAMRAIArrayData<double>& mu_array_data = mu_data->getArrayData(perp);
     return mu_array_data(i, /*depth*/ 0);
@@ -305,9 +305,9 @@ PoissonUtilities::computeMatrixCoefficients(SAMRAICellData<double>& matrix_coeff
         const SAMRAIBoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -460,7 +460,7 @@ PoissonUtilities::computeMatrixCoefficients(SAMRAISideData<double>& matrix_coeff
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-    SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -519,9 +519,9 @@ PoissonUtilities::computeMatrixCoefficients(SAMRAISideData<double>& matrix_coeff
             const SAMRAIBox bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -634,9 +634,9 @@ PoissonUtilities::computeMatrixCoefficients(SAMRAISideData<double>& matrix_coeff
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -720,7 +720,7 @@ void
 PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAISideData<double>& matrix_coefficients,
     SAMRAIPointer<SAMRAIPatch> patch,
-    const std::vector<std::map<SAMRAIIndex, int, IndexFortranOrder> >& stencil_map_vec,
+    const std::vector<std::map<SAMRAIIndex, int, IndexFortranOrder>>& stencil_map_vec,
     const SAMRAIPoissonSpecifications& poisson_spec,
     double alpha,
     double beta,
@@ -739,13 +739,13 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     matrix_coefficients.fillAll(0.0);
 
     const bool C_is_varying = poisson_spec.cIsVariable();
-    SAMRAIPointer<SAMRAISideData<double> > C_data = nullptr;
+    SAMRAIPointer<SAMRAISideData<double>> C_data = nullptr;
     if (C_is_varying) C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
 
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAINodeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAIEdgeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -766,7 +766,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-    SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -898,9 +898,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             const SAMRAIBox bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1018,9 +1018,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
                 const SAMRAIBox bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1149,9 +1149,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -1281,9 +1281,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SAMRAICellData<double>& rhs_data,
         const SAMRAIBoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -1373,7 +1373,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SAMRAISideData<double>& rhs_data,
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-    SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -1410,9 +1410,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SAMRAISideData<double>& rhs_data,
             const SAMRAIBox bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1512,9 +1512,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SAMRAISideData<double>& rhs_data,
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1582,9 +1582,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAISideData<double
 #endif
 
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAINodeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAIEdgeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -1604,7 +1604,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAISideData<double
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-    SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -1641,9 +1641,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAISideData<double
             const SAMRAIBox bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1758,9 +1758,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAISideData<double
 
                 const SAMRAIBox bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1875,9 +1875,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAISideData<double
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-            SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+            SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -2078,9 +2078,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SAMRAISideData<doub
                                                              VCInterpType mu_interp_type)
 {
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAINodeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeData<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<SAMRAIEdgeData<double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)

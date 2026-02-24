@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryLookupTable_h
 #define included_IBTK_samrai_compatibility_legacy_BoundaryLookupTable_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAIBoundaryLookupTable.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_BoundaryLookupTable_h

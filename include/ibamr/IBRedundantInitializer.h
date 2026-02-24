@@ -265,7 +265,7 @@ public:
      */
     using InitDirectorAndRodOnLevel = void (*)(const unsigned int& strct_num,
                                                const int& level_num,
-                                               std::vector<std::vector<double> >& director_spec,
+                                               std::vector<std::vector<double>>& director_spec,
                                                std::multimap<int, Edge>& rod_edge_map,
                                                std::map<Edge, RodSpec, EdgeComp>& rod_spec,
                                                void* ctx);
@@ -362,7 +362,7 @@ public:
     using InitInstrumentationOnLevel = void (*)(const unsigned int& strct_num,
                                                 const int& level_num,
                                                 std::vector<std::string>& instrument_name,
-                                                std::map<int, std::pair<int, int> >& instrument_spec,
+                                                std::map<int, std::pair<int, int>>& instrument_spec,
                                                 void* ctx);
 
     /*!
@@ -393,7 +393,7 @@ public:
      * \brief Initialize the structure indexing information on the patch level.
      */
     void initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
-                                                 std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+                                                 std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
                                                  int level_number,
                                                  double init_data_time,
                                                  bool can_be_refined,
@@ -568,7 +568,7 @@ protected:
      * \brief Determine the indices of any vertices initially owned by the
      * specified patch.
      */
-    void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
+    void getPatchVertices(std::vector<std::pair<int, int>>& point_indices,
                           SAMRAIPointer<SAMRAIPatch> patch,
                           SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy) const;
 
@@ -576,7 +576,7 @@ protected:
      * \brief Determine the indices of any vertices associated with a given
      * level number initially located within the specified patch.
      */
-    void getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& point_indices,
+    void getPatchVerticesAtLevel(std::vector<std::pair<int, int>>& point_indices,
                                  SAMRAIPointer<SAMRAIPatch> patch,
                                  SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  int level_number) const;
@@ -639,9 +639,9 @@ protected:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    virtual std::vector<SAMRAIPointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                             unsigned int global_index_offset,
-                                                                             int level_number) const;
+    virtual std::vector<SAMRAIPointer<IBTK::Streamable>> initializeNodeData(const std::pair<int, int>& point_index,
+                                                                            unsigned int global_index_offset,
+                                                                            int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -673,7 +673,7 @@ protected:
      * The base filenames of the structures are used to generate unique names
      * when registering data with the Silo data writer.
      */
-    std::vector<std::vector<std::string> > d_base_filename;
+    std::vector<std::vector<std::string>> d_base_filename;
 
     /*
      * Optional shift and scale factors.
@@ -693,64 +693,64 @@ protected:
     /*
      * Vertex information.
      */
-    std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
+    std::vector<std::vector<int>> d_num_vertex, d_vertex_offset;
+    std::vector<std::vector<std::vector<IBTK::Point>>> d_vertex_posn;
 
     /*
      * Spring information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_spring_edge_map;
 
-    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data;
+    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp>>> d_spring_spec_data;
 
     /*
      * Crosslink spring ("x-spring") information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_xspring_edge_map;
 
-    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data;
+    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp>>> d_xspring_spec_data;
 
     /*
      * Beam information.
      */
-    std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data;
+    std::vector<std::vector<std::multimap<int, BeamSpec>>> d_beam_spec_data;
 
     /*
      * Rod information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_rod_edge_map;
 
-    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data;
+    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp>>> d_rod_spec_data;
 
     /*
      * Target point information.
      */
-    std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
+    std::vector<std::vector<std::vector<TargetSpec>>> d_target_spec_data;
 
     /*
      * Anchor point information.
      */
-    std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
+    std::vector<std::vector<std::vector<AnchorSpec>>> d_anchor_spec_data;
 
     /*
      * Mass information for the pIB method.
      */
-    std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
+    std::vector<std::vector<std::vector<BdryMassSpec>>> d_bdry_mass_spec_data;
 
     /*
      * Orthonormal directors for the generalized IB method.
      */
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
+    std::vector<std::vector<std::vector<std::vector<double>>>> d_directors;
 
     /*
      * Instrumentation information.
      */
-    std::vector<std::vector<std::map<int, std::pair<int, int> > > > d_instrument_idx;
+    std::vector<std::vector<std::map<int, std::pair<int, int>>>> d_instrument_idx;
 
     /*
      * Source information.
      */
-    std::vector<std::vector<std::map<int, int> > > d_source_idx;
+    std::vector<std::vector<std::map<int, int>>> d_source_idx;
 
     /*
      * Data required to specify connectivity information for visualization

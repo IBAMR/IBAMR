@@ -47,8 +47,8 @@ public:
      */
     HeavisideForcingFunction(const std::string& object_name,
                              SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                             SAMRAIPointer<SAMRAICellVariable<double> > H_var,
-                             SAMRAIPointer<SAMRAIFaceVariable<double> > U_adv_var);
+                             SAMRAIPointer<SAMRAICellVariable<double>> H_var,
+                             SAMRAIPointer<SAMRAIFaceVariable<double>> U_adv_var);
 
     /*!
      * \brief Empty destructor.
@@ -112,12 +112,12 @@ private:
     /*!
      * Liquid fraction variable.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_H_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_H_var;
 
     /*!
      * Advection velocity variable.
      */
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_U_adv_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_U_adv_var;
 };
 } // namespace IBAMR
 

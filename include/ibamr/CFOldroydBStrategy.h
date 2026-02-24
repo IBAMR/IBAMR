@@ -81,15 +81,15 @@ public:
     CFOldroydBStrategy(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     void computeRelaxation(int R_idx,
-                           SAMRAIPointer<SAMRAICellVariable<double> > R_var,
+                           SAMRAIPointer<SAMRAICellVariable<double>> R_var,
                            int C_idx,
-                           SAMRAIPointer<SAMRAICellVariable<double> > C_var,
+                           SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                            TensorEvolutionType evolve_type,
                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                            double data_time) override;
 
     void computeStress(int sig_idx,
-                       SAMRAIPointer<SAMRAICellVariable<double> > sig_var,
+                       SAMRAIPointer<SAMRAICellVariable<double>> sig_var,
                        SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                        double data_time) override;
 

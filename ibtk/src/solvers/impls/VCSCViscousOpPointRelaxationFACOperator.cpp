@@ -381,8 +381,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<doub
         for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            SAMRAIPointer<SAMRAISideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAISideData<double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
             const SAMRAIBox& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -413,8 +413,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<doub
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAISideData<double> > error_data = error.getComponentPatchData(0, *patch);
-                    SAMRAIPointer<SAMRAISideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> error_data = error.getComponentPatchData(0, *patch);
+                    SAMRAIPointer<SAMRAISideData<double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
                     const SAMRAIBox& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -454,13 +454,13 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<doub
         for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            SAMRAIPointer<SAMRAISideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAISideData<double>> error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAISideData<double>> residual_data = residual.getComponentPatchData(0, *patch);
 #if (NDIM == 2)
-            SAMRAIPointer<SAMRAINodeData<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            SAMRAIPointer<SAMRAINodeData<double>> mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if (NDIM == 3)
-            SAMRAIPointer<SAMRAIEdgeData<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            SAMRAIPointer<SAMRAIEdgeData<double>> mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if !defined(NDEBUG)
             const SAMRAIBox& ghost_box = error_data->getGhostBox();
@@ -472,13 +472,13 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<doub
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
             TBOX_ASSERT(error_data->getDepth() == mu_data->getDepth());
 #endif
-            SAMRAIPointer<SAMRAISideData<double> > C_data = nullptr;
+            SAMRAIPointer<SAMRAISideData<double>> C_data = nullptr;
             if (d_poisson_spec.cIsVariable())
             {
                 C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
             }
 
-            SAMRAIPointer<SAMRAISideData<int> > mask_data = patch->getPatchData(d_mask_idx);
+            SAMRAIPointer<SAMRAISideData<int>> mask_data = patch->getPatchData(d_mask_idx);
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
@@ -495,7 +495,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<doub
                         const int src_patch_num = pair.first;
                         const SAMRAIBox& overlap = pair.second;
                         SAMRAIPointer<SAMRAIPatch> src_patch = level->getPatch(src_patch_num);
-                        SAMRAIPointer<SAMRAISideData<double> > src_error_data =
+                        SAMRAIPointer<SAMRAISideData<double>> src_error_data =
                             error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis).copy(
                             src_error_data->getArrayData(axis), overlap, SAMRAIIntVector(0));
@@ -792,8 +792,8 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAISAMRAIVectorReal<
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const SAMRAIPointer<SAMRAISideVariable<double> > res_var = residual.getComponentVariable(0);
-    const SAMRAIPointer<SAMRAISideVariable<double> > sol_var = solution.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> res_var = residual.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> sol_var = solution.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -851,10 +851,10 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAISAMRAIVectorReal<
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                                   SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
+                                                   SAMRAIPointer<SAMRAINodeVariable<double>>(nullptr),
 #endif
 #if (NDIM == 3)
-                                                   SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
+                                                   SAMRAIPointer<SAMRAIEdgeVariable<double>>(nullptr),
 #endif
                                                    sol_idx,
                                                    sol_var,

@@ -237,8 +237,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -247,8 +247,8 @@ public:
      * residual of the linearized problem.
      */
     void interpolateLinearizedVelocity(int u_data_idx,
-                                       const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                       const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                        double data_time) override;
 
     /*!
@@ -297,7 +297,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -306,7 +306,7 @@ public:
      */
     void spreadLinearizedForce(int f_data_idx,
                                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                                double data_time) override;
 
     /*!
@@ -336,7 +336,7 @@ public:
      */
     void spreadFluidSource(int q_data_idx,
                            IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& q_prolongation_scheds,
+                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& q_prolongation_scheds,
                            double data_time) override;
 
     /*!
@@ -344,8 +344,8 @@ public:
      * sources or sinks.
      */
     void interpolatePressure(int p_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& p_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& p_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& p_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& p_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -365,8 +365,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -457,7 +457,7 @@ public:
      * The time point should be one of CURRENT_TIME, HALF_TIME, or NEW_TIME. If this condition is met, X_data is set
      * to the data at that respective time, otherwise the X_data pointers are unchanged.
      */
-    void getPositionData(std::vector<SAMRAIPointer<IBTK::LData> >** X_data,
+    void getPositionData(std::vector<SAMRAIPointer<IBTK::LData>>** X_data,
                          bool** X_needs_ghost_fill,
                          IBTK::TimePoint time_pt);
 
@@ -467,7 +467,7 @@ public:
      * The time point should be one of CURRENT_TIME, HALF_TIME, or NEW_TIME. If this condition is met, U_data is set
      * to the data at that respective time, otherwise the U_data pointers are unchanged.
      */
-    void getVelocityData(std::vector<SAMRAIPointer<IBTK::LData> >** U_data, IBTK::TimePoint time_pt);
+    void getVelocityData(std::vector<SAMRAIPointer<IBTK::LData>>** U_data, IBTK::TimePoint time_pt);
 
     /*!
      * \brief Get the current structure force data at the specified time point.
@@ -476,7 +476,7 @@ public:
      * to the data at that respective time, otherwise the F_data pointers are unchanged.
      */
     void
-    getForceData(std::vector<SAMRAIPointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill, IBTK::TimePoint time_pt);
+    getForceData(std::vector<SAMRAIPointer<IBTK::LData>>** F_data, bool** F_needs_ghost_fill, IBTK::TimePoint time_pt);
 
 protected:
     /*!
@@ -485,15 +485,14 @@ protected:
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, X_data is set
      * to the data at that respective time, otherwise the X_data pointers are unchanged.
      */
-    void
-    getPositionData(std::vector<SAMRAIPointer<IBTK::LData> >** X_data, bool** X_needs_ghost_fill, double data_time);
+    void getPositionData(std::vector<SAMRAIPointer<IBTK::LData>>** X_data, bool** X_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure position data.
      *
      * If the linearized position data does not exist, it will be created.
      */
-    void getLinearizedPositionData(std::vector<SAMRAIPointer<IBTK::LData> >** X_data, bool** X_needs_ghost_fill);
+    void getLinearizedPositionData(std::vector<SAMRAIPointer<IBTK::LData>>** X_data, bool** X_needs_ghost_fill);
 
     /*!
      * Get the current interpolation/spreading position data.
@@ -503,7 +502,7 @@ protected:
      *
      * If this class is not set up to use fixed coupling, this returns data from getPositionData().
      */
-    void getLECouplingPositionData(std::vector<SAMRAIPointer<IBTK::LData> >** X_LE_data,
+    void getLECouplingPositionData(std::vector<SAMRAIPointer<IBTK::LData>>** X_LE_data,
                                    bool** X_LE_needs_ghost_fill,
                                    double data_time);
 
@@ -513,14 +512,14 @@ protected:
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, U_data is set
      * to the data at that respective time, otherwise the U_data pointers are unchanged.
      */
-    void getVelocityData(std::vector<SAMRAIPointer<IBTK::LData> >** U_data, double data_time);
+    void getVelocityData(std::vector<SAMRAIPointer<IBTK::LData>>** U_data, double data_time);
 
     /*!
      * Get the linearized structure velocity data.
      *
      * If the linearized velocity data does not exist, it will be created.
      */
-    void getLinearizedVelocityData(std::vector<SAMRAIPointer<IBTK::LData> >** U_data);
+    void getLinearizedVelocityData(std::vector<SAMRAIPointer<IBTK::LData>>** U_data);
 
     /*!
      * Get the current structure force data.
@@ -528,28 +527,28 @@ protected:
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, F_data is set
      * to the data at that respective time, otherwise the F_data pointers are unchanged.
      */
-    void getForceData(std::vector<SAMRAIPointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill, double data_time);
+    void getForceData(std::vector<SAMRAIPointer<IBTK::LData>>** F_data, bool** F_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure force data.
      *
      * If the linearized force data does not exist, it will be created.
      */
-    void getLinearizedForceData(std::vector<SAMRAIPointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill);
+    void getLinearizedForceData(std::vector<SAMRAIPointer<IBTK::LData>>** F_data, bool** F_needs_ghost_fill);
 
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.
      */
-    void reinitMidpointData(const std::vector<SAMRAIPointer<IBTK::LData> >& current_data,
-                            const std::vector<SAMRAIPointer<IBTK::LData> >& new_data,
-                            const std::vector<SAMRAIPointer<IBTK::LData> >& half_data);
+    void reinitMidpointData(const std::vector<SAMRAIPointer<IBTK::LData>>& current_data,
+                            const std::vector<SAMRAIPointer<IBTK::LData>>& new_data,
+                            const std::vector<SAMRAIPointer<IBTK::LData>>& half_data);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
-    void resetAnchorPointValues(std::vector<SAMRAIPointer<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
+    void resetAnchorPointValues(std::vector<SAMRAIPointer<IBTK::LData>> U_data, int coarsest_ln, int finest_ln);
 
     /*
      * PETSc function for evaluating Lagrangian force.
@@ -598,10 +597,10 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAIPointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
+    std::vector<SAMRAIPointer<IBTK::LData>> d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
         d_X_LE_new_data, d_X_LE_half_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
 
     /*
      * List of local indices of local anchor points.
@@ -609,7 +608,7 @@ protected:
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
-    std::vector<std::set<int> > d_anchor_point_local_idxs;
+    std::vector<std::set<int>> d_anchor_point_local_idxs;
 
     /*
      * Instrumentation (flow meter and pressure gauge) algorithms and data
@@ -635,8 +634,8 @@ protected:
      */
     SAMRAIPointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
     bool d_ib_source_fcn_needs_init = true;
-    std::vector<std::vector<IBTK::Point> > d_X_src;
-    std::vector<std::vector<double> > d_r_src, d_P_src, d_Q_src;
+    std::vector<std::vector<IBTK::Point>> d_X_src;
+    std::vector<std::vector<double>> d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
     bool d_normalize_source_strength = false;
 

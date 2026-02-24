@@ -195,8 +195,8 @@ BrinkmanAdvDiffBcHelper::setNumInterfaceCells(double num_interface_cells)
 } // setNumInterfaceCells
 
 void
-BrinkmanAdvDiffBcHelper::registerHomogeneousBC(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                               SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+BrinkmanAdvDiffBcHelper::registerHomogeneousBC(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                               SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
                                                std::string bc_type,
                                                std::string indicator_func_type,
                                                double num_interface_cells,
@@ -266,8 +266,8 @@ BrinkmanAdvDiffBcHelper::registerHomogeneousBC(SAMRAIPointer<SAMRAICellVariable<
 } // registerHomogeneousBC
 
 void
-BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                 SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                 SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
                                                  std::string bc_type,
                                                  BrinkmanInhomogeneousBCsFcnPtr callback,
                                                  void* ctx,
@@ -341,7 +341,7 @@ BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(SAMRAIPointer<SAMRAICellVariabl
 } // registerInhomogeneousBC
 
 void
-BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMRAICellVariable<double> > Q_var)
+BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
@@ -366,7 +366,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            SAMRAIPointer<SAMRAICellData<double> > C_data = patch->getPatchData(C_idx);
+            SAMRAIPointer<SAMRAICellData<double>> C_data = patch->getPatchData(C_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAICellIndex ci(it());
@@ -377,7 +377,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone.
-                    SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     if (bc_type != DIRICHLET) continue;
 
@@ -386,7 +386,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -418,7 +418,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
         if (bc_type != ROBIN) continue;
 
         // Get the BC specifications for each zone.
-        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
         double num_interface_cells = bc_prop.num_interface_cells;
         const int phi_new_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
@@ -456,10 +456,10 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                 const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
-                SAMRAIPointer<SAMRAISideData<double> > n_data = patch->getPatchData(d_n_scratch_idx);
-                SAMRAIPointer<SAMRAISideData<double> > n_chi_data = patch->getPatchData(d_n_chi_scratch_idx);
-                SAMRAIPointer<SAMRAICellData<double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double>> n_data = patch->getPatchData(d_n_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double>> n_chi_data = patch->getPatchData(d_n_chi_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> chi_data = patch->getPatchData(d_chi_scratch_idx);
 
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -524,7 +524,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<SAMR
 
 void
 BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
-                                                     SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                     SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                      int kappa_idx,
                                                      double kappa)
 {
@@ -542,7 +542,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
     for (std::size_t i = 0; i < brinkman_zones.size(); ++i)
     {
         const auto& bc_prop = brinkman_zones[i];
-        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
         const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
@@ -574,8 +574,8 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            SAMRAIPointer<SAMRAISideData<double> > D_data = patch->getPatchData(D_idx);
-            SAMRAIPointer<SAMRAISideData<double> > kappa_data =
+            SAMRAIPointer<SAMRAISideData<double>> D_data = patch->getPatchData(D_idx);
+            SAMRAIPointer<SAMRAISideData<double>> kappa_data =
                 variable_kappa ? patch->getPatchData(kappa_idx) : nullptr;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -590,7 +590,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                     for (const auto& bc_prop : brinkman_zones)
                     {
                         // Get the BC specifications for each zone.
-                        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+                        SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
                         AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                         double eta = bc_prop.eta;
                         double num_interface_cells = bc_prop.num_interface_cells;
@@ -599,7 +599,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                         // Ghost cells for scratch data filled above.
                         const int phi_idx =
                             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
-                        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_idx);
+                        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_idx);
                         const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                         const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                         const double phi = 0.5 * (phi_lower + phi_upper);
@@ -631,7 +631,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
 } // computeDiffusionCoefficient
 
 void
-BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVariable<double> > Q_var)
+BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
@@ -659,7 +659,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_idx);
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -671,7 +671,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone.
-                    SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     double bc_val = bc_prop.bc_val;
                     double eta = bc_prop.eta;
@@ -686,7 +686,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
 #endif
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -715,7 +715,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
     // to be computed 'hierarchy-wise'.
     for (const auto& bc_prop : brinkman_zones)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
         AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
         bool requires_callback = (bc_prop.callback != nullptr);
         if (!requires_callback) continue;
@@ -747,8 +747,8 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
                     double eta = bc_prop.eta;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_idx);
-                    SAMRAIPointer<SAMRAICellData<double> > g_data = patch->getPatchData(d_variable_g_scratch_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> g_data = patch->getPatchData(d_variable_g_scratch_idx);
 
                     for (SAMRAIBox::Iterator it(patch_box); it; it++)
                     {
@@ -756,7 +756,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
 
                         const int phi_idx =
                             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_idx);
+                        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_idx);
                         double phi = (*ls_solid_data)(ci);
 
                         IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -816,10 +816,10 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > B_data = patch->getPatchData(d_B_scratch_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > B_chi_data = patch->getPatchData(d_B_chi_scratch_idx);
-                    SAMRAIPointer<SAMRAICellData<double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_scratch_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> B_data = patch->getPatchData(d_B_scratch_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> B_chi_data = patch->getPatchData(d_B_chi_scratch_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> chi_data = patch->getPatchData(d_chi_scratch_idx);
 
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
@@ -886,7 +886,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<SAMRAICellVaria
 
 void
 BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
-                                         SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                         SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                          const bool mask_smeared_region)
 {
 #if !defined(NDEBUG)
@@ -910,7 +910,7 @@ BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            SAMRAIPointer<SAMRAICellData<double> > N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_data = patch->getPatchData(N_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAICellIndex ci(it());
@@ -921,13 +921,13 @@ BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone
-                    SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;

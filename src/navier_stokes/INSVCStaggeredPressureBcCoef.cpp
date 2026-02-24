@@ -191,9 +191,9 @@ INSVCStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                         SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                         SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+INSVCStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                         SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                         SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                          const SAMRAIPointer<SAMRAIVariable>& variable,
                                          const SAMRAIPatch& patch,
                                          const SAMRAIBoundaryBox& bdry_box,
@@ -224,7 +224,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    SAMRAIPointer<SAMRAISideData<double> > u_target_data;
+    SAMRAIPointer<SAMRAISideData<double>> u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -232,7 +232,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
-    SAMRAIPointer<SAMRAISideData<double> > u_current_data =
+    SAMRAIPointer<SAMRAISideData<double>> u_current_data =
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -254,7 +254,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >
     SAMRAIArray<double> A_scale = d_fluid_solver->getScalingFactor();
     const double p_scale = A_scale[patch.getPatchLevelNumber()];
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    SAMRAIPointer<SAMRAICellData<double> > mu_data;
+    SAMRAIPointer<SAMRAICellData<double>> mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
         const int mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();

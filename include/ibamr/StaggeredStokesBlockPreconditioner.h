@@ -161,8 +161,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec,
-                          SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec);
+    void correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> U_vec,
+                          SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -174,7 +174,7 @@ protected:
     // Hierarchy data.
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx = IBTK::invalid_index, d_pressure_wgt_idx = IBTK::invalid_index;
     SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 

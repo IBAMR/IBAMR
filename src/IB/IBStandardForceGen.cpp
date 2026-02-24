@@ -769,7 +769,7 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-        const std::vector<std::vector<double> >& params = force_spec->getParameters();
+        const std::vector<std::vector<double>>& params = force_spec->getParameters();
         const unsigned int num_springs = force_spec->getNumberOfSprings();
 #if !defined(NDEBUG)
         TBOX_ASSERT(num_springs == slv.size());
@@ -981,7 +981,7 @@ IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_se
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
         const int petsc_idx = node_idx->getGlobalPETScIndex();
-        const std::vector<std::pair<int, int> >& nghbrs = force_spec->getNeighborNodeIndices();
+        const std::vector<std::pair<int, int>>& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
         const std::vector<Vector>& curv = force_spec->getMeshDependentCurvatures();
         const unsigned int num_beams = force_spec->getNumberOfBeams();

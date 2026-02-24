@@ -119,7 +119,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 bool
 CartSideDoubleRT0Refine::findRefineOperator(const SAMRAIPointer<SAMRAIVariable>& var, const std::string& op_name) const
 {
-    const SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    const SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -150,8 +150,8 @@ CartSideDoubleRT0Refine::refine(SAMRAIPatch& fine,
                                 const SAMRAIIntVector& ratio) const
 {
     // Get the patch data.
-    SAMRAIPointer<SAMRAISideData<double> > fdata = fine.getPatchData(dst_component);
-    SAMRAIPointer<SAMRAISideData<double> > cdata = coarse.getPatchData(src_component);
+    SAMRAIPointer<SAMRAISideData<double>> fdata = fine.getPatchData(dst_component);
+    SAMRAIPointer<SAMRAISideData<double>> cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);

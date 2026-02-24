@@ -95,14 +95,14 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                               std::vector<std::set<int> >& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                               std::vector<std::set<int>>& nonoverlap_is) override;
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
-                                      std::vector<std::set<int> >& field_is) override;
+                                      std::vector<std::set<int>>& field_is) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -173,10 +173,10 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
-    SAMRAIPointer<SAMRAISideVariable<int> > d_u_dof_index_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_u_nullspace_var;
-    SAMRAIPointer<SAMRAICellVariable<int> > d_p_dof_index_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_p_nullspace_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> d_u_dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_u_nullspace_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> d_p_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_p_nullspace_var;
     SAMRAIPointer<SAMRAIRefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}

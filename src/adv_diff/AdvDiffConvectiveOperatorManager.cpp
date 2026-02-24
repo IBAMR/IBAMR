@@ -92,7 +92,7 @@ AdvDiffConvectiveOperatorManager::freeManager()
 SAMRAIPointer<ConvectiveOperator>
 AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                    const std::string& operator_object_name,
-                                                   SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                   SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                    SAMRAIPointer<SAMRAIDatabase> input_db,
                                                    ConvectiveDifferencingType difference_form,
                                                    const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs) const

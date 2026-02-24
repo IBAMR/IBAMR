@@ -77,7 +77,7 @@ CopyToRootSchedule::communicate()
     return;
 } // communicate
 
-const std::vector<SAMRAIPointer<SAMRAIPatchData> >&
+const std::vector<SAMRAIPointer<SAMRAIPatchData>>&
 CopyToRootSchedule::getRootPatchData() const
 {
     return d_root_patch_data;

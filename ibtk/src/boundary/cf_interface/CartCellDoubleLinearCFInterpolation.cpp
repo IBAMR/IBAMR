@@ -241,7 +241,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(SAMRAIPatch& patch,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAICellData<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAICellData<double>> data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif

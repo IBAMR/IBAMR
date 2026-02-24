@@ -349,13 +349,13 @@ HierarchyMathOps::setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarch
     // Obtain the hierarchy data operations objects.
     SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
 
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = new SAMRAICellVariable<double>("cc_var");
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = new SAMRAICellVariable<double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
-    SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = new SAMRAIFaceVariable<double>("fc_var");
+    SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = new SAMRAIFaceVariable<double>("fc_var");
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = new SAMRAISideVariable<double>("sc_var");
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = new SAMRAISideVariable<double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Reset the communications operators.
@@ -414,7 +414,7 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     return;
 } // resetLevels
 
-SAMRAIPointer<SAMRAICellVariable<double> >
+SAMRAIPointer<SAMRAICellVariable<double>>
 HierarchyMathOps::getCellWeightVariable() const
 {
     return d_wgt_cc_var;
@@ -428,7 +428,7 @@ HierarchyMathOps::getCellWeightPatchDescriptorIndex()
     return d_wgt_cc_idx;
 } // getCellWeightPatchDescriptorIndex
 
-SAMRAIPointer<SAMRAIFaceVariable<double> >
+SAMRAIPointer<SAMRAIFaceVariable<double>>
 HierarchyMathOps::getFaceWeightVariable() const
 {
     return d_wgt_fc_var;
@@ -442,7 +442,7 @@ HierarchyMathOps::getFaceWeightPatchDescriptorIndex()
     return d_wgt_fc_idx;
 } // getFaceWeightPatchDescriptorIndex
 
-SAMRAIPointer<SAMRAISideVariable<double> >
+SAMRAIPointer<SAMRAISideVariable<double>>
 HierarchyMathOps::getSideWeightVariable() const
 {
     return d_wgt_sc_var;
@@ -478,9 +478,9 @@ HierarchyMathOps::setCoarsenOperatorName(const std::string& coarsen_op_name)
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > src_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> src_var,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -496,8 +496,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -523,7 +523,7 @@ HierarchyMathOps::curl(const int dst_idx,
                  0.0,
                  0.0,
                  -1,
-                 SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+                 SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                  d);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -534,8 +534,8 @@ HierarchyMathOps::curl(const int dst_idx,
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-                    SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > sc_data = patch->getPatchData(d_sc_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> sc_data = patch->getPatchData(d_sc_idx);
 #if (NDIM == 2)
                     double* const W = dst_data->getPointer(0);
                     const int W_ghosts = (dst_data->getGhostCellWidth()).max();
@@ -663,9 +663,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -680,8 +680,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -691,9 +691,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -708,8 +708,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -719,9 +719,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -736,8 +736,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -747,9 +747,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -764,8 +764,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -775,10 +775,10 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
+                       const SAMRAIPointer<SAMRAINodeVariable<double>> dst_var,
                        const bool dst_cf_bdry_synch,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time,
                        const bool src_cf_bdry_synch)
@@ -812,8 +812,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
 
@@ -821,12 +821,12 @@ HierarchyMathOps::curl(const int dst_idx,
             {
                 if (src_cf_bdry_synch)
                 {
-                    SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                    SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                     os_data->copy(*src_data);
                 }
                 if (dst_cf_bdry_synch)
                 {
-                    SAMRAIPointer<SAMRAIOuternodeData<double> > on_data = patch->getPatchData(on_idx);
+                    SAMRAIPointer<SAMRAIOuternodeData<double>> on_data = patch->getPatchData(on_idx);
                     on_data->copy(*dst_data);
                 }
             }
@@ -855,9 +855,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*dst_var*/,
                        const int src_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
@@ -876,8 +876,8 @@ HierarchyMathOps::curl(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIEdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -887,9 +887,9 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::rot(int dst_idx,
-                      SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                      SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                       int src_idx,
-                      SAMRAIPointer<SAMRAINodeVariable<double> > /*src_var*/,
+                      SAMRAIPointer<SAMRAINodeVariable<double>> /*src_var*/,
                       SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                       double src_ghost_fill_time,
                       const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
@@ -918,8 +918,8 @@ HierarchyMathOps::rot(int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
@@ -929,9 +929,9 @@ HierarchyMathOps::rot(int dst_idx,
 
 void
 HierarchyMathOps::rot(int dst_idx,
-                      SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                      SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                       int src_idx,
-                      SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                      SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                       SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                       double src_ghost_fill_time,
                       const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
@@ -960,8 +960,8 @@ HierarchyMathOps::rot(int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
@@ -971,9 +971,9 @@ HierarchyMathOps::rot(int dst_idx,
 
 void
 HierarchyMathOps::rot(int dst_idx,
-                      SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                      SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                       int src_idx,
-                      SAMRAIPointer<SAMRAIEdgeVariable<double> > /*src_var*/,
+                      SAMRAIPointer<SAMRAIEdgeVariable<double>> /*src_var*/,
                       SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                       double src_ghost_fill_time,
                       const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
@@ -1002,8 +1002,8 @@ HierarchyMathOps::rot(int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIEdgeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
@@ -1013,9 +1013,9 @@ HierarchyMathOps::rot(int dst_idx,
 
 void
 HierarchyMathOps::rot(int dst_idx,
-                      SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                      SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                       int src_idx,
-                      SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                      SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                       SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                       double src_ghost_fill_time,
                       const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
@@ -1040,8 +1040,8 @@ HierarchyMathOps::rot(int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
@@ -1051,15 +1051,15 @@ HierarchyMathOps::rot(int dst_idx,
 
 void
 HierarchyMathOps::div(const int dst_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                       const double alpha,
                       const int src1_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> src1_var,
                       const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                       const double src1_ghost_fill_time,
                       const double beta,
                       const int src2_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > src2_var,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> src2_var,
                       const int dst_depth,
                       const int src2_depth)
 {
@@ -1075,9 +1075,9 @@ HierarchyMathOps::div(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
@@ -1124,16 +1124,16 @@ HierarchyMathOps::div(const int dst_idx,
 
 void
 HierarchyMathOps::div(const int dst_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                       const double alpha,
                       const int src1_idx,
-                      const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src1_var*/,
+                      const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src1_var*/,
                       const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                       const double src1_ghost_fill_time,
                       const bool src1_cf_bdry_synch,
                       const double beta,
                       const int src2_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                       const int dst_depth,
                       const int src2_depth)
 {
@@ -1155,16 +1155,16 @@ HierarchyMathOps::div(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*src1_data);
             }
         }
@@ -1182,16 +1182,16 @@ HierarchyMathOps::div(const int dst_idx,
 
 void
 HierarchyMathOps::div(const int dst_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                       const double alpha,
                       const int src1_idx,
-                      const SAMRAIPointer<SAMRAISideVariable<double> > /*src1_var*/,
+                      const SAMRAIPointer<SAMRAISideVariable<double>> /*src1_var*/,
                       const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                       const double src1_ghost_fill_time,
                       const bool src1_cf_bdry_synch,
                       const double beta,
                       const int src2_idx,
-                      const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                      const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                       const int dst_depth,
                       const int src2_depth)
 {
@@ -1213,16 +1213,16 @@ HierarchyMathOps::div(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*src1_data);
             }
         }
@@ -1240,15 +1240,15 @@ HierarchyMathOps::div(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                        const double alpha,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> src1_var,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1263,9 +1263,9 @@ HierarchyMathOps::grad(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
@@ -1289,13 +1289,13 @@ HierarchyMathOps::grad(const int dst_idx,
              0.0,
              0.0,
              -1,
-             SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+             SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
              src1_depth);
 
         if (beta != 0.0)
         {
             const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-            const SAMRAIPointer<SAMRAICellVariable<double> > cc_var = dst_var;
+            const SAMRAIPointer<SAMRAICellVariable<double>> cc_var = dst_var;
 
             interp(cc_idx,
                    cc_var,
@@ -1332,16 +1332,16 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                        const bool dst_cf_bdry_synch,
                        const double alpha,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1362,16 +1362,16 @@ HierarchyMathOps::grad(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src2_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*dst_data);
             }
         }
@@ -1391,16 +1391,16 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                        const bool dst_cf_bdry_synch,
                        const double alpha,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1421,16 +1421,16 @@ HierarchyMathOps::grad(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*dst_data);
             }
         }
@@ -1450,16 +1450,16 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                        const int alpha_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > alpha_var,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> alpha_var,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> src1_var,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1481,13 +1481,13 @@ HierarchyMathOps::grad(const int dst_idx,
          0.0,
          0.0,
          -1,
-         SAMRAIPointer<SAMRAIFaceVariable<double> >(nullptr),
+         SAMRAIPointer<SAMRAIFaceVariable<double>>(nullptr),
          src1_depth);
 
     if (beta != 0.0)
     {
         const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-        const SAMRAIPointer<SAMRAICellVariable<double> > cc_var = dst_var;
+        const SAMRAIPointer<SAMRAICellVariable<double>> cc_var = dst_var;
 
         interp(cc_idx,
                cc_var,
@@ -1523,16 +1523,16 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                        const int alpha_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > alpha_var,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> alpha_var,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> src1_var,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1554,13 +1554,13 @@ HierarchyMathOps::grad(const int dst_idx,
          0.0,
          0.0,
          -1,
-         SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+         SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
          src1_depth);
 
     if (beta != 0.0)
     {
         const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-        const SAMRAIPointer<SAMRAICellVariable<double> > cc_var = dst_var;
+        const SAMRAIPointer<SAMRAICellVariable<double>> cc_var = dst_var;
 
         interp(cc_idx,
                cc_var,
@@ -1596,17 +1596,17 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                        const bool dst_cf_bdry_synch,
                        const int alpha_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*alpha_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*alpha_var*/,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1627,11 +1627,11 @@ HierarchyMathOps::grad(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src2_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAIFaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
 
@@ -1673,7 +1673,7 @@ HierarchyMathOps::grad(const int dst_idx,
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*dst_data);
             }
         }
@@ -1693,17 +1693,17 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::grad(const int dst_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                        const bool dst_cf_bdry_synch,
                        const int alpha_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*alpha_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*alpha_var*/,
                        const int src1_idx,
-                       const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                       const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                        const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                        const double src1_ghost_fill_time,
                        const double beta,
                        const int src2_idx,
-                       const SAMRAIPointer<SAMRAISideVariable<double> > /*src2_var*/,
+                       const SAMRAIPointer<SAMRAISideVariable<double>> /*src2_var*/,
                        const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1724,11 +1724,11 @@ HierarchyMathOps::grad(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAISideData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAISideData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
 
@@ -1770,7 +1770,7 @@ HierarchyMathOps::grad(const int dst_idx,
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*dst_data);
             }
         }
@@ -1790,9 +1790,9 @@ HierarchyMathOps::grad(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
@@ -1814,14 +1814,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*src_data);
             }
         }
@@ -1838,9 +1838,9 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
@@ -1862,14 +1862,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*src_data);
             }
         }
@@ -1886,10 +1886,10 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                          const bool dst_cf_bdry_synch,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time)
 {
@@ -1910,14 +1910,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*dst_data);
             }
         }
@@ -1937,10 +1937,10 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                          const bool dst_cf_bdry_synch,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time)
 {
@@ -1961,14 +1961,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*dst_data);
             }
         }
@@ -1988,15 +1988,15 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAINodeVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAINodeVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
-    SAMRAIPointer<SAMRAICellDataFactory<double> > data_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> data_factory = dst_var->getPatchDataFactory();
     const int depth = data_factory->getDefaultDepth();
     TBOX_ASSERT(depth == 1 || depth == NDIM);
     const int on_idx = depth == 1 ? d_on_s_idx : d_on_v_idx;
@@ -2016,14 +2016,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuternodeData<double> > on_data = patch->getPatchData(on_idx);
+                SAMRAIPointer<SAMRAIOuternodeData<double>> on_data = patch->getPatchData(on_idx);
                 on_data->copy(*src_data);
             }
         }
@@ -2040,9 +2040,9 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
@@ -2064,14 +2064,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIEdgeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuteredgeData<double> > oe_data = patch->getPatchData(d_oe_idx);
+                SAMRAIPointer<SAMRAIOuteredgeData<double>> oe_data = patch->getPatchData(d_oe_idx);
                 oe_data->copy(*src_data);
             }
         }
@@ -2088,15 +2088,15 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
+                         const SAMRAIPointer<SAMRAINodeVariable<double>> dst_var,
                          const bool dst_cf_bdry_synch,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
-    SAMRAIPointer<SAMRAINodeDataFactory<double> > data_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAINodeDataFactory<double>> data_factory = dst_var->getPatchDataFactory();
     const int depth = data_factory->getDefaultDepth();
     TBOX_ASSERT(depth == 1 || depth == NDIM);
     const int on_idx = depth == 1 ? d_on_s_idx : d_on_v_idx;
@@ -2116,14 +2116,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, false);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuternodeData<double> > on_data = patch->getPatchData(on_idx);
+                SAMRAIPointer<SAMRAIOuternodeData<double>> on_data = patch->getPatchData(on_idx);
                 on_data->copy(*dst_data);
             }
         }
@@ -2146,10 +2146,10 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                          const bool /*dst_cf_bdry_synch*/,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
@@ -2171,14 +2171,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                SAMRAIPointer<SAMRAIOuterfaceData<double>> of_data = patch->getPatchData(d_of_idx);
                 of_data->copy(*src_data);
             }
         }
@@ -2195,17 +2195,17 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAINodeVariable<double> > dst_var,
+                         const SAMRAIPointer<SAMRAINodeVariable<double>> dst_var,
                          const bool dst_cf_bdry_synch,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time,
                          const bool src_cf_bdry_synch)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
-    SAMRAIPointer<SAMRAINodeDataFactory<double> > data_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAINodeDataFactory<double>> data_factory = dst_var->getPatchDataFactory();
     const int depth = data_factory->getDefaultDepth();
     TBOX_ASSERT(depth == 1 || depth == NDIM);
     const int on_idx = depth == 1 ? d_on_s_idx : d_on_v_idx;
@@ -2232,8 +2232,8 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
@@ -2241,12 +2241,12 @@ HierarchyMathOps::interp(const int dst_idx,
             {
                 if (src_cf_bdry_synch)
                 {
-                    SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                    SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                     os_data->copy(*src_data);
                 }
                 if (dst_cf_bdry_synch)
                 {
-                    SAMRAIPointer<SAMRAIOuternodeData<double> > on_data = patch->getPatchData(on_idx);
+                    SAMRAIPointer<SAMRAIOuternodeData<double>> on_data = patch->getPatchData(on_idx);
                     on_data->copy(*dst_data);
                 }
             }
@@ -2275,10 +2275,10 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*dst_var*/,
+                         const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*dst_var*/,
                          const bool dst_cf_bdry_synch,
                          const int src_idx,
-                         const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                         const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                          const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          const double src_ghost_fill_time)
 {
@@ -2299,14 +2299,14 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIEdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, false);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOuteredgeData<double> > oe_data = patch->getPatchData(d_oe_idx);
+                SAMRAIPointer<SAMRAIOuteredgeData<double>> oe_data = patch->getPatchData(d_oe_idx);
                 oe_data->copy(*dst_data);
             }
         }
@@ -2323,10 +2323,10 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::harmonic_interp(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                                   const bool dst_cf_bdry_synch,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                   const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                   const double src_ghost_fill_time)
 {
@@ -2347,14 +2347,14 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.harmonic_interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
                 os_data->copy(*dst_data);
             }
         }
@@ -2374,9 +2374,9 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 
 void
 HierarchyMathOps::harmonic_interp(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                   const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                   const double src_ghost_fill_time)
 {
@@ -2391,8 +2391,8 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, false);
         }
@@ -2402,9 +2402,9 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 
 void
 HierarchyMathOps::harmonic_interp(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                   const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                   const double src_ghost_fill_time)
 {
@@ -2419,8 +2419,8 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIEdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, false);
         }
@@ -2430,9 +2430,9 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp_ghosted(const int dst_idx,
-                                 const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                 const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                  const int src_idx,
-                                 const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                 const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                  const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                  const double src_ghost_fill_time)
 {
@@ -2447,8 +2447,8 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, true);
         }
@@ -2458,9 +2458,9 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
 
 void
 HierarchyMathOps::interp_ghosted(const int dst_idx,
-                                 const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*dst_var*/,
+                                 const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*dst_var*/,
                                  const int src_idx,
-                                 const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                 const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                  const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                  const double src_ghost_fill_time)
 {
@@ -2475,8 +2475,8 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIEdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, true);
         }
@@ -2486,9 +2486,9 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
 
 void
 HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
-                                          const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                          const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                           const int src_idx,
-                                          const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                          const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                           const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                           const double src_ghost_fill_time)
 {
@@ -2503,8 +2503,8 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, true);
         }
@@ -2514,9 +2514,9 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
 
 void
 HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
-                                          const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*dst_var*/,
+                                          const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*dst_var*/,
                                           const int src_idx,
-                                          const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/,
+                                          const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/,
                                           const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                                           const double src_ghost_fill_time)
 {
@@ -2531,8 +2531,8 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIEdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch, true);
         }
@@ -2542,15 +2542,15 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
 
 void
 HierarchyMathOps::laplace(const int dst_idx,
-                          const SAMRAIPointer<SAMRAICellVariable<double> > dst_var,
+                          const SAMRAIPointer<SAMRAICellVariable<double>> dst_var,
                           const SAMRAIPoissonSpecifications& poisson_spec,
                           const int src1_idx,
-                          const SAMRAIPointer<SAMRAICellVariable<double> > src1_var,
+                          const SAMRAIPointer<SAMRAICellVariable<double>> src1_var,
                           const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                           const double src1_ghost_fill_time,
                           const double gamma,
                           const int src2_idx,
-                          const SAMRAIPointer<SAMRAICellVariable<double> > src2_var,
+                          const SAMRAIPointer<SAMRAICellVariable<double>> src2_var,
                           const int dst_depth,
                           const int src1_depth,
                           const int src2_depth)
@@ -2563,8 +2563,8 @@ HierarchyMathOps::laplace(const int dst_idx,
     const int alpha_idx = (poisson_spec.dIsConstant()) ? -1 : poisson_spec.getDPatchDataId();
     const int beta_idx = (poisson_spec.cIsConstant() || poisson_spec.cIsZero()) ? -1 : poisson_spec.getCPatchDataId();
 
-    SAMRAIPointer<SAMRAISideVariable<double> > alpha_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > beta_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> alpha_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> beta_var;
 
     bool nonaligned_anisotropy = false;
     if (!poisson_spec.dIsConstant())
@@ -2576,7 +2576,7 @@ HierarchyMathOps::laplace(const int dst_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(alpha_var);
 #endif
-        SAMRAIPointer<SAMRAISideDataFactory<double> > alpha_fac =
+        SAMRAIPointer<SAMRAISideDataFactory<double>> alpha_fac =
             var_db->getPatchDescriptor()->getPatchDataFactory(alpha_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(alpha_fac);
@@ -2606,9 +2606,9 @@ HierarchyMathOps::laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.laplace(
@@ -2637,7 +2637,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                  0.0,
                  0.0,
                  -1,
-                 SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+                 SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                  src1_depth);
         }
         else
@@ -2653,7 +2653,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                  0.0,
                  0.0,
                  -1,
-                 SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+                 SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                  src1_depth);
         }
 
@@ -2670,7 +2670,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 false, // don't re-synch coarse-fine boundary
                 0.0,
                 -1,
-                SAMRAIPointer<SAMRAICellVariable<double> >(nullptr),
+                SAMRAIPointer<SAMRAICellVariable<double>>(nullptr),
                 dst_depth);
         }
         else if (IBTK::abs_equal_eps(beta, 0.0))
@@ -2708,7 +2708,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         else
         {
             const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-            const SAMRAIPointer<SAMRAICellVariable<double> > cc_var = dst_var;
+            const SAMRAIPointer<SAMRAICellVariable<double>> cc_var = dst_var;
             const int cc_depth = dst_depth;
 
             div(cc_idx,
@@ -2757,15 +2757,15 @@ HierarchyMathOps::laplace(const int dst_idx,
 
 void
 HierarchyMathOps::laplace(const int dst_idx,
-                          const SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
+                          const SAMRAIPointer<SAMRAISideVariable<double>> dst_var,
                           const SAMRAIPoissonSpecifications& poisson_spec,
                           const int src1_idx,
-                          const SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                          const SAMRAIPointer<SAMRAISideVariable<double>> src1_var,
                           const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                           const double src1_ghost_fill_time,
                           const double gamma,
                           const int src2_idx,
-                          const SAMRAIPointer<SAMRAISideVariable<double> > src2_var)
+                          const SAMRAIPointer<SAMRAISideVariable<double>> src2_var)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
@@ -2798,8 +2798,8 @@ HierarchyMathOps::laplace(const int dst_idx,
                      << "  src1_var->fineBoundaryRepresentsVariable() == true" << std::endl);
     }
 
-    SAMRAIPointer<SAMRAISideDataFactory<double> > dst_factory = dst_var->getPatchDataFactory();
-    SAMRAIPointer<SAMRAISideDataFactory<double> > src1_factory = src1_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> dst_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> src1_factory = src1_var->getPatchDataFactory();
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
@@ -2807,7 +2807,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     }
     if (src2_var)
     {
-        SAMRAIPointer<SAMRAISideDataFactory<double> > src2_factory = src2_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double>> src2_factory = src2_var->getPatchDataFactory();
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::laplace():\n"
@@ -2823,9 +2823,9 @@ HierarchyMathOps::laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, patch);
@@ -2849,8 +2849,8 @@ HierarchyMathOps::laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
             os_data->copy(*dst_data);
         }
 
@@ -2869,26 +2869,26 @@ HierarchyMathOps::laplace(const int dst_idx,
 
 void
 HierarchyMathOps::vc_laplace(const int dst_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
+                             const SAMRAIPointer<SAMRAISideVariable<double>> dst_var,
                              const double alpha,
                              const double beta,
                              const int coef1_idx,
-                             const SAMRAIPointer<SAMRAINodeVariable<double> > /*coef_var*/,
+                             const SAMRAIPointer<SAMRAINodeVariable<double>> /*coef_var*/,
                              const int src1_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                             const SAMRAIPointer<SAMRAISideVariable<double>> src1_var,
                              const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
                              const IBTK::VCInterpType coef1_interp_type,
                              int coef2_idx,
-                             SAMRAIPointer<SAMRAISideVariable<double> > /*coef2_var*/,
+                             SAMRAIPointer<SAMRAISideVariable<double>> /*coef2_var*/,
                              const double gamma,
                              const int src2_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > src2_var)
+                             const SAMRAIPointer<SAMRAISideVariable<double>> src2_var)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
-    SAMRAIPointer<SAMRAISideDataFactory<double> > dst_factory = dst_var->getPatchDataFactory();
-    SAMRAIPointer<SAMRAISideDataFactory<double> > src1_factory = src1_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> dst_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> src1_factory = src1_var->getPatchDataFactory();
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
@@ -2896,7 +2896,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     }
     if (src2_var)
     {
-        SAMRAIPointer<SAMRAISideDataFactory<double> > src2_factory = src2_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double>> src2_factory = src2_var->getPatchDataFactory();
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
@@ -2921,12 +2921,12 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > coef1_data = patch->getPatchData(coef1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > coef2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> coef1_data = patch->getPatchData(coef1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> coef2_data =
                 (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.vc_laplace(
@@ -2951,8 +2951,8 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
             os_data->copy(*dst_data);
         }
 
@@ -2971,26 +2971,26 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
 
 void
 HierarchyMathOps::vc_laplace(const int dst_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > dst_var,
+                             const SAMRAIPointer<SAMRAISideVariable<double>> dst_var,
                              const double alpha,
                              const double beta,
                              const int coef1_idx,
-                             const SAMRAIPointer<SAMRAIEdgeVariable<double> > /*coef_var*/,
+                             const SAMRAIPointer<SAMRAIEdgeVariable<double>> /*coef_var*/,
                              const int src1_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > src1_var,
+                             const SAMRAIPointer<SAMRAISideVariable<double>> src1_var,
                              const SAMRAIPointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
                              const IBTK::VCInterpType coef1_interp_type,
                              int coef2_idx,
-                             SAMRAIPointer<SAMRAISideVariable<double> > /*coef2_var*/,
+                             SAMRAIPointer<SAMRAISideVariable<double>> /*coef2_var*/,
                              const double gamma,
                              const int src2_idx,
-                             const SAMRAIPointer<SAMRAISideVariable<double> > src2_var)
+                             const SAMRAIPointer<SAMRAISideVariable<double>> src2_var)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
-    SAMRAIPointer<SAMRAISideDataFactory<double> > dst_factory = dst_var->getPatchDataFactory();
-    SAMRAIPointer<SAMRAISideDataFactory<double> > src1_factory = src1_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> dst_factory = dst_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> src1_factory = src1_var->getPatchDataFactory();
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
@@ -2998,7 +2998,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     }
     if (src2_var)
     {
-        SAMRAIPointer<SAMRAISideDataFactory<double> > src2_factory = src2_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double>> src2_factory = src2_var->getPatchDataFactory();
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
@@ -3023,12 +3023,12 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIEdgeData<double> > coef1_data = patch->getPatchData(coef1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > coef2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> coef1_data = patch->getPatchData(coef1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> coef2_data =
                 (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.vc_laplace(
@@ -3053,8 +3053,8 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIOutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIOutersideData<double>> os_data = patch->getPatchData(d_os_idx);
             os_data->copy(*dst_data);
         }
 
@@ -3073,13 +3073,13 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                     const double alpha,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth)
@@ -3092,9 +3092,9 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.pointwiseMultiply(
@@ -3106,14 +3106,14 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3127,11 +3127,11 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAICellData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAICellData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3150,15 +3150,15 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src1_var*/,
                                     const int beta_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*beta_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*beta_var*/,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAICellVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAICellVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3173,12 +3173,12 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src2_data =
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAICellData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            SAMRAIPointer<SAMRAICellData<double> > beta_data = patch->getPatchData(beta_idx);
+            SAMRAIPointer<SAMRAICellData<double>> alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAICellData<double>> beta_data = patch->getPatchData(beta_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3198,13 +3198,13 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                                     const double alpha,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth)
@@ -3217,9 +3217,9 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src2_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.pointwiseMultiply(
@@ -3231,14 +3231,14 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3252,11 +3252,11 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src2_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAIFaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3275,15 +3275,15 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src1_var*/,
                                     const int beta_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*beta_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*beta_var*/,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAIFaceVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAIFaceVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3298,12 +3298,12 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAIFaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > src2_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAIFaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > beta_data = patch->getPatchData(beta_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> beta_data = patch->getPatchData(beta_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3323,13 +3323,13 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                     const double alpha,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth)
@@ -3342,9 +3342,9 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src2_data =
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.pointwiseMultiply(
@@ -3356,14 +3356,14 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3377,11 +3377,11 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src2_data =
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAINodeData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3400,15 +3400,15 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src1_var*/,
                                     const int beta_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*beta_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*beta_var*/,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAINodeVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAINodeVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3423,12 +3423,12 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src2_data =
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAINodeData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > beta_data = patch->getPatchData(beta_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> beta_data = patch->getPatchData(beta_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3448,13 +3448,13 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                                     const double alpha,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth)
@@ -3467,9 +3467,9 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
 
             d_patch_math_ops.pointwiseMultiply(
@@ -3481,14 +3481,14 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src1_var*/,
                                     const double beta,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3502,11 +3502,11 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAISideData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAISideData<double>> alpha_data = patch->getPatchData(alpha_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3525,15 +3525,15 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*dst_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*dst_var*/,
                                     const int alpha_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*alpha_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*alpha_var*/,
                                     const int src1_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src1_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src1_var*/,
                                     const int beta_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*beta_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*beta_var*/,
                                     const int src2_idx,
-                                    const SAMRAIPointer<SAMRAISideVariable<double> > /*src2_var*/,
+                                    const SAMRAIPointer<SAMRAISideVariable<double>> /*src2_var*/,
                                     const int dst_depth,
                                     const int src1_depth,
                                     const int src2_depth,
@@ -3548,12 +3548,12 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src1_data = patch->getPatchData(src1_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src2_data =
+            SAMRAIPointer<SAMRAISideData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src1_data = patch->getPatchData(src1_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : SAMRAIPointer<SAMRAIPatchData>();
-            SAMRAIPointer<SAMRAISideData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            SAMRAIPointer<SAMRAISideData<double> > beta_data = patch->getPatchData(beta_idx);
+            SAMRAIPointer<SAMRAISideData<double>> alpha_data = patch->getPatchData(alpha_idx);
+            SAMRAIPointer<SAMRAISideData<double>> beta_data = patch->getPatchData(beta_idx);
 
             d_patch_math_ops.pointwiseMultiply(dst_data,
                                                alpha_data,
@@ -3573,9 +3573,9 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/)
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3585,8 +3585,8 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
         }
@@ -3596,9 +3596,9 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/)
+                                  const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3608,8 +3608,8 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
         }
@@ -3619,9 +3619,9 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
-                                   const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                                   const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                                    const int src_idx,
-                                   const SAMRAIPointer<SAMRAICellVariable<double> > /*src_var*/)
+                                   const SAMRAIPointer<SAMRAICellVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3631,8 +3631,8 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAICellData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAICellData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
         }
@@ -3642,9 +3642,9 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAINodeVariable<double> > /*src_var*/)
+                                  const SAMRAIPointer<SAMRAINodeVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3654,8 +3654,8 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
         }
@@ -3665,9 +3665,9 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
-                                  const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                  const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                   const int src_idx,
-                                  const SAMRAIPointer<SAMRAINodeVariable<double> > /*src_var*/)
+                                  const SAMRAIPointer<SAMRAINodeVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3677,8 +3677,8 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
         }
@@ -3688,9 +3688,9 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 
 void
 HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
-                                   const SAMRAIPointer<SAMRAINodeVariable<double> > /*dst_var*/,
+                                   const SAMRAIPointer<SAMRAINodeVariable<double>> /*dst_var*/,
                                    const int src_idx,
-                                   const SAMRAIPointer<SAMRAINodeVariable<double> > /*src_var*/)
+                                   const SAMRAIPointer<SAMRAINodeVariable<double>> /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -3700,8 +3700,8 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
         }
@@ -3711,11 +3711,11 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 
 void
 HierarchyMathOps::strain_rate(const int dst1_idx,
-                              const SAMRAIPointer<SAMRAICellVariable<double> > /*dst1_var*/,
+                              const SAMRAIPointer<SAMRAICellVariable<double>> /*dst1_var*/,
                               const int dst2_idx,
-                              const SAMRAIPointer<SAMRAICellVariable<double> > /*dst2_var*/,
+                              const SAMRAIPointer<SAMRAICellVariable<double>> /*dst2_var*/,
                               const int src_idx,
-                              const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                              const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                               const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                               const double src_ghost_fill_time)
 {
@@ -3730,9 +3730,9 @@ HierarchyMathOps::strain_rate(const int dst1_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst1_data = patch->getPatchData(dst1_idx);
-            SAMRAIPointer<SAMRAICellData<double> > dst2_data = patch->getPatchData(dst2_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst1_data = patch->getPatchData(dst1_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst2_data = patch->getPatchData(dst2_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.strain_rate(dst1_data, dst2_data, src_data, patch);
         }
@@ -3742,9 +3742,9 @@ HierarchyMathOps::strain_rate(const int dst1_idx,
 
 void
 HierarchyMathOps::strain_rate(const int dst_idx,
-                              const SAMRAIPointer<SAMRAICellVariable<double> > /*dst_var*/,
+                              const SAMRAIPointer<SAMRAICellVariable<double>> /*dst_var*/,
                               const int src_idx,
-                              const SAMRAIPointer<SAMRAISideVariable<double> > /*src_var*/,
+                              const SAMRAIPointer<SAMRAISideVariable<double>> /*src_var*/,
                               const SAMRAIPointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                               const double src_ghost_fill_time)
 {
@@ -3758,8 +3758,8 @@ HierarchyMathOps::strain_rate(const int dst_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > dst_data = patch->getPatchData(dst_idx);
-            SAMRAIPointer<SAMRAISideData<double> > src_data = patch->getPatchData(src_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dst_data = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAISideData<double>> src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.strain_rate(dst_data, src_data, patch);
         }
@@ -3768,7 +3768,7 @@ HierarchyMathOps::strain_rate(const int dst_idx,
 } // strain
 
 void
-HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, SAMRAIPointer<SAMRAINodeVariable<double> > dst_var)
+HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, SAMRAIPointer<SAMRAINodeVariable<double>> dst_var)
 {
     TBOX_ASSERT(dst_idx != IBTK::invalid_index);
     TBOX_ASSERT(dst_var);
@@ -3804,7 +3804,7 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, SAMRAIPointer
         {
             const SAMRAIPointer<SAMRAIPatch>& patch = level->getPatch(p());
             TBOX_ASSERT(patch->getPatchData(dst_idx));
-            SAMRAIPointer<SAMRAINodeData<double> > dst_data_ptr = patch->getPatchData(dst_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> dst_data_ptr = patch->getPatchData(dst_idx);
             SAMRAINodeData<double>& dst_data = *dst_data_ptr;
             const SAMRAIArray<SAMRAIBoundaryBox>& bboxes = cf_boundary.getBoundaries(p(), 1);
 
@@ -4116,7 +4116,7 @@ HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)
                                     * dx[2]
 #endif
                 ;
-            SAMRAIPointer<SAMRAICellData<double> > wgt_cc_data = patch->getPatchData(d_wgt_cc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> wgt_cc_data = patch->getPatchData(d_wgt_cc_idx);
             wgt_cc_data->fillAll(cell_vol);
 
             // Zero-out weights within the refined region.
@@ -4209,7 +4209,7 @@ HierarchyMathOps::resetFaceWeights(const int coarsest_ln, const int finest_ln)
                                     * dx[2]
 #endif
                 ;
-            SAMRAIPointer<SAMRAIFaceData<double> > wgt_fc_data = patch->getPatchData(d_wgt_fc_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> wgt_fc_data = patch->getPatchData(d_wgt_fc_idx);
             wgt_fc_data->fillAll(cell_vol);
 
             // Rescale values along the edges of the patches.
@@ -4338,7 +4338,7 @@ HierarchyMathOps::resetSideWeights(const int coarsest_ln, const int finest_ln)
                                     * dx[2]
 #endif
                 ;
-            SAMRAIPointer<SAMRAISideData<double> > wgt_sc_data = patch->getPatchData(d_wgt_sc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> wgt_sc_data = patch->getPatchData(d_wgt_sc_idx);
             wgt_sc_data->fillAll(cell_vol);
 
             // Rescale values along the edges of the patches.

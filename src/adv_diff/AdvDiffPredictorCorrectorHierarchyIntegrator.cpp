@@ -347,13 +347,13 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchySpecialized(cons
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_var = *cit;
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = d_Q_F_map[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = d_Q_F_map[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
-        SAMRAIPointer<SAMRAICellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
@@ -428,7 +428,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchySpecialized(cons
     // Compute any time-dependent source terms at time-level n+1/2.
     for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = *cit;
         SAMRAIPointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
@@ -441,7 +441,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchySpecialized(cons
     // n+1/2.
     for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAISideVariable<double> > D_var = *cit;
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = *cit;
         SAMRAIPointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
@@ -463,11 +463,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchySpecialized(cons
     l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_var = *cit;
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = d_Q_F_map[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = d_Q_F_map[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -641,7 +641,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
                 const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                SAMRAIPointer<SAMRAIFaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_fc_new_data = patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -754,7 +754,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_idx);
 #if !defined(NDEBUG)
                     TBOX_ASSERT(F_data);
 #endif
@@ -777,7 +777,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAISideData<double> > D_data = patch->getPatchData(D_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> D_data = patch->getPatchData(D_idx);
 #if !defined(NDEBUG)
                     TBOX_ASSERT(D_data);
 #endif

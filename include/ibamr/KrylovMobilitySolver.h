@@ -289,7 +289,7 @@ private:
     Mat d_petsc_mat = nullptr;
 
     // Linear operator.
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar> > > d_samrai_temp;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar>>> d_samrai_temp;
     SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
     SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_LInv;
@@ -310,8 +310,8 @@ private:
     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Null space vectors for LInv
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nul_vecs;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

@@ -45,7 +45,7 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.
      */
-    SAMRAIScopedVectorCopy(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE> >& vector, const std::string& name = "");
+    SAMRAIScopedVectorCopy(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>& vector, const std::string& name = "");
 
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.

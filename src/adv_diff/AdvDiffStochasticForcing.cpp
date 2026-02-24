@@ -87,7 +87,7 @@ genrandn(SAMRAIArrayData<double>& data, const SAMRAIBox& box)
 
 AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
                                                    SAMRAIPointer<SAMRAIDatabase> input_db,
-                                                   SAMRAIPointer<SAMRAICellVariable<double> > C_var,
+                                                   SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
     : d_object_name(std::move(object_name)), d_C_var(C_var), d_adv_diff_solver(adv_diff_solver)
 {
@@ -115,7 +115,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
     d_f_parser.SetExpr(f_expression);
 
     // Determine the number of components that need to be allocated.
-    SAMRAIPointer<SAMRAICellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> C_factory = d_C_var->getPatchDataFactory();
     const int C_depth = C_factory->getDefaultDepth();
 
     // Setup variables and variable context objects.
@@ -177,7 +177,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double half_time = current_time + 0.5 * dt;
         const double new_time = current_time + dt;
         SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_cc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_C_cc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -243,7 +243,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                     {
                         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                        SAMRAIPointer<SAMRAISideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
+                        SAMRAIPointer<SAMRAISideData<double>> F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
                             genrandn(F_sc_data->getArrayData(d), SAMRAISideGeometry::toSideBox(F_sc_data->getBox(), d));
@@ -259,7 +259,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
 #endif
         const SAMRAIArray<double>& weights = d_weights[cycle_num];
-        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_sc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_F_sc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -268,7 +268,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
 
         // Modify the flux values (if necessary).
-        SAMRAIPointer<SAMRAICellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> C_factory = d_C_var->getPatchDataFactory();
         const int C_depth = C_factory->getDefaultDepth();
         const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -277,7 +277,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAISideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
+                SAMRAIPointer<SAMRAISideData<double>> F_sc_data = patch->getPatchData(d_F_sc_idx);
 
                 const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 if (!pgeom->getTouchesRegularBoundary()) continue;
@@ -302,9 +302,9 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const SAMRAIBox bc_coef_box =
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                    SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                    SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                    SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -359,7 +359,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                          const bool initial_time,
                                          SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
 {
-    SAMRAIPointer<SAMRAICellData<double> > divF_cc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> divF_cc_data = patch->getPatchData(data_idx);
     divF_cc_data->fillAll(0.0);
     if (initial_time) return;
     const SAMRAIBox& patch_box = patch->getBox();
@@ -373,11 +373,11 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     double C;
     d_f_parser.DefineVar("c", &C);
     d_f_parser.DefineVar("C", &C);
-    SAMRAIPointer<SAMRAICellData<double> > C_current_cc_data = patch->getPatchData(d_C_current_cc_idx);
-    SAMRAIPointer<SAMRAICellData<double> > C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
-    SAMRAIPointer<SAMRAICellData<double> > C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
-    SAMRAIPointer<SAMRAISideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
-    SAMRAIPointer<SAMRAICellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellData<double>> C_current_cc_data = patch->getPatchData(d_C_current_cc_idx);
+    SAMRAIPointer<SAMRAICellData<double>> C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
+    SAMRAIPointer<SAMRAICellData<double>> C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
+    SAMRAIPointer<SAMRAISideData<double>> F_sc_data = patch->getPatchData(d_F_sc_idx);
+    SAMRAIPointer<SAMRAICellDataFactory<double>> C_factory = d_C_var->getPatchDataFactory();
     const int C_depth = C_factory->getDefaultDepth();
     SAMRAISideData<double> f_scale_sc_data(patch_box, C_depth, SAMRAIIntVector(0));
     const TimeSteppingType convective_time_stepping_type = d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);

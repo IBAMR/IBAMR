@@ -134,8 +134,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -163,9 +163,9 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAIPointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAIPointer<IBTK::LData> > d_V_current_data, d_V_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_K_data, d_M_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_Y_current_data, d_Y_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_V_current_data, d_V_new_data;
 
     /*
      * Gravitational acceleration.

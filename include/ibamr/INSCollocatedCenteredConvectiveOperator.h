@@ -186,10 +186,10 @@ private:
 
     // Data communication algorithms, operators, and schedules.
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_coarsen_scheds;
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_ghostfill_alg;
     SAMRAIPointer<SAMRAIRefinePatchStrategy> d_ghostfill_strategy;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_ghostfill_scheds;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_ghostfill_scheds;
     std::string d_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
@@ -197,9 +197,9 @@ private:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAIPointer<SAMRAICellVariable<double> > d_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_U_var;
     int d_U_scratch_idx = IBTK::invalid_index;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_u_extrap_var, d_u_flux_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_u_extrap_var, d_u_flux_var;
     int d_u_extrap_idx = IBTK::invalid_index, d_u_flux_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR

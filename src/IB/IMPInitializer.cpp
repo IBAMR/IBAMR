@@ -264,7 +264,7 @@ IMPInitializer::getIsAllLagrangianDataInDomain(const SAMRAIPointer<SAMRAIPatchHi
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            std::vector<std::pair<int, int> > patch_vertices; // TODO do we need this call?
+            std::vector<std::pair<int, int>> patch_vertices; // TODO do we need this call?
             getPatchVertices(patch_vertices, patch, ln, false);
             for (const auto& point_idx : patch_vertices)
             {
@@ -319,7 +319,7 @@ IMPInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<SAMRAIPatc
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
     }
@@ -329,7 +329,7 @@ IMPInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<SAMRAIPatc
 void
 IMPInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+    std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
     const int level_number,
     const double /*init_data_time*/,
     const bool /*can_be_refined*/,
@@ -381,7 +381,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
         for (const auto& point_idx : patch_vertices)
@@ -427,7 +427,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                 new MaterialPointSpec(lagrangian_idx,
                                       d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                                       d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
-            std::vector<SAMRAIPointer<Streamable> > node_data(1, point_spec);
+            std::vector<SAMRAIPointer<Streamable>> node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx,
                                           global_petsc_idx,
                                           local_petsc_idx,
@@ -470,7 +470,7 @@ IMPInitializer::tagCellsForInitialRefinement(const SAMRAIPointer<SAMRAIPatchHier
         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
 
-        SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -479,7 +479,7 @@ IMPInitializer::tagCellsForInitialRefinement(const SAMRAIPointer<SAMRAIPatchHier
         const bool can_be_refined = level_can_be_refined(level_number, max_levels);
         for (int ln = level_number + 1; ln < max_levels; ++ln)
         {
-            std::vector<std::pair<int, int> > patch_vertices;
+            std::vector<std::pair<int, int>> patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
             for (const auto& point_idx : patch_vertices)
             {
@@ -557,7 +557,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
 } // initializeLSiloDataWriter
 
 void
-IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+IMPInitializer::getPatchVertices(std::vector<std::pair<int, int>>& patch_vertices,
                                  const SAMRAIPointer<SAMRAIPatch> patch,
                                  const int level_number,
                                  const bool /*can_be_refined*/) const

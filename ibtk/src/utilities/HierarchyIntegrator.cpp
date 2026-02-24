@@ -857,11 +857,11 @@ HierarchyIntegrator::initializeLevelData(const SAMRAIPointer<SAMRAIBasePatchHier
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAICellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
-                    SAMRAIPointer<SAMRAIEdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
-                    SAMRAIPointer<SAMRAIFaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
-                    SAMRAIPointer<SAMRAINodeData<double> > var_current_nc_data = patch->getPatchData(var_current_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > var_current_sc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> var_current_cc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAIEdgeData<double>> var_current_ec_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAIFaceData<double>> var_current_fc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAINodeData<double>> var_current_nc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> var_current_sc_data = patch->getPatchData(var_current_idx);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -1009,7 +1009,7 @@ HierarchyIntegrator::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHi
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<int> > tags_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAICellData<int>> tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
     }
@@ -1602,7 +1602,7 @@ HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getCoarsenAlgorithm
 
-const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_ghostfill_scheds.find(name);
@@ -1612,7 +1612,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
-const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_prolong_scheds.find(name);
@@ -1622,7 +1622,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getProlongRefineSchedules
 
-const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >&
+const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     auto sched_it = d_coarsen_scheds.find(name);

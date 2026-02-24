@@ -360,8 +360,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -410,7 +410,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -462,8 +462,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -559,7 +559,7 @@ protected:
                                          const SAMRAISideIndex& i_s_prime,
                                          const std::vector<libMesh::Point>& candidate_coords,
                                          const std::vector<libMesh::Point>& candidate_ref_coords,
-                                         const std::vector<libMesh::VectorValue<double> >& candidate_normals);
+                                         const std::vector<libMesh::VectorValue<double>>& candidate_normals);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -632,14 +632,14 @@ protected:
     SAMRAIIntVector d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
         d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
-    std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
+    std::vector<std::array<libMesh::System*, NDIM>> d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
-    std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
+    std::vector<std::array<libMesh::PetscVector<double>*, NDIM>> d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_in_half_vecs, d_P_in_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_out_half_vecs, d_P_out_IB_ghost_vecs;
@@ -696,7 +696,7 @@ protected:
      */
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
-    std::vector<libMesh::VectorValue<double> > d_lag_surface_force_integral;
+    std::vector<libMesh::VectorValue<double>> d_lag_surface_force_integral;
 
     /*
      * Eulerian data.

@@ -102,11 +102,11 @@ FEValuesBase::build(const int dim,
         switch (spacedim)
         {
         case 1:
-            return std::make_unique<FEValues<1, 1> >(qrule, fe_type, update_flags);
+            return std::make_unique<FEValues<1, 1>>(qrule, fe_type, update_flags);
         case 2:
-            return std::make_unique<FEValues<1, 2> >(qrule, fe_type, update_flags);
+            return std::make_unique<FEValues<1, 2>>(qrule, fe_type, update_flags);
         case 3:
-            return std::make_unique<FEValues<1, 3> >(qrule, fe_type, update_flags);
+            return std::make_unique<FEValues<1, 3>>(qrule, fe_type, update_flags);
         default:
             break;
         }
@@ -115,16 +115,16 @@ FEValuesBase::build(const int dim,
         switch (spacedim)
         {
         case 2:
-            return std::make_unique<FEValues<2, 2> >(qrule, fe_type, update_flags);
+            return std::make_unique<FEValues<2, 2>>(qrule, fe_type, update_flags);
         case 3:
-            return std::make_unique<FEValues<2, 3> >(qrule, fe_type, update_flags);
+            return std::make_unique<FEValues<2, 3>>(qrule, fe_type, update_flags);
         default:
             break;
         }
         break;
     case 3:
         TBOX_ASSERT(spacedim == dim);
-        return std::make_unique<FEValues<3, 3> >(qrule, fe_type, update_flags);
+        return std::make_unique<FEValues<3, 3>>(qrule, fe_type, update_flags);
     default:
         break;
     }
@@ -220,7 +220,7 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
             ref_values.d_reference_shape_gradients;
         d_shape_gradients.resize(ref_shape_gradients.shape()[0]);
 
-        const std::vector<Eigen::Matrix<double, spacedim, dim> >& covariants = mapping.getCovariants();
+        const std::vector<Eigen::Matrix<double, spacedim, dim>>& covariants = mapping.getCovariants();
         for (unsigned int i = 0; i < d_shape_gradients.size(); ++i)
         {
             d_shape_gradients[i].resize(ref_shape_gradients.shape()[1]);

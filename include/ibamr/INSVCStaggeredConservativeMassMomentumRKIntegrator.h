@@ -148,8 +148,8 @@ protected:
     /*!
      * \brief Compute the advection velocity using simple averages.
      */
-    void computeAdvectionVelocity(std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-                                  const SAMRAIPointer<SAMRAISideData<double> > U_data,
+    void computeAdvectionVelocity(std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+                                  const SAMRAIPointer<SAMRAISideData<double>> U_data,
                                   const SAMRAIIntVector& patch_lower,
                                   const SAMRAIIntVector& patch_upper,
                                   const std::array<SAMRAIBox, NDIM>& side_boxes);
@@ -157,9 +157,9 @@ protected:
     /*!
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes.
      */
-    void interpolateSideQuantity(std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> Q_half_data,
-                                 const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-                                 const SAMRAIPointer<SAMRAISideData<double> > Q_data,
+    void interpolateSideQuantity(std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> Q_half_data,
+                                 const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+                                 const SAMRAIPointer<SAMRAISideData<double>> Q_data,
                                  const SAMRAIIntVector& patch_lower,
                                  const SAMRAIIntVector& patch_upper,
                                  const std::array<SAMRAIBox, NDIM>& side_boxes,
@@ -168,11 +168,11 @@ protected:
     /*!
      * \brief Compute div[rho_half*u_half*u_adv].
      */
-    void computeConvectiveDerivative(SAMRAIPointer<SAMRAISideData<double> > N_data,
-                                     std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> P_half_data,
-                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
-                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_data,
+    void computeConvectiveDerivative(SAMRAIPointer<SAMRAISideData<double>> N_data,
+                                     std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> P_half_data,
+                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
+                                     const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_data,
                                      const std::array<SAMRAIBox, NDIM>& side_boxes,
                                      const double* const dx,
                                      const SAMRAIPointer<SAMRAIPatch>& patch);
@@ -180,15 +180,15 @@ protected:
     /*!
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
-    void computeDensityUpdate(SAMRAIPointer<SAMRAISideData<double> > R_data,
+    void computeDensityUpdate(SAMRAIPointer<SAMRAISideData<double>> R_data,
                               const double& a0,
-                              const SAMRAIPointer<SAMRAISideData<double> > R0_data,
+                              const SAMRAIPointer<SAMRAISideData<double>> R0_data,
                               const double& a1,
-                              const SAMRAIPointer<SAMRAISideData<double> > R1_data,
+                              const SAMRAIPointer<SAMRAISideData<double>> R1_data,
                               const double& a2,
-                              const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-                              const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
-                              const SAMRAIPointer<SAMRAISideData<double> > S_data,
+                              const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+                              const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
+                              const SAMRAIPointer<SAMRAISideData<double>> S_data,
                               const std::array<SAMRAIBox, NDIM>& side_boxes,
                               const double& dt,
                               const double* const dx);
@@ -198,11 +198,11 @@ protected:
      * density field pointwise.
      */
     void
-    computeErrorOfMassConservationEquation(SAMRAIPointer<SAMRAISideData<double> > E_data,
-                                           const SAMRAIPointer<SAMRAISideData<double> > Rnew_data,
-                                           const SAMRAIPointer<SAMRAISideData<double> > Rold_data,
-                                           const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-                                           const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
+    computeErrorOfMassConservationEquation(SAMRAIPointer<SAMRAISideData<double>> E_data,
+                                           const SAMRAIPointer<SAMRAISideData<double>> Rnew_data,
+                                           const SAMRAIPointer<SAMRAISideData<double>> Rold_data,
+                                           const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+                                           const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
                                            const std::array<SAMRAIBox, NDIM>& side_boxes,
                                            const double& dt,
                                            const double* const dx);

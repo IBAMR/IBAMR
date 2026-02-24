@@ -97,8 +97,8 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_is*/,
-                                                 std::vector<std::set<int> >& /*nonoverlap_is*/)
+CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
+                                                 std::vector<std::set<int>>& /*nonoverlap_is*/)
 {
     // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
     PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
@@ -119,9 +119,9 @@ CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAISAMRAIVe
     // Allocate DOF index data.
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    SAMRAIPointer<SAMRAICellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    SAMRAIPointer<SAMRAICellDataFactory<double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    SAMRAIPointer<SAMRAICellDataFactory<int> > dof_index_fac =
+    SAMRAIPointer<SAMRAICellDataFactory<int>> dof_index_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
@@ -184,9 +184,9 @@ CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     {
         SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
         SAMRAIPointer<SAMRAIPatchGeometry> pgeom = patch->getPatchGeometry();
-        SAMRAIPointer<SAMRAICellData<double> > x_data = patch->getPatchData(x_idx);
-        SAMRAIPointer<SAMRAICellData<double> > b_data = patch->getPatchData(b_idx);
-        SAMRAIPointer<SAMRAICellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        SAMRAIPointer<SAMRAICellData<double>> x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAICellData<double>> b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<SAMRAICellData<double>> b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)

@@ -584,7 +584,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const std::vector<IBTK::Point>& marker
     d_marker_velocities_set = false;
 } // setMarkers
 
-std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 IBExplicitHierarchyIntegrator::collectAllMarkers() const
 {
     if (d_markers)

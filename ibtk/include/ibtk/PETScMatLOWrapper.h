@@ -203,7 +203,7 @@ private:
     PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that) = delete;
 
     const Mat d_petsc_mat;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_x, d_y, d_z;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_x, d_y, d_z;
     Vec d_petsc_x = nullptr, d_petsc_y = nullptr, d_petsc_z = nullptr;
 };
 } // namespace IBTK

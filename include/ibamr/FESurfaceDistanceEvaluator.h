@@ -206,7 +206,7 @@ private:
     /*!
      * Data to manage mapping between boundary mesh elements and grid patches.
      */
-    std::vector<std::vector<const libMesh::Elem*> > d_active_neighbor_patch_bdry_elem_map;
+    std::vector<std::vector<const libMesh::Elem*>> d_active_neighbor_patch_bdry_elem_map;
 
     /*!
      * Map object keeping track of element-cell intersections as well as elements intersecting that cell
@@ -218,11 +218,11 @@ private:
     /*!
      * Map the node and the set of elements sharing this node.
      */
-    std::map<const libMesh::Node*, std::set<const libMesh::Elem*> > d_node_to_elem;
+    std::map<const libMesh::Node*, std::set<const libMesh::Elem*>> d_node_to_elem;
     /*!
      * Map the edge and the set of elements sharing this edge.
      */
-    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*> > d_edge_to_elem;
+    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*>> d_edge_to_elem;
 
     /*!
      * Map the element and its face normal.

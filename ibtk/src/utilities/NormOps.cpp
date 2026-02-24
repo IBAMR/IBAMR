@@ -133,7 +133,7 @@ NormOps::L1Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        SAMRAIPointer<SAMRAICellVariable<double> > comp_cc_var = comp_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> comp_cc_var = comp_var;
         if (comp_cc_var)
         {
             SAMRAIPatchCellDataNormOpsReal<double> patch_ops;
@@ -144,15 +144,15 @@ NormOps::L1Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAICellData<double> > comp_data = patch->getPatchData(comp_idx);
-                    SAMRAIPointer<SAMRAICellData<double> > cvol_data =
+                    SAMRAIPointer<SAMRAICellData<double>> comp_data = patch->getPatchData(comp_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> cvol_data =
                         (has_cvol ? patch->getPatchData(cvol_idx) : SAMRAIPointer<SAMRAIPatchData>(nullptr));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        SAMRAIPointer<SAMRAISideVariable<double> > comp_sc_var = comp_var;
+        SAMRAIPointer<SAMRAISideVariable<double>> comp_sc_var = comp_var;
         if (comp_sc_var)
         {
             SAMRAIPatchSideDataNormOpsReal<double> patch_ops;
@@ -163,8 +163,8 @@ NormOps::L1Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAISideData<double> > comp_data = patch->getPatchData(comp_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > cvol_data =
+                    SAMRAIPointer<SAMRAISideData<double>> comp_data = patch->getPatchData(comp_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> cvol_data =
                         (has_cvol ? patch->getPatchData(cvol_idx) : SAMRAIPointer<SAMRAIPatchData>(nullptr));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
@@ -189,7 +189,7 @@ NormOps::L2Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        SAMRAIPointer<SAMRAICellVariable<double> > comp_cc_var = comp_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> comp_cc_var = comp_var;
         if (comp_cc_var)
         {
             SAMRAIPatchCellDataNormOpsReal<double> patch_ops;
@@ -200,15 +200,15 @@ NormOps::L2Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAICellData<double> > comp_data = patch->getPatchData(comp_idx);
-                    SAMRAIPointer<SAMRAICellData<double> > cvol_data =
+                    SAMRAIPointer<SAMRAICellData<double>> comp_data = patch->getPatchData(comp_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> cvol_data =
                         (has_cvol ? patch->getPatchData(cvol_idx) : SAMRAIPointer<SAMRAIPatchData>(nullptr));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        SAMRAIPointer<SAMRAISideVariable<double> > comp_sc_var = comp_var;
+        SAMRAIPointer<SAMRAISideVariable<double>> comp_sc_var = comp_var;
         if (comp_sc_var)
         {
             SAMRAIPatchSideDataNormOpsReal<double> patch_ops;
@@ -219,8 +219,8 @@ NormOps::L2Norm_local(const SAMRAISAMRAIVectorReal<double>* const samrai_vector)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                     const SAMRAIBox& patch_box = patch->getBox();
-                    SAMRAIPointer<SAMRAISideData<double> > comp_data = patch->getPatchData(comp_idx);
-                    SAMRAIPointer<SAMRAISideData<double> > cvol_data =
+                    SAMRAIPointer<SAMRAISideData<double>> comp_data = patch->getPatchData(comp_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> cvol_data =
                         (has_cvol ? patch->getPatchData(cvol_idx) : SAMRAIPointer<SAMRAIPatchData>(nullptr));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }

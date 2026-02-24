@@ -217,7 +217,7 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<SA
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
     }
@@ -227,7 +227,7 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<SA
 void
 IBRedundantInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+    std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
     const int level_number,
     const double /*init_data_time*/,
     const bool /*can_be_refined*/,
@@ -831,7 +831,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                 d_init_instrumentation_on_level_fcn(
                     j, ln, new_names, d_instrument_idx[ln][j], d_init_instrumentation_on_level_ctx);
                 std::vector<bool> encountered_instrument_idx;
-                std::map<int, std::vector<bool> > encountered_node_idxs;
+                std::map<int, std::vector<bool>> encountered_node_idxs;
                 for (const auto& new_name : new_names) instrument_names.push_back(new_name);
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
@@ -1014,7 +1014,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
         for (const auto& point_idx : patch_vertices)
@@ -1068,7 +1068,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<SAMRAIPointer<Streamable> > node_data =
+            std::vector<SAMRAIPointer<Streamable>> node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
             for (const auto& node : node_data)
             {
@@ -1139,7 +1139,7 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
         for (const auto& point_idx : patch_vertices)
@@ -1197,7 +1197,7 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
         for (const auto& point_idx : patch_vertices)
@@ -1242,14 +1242,14 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const SAMRAIPointer<SAMRAIP
         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
 
-        SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
         // the finer levels of the AMR patch hierarchy.
         for (int ln = level_number + 1; ln < d_max_levels; ++ln)
         {
-            std::vector<std::pair<int, int> > patch_vertices;
+            std::vector<std::pair<int, int>> patch_vertices;
             getPatchVerticesAtLevel(patch_vertices, patch, hierarchy, ln);
             for (const auto& point_idx : patch_vertices)
             {
@@ -1382,7 +1382,7 @@ IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
 } // initializeLSiloDataWriter
 
 void
-IBRedundantInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+IBRedundantInitializer::getPatchVertices(std::vector<std::pair<int, int>>& patch_vertices,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy) const
 {
@@ -1395,7 +1395,7 @@ IBRedundantInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patc
 } // getPatchVertices
 
 void
-IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& patch_vertices,
+IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int>>& patch_vertices,
                                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                                 const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                 const int vertex_level_number) const
@@ -1533,12 +1533,12 @@ IBRedundantInitializer::getVertexSourceIndices(const std::pair<int, int>& point_
     }
 } // getVertexSourceIndices
 
-std::vector<SAMRAIPointer<Streamable> >
+std::vector<SAMRAIPointer<Streamable>>
 IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                            const unsigned int global_index_offset,
                                            const int level_number) const
 {
-    std::vector<SAMRAIPointer<Streamable> > node_data;
+    std::vector<SAMRAIPointer<Streamable>> node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -1546,7 +1546,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // Initialize any spring specifications associated with the present vertex.
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
-        std::vector<std::vector<double> > parameters;
+        std::vector<std::vector<double>> parameters;
         for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
@@ -1605,7 +1605,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 
     // Initialize any beam specifications associated with the present vertex.
     {
-        std::vector<std::pair<int, int> > beam_neighbor_idxs;
+        std::vector<std::pair<int, int>> beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
@@ -1627,7 +1627,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // Initialize any rod specifications associated with the present vertex.
     {
         std::vector<int> rod_next_idxs;
-        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>> rod_material_params;
         for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)

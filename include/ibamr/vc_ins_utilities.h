@@ -99,7 +99,7 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       SAMRAIPointer<SAMRAICellVariable<double> > ls_var,
+                       SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                        const double rho_liquid,
                        const double rho_gas,
                        const double mu_liquid,
@@ -121,8 +121,8 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
-                       SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+                       SAMRAIPointer<SAMRAICellVariable<double>> ls_gas_var,
+                       SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
                        const double rho_liquid,
                        const double rho_gas,
                        const double rho_solid,
@@ -257,7 +257,7 @@ private:
     /*!
      * Level set variable.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_ls_gas_var, d_ls_solid_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_gas_var, d_ls_solid_var;
 
     /*!
      * Density.
@@ -316,7 +316,7 @@ public:
      */
     GravityForcing(const std::string& object_name,
                    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                   SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
+                   SAMRAIPointer<SAMRAICellVariable<double>> ls_gas_var,
                    SAMRAIPointer<SAMRAIDatabase> input_db,
                    std::vector<double> grav_const);
 
@@ -380,7 +380,7 @@ private:
     /*!
      * Level set variable.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_ls_gas_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_gas_var;
 
     /*!
      * Vector to store the acceleration due to gravity.

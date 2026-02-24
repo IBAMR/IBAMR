@@ -77,13 +77,13 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
                                               SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
 {
 #if !defined(NDEBUG)
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
     TBOX_ASSERT(cc_var);
 #else
     NULL_USE(var);
 #endif
 
-    SAMRAIPointer<SAMRAICellData<double> > div_u_cc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAICellData<double>> div_u_cc_data = patch->getPatchData(data_idx);
     if (initial_time)
     {
         div_u_cc_data->fill(0.0);
@@ -92,7 +92,7 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
 
     // Set Div U = S where source term S is computed from PhaseChangeHierarchyIntegrator.
     const int S_idx = d_pc_hier_integrator->getVelocityDivergencePatchDataIndex();
-    SAMRAIPointer<SAMRAICellData<double> > S_cc_data = patch->getPatchData(S_idx);
+    SAMRAIPointer<SAMRAICellData<double>> S_cc_data = patch->getPatchData(S_idx);
     SAMRAIPatchCellDataOpsReal<double> patch_cc_data_ops;
     patch_cc_data_ops.copyData(div_u_cc_data, S_cc_data, patch->getBox());
 

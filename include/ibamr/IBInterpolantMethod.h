@@ -204,8 +204,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -264,7 +264,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -297,8 +297,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -368,7 +368,7 @@ protected:
     /*!
      * Get the structure position data.
      */
-    void getPositionData(std::vector<SAMRAIPointer<IBTK::LData> >** X_data, double data_time);
+    void getPositionData(std::vector<SAMRAIPointer<IBTK::LData>>** X_data, double data_time);
 
     /*!
      * Get the q data defined on Eulerian grid for interpolation.
@@ -388,13 +388,13 @@ protected:
     /*!
      * Get the Q data defined on Lagrangian mesh.
      */
-    void getQData(const std::string& var_name, std::vector<SAMRAIPointer<IBTK::LData> >** Q_data, double data_time);
+    void getQData(const std::string& var_name, std::vector<SAMRAIPointer<IBTK::LData>>** Q_data, double data_time);
 
     /*!
      * \brief Compute the center of mass of the mesh.
      */
     void computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
-                             std::vector<SAMRAIPointer<IBTK::LData> >& X_data);
+                             std::vector<SAMRAIPointer<IBTK::LData>>& X_data);
 
     /*
      * Indicates whether the integrator should output logging messages.
@@ -418,7 +418,7 @@ protected:
     /*!
      * Vector of Lagrangian indices of all structures.
      */
-    std::vector<std::pair<int, int> > d_struct_lag_idx_range;
+    std::vector<std::pair<int, int>> d_struct_lag_idx_range;
 
     // Number of rigid parts.
     unsigned int d_num_rigid_parts;
@@ -441,16 +441,16 @@ protected:
     /*!
      * \brief Eulerian variables and their HierarchyIntegrators.
      */
-    std::map<std::string, SAMRAIPointer<SAMRAIVariable> > d_q_var;
+    std::map<std::string, SAMRAIPointer<SAMRAIVariable>> d_q_var;
     std::map<std::string, int> d_q_depth;
     std::map<std::string, int> d_q_interp_idx;
-    std::map<std::string, SAMRAIPointer<IBTK::HierarchyIntegrator> > d_q_hier_integrator;
+    std::map<std::string, SAMRAIPointer<IBTK::HierarchyIntegrator>> d_q_hier_integrator;
 
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAIPointer<IBTK::LData> > d_X_current_data, d_X_new_data;
-    std::map<std::string, std::vector<SAMRAIPointer<IBTK::LData> > > d_Q_current_data, d_Q_new_data;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_X_current_data, d_X_new_data;
+    std::map<std::string, std::vector<SAMRAIPointer<IBTK::LData>>> d_Q_current_data, d_Q_new_data;
 
     /*
      * The specification and initialization information for the Lagrangian data

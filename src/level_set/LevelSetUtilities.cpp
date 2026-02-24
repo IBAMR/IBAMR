@@ -68,8 +68,8 @@ compute_heaviside_integrals(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int p
             SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_idx);
-            SAMRAIPointer<SAMRAICellData<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<SAMRAICellData<double>> wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
             SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
@@ -122,9 +122,9 @@ compute_heaviside_integrals(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int p
             SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_idx);
-            SAMRAIPointer<SAMRAICellData<double> > psi_data = patch->getPatchData(psi_idx);
-            SAMRAIPointer<SAMRAICellData<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<SAMRAICellData<double>> psi_data = patch->getPatchData(psi_idx);
+            SAMRAIPointer<SAMRAICellData<double>> wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
             SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
@@ -204,8 +204,8 @@ tagLSCells(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
     {
         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > tags_data = patch->getPatchData(tag_index);
-        SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_idx);
+        SAMRAIPointer<SAMRAICellData<int>> tags_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<SAMRAICellData<double>> ls_data = patch->getPatchData(ls_idx);
 
         for (SAMRAICellIterator ic(patch_box); ic; ic++)
         {
@@ -224,7 +224,7 @@ tagLSCells(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
 
 LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
                                              SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                                             std::vector<SAMRAIPointer<SAMRAICellVariable<double> > > ls_vars,
+                                             std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars,
                                              SAMRAIPointer<SAMRAIDatabase> input_db,
                                              bool register_for_restart)
     : d_object_name(std::move(object_name)),

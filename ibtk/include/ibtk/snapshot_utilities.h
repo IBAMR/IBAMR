@@ -86,7 +86,7 @@ void fill_snapshot_at_time(SnapshotCache& snapshot_cache,
                            int scr_idx,
                            SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                            const std::string& refine_type,
-                           SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops = nullptr,
+                           SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops = nullptr,
                            double period = std::numeric_limits<double>::quiet_NaN());
 
 } // namespace IBTK

@@ -161,8 +161,8 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<dou
         if (!level->checkAllocated(d_wide_f_idx)) level->allocatePatchData(d_wide_f_idx);
     }
 
-    SAMRAIPointer<SAMRAICellVariable<double> > x_p_cc_var = x.getComponentVariable(1);
-    SAMRAIPointer<SAMRAICellVariable<double> > b_p_cc_var = b.getComponentVariable(1);
+    SAMRAIPointer<SAMRAICellVariable<double>> x_p_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<SAMRAICellVariable<double>> b_p_cc_var = b.getComponentVariable(1);
     const int x_p_idx = x.getComponentDescriptorIndex(1);
     const int b_p_idx = b.getComponentDescriptorIndex(1);
 
@@ -261,8 +261,8 @@ bool
 CIBStaggeredStokesSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b)
 {
     // Create packaged vectors for the Saddle point solver.
-    d_x_wide->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
-    d_b_wide->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&b, false));
+    d_x_wide->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
+    d_b_wide->copyVector(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&b, false));
 
     // Wrap SAMRAI vector into PETSc Vec
     Vec u_p = PETScSAMRAIVectorReal::createPETScVector(d_x_wide);

@@ -164,13 +164,13 @@ public:
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > getSolutionVector() const override;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> getSolutionVector() const override;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > getFunctionVector() const override;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> getFunctionVector() const override;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.

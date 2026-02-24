@@ -532,13 +532,13 @@ FEDataManager::getDefaultSpreadSpec() const
     return d_default_spread_spec;
 } // getDefaultSpreadSpec
 
-const std::vector<std::vector<Elem*> >&
+const std::vector<std::vector<Elem*>>&
 FEDataManager::getActivePatchElementMap() const
 {
     return d_active_patch_elem_map.back();
 } // getActivePatchElementMap
 
-const std::vector<std::vector<Node*> >&
+const std::vector<std::vector<Node*>>&
 FEDataManager::getActivePatchNodeMap() const
 {
     return d_active_patch_node_map.back();
@@ -575,7 +575,7 @@ FEDataManager::reinitElementMappings()
     }
 
     std::set<Elem*> elem_set;
-    for (const std::vector<std::vector<Elem*> >& level_elems : d_active_patch_elem_map)
+    for (const std::vector<std::vector<Elem*>>& level_elems : d_active_patch_elem_map)
     {
         for (const std::vector<Elem*>& patch_elems : level_elems)
         {
@@ -599,7 +599,7 @@ FEDataManager::reinitElementMappings()
         const int rank = IBTK_MPI::getRank();
         const int n_procs = IBTK_MPI::getNodes();
         const MeshBase& mesh = getEquationSystems()->get_mesh();
-        std::unique_ptr<PetscVector<double> > X_petsc_vec = buildIBGhostedVector(getCurrentCoordinatesSystemName());
+        std::unique_ptr<PetscVector<double>> X_petsc_vec = buildIBGhostedVector(getCurrentCoordinatesSystemName());
         *X_petsc_vec = *getCoordsVector();
         X_petsc_vec->close();
         const double* const X_local_soln = X_petsc_vec->get_array_read();
@@ -726,7 +726,7 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
                  << system_name << "\n";
         }
         TBOX_ASSERT(d_active_patch_ghost_dofs.count(system_name));
-        std::unique_ptr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
+        std::unique_ptr<NumericVector<double>> sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(
             sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
         d_system_ghost_vec[system_name] = std::move(sol_ghost_vec);
@@ -738,14 +738,14 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
     return sol_ghost_vec;
 } // buildGhostedSolutionVector
 
-std::unique_ptr<PetscVector<double> >
+std::unique_ptr<PetscVector<double>>
 FEDataManager::buildIBGhostedVector(const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_ghosted_vector);
 
     reinitializeIBGhostedDOFs(system_name);
     TBOX_ASSERT(d_system_ib_ghost_vec.find(system_name) != d_system_ib_ghost_vec.end());
-    const std::unique_ptr<PetscVector<double> >& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
+    const std::unique_ptr<PetscVector<double>>& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
     TBOX_ASSERT(exemplar_ib_vector);
     // Sanity check:
     const System& system = d_fe_data->d_es->get_system(system_name);
@@ -757,12 +757,12 @@ FEDataManager::buildIBGhostedVector(const std::string& system_name)
             "refined) outside of one of IBAMR's classes (like FEDataManager or IBFEMethod).");
     }
 
-    std::unique_ptr<NumericVector<double> > clone = exemplar_ib_vector->zero_clone();
+    std::unique_ptr<NumericVector<double>> clone = exemplar_ib_vector->zero_clone();
     auto ptr = dynamic_cast<PetscVector<double>*>(clone.release());
     TBOX_ASSERT(ptr);
 
     IBTK_TIMER_STOP(t_build_ghosted_vector);
-    return std::unique_ptr<PetscVector<double> >(ptr);
+    return std::unique_ptr<PetscVector<double>>(ptr);
 }
 
 NumericVector<double>*
@@ -826,7 +826,7 @@ FEDataManager::getFEData() const
 template <int n_vars, int n_basis, bool weights_are_unity = false>
 void
 sum_weighted_elem_solution_n_vars_n_basis(const int qp_offset,
-                                          const std::vector<std::vector<double> >& phi_F,
+                                          const std::vector<std::vector<double>>& phi_F,
                                           const std::vector<double>& weights,
                                           const boost::multi_array<double, 2>& F_node,
                                           std::vector<double>& F_w_qp)
@@ -864,7 +864,7 @@ template <int n_vars, bool weights_are_unity = false>
 void
 sum_weighted_elem_solution_n_vars(const int n_basis,
                                   const int qp_offset,
-                                  const std::vector<std::vector<double> >& phi_F,
+                                  const std::vector<std::vector<double>>& phi_F,
                                   const std::vector<double>& weights,
                                   const boost::multi_array<double, 2>& F_node,
                                   std::vector<double>& F_w_qp)
@@ -903,7 +903,7 @@ void
 sum_weighted_elem_solution(const int n_vars,
                            const int n_basis,
                            const int qp_offset,
-                           const std::vector<std::vector<double> >& phi_F,
+                           const std::vector<std::vector<double>>& phi_F,
                            const std::vector<double>& weights,
                            const boost::multi_array<double, 2>& F_node,
                            std::vector<double>& F_w_qp)
@@ -952,8 +952,8 @@ FEDataManager::spread(const int f_data_idx,
     auto var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > f_cc_var = f_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -1013,7 +1013,7 @@ FEDataManager::spread(const int f_data_idx,
         // Multiply by the nodal volume fractions (to convert densities into
         // values).
         PetscVector<double>* dX_vec = buildIBGhostedDiagonalL2MassMatrix(system_name);
-        std::unique_ptr<NumericVector<double> > F_x_dX_vec = F_vec.clone();
+        std::unique_ptr<NumericVector<double>> F_x_dX_vec = F_vec.clone();
         F_x_dX_vec->pointwise_mult(F_vec, *dX_vec);
 
         // Extract local form vectors.
@@ -1087,13 +1087,13 @@ FEDataManager::spread(const int f_data_idx,
                 SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                     LEInteractor::spread(
                         f_cc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                     LEInteractor::spread(
                         f_sc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
@@ -1140,7 +1140,7 @@ FEDataManager::spread(const int f_data_idx,
                 std::vector<quad_key_type> quad_keys(num_active_patch_elems);
 
                 // Cache interpolated positions too:
-                std::vector<boost::multi_array<double, 2> > X_nodes(num_active_patch_elems);
+                std::vector<boost::multi_array<double, 2>> X_nodes(num_active_patch_elems);
 
                 // Setup vectors to store the values of F_JxW and X at the
                 // quadrature points.
@@ -1185,8 +1185,8 @@ FEDataManager::spread(const int f_data_idx,
                     // JxW depends on the element
                     const std::vector<double>& JxW_F =
                         get_JxW(key, elem, is_volume_mesh, volume_mapping_cache, surface_mapping_cache);
-                    const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
-                    const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
+                    const std::vector<std::vector<double>>& phi_F = F_fe.get_phi();
+                    const std::vector<std::vector<double>>& phi_X = X_fe.get_phi();
 
                     const unsigned int n_qp = qrule.n_points();
                     TBOX_ASSERT(n_qp == phi_F[0].size());
@@ -1212,13 +1212,13 @@ FEDataManager::spread(const int f_data_idx,
                 SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                     LEInteractor::spread(
                         f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                     LEInteractor::spread(
                         f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
@@ -1264,15 +1264,15 @@ FEDataManager::spread(const int f_data_idx,
     auto var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > f_cc_var = f_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
     // Make a copy of the Eulerian data.
     const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > f_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> f_data_ops =
         SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->resetLevels(0, d_hierarchy->getFinestLevelNumber());
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -1367,8 +1367,8 @@ FEDataManager::prolongData(const int f_data_idx,
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_X = X_fe->get_dphi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -1402,7 +1402,7 @@ FEDataManager::prolongData(const int f_data_idx,
             if (!num_active_patch_elems) continue;
 
             const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
             if (!accumulate_on_grid) f_data->fillAll(0.0);
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAICellIndex& patch_lower = patch_box.lower();
@@ -1570,7 +1570,7 @@ FEDataManager::prolongData(const int f_data_idx,
 template <int n_vars, int n_basis>
 void
 integrate_elem_rhs_n_vars_n_basis(const int qp_offset,
-                                  const std::vector<std::vector<double> >& phi_F,
+                                  const std::vector<std::vector<double>>& phi_F,
                                   const std::vector<double>& JxW_F,
                                   const std::vector<double>& F_qp,
                                   std::vector<double>& F_rhs_concatenated)
@@ -1610,7 +1610,7 @@ template <int n_vars>
 void
 integrate_elem_rhs_n_vars(const int n_basis,
                           const int qp_offset,
-                          const std::vector<std::vector<double> >& phi_F,
+                          const std::vector<std::vector<double>>& phi_F,
                           const std::vector<double>& JxW_F,
                           const std::vector<double>& F_qp,
                           std::vector<double>& F_rhs_concatenated)
@@ -1646,7 +1646,7 @@ void
 integrate_elem_rhs(const int n_vars,
                    const int n_basis,
                    const int qp_offset,
-                   const std::vector<std::vector<double> >& phi_F,
+                   const std::vector<std::vector<double>>& phi_F,
                    const std::vector<double>& JxW_F,
                    const std::vector<double>& F_qp,
                    std::vector<double>& F_rhs_concatenated)
@@ -1676,7 +1676,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& F_vec,
                               NumericVector<double>& X_vec,
                               const std::string& system_name,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_refine_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds,
                               const double fill_data_time,
                               const bool close_F,
                               const bool close_X)
@@ -1699,7 +1699,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& X_vec,
                               const std::string& system_name,
                               const FEDataManager::InterpSpec& interp_spec,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_refine_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds,
                               const double fill_data_time,
                               const bool close_F,
                               const bool close_X)
@@ -1711,8 +1711,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Determine the type of data centering.
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > f_cc_var = f_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -1872,13 +1872,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                     LEInteractor::interpolate(
                         F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                     LEInteractor::interpolate(
                         F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
@@ -1941,7 +1941,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 std::vector<quad_key_type> quad_keys(num_active_patch_elems);
 
                 // Cache interpolated positions too:
-                std::vector<boost::multi_array<double, 2> > X_nodes(num_active_patch_elems);
+                std::vector<boost::multi_array<double, 2>> X_nodes(num_active_patch_elems);
 
                 // Setup vectors to store the values of F and X at the quadrature
                 // points.
@@ -1978,7 +1978,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     const quad_key_type& key = quad_keys[e_idx];
                     const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                     const FEBase& X_fe = X_fe_cache(key, elem);
-                    const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
+                    const std::vector<std::vector<double>>& phi_X = X_fe.get_phi();
 
                     const unsigned int n_node = elem->n_nodes();
                     const unsigned int n_qp = qrule.n_points();
@@ -1998,13 +1998,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                     LEInteractor::interpolate(
                         F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                     LEInteractor::interpolate(
                         F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
@@ -2031,7 +2031,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     // JxW depends on the element
                     const std::vector<double>& JxW_F =
                         get_JxW(key, elem, is_volume_mesh, volume_mapping_cache, surface_mapping_cache);
-                    const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
+                    const std::vector<std::vector<double>>& phi_F = F_fe.get_phi();
 
                     const unsigned int n_qp = qrule.n_points();
                     TBOX_ASSERT(n_qp == phi_F[0].size());
@@ -2102,7 +2102,7 @@ FEDataManager::interp(const int f_data_idx,
                       NumericVector<double>& F_vec,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
-                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_refine_scheds,
+                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds,
                       const double fill_data_time,
                       const bool close_X)
 {
@@ -2116,14 +2116,14 @@ FEDataManager::interp(const int f_data_idx,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
                       const FEDataManager::InterpSpec& interp_spec,
-                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_refine_scheds,
+                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds,
                       const double fill_data_time,
                       const bool close_X)
 {
     IBTK_TIMER_START(t_interp);
 
     // Interpolate quantity at quadrature points and filter it to nodal points.
-    std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    std::unique_ptr<NumericVector<double>> F_rhs_vec = F_vec.zero_clone();
     interpWeighted(f_data_idx,
                    *F_rhs_vec,
                    X_vec,
@@ -2195,8 +2195,8 @@ FEDataManager::restrictData(const int f_data_idx,
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_X = X_fe->get_dphi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -2206,8 +2206,8 @@ FEDataManager::restrictData(const int f_data_idx,
 
     // Loop over the patches to assemble the right-hand-side vector used to
     // solve for F.
-    std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
-    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    std::unique_ptr<NumericVector<double>> F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double>> F_rhs_e(n_vars);
     TensorValue<double> dX_ds;
     boost::multi_array<double, 2> X_node;
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
@@ -2228,7 +2228,7 @@ FEDataManager::restrictData(const int f_data_idx,
             if (!num_active_patch_elems) continue;
 
             const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAICellIndex& patch_lower = patch_box.lower();
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
@@ -2384,7 +2384,7 @@ FEDataManager::buildIBGhostedDiagonalL2MassMatrix(const std::string& system_name
 {
     if (!d_L2_proj_matrix_diag_ghost.count(system_name))
     {
-        std::unique_ptr<PetscVector<double> > M_vec = buildIBGhostedVector(system_name);
+        std::unique_ptr<PetscVector<double>> M_vec = buildIBGhostedVector(system_name);
         *M_vec = *d_fe_projector->buildDiagonalL2MassMatrix(system_name);
         M_vec->close();
         d_L2_proj_matrix_diag_ghost[system_name] = std::move(M_vec);
@@ -2532,7 +2532,7 @@ FEDataManager::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy
 
                 const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                 const SAMRAIBox& patch_box = patch->getBox();
-                SAMRAIPointer<SAMRAICellData<double> > workload_data = patch->getPatchData(workload_data_idx);
+                SAMRAIPointer<SAMRAICellData<double>> workload_data = patch->getPatchData(workload_data_idx);
 
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
@@ -2584,7 +2584,7 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarch
     {
         // Determine the active elements associated with the prescribed patch
         // level.
-        std::vector<std::vector<Elem*> > active_level_elem_map;
+        std::vector<std::vector<Elem*>> active_level_elem_map;
         collectActivePatchElements(active_level_elem_map, level_number, level_number + 1, d_max_level_number);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
@@ -2610,7 +2610,7 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarch
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
-        std::unique_ptr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+        std::unique_ptr<NumericVector<double>> X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
@@ -2636,7 +2636,7 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarch
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -2656,7 +2656,7 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarch
                                                            patch_dx_min);
                 const FEBase& X_fe = X_fe_cache(key, elem);
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                const std::vector<std::vector<double>>& X_phi = X_fe.get_phi();
                 TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
 
                 for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
@@ -2707,8 +2707,8 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarch
         {
             const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
-            SAMRAIPointer<SAMRAICellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAICellData<double>> qp_count_data = patch->getPatchData(d_qp_count_idx);
             for (SAMRAICellIterator b(patch_box); b; b++)
             {
                 const SAMRAICellIndex& i_c = b();
@@ -2991,7 +2991,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            SAMRAIPointer<SAMRAICellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            SAMRAIPointer<SAMRAICellData<double>> qp_count_data = patch->getPatchData(d_qp_count_idx);
 
             // nodal case:
             if (d_default_interp_spec.use_nodal_quadrature || d_default_spread_spec.use_nodal_quadrature)
@@ -3040,7 +3040,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                                                                patch_dx_min);
                     const FEBase& X_fe = X_fe_cache(key, elem);
                     const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                    const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                    const std::vector<std::vector<double>>& X_phi = X_fe.get_phi();
                     TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
 
                     Point X_qp;
@@ -3090,7 +3090,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 } // updateQuadPointCountData
 
 void
-FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
+FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& active_patch_elems,
                                           const int level_number,
                                           const int coarsest_elem_ln,
                                           const int finest_elem_ln)
@@ -3107,7 +3107,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(level_number);
     const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = level->getGridGeometry();
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
+    std::vector<std::set<Elem*>> local_patch_elems(num_local_patches);
     active_patch_elems.resize(num_local_patches);
 
     // Try to exit quickly if no patches will actually have elements (i.e., if
@@ -3204,8 +3204,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 } // collectActivePatchElements
 
 void
-FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_patch_nodes,
-                                       const std::vector<std::vector<Elem*> >& active_patch_elems)
+FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*>>& active_patch_nodes,
+                                       const std::vector<std::vector<Elem*>>& active_patch_elems)
 {
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const unsigned int num_local_patches = active_patch_elems.size();
@@ -3306,7 +3306,7 @@ FEDataManager::reinitializeIBGhostedDOFs(const std::string& system_name)
         // Match the expected vector sizes by using the solution for non-ghost
         // sizes:
         const NumericVector<double>& solution = *system.solution;
-        std::unique_ptr<PetscVector<double> > exemplar_ib_vector = std::make_unique<PetscVector<double> >(
+        std::unique_ptr<PetscVector<double>> exemplar_ib_vector = std::make_unique<PetscVector<double>>(
             system.comm(), solution.size(), solution.local_size(), ib_ghost_dofs, libMesh::GHOSTED);
         d_active_patch_ghost_dofs[system_name] = std::move(ib_ghost_dofs);
         d_system_ib_ghost_vec[system_name] = std::move(exemplar_ib_vector);

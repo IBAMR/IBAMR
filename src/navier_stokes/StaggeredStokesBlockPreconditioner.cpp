@@ -180,13 +180,13 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesBlockPreconditioner::correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec,
-                                                     SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec)
+StaggeredStokesBlockPreconditioner::correctNullSpace(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> U_vec,
+                                                     SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> P_vec)
 {
     auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& U_nul_vecs =
+        const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& U_nul_vecs =
             p_velocity_solver->getNullSpaceBasisVectors();
         if (!U_nul_vecs.empty())
         {

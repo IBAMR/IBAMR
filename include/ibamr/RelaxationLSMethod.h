@@ -171,9 +171,9 @@ private:
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relax(SAMRAIPointer<SAMRAICellData<double> > dist_data,
-               const SAMRAIPointer<SAMRAICellData<double> > dist_init_data,
-               SAMRAIPointer<SAMRAICellData<double> > dt_data,
+    void relax(SAMRAIPointer<SAMRAICellData<double>> dist_data,
+               const SAMRAIPointer<SAMRAICellData<double>> dist_init_data,
+               SAMRAIPointer<SAMRAICellData<double>> dt_data,
                const SAMRAIPointer<SAMRAIPatch> patch,
                const int iter) const;
 
@@ -185,8 +185,8 @@ private:
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void computeHamiltonian(SAMRAIPointer<SAMRAICellData<double> > ham_data,
-                            const SAMRAIPointer<SAMRAICellData<double> > dist_data,
+    void computeHamiltonian(SAMRAIPointer<SAMRAICellData<double>> ham_data,
+                            const SAMRAIPointer<SAMRAICellData<double>> dist_data,
                             const SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*!
@@ -201,10 +201,10 @@ private:
     /*!
      * \brief Apply the mass constraint over a patch
      */
-    void applyMassConstraint(SAMRAIPointer<SAMRAICellData<double> > dist_data,
-                             const SAMRAIPointer<SAMRAICellData<double> > dist_copy_data,
-                             const SAMRAIPointer<SAMRAICellData<double> > dist_init_data,
-                             const SAMRAIPointer<SAMRAICellData<double> > ham_init_data,
+    void applyMassConstraint(SAMRAIPointer<SAMRAICellData<double>> dist_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> dist_copy_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> dist_init_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> ham_init_data,
                              const SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*

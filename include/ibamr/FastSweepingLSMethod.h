@@ -107,7 +107,7 @@ private:
     /*!
      * \brief Do one fast sweep over a patch.
      */
-    void fastSweep(SAMRAIPointer<SAMRAICellData<double> > dist_data,
+    void fastSweep(SAMRAIPointer<SAMRAICellData<double>> dist_data,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const SAMRAIBox& domain_box) const;
 

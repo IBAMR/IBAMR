@@ -202,8 +202,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAISAMRAIVectorR
     const SAMRAIPointer<SAMRAIVariable>& F_U_var = b.getComponentVariable(0);
     const SAMRAIPointer<SAMRAIVariable>& F_P_var = b.getComponentVariable(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > F_U_sc_var = F_U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > F_P_cc_var = F_P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> F_U_sc_var = F_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> F_P_cc_var = F_P_var;
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -211,33 +211,33 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAISAMRAIVectorR
     const SAMRAIPointer<SAMRAIVariable>& U_var = x.getComponentVariable(0);
     const SAMRAIPointer<SAMRAIVariable>& P_var = x.getComponentVariable(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > U_sc_var = U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > P_cc_var = P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> U_sc_var = U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_U_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_U_vec;
     F_U_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_U_mod_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_U_mod_vec;
     F_U_mod_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_mod_vec->addComponent(d_U_var, d_F_U_mod_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> U_vec;
     U_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_P_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_P_vec;
     F_P_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_P_vec->addComponent(F_P_cc_var, F_P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_P_mod_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_P_mod_vec;
     F_P_mod_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_P_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_P_mod_vec->addComponent(d_P_var, d_F_P_mod_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> P_vec;
     P_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
@@ -468,7 +468,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAISA
     const int P_idx = P_vec.getComponentDescriptorIndex(0);
     const int F_P_idx = F_P_vec.getComponentDescriptorIndex(0);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> P_scratch_vec;
     P_scratch_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);

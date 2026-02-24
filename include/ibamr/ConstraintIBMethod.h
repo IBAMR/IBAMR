@@ -127,7 +127,7 @@ public:
      * \brief Register kinematics of the immersed structure(s) with this class.
      */
     void
-    registerConstraintIBKinematics(const std::vector<SAMRAIPointer<IBAMR::ConstraintIBKinematics> >& ib_kinematics_op);
+    registerConstraintIBKinematics(const std::vector<SAMRAIPointer<IBAMR::ConstraintIBKinematics>>& ib_kinematics_op);
 
     /*!
      * \brief Register any preprocess fluid solve callback functions.
@@ -190,7 +190,7 @@ public:
     /*!
      * \brief Get the current COM velocity associated with Lagrangian structures.
      */
-    inline const std::vector<std::vector<double> >& getCurrentCOMVelocity()
+    inline const std::vector<std::vector<double>>& getCurrentCOMVelocity()
     {
         return d_rigid_trans_vel_current;
     }
@@ -198,7 +198,7 @@ public:
     /*!
      * \brief Get LData associated with Lagrange multiplier force field.
      */
-    inline const std::vector<SAMRAIPointer<IBTK::LData> >& getLagrangeMultiplier()
+    inline const std::vector<SAMRAIPointer<IBTK::LData>>& getLagrangeMultiplier()
     {
         return d_l_data_U_correction;
     }
@@ -206,7 +206,7 @@ public:
     /*!
      * \brief Get the current center of mass for all Lagrangian structures
      */
-    inline const std::vector<std::vector<double> >& getCurrentStructureCOM()
+    inline const std::vector<std::vector<double>>& getCurrentStructureCOM()
     {
         return d_center_of_mass_current;
     }
@@ -253,7 +253,7 @@ public:
     /*!
      * \brief Get the total linear momentum for all the Lagrangian structures
      */
-    inline const std::vector<std::vector<double> >& getStructureMomentum()
+    inline const std::vector<std::vector<double>>& getStructureMomentum()
     {
         if (!d_calculate_structure_linear_mom)
         {
@@ -265,7 +265,7 @@ public:
     /*!
      * \brief Get the total rotational momentum for all the Lagrangian structures with respect to their COM
      */
-    inline const std::vector<std::vector<double> >& getStructureRotationalMomentum()
+    inline const std::vector<std::vector<double>>& getStructureRotationalMomentum()
     {
         if (!d_calculate_structure_rotational_mom)
         {
@@ -454,7 +454,7 @@ private:
     /*!
      * Pointer to the kinematics of the immersed structures.
      */
-    std::vector<SAMRAIPointer<IBAMR::ConstraintIBKinematics> > d_ib_kinematics;
+    std::vector<SAMRAIPointer<IBAMR::ConstraintIBKinematics>> d_ib_kinematics;
 
     /*!
      * FuRMoRP apply time.
@@ -479,12 +479,12 @@ private:
     /*!
      * Linear momentum associated with each immersed structure
      */
-    std::vector<std::vector<double> > d_structure_mom;
+    std::vector<std::vector<double>> d_structure_mom;
 
     /*!
      * Rotational momentum associated with each immersed structure with respect to their COM
      */
-    std::vector<std::vector<double> > d_structure_rotational_mom;
+    std::vector<std::vector<double>> d_structure_rotational_mom;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
@@ -494,37 +494,37 @@ private:
     /*!
      * Rigid translational velocity of the structures.
      */
-    std::vector<std::vector<double> > d_rigid_trans_vel_current, d_rigid_trans_vel_new;
+    std::vector<std::vector<double>> d_rigid_trans_vel_current, d_rigid_trans_vel_new;
 
     /*!
      * Rigid rotational velocity of the structures.
      */
-    std::vector<std::vector<double> > d_rigid_rot_vel_current, d_rigid_rot_vel_new;
+    std::vector<std::vector<double>> d_rigid_rot_vel_current, d_rigid_rot_vel_new;
 
     /*!
      * Incremented angle from x, y and z axis when the body is rotating.
      */
-    std::vector<std::vector<double> > d_incremented_angle_from_reference_axis;
+    std::vector<std::vector<double>> d_incremented_angle_from_reference_axis;
 
     /*!
      * Translational velocity of the structures due to deformational kinematics.
      */
-    std::vector<std::vector<double> > d_vel_com_def_current, d_vel_com_def_new;
+    std::vector<std::vector<double>> d_vel_com_def_current, d_vel_com_def_new;
 
     /*!
      * Rotational velocity of the structures due to deformational kinematics.
      */
-    std::vector<std::vector<double> > d_omega_com_def_current, d_omega_com_def_new;
+    std::vector<std::vector<double>> d_omega_com_def_current, d_omega_com_def_new;
 
     /*!
      * Center of mass of the immersed structures.
      */
-    std::vector<std::vector<double> > d_center_of_mass_current, d_center_of_mass_new;
+    std::vector<std::vector<double>> d_center_of_mass_current, d_center_of_mass_new;
 
     /*!
      * unshifted center of mass
      */
-    std::vector<std::vector<double> > d_center_of_mass_unshifted_current, d_center_of_mass_unshifted_new;
+    std::vector<std::vector<double>> d_center_of_mass_unshifted_current, d_center_of_mass_unshifted_new;
     /*!
      * Moment of inertia of the structures.
      */
@@ -538,7 +538,7 @@ private:
     /*!
      * Coordinates of the tagged points of different structures.
      */
-    std::vector<std::vector<double> > d_tagged_pt_position;
+    std::vector<std::vector<double>> d_tagged_pt_position;
 
     /*!
      * Density of the structures.
@@ -580,14 +580,14 @@ private:
     /*!
      * Store LData for only those levels which contain immersed structures.
      */
-    std::vector<SAMRAIPointer<IBTK::LData> > d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
+    std::vector<SAMRAIPointer<IBTK::LData>> d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
         d_l_data_U_current, d_l_data_U_half, d_l_data_X_half_Euler, d_l_data_X_new_MidPoint;
 
     /*!
      * Hierarchy operations object. Needed for projection step.
      */
-    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
     int d_wgt_cc_idx, d_wgt_sc_idx;
     double d_volume;
@@ -597,8 +597,8 @@ private:
      */
     SAMRAIPointer<SAMRAIVariable> d_u_var;
     SAMRAIPointer<SAMRAIVariable> d_u_fluidSolve_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_phi_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_u_var;
 
     SAMRAIPointer<SAMRAIVariableContext> d_scratch_context;
     int d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
@@ -606,7 +606,7 @@ private:
     /*!
      * Variables associated with the spatially varying density field, which is maintained by an integrator.
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_rho_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_rho_var;
     int d_rho_ins_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index;
 
     /*!
@@ -625,7 +625,7 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::unique_ptr<std::ofstream> > d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream,
+    std::vector<std::unique_ptr<std::ofstream>> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream,
         d_moment_of_inertia_stream, d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!

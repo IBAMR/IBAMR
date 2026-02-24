@@ -192,24 +192,24 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(SAMRA
 
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            SAMRAIPointer<SAMRAIFaceVariable<double> > flux_integral_var = d_flux_integral_var[Q_var];
-            SAMRAIPointer<SAMRAIFaceVariable<double> > q_integral_var = d_q_integral_var[Q_var];
-            SAMRAIPointer<SAMRAIFaceVariable<double> > u_integral_var = d_u_integral_var[u_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double>> flux_integral_var = d_flux_integral_var[Q_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double>> q_integral_var = d_q_integral_var[Q_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double>> u_integral_var = d_u_integral_var[u_var];
 
-            SAMRAIPointer<SAMRAIFaceData<double> > flux_integral_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
                                      SAMRAIPointer<SAMRAIPatchData>(nullptr));
-            SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
                                                         SAMRAIPointer<SAMRAIPatchData>(nullptr));
-            SAMRAIPointer<SAMRAIFaceData<double> > u_integral_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
                                                         SAMRAIPointer<SAMRAIPatchData>(nullptr));
 
@@ -332,7 +332,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(SAMRA
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 SAMRAIPatchCellDataOpsReal<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
-                    Q_data, -1.0 / (dt * dt), SAMRAIPointer<SAMRAICellData<double> >(&N_data, false), patch_box);
+                    Q_data, -1.0 / (dt * dt), SAMRAIPointer<SAMRAICellData<double>>(&N_data, false), patch_box);
                 break;
             }
             default:

@@ -303,7 +303,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<do
     // Allocate and initialize the hypre data structures.
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    SAMRAIPointer<SAMRAICellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    SAMRAIPointer<SAMRAICellDataFactory<double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -312,7 +312,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<do
     else
     {
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
-        SAMRAIPointer<SAMRAISideDataFactory<double> > pdat_factory =
+        SAMRAIPointer<SAMRAISideDataFactory<double>> pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
@@ -540,7 +540,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        SAMRAIPointer<SAMRAICellData<double> > C_data;
+        SAMRAIPointer<SAMRAICellData<double>> C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -560,7 +560,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        SAMRAIPointer<SAMRAISideData<double> > D_data;
+        SAMRAIPointer<SAMRAISideData<double>> D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -1026,13 +1026,13 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const SAMRAIBox x_ghost_box = SAMRAIBox::grow(patch_box, 1);
-        SAMRAIPointer<SAMRAICellData<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAICellData<double>> x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        SAMRAIPointer<SAMRAICellData<double> > b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<SAMRAICellData<double>> b_data = patch->getPatchData(b_idx);
         const SAMRAIArray<SAMRAIBoundaryBox>& type_1_cf_bdry =
             level_zero ? SAMRAIArray<SAMRAIBoundaryBox>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
@@ -1162,7 +1162,7 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAICellData<double>> x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
 

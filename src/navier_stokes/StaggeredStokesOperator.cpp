@@ -186,10 +186,10 @@ StaggeredStokesOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVe
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > U_sc_var = x.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > P_cc_var = x.getComponentVariable(1);
-    SAMRAIPointer<SAMRAISideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> U_sc_var = x.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> P_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> A_U_sc_var = y.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -337,8 +337,8 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& y)
     {
         // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
         // inhomogeneous boundary conditions.
-        SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > x = y.cloneVector("");
-        SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > b = y.cloneVector("");
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> x = y.cloneVector("");
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> b = y.cloneVector("");
         x->allocateVectorData();
         b->allocateVectorData();
         x->setToScalar(0.0);
@@ -353,7 +353,7 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& y)
         }
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
         apply(*x, *b);
-        y.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&y, false), b);
+        y.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&y, false), b);
         free_vector_components(*x);
         free_vector_components(*b);
     }

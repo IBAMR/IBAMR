@@ -158,7 +158,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const SAMRAIIntVector side_ghosts = d_gcw;
-    SAMRAIPointer<SAMRAISideVariable<double> > side_scratch_var =
+    SAMRAIPointer<SAMRAISideVariable<double>> side_scratch_var =
         new SAMRAISideVariable<double>(d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
@@ -168,7 +168,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
     const SAMRAIIntVector cell_ghosts = d_gcw;
-    SAMRAIPointer<SAMRAICellVariable<double> > cell_scratch_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> cell_scratch_var =
         new SAMRAICellVariable<double>(d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
@@ -524,15 +524,15 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAISAMRAIVectorReal
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const SAMRAIPointer<SAMRAISideVariable<double> > U_res_sc_var = residual.getComponentVariable(0);
-    const SAMRAIPointer<SAMRAISideVariable<double> > U_sol_sc_var = solution.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> U_res_sc_var = residual.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> U_sol_sc_var = solution.getComponentVariable(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
     const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    const SAMRAIPointer<SAMRAICellVariable<double> > P_res_cc_var = residual.getComponentVariable(1);
-    const SAMRAIPointer<SAMRAICellVariable<double> > P_sol_cc_var = solution.getComponentVariable(1);
+    const SAMRAIPointer<SAMRAICellVariable<double>> P_res_cc_var = residual.getComponentVariable(1);
+    const SAMRAIPointer<SAMRAICellVariable<double>> P_sol_cc_var = solution.getComponentVariable(1);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;

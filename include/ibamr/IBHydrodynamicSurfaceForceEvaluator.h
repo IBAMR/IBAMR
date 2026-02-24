@@ -98,7 +98,7 @@ public:
      * \brief Default constructor.
      */
     IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
-                                        SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+                                        SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
                                         SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         SAMRAIPointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
                                         SAMRAIPointer<SAMRAIDatabase> db = nullptr);
@@ -190,7 +190,7 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_ls_solid_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.

@@ -141,7 +141,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const SAMRAIPointer<SAMRAIPatchHiera
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_num];
 
     if (D_next_mat)
@@ -175,7 +175,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const SAMRAIPointer<SAMRAIPatchHiera
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
+            const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& params =
                 force_spec->getMaterialParams();
 #if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
@@ -383,7 +383,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(SAMRAIPointer<LData> F_d
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_number];
 
     const size_t local_sz = petsc_curr_node_idxs.size();

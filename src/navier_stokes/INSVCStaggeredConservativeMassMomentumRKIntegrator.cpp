@@ -1342,23 +1342,23 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAISideData<double> > N_data = patch->getPatchData(d_N_idx);
-            SAMRAIPointer<SAMRAISideData<double> > V_data = patch->getPatchData(d_V_scratch_idx);
-            SAMRAIPointer<SAMRAISideData<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-            SAMRAIPointer<SAMRAISideData<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-            SAMRAIPointer<SAMRAISideData<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-            SAMRAIPointer<SAMRAISideData<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
-            SAMRAIPointer<SAMRAISideData<double> > E_data = patch->getPatchData(d_E_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> N_data = patch->getPatchData(d_N_idx);
+            SAMRAIPointer<SAMRAISideData<double>> V_data = patch->getPatchData(d_V_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> R_cur_data = patch->getPatchData(d_rho_current_idx);
+            SAMRAIPointer<SAMRAISideData<double>> R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> R_new_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<SAMRAISideData<double>> R_src_data = patch->getPatchData(d_S_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> E_data = patch->getPatchData(d_E_scratch_idx);
 
             // Define variables that live on the "faces" of control
             // volumes centered about side-centered staggered velocity
             // components
             const SAMRAIIntVector ghosts = SAMRAIIntVector(1);
             std::array<SAMRAIBox, NDIM> side_boxes;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> V_adv_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> V_half_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> P_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> V_adv_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> V_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> P_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
@@ -1410,7 +1410,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                  dt,
                                  dx);
 
-            SAMRAIPointer<SAMRAISideData<double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+            SAMRAIPointer<SAMRAISideData<double>> V_cur_data = patch->getPatchData(d_V_current_idx);
             computeErrorOfMassConservationEquation(
                 E_data, R_new_data, R_cur_data, V_adv_data, R_half_data, side_boxes, dt, dx);
 
@@ -1631,8 +1631,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassDensitySourceTerm(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeAdvectionVelocity(
-    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-    const SAMRAIPointer<SAMRAISideData<double> > U_data,
+    std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+    const SAMRAIPointer<SAMRAISideData<double>> U_data,
     const SAMRAIIntVector& patch_lower,
     const SAMRAIIntVector& patch_upper,
     const std::array<SAMRAIBox, NDIM>& side_boxes)
@@ -1717,9 +1717,9 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeAdvectionVelocity(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
-    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> Q_half_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-    const SAMRAIPointer<SAMRAISideData<double> > Q_data,
+    std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> Q_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+    const SAMRAIPointer<SAMRAISideData<double>> Q_data,
     const SAMRAIIntVector& patch_lower,
     const SAMRAIIntVector& patch_upper,
     const std::array<SAMRAIBox, NDIM>& side_boxes,
@@ -2118,16 +2118,16 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            SAMRAIPointer<SAMRAISideData<double> > dQ_data =
+            SAMRAIPointer<SAMRAISideData<double>> dQ_data =
                 new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SAMRAISideData<double> > Q_L_data =
+            SAMRAIPointer<SAMRAISideData<double>> Q_L_data =
                 new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SAMRAISideData<double> > Q_R_data =
+            SAMRAIPointer<SAMRAISideData<double>> Q_R_data =
                 new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SAMRAISideData<double> > Q_scratch1_data =
+            SAMRAIPointer<SAMRAISideData<double>> Q_scratch1_data =
                 new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #if (NDIM == 3)
-            SAMRAIPointer<SAMRAISideData<double> > Q_scratch2_data =
+            SAMRAIPointer<SAMRAISideData<double>> Q_scratch2_data =
                 new SAMRAISideData<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
@@ -2193,11 +2193,11 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeConvectiveDerivative(
-    SAMRAIPointer<SAMRAISideData<double> > N_data,
-    std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> P_half_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_data,
+    SAMRAIPointer<SAMRAISideData<double>> N_data,
+    std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> P_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_data,
     const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double* const dx,
     const SAMRAIPointer<SAMRAIPatch>& /*patch*/)
@@ -2363,15 +2363,15 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeConvectiveDerivative(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeDensityUpdate(
-    SAMRAIPointer<SAMRAISideData<double> > R_data,
+    SAMRAIPointer<SAMRAISideData<double>> R_data,
     const double& a0,
-    const SAMRAIPointer<SAMRAISideData<double> > R0_data,
+    const SAMRAIPointer<SAMRAISideData<double>> R0_data,
     const double& a1,
-    const SAMRAIPointer<SAMRAISideData<double> > R1_data,
+    const SAMRAIPointer<SAMRAISideData<double>> R1_data,
     const double& a2,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
-    const SAMRAIPointer<SAMRAISideData<double> > S_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
+    const SAMRAIPointer<SAMRAISideData<double>> S_data,
     const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
@@ -2455,11 +2455,11 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeDensityUpdate(
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeErrorOfMassConservationEquation(
-    SAMRAIPointer<SAMRAISideData<double> > E_data,
-    const SAMRAIPointer<SAMRAISideData<double> > Rnew_data,
-    const SAMRAIPointer<SAMRAISideData<double> > Rold_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data,
-    const std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> R_half_data,
+    SAMRAIPointer<SAMRAISideData<double>> E_data,
+    const SAMRAIPointer<SAMRAISideData<double>> Rnew_data,
+    const SAMRAIPointer<SAMRAISideData<double>> Rold_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data,
+    const std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> R_half_data,
     const std::array<SAMRAIBox, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
@@ -2540,7 +2540,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::enforceDivergenceFreeConditi
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(U_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(U_idx);
             const int patch_ln = patch->getPatchLevelNumber();
             const int patch_num = patch->getPatchNumber();
             const SAMRAIArray<SAMRAIBoundaryBox>& cf_bdry_codim1_boxes =

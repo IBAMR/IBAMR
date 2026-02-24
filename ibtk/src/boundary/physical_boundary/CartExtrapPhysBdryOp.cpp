@@ -214,7 +214,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(SAMRAIPatch& patch,
     SAMRAIPointer<SAMRAIPatchGeometry> pgeom = patch.getPatchGeometry();
     const SAMRAIBox& patch_box = patch.getBox();
 
-    std::vector<std::pair<SAMRAIBox, std::pair<int, int> > > bdry_fill_boxes;
+    std::vector<std::pair<SAMRAIBox, std::pair<int, int>>> bdry_fill_boxes;
 
 #if (NDIM > 1)
 #if (NDIM > 2)
@@ -298,7 +298,7 @@ CartExtrapPhysBdryOp::postprocessRefine(SAMRAIPatch& /*fine*/,
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     SAMRAIPatch& patch,
-    const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes)
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
     const SAMRAIBox& patch_box = patch.getBox();
     const SAMRAIIndex& patch_lower = patch_box.lower();
@@ -320,10 +320,10 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
+        SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
         if (!cc_var) continue;
 
-        SAMRAIPointer<SAMRAICellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
         const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -397,7 +397,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     SAMRAIPatch& patch,
-    const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes)
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
     const SAMRAIBox& patch_box = patch.getBox();
     const SAMRAIIndex& patch_lower = patch_box.lower();
@@ -419,9 +419,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
+        SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
         if (!fc_var) continue;
-        SAMRAIPointer<SAMRAIFaceData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAIFaceData<double>> patch_data = patch.getPatchData(patch_data_idx);
         const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -503,7 +503,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     SAMRAIPatch& patch,
-    const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes)
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
     const SAMRAIBox& patch_box = patch.getBox();
     const SAMRAIIndex& patch_lower = patch_box.lower();
@@ -525,9 +525,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
+        SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
         if (!nc_var) continue;
-        SAMRAIPointer<SAMRAINodeData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAINodeData<double>> patch_data = patch.getPatchData(patch_data_idx);
         const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -601,7 +601,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     SAMRAIPatch& patch,
-    const std::vector<std::pair<SAMRAIBox, std::pair<int, int> > >& bdry_fill_boxes)
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
     const SAMRAIBox& patch_box = patch.getBox();
     const SAMRAIIndex& patch_lower = patch_box.lower();
@@ -623,9 +623,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
         if (!sc_var) continue;
-        SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
         const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.

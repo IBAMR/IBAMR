@@ -113,7 +113,7 @@ public:
      * \brief Set the linear operators to be employed on the specified vector
      * component.
      */
-    void setComponentOperators(const std::vector<SAMRAIPointer<LinearOperator> >& linear_ops, unsigned int component);
+    void setComponentOperators(const std::vector<SAMRAIPointer<LinearOperator>>& linear_ops, unsigned int component);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners
@@ -291,18 +291,18 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >
-    getComponentVectors(SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > x);
+    static std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>
+    getComponentVectors(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> x);
 
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAIPointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAIPointer<LinearSolver>> d_pc_map;
 
     /*!
      * The component operators.
      */
-    std::map<unsigned int, std::vector<SAMRAIPointer<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int, std::vector<SAMRAIPointer<LinearOperator>>> d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component

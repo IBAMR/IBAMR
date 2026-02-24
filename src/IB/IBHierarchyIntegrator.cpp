@@ -333,15 +333,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHi
 
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
-    SAMRAIPointer<Geometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<Geometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
 
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var, getNewContext());
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_var, getScratchContext());
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    SAMRAIPointer<SAMRAICellVariable<double> > u_cc_var = d_u_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > u_sc_var = d_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> u_cc_var = d_u_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = d_u_var;
     if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
@@ -379,7 +379,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHi
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > p_cc_var = d_p_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> p_cc_var = d_p_var;
         if (p_cc_var)
         {
             d_p_phys_bdry_op = new CartCellRobinPhysBdryOp(p_scratch_idx,

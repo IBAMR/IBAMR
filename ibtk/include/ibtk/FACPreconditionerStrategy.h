@@ -235,7 +235,7 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >
+    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>
     getLevelSAMRAIVectorReal(const SAMRAISAMRAIVectorReal<double>& vec, int level_num) const;
 
     // Pointer to the FACPreconditioner that is using this operator.

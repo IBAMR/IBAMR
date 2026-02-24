@@ -36,8 +36,8 @@ namespace IBTK
 int
 determine_depth(SAMRAIPointer<SAMRAIVariable> var, int depth)
 {
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
     if (sc_var || fc_var)
         return depth * NDIM;
     else
@@ -94,7 +94,7 @@ interpolate(const std::vector<VectorNd>& X,
     // Determine the actual depth of the Q_var, taking into account data layout.
     int actual_depth = determine_depth(Q_var, Q_depth);
     // We store interpolated data separately on each level, so we can correctly reduce it later.
-    std::vector<std::vector<double> > Q_data_ln_vec(finest_ln + 1, std::vector<double>(X.size() * actual_depth, 0.0));
+    std::vector<std::vector<double>> Q_data_ln_vec(finest_ln + 1, std::vector<double>(X.size() * actual_depth, 0.0));
     // Flatten the vector of VectorNd to a single list of doubles.
     std::vector<double> X_data = flatten_eig_vec(X);
 #ifndef NDEBUG
@@ -115,10 +115,10 @@ interpolate(const std::vector<VectorNd>& X,
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& box = patch->getBox();
             // Note that LEInteractor currently only interpolates cell, side, node, and edge data.
-            SAMRAIPointer<SAMRAICellData<double> > cc_data = patch->getPatchData(data_idx);
-            SAMRAIPointer<SAMRAISideData<double> > sc_data = patch->getPatchData(data_idx);
-            SAMRAIPointer<SAMRAINodeData<double> > nc_data = patch->getPatchData(data_idx);
-            SAMRAIPointer<SAMRAIEdgeData<double> > ec_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> cc_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> sc_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAINodeData<double>> nc_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAIEdgeData<double>> ec_data = patch->getPatchData(data_idx);
             if (cc_data)
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),

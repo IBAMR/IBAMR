@@ -153,20 +153,20 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    SAMRAIPointer<SAMRAISideVariable<double> > u_data_sc_var = u_data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_data_sc_var = u_data_var;
     SAMRAIPointer<SAMRAIVariable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > p_data_cc_var = p_data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        SAMRAIPointer<SAMRAISideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
+        SAMRAIPointer<SAMRAISideVariable<int>> u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
         SAMRAIPointer<SAMRAIVariable> p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        SAMRAIPointer<SAMRAICellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
+        SAMRAIPointer<SAMRAICellVariable<int>> p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
@@ -193,20 +193,20 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    SAMRAIPointer<SAMRAISideVariable<double> > u_data_sc_var = u_data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_data_sc_var = u_data_var;
     SAMRAIPointer<SAMRAIVariable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > p_data_cc_var = p_data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
         SAMRAIPointer<SAMRAIVariable> u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        SAMRAIPointer<SAMRAISideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
+        SAMRAIPointer<SAMRAISideVariable<int>> u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
         SAMRAIPointer<SAMRAIVariable> p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        SAMRAIPointer<SAMRAICellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
+        SAMRAIPointer<SAMRAICellVariable<int>> p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
@@ -247,10 +247,10 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    SAMRAIPointer<SAMRAISideVariable<double> > u_data_sc_var = u_data_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_data_sc_var = u_data_var;
     SAMRAIPointer<SAMRAIVariable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > p_data_cc_var = p_data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> p_data_cc_var = p_data_var;
     SAMRAIPointer<SAMRAIRefineSchedule> data_synch_sched;
     if (u_data_sc_var && p_data_cc_var)
     {
@@ -287,10 +287,10 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-    SAMRAIPointer<SAMRAISideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> u_dof_index_sc_var = u_dof_index_var;
     SAMRAIPointer<SAMRAIVariable> p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-    SAMRAIPointer<SAMRAICellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> p_dof_index_cc_var = p_dof_index_var;
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
@@ -355,8 +355,8 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const int depth = u_dof_index_data->getDepth();
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == 1);
@@ -447,8 +447,8 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         const SAMRAIIntVector& ilower = patch_box.lower();
         const SAMRAIIntVector& iupper = patch_box.upper();
 
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_data_idx);
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         const SAMRAIIntVector u_gcw = u_data->getGhostCellWidth();
         const SAMRAIIntVector u_dof_gcw = u_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -456,8 +456,8 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
 #endif
 
-        SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_data_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const SAMRAIIntVector p_gcw = p_data->getGhostCellWidth();
         const SAMRAIIntVector p_dof_gcw = p_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -522,8 +522,8 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         const SAMRAIIntVector& ilower = patch_box.lower();
         const SAMRAIIntVector& iupper = patch_box.upper();
 
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_data_idx);
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         const SAMRAIIntVector u_gcw = u_data->getGhostCellWidth();
         const SAMRAIIntVector u_dof_gcw = u_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -531,8 +531,8 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
 #endif
 
-        SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_data_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const SAMRAIIntVector p_gcw = p_data->getGhostCellWidth();
         const SAMRAIIntVector p_dof_gcw = p_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -583,12 +583,12 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
-    SAMRAIPointer<SAMRAISideVariable<int> > patch_num_var = new SAMRAISideVariable<int>(
+    SAMRAIPointer<SAMRAISideVariable<int>> patch_num_var = new SAMRAISideVariable<int>(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::"
         "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SAMRAISideVariable<bool> > u_mastr_loc_var = new SAMRAISideVariable<bool>(
+    SAMRAIPointer<SAMRAISideVariable<bool>> u_mastr_loc_var = new SAMRAISideVariable<bool>(
         "StaggeredStokesPETScVecUtilities::"
         "constructPatchLevelDOFIndices_side()::u_"
         "mastr_loc_var");
@@ -598,8 +598,8 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
     }
@@ -630,9 +630,9 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         const SAMRAIBox& patch_box = patch->getBox();
         const SAMRAIIntVector patch_size = patch_box.numberCells();
 
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int upper_domain_side_idx = domain_upper(component_axis) + 1;
@@ -668,10 +668,10 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
         std::array<SAMRAIBox, NDIM> data_boxes;
         SAMRAIBoxList data_box_union(patch_box);

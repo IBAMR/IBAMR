@@ -105,7 +105,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * nullptr pointer if the solver is not initialized.
      */
-    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > getSolutionVector() const = 0;
+    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> getSolutionVector() const = 0;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
@@ -114,7 +114,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * nullptr pointer if the solver is not initialized.
      */
-    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > getFunctionVector() const = 0;
+    virtual SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> getFunctionVector() const = 0;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -187,7 +187,7 @@ protected:
     SAMRAIPointer<GeneralOperator> d_F;
     SAMRAIPointer<JacobianOperator> d_J;
     SAMRAIPointer<KrylovLinearSolver> d_krylov_solver;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_x, d_b, d_r;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_x, d_b, d_r;
 
     // Solver parameters.
     int d_max_evaluations = 10000;

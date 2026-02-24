@@ -35,8 +35,8 @@ namespace IBAMR
 {
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
                                                    const SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const SAMRAIPointer<SAMRAICellVariable<double> > H_var,
-                                                   const SAMRAIPointer<SAMRAIFaceVariable<double> > U_adv_var)
+                                                   const SAMRAIPointer<SAMRAICellVariable<double>> H_var,
+                                                   const SAMRAIPointer<SAMRAIFaceVariable<double>> U_adv_var)
     : d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
 {
     // intentionally blank

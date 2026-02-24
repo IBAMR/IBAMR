@@ -102,7 +102,7 @@ solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
     std::string object_name,
-    SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
     SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
     SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
     SAMRAIPointer<SAMRAIDatabase> input_db,
@@ -571,10 +571,10 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithoutSplitting(i
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_in_data = patch->getPatchData(u_in_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_in_data = patch->getPatchData(u_in_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
         TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -652,11 +652,11 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int 
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_new_data = patch->getPatchData(u_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_in_data = patch->getPatchData(u_in_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_new_data = patch->getPatchData(u_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_in_data = patch->getPatchData(u_in_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
         TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -829,10 +829,10 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithoutSplitting(int
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -899,10 +899,10 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_idx);
-        SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {

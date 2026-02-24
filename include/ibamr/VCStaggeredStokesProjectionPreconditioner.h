@@ -187,7 +187,7 @@ private:
     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Phi_var, d_F_Phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx, d_velocity_D_cc_idx;
 };
 } // namespace IBAMR

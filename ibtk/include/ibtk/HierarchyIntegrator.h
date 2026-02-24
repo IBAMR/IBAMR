@@ -939,21 +939,21 @@ protected:
     /*!
      * Get ghost cell-filling refine schedules.
      */
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& getGhostfillRefineSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& getGhostfillRefineSchedules(const std::string& name) const;
 
     /*!
      * Get data-prolonging refine schedules.
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& getProlongRefineSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& getProlongRefineSchedules(const std::string& name) const;
 
     /*!
      * Get coarsen schedules.
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& getCoarsenSchedules(const std::string& name) const;
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& getCoarsenSchedules(const std::string& name) const;
 
     /*!
      * Register a "child" integrator object with this integrator object.
@@ -1021,7 +1021,7 @@ protected:
      * Nonuniform load balancing data structures.
      */
     SAMRAIPointer<SAMRAILoadBalancer> d_load_balancer;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_workload_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_workload_var;
 
     /*!
      * The index of the workload estimate variable. If the current integrator
@@ -1140,15 +1140,15 @@ protected:
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
      * are used for data management.
      */
-    std::list<SAMRAIPointer<SAMRAIVariable> > d_state_variables;
-    std::list<SAMRAIPointer<SAMRAIVariable> > d_scratch_variables;
+    std::list<SAMRAIPointer<SAMRAIVariable>> d_state_variables;
+    std::list<SAMRAIPointer<SAMRAIVariable>> d_scratch_variables;
 
-    std::list<SAMRAIPointer<SAMRAIVariable> > d_copy_scratch_to_current_fast;
-    std::list<SAMRAIPointer<SAMRAIVariable> > d_copy_scratch_to_current_slow;
+    std::list<SAMRAIPointer<SAMRAIVariable>> d_copy_scratch_to_current_fast;
+    std::list<SAMRAIPointer<SAMRAIVariable>> d_copy_scratch_to_current_slow;
 
     SAMRAIComponentSelector d_current_data, d_new_data, d_scratch_data, d_plot_data;
 
-    std::map<SAMRAIVariable*, SAMRAIPointer<CartGridFunction> > d_state_var_init_fcns;
+    std::map<SAMRAIVariable*, SAMRAIPointer<CartGridFunction>> d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
@@ -1231,9 +1231,9 @@ private:
     /*
      * Cached communications algorithms, strategies, and schedules.
      */
-    using RefineAlgorithmMap = std::map<std::string, SAMRAIPointer<SAMRAIRefineAlgorithm> >;
-    using RefinePatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAIRefinePatchStrategy> >;
-    using RefineScheduleMap = std::map<std::string, std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > >;
+    using RefineAlgorithmMap = std::map<std::string, SAMRAIPointer<SAMRAIRefineAlgorithm>>;
+    using RefinePatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAIRefinePatchStrategy>>;
+    using RefineScheduleMap = std::map<std::string, std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>>;
 
     RefineAlgorithmMap d_ghostfill_algs;
     RefinePatchStrategyMap d_ghostfill_strategies;
@@ -1243,9 +1243,9 @@ private:
     RefinePatchStrategyMap d_prolong_strategies;
     RefineScheduleMap d_prolong_scheds;
 
-    using CoarsenAlgorithmMap = std::map<std::string, SAMRAIPointer<SAMRAICoarsenAlgorithm> >;
-    using CoarsenPatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAICoarsenPatchStrategy> >;
-    using CoarsenScheduleMap = std::map<std::string, std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > >;
+    using CoarsenAlgorithmMap = std::map<std::string, SAMRAIPointer<SAMRAICoarsenAlgorithm>>;
+    using CoarsenPatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAICoarsenPatchStrategy>>;
+    using CoarsenScheduleMap = std::map<std::string, std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>>;
 
     CoarsenAlgorithmMap d_coarsen_algs;
     CoarsenPatchStrategyMap d_coarsen_strategies;

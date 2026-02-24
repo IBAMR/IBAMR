@@ -1497,8 +1497,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
-                   const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double>> dst,
+                   const SAMRAIPointer<SAMRAICellData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -1594,8 +1594,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
-                   const SAMRAIPointer<SAMRAIFaceData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double>> dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -1690,8 +1690,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAIFaceData<double> > dst,
-                   const SAMRAIPointer<SAMRAIFaceData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAIFaceData<double>> dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
@@ -1778,8 +1778,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
-                   const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double>> dst,
+                   const SAMRAIPointer<SAMRAISideData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -1874,8 +1874,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAISideData<double> > dst,
-                   const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAISideData<double>> dst,
+                   const SAMRAIPointer<SAMRAISideData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
@@ -1962,8 +1962,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                   const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                   const SAMRAIPointer<SAMRAISideData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -2058,8 +2058,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
-                   const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::curl(SAMRAIPointer<SAMRAIEdgeData<double>> dst,
+                   const SAMRAIPointer<SAMRAISideData<double>> src,
                    const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM != 3)
@@ -2146,8 +2146,8 @@ PatchMathOps::curl(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
 } // curl
 
 void
-PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
-                  const SAMRAIPointer<SAMRAINodeData<double> > src,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double>> dst,
+                  const SAMRAIPointer<SAMRAINodeData<double>> src,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
@@ -2258,8 +2258,8 @@ PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
-                  const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double>> dst,
+                  const SAMRAIPointer<SAMRAICellData<double>> src,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
@@ -2379,8 +2379,8 @@ PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
-                  const SAMRAIPointer<SAMRAIEdgeData<double> > src,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double>> dst,
+                  const SAMRAIPointer<SAMRAIEdgeData<double>> src,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
@@ -2515,8 +2515,8 @@ PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
-                  const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double>> dst,
+                  const SAMRAIPointer<SAMRAISideData<double>> src,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
@@ -2625,11 +2625,11 @@ PatchMathOps::rot(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // rot
 
 void
-PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double>> dst,
                   const double alpha,
-                  const SAMRAIPointer<SAMRAICellData<double> > src1,
+                  const SAMRAIPointer<SAMRAICellData<double>> src1,
                   const double beta,
-                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAICellData<double>> src2,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
@@ -2757,11 +2757,11 @@ PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // div
 
 void
-PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double>> dst,
                   const double alpha,
-                  const SAMRAIPointer<SAMRAIFaceData<double> > src1,
+                  const SAMRAIPointer<SAMRAIFaceData<double>> src1,
                   const double beta,
-                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAICellData<double>> src2,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
@@ -2872,11 +2872,11 @@ PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // div
 
 void
-PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double>> dst,
                   const double alpha,
-                  const SAMRAIPointer<SAMRAISideData<double> > src1,
+                  const SAMRAIPointer<SAMRAISideData<double>> src1,
                   const double beta,
-                  const SAMRAIPointer<SAMRAICellData<double> > src2,
+                  const SAMRAIPointer<SAMRAICellData<double>> src2,
                   const SAMRAIPointer<SAMRAIPatch> patch,
                   const int l,
                   const int m) const
@@ -2987,11 +2987,11 @@ PatchMathOps::div(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // div
 
 void
-PatchMathOps::grad(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAICellData<double>> dst,
                    const double alpha,
-                   const SAMRAIPointer<SAMRAICellData<double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double>> src1,
                    const double beta,
-                   const SAMRAIPointer<SAMRAICellData<double> > src2,
+                   const SAMRAIPointer<SAMRAICellData<double>> src2,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
@@ -3126,11 +3126,11 @@ PatchMathOps::grad(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double>> dst,
                    const double alpha,
-                   const SAMRAIPointer<SAMRAICellData<double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double>> src1,
                    const double beta,
-                   const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                   const SAMRAIPointer<SAMRAIFaceData<double>> src2,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
@@ -3258,11 +3258,11 @@ PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double>> dst,
                    const double alpha,
-                   const SAMRAIPointer<SAMRAICellData<double> > src1,
+                   const SAMRAIPointer<SAMRAICellData<double>> src1,
                    const double beta,
-                   const SAMRAIPointer<SAMRAISideData<double> > src2,
+                   const SAMRAIPointer<SAMRAISideData<double>> src2,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
@@ -3390,11 +3390,11 @@ PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
-                   const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
-                   const SAMRAIPointer<SAMRAICellData<double> > src1,
+PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double>> dst,
+                   const SAMRAIPointer<SAMRAIFaceData<double>> alpha,
+                   const SAMRAIPointer<SAMRAICellData<double>> src1,
                    const double beta,
-                   const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                   const SAMRAIPointer<SAMRAIFaceData<double>> src2,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
@@ -3669,11 +3669,11 @@ PatchMathOps::grad(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
-                   const SAMRAIPointer<SAMRAISideData<double> > alpha,
-                   const SAMRAIPointer<SAMRAICellData<double> > src1,
+PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double>> dst,
+                   const SAMRAIPointer<SAMRAISideData<double>> alpha,
+                   const SAMRAIPointer<SAMRAICellData<double>> src1,
                    const double beta,
-                   const SAMRAIPointer<SAMRAISideData<double> > src2,
+                   const SAMRAIPointer<SAMRAISideData<double>> src2,
                    const SAMRAIPointer<SAMRAIPatch> patch,
                    const int l) const
 {
@@ -3936,8 +3936,8 @@ PatchMathOps::grad(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // grad
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
-                     const SAMRAIPointer<SAMRAIFaceData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double>> dst,
+                     const SAMRAIPointer<SAMRAIFaceData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4011,8 +4011,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
-                     const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double>> dst,
+                     const SAMRAIPointer<SAMRAISideData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4086,8 +4086,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAIFaceData<double> > dst,
-                     const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAIFaceData<double>> dst,
+                     const SAMRAIPointer<SAMRAICellData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -4169,8 +4169,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAISideData<double> > dst,
-                     const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAISideData<double>> dst,
+                     const SAMRAIPointer<SAMRAICellData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -4252,8 +4252,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
-                     const SAMRAIPointer<SAMRAINodeData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double>> dst,
+                     const SAMRAIPointer<SAMRAINodeData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM == 3)
@@ -4325,8 +4325,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
-                     const SAMRAIPointer<SAMRAIEdgeData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double>> dst,
+                     const SAMRAIPointer<SAMRAIEdgeData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
 #if (NDIM == 2)
@@ -4409,8 +4409,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                     const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                     const SAMRAIPointer<SAMRAICellData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const bool dst_ghost_interp) const
 {
@@ -4498,8 +4498,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                     const SAMRAIPointer<SAMRAIFaceData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                     const SAMRAIPointer<SAMRAIFaceData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4581,8 +4581,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                     const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                     const SAMRAIPointer<SAMRAISideData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4664,8 +4664,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
-                     const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::interp(SAMRAIPointer<SAMRAIEdgeData<double>> dst,
+                     const SAMRAIPointer<SAMRAICellData<double>> src,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const bool dst_ghost_interp) const
 {
@@ -4763,8 +4763,8 @@ PatchMathOps::interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
 } // interp
 
 void
-PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAISideData<double> > dst,
-                              const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAISideData<double>> dst,
+                              const SAMRAIPointer<SAMRAICellData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -4846,8 +4846,8 @@ PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                              const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                              const SAMRAIPointer<SAMRAICellData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch,
                               const bool dst_ghost_interp) const
 {
@@ -4940,8 +4940,8 @@ PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
-                              const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAIEdgeData<double>> dst,
+                              const SAMRAIPointer<SAMRAICellData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch,
                               const bool dst_ghost_interp) const
 {
@@ -5039,12 +5039,12 @@ PatchMathOps::harmonic_interp(SAMRAIPointer<SAMRAIEdgeData<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double>> dst,
                       const double alpha,
                       const double beta,
-                      const SAMRAIPointer<SAMRAICellData<double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double>> src1,
                       const double gamma,
-                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAICellData<double>> src2,
                       const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
@@ -5210,12 +5210,12 @@ PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAISideData<double>> dst,
                       const double alpha,
                       const double beta,
-                      const SAMRAIPointer<SAMRAISideData<double> > src1,
+                      const SAMRAIPointer<SAMRAISideData<double>> src1,
                       const double gamma,
-                      const SAMRAIPointer<SAMRAISideData<double> > src2,
+                      const SAMRAIPointer<SAMRAISideData<double>> src2,
                       const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
@@ -5415,12 +5415,12 @@ PatchMathOps::laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
-                      const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double>> dst,
+                      const SAMRAIPointer<SAMRAIFaceData<double>> alpha,
                       const double beta,
-                      const SAMRAIPointer<SAMRAICellData<double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double>> src1,
                       const double gamma,
-                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAICellData<double>> src2,
                       const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
@@ -5631,12 +5631,12 @@ PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
-                      const SAMRAIPointer<SAMRAISideData<double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double>> dst,
+                      const SAMRAIPointer<SAMRAISideData<double>> alpha,
                       const double beta,
-                      const SAMRAIPointer<SAMRAICellData<double> > src1,
+                      const SAMRAIPointer<SAMRAICellData<double>> src1,
                       const double gamma,
-                      const SAMRAIPointer<SAMRAICellData<double> > src2,
+                      const SAMRAIPointer<SAMRAICellData<double>> src2,
                       const SAMRAIPointer<SAMRAIPatch> patch,
                       const int l,
                       const int m,
@@ -5847,14 +5847,14 @@ PatchMathOps::laplace(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // laplace
 
 void
-PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double>> dst,
                          const double alpha,
                          const double beta,
-                         const SAMRAIPointer<SAMRAINodeData<double> > coef1,
-                         const SAMRAIPointer<SAMRAISideData<double> > coef2,
-                         const SAMRAIPointer<SAMRAISideData<double> > src1,
+                         const SAMRAIPointer<SAMRAINodeData<double>> coef1,
+                         const SAMRAIPointer<SAMRAISideData<double>> coef2,
+                         const SAMRAIPointer<SAMRAISideData<double>> src1,
                          const double gamma_in,
-                         const SAMRAIPointer<SAMRAISideData<double> > src2_in,
+                         const SAMRAIPointer<SAMRAISideData<double>> src2_in,
                          const SAMRAIPointer<SAMRAIPatch> patch,
                          const bool use_harmonic_interp,
                          const int l,
@@ -5888,7 +5888,7 @@ PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const SAMRAIPointer<SAMRAISideData<double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SAMRAISideData<double>> src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -6025,14 +6025,14 @@ PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double>> dst,
                          const double alpha,
                          const double beta,
-                         const SAMRAIPointer<SAMRAIEdgeData<double> > coef1,
-                         const SAMRAIPointer<SAMRAISideData<double> > coef2,
-                         const SAMRAIPointer<SAMRAISideData<double> > src1,
+                         const SAMRAIPointer<SAMRAIEdgeData<double>> coef1,
+                         const SAMRAIPointer<SAMRAISideData<double>> coef2,
+                         const SAMRAIPointer<SAMRAISideData<double>> src1,
                          const double gamma_in,
-                         const SAMRAIPointer<SAMRAISideData<double> > src2_in,
+                         const SAMRAIPointer<SAMRAISideData<double>> src2_in,
                          const SAMRAIPointer<SAMRAIPatch> patch,
                          const bool use_harmonic_interp,
                          const int l,
@@ -6071,7 +6071,7 @@ PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const SAMRAIPointer<SAMRAISideData<double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SAMRAISideData<double>> src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const double* const v2 = src2->getPointer(2, n);
@@ -6217,11 +6217,11 @@ PatchMathOps::vc_laplace(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double>> dst,
                                 const double alpha,
-                                const SAMRAIPointer<SAMRAICellData<double> > src1,
+                                const SAMRAIPointer<SAMRAICellData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+                                const SAMRAIPointer<SAMRAICellData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6320,11 +6320,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
-                                const SAMRAIPointer<SAMRAICellData<double> > alpha,
-                                const SAMRAIPointer<SAMRAICellData<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double>> dst,
+                                const SAMRAIPointer<SAMRAICellData<double>> alpha,
+                                const SAMRAIPointer<SAMRAICellData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+                                const SAMRAIPointer<SAMRAICellData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6441,11 +6441,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
-                                const SAMRAIPointer<SAMRAICellData<double> > alpha,
-                                const SAMRAIPointer<SAMRAICellData<double> > src1,
-                                const SAMRAIPointer<SAMRAICellData<double> > beta,
-                                const SAMRAIPointer<SAMRAICellData<double> > src2,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double>> dst,
+                                const SAMRAIPointer<SAMRAICellData<double>> alpha,
+                                const SAMRAIPointer<SAMRAICellData<double>> src1,
+                                const SAMRAIPointer<SAMRAICellData<double>> beta,
+                                const SAMRAIPointer<SAMRAICellData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6563,11 +6563,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double>> dst,
                                 const double alpha,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6670,11 +6670,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double>> dst,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> alpha,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6795,11 +6795,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > alpha,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src1,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > beta,
-                                const SAMRAIPointer<SAMRAIFaceData<double> > src2,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double>> dst,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> alpha,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src1,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> beta,
+                                const SAMRAIPointer<SAMRAIFaceData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -6921,11 +6921,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAIFaceData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double>> dst,
                                 const double alpha,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7025,11 +7025,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                                const SAMRAIPointer<SAMRAINodeData<double> > alpha,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                                const SAMRAIPointer<SAMRAINodeData<double>> alpha,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7147,11 +7147,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                                const SAMRAIPointer<SAMRAINodeData<double> > alpha,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src1,
-                                const SAMRAIPointer<SAMRAINodeData<double> > beta,
-                                const SAMRAIPointer<SAMRAINodeData<double> > src2,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                                const SAMRAIPointer<SAMRAINodeData<double>> alpha,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src1,
+                                const SAMRAIPointer<SAMRAINodeData<double>> beta,
+                                const SAMRAIPointer<SAMRAINodeData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7270,11 +7270,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double>> dst,
                                 const double alpha,
-                                const SAMRAIPointer<SAMRAISideData<double> > src1,
+                                const SAMRAIPointer<SAMRAISideData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+                                const SAMRAIPointer<SAMRAISideData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7377,11 +7377,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
-                                const SAMRAIPointer<SAMRAISideData<double> > alpha,
-                                const SAMRAIPointer<SAMRAISideData<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double>> dst,
+                                const SAMRAIPointer<SAMRAISideData<double>> alpha,
+                                const SAMRAIPointer<SAMRAISideData<double>> src1,
                                 const double beta,
-                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+                                const SAMRAIPointer<SAMRAISideData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7502,11 +7502,11 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
-                                const SAMRAIPointer<SAMRAISideData<double> > alpha,
-                                const SAMRAIPointer<SAMRAISideData<double> > src1,
-                                const SAMRAIPointer<SAMRAISideData<double> > beta,
-                                const SAMRAIPointer<SAMRAISideData<double> > src2,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double>> dst,
+                                const SAMRAIPointer<SAMRAISideData<double>> alpha,
+                                const SAMRAIPointer<SAMRAISideData<double>> src1,
+                                const SAMRAIPointer<SAMRAISideData<double>> beta,
+                                const SAMRAIPointer<SAMRAISideData<double>> src2,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const int i,
                                 const int j,
@@ -7628,8 +7628,8 @@ PatchMathOps::pointwiseMultiply(SAMRAIPointer<SAMRAISideData<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
-                              const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAICellData<double>> dst,
+                              const SAMRAIPointer<SAMRAICellData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -7693,8 +7693,8 @@ PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
-                              const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAICellData<double>> dst,
+                              const SAMRAIPointer<SAMRAICellData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -7758,8 +7758,8 @@ PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAICellData<double> > dst,
-                               const SAMRAIPointer<SAMRAICellData<double> > src,
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAICellData<double>> dst,
+                               const SAMRAIPointer<SAMRAICellData<double>> src,
                                const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -7823,8 +7823,8 @@ PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAICellData<double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                              const SAMRAIPointer<SAMRAINodeData<double> > src,
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                              const SAMRAIPointer<SAMRAINodeData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -7889,8 +7889,8 @@ PatchMathOps::pointwiseL1Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                              const SAMRAIPointer<SAMRAINodeData<double> > src,
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                              const SAMRAIPointer<SAMRAINodeData<double>> src,
                               const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -7955,8 +7955,8 @@ PatchMathOps::pointwiseL2Norm(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAINodeData<double> > dst,
-                               const SAMRAIPointer<SAMRAINodeData<double> > src,
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAINodeData<double>> dst,
+                               const SAMRAIPointer<SAMRAINodeData<double>> src,
                                const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     double* const U = dst->getPointer();
@@ -8021,9 +8021,9 @@ PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<SAMRAINodeData<double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst1,
-                          SAMRAIPointer<SAMRAICellData<double> > dst2,
-                          const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double>> dst1,
+                          SAMRAIPointer<SAMRAICellData<double>> dst2,
+                          const SAMRAIPointer<SAMRAISideData<double>> src,
                           const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -8141,8 +8141,8 @@ PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst1,
 } // strain
 
 void
-PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst,
-                          const SAMRAIPointer<SAMRAISideData<double> > src,
+PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double>> dst,
+                          const SAMRAIPointer<SAMRAISideData<double>> src,
                           const SAMRAIPointer<SAMRAIPatch> patch) const
 {
     const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
@@ -8232,9 +8232,9 @@ PatchMathOps::strain_rate(SAMRAIPointer<SAMRAICellData<double> > dst,
     }
     else if (E_depth == NDIM * NDIM)
     {
-        SAMRAIPointer<SAMRAICellData<double> > E_diag =
+        SAMRAIPointer<SAMRAICellData<double>> E_diag =
             new SAMRAICellData<double>(patch_box, NDIM, SAMRAIIntVector(E_ghosts));
-        SAMRAIPointer<SAMRAICellData<double> > E_offDiag =
+        SAMRAIPointer<SAMRAICellData<double>> E_offDiag =
             new SAMRAICellData<double>(patch_box, NDIM == 2 ? 1 : 3, SAMRAIIntVector(E_ghosts));
 
         S_TO_C_STRAIN_FC(E_diag->getPointer(),

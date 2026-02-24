@@ -154,8 +154,8 @@ void
 copyFromHypre(SAMRAICellData<double>& dst_data, const std::vector<HYPRE_StructVector>& vectors, const SAMRAIBox& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAICellData<double> > dst_data_box =
-        copy_data ? std::make_unique<SAMRAICellData<double> >(box, dst_data.getDepth(), 0) : nullptr;
+    std::unique_ptr<SAMRAICellData<double>> dst_data_box =
+        copy_data ? std::make_unique<SAMRAICellData<double>>(box, dst_data.getDepth(), 0) : nullptr;
     SAMRAICellData<double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     unsigned int depth = dst_data.getDepth();
 #ifndef NDEBUG
@@ -178,8 +178,8 @@ void
 copyFromHypre(SAMRAISideData<double>& dst_data, HYPRE_SStructVector vector, const SAMRAIBox& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAISideData<double> > dst_data_box =
-        copy_data ? std::make_unique<SAMRAISideData<double> >(box, 1, 0) : nullptr;
+    std::unique_ptr<SAMRAISideData<double>> dst_data_box =
+        copy_data ? std::make_unique<SAMRAISideData<double>>(box, 1, 0) : nullptr;
     SAMRAISideData<double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     for (int var = 0; var < NDIM; ++var)
     {
@@ -200,8 +200,8 @@ void
 copyToHypre(const std::vector<HYPRE_StructVector>& vectors, SAMRAICellData<double>& src_data, const SAMRAIBox& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAICellData<double> > src_data_box =
-        copy_data ? std::make_unique<SAMRAICellData<double> >(box, src_data.getDepth(), 0) : nullptr;
+    std::unique_ptr<SAMRAICellData<double>> src_data_box =
+        copy_data ? std::make_unique<SAMRAICellData<double>>(box, src_data.getDepth(), 0) : nullptr;
     SAMRAICellData<double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
     unsigned int depth = src_data.getDepth();
@@ -221,8 +221,8 @@ void
 copyToHypre(HYPRE_SStructVector& vector, SAMRAISideData<double>& src_data, const SAMRAIBox& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAISideData<double> > src_data_box =
-        copy_data ? std::make_unique<SAMRAISideData<double> >(box, 1, 0) : nullptr;
+    std::unique_ptr<SAMRAISideData<double>> src_data_box =
+        copy_data ? std::make_unique<SAMRAISideData<double>>(box, 1, 0) : nullptr;
     SAMRAISideData<double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
     for (int var = 0; var < NDIM; ++var)

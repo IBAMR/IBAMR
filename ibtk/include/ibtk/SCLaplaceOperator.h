@@ -140,7 +140,7 @@ protected:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Dirichlet boundary condition utilities.
-    std::vector<SAMRAIPointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
+    std::vector<SAMRAIPointer<StaggeredPhysicalBoundaryHelper>> d_bc_helpers;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
     // cell values.

@@ -283,8 +283,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(SAMRAIPoin
 } // registerVisItDataWriter
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(
-    SAMRAIPointer<SAMRAIFaceVariable<double> > u_var)
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_var);
@@ -296,7 +295,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(
-    SAMRAIPointer<SAMRAIFaceVariable<double> > u_var,
+    SAMRAIPointer<SAMRAIFaceVariable<double>> u_var,
     const bool is_div_free)
 {
 #if !defined(NDEBUG)
@@ -308,7 +307,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFr
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
-    SAMRAIPointer<SAMRAIFaceVariable<double> > u_var,
+    SAMRAIPointer<SAMRAIFaceVariable<double>> u_var,
     SAMRAIPointer<CartGridFunction> u_fcn)
 {
 #if !defined(NDEBUG)
@@ -319,7 +318,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
 } // setAdvectionVelocityFunction
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(SAMRAIPointer<SAMRAICellVariable<double> > F_var)
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> F_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_var);
@@ -329,7 +328,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(SAMRAIPointer<S
 } // registerSourceTerm
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double> > F_var,
+AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double>> F_var,
                                                                     SAMRAIPointer<CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
@@ -360,7 +359,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(SAMRAIPointe
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
-    SAMRAIPointer<SAMRAICellVariable<double> > Q_var)
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
@@ -371,8 +370,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
 } // registerTransportedQuantity
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                                   SAMRAIPointer<SAMRAIFaceVariable<double> > u_var)
+AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                                   SAMRAIPointer<SAMRAIFaceVariable<double>> u_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -383,8 +382,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(SAMRAIPointer
 } // setAdvectionVelocity
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
-                                                            SAMRAIPointer<SAMRAICellVariable<double> > F_var)
+AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                            SAMRAIPointer<SAMRAICellVariable<double>> F_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -396,7 +395,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(SAMRAIPointer<SAMRAI
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
-    SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
     const ConvectiveDifferencingType difference_form)
 {
 #if !defined(NDEBUG)
@@ -407,7 +406,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
 } // setConvectiveDifferencingType
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                    SAMRAIPointer<CartGridFunction> Q_init)
 {
 #if !defined(NDEBUG)
@@ -418,12 +417,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(SAMRAIPointer
 } // setInitialConditions
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                  SAMRAIRobinBcCoefStrategy* Q_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
-    SAMRAIPointer<SAMRAICellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
     const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == 1);
 #endif
@@ -432,12 +431,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(SAMRAIPointer<S
 } // setPhysicalBcCoefs
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                  std::vector<SAMRAIRobinBcCoefStrategy*> Q_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
-    SAMRAIPointer<SAMRAICellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
     const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
 #endif
@@ -475,7 +474,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(SAMRAIHyper
 
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAICellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
         d_integrator->registerVariable(Q_var,
                                        d_ghosts,
                                        SAMRAIHyperbolicLevelIntegrator::TIME_DEP,
@@ -520,7 +519,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(SAMRAIHyper
                                            "NO_REFINE");
         }
 
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
         const bool u_is_div_free = d_u_is_div_free[u_var];
         if (!conservation_form || !u_is_div_free)
         {
@@ -566,7 +565,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(SAMRAIPatch&
             }
             else
             {
-                SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch.getPatchData(u_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch.getPatchData(u_idx);
                 u_data->fillAll(0.0);
             }
         }
@@ -581,7 +580,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(SAMRAIPatch&
             }
             else
             {
-                SAMRAIPointer<SAMRAICellData<double> > F_data = patch.getPatchData(F_idx);
+                SAMRAIPointer<SAMRAICellData<double>> F_data = patch.getPatchData(F_idx);
                 F_data->fillAll(0.0);
             }
         }
@@ -596,7 +595,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(SAMRAIPatch&
             }
             else
             {
-                SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
                 Q_data->fillAll(0.0);
             }
         }
@@ -612,7 +611,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(SAMRAIPatch
     double stable_dt = std::numeric_limits<double>::max();
     for (const auto& u_var : d_u_var)
     {
-        SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch.getPatchData(u_var, getDataContext());
         stable_dt = std::min(stable_dt, d_explicit_predictor->computeStableDtOnPatch(*u_data, patch));
     }
     return stable_dt;
@@ -630,8 +629,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(SAMRAIPatch& 
 
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
-        SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
         if (!u_var)
         {
             q_integral_data->fillAll(0.0);
@@ -639,12 +638,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(SAMRAIPatch& 
         }
 
         // Predict time- and face-centered values.
-        SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = d_Q_F_map[Q_var];
+        SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch.getPatchData(u_var, getDataContext());
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = d_Q_F_map[Q_var];
         if (F_var)
         {
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch.getPatchData(F_var, getDataContext());
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch.getPatchData(F_var, getDataContext());
             d_explicit_predictor->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
@@ -678,28 +677,28 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(SAMRAIPatch& 
     // Compute fluxes and other face-centered quantities.
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
-        SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch.getPatchData(u_var, getDataContext());
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
         if (conservation_form)
         {
-            SAMRAIPointer<SAMRAIFaceData<double> > flux_integral_data =
+            SAMRAIPointer<SAMRAIFaceData<double>> flux_integral_data =
                 getFluxIntegralData(Q_var, patch, getDataContext());
-            SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             d_explicit_predictor->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
 
         if (!conservation_form || !u_is_div_free)
         {
-            SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             patch_fc_data_ops.scale(q_integral_data, dt, q_integral_data, patch_box);
 
-            SAMRAIPointer<SAMRAIFaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
+            SAMRAIPointer<SAMRAIFaceData<double>> u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
             patch_fc_data_ops.scale(u_integral_data, dt, u_data, patch_box);
         }
     }
@@ -721,14 +720,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(SAMR
 
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
-        SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        SAMRAIPointer<SAMRAIFaceData<double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
-        SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
-        SAMRAIPointer<SAMRAIFaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
+        SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
 
         const SAMRAIIntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const SAMRAIIntVector& flux_integral_data_ghost_cells =
@@ -849,7 +848,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(SAMR
             d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
             SAMRAIPatchCellDataOpsReal<double> patch_cc_data_ops;
             patch_cc_data_ops.axpy(
-                Q_data, -1.0 / dt, SAMRAIPointer<SAMRAICellData<double> >(&N_data, false), Q_data, patch_box);
+                Q_data, -1.0 / dt, SAMRAIPointer<SAMRAICellData<double>>(&N_data, false), Q_data, patch_box);
             break;
         }
         default:
@@ -919,7 +918,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
     // of all source terms to the advected quantities.
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = d_Q_F_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = d_Q_F_map[Q_var];
         if (!F_var) continue;
         SAMRAIPointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
@@ -927,13 +926,13 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > Q_data = patch->getPatchData(Q_var, new_context);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(Q_var, new_context);
             if (F_fcn)
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
                 const int F_new_idx = var_db->mapVariableAndContextToIndex(F_var, new_context);
-                SAMRAIPointer<SAMRAICellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
-                SAMRAIPointer<SAMRAICellData<double> > F_new_data = patch->getPatchData(F_new_idx);
+                SAMRAIPointer<SAMRAICellData<double>> F_scratch_data = patch->getPatchData(F_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> F_new_data = patch->getPatchData(F_new_idx);
                 F_fcn->setDataOnPatchLevel(F_new_idx, F_var, level, current_time + dt);
                 patch_cc_data_ops.axpy(Q_data, 0.5 * dt, F_scratch_data, Q_data, patch_box);
                 patch_cc_data_ops.axpy(Q_data, 0.5 * dt, F_new_data, Q_data, patch_box);
@@ -941,7 +940,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
             else
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
-                SAMRAIPointer<SAMRAICellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> F_scratch_data = patch->getPatchData(F_scratch_idx);
                 patch_cc_data_ops.axpy(Q_data, dt, F_scratch_data, Q_data, patch_box);
             }
         }
@@ -977,7 +976,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(SAMRAIPat
     const SAMRAIIndex& ilower = patch.getBox().lower();
     const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    SAMRAIPointer<SAMRAICellData<int> > tags = patch.getPatchData(tag_indx);
+    SAMRAIPointer<SAMRAICellData<int>> tags = patch.getPatchData(tag_indx);
 
     const int not_refine_tag_val = FALSE_VAL;
     const int refine_tag_val = TRUE_VAL;
@@ -1019,7 +1018,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(SAMRAIPat
                 // Check for tags that have already been set in a previous step.
                 for (const auto& Q_var : d_Q_var)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
                     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
                         for (SAMRAICellIterator ic(patch_box); ic; ic++)
@@ -1056,7 +1055,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(SAMRAIPat
             {
                 for (const auto& Q_var : d_Q_var)
                 {
-                    SAMRAIPointer<SAMRAICellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    SAMRAIPointer<SAMRAICellData<double>> Q_data = patch.getPatchData(Q_var, getDataContext());
                     const SAMRAIIntVector& Q_ghost = Q_data->getGhostCellWidth();
                     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
@@ -1190,8 +1189,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(SAMRAIPointer<SAMRAI
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-SAMRAIPointer<SAMRAIFaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+SAMRAIPointer<SAMRAIFaceData<double>>
+AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                   SAMRAIPatch& patch,
                                                                   SAMRAIPointer<SAMRAIVariableContext> context)
 {
@@ -1204,12 +1203,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(SAMRAIPointer<
     }
     else
     {
-        return SAMRAIPointer<SAMRAIFaceData<double> >(nullptr);
+        return SAMRAIPointer<SAMRAIFaceData<double>>(nullptr);
     }
 } // getFluxIntegralData
 
-SAMRAIPointer<SAMRAIFaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+SAMRAIPointer<SAMRAIFaceData<double>>
+AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                SAMRAIPatch& patch,
                                                                SAMRAIPointer<SAMRAIVariableContext> context)
 {
@@ -1226,22 +1225,22 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(SAMRAIPointer<SAM
     }
 } // getQIntegralData
 
-SAMRAIPointer<SAMRAIFaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+SAMRAIPointer<SAMRAIFaceData<double>>
+AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                SAMRAIPatch& patch,
                                                                SAMRAIPointer<SAMRAIVariableContext> context)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
 #endif
-    SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+    SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
     if (u_var && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
     {
         return patch.getPatchData(d_u_integral_var[u_var], context);
     }
     else
     {
-        return SAMRAIPointer<SAMRAIFaceData<double> >(nullptr);
+        return SAMRAIPointer<SAMRAIFaceData<double>>(nullptr);
     }
 } // getUIntegralData
 
@@ -1272,14 +1271,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(SAMRAI
     const double* const dx = pgeom->getDx();
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
 
-        SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
-        SAMRAIPointer<SAMRAIFaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch.getPatchData(u_var, getDataContext());
+        SAMRAIPointer<SAMRAIFaceData<double>> q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
 
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
@@ -1310,9 +1309,9 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(SAMRAI
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (SAMRAIBox::Iterator b(bc_coef_box); b; b++)

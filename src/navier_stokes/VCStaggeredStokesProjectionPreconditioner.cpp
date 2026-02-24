@@ -176,8 +176,8 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAISAMRAIVectorReal<do
     const SAMRAIPointer<SAMRAIVariable>& F_U_var = b.getComponentVariable(0);
     const SAMRAIPointer<SAMRAIVariable>& F_P_var = b.getComponentVariable(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > F_U_sc_var = F_U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > F_P_cc_var = F_P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> F_U_sc_var = F_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> F_P_cc_var = F_P_var;
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -185,28 +185,28 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAISAMRAIVectorReal<do
     const SAMRAIPointer<SAMRAIVariable>& U_var = x.getComponentVariable(0);
     const SAMRAIPointer<SAMRAIVariable>& P_var = x.getComponentVariable(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > U_sc_var = U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > P_cc_var = P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> U_sc_var = U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_U_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_U_vec;
     F_U_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > U_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> U_vec;
     U_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > Phi_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> Phi_scratch_vec;
     Phi_scratch_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > F_Phi_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> F_Phi_vec;
     F_Phi_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > P_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> P_vec;
     P_vec = new SAMRAISAMRAIVectorReal<double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
@@ -340,7 +340,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAISAMRAIVectorReal<do
                                   U_sc_var,
                                   /*cf_bdry_synch*/ true,
                                   coef_idx,
-                                  SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+                                  SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                                   d_Phi_scratch_idx,
                                   d_Phi_var,
                                   d_Phi_bdry_fill_op,

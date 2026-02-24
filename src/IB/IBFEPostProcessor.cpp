@@ -265,7 +265,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
-    std::unique_ptr<libMesh::PetscVector<double> > X_ghost_vec =
+    std::unique_ptr<libMesh::PetscVector<double>> X_ghost_vec =
         d_fe_data_manager->buildIBGhostedVector(d_fe_data_manager->getCurrentCoordinatesSystemName());
     copy_and_synch(*d_fe_data_manager->getSolutionVector(d_fe_data_manager->getCurrentCoordinatesSystemName()),
                    *X_ghost_vec);

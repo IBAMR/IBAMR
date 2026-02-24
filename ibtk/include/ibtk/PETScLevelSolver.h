@@ -119,8 +119,8 @@ public:
      * \brief Set the nullspace of the linear system.
      */
     void setNullSpace(bool contains_constant_vec,
-                      const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-                          std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >()) override;
+                      const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs =
+                          std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -231,14 +231,14 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    virtual void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                                       std::vector<std::set<int> >& nonoverlap_is);
+    virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                                       std::vector<std::set<int>>& nonoverlap_is);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
-                                              std::vector<std::set<int> >& field_is);
+                                              std::vector<std::set<int>>& field_is);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

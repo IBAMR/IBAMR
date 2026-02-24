@@ -400,7 +400,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_solution, d_rhs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -416,8 +416,8 @@ protected:
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
-    std::vector<SAMRAIPointer<IBTK::HierarchyMathOps> > d_level_math_ops;
+    std::vector<SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation>> d_level_bdry_fill_ops;
+    std::vector<SAMRAIPointer<IBTK::HierarchyMathOps>> d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -547,26 +547,26 @@ private:
     SAMRAIPointer<SAMRAIRefineOperator> d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
     SAMRAIPointer<SAMRAIRefinePatchStrategy> d_prolongation_refine_patch_strategy;
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_prolongation_refine_algorithm;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_prolongation_refine_schedules;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
     SAMRAIPointer<SAMRAICoarsenOperator> d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_restriction_coarsen_schedules;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_ghostfill_nocoarse_refine_schedules;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_synch_refine_algorithm;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_synch_refine_schedules;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_synch_refine_schedules;
 };
 } // namespace IBAMR
 

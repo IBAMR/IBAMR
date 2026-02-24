@@ -135,7 +135,7 @@ public:
     /*!
      * Explicitly remove nullspace components from a solution vector.
      */
-    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec);
+    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec);
 
     /*
      * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
@@ -254,8 +254,8 @@ private:
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
-    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -264,15 +264,15 @@ private:
      * Copy the solution data into the state data maintained by
      * the integrator.
      */
-    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
     /*!
      * Side-centered density variable required for conservative discretization
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_rho_sc_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_rho_sc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -291,7 +291,7 @@ private:
     /*
      * Variables for plotting cell-centered density
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_rho_interp_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_rho_interp_cc_var;
     int d_rho_interp_cc_idx;
 
     /*

@@ -265,7 +265,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     d_hier_sc_data_ops = new SAMRAIHierarchySideDataOpsReal<double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
-    SAMRAIPointer<SAMRAICellVariable<double> > phi_cc_var = d_ls_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
@@ -388,8 +388,8 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
-    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -467,7 +467,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
             double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAICellIndex ci(it());
@@ -497,7 +497,7 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
+            SAMRAIPointer<SAMRAICellData<double>> smooth_C_data = patch->getPatchData(smooth_C_idx);
             SAMRAICellData<double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
 
             C_data.copy(*smooth_C_data);
@@ -537,7 +537,7 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 } // mollifyData
 
 void
-SurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > /*F_data*/,
+SurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> /*F_data*/,
                                                 SAMRAIPointer<SAMRAIPatch> /*patch*/,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
@@ -552,7 +552,7 @@ SurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<dou
 } // setDataOnPatchCell
 
 void
-SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
+SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
                                                 SAMRAIPointer<SAMRAIPatch> patch,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
@@ -567,7 +567,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<dou
     SAMRAISideData<double> N(patch_box,
                              /*depth*/ NDIM,
                              /*gcw*/ SAMRAIIntVector(2));
-    SAMRAIPointer<SAMRAICellData<double> > Phi = patch->getPatchData(d_phi_idx);
+    SAMRAIPointer<SAMRAICellData<double>> Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -625,7 +625,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<dou
                     dx);
 
     // Compute N = grad(C)
-    SAMRAIPointer<SAMRAICellData<double> > C = patch->getPatchData(d_C_idx);
+    SAMRAIPointer<SAMRAICellData<double>> C = patch->getPatchData(d_C_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),

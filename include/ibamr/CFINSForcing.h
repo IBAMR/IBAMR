@@ -333,13 +333,13 @@ private:
     void setupPlotConformationTensor(int C_cc_idx);
 
     // Scratch variables
-    SAMRAIPointer<SAMRAICellVariable<double> > d_C_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_C_cc_var;
     SAMRAIPointer<SAMRAIVariableContext> d_context;
     int d_C_scratch_idx = IBTK::invalid_index;
     SAMRAIPointer<IBTK::muParserCartGridFunction> d_init_conds;
 
     // Draw Variables
-    SAMRAIPointer<SAMRAICellVariable<double> > d_conform_var_draw, d_stress_var_draw, d_div_sig_var_draw;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_conform_var_draw, d_stress_var_draw, d_div_sig_var_draw;
     int d_conform_idx_draw = IBTK::invalid_index, d_stress_idx_draw = IBTK::invalid_index,
         d_div_sig_idx_draw = IBTK::invalid_index;
     bool d_conform_draw = true, d_stress_draw = true, d_div_sig_draw = false;
@@ -354,7 +354,7 @@ private:
     /**
      * Boundary conditions.
      */
-    std::vector<std::unique_ptr<SAMRAIRobinBcCoefStrategy> > d_conc_bc_coefs;
+    std::vector<std::unique_ptr<SAMRAIRobinBcCoefStrategy>> d_conc_bc_coefs;
 
     /**
      * Pointers to the previous objects (required by some APIs).
@@ -375,7 +375,7 @@ private:
 
     // Velocity information
     SAMRAIPointer<IBTK::CartGridFunction> d_u_fcn;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_u_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_u_var;
 
     // Strategy for computing stress and relaxation.
     SAMRAIPointer<CFStrategy> d_cf_strategy;

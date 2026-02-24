@@ -73,9 +73,9 @@ StokesSecondOrderWaveBcCoef::~StokesSecondOrderWaveBcCoef()
 } // ~StokesSecondOrderWaveBcCoef
 
 void
-StokesSecondOrderWaveBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                        SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                        SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+StokesSecondOrderWaveBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                        SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                        SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                         const SAMRAIPointer<SAMRAIVariable>& variable,
                                         const SAMRAIPatch& patch,
                                         const SAMRAIBoundaryBox& bdry_box,

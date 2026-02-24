@@ -153,8 +153,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SAMRAIBox::Iterator b(SAMRAISideGeometry::toSideBox(patch_box, axis)); b; b++)
@@ -302,7 +302,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         const double* const patch_x_lower = pgeom->getXLower();
         const double* const patch_x_upper = pgeom->getXUpper();
         const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-        SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             touches_regular_bdry[axis].resizeArray(2);
@@ -339,9 +339,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 const SAMRAIBox bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data;
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -460,9 +460,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data;
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data;
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -528,8 +528,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
 
         // Set matrix coefficients.
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SAMRAIBox::Iterator b(SAMRAISideGeometry::toSideBox(patch_box, axis)); b; b++)
@@ -601,8 +601,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
-    std::vector<std::set<int> >& is_overlap,
-    std::vector<std::set<int> >& is_nonoverlap,
+    std::vector<std::set<int>>& is_overlap,
+    std::vector<std::set<int>>& is_nonoverlap,
     const SAMRAIIntVector& box_size,
     const SAMRAIIntVector& overlap_size,
     const std::vector<int>& /*num_dofs_per_proc*/,
@@ -626,12 +626,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
-    SAMRAIPointer<SAMRAISideVariable<int> > patch_num_var = new SAMRAISideVariable<int>(
+    SAMRAIPointer<SAMRAISideVariable<int>> patch_num_var = new SAMRAISideVariable<int>(
         "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::"
         "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SAMRAISideVariable<bool> > u_mastr_loc_var = new SAMRAISideVariable<bool>(
+    SAMRAIPointer<SAMRAISideVariable<bool>> u_mastr_loc_var = new SAMRAISideVariable<bool>(
         "StaggeredStokesPETScMatUtilities::"
         "constructPatchLevelASMSubdomains()::u_"
         "mastr_loc_var");
@@ -641,8 +641,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
     }
@@ -671,9 +671,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
         const SAMRAIBox& patch_box = patch->getBox();
         const SAMRAIIntVector patch_size = patch_box.numberCells();
 
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAISideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int upper_domain_side_idx = domain_upper(component_axis) + 1;
@@ -696,7 +696,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
 
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<SAMRAIBox> > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
+    std::vector<std::vector<SAMRAIBox>> overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
     for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++, ++patch_counter)
     {
@@ -721,9 +721,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
         {
             side_patch_box[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
         }
-        SAMRAIPointer<SAMRAISideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_data = patch->getPatchData(p_dof_index_idx);
 #if !defined(NDEBUG)
         {
             const int u_data_depth = u_dof_data->getDepth();
@@ -806,7 +806,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
 } // constructPatchLevelASMSubdomains
 
 void
-StaggeredStokesPETScMatUtilities::constructPatchLevelFields(std::vector<std::set<int> >& is_field,
+StaggeredStokesPETScMatUtilities::constructPatchLevelFields(std::vector<std::set<int>>& is_field,
                                                             std::vector<std::string>& is_field_name,
                                                             const std::vector<int>& num_dofs_per_proc,
                                                             int u_dof_index_idx,
@@ -848,8 +848,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(std::vector<std::set
             side_patch_box[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
         }
 
-        SAMRAIPointer<SAMRAISideData<int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
-        SAMRAIPointer<SAMRAICellData<int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> u_dof_data = patch->getPatchData(u_dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> p_dof_data = patch->getPatchData(p_dof_index_idx);
 #if !defined(NDEBUG)
         const int u_data_depth = u_dof_data->getDepth();
         const int p_data_depth = p_dof_data->getDepth();

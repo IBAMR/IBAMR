@@ -370,8 +370,8 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
         SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const double* const patch_dx = patch_geom->getDx();
-        SAMRAIPointer<SAMRAICellData<double> > n_data = patch->getPatchData(n_idx);
-        SAMRAIPointer<SAMRAICellData<double> > d_data = patch->getPatchData(d_idx);
+        SAMRAIPointer<SAMRAICellData<double>> n_data = patch->getPatchData(n_idx);
+        SAMRAIPointer<SAMRAICellData<double>> d_data = patch->getPatchData(d_idx);
 
         // Note that we only work with cells that satisfy the intersecting criteria.
         for (SAMRAIBox::Iterator it(patch_box); it; it++)
@@ -394,7 +394,7 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 
                 // Create a pair to take care of projection and pseudo-normal for cells
                 // equidistant to multiple elements.
-                std::vector<std::pair<IBTK::VectorNd, IBTK::VectorNd> > vec_equidistant_pair;
+                std::vector<std::pair<IBTK::VectorNd, IBTK::VectorNd>> vec_equidistant_pair;
 
                 for (const auto& elem : elem_set)
                 {
@@ -587,7 +587,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > D_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
@@ -626,7 +626,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
 
             const SAMRAIIndex& patch_lower_index = patch_box.lower();
             const SAMRAIIndex& patch_upper_index = patch_box.upper();
-            SAMRAIPointer<SAMRAICellData<double> > D_iter_data = patch->getPatchData(D_iter_idx);
+            SAMRAIPointer<SAMRAICellData<double>> D_iter_data = patch->getPatchData(D_iter_idx);
             double* const D = D_iter_data->getPointer(0);
             const int D_ghosts = (D_iter_data->getGhostCellWidth()).max();
 

@@ -300,7 +300,7 @@ LDataManager::spread(const int f_data_idx,
                      SAMRAIPointer<LData> ds_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -329,7 +329,7 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -340,9 +340,9 @@ LDataManager::spread(const int f_data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
-    std::vector<SAMRAIPointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > X_data_vec(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > ds_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> F_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> X_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> ds_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     ds_data_vec[level_num] = ds_data;
@@ -364,11 +364,11 @@ LDataManager::spread(const int f_data_idx,
 
 void
 LDataManager::spread(const int f_data_idx,
-                     std::vector<SAMRAIPointer<LData> >& F_data,
-                     std::vector<SAMRAIPointer<LData> >& X_data,
-                     std::vector<SAMRAIPointer<LData> >& ds_data,
+                     std::vector<SAMRAIPointer<LData>>& F_data,
+                     std::vector<SAMRAIPointer<LData>>& X_data,
+                     std::vector<SAMRAIPointer<LData>>& ds_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -394,12 +394,12 @@ LDataManager::spread(const int f_data_idx,
 
 void
 LDataManager::spread(const int f_data_idx,
-                     std::vector<SAMRAIPointer<LData> >& F_data,
-                     std::vector<SAMRAIPointer<LData> >& X_data,
-                     std::vector<SAMRAIPointer<LData> >& ds_data,
+                     std::vector<SAMRAIPointer<LData>>& F_data,
+                     std::vector<SAMRAIPointer<LData>>& X_data,
+                     std::vector<SAMRAIPointer<LData>>& ds_data,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -423,7 +423,7 @@ LDataManager::spread(const int f_data_idx,
         if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
         if (ds_data_ghost_node_update) ds_data[ln]->beginGhostUpdate();
     }
-    std::vector<SAMRAIPointer<LData> > F_ds_data(F_data.size());
+    std::vector<SAMRAIPointer<LData>> F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
@@ -471,7 +471,7 @@ LDataManager::spread(const int f_data_idx,
                      SAMRAIPointer<LData> X_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
@@ -496,7 +496,7 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
@@ -506,8 +506,8 @@ LDataManager::spread(const int f_data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
-    std::vector<SAMRAIPointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > X_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> F_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     spread(f_data_idx,
@@ -526,10 +526,10 @@ LDataManager::spread(const int f_data_idx,
 
 void
 LDataManager::spread(const int f_data_idx,
-                     std::vector<SAMRAIPointer<LData> >& F_data,
-                     std::vector<SAMRAIPointer<LData> >& X_data,
+                     std::vector<SAMRAIPointer<LData>>& F_data,
+                     std::vector<SAMRAIPointer<LData>>& X_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -552,11 +552,11 @@ LDataManager::spread(const int f_data_idx,
 
 void
 LDataManager::spread(const int f_data_idx,
-                     std::vector<SAMRAIPointer<LData> >& F_data,
-                     std::vector<SAMRAIPointer<LData> >& X_data,
+                     std::vector<SAMRAIPointer<LData>>& F_data,
+                     std::vector<SAMRAIPointer<LData>>& X_data,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -578,10 +578,10 @@ LDataManager::spread(const int f_data_idx,
     auto var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > f_cc_var = f_var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > f_ec_var = f_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > f_nc_var = f_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = f_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> f_ec_var = f_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> f_nc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -590,7 +590,7 @@ LDataManager::spread(const int f_data_idx,
 
     // Make a copy of the Eulerian data.
     const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > f_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> f_data_ops =
         SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
@@ -630,25 +630,25 @@ LDataManager::spread(const int f_data_idx,
             const SAMRAIBox& box = idx_data->getGhostBox();
             if (cc_data)
             {
-                SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (ec_data)
             {
-                SAMRAIPointer<SAMRAIEdgeData<double> > f_ec_data = f_data;
+                SAMRAIPointer<SAMRAIEdgeData<double>> f_ec_data = f_data;
                 LEInteractor::spread(
                     f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (nc_data)
             {
-                SAMRAIPointer<SAMRAINodeData<double> > f_nc_data = f_data;
+                SAMRAIPointer<SAMRAINodeData<double>> f_nc_data = f_data;
                 LEInteractor::spread(
                     f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (sc_data)
             {
-                SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
@@ -673,8 +673,8 @@ LDataManager::interp(const int f_data_idx,
                      SAMRAIPointer<LData> F_data,
                      SAMRAIPointer<LData> X_data,
                      const int level_num,
-                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds,
                      const double fill_data_time)
 {
     const int coarsest_ln = 0;
@@ -682,8 +682,8 @@ LDataManager::interp(const int f_data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
-    std::vector<SAMRAIPointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > X_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> F_data_vec(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     interp(f_data_idx,
@@ -699,10 +699,10 @@ LDataManager::interp(const int f_data_idx,
 
 void
 LDataManager::interp(const int f_data_idx,
-                     std::vector<SAMRAIPointer<LData> >& F_data,
-                     std::vector<SAMRAIPointer<LData> >& X_data,
-                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds,
+                     std::vector<SAMRAIPointer<LData>>& F_data,
+                     std::vector<SAMRAIPointer<LData>>& X_data,
+                     const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds,
                      const double fill_data_time,
                      const int coarsest_ln_in,
                      const int finest_ln_in)
@@ -716,10 +716,10 @@ LDataManager::interp(const int f_data_idx,
     // Determine the type of data centering.
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAICellVariable<double> > f_cc_var = f_var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > f_ec_var = f_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > f_nc_var = f_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> f_cc_var = f_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> f_ec_var = f_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> f_nc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -755,7 +755,7 @@ LDataManager::interp(const int f_data_idx,
             const SAMRAIBox& box = idx_data->getBox();
             if (cc_data)
             {
-                SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
+                SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -767,7 +767,7 @@ LDataManager::interp(const int f_data_idx,
             }
             if (ec_data)
             {
-                SAMRAIPointer<SAMRAIEdgeData<double> > f_ec_data = f_data;
+                SAMRAIPointer<SAMRAIEdgeData<double>> f_ec_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -779,7 +779,7 @@ LDataManager::interp(const int f_data_idx,
             }
             if (nc_data)
             {
-                SAMRAIPointer<SAMRAINodeData<double> > f_nc_data = f_data;
+                SAMRAIPointer<SAMRAINodeData<double>> f_nc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -791,7 +791,7 @@ LDataManager::interp(const int f_data_idx,
             }
             if (sc_data)
             {
-                SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+                SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -1376,8 +1376,8 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
     const double* const domain_x_lower = d_grid_geom->getXLower();
     const double* const domain_x_upper = d_grid_geom->getXUpper();
     const double* const domain_dx = d_grid_geom->getDx();
-    std::vector<std::map<int, SAMRAIIntVector> > periodic_offset_data(finest_ln + 1);
-    std::vector<std::map<int, Vector> > periodic_displacement_data(finest_ln + 1);
+    std::vector<std::map<int, SAMRAIIntVector>> periodic_offset_data(finest_ln + 1);
+    std::vector<std::map<int, Vector>> periodic_displacement_data(finest_ln + 1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1558,7 +1558,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
         using LNodeTransactionComponent = LNodeTransaction::LTransactionComponent;
-        std::vector<std::vector<LNodeTransactionComponent> > src_index_set(num_procs);
+        std::vector<std::vector<LNodeTransactionComponent>> src_index_set(num_procs);
         for (size_t k = 0; k < num_nodes; ++k)
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
@@ -1581,8 +1581,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 
         // Setup communication transactions between each pair of processors.
         SAMRAISchedule lnode_idx_data_mover;
-        std::vector<std::vector<SAMRAIPointer<SAMRAITransaction> > > transactions(
-            num_procs, std::vector<SAMRAIPointer<SAMRAITransaction> >(num_procs));
+        std::vector<std::vector<SAMRAIPointer<SAMRAITransaction>>> transactions(
+            num_procs, std::vector<SAMRAIPointer<SAMRAITransaction>>(num_procs));
         for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
             for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
@@ -1685,12 +1685,12 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 
     std::vector<AO> new_ao(finest_ln + 1);
 
-    std::vector<std::vector<Vec> > src_vec(finest_ln + 1);
-    std::vector<std::vector<Vec> > dst_vec(finest_ln + 1);
-    std::vector<std::vector<VecScatter> > scatter(finest_ln + 1);
-    std::vector<std::map<int, IS> > src_IS(finest_ln + 1);
-    std::vector<std::map<int, IS> > dst_IS(finest_ln + 1);
-    std::vector<std::map<int, VecScatter> > scatter_template(finest_ln + 1);
+    std::vector<std::vector<Vec>> src_vec(finest_ln + 1);
+    std::vector<std::vector<Vec>> dst_vec(finest_ln + 1);
+    std::vector<std::vector<VecScatter>> scatter(finest_ln + 1);
+    std::vector<std::map<int, IS>> src_IS(finest_ln + 1);
+    std::vector<std::map<int, IS>> dst_IS(finest_ln + 1);
+    std::vector<std::map<int, VecScatter>> scatter_template(finest_ln + 1);
 
     // The number of all local (e.g., on processor) and ghost (e.g., off
     // processor) nodes.
@@ -1727,7 +1727,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::map<std::string, SAMRAIPointer<LData> >& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, SAMRAIPointer<LData>>& level_data = d_lag_mesh_data[level_number];
         const std::vector<int>::size_type num_data = level_data.size();
         src_vec[level_number].resize(num_data);
         dst_vec[level_number].resize(num_data);
@@ -1770,7 +1770,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 
         // Setup VecScatter objects for each LData object and start scattering
         // data.
-        std::map<std::string, SAMRAIPointer<LData> >::iterator it;
+        std::map<std::string, SAMRAIPointer<LData>>::iterator it;
         int i;
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
@@ -1851,9 +1851,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         const int num_ghost_nodes = getNumberOfGhostNodes(level_number);
         const int num_local_and_ghost_nodes = num_local_nodes + num_ghost_nodes;
-        SAMRAIPointer<std::vector<LNode> > new_local_and_ghost_nodes =
-            new std::vector<LNode>(num_local_and_ghost_nodes);
-        std::vector<SAMRAIPointer<LNode> > local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
+        SAMRAIPointer<std::vector<LNode>> new_local_and_ghost_nodes = new std::vector<LNode>(num_local_and_ghost_nodes);
+        std::vector<SAMRAIPointer<LNode>> local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
         for (int k = 0; k < num_local_and_ghost_nodes; ++k)
         {
             local_and_ghost_node_ptrs[k] = SAMRAIPointer<LNode>(&(*new_local_and_ghost_nodes)[k], false);
@@ -1902,8 +1901,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::map<std::string, SAMRAIPointer<LData> >& level_data = d_lag_mesh_data[level_number];
-        std::map<std::string, SAMRAIPointer<LData> >::iterator it;
+        std::map<std::string, SAMRAIPointer<LData>>& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, SAMRAIPointer<LData>>::iterator it;
         int i;
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
@@ -2006,7 +2005,7 @@ LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIPointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            SAMRAIPointer<SAMRAICellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
@@ -2215,7 +2214,7 @@ LDataManager::initializeLevelData(const SAMRAIPointer<SAMRAIBasePatchHierarchy> 
             d_strct_name_to_strct_id_map[level_number][cit->second] = cit->first;
         }
 
-        for (std::map<int, std::pair<int, int> >::const_iterator cit(
+        for (std::map<int, std::pair<int, int>>::const_iterator cit(
                  d_strct_id_to_lag_idx_range_map[level_number].begin());
              cit != d_strct_id_to_lag_idx_range_map[level_number].end();
              ++cit)
@@ -2264,7 +2263,7 @@ LDataManager::initializeLevelData(const SAMRAIPointer<SAMRAIBasePatchHierarchy> 
             const SAMRAIBox& patch_box = patch->getBox();
 
             SAMRAIPointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            SAMRAIPointer<SAMRAICellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
 
             node_count_data->fillAll(0.0);
 
@@ -2431,7 +2430,7 @@ LDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarchy
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            SAMRAIPointer<SAMRAICellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
         }
 
@@ -2450,8 +2449,8 @@ LDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarchy
             const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
-            const SAMRAIPointer<SAMRAICellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
+            const SAMRAIPointer<SAMRAICellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
 
             for (SAMRAICellIterator ic(patch_box); ic; ic++)
             {
@@ -2470,7 +2469,7 @@ LDataManager::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarchy
             const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
 
-            SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
 
             for (int ln = level_number + 1; ln <= d_finest_ln; ++ln)
             {
@@ -2827,7 +2826,7 @@ LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int finest_l
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string, SAMRAIPointer<LData> >& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, SAMRAIPointer<LData>>& level_data = d_lag_mesh_data[level_number];
         for (const auto& name_data_pair : level_data)
         {
             name_data_pair.second->beginGhostUpdate();
@@ -2853,7 +2852,7 @@ LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string, SAMRAIPointer<LData> >& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, SAMRAIPointer<LData>>& level_data = d_lag_mesh_data[level_number];
         for (const auto& name_data_pair : level_data)
         {
             name_data_pair.second->endGhostUpdate();
@@ -3169,7 +3168,7 @@ LDataManager::getFromRestart()
             d_strct_name_to_strct_id_map[level_number][cit->second] = cit->first;
         }
 
-        for (std::map<int, std::pair<int, int> >::const_iterator cit(
+        for (std::map<int, std::pair<int, int>>::const_iterator cit(
                  d_strct_id_to_lag_idx_range_map[level_number].begin());
              cit != d_strct_id_to_lag_idx_range_map[level_number].end();
              ++cit)

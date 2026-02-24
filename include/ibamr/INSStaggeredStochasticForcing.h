@@ -176,7 +176,7 @@ private:
      */
     double d_std = std::numeric_limits<double>::quiet_NaN();
     int d_num_rand_vals = 0;
-    std::vector<SAMRAIArray<double> > d_weights;
+    std::vector<SAMRAIArray<double>> d_weights;
 
     /*!
      * Boundary condition scalings.
@@ -188,16 +188,16 @@ private:
      * stochastic stresses.
      */
     SAMRAIPointer<SAMRAIVariableContext> d_context;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_W_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_W_cc_var;
     int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_W_nc_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_W_nc_var;
     int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > d_W_ec_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> d_W_ec_var;
     int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif

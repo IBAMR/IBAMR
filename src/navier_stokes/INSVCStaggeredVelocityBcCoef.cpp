@@ -199,9 +199,9 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                         SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                         SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+INSVCStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                         SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                         SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                          const SAMRAIPointer<SAMRAIVariable>& variable,
                                          const SAMRAIPatch& patch,
                                          const SAMRAIBoundaryBox& bdry_box,
@@ -228,7 +228,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    SAMRAIPointer<SAMRAISideData<double> > u_target_data;
+    SAMRAIPointer<SAMRAISideData<double>> u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -262,9 +262,9 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
-    SAMRAIPointer<SAMRAINodeData<double> > mu_data;
+    SAMRAIPointer<SAMRAINodeData<double>> mu_data;
 #elif (NDIM == 3)
-    SAMRAIPointer<SAMRAIEdgeData<double> > mu_data;
+    SAMRAIPointer<SAMRAIEdgeData<double>> mu_data;
 #endif
     if (!d_fluid_solver->muIsConstant())
     {

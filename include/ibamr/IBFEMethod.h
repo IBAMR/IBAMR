@@ -632,8 +632,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                              double data_time) override;
 
     /*!
@@ -685,7 +685,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -705,7 +705,7 @@ public:
      */
     void spreadFluidSource(int q_data_idx,
                            IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& q_prolongation_scheds,
+                           const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& q_prolongation_scheds,
                            double data_time) override;
 
     /*!
@@ -750,8 +750,8 @@ public:
     void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                   int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   int integrator_step,
                                   double init_data_time,
                                   bool initial_time) override;
@@ -1007,7 +1007,7 @@ protected:
      * number, the patch data index for the coarse level data, and the patch
      * data index which will be filled with fine level data.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAIPointer<SAMRAIRefineSchedule> > d_prolongation_schedules;
+    std::map<std::pair<int, std::pair<int, int>>, SAMRAIPointer<SAMRAIRefineSchedule>> d_prolongation_schedules;
 
     /// Minimum ghost cell width.
     SAMRAIIntVector d_ghosts = 0;
@@ -1068,7 +1068,7 @@ protected:
     /*!
      * Objects used to impose direct forcing kinematics.
      */
-    std::vector<SAMRAIPointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
+    std::vector<SAMRAIPointer<IBAMR::IBFEDirectForcingKinematics>> d_direct_forcing_kinematics_data;
 
     /*!
      * Functions used to compute source/sink strength on the Lagrangian mesh.

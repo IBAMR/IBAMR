@@ -128,7 +128,7 @@ protected:
     /*
      * The collection of function objects.
      */
-    std::vector<SAMRAIPointer<CartGridFunction> > d_fcns;
+    std::vector<SAMRAIPointer<CartGridFunction>> d_fcns;
 
 private:
     /*!

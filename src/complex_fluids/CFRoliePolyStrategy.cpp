@@ -47,7 +47,7 @@ CFRoliePolyStrategy::CFRoliePolyStrategy(const std::string& object_name, SAMRAIP
 
 void
 CFRoliePolyStrategy::computeStress(int sig_idx,
-                                   SAMRAIPointer<SAMRAICellVariable<double> > /*sig_var*/,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> /*sig_var*/,
                                    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                    double /*data_time*/)
 {
@@ -60,7 +60,7 @@ CFRoliePolyStrategy::computeStress(int sig_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > sig_data = patch->getPatchData(sig_idx);
+            SAMRAIPointer<SAMRAICellData<double>> sig_data = patch->getPatchData(sig_idx);
 
             for (SAMRAICellIterator ci(sig_data->getGhostBox()); ci; ci++)
             {
@@ -75,9 +75,9 @@ CFRoliePolyStrategy::computeStress(int sig_idx,
 
 void
 CFRoliePolyStrategy::computeRelaxation(const int R_idx,
-                                       SAMRAIPointer<SAMRAICellVariable<double> > /*R_var*/,
+                                       SAMRAIPointer<SAMRAICellVariable<double>> /*R_var*/,
                                        int C_idx,
-                                       SAMRAIPointer<SAMRAICellVariable<double> > /*C_var*/,
+                                       SAMRAIPointer<SAMRAICellVariable<double>> /*C_var*/,
                                        TensorEvolutionType evolve_type,
                                        SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                        double /*data_time*/)
@@ -91,8 +91,8 @@ CFRoliePolyStrategy::computeRelaxation(const int R_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAICellData<double> > R_data = patch->getPatchData(R_idx);
-            SAMRAIPointer<SAMRAICellData<double> > C_data = patch->getPatchData(C_idx);
+            SAMRAIPointer<SAMRAICellData<double>> R_data = patch->getPatchData(R_idx);
+            SAMRAIPointer<SAMRAICellData<double>> C_data = patch->getPatchData(C_idx);
 
             for (SAMRAICellIterator ci(patch->getBox()); ci; ci++)
             {

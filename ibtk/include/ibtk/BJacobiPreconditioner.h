@@ -253,7 +253,7 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAIPointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAIPointer<LinearSolver>> d_pc_map;
 };
 } // namespace IBTK
 

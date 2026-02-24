@@ -73,7 +73,7 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getVelocityVariable(),
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getNewContext());
 
-    SAMRAIPointer<SAMRAICellVariable<double> > phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
     if (!phi_cc_var)
     {
         TBOX_ERROR(
@@ -99,7 +99,7 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_new_idx);
 
             // Compute a representative grid spacing
             double vol_cell = 1.0;
@@ -166,7 +166,7 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            SAMRAIPointer<SAMRAICellData<double> > phi_data = patch->getPatchData(phi_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_new_idx);
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
                 SAMRAIIndex i = it();

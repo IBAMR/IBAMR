@@ -70,8 +70,8 @@ PETScPCLSWrapper::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVec
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&b, false));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);

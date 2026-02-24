@@ -182,12 +182,12 @@ private:
     SAMRAIPointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
 
     // Patch data to support delta function.
-    SAMRAIPointer<SAMRAISideVariable<double> > d_wide_u_var, d_wide_f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_wide_u_var, d_wide_f_var;
     SAMRAIPointer<SAMRAIVariableContext> d_wide_ctx;
     int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
 
     // SVR for holding widened u/f.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_x_wide, d_b_wide;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
     bool d_is_initialized = false, d_reinitializing_solver = false;

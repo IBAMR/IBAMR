@@ -224,7 +224,7 @@ protected:
     double d_sigma = std::numeric_limits<double>::signaling_NaN(),
            d_num_interface_cells = std::numeric_limits<double>::signaling_NaN();
     SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
 
 private:
     /*!
@@ -275,7 +275,7 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
+    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> F_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,
@@ -284,7 +284,7 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
+    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,

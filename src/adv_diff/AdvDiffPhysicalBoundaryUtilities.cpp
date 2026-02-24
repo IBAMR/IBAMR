@@ -46,8 +46,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(SAMRAIPointer<SAMRAICellData<double> > Q_data,
-                                                                SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data,
+AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(SAMRAIPointer<SAMRAICellData<double>> Q_data,
+                                                                SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data,
                                                                 SAMRAIPointer<SAMRAIPatch> patch,
                                                                 const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                                 const double fill_time,
@@ -96,9 +96,9 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(SAMRAIPointer<SA
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             if (bc_coefs[depth] == nullptr) continue;

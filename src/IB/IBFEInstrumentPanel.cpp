@@ -98,7 +98,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     // Get boundary information.
     std::vector<dof_id_type> nodes;
     std::vector<boundary_id_type> bcs;
-    const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
+    const std::vector<std::tuple<dof_id_type, boundary_id_type>> node_list = boundary_info.build_node_list();
     for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
@@ -126,7 +126,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     // Determine the number of points in each collection of perimeter nodes, keep track of the node indices for the
     // perimeter nodes, and evaluate the position of the centroid of each meter mesh.
     std::vector<libMesh::Point> meter_centroid(d_num_meters);
-    std::vector<std::set<libMesh::dof_id_type> > structure_perimeter_node_ids(d_num_meters);
+    std::vector<std::set<libMesh::dof_id_type>> structure_perimeter_node_ids(d_num_meters);
     for (unsigned int i = 0; i < structure_mesh.n_nodes(); ++i)
     {
         const Node* const node_ptr = structure_mesh.node_ptr(i);
@@ -149,9 +149,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     }
 
     // Keep track of all elements associated with each perimeter node.
-    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type> > > structure_elem_to_node_map(
+    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type>>> structure_elem_to_node_map(
         d_num_meters);
-    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type> > > structure_node_to_elem_map(
+    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type>>> structure_node_to_elem_map(
         d_num_meters);
     for (unsigned int e = 0; e < structure_mesh.n_elem(); ++e)
     {
@@ -176,7 +176,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     }
 
     // Create an ordered list of perimeter nodes.
-    std::vector<std::vector<const Node*> > structure_nodes(d_num_meters);
+    std::vector<std::vector<const Node*>> structure_nodes(d_num_meters);
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
         std::set<libMesh::dof_id_type> unassigned_node_ids = structure_perimeter_node_ids[meter_idx];
@@ -331,9 +331,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Evaluate the meter quadrature points and determine mappings from patch numbers to particular quadrature points.
-    std::vector<std::map<int, std::vector<int> > > meter_idx_map;
-    std::vector<std::map<int, std::vector<Vector> > > meter_x_map, meter_u_corr_map, meter_normal_map;
-    std::vector<std::map<int, std::vector<double> > > meter_JxW_map;
+    std::vector<std::map<int, std::vector<int>>> meter_idx_map;
+    std::vector<std::map<int, std::vector<Vector>>> meter_x_map, meter_u_corr_map, meter_normal_map;
+    std::vector<std::map<int, std::vector<double>>> meter_JxW_map;
     computeMeterQuadratureData(
         meter_idx_map, meter_x_map, meter_u_corr_map, meter_normal_map, meter_JxW_map, hierarchy, ib_method_ops);
 
@@ -371,8 +371,8 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 }
             }
 
-            SAMRAIPointer<SAMRAICellData<double> > u_cc_data = patch->getPatchData(U_data_idx);
-            SAMRAIPointer<SAMRAISideData<double> > u_sc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> u_cc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_data = patch->getPatchData(U_data_idx);
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
@@ -387,7 +387,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             {
                 TBOX_ERROR("no velocity data!\n");
             }
-            SAMRAIPointer<SAMRAICellData<double> > p_cc_data = patch->getPatchData(P_data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> p_cc_data = patch->getPatchData(P_data_idx);
             if (p_cc_data)
             {
                 LEInteractor::interpolate(
@@ -468,7 +468,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             if (x_centroid_local_patch_idx != IBTK::invalid_index)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(x_centroid_local_patch_idx);
-                SAMRAIPointer<SAMRAICellData<double> > p_cc_data = patch->getPatchData(P_data_idx);
+                SAMRAIPointer<SAMRAICellData<double>> p_cc_data = patch->getPatchData(P_data_idx);
                 if (p_cc_data)
                 {
                     LEInteractor::interpolate(&d_centroid_pressure_values[meter_idx],
@@ -689,11 +689,11 @@ IBFEInstrumentPanel::resetMeterConfiguration(IBFEMethod* const ib_method_ops, co
 }
 
 void
-IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::vector<int> > >& meter_idx_map,
-                                                std::vector<std::map<int, std::vector<Vector> > >& meter_x_map,
-                                                std::vector<std::map<int, std::vector<Vector> > >& meter_u_corr_map,
-                                                std::vector<std::map<int, std::vector<Vector> > >& meter_normal_map,
-                                                std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
+IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::vector<int>>>& meter_idx_map,
+                                                std::vector<std::map<int, std::vector<Vector>>>& meter_x_map,
+                                                std::vector<std::map<int, std::vector<Vector>>>& meter_u_corr_map,
+                                                std::vector<std::map<int, std::vector<Vector>>>& meter_normal_map,
+                                                std::vector<std::map<int, std::vector<double>>>& meter_JxW_map,
                                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                 const IBFEMethod* const ib_method_ops)
 {
@@ -750,7 +750,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
     }
 
     // Loop over all levels and try to assign each quadrature point to a patch in each level.
-    std::vector<std::vector<int> > meter_qp_global_ln(d_num_meters), meter_qp_local_ln(d_num_meters),
+    std::vector<std::vector<int>> meter_qp_global_ln(d_num_meters), meter_qp_local_ln(d_num_meters),
         meter_qp_local_patch_idx(d_num_meters);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -822,7 +822,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
     // quadrature point to the appropriate data structures.
     //
     // We want to assign each point to the finest available patch level.
-    std::vector<std::vector<int> > meter_qp_assignment_count(d_num_meters);
+    std::vector<std::vector<int>> meter_qp_assignment_count(d_num_meters);
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
         IBTK_MPI::maxReduction(meter_qp_global_ln[meter_idx].data(), meter_qp_global_ln[meter_idx].size());
@@ -837,9 +837,9 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         fe_elem->attach_quadrature_rule(qrule.get());
 
         const std::vector<libMesh::Point>& q_point = fe_elem->get_xyz();
-        const std::vector<std::vector<double> >& phi = fe_elem->get_phi();
+        const std::vector<std::vector<double>>& phi = fe_elem->get_phi();
         const std::vector<Real>& JxW = fe_elem->get_JxW();
-        std::vector<std::vector<dof_id_type> > u_dof_indices(NDIM);
+        std::vector<std::vector<dof_id_type>> u_dof_indices(NDIM);
 
         // Loop over ALL meter mesh elements.
         unsigned int meter_qp_idx = 0;

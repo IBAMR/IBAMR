@@ -86,7 +86,7 @@ template <class T>
 bool
 LIndexSetDataFactory<T>::validCopyTo(const SAMRAIPointer<SAMRAIPatchDataFactory>& dst_pdf) const
 {
-    const SAMRAIPointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
+    const SAMRAIPointer<LIndexSetDataFactory<T>> lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

@@ -649,13 +649,13 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > T_new_data = patch->getPatchData(d_T_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > h_new_data = patch->getPatchData(d_h_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > h_current_data = patch->getPatchData(d_h_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
-            SAMRAIPointer<SAMRAICellData<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_new_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_new_data = patch->getPatchData(d_h_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_current_data = patch->getPatchData(d_h_current_idx);
+            SAMRAIPointer<SAMRAICellData<double>> rho_new_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> rho_current_data = patch->getPatchData(d_rho_current_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_scratch_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -712,10 +712,10 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > h_data = patch->getPatchData(d_h_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_data = patch->getPatchData(d_h_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_new_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -759,11 +759,11 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(T_idx);
-            SAMRAIPointer<SAMRAICellData<double> > h_data = patch->getPatchData(h_idx);
-            SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(rho_idx);
-            SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(lf_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(rho_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -810,9 +810,9 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(T_idx);
-            SAMRAIPointer<SAMRAICellData<double> > h_data = patch->getPatchData(h_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -857,10 +857,10 @@ EnthalpyHierarchyIntegrator::updateEnthalpy(int h_new_idx, const int T_new_idx, 
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > h_new_data = patch->getPatchData(h_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > T_new_data = patch->getPatchData(T_new_idx);
-            SAMRAIPointer<SAMRAICellData<double> > T_pre_data = patch->getPatchData(T_pre_idx);
-            SAMRAIPointer<SAMRAICellData<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_new_data = patch->getPatchData(h_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_new_data = patch->getPatchData(T_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_pre_data = patch->getPatchData(T_pre_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -886,9 +886,9 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > T_data = patch->getPatchData(T_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_idx);
-            SAMRAIPointer<SAMRAICellData<double> > dh_dT_data = patch->getPatchData(dh_dT_idx);
+            SAMRAIPointer<SAMRAICellData<double>> T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<SAMRAICellData<double>> dh_dT_data = patch->getPatchData(dh_dT_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
@@ -935,9 +935,9 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > lf_data = patch->getPatchData(lf_idx);
-            SAMRAIPointer<SAMRAICellData<double> > h_data = patch->getPatchData(h_idx);
-            SAMRAIPointer<SAMRAICellData<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_idx);
+            SAMRAIPointer<SAMRAICellData<double>> h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {

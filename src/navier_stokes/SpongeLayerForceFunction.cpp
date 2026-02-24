@@ -119,8 +119,8 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
-    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -148,9 +148,9 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SpongeLayerForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
-                                             SAMRAIPointer<SAMRAICellData<double> > U_current_data,
-                                             SAMRAIPointer<SAMRAICellData<double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> F_data,
+                                             SAMRAIPointer<SAMRAICellData<double>> U_current_data,
+                                             SAMRAIPointer<SAMRAICellData<double>> U_new_data,
                                              const double kappa,
                                              SAMRAIPointer<SAMRAIPatch> patch)
 {
@@ -202,9 +202,9 @@ SpongeLayerForceFunction::setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double
 } // setDataOnPatchCell
 
 void
-SpongeLayerForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
-                                             SAMRAIPointer<SAMRAISideData<double> > U_current_data,
-                                             SAMRAIPointer<SAMRAISideData<double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
+                                             SAMRAIPointer<SAMRAISideData<double>> U_current_data,
+                                             SAMRAIPointer<SAMRAISideData<double>> U_new_data,
                                              const double kappa,
                                              SAMRAIPointer<SAMRAIPatch> patch)
 {

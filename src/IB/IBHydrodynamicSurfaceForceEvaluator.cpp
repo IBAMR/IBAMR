@@ -76,7 +76,7 @@ static const int GVISCOSITYG = 1;
 
 IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     std::string object_name,
-    SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
     SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
     SAMRAIPointer<INSHierarchyIntegrator> fluid_solver,
     SAMRAIPointer<SAMRAIDatabase> db)
@@ -103,14 +103,14 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     SAMRAIPointer<SAMRAIVariableContext> ls_ctx = var_db->getContext(d_object_name + "::ls_ctx");
     d_ls_solid_idx = var_db->registerVariableAndContext(d_ls_solid_var, ls_ctx, SAMRAIIntVector(GLEVELSETG));
 
-    SAMRAIPointer<SAMRAISideVariable<double> > u_var = d_fluid_solver->getVelocityVariable();
+    SAMRAIPointer<SAMRAISideVariable<double>> u_var = d_fluid_solver->getVelocityVariable();
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_var);
 #endif
     SAMRAIPointer<SAMRAIVariableContext> u_ctx = var_db->getContext(d_object_name + "::u_ctx");
     d_u_idx = var_db->registerVariableAndContext(u_var, u_ctx, SAMRAIIntVector(GVELOCITYG));
 
-    SAMRAIPointer<SAMRAICellVariable<double> > p_var = d_fluid_solver->getPressureVariable();
+    SAMRAIPointer<SAMRAICellVariable<double>> p_var = d_fluid_solver->getPressureVariable();
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_var);
 #endif
@@ -130,9 +130,9 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
         d_mu_is_const = p_vc_ins_hier_integrator->muIsConstant();
         if (!d_mu_is_const)
         {
-            SAMRAIPointer<SAMRAICellVariable<double> > mu_adv_diff_var =
+            SAMRAIPointer<SAMRAICellVariable<double>> mu_adv_diff_var =
                 p_vc_ins_hier_integrator->getTransportedViscosityVariable();
-            SAMRAIPointer<SAMRAICellVariable<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
+            SAMRAIPointer<SAMRAICellVariable<double>> mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
             SAMRAIPointer<SAMRAIVariableContext> mu_ctx = var_db->getContext(d_object_name + "::mu_ctx");
             if (mu_adv_diff_var)
             {
@@ -268,10 +268,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
             for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
 
             // Get the required patch data
-            SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(d_ls_solid_idx);
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(d_u_idx);
-            SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(d_p_idx);
-            SAMRAIPointer<SAMRAICellData<double> > mu_data;
+            SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(d_ls_solid_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(d_p_idx);
+            SAMRAIPointer<SAMRAICellData<double>> mu_data;
             if (!d_mu_is_const) mu_data = patch->getPatchData(d_mu_idx);
 
             auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
@@ -449,7 +449,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(SAMRAIPointer<SAMRAIPatchHier
     hier_ls_bdry_fill->fillData(fill_time);
 
     // Fill ghost cells for velocity
-    SAMRAIPointer<SAMRAISideVariable<double> > u_var = d_fluid_solver->getVelocityVariable();
+    SAMRAIPointer<SAMRAISideVariable<double>> u_var = d_fluid_solver->getVelocityVariable();
     const int u_idx = use_current_ctx ?
                           var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
                       use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) :
@@ -476,9 +476,9 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(SAMRAIPointer<SAMRAIPatchHier
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
-        SAMRAIPointer<SAMRAICellVariable<double> > mu_adv_diff_var =
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_adv_diff_var =
             p_vc_ins_hier_integrator->getTransportedViscosityVariable();
-        SAMRAIPointer<SAMRAICellVariable<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
         SAMRAIRobinBcCoefStrategy* mu_bc_coef = nullptr;
         int mu_idx = IBTK::invalid_index;
         if (mu_adv_diff_var)
@@ -519,7 +519,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(SAMRAIPointer<SAMRAIPatchHier
     }
 
     // Fill ghost cells for pressure
-    SAMRAIPointer<SAMRAICellVariable<double> > p_var = d_fluid_solver->getPressureVariable();
+    SAMRAIPointer<SAMRAICellVariable<double>> p_var = d_fluid_solver->getPressureVariable();
     const int p_idx = use_current_ctx ?
                           var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
                       use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) :

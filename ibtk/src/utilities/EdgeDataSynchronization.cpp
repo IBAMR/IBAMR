@@ -137,7 +137,7 @@ EdgeDataSynchronization::initializeOperatorState(
             const int data_idx = transaction_comp.d_data_idx;
             SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
+            SAMRAIPointer<SAMRAIEdgeVariable<double>> ec_var = var;
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
@@ -241,7 +241,7 @@ EdgeDataSynchronization::resetTransactionComponents(
             const int data_idx = transaction_comp.d_data_idx;
             SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = var;
+            SAMRAIPointer<SAMRAIEdgeVariable<double>> ec_var = var;
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"

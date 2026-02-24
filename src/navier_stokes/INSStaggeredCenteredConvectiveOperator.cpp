@@ -333,8 +333,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAISideData<double> > N_data = patch->getPatchData(N_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const SAMRAIIntVector& N_data_gcw = N_data->getGhostCellWidth();
             const SAMRAIIntVector& U_data_gcw = U_data->getGhostCellWidth();

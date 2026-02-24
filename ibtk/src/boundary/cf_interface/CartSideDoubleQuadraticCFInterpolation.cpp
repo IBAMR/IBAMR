@@ -236,9 +236,9 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(SAMRAIPatch& fine,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAISideData<double> > fdata = fine.getPatchData(patch_data_index);
-        SAMRAIPointer<SAMRAISideData<double> > cdata = coarse.getPatchData(patch_data_index);
-        SAMRAIPointer<SAMRAISideData<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+        SAMRAIPointer<SAMRAISideData<double>> fdata = fine.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAISideData<double>> cdata = coarse.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAISideData<int>> indicator_data = fine.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
@@ -410,7 +410,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(SAMRAIPointer<SAMRAIPa
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            SAMRAIPointer<SAMRAISideData<int>> sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -465,10 +465,10 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(SAMRAIPatch& patc
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAISideData<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SAMRAISideData<double>> data = patch.getPatchData(patch_data_index);
         SAMRAISideData<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        SAMRAIPointer<SAMRAISideData<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+        SAMRAIPointer<SAMRAISideData<int>> indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);

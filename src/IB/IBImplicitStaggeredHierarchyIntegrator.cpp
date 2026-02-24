@@ -400,12 +400,12 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > eul_sol_vec =
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> eul_sol_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > eul_rhs_vec =
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> eul_rhs_vec =
         eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
@@ -584,12 +584,12 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > eul_sol_vec =
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> eul_sol_vec =
         new SAMRAISAMRAIVectorReal<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > eul_rhs_vec =
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> eul_rhs_vec =
         eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
@@ -836,7 +836,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     ierr = VecNestGetSubVecs(f, nullptr, &component_rhs_vecs);
     CHKERRQ(ierr);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u, f_u;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
@@ -925,7 +925,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u, f_u;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
@@ -1088,7 +1088,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     ierr = VecDuplicate(d_X_current, &X_new);
     CHKERRQ(ierr);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
@@ -1161,7 +1161,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     ierr = VecNestGetSubVecs(f, nullptr, &component_rhs_vecs);
     CHKERRQ(ierr);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u, f_u;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
@@ -1239,7 +1239,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u, f_u;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
@@ -1341,7 +1341,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     ierr = VecNestGetSubVecs(y, nullptr, &component_y_vecs);
     CHKERRQ(ierr);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > eul_x, eul_y;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> eul_x, eul_y;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_x_vecs[0], &eul_x);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0], &eul_y);
 
@@ -1439,7 +1439,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 {
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > f_g, u_p;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> f_g, u_p;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &f_g);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(y, &u_p);
     SAMRAIPointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;

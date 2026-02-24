@@ -196,7 +196,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAIPointer<SAMRAIRefineSchedule> > d_transfer_forward_schedules;
+    std::map<std::pair<int, std::pair<int, int>>, SAMRAIPointer<SAMRAIRefineSchedule>> d_transfer_forward_schedules;
 
     /*!
      * Refinement schedules for transferring data from the secondary hierarchy
@@ -207,7 +207,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAIPointer<SAMRAIRefineSchedule> > d_transfer_backward_schedules;
+    std::map<std::pair<int, std::pair<int, int>>, SAMRAIPointer<SAMRAIRefineSchedule>> d_transfer_backward_schedules;
 
     /**
      * Scratch index data object for the patch hierarchy managed by this class.

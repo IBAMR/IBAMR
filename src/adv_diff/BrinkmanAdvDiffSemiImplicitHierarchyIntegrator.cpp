@@ -135,7 +135,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     const SAMRAIIntVector no_ghosts = 0;
     for (const auto& Q_var : d_Q_var)
     {
-        SAMRAIPointer<SAMRAICellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
         // Variables required for Brinkman penalization
@@ -143,15 +143,15 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
             d_brinkman_penalization && d_brinkman_penalization->hasBrinkmanBoundaryCondition(Q_var);
         if (apply_brinkman)
         {
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_var =
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_var =
                 new SAMRAICellVariable<double>(Q_var->getName() + "::Cb", Q_depth);
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_rhs_var =
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_rhs_var =
                 new SAMRAICellVariable<double>(Q_var->getName() + "::Cb_RHS", Q_depth);
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_var =
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_var =
                 new SAMRAISideVariable<double>(Q_var->getName() + "::Db", Q_depth);
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_rhs_var =
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_rhs_var =
                 new SAMRAISideVariable<double>(Q_var->getName() + "::Db_RHS", Q_depth);
-            SAMRAIPointer<SAMRAICellVariable<double> > Fb_var =
+            SAMRAIPointer<SAMRAICellVariable<double>> Fb_var =
                 new SAMRAICellVariable<double>(Q_var->getName() + "::Fb", Q_depth);
             d_Q_Cb_map[Q_var] = Cb_var;
             d_Q_Cb_rhs_map[Q_var] = Cb_rhs_var;
@@ -248,10 +248,10 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_var = *cit;
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -282,7 +282,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
                                          << "  valid choice is BACKWARD_EULER.\n");
             }
 
-            SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+            SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
             if (u_var)
             {
                 TBOX_ERROR("Advection velocity for "
@@ -308,11 +308,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
                      << "Applying Brinkman penalization for variable number " << l << "\n";
             }
 
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_var = d_Q_Cb_map[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_var = d_Q_Db_map[Q_var];
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > Fb_var = d_Q_Fb_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_var = d_Q_Cb_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_var = d_Q_Db_map[Q_var];
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_rhs_var = d_Q_Db_rhs_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Fb_var = d_Q_Fb_map[Q_var];
             int Cb_current_idx = IBTK::invalid_index, Cb_rhs_scratch_idx = IBTK::invalid_index;
             int Db_current_idx = IBTK::invalid_index, Db_rhs_scratch_idx = IBTK::invalid_index;
 
@@ -459,11 +459,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
         }
 
         // Account for the convective difference term.
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
-            SAMRAIPointer<SAMRAICellVariable<double> > N_var = d_Q_N_map[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > N_old_var = d_Q_N_old_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> N_var = d_Q_N_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> N_old_var = d_Q_N_old_map[Q_var];
             TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -568,10 +568,10 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_var = *cit;
-        SAMRAIPointer<SAMRAICellVariable<double> > F_var = d_Q_F_map[Q_var];
-        SAMRAIPointer<SAMRAICellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        SAMRAIPointer<SAMRAISideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> F_var = d_Q_F_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -599,12 +599,12 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
 #endif
             TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
             const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
-            SAMRAIPointer<SAMRAISideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_var = d_Q_Cb_map[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_var = d_Q_Db_map[Q_var];
-            SAMRAIPointer<SAMRAISideVariable<double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
-            SAMRAIPointer<SAMRAICellVariable<double> > Fb_var = d_Q_Fb_map[Q_var];
+            SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_var = d_Q_Cb_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_var = d_Q_Db_map[Q_var];
+            SAMRAIPointer<SAMRAISideVariable<double>> Db_rhs_var = d_Q_Db_rhs_map[Q_var];
+            SAMRAIPointer<SAMRAICellVariable<double>> Fb_var = d_Q_Fb_map[Q_var];
             int Cb_new_idx = IBTK::invalid_index, Cb_scratch_idx = IBTK::invalid_index;
             int Db_new_idx = IBTK::invalid_index, Db_scratch_idx = IBTK::invalid_index;
 
@@ -749,9 +749,9 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
         }
 
         // Account for the convective difference term.
-        SAMRAIPointer<SAMRAIFaceVariable<double> > u_var = d_Q_u_map[Q_var];
-        SAMRAIPointer<SAMRAICellVariable<double> > N_var = d_Q_N_map[Q_var];
-        SAMRAIPointer<SAMRAICellVariable<double> > N_old_var = d_Q_N_old_map[Q_var];
+        SAMRAIPointer<SAMRAIFaceVariable<double>> u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> N_var = d_Q_N_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> N_old_var = d_Q_N_old_map[Q_var];
         TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
         if (u_var)
         {
@@ -967,7 +967,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
                 const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                SAMRAIPointer<SAMRAIFaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                SAMRAIPointer<SAMRAIFaceData<double>> u_fc_new_data = patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -994,7 +994,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerBrinkmanAdvDiffBcHelper(
 
 void
 BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::setTransportQuantityTimeIndependent(
-    SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
     bool Q_time_independent)
 {
     d_Q_time_independent[Q_var] = Q_time_independent;
@@ -1003,7 +1003,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::setTransportQuantityTimeIndepend
 
 void
 BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
-    SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
     bool output_Q)
 {
 #if !defined(NDEBUG)

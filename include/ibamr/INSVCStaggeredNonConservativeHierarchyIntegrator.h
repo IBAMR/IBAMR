@@ -136,7 +136,7 @@ public:
     /*!
      * Explicitly remove nullspace components from a solution vector.
      */
-    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec);
+    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec);
 
     /*
      * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
@@ -153,7 +153,7 @@ public:
      * \note If multiple advection diffusion integrators are registered, you can specify which advection diffusion
      * integrator is used to evolve the density.
      */
-    void setTransportedMassDensityVariable(SAMRAIPointer<SAMRAICellVariable<double> > rho_adv_diff_var,
+    void setTransportedMassDensityVariable(SAMRAIPointer<SAMRAICellVariable<double>> rho_adv_diff_var,
                                            unsigned int adv_diff_idx = 0);
 
 protected:
@@ -248,8 +248,8 @@ private:
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
-    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -258,8 +258,8 @@ private:
      * Copy the solution data into the state data maintained by
      * the integrator.
      */
-    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -267,7 +267,7 @@ private:
     /*!
      * Interpolated density variable required for non-conservative discretization
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_rho_interp_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_rho_interp_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -294,7 +294,7 @@ private:
     /*
      * Variable to keep track of a transported density variable maintained by an advection-diffusion integrator
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_rho_adv_diff_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_rho_adv_diff_var;
 
     /*
      * Index to track which advection diffusion integrator maintains the density variable.

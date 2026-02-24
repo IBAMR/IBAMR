@@ -2118,8 +2118,8 @@ template <class T>
 void
 LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                           const SAMRAIPointer<LData> X_data,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2153,8 +2153,8 @@ template <class T>
 void
 LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                           const SAMRAIPointer<LData> X_data,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAINodeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2188,8 +2188,8 @@ template <class T>
 void
 LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                           const SAMRAIPointer<LData> X_data,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2229,8 +2229,8 @@ template <class T>
 void
 LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                           const SAMRAIPointer<LData> X_data,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2272,8 +2272,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2336,8 +2336,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAINodeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2406,8 +2406,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2495,8 +2495,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
-                          const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                          const SAMRAIPointer<LIndexSetData<T>> idx_data,
+                          const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const SAMRAIIntVector& periodic_shift,
@@ -2586,7 +2586,7 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -2609,79 +2609,8 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
-                          const SAMRAIPointer<SAMRAIPatch> patch,
-                          const SAMRAIBox& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                mask_data,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const SAMRAIPointer<SAMRAINodeData<double> > q_data,
-                          const SAMRAIPointer<SAMRAIPatch> patch,
-                          const SAMRAIBox& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
-                          const SAMRAIPointer<SAMRAIPatch> patch,
-                          const SAMRAIBox& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -2705,7 +2634,78 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                          const SAMRAIPointer<SAMRAINodeData<double>> q_data,
+                          const SAMRAIPointer<SAMRAIPatch> patch,
+                          const SAMRAIBox& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
+                          const SAMRAIPointer<SAMRAIPatch> patch,
+                          const SAMRAIBox& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
+                          const SAMRAIPointer<SAMRAIPatch> patch,
+                          const SAMRAIBox& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -2802,7 +2802,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -2862,8 +2862,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                          const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                          const SAMRAIPointer<SAMRAICellData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -2974,7 +2974,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                          const SAMRAIPointer<SAMRAINodeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -3042,7 +3042,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -3127,8 +3127,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                          const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                          const SAMRAIPointer<SAMRAISideData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -3251,7 +3251,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                          const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                           const SAMRAIPointer<SAMRAIPatch> patch,
                           const SAMRAIBox& interp_box,
                           const std::string& interp_fcn)
@@ -3334,10 +3334,10 @@ LEInteractor::interpolate(double* const Q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const SAMRAIPointer<LData> Q_data,
                      const SAMRAIPointer<LData> X_data,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3369,10 +3369,10 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                      const SAMRAIPointer<LData> Q_data,
                      const SAMRAIPointer<LData> X_data,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3404,10 +3404,10 @@ LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const SAMRAIPointer<LData> Q_data,
                      const SAMRAIPointer<LData> X_data,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3445,10 +3445,10 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                      const SAMRAIPointer<LData> Q_data,
                      const SAMRAIPointer<LData> X_data,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3486,12 +3486,12 @@ LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3550,12 +3550,12 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3620,12 +3620,12 @@ LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3709,12 +3709,12 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<LIndexSetData<T>> idx_data,
                      const SAMRAIPointer<SAMRAIPatch> patch,
                      const SAMRAIBox& spread_box,
                      const SAMRAIIntVector& periodic_shift,
@@ -3800,7 +3800,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3823,8 +3823,8 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                     SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                     SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3848,7 +3848,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3871,7 +3871,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3894,8 +3894,8 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                     SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                     SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3919,7 +3919,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
@@ -3942,7 +3942,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
@@ -4002,8 +4002,8 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
-                     SAMRAIPointer<SAMRAICellData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> mask_data,
+                     SAMRAIPointer<SAMRAICellData<double>> q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
@@ -4113,7 +4113,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > mask_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
@@ -4179,7 +4179,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const double* const Q_data,
                      const int /*Q_size*/,
                      const int Q_depth,
@@ -4257,8 +4257,8 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
-                     SAMRAIPointer<SAMRAISideData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> mask_data,
+                     SAMRAIPointer<SAMRAISideData<double>> q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
@@ -4377,7 +4377,7 @@ LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > mask_data,
 }
 
 void
-LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                      const double* const Q_data,
                      const int /*Q_size*/,
                      const int Q_depth,
@@ -6006,7 +6006,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                 const SAMRAIBox& box,
                                 const SAMRAIPointer<SAMRAIPatch> patch,
                                 const SAMRAIIntVector& periodic_shift,
-                                const SAMRAIPointer<LIndexSetData<T> > idx_data)
+                                const SAMRAIPointer<LIndexSetData<T>> idx_data)
 {
     local_indices.clear();
     periodic_shifts.clear();
@@ -6383,8 +6383,8 @@ LEInteractor::userDefinedSpread(double* q,
 
 template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                                               const SAMRAIPointer<LData> X_data,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAICellData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6392,8 +6392,8 @@ template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
 
 template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                                               const SAMRAIPointer<LData> X_data,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAINodeData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6401,8 +6401,8 @@ template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
 
 template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                                               const SAMRAIPointer<LData> X_data,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAISideData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6410,8 +6410,8 @@ template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
 
 template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
                                               const SAMRAIPointer<LData> X_data,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6421,8 +6421,8 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAICellData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAICellData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6432,8 +6432,8 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAINodeData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAINodeData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6443,8 +6443,8 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAISideData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAISideData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
@@ -6454,88 +6454,88 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
+                                              const SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                                               const SAMRAIPointer<SAMRAIPatch> patch,
                                               const SAMRAIBox& interp_box,
                                               const SAMRAIIntVector& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                                          const SAMRAIPointer<LData> Q_data,
                                          const SAMRAIPointer<LData> X_data,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                                          const SAMRAIPointer<LData> Q_data,
                                          const SAMRAIPointer<LData> X_data,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                                          const SAMRAIPointer<LData> Q_data,
                                          const SAMRAIPointer<LData> X_data,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                                          const SAMRAIPointer<LData> Q_data,
                                          const SAMRAIPointer<LData> X_data,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAICellData<double>> q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAINodeData<double>> q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAISideData<double>> q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAIEdgeData<double>> q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAIPointer<SAMRAIPatch> patch,
                                          const SAMRAIBox& spread_box,
                                          const SAMRAIIntVector& periodic_shift,
@@ -6546,6 +6546,6 @@ template void IBTK::LEInteractor::buildLocalIndices(std::vector<int>& local_indi
                                                     const SAMRAIBox& box,
                                                     const SAMRAIPointer<SAMRAIPatch> patch,
                                                     const SAMRAIIntVector& periodic_shift,
-                                                    const SAMRAIPointer<LIndexSetData<LNode> > idx_data);
+                                                    const SAMRAIPointer<LIndexSetData<LNode>> idx_data);
 
 //////////////////////////////////////////////////////////////////////////////

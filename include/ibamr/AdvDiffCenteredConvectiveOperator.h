@@ -50,7 +50,7 @@ public:
      * \brief Class constructor.
      */
     AdvDiffCenteredConvectiveOperator(std::string object_name,
-                                      SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                      SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                       SAMRAIPointer<SAMRAIDatabase> input_db,
                                       ConvectiveDifferencingType difference_form,
                                       std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs);
@@ -64,7 +64,7 @@ public:
      * \brief Static function to construct an AdvDiffCenteredConvectiveOperator.
      */
     static SAMRAIPointer<ConvectiveOperator> allocate_operator(const std::string& object_name,
-                                                               SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                                               SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                                SAMRAIPointer<SAMRAIDatabase> input_db,
                                                                ConvectiveDifferencingType difference_form,
                                                                const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)

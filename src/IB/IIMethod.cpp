@@ -647,7 +647,7 @@ void
 IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     IBAMR_TIMER_START(t_postprocess_integrate_data);
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = {
         d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs
     };
 
@@ -809,8 +809,8 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
 void
 IIMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -835,7 +835,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
     }
 
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = { d_X_IB_ghost_vecs };
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = { d_X_IB_ghost_vecs };
 
     if (SAMRAIMathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -926,8 +926,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         const DofMap& X_dof_map = X_system.get_dof_map();
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> U_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         FEType U_fe_type = U_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
         FEType X_fe_type = X_dof_map.variable_type(0);
@@ -937,14 +937,14 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         std::array<System*, NDIM> DU_jump_system;
         std::array<const DofMap*, NDIM> DU_jump_dof_map;
         std::array<FEDataManager::SystemDofMapCache*, NDIM> DU_jump_dof_map_cache;
-        std::array<std::vector<std::vector<unsigned int> >, NDIM> DU_jump_dof_indices;
+        std::array<std::vector<std::vector<unsigned int>>, NDIM> DU_jump_dof_indices;
         FEType DU_jump_fe_type;
-        std::vector<std::vector<unsigned int> > WSS_out_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> WSS_out_dof_indices(NDIM);
         System* WSS_out_system;
         const DofMap* WSS_out_dof_map = nullptr;
         FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache = nullptr;
 
-        std::vector<std::vector<unsigned int> > WSS_in_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> WSS_in_dof_indices(NDIM);
         System* WSS_in_system;
         const DofMap* WSS_in_dof_map = nullptr;
         FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = nullptr;
@@ -985,34 +985,34 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         FEType fe_type = U_fe_type;
         std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe_X->get_JxW();
-        const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
 
         FEType fe_DU_jump_type = DU_jump_fe_type;
         std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
         const std::vector<double>& JxW_jump = fe_DU_jump->get_JxW();
-        const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
+        const std::vector<std::vector<double>>& phi_DU_jump = fe_DU_jump->get_phi();
 
         X_ghost_vec->close();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        std::unique_ptr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
-        std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
-        std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
-        std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_rhs_vec = U_vec->zero_clone();
+        std::vector<DenseVector<double>> U_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_n_rhs_vec = U_n_vec->zero_clone();
+        std::vector<DenseVector<double>> U_n_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_t_rhs_vec = U_t_vec->zero_clone();
+        std::vector<DenseVector<double>> U_t_rhs_e(NDIM);
 
-        std::unique_ptr<NumericVector<double> > WSS_out_rhs_vec =
-            (d_use_u_interp_correction ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double>> WSS_out_rhs_vec =
+            (d_use_u_interp_correction ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double>>());
         DenseVector<double> WSS_out_rhs_e[NDIM];
 
-        std::unique_ptr<NumericVector<double> > WSS_in_rhs_vec =
-            (d_use_u_interp_correction ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double>> WSS_in_rhs_vec =
+            (d_use_u_interp_correction ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double>>());
         DenseVector<double> WSS_in_rhs_e[NDIM];
 
         boost::multi_array<double, 2> x_node;
@@ -1201,13 +1201,13 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
             const SAMRAIBox ghost_box = SAMRAIBox::grow(patch->getBox(), SAMRAIIntVector(u_ghost_num));
 
-            SAMRAIPointer<SAMRAICellData<double> > u_cc_data = u_data;
+            SAMRAIPointer<SAMRAICellData<double>> u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            SAMRAIPointer<SAMRAISideData<double> > u_sc_data = u_data;
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
@@ -1635,10 +1635,10 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     P_out_vec = d_P_out_half_vecs[part];
     copy_and_synch(*P_out_vec, *P_out_ghost_vec);
 
-    std::unique_ptr<NumericVector<double> > TAU_in_rhs_vec = TAU_in_vec->zero_clone();
+    std::unique_ptr<NumericVector<double>> TAU_in_rhs_vec = TAU_in_vec->zero_clone();
     std::array<DenseVector<double>, NDIM> TAU_in_rhs_e;
 
-    std::unique_ptr<NumericVector<double> > TAU_out_rhs_vec = TAU_out_vec->zero_clone();
+    std::unique_ptr<NumericVector<double>> TAU_out_rhs_vec = TAU_out_vec->zero_clone();
     std::array<DenseVector<double>, NDIM> TAU_out_rhs_e;
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1711,19 +1711,19 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
-    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+    const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
     dphi_dxi_X[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_out_fe_type);
-    const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
+    const std::vector<std::vector<double>>& phi_P = fe_P->get_phi();
 
     std::unique_ptr<FEBase> fe_tau = FEBase::build(dim, TAU_out_fe_type);
-    const std::vector<std::vector<double> >& phi_tau = fe_tau->get_phi();
+    const std::vector<std::vector<double>>& phi_tau = fe_tau->get_phi();
 
     std::unique_ptr<FEBase> fe_wss = FEBase::build(dim, WSS_out_fe_type);
-    const std::vector<std::vector<double> >& phi_wss = fe_wss->get_phi();
+    const std::vector<std::vector<double>>& phi_wss = fe_wss->get_phi();
 
     X_ghost_vec->close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
@@ -1732,11 +1732,11 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
-    std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+    std::unique_ptr<NumericVector<double>> X0_vec = X_petsc_vec->clone();
     copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
     X0_vec->close();
 
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node, X_node, WSS_in_node, WSS_out_node, n_qp_node, TAU_in_node, TAU_out_node;
@@ -2053,11 +2053,11 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* X_vec = nullptr;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
-    std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
+    std::unique_ptr<NumericVector<double>> P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
     DenseVector<double> P_in_rhs_e;
 
-    std::unique_ptr<NumericVector<double> > P_out_rhs_vec = (*P_out_vec).zero_clone();
+    std::unique_ptr<NumericVector<double>> P_out_rhs_vec = (*P_out_vec).zero_clone();
     P_out_rhs_vec->zero();
     DenseVector<double> P_out_rhs_e;
 
@@ -2083,7 +2083,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2095,8 +2095,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<unsigned int> P_jump_dof_indices;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
-    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+    const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
     dphi_dxi_X[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
@@ -2114,9 +2114,9 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<unsigned int> P_out_dof_indices;
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_out_fe_type);
-    const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
+    const std::vector<std::vector<double>>& phi_P = fe_P->get_phi();
 
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node;
@@ -2298,7 +2298,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
         const SAMRAIBox& interp_box = patch->getBox();
 
-        SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_data_idx);
 
         const SAMRAIBox ghost_box = SAMRAIBox::grow(patch->getBox(), SAMRAIIntVector(p_ghost_num));
 
@@ -2566,7 +2566,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* F_vec = d_F_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        std::unique_ptr<NumericVector<double>> F_rhs_vec = F_vec->zero_clone();
         std::array<DenseVector<double>, NDIM> F_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -2575,7 +2575,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         double surface_area = 0.0;
 
         NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump_half_vecs[part] : nullptr;
-        std::unique_ptr<NumericVector<double> > P_jump_rhs_vec;
+        std::unique_ptr<NumericVector<double>> P_jump_rhs_vec;
         DenseVector<double> P_jump_rhs_e;
         if (d_use_pressure_jump_conditions)
         {
@@ -2584,7 +2584,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         double P_jump_rhs_integral = 0.0;
 
         std::array<NumericVector<double>*, NDIM> DU_jump_vec;
-        std::array<std::unique_ptr<NumericVector<double> >, NDIM> DU_jump_rhs_vec;
+        std::array<std::unique_ptr<NumericVector<double>>, NDIM> DU_jump_rhs_vec;
         std::array<std::array<DenseVector<double>, NDIM>, NDIM> DU_jump_rhs_e;
         if (d_use_velocity_jump_conditions)
         {
@@ -2656,8 +2656,8 @@ IIMethod::computeLagrangianForce(const double data_time)
         std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
         fe_X->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe_X->get_JxW();
-        const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+        const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
         dphi_dxi_X[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
@@ -2673,7 +2673,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 
         std::unique_ptr<FEBase> fe_jump = FEBase::build(dim, fe_jump_type);
         fe_jump->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi_jump = fe_jump->get_phi();
+        const std::vector<std::vector<double>>& phi_jump = fe_jump->get_phi();
 
         FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]->getFEData());
         fe_interpolator.attachQuadratureRule(qrule.get());
@@ -2687,7 +2687,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         fe_interpolator.init();
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
+        std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
@@ -2938,13 +2938,13 @@ IIMethod::computeLagrangianForce(const double data_time)
 void
 IIMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
+                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*f_prolongation_scheds*/,
                       const double data_time)
 {
     TBOX_ASSERT(SAMRAIMathUtilities<double>::equalEps(data_time, d_half_time));
     IBAMR_TIMER_START(t_spread_force);
 
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = {
         d_X_IB_ghost_vecs, d_X_half_vecs, d_F_IB_ghost_vecs, d_F_half_vecs
     };
 
@@ -3284,8 +3284,8 @@ void
 IIMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                    int /*u_data_idx*/,
-                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
                                    int /*integrator_step*/,
                                    double /*init_data_time*/,
                                    bool /*initial_time*/)
@@ -3490,19 +3490,19 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
     FEType fe_type = X_fe_type;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
 
     std::unique_ptr<FEBase> fe_P_jump = FEBase::build(dim, P_jump_fe_type);
-    const std::vector<std::vector<double> >& phi_P_jump = fe_P_jump->get_phi();
+    const std::vector<std::vector<double>>& phi_P_jump = fe_P_jump->get_phi();
 
     FEType fe_DU_jump_type = DU_jump_fe_type;
     std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
-    const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
+    const std::vector<std::vector<double>>& phi_DU_jump = fe_DU_jump->get_phi();
 
     // Loop over the patches to impose jump conditions on the Eulerian grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getFinestPatchLevelNumber();
     boost::multi_array<double, 1> P_jump_node;
@@ -3524,7 +3524,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
         if (num_active_patch_elems == 0) continue;
 
         const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-        SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
         const SAMRAIBox& patch_box = patch->getBox();
         const SAMRAICellIndex& patch_lower = patch_box.lower();
         std::array<SAMRAIBox, NDIM> side_ghost_boxes;
@@ -3545,15 +3545,15 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
         std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_normals;
+        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double>>, IndexOrder>, NDIM> intersection_normals;
 
         std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
             intersection_u_ref_coords;
-        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_u_normals;
+        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double>>, IndexOrder>, NDIM> intersection_u_normals;
 
         std::array<std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_points, intersectionSide_u_ref_coords;
-        std::array<std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double>>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
         // Loop over the elements.
@@ -3680,8 +3680,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         }
                     }
 
-                    std::vector<std::pair<double, libMesh::Point> > intersections;
-                    std::array<std::vector<std::pair<double, libMesh::Point> >, NDIM - 1> intersectionsSide;
+                    std::vector<std::pair<double, libMesh::Point>> intersections;
+                    std::array<std::vector<std::pair<double, libMesh::Point>>, NDIM - 1> intersectionsSide;
 
                     static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
 
@@ -3740,7 +3740,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         intersection_points[axis][i_s_prime];
                                     const std::vector<libMesh::Point>& candidate_ref_coords =
                                         intersection_ref_coords[axis][i_s_prime];
-                                    const std::vector<VectorValue<double> >& candidate_normals =
+                                    const std::vector<VectorValue<double>>& candidate_normals =
                                         intersection_normals[axis][i_s_prime];
 
                                     found_same_intersection_point =
@@ -3819,7 +3819,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         intersection_u_points[axis][i_s_prime];
                                     const std::vector<libMesh::Point>& candidate_ref_coords =
                                         intersection_u_ref_coords[axis][i_s_prime];
-                                    const std::vector<VectorValue<double> >& candidate_normals =
+                                    const std::vector<VectorValue<double>>& candidate_normals =
                                         intersection_u_normals[axis][i_s_prime];
 
                                     found_same_intersection_point =
@@ -3994,7 +3994,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                             intersectionSide_u_points[j][axis][i_s_prime];
                                         const std::vector<libMesh::Point>& candidate_ref_coords =
                                             intersectionSide_u_ref_coords[j][axis][i_s_prime];
-                                        const std::vector<VectorValue<double> >& candidate_normals =
+                                        const std::vector<VectorValue<double>>& candidate_normals =
                                             intersectionSide_u_normals[j][axis][i_s_prime];
 
                                         found_same_intersection_point =
@@ -4076,12 +4076,12 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
                                           const SAMRAISideIndex& i_s_prime,
                                           const std::vector<libMesh::Point>& candidate_coords,
                                           const std::vector<libMesh::Point>& candidate_ref_coords,
-                                          const std::vector<libMesh::VectorValue<double> >& candidate_normals)
+                                          const std::vector<libMesh::VectorValue<double>>& candidate_normals)
 {
     bool found_same_intersection_point = false;
     std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
     std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
-    std::vector<VectorValue<double> >::const_iterator n_prime_it = candidate_normals.begin();
+    std::vector<VectorValue<double>>::const_iterator n_prime_it = candidate_normals.begin();
     for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
     {
         const libMesh::Point& x_prime = *x_prime_it;

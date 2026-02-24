@@ -240,8 +240,8 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, SAMRAIPointer<SAMRAIPa
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIIndex& ilower = patch->getBox().lower();
             const SAMRAIIndex& iupper = patch->getBox().upper();
-            SAMRAIPointer<SAMRAISideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > U_fc_data = patch->getPatchData(U_fc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_sc_data = patch->getPatchData(U_sc_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
@@ -869,7 +869,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<S
         }
         else if (d_mu_var)
         {
-            SAMRAIPointer<SAMRAICellVariable<double> > cc_var = d_mu_var;
+            SAMRAIPointer<SAMRAICellVariable<double>> cc_var = d_mu_var;
             if (!cc_var)
             {
                 TBOX_ERROR(
@@ -910,7 +910,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<S
         d_mu_new_idx = invalid_index;
         d_mu_init_fcn = nullptr;
 
-        SAMRAIPointer<SAMRAICellVariable<double> > mu_cc_scratch_var =
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_cc_scratch_var =
             new SAMRAICellVariable<double>(d_object_name + "_mu_cc_scratch_var",
                                            /*depth*/ 1);
         d_mu_scratch_idx = var_db->registerVariableAndContext(mu_cc_scratch_var, getScratchContext(), mu_cell_ghosts);
@@ -1032,7 +1032,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<S
     // Register persistent variables to be used for boundary conditions and other
     // applications.
     // Note: these will not be deallocated.
-    SAMRAIPointer<SAMRAICellVariable<double> > mu_cc_linear_op_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> mu_cc_linear_op_var =
         new SAMRAICellVariable<double>(d_object_name + "_mu_cc_linear_op_var",
                                        /*depth*/ 1);
     d_mu_linear_op_idx = var_db->registerVariableAndContext(
@@ -1041,7 +1041,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<S
         var_db->registerVariableAndContext(d_mu_interp_var,
                                            var_db->getContext(d_object_name + "::mu_interp_linear_op"),
                                            NDIM == 2 ? node_ghosts : edge_ghosts);
-    SAMRAIPointer<SAMRAISideVariable<double> > rho_sc_linear_op_var =
+    SAMRAIPointer<SAMRAISideVariable<double>> rho_sc_linear_op_var =
         new SAMRAISideVariable<double>(d_object_name + "_rho_sc_linear_op_var",
                                        /*depth*/ 1);
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
@@ -1258,7 +1258,7 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
 } // postprocessIntegrateHierarchy
 
 void
-INSVCStaggeredHierarchyIntegrator::removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec)
+INSVCStaggeredHierarchyIntegrator::removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec)
 {
     for (const auto& nul_vec : d_nul_vecs)
     {
@@ -1373,7 +1373,7 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(SAMRAIRob
 
 void
 INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(
-    SAMRAIPointer<SAMRAICellVariable<double> > mu_adv_diff_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> mu_adv_diff_var,
     unsigned int adv_diff_idx)
 {
 #if !defined(NDEBUG)
@@ -1384,7 +1384,7 @@ INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(
     return;
 } // setTransportedViscosityVariable
 
-SAMRAIPointer<SAMRAICellVariable<double> >
+SAMRAIPointer<SAMRAICellVariable<double>>
 INSVCStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
 {
     return d_mu_adv_diff_var;
@@ -1401,7 +1401,7 @@ INSVCStaggeredHierarchyIntegrator::getStableTimestep(SAMRAIPointer<SAMRAIPatch> 
     const SAMRAIIndex& ilower = patch->getBox().lower();
     const SAMRAIIndex& iupper = patch->getBox().upper();
 
-    SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const SAMRAIIntVector& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -1602,12 +1602,12 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            SAMRAIPointer<SAMRAISideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
             indicator_data->fillAll(0.0);
 
-            SAMRAIPointer<SAMRAISideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_current_data = patch->getPatchData(d_U_current_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
             U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
@@ -1621,12 +1621,12 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             {
                 SAMRAIPointer<SAMRAIPatch> patch = old_level->getPatch(p());
 
-                SAMRAIPointer<SAMRAISideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+                SAMRAIPointer<SAMRAISideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(1.0);
 
-                SAMRAIPointer<SAMRAISideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                SAMRAIPointer<SAMRAISideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-                SAMRAIPointer<SAMRAISideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+                SAMRAIPointer<SAMRAISideData<double>> U_current_data = patch->getPatchData(d_U_current_idx);
+                SAMRAIPointer<SAMRAISideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+                SAMRAIPointer<SAMRAISideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
                 U_regrid_data->copy(*U_current_data);
                 U_src_data->copy(*U_current_data);
             }
@@ -1993,10 +1993,10 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
                     for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                     {
                         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                        SAMRAIPointer<SAMRAISideData<double> > nul_data =
+                        SAMRAIPointer<SAMRAISideData<double>> nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                         nul_data->getArrayData(k).fillAll(1.0);
-                        SAMRAIPointer<SAMRAISideData<double> > U_nul_data =
+                        SAMRAIPointer<SAMRAISideData<double>> U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }

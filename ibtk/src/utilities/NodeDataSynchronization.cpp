@@ -137,7 +137,7 @@ NodeDataSynchronization::initializeOperatorState(
             const int data_idx = transaction_comp.d_data_idx;
             SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
+            SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
@@ -241,7 +241,7 @@ NodeDataSynchronization::resetTransactionComponents(
             const int data_idx = transaction_comp.d_data_idx;
             SAMRAIPointer<SAMRAIVariable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = var;
+            SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"

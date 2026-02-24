@@ -350,8 +350,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 
 void
 IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
-                                       const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                       const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                        const double data_time)
 {
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
@@ -399,8 +399,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         FEType fe_type = U_fe_type;
         std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -416,7 +416,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         VecGhostGetLocalForm(X_ghosted_vec, &X_local_vec);
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
-        std::unique_ptr<NumericVector<double> > X0_vec = X_vec->clone();
+        std::unique_ptr<NumericVector<double>> X0_vec = X_vec->clone();
         X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
         X0_vec->close();
 
@@ -425,13 +425,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         // of the interpolated velocity field onto the FE basis functions.
         PetscVector<double>* U_rhs_vec = U_rhs_vecs[part];
         U_rhs_vec->zero();
-        std::vector<DenseVector<double> > U_rhs_e(NDIM);
+        std::vector<DenseVector<double>> U_rhs_e(NDIM);
         PetscVector<double>* U_n_rhs_vec = U_n_rhs_vecs[part];
         U_n_rhs_vec->zero();
-        std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
+        std::vector<DenseVector<double>> U_n_rhs_e(NDIM);
         PetscVector<double>* U_t_rhs_vec = U_t_rhs_vecs[part];
         U_t_rhs_vec->zero();
-        std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
+        std::vector<DenseVector<double>> U_t_rhs_e(NDIM);
         boost::multi_array<double, 2> X_node, x_node;
         std::vector<double> U_qp, x_qp;
         VectorValue<double> U, U_n, U_t, N, n;
@@ -507,13 +507,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             // that are within the patch interior.
             const SAMRAIBox& interp_box = patch->getBox();
             SAMRAIPointer<SAMRAIPatchData> u_data = patch->getPatchData(u_data_idx);
-            SAMRAIPointer<SAMRAICellData<double> > u_cc_data = u_data;
+            SAMRAIPointer<SAMRAICellData<double>> u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            SAMRAIPointer<SAMRAISideData<double> > u_sc_data = u_data;
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_data = u_data;
             if (u_sc_data)
             {
                 LEInteractor::interpolate(
@@ -781,8 +781,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -797,7 +797,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         fe_interpolator.init();
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
+        std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
@@ -966,7 +966,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 void
 IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
+                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*f_prolongation_scheds*/,
                                const double data_time)
 {
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
@@ -1260,8 +1260,8 @@ IBFESurfaceMethod::initializePatchHierarchy(
     SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
     SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
     int /*u_data_idx*/,
-    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
     int /*integrator_step*/,
     double /*init_data_time*/,
     bool /*initial_time*/)
@@ -1453,13 +1453,13 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     FEType fe_type = DP_fe_type;
 
     std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
     // Loop over the patches to impose jump conditions on the Eulerian grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getFinestPatchLevelNumber();
     boost::multi_array<double, 1> DP_node;
@@ -1480,7 +1480,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         if (num_active_patch_elems == 0) continue;
 
         const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-        SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
         const SAMRAIBox& patch_box = patch->getBox();
         const SAMRAICellIndex& patch_lower = patch_box.lower();
         std::array<SAMRAIBox, NDIM> side_ghost_boxes;
@@ -1494,7 +1494,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
         std::array<std::map<SAMRAIIndex, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_normals;
+        std::array<std::map<SAMRAIIndex, std::vector<VectorValue<double>>, IndexOrder>, NDIM> intersection_normals;
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1581,7 +1581,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         r(d) = (d == axis ? 0.0 :
                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                     }
-                    std::vector<std::pair<double, libMesh::Point> > intersections;
+                    std::vector<std::pair<double, libMesh::Point>> intersections;
                     static const double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);
@@ -1625,7 +1625,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     intersection_points[axis][i_s_prime];
                                 const std::vector<libMesh::Point>& candidate_ref_coords =
                                     intersection_ref_coords[axis][i_s_prime];
-                                const std::vector<VectorValue<double> >& candidate_normals =
+                                const std::vector<VectorValue<double>>& candidate_normals =
                                     intersection_normals[axis][i_s_prime];
                                 auto x_prime_it = candidate_coords.begin();
                                 auto xi_prime_it = candidate_ref_coords.begin();
@@ -1728,12 +1728,12 @@ IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,
                                                    const SAMRAISideIndex& i_s_prime,
                                                    const std::vector<libMesh::Point>& candidate_coords,
                                                    const std::vector<libMesh::Point>& candidate_ref_coords,
-                                                   const std::vector<libMesh::VectorValue<double> >& candidate_normals)
+                                                   const std::vector<libMesh::VectorValue<double>>& candidate_normals)
 {
     bool found_same_intersection_point = false;
     std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
     std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
-    std::vector<VectorValue<double> >::const_iterator n_prime_it = candidate_normals.begin();
+    std::vector<VectorValue<double>>::const_iterator n_prime_it = candidate_normals.begin();
     for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
     {
         const libMesh::Point& x_prime = *x_prime_it;

@@ -151,13 +151,13 @@ public:
     /*!
      * Register the specific heat \f$ C_p \f$ variable.
      */
-    void registerSpecificHeatVariable(SAMRAIPointer<SAMRAICellVariable<double> > specific_heat_var,
+    void registerSpecificHeatVariable(SAMRAIPointer<SAMRAICellVariable<double>> specific_heat_var,
                                       const bool output_Cp = false);
 
     /*!
      * Register the density \f$ \rho \f$ variable.
      */
-    void registerDensityVariable(SAMRAIPointer<SAMRAICellVariable<double> > rho_var, const bool output_rho = false);
+    void registerDensityVariable(SAMRAIPointer<SAMRAICellVariable<double>> rho_var, const bool output_rho = false);
 
     /*!
      * \brief Function to reset the phase density, specific heat and conductivity if they are
@@ -190,51 +190,51 @@ public:
     /*!
      * \brief Get the liquid fraction variable that is being manintained by this integrator.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > getLiquidFractionVariable() const;
+    SAMRAIPointer<SAMRAICellVariable<double>> getLiquidFractionVariable() const;
 
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    virtual void registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+    virtual void registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                                 const bool output_lf_var = true);
 
     /*!
      * \brief Register gradient of liquid fraction variable.
      */
-    virtual void registerLiquidFractionGradientVariable(SAMRAIPointer<SAMRAICellVariable<double> > lf_gradient_var,
+    virtual void registerLiquidFractionGradientVariable(SAMRAIPointer<SAMRAICellVariable<double>> lf_gradient_var,
                                                         const bool output_lf_gradient_var = true);
 
     /*!
      * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
      */
-    void registerHeavisideVariable(SAMRAIPointer<SAMRAICellVariable<double> > H_var);
+    void registerHeavisideVariable(SAMRAIPointer<SAMRAICellVariable<double>> H_var);
 
     /*!
      * \brief Register temperature variable \f$ T \f$.
      */
-    void registerTemperatureVariable(SAMRAIPointer<SAMRAICellVariable<double> > T_var, const bool output_T_var = true);
+    void registerTemperatureVariable(SAMRAIPointer<SAMRAICellVariable<double>> T_var, const bool output_T_var = true);
 
     /*!
      * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
      */
-    void setLiquidFractionInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+    void setLiquidFractionInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                            SAMRAIPointer<IBTK::CartGridFunction> lf_init);
     /*!
      * \brief Set a grid function to provide initial conditions for  \f$ T \f$ variable.
      */
-    void setTemperatureInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > T_var,
+    void setTemperatureInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> T_var,
                                         SAMRAIPointer<IBTK::CartGridFunction> T_init);
 
     /*!
      * \brief Set a grid function to provide initial conditions for \f$ \rho \f$ variable.
      */
-    void setDensityInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > rho_var,
+    void setDensityInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> rho_var,
                                     SAMRAIPointer<IBTK::CartGridFunction> rho_init);
 
     /*!
      * \brief Set boundary conditions for \f$ T \f$ variable.
      */
-    void setTemperaturePhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double> > T_var,
+    void setTemperaturePhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double>> T_var,
                                       SAMRAIRobinBcCoefStrategy* T_bc_coef);
     /*!
      * \brief Return \f$ T \f$ boundary condition object.
@@ -249,13 +249,13 @@ public:
     /*!
      * \brief Get the solver of the energy equation.
      */
-    SAMRAIPointer<IBTK::PoissonSolver> getEnergyEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double> > var);
+    SAMRAIPointer<IBTK::PoissonSolver> getEnergyEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> var);
 
     /*!
      * \brief Get the operator that is used to evaluate the right-hand side of energy equation.
      */
     SAMRAIPointer<IBTK::LaplaceOperator>
-    getEnergyEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double> > var);
+    getEnergyEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> var);
 
     /*!
      * \brief Register an IBTK::CartGridFunction object to specify the value of the
@@ -314,7 +314,7 @@ public:
     /*!
      * \brief Set the face-centered advection velocity.
      */
-    void setAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double> > u_var);
+    void setAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var);
 
     /*!
      * \brief Write out specialized object state to the given database.
@@ -361,22 +361,22 @@ protected:
     /*!
      * Solver variables.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_lf_var, d_lf_gradient_var, d_lf_pre_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_F_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_diffusion_coef_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_N_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_C_var, d_T_temp_rhs_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_specific_heat_var, d_rho_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_C_var, d_rho_vec_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_H_var, d_H_pre_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_D_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_updated_rho_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_U_F_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_u_adv_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > d_U_old_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_lf_var, d_lf_gradient_var, d_lf_pre_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_F_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_diffusion_coef_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_N_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_C_var, d_T_temp_rhs_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_specific_heat_var, d_rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_C_var, d_rho_vec_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_H_var, d_H_pre_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_D_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_updated_rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_U_F_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_u_adv_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> d_U_old_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -418,7 +418,7 @@ protected:
     SAMRAIPointer<IBTK::LaplaceOperator> d_T_rhs_op;
     SAMRAIPointer<IBTK::PoissonSolver> d_T_solver;
     bool d_T_solver_needs_init, d_T_rhs_op_needs_init;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_T_sol, d_T_rhs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_T_sol, d_T_rhs;
 
     TimeSteppingType d_T_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
     TimeSteppingType d_T_convective_time_stepping_type = d_default_convective_time_stepping_type;

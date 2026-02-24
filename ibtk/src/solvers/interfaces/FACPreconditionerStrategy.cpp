@@ -139,10 +139,10 @@ FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >
+SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>
 FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAISAMRAIVectorReal<double>& vec, int level_num) const
 {
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > level_vec = new SAMRAISAMRAIVectorReal<double>(
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> level_vec = new SAMRAISAMRAIVectorReal<double>(
         vec.getName() + "::level_" + std::to_string(level_num), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {

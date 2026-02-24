@@ -142,7 +142,7 @@ public:
      * Collect all marker point positions and velocities. This call is
      * collective.
      */
-    virtual std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
+    virtual std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>> collectAllMarkers() const;
 
     /*!
      * Write marker plot data. This function does nothing if there are no markers.

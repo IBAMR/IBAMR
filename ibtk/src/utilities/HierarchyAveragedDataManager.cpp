@@ -166,19 +166,19 @@ HierarchyAveragedDataManager::commonConstructor(SAMRAIPointer<Database> input_db
 
     // Determine depth for drawing.
     int depth = 1;
-    SAMRAIPointer<SAMRAICellVariable<double> > c_var = d_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > n_var = d_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > s_var = d_var;
-    SAMRAIPointer<SAMRAIFaceVariable<double> > f_var = d_var;
-    SAMRAIPointer<SAMRAIEdgeVariable<double> > e_var = d_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> c_var = d_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> n_var = d_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> s_var = d_var;
+    SAMRAIPointer<SAMRAIFaceVariable<double>> f_var = d_var;
+    SAMRAIPointer<SAMRAIEdgeVariable<double>> e_var = d_var;
     if (c_var)
     {
-        SAMRAIPointer<SAMRAICellDataFactory<double> > data_factory = c_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> data_factory = c_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     else if (n_var)
     {
-        SAMRAIPointer<SAMRAINodeDataFactory<double> > data_factory = n_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAINodeDataFactory<double>> data_factory = n_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     else if (s_var || f_var)
@@ -187,7 +187,7 @@ HierarchyAveragedDataManager::commonConstructor(SAMRAIPointer<Database> input_db
     }
     else if (e_var)
     {
-        SAMRAIPointer<SAMRAIEdgeDataFactory<double> > data_factory = e_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAIEdgeDataFactory<double>> data_factory = e_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     d_mean_var = new SAMRAICellVariable<double>(d_object_name + "::MeanVar", depth);
@@ -222,7 +222,7 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
 {
     // Create the hierarchy data ops
     auto hier_math_ops = SAMRAIHierarchyDataOpsManager::getManager();
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > hier_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> hier_data_ops =
         hier_math_ops->getOperationsDouble(d_var, hierarchy, true /*get_unique*/);
 
     if (d_period_length == 0.0)
@@ -275,11 +275,11 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
         hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
         hier_math_ops.setPatchHierarchy(hierarchy);
-        SAMRAIPointer<SAMRAISideVariable<double> > sc_var = d_var;
-        SAMRAIPointer<SAMRAINodeVariable<double> > nc_var = d_var;
-        SAMRAIPointer<SAMRAIEdgeVariable<double> > ec_var = d_var;
-        SAMRAIPointer<SAMRAIFaceVariable<double> > fc_var = d_var;
-        SAMRAIPointer<SAMRAICellVariable<double> > cc_var = d_var;
+        SAMRAIPointer<SAMRAISideVariable<double>> sc_var = d_var;
+        SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = d_var;
+        SAMRAIPointer<SAMRAIEdgeVariable<double>> ec_var = d_var;
+        SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = d_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> cc_var = d_var;
         if (sc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, sc_var, ghost_fill, time, false);
         if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time, false);
         if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time, false);

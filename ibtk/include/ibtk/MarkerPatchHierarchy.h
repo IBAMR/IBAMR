@@ -77,7 +77,7 @@ public:
      * Remove all marker points which do not lie in cells uniquely owned by
      * this patch.
      */
-    std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> > prune();
+    std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector>> prune();
 
     /*!
      * Return the @p index-th marker point stored by the present Patch.
@@ -182,7 +182,7 @@ public:
     /**
      * Collect all markers on all processors in a single array.
      */
-    std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
+    std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>> collectAllMarkers() const;
 
     /**
      * Set marker velocities with some given velocity field @p u_idx and
@@ -257,7 +257,7 @@ protected:
 
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
 
-    std::vector<std::deque<MarkerPatch> > d_marker_patches;
+    std::vector<std::deque<MarkerPatch>> d_marker_patches;
 
     MarkerPatch d_markers_outside_domain;
 };

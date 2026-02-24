@@ -109,7 +109,7 @@ public:
      * \brief Class constructor.
      */
     AdvDiffWavePropConvectiveOperator(std::string object_name,
-                                      SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                                      SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                       SAMRAIPointer<SAMRAIDatabase> input_db,
                                       const ConvectiveDifferencingType difference_form,
                                       std::vector<SAMRAIRobinBcCoefStrategy*> conc_bc_coefs);
@@ -123,7 +123,7 @@ public:
      */
     static SAMRAIPointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+                      SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                       SAMRAIPointer<SAMRAIDatabase> input_db,
                       const ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAIRobinBcCoefStrategy*>& conc_bc_coefs)
@@ -210,10 +210,10 @@ private:
 
     // Data communication algorithms, operators, and schedules.
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg_Q;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_coarsen_scheds_Q;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_coarsen_scheds_Q;
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_ghostfill_alg_Q;
     SAMRAIPointer<SAMRAIRefinePatchStrategy> d_ghostfill_strategy_Q;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_ghostfill_scheds_Q;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_ghostfill_scheds_Q;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
@@ -221,7 +221,7 @@ private:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_var;
     int d_Q_scratch_idx = 0;
 
     const std::vector<SAMRAIRobinBcCoefStrategy*> d_conc_bc_coefs;

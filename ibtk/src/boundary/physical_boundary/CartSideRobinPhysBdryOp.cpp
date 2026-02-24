@@ -494,7 +494,7 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(SAMRAIPatch& patch,
     // that the proper number of boundary condition objects have been provided.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -567,7 +567,7 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(SAMRAIPatch& patch,
     // that the proper number of boundary condition objects have been provided.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
@@ -637,7 +637,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> var;
@@ -665,9 +665,9 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
         const SAMRAIBoundaryBox trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
         const SAMRAIBox bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-        SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-        SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+        SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
             SAMRAIRobinBcCoefStrategy* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
@@ -864,7 +864,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
-    SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> var;
@@ -888,7 +888,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(
     }
 
     const SAMRAIIntVector& ratio_to_level_zero = pgeom->getRatio();
-    SAMRAIArray<SAMRAIArray<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -916,9 +916,9 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(
             {
                 const SAMRAIBox bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
-                SAMRAIPointer<SAMRAIArrayData<double> > acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
-                SAMRAIPointer<SAMRAIArrayData<double> > gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> acoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> bcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
+                SAMRAIPointer<SAMRAIArrayData<double>> gcoef_data = new SAMRAIArrayData<double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -1137,7 +1137,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
 
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
 #if !defined(NDEBUG)
@@ -1273,7 +1273,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
 
     const SAMRAIBox& patch_box = patch.getBox();
     SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    SAMRAIPointer<SAMRAISideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
 #if !defined(NDEBUG)

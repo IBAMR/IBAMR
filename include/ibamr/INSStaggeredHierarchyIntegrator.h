@@ -193,8 +193,8 @@ public:
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
-    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -204,8 +204,8 @@ public:
      * integrator, and copy the solution data into the state data maintained by
      * the integrator.
      */
-    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    void resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                            const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -213,7 +213,7 @@ public:
     /*!
      * Explicitly remove nullspace components from a solution vector.
      */
-    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec);
+    void removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec);
 
 protected:
     /*!
@@ -394,9 +394,9 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
-    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
+    SAMRAIPointer<SAMRAIHierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -409,16 +409,16 @@ private:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_scratch_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_rhs_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_U_adv_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_N_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_P_scratch_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_P_rhs_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_sol_vec;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_rhs_vec;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nul_vecs;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_rhs_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_U_adv_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_N_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_P_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_P_rhs_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_sol_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_rhs_vec;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
     std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
@@ -431,24 +431,24 @@ private:
     /*!
      * Fluid solver variables.
      */
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_P_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_F_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_F_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_N_old_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_old_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_P_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_F_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_F_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_N_old_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_old_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Omega_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_Omega_nc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Div_U_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Omega_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_Omega_nc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Div_U_var;
 
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_regrid_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_U_src_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_indicator_var;
-    SAMRAIPointer<SAMRAISideVariable<double> > d_F_div_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_regrid_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_U_src_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_indicator_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_F_div_var;
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_EE_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_EE_var;
 
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
@@ -458,8 +458,8 @@ private:
     /*!
      * Variables for graphical output.
      */
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_U_nc_var;
-    SAMRAIPointer<SAMRAINodeVariable<double> > d_P_nc_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_U_nc_var;
+    SAMRAIPointer<SAMRAINodeVariable<double>> d_P_nc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

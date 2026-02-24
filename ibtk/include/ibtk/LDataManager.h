@@ -296,8 +296,8 @@ public:
                 SAMRAIPointer<LData> ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -323,8 +323,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -344,12 +344,12 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
-                std::vector<SAMRAIPointer<LData> >& ds_data,
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
+                std::vector<SAMRAIPointer<LData>>& ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -371,13 +371,13 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
-                std::vector<SAMRAIPointer<LData> >& ds_data,
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
+                std::vector<SAMRAIPointer<LData>>& ds_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -403,8 +403,8 @@ public:
                 SAMRAIPointer<LData> X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -428,8 +428,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -448,11 +448,11 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -473,12 +473,12 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -493,10 +493,10 @@ public:
                 SAMRAIPointer<LData> F_data,
                 SAMRAIPointer<LData> X_data,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds =
-                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds =
+                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -508,10 +508,10 @@ public:
                 SAMRAIPointer<LData> X_data,
                 const std::string& interp_kernel_fcn,
                 int level_num,
-                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds =
-                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds =
+                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -519,12 +519,12 @@ public:
      * mesh using the default interpolation kernel function.
      */
     void interp(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
-                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds =
-                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
+                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds =
+                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = invalid_level_number,
                 int finest_ln = invalid_level_number);
@@ -534,13 +534,13 @@ public:
      * mesh using the specified interpolation kernel function.
      */
     void interp(int f_data_idx,
-                std::vector<SAMRAIPointer<LData> >& F_data,
-                std::vector<SAMRAIPointer<LData> >& X_data,
+                std::vector<SAMRAIPointer<LData>>& F_data,
+                std::vector<SAMRAIPointer<LData>>& X_data,
                 const std::string& interp_kernel_fcn,
-                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& f_synch_scheds =
-                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& f_synch_scheds =
+                    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = invalid_level_number,
                 int finest_ln = invalid_level_number);
@@ -1176,7 +1176,7 @@ private:
      */
     SAMRAIPointer<LNodeSetVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx = IBTK::invalid_index, d_lag_node_index_scratch_idx = IBTK::invalid_index;
-    std::vector<SAMRAIPointer<std::vector<LNode> > > d_local_and_ghost_nodes;
+    std::vector<SAMRAIPointer<std::vector<LNode>>> d_local_and_ghost_nodes;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -1188,7 +1188,7 @@ private:
      * argument to addWorkloadEstimate.
      */
     double d_beta_work = 1.0;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_workload_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_workload_var;
     int d_workload_idx = IBTK::invalid_index;
     bool d_output_workload = false;
 
@@ -1197,7 +1197,7 @@ private:
      * cell variable used to keep track of the count of the nodes in each cell
      * for visualization and tagging purposes.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_node_count_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_node_count_var;
     int d_node_count_idx = IBTK::invalid_index;
     bool d_output_node_count = false;
 
@@ -1223,10 +1223,10 @@ private:
      * Communications algorithms and schedules.
      */
     SAMRAIPointer<SAMRAIRefineAlgorithm> d_lag_node_index_bdry_fill_alg;
-    std::vector<SAMRAIPointer<SAMRAIRefineSchedule> > d_lag_node_index_bdry_fill_scheds;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_lag_node_index_bdry_fill_scheds;
 
     SAMRAIPointer<SAMRAICoarsenAlgorithm> d_node_count_coarsen_alg;
-    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> > d_node_count_coarsen_scheds;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_node_count_coarsen_scheds;
 
     /*
      * SAMRAI::hier::VariableContext objects are used for data management.
@@ -1248,25 +1248,25 @@ private:
     /*!
      * Information about the names and IDs of the various Lagrangian structures.
      */
-    std::vector<std::map<std::string, int> > d_strct_name_to_strct_id_map;
-    std::vector<std::map<int, std::string> > d_strct_id_to_strct_name_map;
-    std::vector<std::map<int, std::pair<int, int> > > d_strct_id_to_lag_idx_range_map;
-    std::vector<std::map<int, int> > d_last_lag_idx_to_strct_id_map;
+    std::vector<std::map<std::string, int>> d_strct_name_to_strct_id_map;
+    std::vector<std::map<int, std::string>> d_strct_id_to_strct_name_map;
+    std::vector<std::map<int, std::pair<int, int>>> d_strct_id_to_lag_idx_range_map;
+    std::vector<std::map<int, int>> d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
-    std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<Point, Point> > > d_displaced_strct_bounding_boxes;
-    std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<Point> > d_displaced_strct_lnode_posns;
+    std::vector<std::vector<int>> d_displaced_strct_ids;
+    std::vector<std::vector<std::pair<Point, Point>>> d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<LNodeSet::value_type>> d_displaced_strct_lnode_idxs;
+    std::vector<std::vector<Point>> d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.
      */
-    std::vector<SAMRAIPointer<LMesh> > d_lag_mesh;
+    std::vector<SAMRAIPointer<LMesh>> d_lag_mesh;
 
     /*!
      * The Lagrangian mesh data owned by the manager object.
      */
-    std::vector<std::map<std::string, SAMRAIPointer<LData> > > d_lag_mesh_data;
+    std::vector<std::map<std::string, SAMRAIPointer<LData>>> d_lag_mesh_data;
 
     /*!
      * Indicates whether the LData is in synch with the LNodeData.
@@ -1310,15 +1310,15 @@ private:
      * global PETSc index j+d_node_offset[ln].  A similar mapping for nonlocal
      * nodes is not well defined.
      */
-    std::vector<std::vector<int> > d_local_lag_indices;
-    std::vector<std::vector<int> > d_nonlocal_lag_indices;
+    std::vector<std::vector<int>> d_local_lag_indices;
+    std::vector<std::vector<int>> d_nonlocal_lag_indices;
 
     /*!
      * The node indices of all local nodes (i.e. the nodes owned by this
      * processor) on each level of the hierarchy.  The indices are in the global
      * PETSc ordering corresponding to a depth of 1.
      */
-    std::vector<std::vector<int> > d_local_petsc_indices;
+    std::vector<std::vector<int>> d_local_petsc_indices;
 
     /*!
      * The node indices of all nonlocal nodes (i.e. the nodes owned by another
@@ -1326,7 +1326,7 @@ private:
      * processor) on each level of the hierarchy.  The indices are in the global
      * PETSc ordering corresponding to a depth of 1.
      */
-    std::vector<std::vector<int> > d_nonlocal_petsc_indices;
+    std::vector<std::vector<int>> d_nonlocal_petsc_indices;
 
     /*!
      * Container for additional user defined Lagrangian data

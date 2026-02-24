@@ -356,10 +356,10 @@ private:
     PetscErrorCode lagrangianSchurApply(Vec x, Vec y);
 
     // Eulerian data for storing u and p DOFs indexing.
-    std::vector<std::vector<int> > d_num_dofs_per_proc;
+    std::vector<std::vector<int>> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAIPointer<SAMRAISideVariable<int> > d_u_dof_index_var;
-    SAMRAIPointer<SAMRAICellVariable<int> > d_p_dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> d_u_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> d_p_dof_index_var;
 
     // Solvers and associated vectors.
     bool d_solve_for_position = false;
@@ -367,7 +367,7 @@ private:
     SAMRAIPointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAIPointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_u_scratch_vec, d_f_scratch_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_u_scratch_vec, d_f_scratch_vec;
     Vec d_X_current;
 };
 } // namespace IBAMR

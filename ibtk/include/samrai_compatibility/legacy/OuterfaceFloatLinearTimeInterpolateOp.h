@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_OuterfaceFloatLinearTimeInterpolateOp_h
 #define included_IBTK_samrai_compatibility_legacy_OuterfaceFloatLinearTimeInterpolateOp_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAIOuterfaceFloatLinearTimeInterpolateOp.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_OuterfaceFloatLinearTimeInterpolateOp_h

@@ -214,9 +214,9 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                    SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                    SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+    void setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                     const SAMRAIPointer<SAMRAIVariable>& variable,
                     const SAMRAIPatch& patch,
                     const SAMRAIBoundaryBox& bdry_box,

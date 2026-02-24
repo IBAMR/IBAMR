@@ -178,7 +178,7 @@ public:
     /*!
      * \brief Set the material property variable.
      */
-    void setMaterialPropertyVariable(SAMRAIPointer<SAMRAICellVariable<double> > gamma_var);
+    void setMaterialPropertyVariable(SAMRAIPointer<SAMRAICellVariable<double>> gamma_var);
 
 private:
     /*!
@@ -213,9 +213,9 @@ private:
     /*!
      * \brief Compute the interpolation of a quantity Q onto faces of the cell centered control volumes
      */
-    void interpolateCellQuantity(SAMRAIPointer<SAMRAIFaceData<double> > Q_half_data,
-                                 SAMRAIPointer<SAMRAIFaceData<double> > U_adv_data,
-                                 const SAMRAIPointer<SAMRAICellData<double> > Q_data,
+    void interpolateCellQuantity(SAMRAIPointer<SAMRAIFaceData<double>> Q_half_data,
+                                 SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                 const SAMRAIPointer<SAMRAICellData<double>> Q_data,
                                  const SAMRAIIntVector& patch_lower,
                                  const SAMRAIIntVector& patch_upper,
                                  const SAMRAIBox& patch_box,
@@ -225,27 +225,27 @@ private:
      * \brief Compute div[rho_lim * gamma_lim * u_adv * Q_lim]. Here, rho_lim * u_adv is obtained from
      * integrating the mass balance equation.
      */
-    void computeConvectiveDerivative(SAMRAIPointer<SAMRAICellData<double> > N_data,
-                                     SAMRAIPointer<SAMRAIFaceData<double> > P_half_data,
-                                     const SAMRAIPointer<SAMRAIFaceData<double> > U_adv_data,
-                                     const SAMRAIPointer<SAMRAIFaceData<double> > R_half_data,
-                                     const SAMRAIPointer<SAMRAIFaceData<double> > Q_half_data,
-                                     const SAMRAIPointer<SAMRAIFaceData<double> > G_half_data,
+    void computeConvectiveDerivative(SAMRAIPointer<SAMRAICellData<double>> N_data,
+                                     SAMRAIPointer<SAMRAIFaceData<double>> P_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> Q_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> G_half_data,
                                      const SAMRAIBox& patch_box,
                                      const double* const dx);
 
     /*!
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
-    void computeDensityUpdate(SAMRAIPointer<SAMRAICellData<double> > R_data,
+    void computeDensityUpdate(SAMRAIPointer<SAMRAICellData<double>> R_data,
                               const double& a0,
-                              const SAMRAIPointer<SAMRAICellData<double> > R0_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> R0_data,
                               const double& a1,
-                              const SAMRAIPointer<SAMRAICellData<double> > R1_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> R1_data,
                               const double& a2,
-                              const SAMRAIPointer<SAMRAIFaceData<double> > U_adv_data,
-                              const SAMRAIPointer<SAMRAIFaceData<double> > R_half_data,
-                              const SAMRAIPointer<SAMRAICellData<double> > S_data,
+                              const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                              const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> S_data,
                               const SAMRAIBox& patch_box,
                               const double& dt,
                               const double* const dx);
@@ -254,11 +254,11 @@ private:
      * \brief Compute the error of the mass conservation equation using the integrated
      * density field pointwise.
      */
-    void computeErrorOfMassConservationEquation(SAMRAIPointer<SAMRAICellData<double> > E_data,
-                                                const SAMRAIPointer<SAMRAICellData<double> > Rnew_data,
-                                                const SAMRAIPointer<SAMRAICellData<double> > Rold_data,
-                                                const SAMRAIPointer<SAMRAIFaceData<double> > U_adv_data,
-                                                const SAMRAIPointer<SAMRAIFaceData<double> > R_half_data,
+    void computeErrorOfMassConservationEquation(SAMRAIPointer<SAMRAICellData<double>> E_data,
+                                                const SAMRAIPointer<SAMRAICellData<double>> Rnew_data,
+                                                const SAMRAIPointer<SAMRAICellData<double>> Rold_data,
+                                                const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                                const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
                                                 const SAMRAIBox& patch_box,
                                                 const double& dt,
                                                 const double* const dx);
@@ -284,9 +284,9 @@ private:
      * Variables.
      */
 
-    SAMRAIPointer<SAMRAICellVariable<double> > d_rho_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_gamma_cc_var;
-    SAMRAIPointer<SAMRAICellVariable<double> > d_Q_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_rho_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_gamma_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_cc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

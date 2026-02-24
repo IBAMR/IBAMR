@@ -125,7 +125,7 @@ class CopyRefinementTags : public SAMRAIStandardTagAndInitStrategy
             {
                 const SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                 const SAMRAIBox box = patch->getBox();
-                SAMRAIPointer<SAMRAICellData<int> > tag_data = patch->getPatchData(tag_index);
+                SAMRAIPointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
 
                 // SAMRAI's intersection code is wrong and returns nonsense
                 // answers when the intersection should be empty

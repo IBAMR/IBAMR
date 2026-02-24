@@ -129,8 +129,8 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                               std::vector<std::set<int> >& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                               std::vector<std::set<int>>& nonoverlap_is) override;
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
@@ -198,7 +198,7 @@ private:
     SAMRAIPointer<SAMRAIVariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx = IBTK::invalid_index;
-    SAMRAIPointer<SAMRAICellVariable<int> > d_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> d_dof_index_var;
     SAMRAIPointer<SAMRAIRefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
     //\}
 };

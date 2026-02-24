@@ -14,8 +14,7 @@
 #ifndef included_IBTK_samrai_compatibility_legacy_PIO_h
 #define included_IBTK_samrai_compatibility_legacy_PIO_h
 
-#include "samrai_compatibility/samrai_compatibility_environment.h"
-
 #include "SAMRAIPIO.h"
+#include "samrai_compatibility/samrai_compatibility_environment.h"
 
 #endif // #ifndef included_IBTK_samrai_compatibility_legacy_PIO_h

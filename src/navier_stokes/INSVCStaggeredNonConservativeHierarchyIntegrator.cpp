@@ -205,7 +205,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         }
         else if (d_rho_var)
         {
-            SAMRAIPointer<SAMRAICellVariable<double> > cc_var = d_rho_var;
+            SAMRAIPointer<SAMRAICellVariable<double>> cc_var = d_rho_var;
             if (!cc_var)
             {
                 TBOX_ERROR(
@@ -246,7 +246,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         d_rho_new_idx = invalid_index;
         d_rho_init_fcn = nullptr;
 
-        SAMRAIPointer<SAMRAICellVariable<double> > rho_cc_scratch_var =
+        SAMRAIPointer<SAMRAICellVariable<double>> rho_cc_scratch_var =
             new SAMRAICellVariable<double>(d_object_name + "_rho_cc_scratch_var",
                                            /*depth*/ 1);
         d_rho_scratch_idx = var_db->registerVariableAndContext(rho_cc_scratch_var, getScratchContext(), cell_ghosts);
@@ -446,7 +446,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);
 
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const SAMRAIPointer<SAMRAISideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const SAMRAIPointer<SAMRAISideVariable<double>> U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr,
@@ -464,9 +464,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAINodeVariable<double>>(nullptr),
 #elif (NDIM == 3)
-                                SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAIEdgeVariable<double>>(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,
@@ -640,8 +640,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchySpecialized(
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAICellData<double> > temp_data = patch->getPatchData(d_temp_cc_idx);
-                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> temp_data = patch->getPatchData(d_temp_cc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(d_rho_scratch_idx);
                 for (int d = 0; d < NDIM; ++d) temp_data->copyDepth(d, (*rho_data), 0);
             }
         }
@@ -873,7 +873,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::removeNullSpace(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec)
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec)
 {
     INSVCStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
     return;
@@ -892,7 +892,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryCon
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVariable(
-    SAMRAIPointer<SAMRAICellVariable<double> > rho_adv_diff_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> rho_adv_diff_var,
     unsigned int adv_diff_idx)
 {
 #if !defined(NDEBUG)
@@ -1066,8 +1066,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(const bool in
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAICellData<double> > temp_data = patch->getPatchData(d_temp_cc_idx);
-                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                SAMRAIPointer<SAMRAICellData<double>> temp_data = patch->getPatchData(d_temp_cc_idx);
+                SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(d_rho_scratch_idx);
                 for (int d = 0; d < NDIM; ++d) temp_data->copyDepth(d, (*rho_data), 0);
             }
         }
@@ -1515,8 +1515,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
     const double current_time,
     const double new_time,
     const int cycle_num)
@@ -1714,8 +1714,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
     const double current_time,
     const double new_time,
     const int /*cycle_num*/)

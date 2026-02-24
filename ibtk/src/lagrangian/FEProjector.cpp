@@ -213,12 +213,12 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
+        std::unique_ptr<PetscLinearSolver<double>> solver = std::make_unique<PetscLinearSolver<double>>(comm);
 
-        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
+        std::unique_ptr<PetscMatrix<double>> M_mat = std::make_unique<PetscMatrix<double>>(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
@@ -354,13 +354,13 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
+        std::unique_ptr<PetscLinearSolver<double>> solver = std::make_unique<PetscLinearSolver<double>>(comm);
         solver->init();
 
-        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
+        std::unique_ptr<PetscMatrix<double>> M_mat = std::make_unique<PetscMatrix<double>>(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
         MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
@@ -456,12 +456,12 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
+        std::unique_ptr<PetscLinearSolver<double>> solver = std::make_unique<PetscLinearSolver<double>>(comm);
 
-        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
+        std::unique_ptr<PetscMatrix<double>> M_mat = std::make_unique<PetscMatrix<double>>(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
@@ -612,10 +612,10 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscVector<double> > M_vec(
+        std::unique_ptr<PetscVector<double>> M_vec(
             static_cast<PetscVector<double>*>(system.solution->zero_clone().release()));
 
         // Loop over the mesh to construct the system matrix.

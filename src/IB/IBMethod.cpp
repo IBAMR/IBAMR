@@ -529,7 +529,7 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
     IBTK_CHKERRQ(ierr);
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_half_data;
+    std::vector<SAMRAIPointer<LData>>* X_half_data;
     bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
@@ -544,7 +544,7 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> >* X_jac_data;
+    std::vector<SAMRAIPointer<LData>>* X_jac_data;
     bool* X_jac_needs_ghost_fill;
     getLinearizedPositionData(&X_jac_data, &X_jac_needs_ghost_fill);
     ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
@@ -661,7 +661,7 @@ IBMethod::updateFixedLEOperators()
     }
     d_X_LE_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_LE_half_data;
+    std::vector<SAMRAIPointer<LData>>* X_LE_half_data;
     bool* X_LE_half_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_half_data, &X_LE_half_needs_ghost_fill, d_half_time);
     reinitMidpointData(d_X_current_data, d_X_LE_new_data, *X_LE_half_data);
@@ -672,11 +672,11 @@ IBMethod::updateFixedLEOperators()
 
 void
 IBMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                               const double data_time)
 {
-    std::vector<SAMRAIPointer<LData> >*U_data, *X_LE_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -687,7 +687,7 @@ IBMethod::interpolateVelocity(const int u_data_idx,
 
     if (!IBTK::rel_equal_eps(data_time, d_half_time))
     {
-        std::vector<SAMRAIPointer<LData> >* U_half_data;
+        std::vector<SAMRAIPointer<LData>>* U_half_data;
         getVelocityData(&U_half_data, d_half_time);
         reinitMidpointData(d_U_current_data, d_U_new_data, *U_half_data);
     }
@@ -697,11 +697,11 @@ IBMethod::interpolateVelocity(const int u_data_idx,
 
 void
 IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
-                                        const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                         const double data_time)
 {
-    std::vector<SAMRAIPointer<LData> >*U_jac_data, *X_LE_data;
+    std::vector<SAMRAIPointer<LData>>*U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -719,7 +719,7 @@ IBMethod::forwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >* U_data;
+    std::vector<SAMRAIPointer<LData>>* U_data;
     getVelocityData(&U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -729,7 +729,7 @@ IBMethod::forwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_half_data = nullptr;
+    std::vector<SAMRAIPointer<LData>>* X_half_data = nullptr;
     bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     TBOX_ASSERT(X_half_data);
@@ -747,7 +747,7 @@ IBMethod::backwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >* U_data;
+    std::vector<SAMRAIPointer<LData>>* U_data;
     getVelocityData(&U_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -757,7 +757,7 @@ IBMethod::backwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_half_data = nullptr;
+    std::vector<SAMRAIPointer<LData>>* X_half_data = nullptr;
     bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     TBOX_ASSERT(X_half_data);
@@ -775,7 +775,7 @@ IBMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >* U_data;
+    std::vector<SAMRAIPointer<LData>>* U_data;
     getVelocityData(&U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -785,7 +785,7 @@ IBMethod::midpointStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_half_data = nullptr;
+    std::vector<SAMRAIPointer<LData>>* X_half_data = nullptr;
     bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     TBOX_ASSERT(X_half_data);
@@ -803,7 +803,7 @@ IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >*U_current_data, *U_new_data;
+    std::vector<SAMRAIPointer<LData>>*U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -817,7 +817,7 @@ IBMethod::trapezoidalStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<SAMRAIPointer<LData> >* X_half_data;
+    std::vector<SAMRAIPointer<LData>>* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
@@ -838,7 +838,7 @@ IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> >*F_data, *X_data, *U_data;
+    std::vector<SAMRAIPointer<LData>>*F_data, *X_data, *U_data;
     bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -863,7 +863,7 @@ IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_time*
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> >* F_jac_data;
+    std::vector<SAMRAIPointer<LData>>* F_jac_data;
     bool* F_jac_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     Vec F_vec = (*F_jac_data)[level_num]->getVec();
@@ -898,7 +898,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
         }
 
         // Get the "frozen" position for Lagrangian structure.
-        std::vector<SAMRAIPointer<LData> >* X_LE_data;
+        std::vector<SAMRAIPointer<LData>>* X_LE_data;
         bool* X_LE_needs_ghost_fill;
         getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
 
@@ -973,10 +973,10 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
 void
 IBMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                      const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                       const double data_time)
 {
-    std::vector<SAMRAIPointer<LData> >*F_data, *X_LE_data;
+    std::vector<SAMRAIPointer<LData>>*F_data, *X_LE_data;
     bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -999,10 +999,10 @@ IBMethod::spreadForce(const int f_data_idx,
 void
 IBMethod::spreadLinearizedForce(const int f_data_idx,
                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                                 const double data_time)
 {
-    std::vector<SAMRAIPointer<LData> >*F_jac_data, *X_LE_data;
+    std::vector<SAMRAIPointer<LData>>*F_jac_data, *X_LE_data;
     bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -1037,7 +1037,7 @@ IBMethod::constructInterpOp(Mat& J,
     }
 
     // Get the "frozen" position for Lagrangian structure
-    std::vector<SAMRAIPointer<LData> >* X_LE_data;
+    std::vector<SAMRAIPointer<LData>>* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
 
@@ -1070,7 +1070,7 @@ IBMethod::computeLagrangianFluidSource(const double data_time)
 void
 IBMethod::spreadFluidSource(const int q_data_idx,
                             RobinPhysBdryPatchStrategy* /*q_phys_bdry_op*/,
-                            const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*q_prolongation_scheds*/,
+                            const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*q_prolongation_scheds*/,
                             const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -1079,7 +1079,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<SAMRAIPointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1107,7 +1107,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
-            const SAMRAIPointer<SAMRAICellData<double> > q_data = patch->getPatchData(q_data_idx);
+            const SAMRAIPointer<SAMRAICellData<double>> q_data = patch->getPatchData(q_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -1202,7 +1202,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > q_data = patch->getPatchData(q_data_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> q_data = patch->getPatchData(q_data_idx);
                 for (SAMRAIBoxList::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (SAMRAIBox::Iterator b(blist() * patch_box); b; b++)
@@ -1226,8 +1226,8 @@ IBMethod::spreadFluidSource(const int q_data_idx,
 
 void
 IBMethod::interpolatePressure(int p_data_idx,
-                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*p_synch_scheds*/,
-                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*p_ghost_fill_scheds*/,
+                              const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*p_synch_scheds*/,
+                              const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*p_ghost_fill_scheds*/,
                               const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -1236,7 +1236,7 @@ IBMethod::interpolatePressure(int p_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<SAMRAIPointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
 
@@ -1267,8 +1267,8 @@ IBMethod::interpolatePressure(int p_data_idx,
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
-                const SAMRAIPointer<SAMRAICellData<double> > wgt_data = patch->getPatchData(wgt_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_data_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> wgt_data = patch->getPatchData(wgt_idx);
                 for (SAMRAIBoxList::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (SAMRAIBox::Iterator b(blist() * patch_box); b; b++)
@@ -1307,7 +1307,7 @@ IBMethod::interpolatePressure(int p_data_idx,
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
-            const SAMRAIPointer<SAMRAICellData<double> > p_data = patch->getPatchData(p_data_idx);
+            const SAMRAIPointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -1368,9 +1368,9 @@ IBMethod::postprocessData()
     SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
-    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > F_data(finest_ln + 1);
-    std::vector<SAMRAIPointer<LData> > U_data(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> X_data(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> F_data(finest_ln + 1);
+    std::vector<SAMRAIPointer<LData>> U_data(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1398,8 +1398,8 @@ void
 IBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                    int u_data_idx,
-                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                   const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                    int integrator_step,
                                    double init_data_time,
                                    bool initial_time)
@@ -1416,8 +1416,8 @@ IBMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy
     if (initial_time)
     {
         // Initialize the interpolated velocity field.
-        std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1);
-        std::vector<SAMRAIPointer<LData> > U_data(finest_ln + 1);
+        std::vector<SAMRAIPointer<LData>> X_data(finest_ln + 1);
+        std::vector<SAMRAIPointer<LData>> U_data(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1507,7 +1507,7 @@ IBMethod::endDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
     d_l_data_manager->endDataRedistribution();
 
     // Look up the re-distributed Lagrangian position data.
-    std::vector<SAMRAIPointer<LData> > X_data(hierarchy->getFinestLevelNumber() + 1);
+    std::vector<SAMRAIPointer<LData>> X_data(hierarchy->getFinestLevelNumber() + 1);
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1661,7 +1661,7 @@ IBMethod::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hie
             for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
                 SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                SAMRAIPointer<SAMRAICellData<int> > tags_data = patch->getPatchData(tag_index);
+                SAMRAIPointer<SAMRAICellData<int>> tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
         }
@@ -1725,21 +1725,21 @@ IBMethod::convertTimeEnumToDouble(TimePoint time_pt)
 }
 
 void
-IBMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, bool** X_needs_ghost_fill, TimePoint time_pt)
+IBMethod::getPositionData(std::vector<SAMRAIPointer<LData>>** X_data, bool** X_needs_ghost_fill, TimePoint time_pt)
 {
     double time = convertTimeEnumToDouble(time_pt);
     getPositionData(X_data, X_needs_ghost_fill, time);
 }
 
 void
-IBMethod::getVelocityData(std::vector<SAMRAIPointer<LData> >** U_data, TimePoint time_pt)
+IBMethod::getVelocityData(std::vector<SAMRAIPointer<LData>>** U_data, TimePoint time_pt)
 {
     double time = convertTimeEnumToDouble(time_pt);
     getVelocityData(U_data, time);
 }
 
 void
-IBMethod::getForceData(std::vector<SAMRAIPointer<LData> >** F_data, bool** F_needs_ghost_fill, TimePoint time_pt)
+IBMethod::getForceData(std::vector<SAMRAIPointer<LData>>** F_data, bool** F_needs_ghost_fill, TimePoint time_pt)
 {
     double time = convertTimeEnumToDouble(time_pt);
     getPositionData(F_data, F_needs_ghost_fill, time);
@@ -1748,7 +1748,7 @@ IBMethod::getForceData(std::vector<SAMRAIPointer<LData> >** F_data, bool** F_nee
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+IBMethod::getPositionData(std::vector<SAMRAIPointer<LData>>** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -1769,7 +1769,7 @@ IBMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, bool** X_
 } // getPositionData
 
 void
-IBMethod::getLinearizedPositionData(std::vector<SAMRAIPointer<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
+IBMethod::getLinearizedPositionData(std::vector<SAMRAIPointer<LData>>** X_jac_data, bool** X_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1788,7 +1788,7 @@ IBMethod::getLinearizedPositionData(std::vector<SAMRAIPointer<LData> >** X_jac_d
 } // getLinearizedPositionData
 
 void
-IBMethod::getLECouplingPositionData(std::vector<SAMRAIPointer<LData> >** X_LE_data,
+IBMethod::getLECouplingPositionData(std::vector<SAMRAIPointer<LData>>** X_LE_data,
                                     bool** X_LE_needs_ghost_fill,
                                     double data_time)
 {
@@ -1817,7 +1817,7 @@ IBMethod::getLECouplingPositionData(std::vector<SAMRAIPointer<LData> >** X_LE_da
 } // getLECouplingPositionData
 
 void
-IBMethod::getVelocityData(std::vector<SAMRAIPointer<LData> >** U_data, double data_time)
+IBMethod::getVelocityData(std::vector<SAMRAIPointer<LData>>** U_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -1835,7 +1835,7 @@ IBMethod::getVelocityData(std::vector<SAMRAIPointer<LData> >** U_data, double da
 } // getVelocityData
 
 void
-IBMethod::getLinearizedVelocityData(std::vector<SAMRAIPointer<LData> >** U_jac_data)
+IBMethod::getLinearizedVelocityData(std::vector<SAMRAIPointer<LData>>** U_jac_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1852,7 +1852,7 @@ IBMethod::getLinearizedVelocityData(std::vector<SAMRAIPointer<LData> >** U_jac_d
 } // getLinearizedVelocityData
 
 void
-IBMethod::getForceData(std::vector<SAMRAIPointer<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
+IBMethod::getForceData(std::vector<SAMRAIPointer<LData>>** F_data, bool** F_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1880,7 +1880,7 @@ IBMethod::getForceData(std::vector<SAMRAIPointer<LData> >** F_data, bool** F_nee
 } // getForceData
 
 void
-IBMethod::getLinearizedForceData(std::vector<SAMRAIPointer<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
+IBMethod::getLinearizedForceData(std::vector<SAMRAIPointer<LData>>** F_jac_data, bool** F_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1899,9 +1899,9 @@ IBMethod::getLinearizedForceData(std::vector<SAMRAIPointer<LData> >** F_jac_data
 } // getLinearizedForceData
 
 void
-IBMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData> >& current_data,
-                             const std::vector<SAMRAIPointer<LData> >& new_data,
-                             const std::vector<SAMRAIPointer<LData> >& half_data)
+IBMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData>>& current_data,
+                             const std::vector<SAMRAIPointer<LData>>& new_data,
+                             const std::vector<SAMRAIPointer<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1916,7 +1916,7 @@ IBMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData> >& current_d
 } // reinitMidpointData
 
 void
-IBMethod::resetAnchorPointValues(std::vector<SAMRAIPointer<LData> > U_data, const int coarsest_ln, const int finest_ln)
+IBMethod::resetAnchorPointValues(std::vector<SAMRAIPointer<LData>> U_data, const int coarsest_ln, const int finest_ln)
 {
     PetscErrorCode ierr;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2161,7 +2161,7 @@ PetscErrorCode
 IBMethod::computeForce(Vec X, Vec F)
 {
     PetscErrorCode ierr;
-    std::vector<SAMRAIPointer<LData> >*F_data, *X_data;
+    std::vector<SAMRAIPointer<LData>>*F_data, *X_data;
     bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, d_force_jac_data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, d_force_jac_data_time);

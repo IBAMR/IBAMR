@@ -178,7 +178,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -245,7 +245,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         PoissonUtilities::computeMatrixCoefficients(matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        SAMRAIPointer<SAMRAICellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (SAMRAIBox::Iterator b(SAMRAICellGeometry::toCellBox(patch_box)); b; b++)
@@ -328,7 +328,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
@@ -391,7 +391,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         PoissonUtilities::computeMatrixCoefficients(matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -465,7 +465,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
@@ -686,7 +686,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(Mat& mat,
             matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time, mu_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
 
@@ -839,7 +839,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = VecGetArray(X_vec, &X_arr);
     IBTK_CHKERRQ(ierr);
     std::vector<int> patch_num(n_local_points);
-    std::vector<std::vector<SAMRAIBox> > stencil_box(n_local_points, std::vector<SAMRAIBox>(NDIM));
+    std::vector<std::vector<SAMRAIBox>> stencil_box(n_local_points, std::vector<SAMRAIBox>(NDIM));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
     for (int k = 0; k < n_local_points; ++k)
     {
@@ -880,7 +880,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         TBOX_ASSERT(found_local_patch);
 #endif
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(patch_num[k]);
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
@@ -958,7 +958,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Look-up the local patch that we have associated with this IB point.
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(patch_num[k]);
-        SAMRAIPointer<SAMRAISideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
@@ -1032,8 +1032,8 @@ PETScMatUtilities::constructProlongationOp(Mat& mat,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
-    SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         if (op_type == CONSERVATIVE)
@@ -1186,8 +1186,8 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     SAMRAIPointer<SAMRAIVariable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    SAMRAIPointer<SAMRAICellVariable<int> > dof_index_cc_var = dof_index_var;
-    SAMRAIPointer<SAMRAISideVariable<int> > dof_index_sc_var = dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> dof_index_cc_var = dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         constructPatchLevelASMSubdomains_cell(is_overlap,
@@ -1271,7 +1271,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_fine_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = dof_fine_data->getDepth();
         std::vector<int> samrai_petsc_map(depth), local_row(depth);
 
@@ -1329,7 +1329,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAICellData<int> > dof_fine_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = dof_fine_data->getDepth();
         std::vector<int> samrai_petsc_map(depth);
 
@@ -1425,7 +1425,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
         const int n_interpolants = 2;
         std::vector<int> samrai_petsc_map(n_interpolants * depth), local_row(depth);
@@ -1546,7 +1546,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
         const int n_interpolants = 2;
         std::vector<int> samrai_petsc_map(n_interpolants * depth);
@@ -1701,7 +1701,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
         const int n_interpolants = 4 * (NDIM - 1);
         std::vector<int> samrai_petsc_map(n_interpolants * depth), local_row(depth);
@@ -1912,7 +1912,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     {
         SAMRAIPointer<SAMRAIPatch> fine_patch = fine_patch_level->getPatch(p());
         const SAMRAIBox& fine_patch_box = fine_patch->getBox();
-        SAMRAIPointer<SAMRAISideData<int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
         const int n_interpolants = 4 * (NDIM - 1);
         std::vector<int> samrai_petsc_map(n_interpolants * depth);
@@ -2353,7 +2353,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
 
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<SAMRAIBox> > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
+    std::vector<std::vector<SAMRAIBox>> overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
     for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++, ++patch_counter)
     {
@@ -2371,7 +2371,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
     for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++, ++patch_counter)
     {
         SAMRAIPointer<SAMRAIPatch> patch = patch_level->getPatch(p());
-        SAMRAIPointer<SAMRAICellData<int> > dof_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAICellData<int>> dof_data = patch->getPatchData(dof_index_idx);
         const int data_depth = dof_data->getDepth();
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
@@ -2447,7 +2447,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
 {
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<SAMRAIBox> > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
+    std::vector<std::vector<SAMRAIBox>> overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
     for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++, ++patch_counter)
     {
@@ -2472,7 +2472,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
         {
             side_patch_box[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
         }
-        SAMRAIPointer<SAMRAISideData<int> > dof_data = patch->getPatchData(dof_index_idx);
+        SAMRAIPointer<SAMRAISideData<int>> dof_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         {
             const int data_depth = dof_data->getDepth();
@@ -2482,7 +2482,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
 #endif
 
         // Check if the patch touches physical boundary.
-        SAMRAIArray<SAMRAIArray<bool> > touches_physical_bdry(NDIM);
+        SAMRAIArray<SAMRAIArray<bool>> touches_physical_bdry(NDIM);
         SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const bool patch_touches_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (patch_touches_physical_bdry)
@@ -2498,8 +2498,8 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
         }
 
         // Check if the patch touches the c-f interface on the upper side of the patch.
-        SAMRAIArray<SAMRAIArray<bool> > touches_cf_bdry(NDIM);
-        SAMRAIArray<std::vector<SAMRAIBox> > upper_side_cf_bdry_box(NDIM);
+        SAMRAIArray<SAMRAIArray<bool>> touches_cf_bdry(NDIM);
+        SAMRAIArray<std::vector<SAMRAIBox>> upper_side_cf_bdry_box(NDIM);
         const SAMRAIArray<SAMRAIBoundaryBox>& cf_codim1_boxes =
             (level_num == 0) ? SAMRAIArray<SAMRAIBoundaryBox>() :
                                cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);

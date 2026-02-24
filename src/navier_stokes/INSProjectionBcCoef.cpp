@@ -123,9 +123,9 @@ INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSProjectionBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double> >& acoef_data,
-                                SAMRAIPointer<SAMRAIArrayData<double> >& bcoef_data,
-                                SAMRAIPointer<SAMRAIArrayData<double> >& gcoef_data,
+INSProjectionBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
                                 const SAMRAIPointer<SAMRAIVariable>& variable,
                                 const SAMRAIPatch& patch,
                                 const SAMRAIBoundaryBox& bdry_box,

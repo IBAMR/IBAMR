@@ -244,7 +244,7 @@ PhaseChangeHierarchyIntegrator::PhaseChangeHierarchyIntegrator(const std::string
 
 void
 PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(
-    SAMRAIPointer<SAMRAICellVariable<double> > specific_heat_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> specific_heat_var,
     const bool output_Cp)
 {
     d_specific_heat_var = specific_heat_var;
@@ -254,7 +254,7 @@ PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(
 } // registerSpecificHeatVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerDensityVariable(SAMRAIPointer<SAMRAICellVariable<double> > rho_var,
+PhaseChangeHierarchyIntegrator::registerDensityVariable(SAMRAIPointer<SAMRAICellVariable<double>> rho_var,
                                                         const bool output_rho)
 {
     d_rho_var = rho_var;
@@ -646,7 +646,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 } // postprocessIntegrateHierarchy
 
 void
-PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                                                const bool output_lf_var)
 {
     d_lf_var = lf_var;
@@ -659,7 +659,7 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<SAM
 
 void
 PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
-    SAMRAIPointer<SAMRAICellVariable<double> > lf_gradient_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> lf_gradient_var,
     const bool output_lf_gradient_var)
 {
     d_lf_gradient_var = lf_gradient_var;
@@ -669,28 +669,28 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
 } // registerLiquidFractionGradientVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerHeavisideVariable(SAMRAIPointer<SAMRAICellVariable<double> > H_var)
+PhaseChangeHierarchyIntegrator::registerHeavisideVariable(SAMRAIPointer<SAMRAICellVariable<double>> H_var)
 {
     d_H_var = H_var;
     return;
 } // registerHeavisideVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerTemperatureVariable(SAMRAIPointer<SAMRAICellVariable<double> > T_var,
+PhaseChangeHierarchyIntegrator::registerTemperatureVariable(SAMRAIPointer<SAMRAICellVariable<double>> T_var,
                                                             const bool output_T_var)
 {
     d_T_var = T_var;
     d_output_T = output_T_var;
 
-    SAMRAIPointer<SAMRAICellDataFactory<double> > T_factory = T_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> T_factory = T_var->getPatchDataFactory();
     const int T_depth = T_factory->getDefaultDepth();
-    SAMRAIPointer<SAMRAICellVariable<double> > T_rhs_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> T_rhs_var =
         new SAMRAICellVariable<double>(T_var->getName() + "::T_rhs", T_depth);
-    SAMRAIPointer<SAMRAICellVariable<double> > T_F_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> T_F_var =
         new SAMRAICellVariable<double>(T_var->getName() + "::F", T_depth);
-    SAMRAIPointer<SAMRAISideVariable<double> > T_diffusion_coef_var =
+    SAMRAIPointer<SAMRAISideVariable<double>> T_diffusion_coef_var =
         new SAMRAISideVariable<double>(T_var->getName() + "::diff_coef", T_depth);
-    SAMRAIPointer<SAMRAICellVariable<double> > T_diffusion_coef_cc_var =
+    SAMRAIPointer<SAMRAICellVariable<double>> T_diffusion_coef_cc_var =
         new SAMRAICellVariable<double>(T_var->getName() + "::diff_coef_cc", T_depth);
 
     // Set default values.
@@ -706,7 +706,7 @@ PhaseChangeHierarchyIntegrator::registerTemperatureVariable(SAMRAIPointer<SAMRAI
 } // registerTemperatureVariable
 
 void
-PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > lf_var,
+PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
                                                                   SAMRAIPointer<IBTK::CartGridFunction> lf_init)
 {
 #if !defined(NDEBUG)
@@ -717,7 +717,7 @@ PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(SAMRAIPointer<
 } // setLiquidFractionInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > T_var,
+PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> T_var,
                                                                SAMRAIPointer<IBTK::CartGridFunction> T_init)
 {
 #if !defined(NDEBUG)
@@ -728,7 +728,7 @@ PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(SAMRAIPointer<SAM
 } // setTemperatureInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setDensityInitialCondition(SAMRAIPointer<SAMRAICellVariable<double> > rho_var,
+PhaseChangeHierarchyIntegrator::setDensityInitialCondition(SAMRAIPointer<SAMRAICellVariable<double>> rho_var,
                                                            SAMRAIPointer<IBTK::CartGridFunction> rho_init)
 {
 #if !defined(NDEBUG)
@@ -739,7 +739,7 @@ PhaseChangeHierarchyIntegrator::setDensityInitialCondition(SAMRAIPointer<SAMRAIC
 } // setDensityInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double> > T_var,
+PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double>> T_var,
                                                              SAMRAIRobinBcCoefStrategy* T_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -820,7 +820,7 @@ PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(SA
 } // registerThermalConductivityBoundaryConditions
 
 void
-PhaseChangeHierarchyIntegrator::setAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double> > u_var)
+PhaseChangeHierarchyIntegrator::setAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var)
 {
     d_u_adv_var = u_var;
 
@@ -943,8 +943,8 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCSimpleAveraging(int sc_idx, con
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAISideData<double> > sc_data = patch->getPatchData(sc_idx);
-            SAMRAIPointer<SAMRAICellData<double> > cc_data = patch->getPatchData(cc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> sc_data = patch->getPatchData(sc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> cc_data = patch->getPatchData(cc_idx);
 
             C_TO_S_CWISE_INTERP_FC(sc_data->getPointer(0),
                                    sc_data->getPointer(1),
@@ -984,8 +984,8 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
 
-            SAMRAIPointer<SAMRAISideData<double> > sc_data = patch->getPatchData(sc_idx);
-            SAMRAIPointer<SAMRAICellData<double> > cc_data = patch->getPatchData(cc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> sc_data = patch->getPatchData(sc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> cc_data = patch->getPatchData(cc_idx);
 
             // Use this only k var
             C_TO_S_CWISE_HARMONIC_INTERP_FC(sc_data->getPointer(0),
@@ -1013,7 +1013,7 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
 } // interpolateCCTOSCHarmonicAveraging
 
 SAMRAIPointer<PoissonSolver>
-PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -1036,7 +1036,7 @@ PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(SAMRAIPointer<S
 } // getEnergyEquationHelmholtzSolver
 
 SAMRAIPointer<LaplaceOperator>
-PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -1064,7 +1064,7 @@ PhaseChangeHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > lf_new_data = patch->getPatchData(lf_new_idx);
+            SAMRAIPointer<SAMRAICellData<double>> lf_new_data = patch->getPatchData(lf_new_idx);
 
             for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {

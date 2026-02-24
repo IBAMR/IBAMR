@@ -113,8 +113,8 @@ public:
      */
     virtual void
     interpolateLinearizedVelocity(int u_data_idx,
-                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                  const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                   double data_time) = 0;
 
     /*!
@@ -134,7 +134,7 @@ public:
      */
     virtual void spreadLinearizedForce(int f_data_idx,
                                        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& f_prolongation_scheds,
+                                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
                                        double data_time) = 0;
 
     /*!

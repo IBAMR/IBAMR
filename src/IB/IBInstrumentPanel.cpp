@@ -969,9 +969,9 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            SAMRAIPointer<SAMRAICellData<double> > U_cc_data = patch->getPatchData(U_data_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
-            SAMRAIPointer<SAMRAICellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> U_cc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_sc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> P_cc_data = patch->getPatchData(P_data_idx);
 
             for (SAMRAIBox::Iterator b(patch_box); b; b++)
             {
@@ -1067,7 +1067,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
-    std::vector<boost::multi_array<Vector, 1> > U_perimeter(d_num_meters);
+    std::vector<boost::multi_array<Vector, 1>> U_perimeter(d_num_meters);
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         U_perimeter[m].resize(boost::extents[d_num_perimeter_nodes[m]]);

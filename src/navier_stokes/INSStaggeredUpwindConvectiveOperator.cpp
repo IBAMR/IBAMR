@@ -426,13 +426,13 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAISideData<double> > N_data = patch->getPatchData(N_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const SAMRAIIntVector ghosts = SAMRAIIntVector(1);
             std::array<SAMRAIBox, NDIM> side_boxes;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);

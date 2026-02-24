@@ -912,7 +912,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
     U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const SAMRAIPointer<SAMRAICellVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const SAMRAIPointer<SAMRAICellVariable<double>> U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -925,7 +925,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                  current_time,
                                  0.0,
                                  -1,
-                                 SAMRAIPointer<SAMRAICellVariable<double> >(nullptr),
+                                 SAMRAIPointer<SAMRAICellVariable<double>>(nullptr),
                                  axis,
                                  axis);
     }
@@ -1462,7 +1462,7 @@ INSCollocatedHierarchyIntegrator::getStableTimestep(SAMRAIPointer<SAMRAIPatch> p
     const SAMRAIIndex& ilower = patch->getBox().lower();
     const SAMRAIIndex& iupper = patch->getBox().upper();
 
-    SAMRAIPointer<SAMRAIFaceData<double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
+    SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
     const SAMRAIIntVector& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -1535,7 +1535,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 
         // Fill ghost cells.
         SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
-        SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double> > hier_cc_data_ops =
+        SAMRAIPointer<SAMRAIHierarchyCellDataOpsReal<double>> hier_cc_data_ops =
             hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1974,7 +1974,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
                     for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                     {
                         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                        SAMRAIPointer<SAMRAICellData<double> > U_nul_data =
+                        SAMRAIPointer<SAMRAICellData<double>> U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->fillAll(0.0);
                         U_nul_data->fill(1.0, k);
@@ -2078,9 +2078,9 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
             const SAMRAIIndex& ilower = patch->getBox().lower();
             const SAMRAIIndex& iupper = patch->getBox().upper();
 
-            SAMRAIPointer<SAMRAIFaceData<double> > u_data = patch->getPatchData(u_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Q_data = patch->getPatchData(Q_idx);
-            SAMRAIPointer<SAMRAICellData<double> > F_data = patch->getPatchData(F_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(Q_idx);
+            SAMRAIPointer<SAMRAICellData<double>> F_data = patch->getPatchData(F_idx);
 
             const SAMRAIIntVector& u_data_gc = u_data->getGhostCellWidth();
             const SAMRAIIntVector& Q_data_gc = Q_data->getGhostCellWidth();

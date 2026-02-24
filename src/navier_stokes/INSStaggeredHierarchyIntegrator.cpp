@@ -375,8 +375,8 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, SAMRAIPointer<SAMRAIPa
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIIndex& ilower = patch->getBox().lower();
             const SAMRAIIndex& iupper = patch->getBox().upper();
-            SAMRAIPointer<SAMRAISideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > U_fc_data = patch->getPatchData(U_fc_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_sc_data = patch->getPatchData(U_sc_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
@@ -1176,7 +1176,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         U_rhs_problem_coefs.setCConstant(K1_rhs * rho / dt - K2_rhs * lambda);
         U_rhs_problem_coefs.setDConstant(K2_rhs * mu);
         const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-        const SAMRAIPointer<SAMRAISideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+        const SAMRAIPointer<SAMRAISideVariable<double>> U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
                                                                   /*P_bc_coef*/ nullptr,
@@ -1402,8 +1402,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 } // postprocessIntegrateHierarchy
 
 void
-INSStaggeredHierarchyIntegrator::setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                                                    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+INSStaggeredHierarchyIntegrator::setupSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                                                    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                                                     const double current_time,
                                                     const double new_time,
                                                     const int cycle_num)
@@ -1578,8 +1578,8 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const SAMRAIPointer<SAMRAISA
 } // setupSolverVectors
 
 void
-INSStaggeredHierarchyIntegrator::resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec,
-                                                    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& rhs_vec,
+INSStaggeredHierarchyIntegrator::resetSolverVectors(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec,
+                                                    const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& rhs_vec,
                                                     const double /*current_time*/,
                                                     const double /*new_time*/,
                                                     const int cycle_num)
@@ -1622,7 +1622,7 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const SAMRAIPointer<SAMRAISA
 } // resetSolverVectors
 
 void
-INSStaggeredHierarchyIntegrator::removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double> >& sol_vec)
+INSStaggeredHierarchyIntegrator::removeNullSpace(const SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>& sol_vec)
 {
     for (const auto& nul_vec : d_nul_vecs)
     {
@@ -1643,7 +1643,7 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(SAMRAIPointer<SAMRAIPatch> pa
     const SAMRAIIndex& ilower = patch->getBox().lower();
     const SAMRAIIndex& iupper = patch->getBox().upper();
 
-    SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const SAMRAIIntVector& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -2447,10 +2447,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
                     for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                     {
                         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                        SAMRAIPointer<SAMRAISideData<double> > nul_data =
+                        SAMRAIPointer<SAMRAISideData<double>> nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                         nul_data->getArrayData(k).fillAll(1.0);
-                        SAMRAIPointer<SAMRAISideData<double> > U_nul_data =
+                        SAMRAIPointer<SAMRAISideData<double>> U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
@@ -2688,9 +2688,9 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
             const SAMRAIIndex& ilower = patch->getBox().lower();
             const SAMRAIIndex& iupper = patch->getBox().upper();
 
-            SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(U_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Q_data = patch->getPatchData(Q_idx);
-            SAMRAIPointer<SAMRAISideData<double> > F_data = patch->getPatchData(F_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(Q_idx);
+            SAMRAIPointer<SAMRAISideData<double>> F_data = patch->getPatchData(F_idx);
 
             const SAMRAIIntVector& U_data_gc = U_data->getGhostCellWidth();
             const SAMRAIIntVector& Q_data_gc = Q_data->getGhostCellWidth();
@@ -2905,12 +2905,12 @@ INSStaggeredHierarchyIntegrator::applyDivergencePreservingProlongation(const int
     {
         SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-        SAMRAIPointer<SAMRAISideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+        SAMRAIPointer<SAMRAISideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
         indicator_data->fillAll(0.0);
 
-        SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(U_idx);
-        SAMRAIPointer<SAMRAISideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-        SAMRAIPointer<SAMRAISideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+        SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_idx);
+        SAMRAIPointer<SAMRAISideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+        SAMRAIPointer<SAMRAISideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
         U_data->fillAll(std::numeric_limits<double>::quiet_NaN());
         U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
         U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
@@ -2923,12 +2923,12 @@ INSStaggeredHierarchyIntegrator::applyDivergencePreservingProlongation(const int
         {
             SAMRAIPointer<SAMRAIPatch> patch = old_level->getPatch(p());
 
-            SAMRAIPointer<SAMRAISideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            SAMRAIPointer<SAMRAISideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
             indicator_data->fillAll(1.0);
 
-            SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(U_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            SAMRAIPointer<SAMRAISideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
             U_regrid_data->copy(*U_data);
             U_src_data->copy(*U_data);
         }

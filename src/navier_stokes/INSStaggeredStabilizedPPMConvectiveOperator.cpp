@@ -611,16 +611,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAISideData<double> > N_data = patch->getPatchData(N_idx);
-            SAMRAIPointer<SAMRAISideData<double> > N_upwind_data =
+            SAMRAIPointer<SAMRAISideData<double>> N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAISideData<double>> N_upwind_data =
                 new SAMRAISideData<double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
-            SAMRAIPointer<SAMRAISideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const SAMRAIIntVector ghosts = SAMRAIIntVector(1);
             std::array<SAMRAIBox, NDIM> side_boxes;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_adv_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_data;
-            std::array<SAMRAIPointer<SAMRAIFaceData<double> >, NDIM> U_half_upwind_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_upwind_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
@@ -882,16 +882,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             // Compute the xsPPM7 discretization.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                SAMRAIPointer<SAMRAISideData<double> > dU_data =
+                SAMRAIPointer<SAMRAISideData<double>> dU_data =
                     new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SAMRAISideData<double> > U_L_data =
+                SAMRAIPointer<SAMRAISideData<double>> U_L_data =
                     new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SAMRAISideData<double> > U_R_data =
+                SAMRAIPointer<SAMRAISideData<double>> U_R_data =
                     new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SAMRAISideData<double> > U_scratch1_data =
+                SAMRAIPointer<SAMRAISideData<double>> U_scratch1_data =
                     new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                SAMRAIPointer<SAMRAISideData<double> > U_scratch2_data =
+                SAMRAIPointer<SAMRAISideData<double>> U_scratch2_data =
                     new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
@@ -1199,7 +1199,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             }
             if (patch_geom->getTouchesRegularBoundary())
             {
-                SAMRAIPointer<SAMRAISideData<double> > N_PPM_data =
+                SAMRAIPointer<SAMRAISideData<double>> N_PPM_data =
                     new SAMRAISideData<double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
                 N_PPM_data->copy(*N_data);
                 for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)

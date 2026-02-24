@@ -494,7 +494,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(b, nullptr, &vb);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > vx0, vb0;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> vx0, vb0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vb[0], &vb0);
     d_hierarchy = vx0->getPatchHierarchy();
@@ -682,10 +682,10 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAISAMRAIVectorReal<double
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAISideData<double> > nul_data =
+                    SAMRAIPointer<SAMRAISideData<double>> nul_data =
                         patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                     nul_data->getArrayData(k).fillAll(1.0);
-                    SAMRAIPointer<SAMRAISideData<double> > U_nul_data =
+                    SAMRAIPointer<SAMRAISideData<double>> U_nul_data =
                         patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                     U_nul_data->getArrayData(k).fillAll(1.0);
                 }
@@ -710,10 +710,10 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAISAMRAIVectorReal<double
     const int b_u_idx = rhs_vec.getComponentDescriptorIndex(0);
     const int b_p_idx = rhs_vec.getComponentDescriptorIndex(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > x_u_sc_var = sol_vec.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > x_p_cc_var = sol_vec.getComponentVariable(1);
-    SAMRAIPointer<SAMRAISideVariable<double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> x_u_sc_var = sol_vec.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> x_p_cc_var = sol_vec.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> b_u_sc_var = rhs_vec.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> b_p_cc_var = rhs_vec.getComponentVariable(1);
 
     SAMRAISAMRAIVectorReal<double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
     SAMRAISAMRAIVectorReal<double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
@@ -931,15 +931,15 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > vx0, vy0;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> vx0, vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
 
     // Get the individual components.
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > g_h = vx0->cloneVector("");
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> g_h = vx0->cloneVector("");
     g_h->allocateVectorData();
     g_h->copyVector(vx0);
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > u_p = vy0;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> u_p = vy0;
 
     Vec W, Lambda, F_tilde;
     W = vx[1];
@@ -977,8 +977,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 2b) U = J u + W.
     solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);
     ib_method_ops->interpolateVelocity(u_data_idx,
-                                       std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >(),
-                                       std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(),
+                                       std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>(),
+                                       std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                                        half_time);
 
     solver->d_cib_strategy->getInterpolatedVelocity(U, half_time, beta);
@@ -1020,7 +1020,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
     const int g_data_idx = g_h->getComponentDescriptorIndex(0);
     solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);
-    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >(), half_time);
+    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(), half_time);
     if (solver->d_normalize_spread_force)
     {
         solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);

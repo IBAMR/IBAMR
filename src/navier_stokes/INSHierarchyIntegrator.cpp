@@ -282,7 +282,7 @@ INSHierarchyIntegrator::getVelocityDivergenceVariable() const
     return d_Q_var;
 } // getVelocityDivergenceVariable
 
-SAMRAIPointer<SAMRAIFaceVariable<double> >
+SAMRAIPointer<SAMRAIFaceVariable<double>>
 INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
@@ -555,8 +555,8 @@ INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double 
             const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            SAMRAIPointer<SAMRAICellData<double> > u_cc_new_data = patch->getPatchData(data_idx);
-            SAMRAIPointer<SAMRAISideData<double> > u_sc_new_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAICellData<double>> u_cc_new_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_sc_new_data = patch->getPatchData(data_idx);
 #ifndef NDEBUG
             TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
 #endif
@@ -583,8 +583,8 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            SAMRAIPointer<SAMRAICellData<double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Omega_data_ptr = patch->getPatchData(Omega_idx);
+            SAMRAIPointer<SAMRAICellData<double>> cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(cc_wgt_data_ptr);
             const SAMRAICellData<double>& Omega_data = *Omega_data_ptr;
@@ -646,8 +646,8 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
             const SAMRAIBox& patch_box = patch->getBox();
-            SAMRAIPointer<SAMRAICellData<double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            SAMRAIPointer<SAMRAICellData<int> > tag_data_ptr = patch->getPatchData(tag_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Omega_data_ptr = patch->getPatchData(Omega_idx);
+            SAMRAIPointer<SAMRAICellData<int>> tag_data_ptr = patch->getPatchData(tag_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(tag_data_ptr);
             const SAMRAICellData<double>& Omega_data = *Omega_data_ptr;

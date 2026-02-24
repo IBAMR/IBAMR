@@ -115,7 +115,7 @@ namespace IBAMR
 // Constructor
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
     std::string object_name,
-    SAMRAIPointer<SAMRAICellVariable<double> > Q_var,
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
     SAMRAIPointer<SAMRAIDatabase> input_db,
     const ConvectiveDifferencingType differencing_form,
     std::vector<SAMRAIRobinBcCoefStrategy*> conc_bc_coefs)
@@ -190,8 +190,8 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
-            SAMRAIPointer<SAMRAIFaceData<double> > u_adv_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data = patch->getPatchData(d_Q_scratch_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> u_adv_data = patch->getPatchData(d_u_idx);
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data,
                                                                             u_adv_data,
                                                                             patch,
@@ -217,10 +217,10 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
             const SAMRAIBox& patch_box = patch->getBox();
             const SAMRAIIntVector patch_lower = patch_box.lower();
             const SAMRAIIntVector patch_upper = patch_box.upper();
-            SAMRAIPointer<SAMRAICellData<double> > Y_data = patch->getPatchData(Y_idx);
-            SAMRAIPointer<SAMRAICellData<double> > Q_data_scr = patch->getPatchData(d_Q_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Y_data = patch->getPatchData(Y_idx);
+            SAMRAIPointer<SAMRAICellData<double>> Q_data_scr = patch->getPatchData(d_Q_scratch_idx);
             const SAMRAIIntVector Q_data_scr_gcw = Q_data_scr->getGhostCellWidth();
-            SAMRAIPointer<SAMRAIFaceData<double> > U_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> U_data = patch->getPatchData(d_u_idx);
             const SAMRAIIntVector U_data_gcw = U_data->getGhostCellWidth();
             const SAMRAIIntVector Y_data_gcw = Y_data->getGhostCellWidth();
 #if (NDIM == 2)

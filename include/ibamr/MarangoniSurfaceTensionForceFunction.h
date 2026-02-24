@@ -182,7 +182,7 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double> > F_data,
+    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> F_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,
@@ -191,7 +191,7 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double> > F_data,
+    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
                             SAMRAIPointer<SAMRAIPatch> patch,
                             const double data_time,
                             const bool initial_time,
@@ -200,7 +200,7 @@ private:
     /*!
      * Temperature variable and its patch data index.
      */
-    SAMRAIPointer<SAMRAICellVariable<double> > d_T_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_T_var;
     int d_T_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
 
     /*!

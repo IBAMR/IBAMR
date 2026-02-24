@@ -138,7 +138,7 @@ is_dirichlet_bdry(const Elem* elem,
 
 inline void
 get_FF(libMesh::TensorValue<double>& FF,
-       const std::vector<VectorValue<double> >& grad_x_data,
+       const std::vector<VectorValue<double>>& grad_x_data,
        const unsigned int dim = NDIM)
 {
     FF.zero();
@@ -159,7 +159,7 @@ inline void
 get_x_and_FF(libMesh::VectorValue<double>& x,
              libMesh::TensorValue<double>& FF,
              const std::vector<double>& x_data,
-             const std::vector<VectorValue<double> >& grad_x_data,
+             const std::vector<VectorValue<double>>& grad_x_data,
              const unsigned int dim = NDIM)
 {
     x.zero();
@@ -180,7 +180,7 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
 
 inline void
 get_Grad_U(libMesh::TensorValue<double>& Grad_U,
-           const std::vector<VectorValue<double> >& grad_U_data,
+           const std::vector<VectorValue<double>>& grad_U_data,
            const unsigned int dim = NDIM)
 {
     Grad_U.zero();
@@ -701,9 +701,9 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     fe.init();
 
     const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
+    const std::vector<std::vector<double>>& phi = fe.getPhi(P_fe_type);
 
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
     // Setup global and elemental right-hand-side vectors.
@@ -727,7 +727,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
         const size_t n_basis = phi.size();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_FF(FF, grad_x_data);
             double J = FF.det();
             const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
@@ -809,9 +809,9 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     fe.init();
 
     const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
+    const std::vector<std::vector<double>>& phi = fe.getPhi(P_fe_type);
 
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
     // Setup global and elemental right-hand-side vectors.
@@ -835,10 +835,10 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
         const size_t n_basis = phi.size();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_FF(FF, grad_x_data);
             FF_inv_trans = tensor_inverse_transpose(FF);
-            const std::vector<VectorValue<double> >& grad_U_data = fe_interp_grad_var_data[qp][U_sys_idx];
+            const std::vector<VectorValue<double>>& grad_U_data = fe_interp_grad_var_data[qp][U_sys_idx];
             get_Grad_U(Grad_U, grad_U_data);
             double J = FF.det();
             const double dP_dt =
@@ -964,19 +964,19 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
-        const std::vector<std::vector<VectorValue<double> > >& dphi = fe.getDphi(F_fe_type);
+        const std::vector<std::vector<VectorValue<double>>>& dphi = fe.getDphi(F_fe_type);
 
         const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
         const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
         const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
-        const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(F_fe_type);
+        const std::vector<std::vector<double>>& phi_face = fe.getPhiFace(F_fe_type);
 
-        const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-        const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+        const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
             fe.getGradVarInterpolation();
 
         std::vector<const std::vector<double>*> PK1_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data;
+        std::vector<const std::vector<VectorValue<double>>*> PK1_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
@@ -1007,7 +1007,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
             {
                 const libMesh::Point& X = q_point[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
 
                 // Compute the value of the first Piola-Kirchhoff stress tensor
@@ -1052,7 +1052,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                 {
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
 
@@ -1153,20 +1153,20 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(F_fe_type);
-    const std::vector<std::vector<VectorValue<double> > >& dphi = fe.getDphi(F_fe_type);
+    const std::vector<std::vector<double>>& phi = fe.getPhi(F_fe_type);
+    const std::vector<std::vector<VectorValue<double>>>& dphi = fe.getDphi(F_fe_type);
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
-    const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(F_fe_type);
+    const std::vector<std::vector<double>>& phi_face = fe.getPhiFace(F_fe_type);
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
     std::vector<const std::vector<double>*> body_force_var_data, surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> >*> body_force_grad_var_data, surface_force_grad_var_data,
+    std::vector<const std::vector<VectorValue<double>>*> body_force_grad_var_data, surface_force_grad_var_data,
         surface_pressure_grad_var_data;
 
     // Loop over the elements to compute the right-hand side vector.
@@ -1193,7 +1193,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
         {
             const libMesh::Point& X = q_point[qp];
             const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_x_and_FF(x, FF, x_data, grad_x_data);
             const double J = std::abs(FF.det());
             tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
@@ -1265,7 +1265,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
             {
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);

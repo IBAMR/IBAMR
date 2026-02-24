@@ -211,11 +211,11 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
             const SAMRAIIntVector& patch_lower = patch_box.lower();
             const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            SAMRAIPointer<SAMRAICellData<double> > N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAICellData<double>> N_data = patch->getPatchData(N_idx);
             const SAMRAIIntVector N_gcw = N_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAICellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
             const SAMRAIIntVector U_gcw = U_data->getGhostCellWidth();
-            SAMRAIPointer<SAMRAIFaceData<double> > U_sp_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<SAMRAIFaceData<double>> U_sp_data = patch->getPatchData(d_u_idx);
             const SAMRAIIntVector U_sp_gcw = U_sp_data->getGhostCellWidth();
 
             // Do differencing

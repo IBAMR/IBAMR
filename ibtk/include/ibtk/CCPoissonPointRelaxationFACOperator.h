@@ -263,8 +263,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAIBoxList> > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAIBox> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAIBoxList>> d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAIBox>>> d_patch_neighbor_overlap;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
     // cell values.

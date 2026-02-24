@@ -104,12 +104,12 @@ public:
     /*!
      * \brief Return a const reference to the map.
      */
-    const std::map<int, SAMRAIPointer<Streamable> >& getMap() const;
+    const std::map<int, SAMRAIPointer<Streamable>>& getMap() const;
 
 private:
     // Member data.
-    std::map<int, SAMRAIPointer<Streamable> > d_map;
-    std::map<int, SAMRAIPointer<Streamable> > d_pending_additions;
+    std::map<int, SAMRAIPointer<Streamable>> d_map;
+    std::map<int, SAMRAIPointer<Streamable>> d_pending_additions;
     std::vector<int> d_pending_removals;
 };
 } // namespace IBTK

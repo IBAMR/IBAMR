@@ -277,7 +277,7 @@ private:
     PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that) = delete;
 
     const PC d_petsc_pc;
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_x, d_b;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_x, d_b;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
 };
 } // namespace IBTK

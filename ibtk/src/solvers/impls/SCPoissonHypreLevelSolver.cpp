@@ -679,12 +679,12 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const SAMRAIBox x_ghost_box = SAMRAIBox::grow(patch_box, 1);
-        SAMRAIPointer<SAMRAISideData<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAISideData<double>> x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vec, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
-        SAMRAIPointer<SAMRAISideData<double> > b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<SAMRAISideData<double>> b_data = patch->getPatchData(b_idx);
         const SAMRAIArray<SAMRAIBoundaryBox>& type_1_cf_bdry =
             level_zero ? SAMRAIArray<SAMRAIBoundaryBox>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
@@ -811,7 +811,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
         const SAMRAIBox& patch_box = patch->getBox();
-        SAMRAIPointer<SAMRAISideData<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAISideData<double>> x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vec, patch_box);
     }
 

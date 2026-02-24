@@ -87,10 +87,10 @@ VCStaggeredStokesOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAI
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
 
-    SAMRAIPointer<SAMRAISideVariable<double> > U_sc_var = x.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > P_cc_var = x.getComponentVariable(1);
-    SAMRAIPointer<SAMRAISideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> U_sc_var = x.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> P_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> A_U_sc_var = y.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -146,9 +146,9 @@ VCStaggeredStokesOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAI
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                SAMRAIPointer<SAMRAINodeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAINodeVariable<double>>(nullptr),
 #elif (NDIM == 3)
-                                SAMRAIPointer<SAMRAIEdgeVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAIEdgeVariable<double>>(nullptr),
 #endif
                                 U_idx,
                                 U_sc_var,
@@ -156,7 +156,7 @@ VCStaggeredStokesOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAI
                                 d_new_time,
                                 d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
-                                SAMRAIPointer<SAMRAISideVariable<double> >(nullptr),
+                                SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);

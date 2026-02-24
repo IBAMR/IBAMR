@@ -294,11 +294,11 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
-    SAMRAIPointer<SAMRAICellData<double> > cc_data = data;
-    SAMRAIPointer<SAMRAIFaceData<double> > fc_data = data;
-    SAMRAIPointer<SAMRAINodeData<double> > nc_data = data;
-    SAMRAIPointer<SAMRAISideData<double> > sc_data = data;
-    SAMRAIPointer<SAMRAIEdgeData<double> > ec_data = data;
+    SAMRAIPointer<SAMRAICellData<double>> cc_data = data;
+    SAMRAIPointer<SAMRAIFaceData<double>> fc_data = data;
+    SAMRAIPointer<SAMRAINodeData<double>> nc_data = data;
+    SAMRAIPointer<SAMRAISideData<double>> sc_data = data;
+    SAMRAIPointer<SAMRAIEdgeData<double>> ec_data = data;
     if (cc_data)
     {
 #if !defined(NDEBUG)

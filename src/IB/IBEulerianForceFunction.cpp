@@ -101,8 +101,8 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_id
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    SAMRAIPointer<SAMRAICellData<double> > f_cc_data = f_data;
-    SAMRAIPointer<SAMRAISideData<double> > f_sc_data = f_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -116,8 +116,8 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_id
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_data);
 #endif
-    SAMRAIPointer<SAMRAICellData<double> > f_ib_cc_data = f_ib_data;
-    SAMRAIPointer<SAMRAISideData<double> > f_ib_sc_data = f_ib_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_ib_cc_data = f_ib_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_ib_sc_data = f_ib_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));

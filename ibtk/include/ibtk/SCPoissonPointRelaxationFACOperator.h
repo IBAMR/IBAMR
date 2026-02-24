@@ -221,8 +221,8 @@ protected:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<std::array<SAMRAIBoxList, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::array<std::map<int, SAMRAIBox>, NDIM> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<std::array<SAMRAIBoxList, NDIM>>> d_patch_bc_box_overlap;
+    std::vector<std::vector<std::array<std::map<int, SAMRAIBox>, NDIM>>> d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

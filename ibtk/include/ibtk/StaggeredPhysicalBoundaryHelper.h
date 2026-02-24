@@ -102,8 +102,8 @@ public:
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
      * boundaries on a single patch.
      */
-    void copyDataAtDirichletBoundaries(SAMRAIPointer<SAMRAISideData<double> > u_out_data,
-                                       SAMRAIPointer<SAMRAISideData<double> > u_in_data,
+    void copyDataAtDirichletBoundaries(SAMRAIPointer<SAMRAISideData<double>> u_out_data,
+                                       SAMRAIPointer<SAMRAISideData<double>> u_in_data,
                                        SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*!
@@ -117,7 +117,7 @@ public:
     /*!
      * \brief Setup a masking function on a single patch.
      */
-    void setupMaskingFunction(SAMRAIPointer<SAMRAISideData<int> > u_data, SAMRAIPointer<SAMRAIPatch> patch) const;
+    void setupMaskingFunction(SAMRAIPointer<SAMRAISideData<int>> u_data, SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
@@ -157,8 +157,8 @@ protected:
      * Cached hierarchy-related information.
      */
     SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
-    std::vector<std::map<int, SAMRAIArray<SAMRAIBoundaryBox> > > d_physical_codim1_boxes;
-    std::vector<std::map<int, std::vector<SAMRAIPointer<SAMRAIArrayData<bool> > > > > d_dirichlet_bdry_locs;
+    std::vector<std::map<int, SAMRAIArray<SAMRAIBoundaryBox>>> d_physical_codim1_boxes;
+    std::vector<std::map<int, std::vector<SAMRAIPointer<SAMRAIArrayData<bool>>>>> d_dirichlet_bdry_locs;
 
 private:
     /*!

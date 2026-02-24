@@ -391,8 +391,8 @@ private:
     SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Null space vectors for LInv
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_nul_vecs;
-    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > > d_U_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

@@ -137,7 +137,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                                                       const bool initial_time,
                                                       SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
-    SAMRAIPointer<SAMRAISideData<double> > F_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAISideData<double>> F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -147,9 +147,9 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    SAMRAIPointer<SAMRAISideData<double> > U_current_data =
+    SAMRAIPointer<SAMRAISideData<double>> U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    SAMRAIPointer<SAMRAISideData<double> > U_new_data =
+    SAMRAIPointer<SAMRAISideData<double>> U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);

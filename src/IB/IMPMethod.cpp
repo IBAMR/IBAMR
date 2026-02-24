@@ -375,8 +375,8 @@ IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/
 
 void
 IMPMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& u_synch_scheds,
-                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& u_ghost_fill_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     const int coarsest_ln = 0;
@@ -386,12 +386,12 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
     // Determine the type of data centering.
     SAMRAIPointer<SAMRAIVariable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    SAMRAIPointer<SAMRAISideVariable<double> > u_sc_var = u_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = u_var;
     const bool sc_data = u_sc_var;
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<SAMRAIPointer<LData> >*U_data, *Grad_U_data, *X_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -425,7 +425,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > u_data = patch->getPatchData(u_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
             SAMRAIPointer<LNodeSetData> idx_data =
                 patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const SAMRAIBox& patch_box = patch->getBox();
@@ -531,7 +531,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >*U_data, *Grad_U_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -588,7 +588,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >*U_data, *Grad_U_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -642,7 +642,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<SAMRAIPointer<LData> >*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<SAMRAIPointer<LData>>*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -700,7 +700,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> >*X_data, *F_data;
+    std::vector<SAMRAIPointer<LData>>*X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -762,7 +762,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
 void
 IMPMethod::spreadForce(const int f_data_idx,
                        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*f_prolongation_scheds*/,
+                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*f_prolongation_scheds*/,
                        const double data_time)
 {
     const int coarsest_ln = 0;
@@ -772,7 +772,7 @@ IMPMethod::spreadForce(const int f_data_idx,
     // Determine the type of data centering.
     SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    SAMRAIPointer<SAMRAISideVariable<double> > f_sc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(sc_data);
 
@@ -783,13 +783,13 @@ IMPMethod::spreadForce(const int f_data_idx,
         SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double> > f_data_ops =
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> f_data_ops =
         SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Synchronize Lagrangian values.
-    std::vector<SAMRAIPointer<LData> >* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -815,7 +815,7 @@ IMPMethod::spreadForce(const int f_data_idx,
         for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(f_data_idx);
+            SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
             SAMRAIPointer<LNodeSetData> idx_data =
                 patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const SAMRAIBox& patch_box = patch->getBox();
@@ -924,8 +924,8 @@ void
 IMPMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                     SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                     int /*u_data_idx*/,
-                                    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule> >& /*u_synch_scheds*/,
-                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
                                     int /*integrator_step*/,
                                     double /*init_data_time*/,
                                     bool initial_time)
@@ -1091,7 +1091,7 @@ IMPMethod::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IMPMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+IMPMethod::getPositionData(std::vector<SAMRAIPointer<LData>>** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1129,8 +1129,8 @@ IMPMethod::getPositionData(std::vector<SAMRAIPointer<LData> >** X_data, bool** X
 } // getPositionData
 
 void
-IMPMethod::getVelocityData(std::vector<SAMRAIPointer<LData> >** U_data,
-                           std::vector<SAMRAIPointer<LData> >** Grad_U_data,
+IMPMethod::getVelocityData(std::vector<SAMRAIPointer<LData>>** U_data,
+                           std::vector<SAMRAIPointer<LData>>** Grad_U_data,
                            double data_time)
 {
     const int coarsest_ln = 0;
@@ -1170,7 +1170,7 @@ IMPMethod::getVelocityData(std::vector<SAMRAIPointer<LData> >** U_data,
 } // getVelocityData
 
 void
-IMPMethod::getDeformationGradientData(std::vector<SAMRAIPointer<LData> >** F_data, double data_time)
+IMPMethod::getDeformationGradientData(std::vector<SAMRAIPointer<LData>>** F_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -1188,9 +1188,9 @@ IMPMethod::getDeformationGradientData(std::vector<SAMRAIPointer<LData> >** F_dat
 } // getDeformationGradientData
 
 void
-IMPMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData> >& current_data,
-                              const std::vector<SAMRAIPointer<LData> >& new_data,
-                              const std::vector<SAMRAIPointer<LData> >& half_data)
+IMPMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData>>& current_data,
+                              const std::vector<SAMRAIPointer<LData>>& new_data,
+                              const std::vector<SAMRAIPointer<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;

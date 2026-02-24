@@ -85,7 +85,7 @@ callSetViscosityCallbackFunction(int mu_idx,
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_var,
+                                       SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                                        const double rho_liquid,
                                        const double rho_gas,
                                        const double mu_liquid,
@@ -107,8 +107,8 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
-                                       SAMRAIPointer<SAMRAICellVariable<double> > ls_solid_var,
+                                       SAMRAIPointer<SAMRAICellVariable<double>> ls_gas_var,
+                                       SAMRAIPointer<SAMRAICellVariable<double>> ls_solid_var,
                                        const double rho_liquid,
                                        const double rho_gas,
                                        const double rho_solid,
@@ -168,7 +168,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Normal way to set cell centered density
-    SAMRAIPointer<SAMRAICellVariable<double> > rho_cc_var = rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> rho_cc_var = rho_var;
     if (rho_cc_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -184,8 +184,8 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_idx);
-                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_data = patch->getPatchData(ls_idx);
+                SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(rho_idx);
 
                 for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
@@ -199,7 +199,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
         }
     }
 
-    SAMRAIPointer<SAMRAISideVariable<double> > rho_sc_var = rho_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         // Note, this method requires ghost cells to be filled for the level set variable
@@ -237,8 +237,8 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_scratch_idx);
-                SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_data = patch->getPatchData(ls_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_idx);
 // Various options to setting side-centered densities
 #define SMOOTH_SC_RHO_2_PHASE 1
 #define DESJARDINS_SC_RHO_2_PHASE 0
@@ -334,7 +334,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Set the density based on the cell centered level set
-    SAMRAIPointer<SAMRAICellVariable<double> > rho_cc_var = rho_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> rho_cc_var = rho_var;
 
     if (rho_cc_var)
     {
@@ -353,9 +353,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 const double beta = d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-                const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
-                SAMRAIPointer<SAMRAICellData<double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_solid_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_gas_data = patch->getPatchData(ls_gas_idx);
+                SAMRAIPointer<SAMRAICellData<double>> rho_data = patch->getPatchData(rho_idx);
 
                 // Li et al, 2015
                 for (SAMRAIBox::Iterator it(patch_box); it; it++)
@@ -378,7 +378,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     }
 
     // Setting side centered density directly
-    SAMRAIPointer<SAMRAISideVariable<double> > rho_sc_var = rho_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         // Note, this method requires ghost cells to be filled for the level set variable
@@ -425,9 +425,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
 
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
-                const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
-                SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
+                SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_idx);
 
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
@@ -576,9 +576,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const SAMRAIBox& patch_box = patch->getBox();
-                const SAMRAIPointer<SAMRAICellData<double> > ls_data = patch->getPatchData(ls_idx);
+                const SAMRAIPointer<SAMRAICellData<double>> ls_data = patch->getPatchData(ls_idx);
                 if (!ls_data) TBOX_ERROR("This statement should not be reached");
-                SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_idx);
+                SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_idx);
 
                 for (SAMRAIBox::Iterator it(patch_box); it; it++)
                 {
@@ -637,7 +637,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-        SAMRAIPointer<SAMRAICellVariable<double> > mu_cc_var = mu_var;
+        SAMRAIPointer<SAMRAICellVariable<double>> mu_cc_var = mu_var;
         if (mu_cc_var)
         {
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -656,9 +656,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                         d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                     const SAMRAIBox& patch_box = patch->getBox();
-                    const SAMRAIPointer<SAMRAICellData<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-                    const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
-                    SAMRAIPointer<SAMRAICellData<double> > mu_data = patch->getPatchData(mu_idx);
+                    const SAMRAIPointer<SAMRAICellData<double>> ls_solid_data = patch->getPatchData(ls_solid_idx);
+                    const SAMRAIPointer<SAMRAICellData<double>> ls_gas_data = patch->getPatchData(ls_gas_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_idx);
 
                     for (SAMRAIBox::Iterator it(patch_box); it; it++)
                     {
@@ -700,7 +700,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
 
     GravityForcing::GravityForcing(const std::string& object_name,
                                    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                                   SAMRAIPointer<SAMRAICellVariable<double> > ls_gas_var,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> ls_gas_var,
                                    SAMRAIPointer<Database> input_db,
                                    std::vector<double> grav_const)
         : d_object_name(object_name),
@@ -797,7 +797,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                         const bool initial_time,
                                         SAMRAIPointer<SAMRAIPatchLevel> /*patch_level*/)
     {
-        SAMRAIPointer<SAMRAISideData<double> > f_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(data_idx);
         if (initial_time)
         {
             f_data->fillAll(0.0);
@@ -814,7 +814,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             TBOX_ASSERT(rho_ins_idx >= 0);
 #endif
 
-            const SAMRAIPointer<SAMRAISideData<double> > rho_data = patch->getPatchData(rho_ins_idx);
+            const SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
@@ -829,7 +829,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             // Set the gravity force. In this version, the gravity force is reconstructed from the flow density field.
             SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const SAMRAIPointer<SAMRAICellData<double> > ls_gas_data = patch->getPatchData(d_ls_gas_scratch_idx);
+            const SAMRAIPointer<SAMRAICellData<double>> ls_gas_data = patch->getPatchData(d_ls_gas_scratch_idx);
 
             double alpha = 1.0;
             for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];

@@ -86,8 +86,8 @@ add_or_get(SAMRAIPointer<SAMRAIPatchLevel>& level,
         std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
         if (cc_data) // semantics are slightly different for side-centered data
         {
-            SAMRAIPointer<SAMRAICellData<double> > value_data = patch->getPatchData(value_idx);
-            SAMRAIPointer<SAMRAICellData<int> > dof_data = patch->getPatchData(local_dof_idx);
+            SAMRAIPointer<SAMRAICellData<double>> value_data = patch->getPatchData(value_idx);
+            SAMRAIPointer<SAMRAICellData<int>> dof_data = patch->getPatchData(local_dof_idx);
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
 
@@ -96,8 +96,8 @@ add_or_get(SAMRAIPointer<SAMRAIPatchLevel>& level,
         }
         else
         {
-            SAMRAIPointer<SAMRAISideData<double> > value_data = patch->getPatchData(value_idx);
-            SAMRAIPointer<SAMRAISideData<int> > dof_data = patch->getPatchData(local_dof_idx);
+            SAMRAIPointer<SAMRAISideData<double>> value_data = patch->getPatchData(value_idx);
+            SAMRAIPointer<SAMRAISideData<int>> dof_data = patch->getPatchData(local_dof_idx);
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
 
@@ -147,8 +147,8 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBaseP
 
     IBTK_TIMER_START(t_constructor);
     // Determine data layout:
-    SAMRAIPointer<SAMRAICellVariable<double> > cc_var = var;
-    SAMRAIPointer<SAMRAISideVariable<double> > sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     const bool cc_data = cc_var;
     const bool sc_data = sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -162,12 +162,12 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBaseP
     int depth = 0;
     if (d_cc_data)
     {
-        SAMRAIPointer<SAMRAICellDataFactory<double> > cc_data_factory = cc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> cc_data_factory = cc_var->getPatchDataFactory();
         depth = cc_data_factory->getDefaultDepth();
     }
     else
     {
-        SAMRAIPointer<SAMRAISideDataFactory<double> > sc_data_factory = sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double>> sc_data_factory = sc_var->getPatchDataFactory();
         depth = sc_data_factory->getDefaultDepth();
     }
     TBOX_ASSERT(depth != 0);
@@ -207,12 +207,12 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBaseP
             std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
             if (d_cc_data)
             {
-                SAMRAIPointer<SAMRAICellData<int> > dof_data = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAICellData<int>> dof_data = patch->getPatchData(d_global_dof_idx);
                 dofs_ptrs.push_back(&dof_data->getArrayData());
             }
             else
             {
-                SAMRAIPointer<SAMRAISideData<int> > dof_data = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> dof_data = patch->getPatchData(d_global_dof_idx);
                 // SideData stores multiple arrays (one for each dimension)
                 for (int d = 0; d < NDIM; ++d) dofs_ptrs.push_back(&dof_data->getArrayData(d));
             }
@@ -250,8 +250,8 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBaseP
             std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
             if (d_cc_data)
             {
-                SAMRAIPointer<SAMRAICellData<int> > global_dofs = patch->getPatchData(d_global_dof_idx);
-                SAMRAIPointer<SAMRAICellData<int> > local_dofs = patch->getPatchData(d_local_dof_idx);
+                SAMRAIPointer<SAMRAICellData<int>> global_dofs = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAICellData<int>> local_dofs = patch->getPatchData(d_local_dof_idx);
                 SAMRAIArrayData<int>& global_dof_data = global_dofs->getArrayData();
                 SAMRAIArrayData<int>& local_dof_data = local_dofs->getArrayData();
                 const auto size = local_dof_data.getBox().size() * local_dof_data.getDepth();
@@ -262,8 +262,8 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBaseP
             }
             else
             {
-                SAMRAIPointer<SAMRAISideData<int> > global_dofs = patch->getPatchData(d_global_dof_idx);
-                SAMRAIPointer<SAMRAISideData<int> > local_dofs = patch->getPatchData(d_local_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> global_dofs = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> local_dofs = patch->getPatchData(d_local_dof_idx);
                 // SideData stores multiple arrays (one for each dimension)
                 for (int d = 0; d < NDIM; ++d)
                 {

@@ -302,8 +302,8 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<double>& e
         for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > error_data = error.getComponentPatchData(0, *patch);
-            SAMRAIPointer<SAMRAICellData<double> > scratch_data = patch->getPatchData(scratch_idx);
+            SAMRAIPointer<SAMRAICellData<double>> error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAICellData<double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
             const SAMRAIBox& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -329,8 +329,8 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<double>& e
                 for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
                     SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-                    SAMRAIPointer<SAMRAICellData<double> > error_data = error.getComponentPatchData(0, *patch);
-                    SAMRAIPointer<SAMRAICellData<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    SAMRAIPointer<SAMRAICellData<double>> error_data = error.getComponentPatchData(0, *patch);
+                    SAMRAIPointer<SAMRAICellData<double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
                     const SAMRAIBox& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -367,8 +367,8 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<double>& e
         for (SAMRAIPatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
             SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
-            SAMRAIPointer<SAMRAICellData<double> > error_data = error.getComponentPatchData(0, *patch);
-            SAMRAIPointer<SAMRAICellData<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAICellData<double>> error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SAMRAICellData<double>> residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
             const SAMRAIBox& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
@@ -386,7 +386,7 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAISAMRAIVectorReal<double>& e
                     const int src_patch_num = pair.first;
                     const SAMRAIBox& overlap = pair.second;
                     SAMRAIPointer<SAMRAIPatch> src_patch = level->getPatch(src_patch_num);
-                    SAMRAIPointer<SAMRAICellData<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                    SAMRAIPointer<SAMRAICellData<double>> src_error_data = error.getComponentPatchData(0, *src_patch);
                     error_data->getArrayData().copy(src_error_data->getArrayData(), overlap, SAMRAIIntVector(0));
                 }
             }
@@ -477,9 +477,9 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAISAMRAIVectorReal<double
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const SAMRAIPointer<SAMRAICellVariable<double> > res_var = residual.getComponentVariable(0);
-    const SAMRAIPointer<SAMRAICellVariable<double> > sol_var = solution.getComponentVariable(0);
-    const SAMRAIPointer<SAMRAICellVariable<double> > rhs_var = rhs.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAICellVariable<double>> res_var = residual.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAICellVariable<double>> sol_var = solution.getComponentVariable(0);
+    const SAMRAIPointer<SAMRAICellVariable<double>> rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -542,11 +542,11 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
                                                                       const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    SAMRAIPointer<SAMRAICellVariable<double> > solution_var = solution.getComponentVariable(0);
-    SAMRAIPointer<SAMRAICellVariable<double> > rhs_var = rhs.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> solution_var = solution.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> rhs_var = rhs.getComponentVariable(0);
 
-    SAMRAIPointer<SAMRAICellDataFactory<double> > solution_pdat_fac = solution_var->getPatchDataFactory();
-    SAMRAIPointer<SAMRAICellDataFactory<double> > rhs_pdat_fac = rhs_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> solution_pdat_fac = solution_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> rhs_pdat_fac = rhs_var->getPatchDataFactory();
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
@@ -564,7 +564,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     }
 
     SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
-    SAMRAIPointer<SAMRAICellDataFactory<double> > scratch_pdat_fac =
+    SAMRAIPointer<SAMRAICellDataFactory<double>> scratch_pdat_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
@@ -772,7 +772,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     const SAMRAIBox& patch_box = patch->getBox();
     static const SAMRAIIntVector no_ghosts = 0;
 
-    SAMRAIPointer<SAMRAICellData<double> > C_data;
+    SAMRAIPointer<SAMRAICellData<double>> C_data;
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
         C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
@@ -792,7 +792,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
             C_data->fill(poisson_spec.getCConstant());
     }
 
-    SAMRAIPointer<SAMRAISideData<double> > D_data;
+    SAMRAIPointer<SAMRAISideData<double>> D_data;
     if (!poisson_spec.dIsConstant())
     {
         D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
@@ -829,12 +829,11 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
 } // buildPatchLaplaceOperator
 
 void
-CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
-    Mat& A,
-    const SAMRAIPointer<SAMRAICellData<double> > C_data,
-    const SAMRAIPointer<SAMRAISideData<double> > D_data,
-    const SAMRAIPointer<SAMRAIPatch> patch,
-    const SAMRAIIntVector& ghost_cell_width)
+CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
+                                                                     const SAMRAIPointer<SAMRAICellData<double>> C_data,
+                                                                     const SAMRAIPointer<SAMRAISideData<double>> D_data,
+                                                                     const SAMRAIPointer<SAMRAIPatch> patch,
+                                                                     const SAMRAIIntVector& ghost_cell_width)
 {
     int ierr;
 
@@ -960,8 +959,8 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
 void
 CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     Mat& A,
-    const SAMRAIPointer<SAMRAICellData<double> > C_data,
-    const SAMRAIPointer<SAMRAISideData<double> > D_data,
+    const SAMRAIPointer<SAMRAICellData<double>> C_data,
+    const SAMRAIPointer<SAMRAISideData<double>> D_data,
     const SAMRAIPointer<SAMRAIPatch> patch,
     const SAMRAIIntVector& ghost_cell_width)
 {

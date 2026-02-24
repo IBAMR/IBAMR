@@ -194,8 +194,8 @@ public:
      * Basis vectors will be normalized automatically.
      */
     void setNullSpace(bool contains_constant_vec,
-                      const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-                          std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > >()) override;
+                      const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs =
+                          std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -396,7 +396,7 @@ private:
     bool d_user_provided_mat = false;
     bool d_user_provided_pc = false;
 
-    SAMRAIPointer<SAMRAISAMRAIVectorReal<double> > d_nullspace_constant_vec;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace = false;
