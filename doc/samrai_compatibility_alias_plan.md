@@ -1,74 +1,47 @@
-# SAMRAI Compatability Migration Plan
+# SAMRAI Compatibility Migration Plan
 
-## Overall Plan
+For a short adoption guide (with a simple before/after example), see
+`doc/samrai_compatibility_adoption.md`.
 
-### Goal
+## Purpose
 
-Port IBAMR from IBSAMRAI2-era SAMRAI usage toward SAMRAI 4.5.0 with minimal churn, while keeping the tree buildable at each step.
+Track the migration from IBSAMRAI2-era SAMRAI usage to the SAMRAI compatibility layer, and capture what is complete versus what is still pending.
 
-### Strategy
+## Current State
 
-1. Establish a complete compatibility surface first.
-2. Keep include and type migrations largely mechanical.
-3. Defer behavioral/API redesign work until after alias/interposition rollout.
-4. Land work in buildable batches.
+### Compatibility Infrastructure
 
-### Current Architecture
-
-- Canonical compatibility environment:
-  - `ibtk/include/samrai_compatibility/samrai_compatibility_environment.h`
-- Forwarding headers for existing include sites:
+- Canonical alias headers exist under `ibtk/include/samrai_compatibility/<module>/SAMRAI*.h`.
+- Legacy wrapper coverage exists under `ibtk/include/samrai_compatibility/legacy/...`.
+- Common entry headers are in:
   - `ibtk/include/ibtk/samrai_compatibility_names.h`
+  - `ibtk/include/ibtk/samrai_compatibility_layer.h`
   - `ibtk/include/ibtk/samrai_compatibility_legacy_aliases.h`
-- Alias headers:
-  - `ibtk/include/samrai_compatibility/<module>/SAMRAI*.h`
-- Legacy include wrappers:
-  - `ibtk/include/samrai_compatibility/legacy/...`
+- Compatibility include/install paths are exported by CMake.
 
-## What Is Done
+### Adoption Status
 
-### Compatibility Surface (Complete for One-to-One Matches)
+One-to-one alias adoption is complete for the main code regions:
 
-- One-to-one SAMRAI alias headers are now in place for all classes/types that are consistent between IBSAMRAI2 and SAMRAI 4.5.0.
-- Legacy wrapper coverage is complete for the alias set (no missing alias-to-legacy wrapper pairs).
-- Compatibility include paths are exported in CMake so flat `#include <SAMRAI*.h>` works in build/install contexts.
+- IBTK library sources and headers.
+- IBAMR library sources and headers.
+- IBTK and IBAMR examples.
+- Testsuite sources.
 
-### Namespace and Pointer Compatibility
+### Tooling
 
-- `Pointer` compatibility behavior has been established via `SAMRAIPointer` and bridge aliases where needed.
-- Targeted legacy namespace bridges are centralized in the compatibility environment header.
+- Rewrite tool: `scripts/maintenance/rewrite_samrai_compatibility_file.py`.
+- Legacy wrapper generator: `scripts/maintenance/generate_samrai_legacy_wrappers.py`.
 
-### Tooling for Rollout
+## Remaining Work
 
-- Added per-file rewrite tool for non-legacy migration style:
-  - `scripts/maintenance/rewrite_samrai_compatibility_file.py`
-- This tool rewrites SAMRAI includes and type spellings to compatibility aliases and is intentionally heuristic (manual fix-up expected for ambiguous symbols).
+1. Handle non one-to-one SAMRAI API differences between IBSAMRAI2 and SAMRAI 4.5.0.
+2. Resolve any build/runtime issues that appear when switching builds from IBSAMRAI2 to SAMRAI 4.5.0.
+3. Remove temporary migration-specific workarounds once SAMRAI 4 behavior is fully validated.
 
-### Process/Validation Progress
+## Active Rules
 
-- The compatibility infrastructure has been committed and validated incrementally.
-- Pilot updates (e.g. SnapshotCache) have been used to validate migration mechanics without mixing functional changes.
-
-## What Happens Next
-
-### Phase 1: Alias Adoption in Source Files
-
-- Apply compatibility alias includes/types across IBTK/IBAMR in scoped batches.
-- Prefer scripted rewrites first, then manual review/fixup for collisions and edge cases.
-- Keep each batch buildable and focused on non-functional migration.
-
-### Phase 2: Resolve Non One-to-One API Gaps
-
-After alias adoption is broad, address true SAMRAI 2 -> 4 API differences that are not simple aliases (renames, removals, semantic shifts).
-
-### Phase 3: Functional Validation
-
-- Rebuild and run selected tests per subsystem during rollout.
-- Run wider regression/testing once major migration batches are in.
-
-## Working Rules
-
-- Do not introduce umbrella headers that include all SAMRAI compatibility headers per translation unit.
-- Keep migration commits separate from behavior changes.
-- Prefer minimal per-file includes and explicit aliases.
-- Treat scripted changes as first pass; always expect manual cleanup where names are ambiguous.
+- Keep migration changes behavioral-neutral unless a SAMRAI API difference requires functional updates.
+- Keep compatibility alias headers centralized; avoid introducing ad hoc alias definitions in unrelated files.
+- Prefer minimal, explicit includes over broad umbrella inclusion in ordinary translation units.
+- Use script + manual fixup workflow for large edits; validate with incremental builds.
