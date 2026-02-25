@@ -234,6 +234,54 @@ IIMethod::getFEDataManager(const unsigned int part) const
     return d_fe_data_managers[part];
 } // getFEDataManager
 
+NumericVector<double>*
+IIMethod::getInteractionConfiguration(std::string time, unsigned int part)
+{
+    if (d_use_current_mesh_configuration_for_interactions)
+    {
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        NumericVector<double>* X_vec = nullptr;
+
+        if (time == "current")
+        {
+            X_vec = d_X_current_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec);
+        }
+        else if (time == "half")
+        {
+            X_vec = d_X_half_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec);
+        }
+        else if (time == "new")
+        {
+            X_vec = d_X_new_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec);
+        }
+        else if (time == "ib_ghost")
+        {
+            return X_ghost_vec;
+        }
+        else
+        {
+            TBOX_ERROR("Time must be set to current, half, new, or ib_ghost. Case sensitive.");
+        }
+        return X_ghost_vec;
+    }
+    else
+    { // reference configuration
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
+        FEDataManager::SystemDofMapCache& X_dof_map_cache =
+            *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+        FEType X_fe_type = X_dof_map.variable_type(0);
+        NumericVector<double>& X0_vec_ref = X_system.get_vector("INITIAL_COORDINATES");
+        NumericVector<double>* X0_vec = &X0_vec_ref;
+        return X0_vec;
+    }
+
+} // getInteractionConfiguration
+
 void
 IIMethod::registerDisconElemFamilyForTraction(const unsigned int part,
                                               libMesh::FEFamily fe_family,
@@ -870,6 +918,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* U_t_vec = nullptr;
         NumericVector<double>* X_vec = nullptr;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
             d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
             d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
@@ -882,21 +931,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             U_vec = d_U_current_vecs[part];
             U_n_vec = d_U_n_current_vecs[part];
             U_t_vec = d_U_t_current_vecs[part];
-            X_vec = d_X_current_vecs[part];
+            X_vec = getInteractionConfiguration("current", part);
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             U_vec = d_U_half_vecs[part];
             U_n_vec = d_U_n_half_vecs[part];
             U_t_vec = d_U_t_half_vecs[part];
-            X_vec = d_X_half_vecs[part];
+            X_vec = getInteractionConfiguration("current", part);
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             U_vec = d_U_new_vecs[part];
             U_n_vec = d_U_n_new_vecs[part];
             U_t_vec = d_U_t_new_vecs[part];
-            X_vec = d_X_new_vecs[part];
+            X_vec = getInteractionConfiguration("current", part);
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -1602,15 +1651,15 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X_current_vecs[part];
+        X_vec = getInteractionConfiguration("current", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X_half_vecs[part];
+        X_vec = getInteractionConfiguration("half", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X_new_vecs[part];
+        X_vec = getInteractionConfiguration("half", part);
     }
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
     copy_and_synch(*X_vec, *X_ghost_vec);
@@ -2045,6 +2094,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* X_vec = nullptr;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
+
     std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
     DenseVector<double> P_in_rhs_e;
@@ -2055,15 +2105,15 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X_current_vecs[part];
+        X_vec = getInteractionConfiguration("current", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X_half_vecs[part];
+        X_vec = getInteractionConfiguration("half", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X_new_vecs[part];
+        X_vec = getInteractionConfiguration("new", part);
     }
     copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -2961,8 +3011,9 @@ IIMethod::spreadForce(const int f_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        auto X_vec = static_cast<PetscVector<double>*>(
+            getInteractionConfiguration("half", part));
+        auto X_ghost_vec = static_cast<PetscVector<double>*>(d_X_IB_ghost_vecs[part]);
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
@@ -4399,6 +4450,9 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
     else if (db->isBool("IB_use_nodal_quadrature"))
         d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+    if (db->isBool("use_current_mesh_configuration_for_interactions"))
+        d_use_current_mesh_configuration_for_interactions =
+            db->getBool("use_current_mesh_configuration_for_interactions");
 
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
