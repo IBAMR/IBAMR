@@ -20,7 +20,7 @@
 using namespace SAMRAI;
 // check that @p box is completely contained by one of the boxes in @p boxes.
 bool
-check_box_contained(const std::vector<hier::Box<NDIM> >& boxes, const hier::Box<NDIM>& box)
+check_box_contained(const std::vector<hier::Box<NDIM>>& boxes, const hier::Box<NDIM>& box)
 {
     for (const auto& b : boxes)
         if (b.contains(box)) return true;
@@ -39,7 +39,7 @@ main(int argc, char** argv)
     {
         {
             out << "Box merge result 1\n";
-            std::vector<hier::Box<NDIM> > boxes;
+            std::vector<hier::Box<NDIM>> boxes;
             boxes.emplace_back(hier::Index<NDIM>(192, 140), hier::Index<NDIM>(263, 199));
             boxes.emplace_back(hier::Index<NDIM>(192, 200), hier::Index<NDIM>(239, 223));
             boxes.emplace_back(hier::Index<NDIM>(192, 224), hier::Index<NDIM>(215, 255));
@@ -54,7 +54,7 @@ main(int argc, char** argv)
 
         {
             out << "Box merge result 2\n";
-            std::vector<hier::Box<NDIM> > boxes;
+            std::vector<hier::Box<NDIM>> boxes;
             boxes.emplace_back(hier::Index<NDIM>(264, 140), hier::Index<NDIM>(307, 179));
             boxes.emplace_back(hier::Index<NDIM>(264, 180), hier::Index<NDIM>(307, 203));
             boxes.emplace_back(hier::Index<NDIM>(264, 204), hier::Index<NDIM>(307, 227));
@@ -67,7 +67,7 @@ main(int argc, char** argv)
 
         {
             out << "Box merge result 3\n";
-            std::vector<hier::Box<NDIM> > boxes;
+            std::vector<hier::Box<NDIM>> boxes;
             boxes.emplace_back(hier::Index<NDIM>(268, 256), hier::Index<NDIM>(307, 279));
             boxes.emplace_back(hier::Index<NDIM>(192, 256), hier::Index<NDIM>(215, 287));
             boxes.emplace_back(hier::Index<NDIM>(192, 288), hier::Index<NDIM>(243, 311));
@@ -82,7 +82,7 @@ main(int argc, char** argv)
 
         {
             out << "Box merge result 4\n";
-            std::vector<hier::Box<NDIM> > boxes;
+            std::vector<hier::Box<NDIM>> boxes;
             boxes.emplace_back(hier::Index<NDIM>(348, 292), hier::Index<NDIM>(391, 315));
             boxes.emplace_back(hier::Index<NDIM>(308, 332), hier::Index<NDIM>(347, 371));
             boxes.emplace_back(hier::Index<NDIM>(376, 256), hier::Index<NDIM>(399, 291));
@@ -105,7 +105,7 @@ main(int argc, char** argv)
     {
         {
             out << "Box merge result 1\n";
-            std::vector<hier::Box<NDIM> > boxes;
+            std::vector<hier::Box<NDIM>> boxes;
             boxes.emplace_back(hier::Index<NDIM>(36, 24, 24), hier::Index<NDIM>(59, 63, 63));
             boxes.emplace_back(hier::Index<NDIM>(60, 24, 24), hier::Index<NDIM>(75, 47, 63));
             boxes.emplace_back(hier::Index<NDIM>(60, 48, 24), hier::Index<NDIM>(75, 63, 47));

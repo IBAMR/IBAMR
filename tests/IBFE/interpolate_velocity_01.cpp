@@ -222,13 +222,13 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
             new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -264,11 +264,11 @@ main(int argc, char** argv)
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -288,7 +288,7 @@ main(int argc, char** argv)
         // Now for the actual test. The stored velocity field does not contain
         // ghost data, so we set up a new context and velocity field that does:
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
+        const Pointer<SAMRAI::hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ghost_ctx = var_db->getContext("u_ghost");
 
         int n_ghosts = 3;
@@ -300,7 +300,7 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_ghost_idx);
         }
         u_init->setDataOnPatchHierarchy(u_ghost_idx, u_var, patch_hierarchy, 0.0);
@@ -354,8 +354,8 @@ main(int argc, char** argv)
             QGauss X_qrule(NDIM, FIFTH);
             v_fe->attach_quadrature_rule(&v_qrule);
             X_fe->attach_quadrature_rule(&X_qrule);
-            const std::vector<std::vector<Real> >& v_phi = v_fe->get_phi();
-            const std::vector<std::vector<Real> >& X_phi = X_fe->get_phi();
+            const std::vector<std::vector<Real>>& v_phi = v_fe->get_phi();
+            const std::vector<std::vector<Real>>& X_phi = X_fe->get_phi();
             std::vector<dof_id_type> v_dof_indices;
             std::array<double, NDIM> max_norm_errors;
             std::fill(max_norm_errors.begin(), max_norm_errors.end(), 0.0);

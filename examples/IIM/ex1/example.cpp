@@ -78,7 +78,7 @@ tether_force_function(VectorValue<double>& F,
                       Elem* const /*elem*/,
                       const unsigned short /*side*/,
                       const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                       double /*time*/,
                       void* ctx)
 {
@@ -108,7 +108,7 @@ static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, 
     U_max_norm_stream;
 
 void postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                      tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                      tbox::Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -258,18 +258,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        tbox::Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        tbox::Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
+        tbox::Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        tbox::Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        tbox::Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -350,7 +349,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        tbox::Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -495,7 +494,7 @@ main(int argc, char* argv[])
 
 void
 postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                 tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 tbox::Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                  tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -526,33 +525,33 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
     NumericVector<double>* U_ghost_vec = U_system->current_local_solution.get();
     U_vec->localize(*U_ghost_vec);
     const DofMap& dof_map = x_system->get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
 
     NumericVector<double>& X_vec = x_system->get_vector("INITIAL_COORDINATES");
 
-    std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> WSS_o_dof_indices(NDIM);
     System& TAU_system = equation_systems->get_system<System>(IIMethod::TAU_OUT_SYSTEM_NAME);
 
     NumericVector<double>* TAU_vec = TAU_system.solution.get();
     NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> TAU_dof_indices(NDIM);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
-    const vector<vector<double> >& phi = fe->get_phi();
-    const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+    const vector<vector<double>>& phi = fe->get_phi();
+    const vector<vector<VectorValue<double>>>& dphi = fe->get_dphi();
     std::unique_ptr<FEBase> fe_TAU(FEBase::build(dim, TAU_dof_map.variable_type(0)));
     fe_TAU->attach_quadrature_rule(qrule.get());
-    const vector<vector<double> >& phi_TAU = fe_TAU->get_phi();
+    const vector<vector<double>>& phi_TAU = fe_TAU->get_phi();
 
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
-    std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
+    std::vector<const std::vector<libMesh::VectorValue<double>>*> grad_var_data;
 
     TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, X_node, U_node, TAU_node;

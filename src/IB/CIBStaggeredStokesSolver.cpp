@@ -145,19 +145,19 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, dou
     }
 
     // Wrap Eulerian data into PETSc Vecs.
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_wide_u_idx)) level->allocatePatchData(d_wide_u_idx);
         if (!level->checkAllocated(d_wide_f_idx)) level->allocatePatchData(d_wide_f_idx);
     }
 
-    Pointer<CellVariable<NDIM, double> > x_p_cc_var = x.getComponentVariable(1);
-    Pointer<CellVariable<NDIM, double> > b_p_cc_var = b.getComponentVariable(1);
+    Pointer<CellVariable<NDIM, double>> x_p_cc_var = x.getComponentVariable(1);
+    Pointer<CellVariable<NDIM, double>> b_p_cc_var = b.getComponentVariable(1);
     const int x_p_idx = x.getComponentDescriptorIndex(1);
     const int b_p_idx = b.getComponentDescriptorIndex(1);
 
@@ -256,8 +256,8 @@ bool
 CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Create packaged vectors for the Saddle point solver.
-    d_x_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    d_b_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    d_x_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&x, false));
+    d_b_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&b, false));
 
     // Wrap SAMRAI vector into PETSc Vec
     Vec u_p = PETScSAMRAIVectorReal::createPETScVector(d_x_wide);
@@ -335,8 +335,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
 
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-    Pointer<RefineSchedule<NDIM> > ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
+    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
+    Pointer<RefineSchedule<NDIM>> ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
     ghost_fill_schd->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
 
@@ -385,12 +385,12 @@ CIBStaggeredStokesSolver::deallocateSolverState()
     }
 
     // Deallocate widened patch data.
-    Pointer<PatchHierarchy<NDIM> > hierarchy = d_x_wide->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = d_x_wide->getPatchHierarchy();
     const int coarsest_ln = d_x_wide->getCoarsestLevelNumber();
     const int finest_ln = d_x_wide->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_wide_u_idx)) level->deallocatePatchData(d_wide_u_idx);
         if (level->checkAllocated(d_wide_f_idx)) level->deallocatePatchData(d_wide_f_idx);
     }

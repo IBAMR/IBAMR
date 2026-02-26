@@ -72,7 +72,7 @@ RectangularInterface rectangle;
 struct SolidLevelSetResetter
 {
     SolidLevelSetResetter(Pointer<AdvDiffHierarchyIntegrator> integrator,
-                          Pointer<CellVariable<NDIM, double> > var,
+                          Pointer<CellVariable<NDIM, double>> var,
                           Pointer<BrinkmanPenalizationRigidBodyDynamics> bp)
         : adv_diff_integrator(integrator), ls_solid_var(var), bp_rbd(bp)
     {
@@ -80,7 +80,7 @@ struct SolidLevelSetResetter
     }
 
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
-    Pointer<CellVariable<NDIM, double> > ls_solid_var;
+    Pointer<CellVariable<NDIM, double>> ls_solid_var;
     Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
 };
 
@@ -96,7 +96,7 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
     IBTK::VectorNd origin(XCOM_new[0], XCOM_new[1]);
 
     // Set a large value away from the solid body.
-    Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -105,17 +105,17 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+            Pointer<CellData<NDIM, double>> ls_solid_data = patch->getPatchData(ls_solid_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 const hier::Index<NDIM>& ci = it();
@@ -184,7 +184,7 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
                         const std::vector<const std::vector<double>*>& /*var_data*/,
-                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -199,7 +199,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
                         const std::vector<const std::vector<double>*>& /*var_data*/,
-                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -380,18 +380,18 @@ main(int argc, char* argv[])
                                               ibfe_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -400,7 +400,7 @@ main(int argc, char* argv[])
 
         // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        Pointer<CellVariable<NDIM, double>> phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
 
         // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
@@ -417,8 +417,8 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
         // Setup the advected and diffused fluid quantities.
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<hier::Variable<NDIM> > rho_var = new SideVariable<NDIM, double>("rho");
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<hier::Variable<NDIM>> rho_var = new SideVariable<NDIM, double>("rho");
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
@@ -541,7 +541,7 @@ main(int argc, char* argv[])
         solid_level_set_resetter.bp_rbd = bp_rbd;
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

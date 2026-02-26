@@ -75,9 +75,9 @@ LibMeshSystemIBVectors::getIBGhosted(const std::string& vec_name, const unsigned
 std::vector<libMesh::PetscVector<double>*>
 LibMeshSystemIBVectors::getIBGhosted(const std::string& vec_name)
 {
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& stored_vectors = maybeAddIBGhosted(vec_name);
+    std::vector<std::unique_ptr<libMesh::PetscVector<double>>>& stored_vectors = maybeAddIBGhosted(vec_name);
     std::vector<libMesh::PetscVector<double>*> result;
-    for (std::unique_ptr<libMesh::PetscVector<double> >& ptr : stored_vectors) result.push_back(ptr.get());
+    for (std::unique_ptr<libMesh::PetscVector<double>>& ptr : stored_vectors) result.push_back(ptr.get());
     return result;
 }
 
@@ -90,11 +90,11 @@ LibMeshSystemIBVectors::reinit()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-std::vector<std::unique_ptr<libMesh::PetscVector<double> > >&
+std::vector<std::unique_ptr<libMesh::PetscVector<double>>>&
 LibMeshSystemIBVectors::maybeAddIBGhosted(const std::string& vec_name)
 {
     TBOX_ASSERT(d_fe_data_managers.size() == d_systems.size());
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& stored_vectors = d_ib_ghosted_vectors[vec_name];
+    std::vector<std::unique_ptr<libMesh::PetscVector<double>>>& stored_vectors = d_ib_ghosted_vectors[vec_name];
     if (stored_vectors.empty())
         for (unsigned int part = 0; part < d_systems.size(); ++part)
             if (d_part_mask[part])

@@ -86,7 +86,7 @@ public:
      * \note This member function returns a nullptr pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const override;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> getBaseVector() const override;
 
     //\}
 
@@ -204,7 +204,7 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x, d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
     std::string d_options_prefix;
 };

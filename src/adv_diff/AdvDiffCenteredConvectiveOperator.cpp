@@ -72,7 +72,7 @@ static const int Q_MIN_GCW = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string object_name,
-                                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                                     Pointer<CellVariable<NDIM, double>> Q_var,
                                                                      Pointer<Database> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
                                                                      std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)

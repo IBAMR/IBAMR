@@ -101,13 +101,13 @@ public:
 
 protected:
     /// Add an IB ghosted vector.
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& maybeAddIBGhosted(const std::string& vec_name);
+    std::vector<std::unique_ptr<libMesh::PetscVector<double>>>& maybeAddIBGhosted(const std::string& vec_name);
 
     /// Pointers to IBTK::FEDataManager objects. These are needed to get IB ghosted vectors.
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
 
     /// Previously computed IB ghosted vectors.
-    std::map<std::string, std::vector<std::unique_ptr<libMesh::PetscVector<double> > > > d_ib_ghosted_vectors;
+    std::map<std::string, std::vector<std::unique_ptr<libMesh::PetscVector<double>>>> d_ib_ghosted_vectors;
 };
 } // namespace IBTK
 

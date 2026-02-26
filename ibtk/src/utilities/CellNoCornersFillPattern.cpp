@@ -46,7 +46,7 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width, cons
     return;
 } // CellNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM> >
+Pointer<BoxOverlap<NDIM>>
 CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,
                                            const Box<NDIM>& /*dst_patch_box*/,
@@ -57,7 +57,7 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     return dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM> >
+Pointer<BoxOverlap<NDIM>>
 CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
                                                   const BoxGeometry<NDIM>& src_geometry,
                                                   const Box<NDIM>& dst_patch_box,
@@ -69,7 +69,7 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
 {
     if (d_target_level_num == dst_level_num)
     {
-        Pointer<CellOverlap<NDIM> > default_overlap =
+        Pointer<CellOverlap<NDIM>> default_overlap =
             dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 
         // If we are on the target level, we set up the stencil to include overlaps
@@ -91,7 +91,7 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
             stencil_boxes.addItem(upper_box);
         }
         dst_boxes.intersectBoxes(stencil_boxes);
-        Pointer<CellOverlap<NDIM> > overlap = new CellOverlap<NDIM>(dst_boxes, src_offset);
+        Pointer<CellOverlap<NDIM>> overlap = new CellOverlap<NDIM>(dst_boxes, src_offset);
         return overlap;
     }
     else

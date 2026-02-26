@@ -329,35 +329,35 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const double* const dx = patch_geom->getDx();
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const IntVector<NDIM>& patch_lower = patch_box.lower();
                 const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-                Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(d_N_idx);
-                Pointer<SideData<NDIM, double> > V_data = patch->getPatchData(d_V_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-                Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-                Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
-                Pointer<SideData<NDIM, double> > E_data = patch->getPatchData(d_E_scratch_idx);
+                Pointer<SideData<NDIM, double>> N_data = patch->getPatchData(d_N_idx);
+                Pointer<SideData<NDIM, double>> V_data = patch->getPatchData(d_V_scratch_idx);
+                Pointer<SideData<NDIM, double>> R_cur_data = patch->getPatchData(d_rho_current_idx);
+                Pointer<SideData<NDIM, double>> R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+                Pointer<SideData<NDIM, double>> R_new_data = patch->getPatchData(d_rho_new_idx);
+                Pointer<SideData<NDIM, double>> R_src_data = patch->getPatchData(d_S_scratch_idx);
+                Pointer<SideData<NDIM, double>> E_data = patch->getPatchData(d_E_scratch_idx);
 
                 // Define variables that live on the "faces" of control
                 // volumes centered about side-centered staggered velocity
                 // components
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
                 std::array<Box<NDIM>, NDIM> side_boxes;
-                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
-                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
-                std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-                std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+                std::array<Pointer<FaceData<NDIM, double>>, NDIM> V_adv_data;
+                std::array<Pointer<FaceData<NDIM, double>>, NDIM> V_half_data;
+                std::array<Pointer<FaceData<NDIM, double>>, NDIM> R_half_data;
+                std::array<Pointer<FaceData<NDIM, double>>, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -449,7 +449,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                      dt,
                                      dx);
 
-                Pointer<SideData<NDIM, double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+                Pointer<SideData<NDIM, double>> V_cur_data = patch->getPatchData(d_V_current_idx);
                 if ((d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {

@@ -87,8 +87,8 @@ public:
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = invalid_level_number,
@@ -100,8 +100,8 @@ public:
      * setDataOnPatchLevel() provided by the component function objects.
      */
     void setDataOnPatchLevel(int data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                              double data_time,
                              bool initial_time = false) override;
 
@@ -111,12 +111,12 @@ public:
      * objects.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
 
     //\}
 
@@ -124,7 +124,7 @@ protected:
     /*
      * The collection of function objects.
      */
-    std::vector<SAMRAI::tbox::Pointer<CartGridFunction> > d_fcns;
+    std::vector<SAMRAI::tbox::Pointer<CartGridFunction>> d_fcns;
 
 private:
     /*!

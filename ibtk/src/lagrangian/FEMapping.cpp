@@ -127,7 +127,7 @@ QuadratureData::QuadratureData(const QuadratureData::key_type quad_key) : d_key(
 //
 
 template <>
-std::unique_ptr<FEMapping<2, 2> >
+std::unique_ptr<FEMapping<2, 2>>
 FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
 {
     switch (std::get<0>(key))
@@ -141,14 +141,14 @@ FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::QUAD9:
         return std::make_unique<Quad9Mapping>(key, update_flags);
     default:
-        return std::make_unique<FELagrangeMapping<2, 2> >(key, std::get<0>(key), update_flags);
+        return std::make_unique<FELagrangeMapping<2, 2>>(key, std::get<0>(key), update_flags);
     }
 
     return {};
 }
 
 template <>
-std::unique_ptr<FEMapping<3, 3> >
+std::unique_ptr<FEMapping<3, 3>>
 FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
 {
     switch (std::get<0>(key))
@@ -158,21 +158,21 @@ FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TET10:
         return std::make_unique<Tet10Mapping>(key, update_flags);
     case libMesh::ElemType::HEX8:
-        return std::make_unique<FELagrangeMapping<3, 3, 8> >(key, libMesh::ElemType::HEX8, update_flags);
+        return std::make_unique<FELagrangeMapping<3, 3, 8>>(key, libMesh::ElemType::HEX8, update_flags);
     case libMesh::ElemType::HEX27:
         return std::make_unique<Hex27Mapping>(key, update_flags);
     default:
-        return std::make_unique<FELagrangeMapping<3, 3> >(key, std::get<0>(key), update_flags);
+        return std::make_unique<FELagrangeMapping<3, 3>>(key, std::get<0>(key), update_flags);
     }
 
     return {};
 }
 
 template <int dim, int spacedim>
-std::unique_ptr<FEMapping<dim, spacedim> >
+std::unique_ptr<FEMapping<dim, spacedim>>
 FEMapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_flags)
 {
-    return std::make_unique<FELagrangeMapping<dim, spacedim> >(key, std::get<0>(key), update_flags);
+    return std::make_unique<FELagrangeMapping<dim, spacedim>>(key, std::get<0>(key), update_flags);
 }
 
 //

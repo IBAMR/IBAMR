@@ -106,7 +106,7 @@ tether_FSI_force_function_housing(VectorValue<double>& F,
                                   Elem* const /*elem*/,
                                   const unsigned short /*side*/,
                                   const vector<const vector<double>*>& var_data,
-                                  const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                  const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                   double /*time*/,
                                   void* /*ctx*/)
 {
@@ -145,7 +145,7 @@ PK1_dev_stress_function_beam(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              Elem* const /*elem*/,
                              const vector<const vector<double>*>& /*var_data*/,
-                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -181,7 +181,7 @@ PK1_dil_stress_function_beam(TensorValue<double>& PP,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
                              const std::vector<const std::vector<double>*>& /*var_data*/,
-                             const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -201,7 +201,7 @@ tether_force_function_beam(VectorValue<double>& F,
                            Elem* const elem,
                            const unsigned short side,
                            const vector<const vector<double>*>& /*var_data*/,
-                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                           const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                            double /*time*/,
                            void* /*ctx*/)
 {
@@ -239,7 +239,7 @@ tether_FSI_force_function_beam(VectorValue<double>& F,
                                Elem* const elem,
                                const unsigned short /*side*/,
                                const vector<const vector<double>*>& var_data,
-                               const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                               const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                double /*time*/,
                                void* /*ctx*/)
 {
@@ -289,7 +289,7 @@ body_force_function_beam(VectorValue<double>& F,
                          const libMesh::Point& /*X*/,
                          Elem* const /*elem*/,
                          const vector<const vector<double>*>& var_data,
-                         const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                         const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                          double time,
                          void* /*ctx*/)
 {
@@ -502,18 +502,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        tbox::Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        tbox::Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
+        tbox::Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        tbox::Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        tbox::Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -631,7 +630,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        tbox::Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -835,13 +834,13 @@ record_position(const FEMechanicsExplicitIntegrator* const fem_solver,
     x_system.get_all_variable_numbers(vars);
 
     NumericVector<double>* x_vec = x_system.solution.get();
-    std::unique_ptr<NumericVector<Number> > x_serial_vec = NumericVector<Number>::build(x_vec->comm());
+    std::unique_ptr<NumericVector<Number>> x_serial_vec = NumericVector<Number>::build(x_vec->comm());
     x_serial_vec->init(x_vec->size(), true, SERIAL);
     x_vec->localize(*x_serial_vec);
 
     MeshFunction mesh_fcn(*beam_systems, *x_serial_vec, x_dof_map, vars, 0);
     mesh_fcn.init();
-    vector<DenseVector<Number> > x(evaluation_points.size());
+    vector<DenseVector<Number>> x(evaluation_points.size());
     for (unsigned int i = 0; i < evaluation_points.size(); i++) mesh_fcn(evaluation_points[i], loop_time, x[i]);
 
     if (SAMRAI_MPI::getRank() == 0)

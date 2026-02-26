@@ -99,7 +99,7 @@ setup_system_vectors(libMesh::EquationSystems* equation_systems,
 void
 setup_system_vector(libMesh::System& system, const std::string& vector_name, const bool from_restart)
 {
-    std::unique_ptr<libMesh::NumericVector<double> > clone_vector;
+    std::unique_ptr<libMesh::NumericVector<double>> clone_vector;
     if (from_restart)
     {
         libMesh::NumericVector<double>* current = system.request_vector(vector_name);
@@ -372,7 +372,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
 
     std::vector<libMesh::BoundingBox> bboxes;
 
-    std::vector<std::vector<libMesh::dof_id_type> > dof_indices(NDIM);
+    std::vector<std::vector<libMesh::dof_id_type>> dof_indices(NDIM);
     boost::multi_array<double, 2> X_node;
     QuadratureCache quad_cache(dim);
     FECache fe_cache(dim, X_system.get_dof_map().variable_type(0), update_phi);
@@ -423,7 +423,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                                    patch_dx_min);
         libMesh::QBase& quadrature = quad_cache[key];
         libMesh::FEBase& fe = fe_cache(key, elem);
-        const std::vector<std::vector<double> >& phi_X = fe.get_phi();
+        const std::vector<std::vector<double>>& phi_X = fe.get_phi();
         const std::vector<libMesh::Point>& q_points = quadrature.get_points();
         for (unsigned int qp = 0; qp < q_points.size(); ++qp)
         {

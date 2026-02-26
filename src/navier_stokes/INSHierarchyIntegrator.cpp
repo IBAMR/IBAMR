@@ -241,37 +241,37 @@ INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunct
     return;
 } // registerVelocityDivergenceFunction
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getVelocityDivergenceVariable() const
 {
     return d_Q_var;
 } // getVelocityDivergenceVariable
 
-Pointer<FaceVariable<NDIM, double> >
+Pointer<FaceVariable<NDIM, double>>
 INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
@@ -442,10 +442,10 @@ INSHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
                                                Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
-                                               Pointer<Variable<NDIM> > P_var,
-                                               Pointer<Variable<NDIM> > F_var,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               Pointer<Variable<NDIM>> U_var,
+                                               Pointer<Variable<NDIM>> P_var,
+                                               Pointer<Variable<NDIM>> F_var,
+                                               Pointer<Variable<NDIM>> Q_var,
                                                bool register_for_restart)
     : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
@@ -467,16 +467,16 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
                                                Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
+                                               Pointer<Variable<NDIM>> U_var,
                                                std::string U_default_coarsen_type,
                                                std::string U_default_refine_type,
-                                               Pointer<Variable<NDIM> > P_var,
+                                               Pointer<Variable<NDIM>> P_var,
                                                std::string P_default_coarsen_type,
                                                std::string P_default_refine_type,
-                                               Pointer<Variable<NDIM> > F_var,
+                                               Pointer<Variable<NDIM>> F_var,
                                                std::string F_default_coarsen_type,
                                                std::string F_default_refine_type,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               Pointer<Variable<NDIM>> Q_var,
                                                std::string Q_default_coarsen_type,
                                                std::string Q_default_refine_type,
                                                bool register_for_restart)
@@ -536,16 +536,16 @@ INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double 
     PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(data_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> u_cc_new_data = patch->getPatchData(data_idx);
+            Pointer<SideData<NDIM, double>> u_sc_new_data = patch->getPatchData(data_idx);
 #ifndef NDEBUG
             TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
 #endif
@@ -567,13 +567,13 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
     double max_vorticity_norm = 0.0;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            Pointer<CellData<NDIM, double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
+            Pointer<CellData<NDIM, double>> Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, double>> cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(cc_wgt_data_ptr);
             const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
@@ -608,7 +608,7 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
 void
 INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx)
 {
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_number);
     const double Omega_max = getMaximumVorticityMagnitude(Omega_idx);
 
     // Tag cells based on the magnitude of the vorticity.
@@ -633,10 +633,10 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
         thresh += std::sqrt(std::numeric_limits<double>::epsilon());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            Pointer<CellData<NDIM, int> > tag_data_ptr = patch->getPatchData(tag_idx);
+            Pointer<CellData<NDIM, double>> Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, int>> tag_data_ptr = patch->getPatchData(tag_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(tag_data_ptr);
             const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
@@ -675,19 +675,19 @@ INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
 double
-INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
+INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM>> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = IBTK_MPI::minReduction(stable_dt);

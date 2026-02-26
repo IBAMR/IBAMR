@@ -58,15 +58,15 @@ main(int argc, char* argv[])
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -80,10 +80,10 @@ main(int argc, char* argv[])
         // We create a variable for every vector we ultimately declare,
         // instead of creating and then cloning vectors. The rationale for
         // this is given below.
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
-        Pointer<CellVariable<NDIM, double> > f_approx_cc_var = new CellVariable<NDIM, double>("f_approx_cc");
+        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc");
+        Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc");
+        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc");
+        Pointer<CellVariable<NDIM, double>> f_approx_cc_var = new CellVariable<NDIM, double>("f_approx_cc");
 
         // Internally, SAMRAI keeps track of variables (and their
         // corresponding vectors, data, etc.) by converting them to
@@ -109,7 +109,7 @@ main(int argc, char* argv[])
         // hierarchy.
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -213,16 +213,16 @@ main(int argc, char* argv[])
         // second argument to the constructor is false.
         if (test_copied_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_copied);
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false), f_copied);
         }
         else if (test_duplicated_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_duplicated);
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false), f_duplicated);
         }
         else
         {
-            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                           Pointer<SAMRAIVectorReal<NDIM, double> >(&f_standard, false));
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&f_standard, false));
         }
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
@@ -236,13 +236,13 @@ main(int argc, char* argv[])
             std::ostringstream out;
             for (int ln = 0; ln <= finest_level; ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> patch_level = patch_hierarchy->getPatchLevel(ln);
                 out << std::setprecision(20);
                 out << "rank: " << IBTK_MPI::getRank() << " level: " << ln << " boxes:\n";
                 for (typename hier::PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
                 {
                     const hier::Box<NDIM> box = patch_level->getPatch(p())->getBox();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geometry =
+                    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry =
                         patch_level->getPatch(p())->getPatchGeometry();
                     out << "  " << box << '\n';
 
@@ -268,15 +268,15 @@ main(int argc, char* argv[])
         // on coarser levels which are covered by finer levels to zero.
         for (int ln = 0; ln < finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             BoxArray<NDIM> refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 const Patch<NDIM>& patch = *level->getPatch(p());
                 const Box<NDIM>& patch_box = patch.getBox();
-                Pointer<CellData<NDIM, double> > e_cc_data = patch.getPatchData(e_cc_idx);
+                Pointer<CellData<NDIM, double>> e_cc_data = patch.getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM>& refined_box = refined_region_boxes[i];
@@ -290,7 +290,7 @@ main(int argc, char* argv[])
             }
         }
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(f_approx_cc_var->getName(), "SCALAR", f_approx_cc_idx);

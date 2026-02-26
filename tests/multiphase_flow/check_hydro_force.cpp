@@ -62,22 +62,22 @@ struct CircularInterface
 CircularInterface circle;
 
 void
-calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, int E_idx)
+calculate_distance_analytically(Pointer<PatchHierarchy<NDIM>> patch_hierarchy, int E_idx)
 {
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
+            Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(E_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -191,18 +191,18 @@ main(int argc, char* argv[])
         }
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                navier_stokes_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -211,12 +211,12 @@ main(int argc, char* argv[])
 
         // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        Pointer<CellVariable<NDIM, double>> phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
 
         // Create level sets for gas/liquid interface.
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
+        Pointer<CellVariable<NDIM, double>> phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface setLSLocateGasInterface(
@@ -241,8 +241,8 @@ main(int argc, char* argv[])
             phi_var_gas, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // Setup the advected and diffused fluid quantities.
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<hier::Variable<NDIM> > rho_var;
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<hier::Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
@@ -350,7 +350,7 @@ main(int argc, char* argv[])
         level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         navier_stokes_integrator->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
@@ -358,14 +358,14 @@ main(int argc, char* argv[])
 
         // Compute distance function.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > d_var = new CellVariable<NDIM, double>("distance", 1);
+        Pointer<CellVariable<NDIM, double>> d_var = new CellVariable<NDIM, double>("distance", 1);
         const IntVector<NDIM> no_width = 0;
         Pointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int d_idx = var_db->registerVariableAndContext(d_var, main_ctx, no_width);
         int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(d_idx, 0.0);
         }
         calculate_distance_analytically(patch_hierarchy, d_idx);

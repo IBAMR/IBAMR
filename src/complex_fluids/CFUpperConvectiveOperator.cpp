@@ -175,7 +175,7 @@ extern "C"
 namespace IBAMR
 {
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                     Pointer<CellVariable<NDIM, double>> Q_var,
                                                      Pointer<Database> input_db,
                                                      const std::string& convective_op_type,
                                                      ConvectiveDifferencingType difference_form,
@@ -194,7 +194,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
 } // Constructor
 
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                     Pointer<CellVariable<NDIM, double>> Q_var,
                                                      Pointer<Database> input_db,
                                                      Pointer<ConvectiveOperator> convective_op,
                                                      ConvectiveDifferencingType difference_form,
@@ -255,7 +255,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     // Set up velocity information:
     d_convec_oper->setAdvectionVelocity(d_u_idx);
     d_convec_oper->setSolutionTime(d_solution_time);
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     // Copy data to side centered velocity field
     //
     // TODO: This is only done because we currently only have operators to
@@ -263,13 +263,13 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     // quantities.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            Pointer<FaceData<NDIM, double> > u_f_data = patch->getPatchData(d_u_idx);
-            Pointer<SideData<NDIM, double> > u_s_data = patch->getPatchData(d_u_scratch_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+            Pointer<FaceData<NDIM, double>> u_f_data = patch->getPatchData(d_u_idx);
+            Pointer<SideData<NDIM, double>> u_s_data = patch->getPatchData(d_u_scratch_idx);
             const Box<NDIM> box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -297,25 +297,25 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
     for (int level_num = d_coarsest_ln; level_num <= d_finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_u_scratch_idx);
-            const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(d_u_scratch_idx);
+            const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
             const double* dx = p_geom->getDx();
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM> patch_lower = patch_box.lower();
             const IntVector<NDIM> patch_upper = patch_box.upper();
-            Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);
-            Pointer<CellData<NDIM, double> > Y_data = patch->getPatchData(Y_idx);
+            Pointer<CellData<NDIM, double>> Q_data = patch->getPatchData(Q_idx);
+            Pointer<CellData<NDIM, double>> Y_data = patch->getPatchData(Y_idx);
             const IntVector<NDIM> Q_data_gcw = Q_data->getGhostCellWidth();
 
             const IntVector<NDIM> u_data_gcw = u_data->getGhostCellWidth();
             const IntVector<NDIM> Y_data_gcw = Y_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(d_Q_convec_idx);
+            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(d_Q_convec_idx);
             const IntVector<NDIM> C_data_gcw = C_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(d_s_idx);
+            Pointer<CellData<NDIM, double>> S_data = patch->getPatchData(d_s_idx);
             const IntVector<NDIM> S_data_gcw = S_data->getGhostCellWidth();
 
             switch (d_evolve_type)
@@ -473,7 +473,7 @@ CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     // Allocate Patch Data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_u_scratch_idx)) level->allocatePatchData(d_u_scratch_idx);
         if (!level->checkAllocated(d_Q_convec_idx)) level->allocatePatchData(d_Q_convec_idx);
         if (!level->checkAllocated(d_s_idx)) level->allocatePatchData(d_s_idx);
@@ -490,7 +490,7 @@ CFUpperConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_convec_idx)) level->deallocatePatchData(d_Q_convec_idx);
         if (level->checkAllocated(d_u_scratch_idx)) level->deallocatePatchData(d_u_scratch_idx);
         if (level->checkAllocated(d_s_idx)) level->deallocatePatchData(d_s_idx);

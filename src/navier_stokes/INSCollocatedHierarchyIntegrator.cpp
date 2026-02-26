@@ -514,8 +514,8 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 } // getPressureSubdomainSolver
 
 void
-INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -795,9 +795,9 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     }
 
     // Setup a specialized coarsen algorithm.
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<CoarsenOperator<NDIM> > coarsen_op;
+    Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CoarsenOperator<NDIM>> coarsen_op;
     coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
@@ -821,8 +821,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 } // initializeHierarchyIntegrator
 
 void
-INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -867,7 +867,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
@@ -911,7 +911,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
     U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const Pointer<CellVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const Pointer<CellVariable<NDIM, double>> U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -924,7 +924,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                  current_time,
                                  0.0,
                                  -1,
-                                 Pointer<CellVariable<NDIM, double> >(nullptr),
+                                 Pointer<CellVariable<NDIM, double>>(nullptr),
                                  axis,
                                  axis);
     }
@@ -986,9 +986,9 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
         d_hier_fc_data_ops->copyData(d_u_ADV_scratch_idx, d_u_ADV_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+            Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+            Pointer<CoarsenOperator<NDIM>> coarsen_op;
             coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
             coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
@@ -1130,9 +1130,9 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator<NDIM> > coarsen_op;
+                Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+                Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+                Pointer<CoarsenOperator<NDIM>> coarsen_op;
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
@@ -1453,15 +1453,15 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
-INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM>> patch) const
 {
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const hier::Index<NDIM>& ilower = patch->getBox().lower();
     const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
-    Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
+    Pointer<FaceData<NDIM, double>> u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -1503,17 +1503,16 @@ INSCollocatedHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(co
 } // initializeCompositeHierarchyDataSpecialized
 
 void
-INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool /*can_be_refined*/,
-    const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level,
-    const bool /*allocate_data*/)
+INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+                                                                 const int level_number,
+                                                                 const double init_data_time,
+                                                                 const bool /*can_be_refined*/,
+                                                                 const bool initial_time,
+                                                                 const Pointer<BasePatchLevel<NDIM>> base_old_level,
+                                                                 const bool /*allocate_data*/)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+    const Pointer<PatchLevel<NDIM>> old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1534,7 +1533,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 
         // Fill ghost cells.
         HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        Pointer<HierarchyCellDataOpsReal<NDIM, double>> hier_cc_data_ops =
             hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1571,11 +1570,11 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 
 void
 INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -1654,7 +1653,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void
-INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                                    const int level_number,
                                                                    const double error_data_time,
                                                                    const int tag_index,
@@ -1674,7 +1673,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
         // level_number, we need to compute across the whole hierarchy.
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             // In this integrator d_Omega_idx is still in the current context so it is always allocated
             level->allocatePatchData(d_U_scratch_idx, error_data_time);
         }
@@ -1685,7 +1684,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
 
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(d_U_scratch_idx);
         }
     }
@@ -1702,7 +1701,7 @@ INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     // Allocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
     }
 
@@ -1731,7 +1730,7 @@ INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
     synchronizeHierarchyData(CURRENT_DATA);
@@ -1800,7 +1799,7 @@ INSCollocatedHierarchyIntegrator::regridProjection(const bool initial_time)
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
     }
 
@@ -1877,7 +1876,7 @@ INSCollocatedHierarchyIntegrator::regridProjection(const bool initial_time)
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -1968,11 +1967,11 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
-                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<CellData<NDIM, double> > U_nul_data =
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                        Pointer<CellData<NDIM, double>> U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->fillAll(0.0);
                         U_nul_data->fill(1.0, k);
@@ -2068,17 +2067,17 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
             const hier::Index<NDIM>& ilower = patch->getBox().lower();
             const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
-            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-            Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+            Pointer<FaceData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            Pointer<CellData<NDIM, double>> Q_data = patch->getPatchData(Q_idx);
+            Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
             const IntVector<NDIM>& u_data_gc = u_data->getGhostCellWidth();
             const IntVector<NDIM>& Q_data_gc = Q_data->getGhostCellWidth();

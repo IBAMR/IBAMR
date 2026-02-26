@@ -47,8 +47,8 @@ GravityForcing::isTimeDependent() const
 
 void
 GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                        Pointer<Variable<NDIM> > /*var*/,
-                                        Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                        Pointer<Variable<NDIM>> /*var*/,
+                                        Pointer<PatchHierarchy<NDIM>> hierarchy,
                                         const double /*data_time*/,
                                         const bool /*initial_time*/,
                                         const int coarsest_ln_in,
@@ -65,13 +65,13 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& box = patch->getBox();
-            Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-            const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+            Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(data_idx);
+            const Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_ins_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(box, axis)); it; it++)
@@ -87,15 +87,15 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 GravityForcing::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
+                               Pointer<Variable<NDIM>> /*var*/,
+                               Pointer<Patch<NDIM>> patch,
                                const double /*data_time*/,
                                const bool initial_time,
-                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                               Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     if (initial_time)
     {
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(data_idx);
         f_data->fillAll(0.0);
     }
     // Intentionally left blank

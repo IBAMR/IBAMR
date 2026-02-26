@@ -91,7 +91,7 @@ IBLevelSetMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBLevelSetMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBLevelSetMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     if (d_ib_method_ops) d_ib_method_ops->setupTagBuffer(tag_buffer, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->setupTagBuffer(tag_buffer, gridding_alg);
@@ -128,8 +128,8 @@ IBLevelSetMethod::updateFixedLEOperators()
 
 void
 IBLevelSetMethod::interpolateVelocity(int u_data_idx,
-                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                      const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                                      const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -174,7 +174,7 @@ IBLevelSetMethod::computeLagrangianForce(double data_time)
 void
 IBLevelSetMethod::spreadForce(int f_data_idx,
                               RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                              const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                               double data_time)
 {
     if (d_ib_method_ops) d_ib_method_ops->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -202,7 +202,7 @@ IBLevelSetMethod::computeLagrangianFluidSource(double data_time)
 void
 IBLevelSetMethod::spreadFluidSource(int q_data_idx,
                                     RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& q_prolongation_scheds,
+                                    const std::vector<Pointer<RefineSchedule<NDIM>>>& q_prolongation_scheds,
                                     double data_time)
 {
     if (d_ib_method_ops)
@@ -214,8 +214,8 @@ IBLevelSetMethod::spreadFluidSource(int q_data_idx,
 
 void
 IBLevelSetMethod::interpolatePressure(int p_data_idx,
-                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& p_synch_scheds,
-                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
+                                      const std::vector<Pointer<CoarsenSchedule<NDIM>>>& p_synch_scheds,
+                                      const std::vector<Pointer<RefineSchedule<NDIM>>>& p_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -250,11 +250,11 @@ IBLevelSetMethod::postprocessData()
 } // postprocessData
 
 void
-IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                           Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                            int u_data_idx,
-                                           const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                           const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                           const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                                           const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                            int integrator_step,
                                            double init_data_time,
                                            bool initial_time)
@@ -283,7 +283,7 @@ IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierar
 } // initializePatchHierarchy
 
 void
-IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
 {
     if (d_ib_method_ops) d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
     if (d_ibfe_method_ops) d_ibfe_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
@@ -291,8 +291,8 @@ IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, 
 } // updateWorkloadEstimates
 
 void
-IBLevelSetMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBLevelSetMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                          Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_ib_method_ops) d_ib_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
@@ -300,8 +300,8 @@ IBLevelSetMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarc
 } // beginDataRedistribution
 
 void
-IBLevelSetMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBLevelSetMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                        Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_ib_method_ops) d_ib_method_ops->endDataRedistribution(hierarchy, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->endDataRedistribution(hierarchy, gridding_alg);
@@ -309,12 +309,12 @@ IBLevelSetMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy
 } // endDataRedistribution
 
 void
-IBLevelSetMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBLevelSetMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                       int level_number,
                                       double init_data_time,
                                       bool can_be_refined,
                                       bool initial_time,
-                                      Pointer<BasePatchLevel<NDIM> > old_level,
+                                      Pointer<BasePatchLevel<NDIM>> old_level,
                                       bool allocate_data)
 {
     if (d_ib_method_ops)
@@ -329,7 +329,7 @@ IBLevelSetMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarc
 } // initializeLevelData
 
 void
-IBLevelSetMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBLevelSetMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                               int coarsest_level,
                                               int finest_level)
 {
@@ -339,7 +339,7 @@ IBLevelSetMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> >
 } // resetHierarchyConfiguration
 
 void
-IBLevelSetMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBLevelSetMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                         int level_number,
                                         double error_data_time,
                                         int tag_index,

@@ -181,7 +181,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx = IBTK::invalid_index, d_F_Phi_idx = IBTK::invalid_index;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost

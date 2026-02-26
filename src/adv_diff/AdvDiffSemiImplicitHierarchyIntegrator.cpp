@@ -221,7 +221,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorInputDatabas
 } // getDefaultConvectiveOperatorInputDatabase
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var,
+AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double>> Q_var,
                                                                     const bool Q_output)
 {
     AdvDiffHierarchyIntegrator::registerTransportedQuantity(Q_var, Q_output);
@@ -237,7 +237,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<Cell
 } // registerTransportedQuantity
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(Pointer<CellVariable<NDIM, double> > Q_var,
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(Pointer<CellVariable<NDIM, double>> Q_var,
                                                                       TimeSteppingType convective_time_stepping_type)
 {
 #if !defined(NDEBUG)
@@ -248,7 +248,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(Pointer<Ce
 } // setConvectiveTimeSteppingType
 
 TimeSteppingType
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(Pointer<CellVariable<NDIM, double> > Q_var) const
+AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(Pointer<CellVariable<NDIM, double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -258,7 +258,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(Pointer<Ce
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<CellVariable<NDIM, double>> Q_var,
     TimeSteppingType init_convective_time_stepping_type)
 {
 #if !defined(NDEBUG)
@@ -270,7 +270,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM, double> > Q_var) const
+    Pointer<CellVariable<NDIM, double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -279,7 +279,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(
 } // getInitialConvectiveTimeSteppingType
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(Pointer<CellVariable<NDIM, double> > Q_var,
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(Pointer<CellVariable<NDIM, double>> Q_var,
                                                                   const std::string& op_type)
 {
 #if !defined(NDEBUG)
@@ -290,7 +290,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(Pointer<CellVa
 } // setConvectiveOperatorType
 
 const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(Pointer<CellVariable<NDIM, double> > Q_var) const
+AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(Pointer<CellVariable<NDIM, double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -299,7 +299,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(Pointer<CellVa
 } // getConvectiveOperatorType
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(Pointer<CellVariable<NDIM, double> > Q_var,
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(Pointer<CellVariable<NDIM, double>> Q_var,
                                                                            Pointer<Database> input_db)
 {
 #if !defined(NDEBUG)
@@ -311,7 +311,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(Point
 
 Pointer<Database>
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
-    Pointer<CellVariable<NDIM, double> > Q_var) const
+    Pointer<CellVariable<NDIM, double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -320,7 +320,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
 } // getConvectiveOperatorInputDatabase
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(Pointer<CellVariable<NDIM, double> > Q_var,
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(Pointer<CellVariable<NDIM, double>> Q_var,
                                                               Pointer<ConvectiveOperator> convective_op)
 {
 #if !defined(NDEBUG)
@@ -333,7 +333,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(Pointer<CellVariab
 } // setConvectiveOperator
 
 Pointer<ConvectiveOperator>
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariable<NDIM, double> > Q_var)
+AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariable<NDIM, double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -364,7 +364,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 }
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorNeedsInit(Pointer<CellVariable<NDIM, double> > Q_var)
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorNeedsInit(Pointer<CellVariable<NDIM, double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -374,14 +374,14 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorNeedsInit(Pointer<C
 }
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                                      Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -401,16 +401,16 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     const IntVector<NDIM> cell_ghosts = CELLG;
     for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, double>> Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        Pointer<CellVariable<NDIM, double> > N_var = new CellVariable<NDIM, double>(Q_var->getName() + "::N", Q_depth);
+        Pointer<CellVariable<NDIM, double>> N_var = new CellVariable<NDIM, double>(Q_var->getName() + "::N", Q_depth);
         d_N_var.insert(N_var);
         d_Q_N_map[Q_var] = N_var;
         int N_scratch_idx;
         registerVariable(N_scratch_idx, N_var, cell_ghosts, getScratchContext());
 
-        Pointer<CellVariable<NDIM, double> > N_old_var =
+        Pointer<CellVariable<NDIM, double>> N_old_var =
             new CellVariable<NDIM, double>(Q_var->getName() + "::N_old", Q_depth);
         d_N_old_var.insert(N_old_var);
         d_Q_N_old_map[Q_var] = N_old_var;
@@ -479,7 +479,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
@@ -517,10 +517,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        Pointer<CellVariable<NDIM, double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariable<NDIM, double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<SideVariable<NDIM, double>> D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -597,11 +597,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         helmholtz_rhs_op->apply(*d_sol_vecs[l], *d_rhs_vecs[l]);
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+        Pointer<FaceVariable<NDIM, double>> u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
-            Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
+            Pointer<CellVariable<NDIM, double>> N_var = d_Q_N_map[Q_var];
+            Pointer<CellVariable<NDIM, double>> N_old_var = d_Q_N_old_map[Q_var];
             TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -702,10 +702,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(const doub
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        Pointer<CellVariable<NDIM, double> > F_var = d_Q_F_map[Q_var];
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        Pointer<CellVariable<NDIM, double>> F_var = d_Q_F_map[Q_var];
+        Pointer<CellVariable<NDIM, double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariable<NDIM, double>> D_var = d_Q_diffusion_coef_variable[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -776,12 +776,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(const doub
         }
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
-        Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
+        Pointer<FaceVariable<NDIM, double>> u_var = d_Q_u_map[Q_var];
+        Pointer<CellVariable<NDIM, double>> N_var = d_Q_N_map[Q_var];
         TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
         if (u_var)
         {
-            Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
+            Pointer<CellVariable<NDIM, double>> N_old_var = d_Q_N_old_map[Q_var];
             convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -932,15 +932,15 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                Pointer<FaceData<NDIM, double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                Pointer<FaceData<NDIM, double>> u_fc_new_data = patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -961,11 +961,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<BasePatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);

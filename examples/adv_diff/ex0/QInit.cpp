@@ -23,7 +23,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM>> grid_geom, Pointer<Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
@@ -75,19 +75,19 @@ QInit::~QInit()
 
 void
 QInit::setDataOnPatch(const int data_idx,
-                      Pointer<Variable<NDIM> > /*var*/,
-                      Pointer<Patch<NDIM> > patch,
+                      Pointer<Variable<NDIM>> /*var*/,
+                      Pointer<Patch<NDIM>> patch,
                       const double data_time,
                       const bool /*initial_time*/,
-                      Pointer<PatchLevel<NDIM> > /*level*/)
+                      Pointer<PatchLevel<NDIM>> /*level*/)
 {
-    Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double>> Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();

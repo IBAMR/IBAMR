@@ -94,7 +94,7 @@ block_tether_force_function(VectorValue<double>& F,
                             const libMesh::Point& X,
                             Elem* const /*elem*/,
                             const std::vector<const std::vector<double>*>& /*var_data*/,
-                            const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double /*time*/,
                             void* ctx)
 {
@@ -111,7 +111,7 @@ beam_tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& X,
                            Elem* const /*elem*/,
                            const std::vector<const std::vector<double>*>& var_data,
-                           const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                           const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                            double /*time*/,
                            void* ctx)
 {
@@ -140,7 +140,7 @@ beam_PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*X*/,
                          Elem* const /*elem*/,
                          const std::vector<const std::vector<double>*>& /*var_data*/,
-                         const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                         const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                          double /*time*/,
                          void* ctx)
 {
@@ -159,7 +159,7 @@ using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       const IBFEMethod* ib_method_ops,
                       Mesh& beam_mesh,
@@ -324,17 +324,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -472,7 +472,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -688,7 +688,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  const IBFEMethod* const ib_method_ops,
                  Mesh& beam_mesh,
@@ -709,11 +709,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         copy_and_synch(*F_vec, *F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> F_dof_indices(NDIM);
         std::unique_ptr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
         boost::multi_array<double, 2> F_node;
         const auto el_begin = mesh[k]->active_local_elements_begin();
@@ -754,7 +754,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     System& X_system = beam_equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
-    std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    std::unique_ptr<NumericVector<Number>> X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();

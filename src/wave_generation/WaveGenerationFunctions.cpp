@@ -64,14 +64,14 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
     const double sign_gas = stokes_wave_generator->d_wave_gen_data.d_sign_gas_phase;
     const double depth = stokes_wave_generator->getWaterDepth();
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getPatchHierarchy();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     int u_new_idx = var_db->mapVariableAndContextToIndex(
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getVelocityVariable(),
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getNewContext());
 
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
+    Pointer<CellVariable<NDIM, double>> phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
     if (!phi_cc_var)
     {
         TBOX_ERROR(
@@ -87,17 +87,17 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
 
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_new_idx);
 
             // Compute a representative grid spacing
             double vol_cell = 1.0;
@@ -154,17 +154,17 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
     // Modify the level set in the generation zone.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
 
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_new_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_new_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 hier::Index<NDIM> i = it();

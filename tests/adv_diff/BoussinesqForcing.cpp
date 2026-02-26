@@ -22,10 +22,10 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(Pointer<SAMRAI::hier::Variable<NDIM> > T_var,
+BoussinesqForcing::BoussinesqForcing(Pointer<SAMRAI::hier::Variable<NDIM>> T_var,
                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
-                                     Pointer<CellVariable<NDIM, double> > ls_inner_solid_var,
-                                     Pointer<CellVariable<NDIM, double> > ls_outer_solid_var,
+                                     Pointer<CellVariable<NDIM, double>> ls_inner_solid_var,
+                                     Pointer<CellVariable<NDIM, double>> ls_outer_solid_var,
                                      Pointer<Database> input_db)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator)
 {
@@ -54,8 +54,8 @@ BoussinesqForcing::isTimeDependent() const
 
 void
 BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                           Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                           Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                           Pointer<PatchHierarchy<NDIM>> hierarchy,
                                            const double data_time,
                                            const bool initial_time,
                                            const int coarsest_ln_in,
@@ -75,7 +75,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
     int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+    Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
         hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
     hier_cc_data_ops->copyData(T_scratch_idx, T_new_idx);
 
@@ -130,19 +130,19 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                  Pointer<SAMRAI::hier::Variable<NDIM> > /*var*/,
-                                  Pointer<Patch<NDIM> > patch,
+                                  Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
+                                  Pointer<Patch<NDIM>> patch,
                                   const double /*data_time*/,
                                   const bool initial_time,
-                                  Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                  Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     if (initial_time) return;
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(data_idx);
 
-    Pointer<CellData<NDIM, double> > T_data =
+    Pointer<CellData<NDIM, double>> T_data =
         patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
-    Pointer<SideData<NDIM, double> > chi_data = patch->getPatchData(d_chi_idx);
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    Pointer<SideData<NDIM, double>> chi_data = patch->getPatchData(d_chi_idx);
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
     const double* patch_dx = patch_geom->getDx();
     const double alpha = 2.0 * patch_dx[0];
     const Box<NDIM>& patch_box = patch->getBox();
@@ -158,7 +158,7 @@ BoussinesqForcing::setDataOnPatch(const int data_idx,
                 VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
                 int ls_solid_scratch_idx =
                     var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_hier_integrator->getScratchContext());
-                Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
+                Pointer<CellData<NDIM, double>> ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
                 const double phi_lower = (*ls_solid_data)(si.toCell(0));
                 const double phi_upper = (*ls_solid_data)(si.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);

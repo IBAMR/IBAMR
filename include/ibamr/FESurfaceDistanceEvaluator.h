@@ -53,7 +53,7 @@ public:
      * \brief The only constructor of this class.
      */
     FESurfaceDistanceEvaluator(std::string object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
                                const int gcw = 1,
@@ -89,7 +89,7 @@ public:
      * \brief Update the sign of the distance function away from the finite element mesh.
      */
     void updateSignAwayFromInterface(int d_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                      double large_distance = s_large_distance);
 
     /*!
@@ -171,7 +171,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_patch_hierarchy;
 
     /*!
      * Volume mesh object
@@ -201,7 +201,7 @@ private:
     /*!
      * Data to manage mapping between boundary mesh elements and grid patches.
      */
-    std::vector<std::vector<const libMesh::Elem*> > d_active_neighbor_patch_bdry_elem_map;
+    std::vector<std::vector<const libMesh::Elem*>> d_active_neighbor_patch_bdry_elem_map;
 
     /*!
      * Map object keeping track of element-cell intersections as well as elements intersecting that cell
@@ -214,11 +214,11 @@ private:
     /*!
      * Map the node and the set of elements sharing this node.
      */
-    std::map<const libMesh::Node*, std::set<const libMesh::Elem*> > d_node_to_elem;
+    std::map<const libMesh::Node*, std::set<const libMesh::Elem*>> d_node_to_elem;
     /*!
      * Map the edge and the set of elements sharing this edge.
      */
-    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*> > d_edge_to_elem;
+    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*>> d_edge_to_elem;
 
     /*!
      * Map the element and its face normal.

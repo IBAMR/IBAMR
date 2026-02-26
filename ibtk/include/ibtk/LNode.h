@@ -69,8 +69,8 @@ public:
           const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
           const Vector& initial_periodic_displacement = Vector::Zero(),
           const Vector& current_periodic_displacement = Vector::Zero(),
-          const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
-              std::vector<SAMRAI::tbox::Pointer<Streamable> >());
+          const std::vector<SAMRAI::tbox::Pointer<Streamable>>& node_data =
+              std::vector<SAMRAI::tbox::Pointer<Streamable>>());
 
     /*!
      * \brief Copy constructor.
@@ -102,13 +102,13 @@ public:
      * \return A constant reference to any additional data items associated with
      * the node referenced by this LNode object.
      */
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& getNodeData() const;
+    const std::vector<SAMRAI::tbox::Pointer<Streamable>>& getNodeData() const;
 
     /*!
      * \brief Reset the collection of additional data items associated with the
      * node referenced by this LNode object.
      */
-    void setNodeData(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data);
+    void setNodeData(const std::vector<SAMRAI::tbox::Pointer<Streamable>>& node_data);
 
     /*!
      * \brief Append a data item to the collection of data items associated with
@@ -201,7 +201,7 @@ private:
 
     // a (possibly empty) collection of data objects that are associated with
     // the node
-    std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
+    std::vector<SAMRAI::tbox::Pointer<Streamable>> d_node_data;
     static const short int MAX_SIZE = 8;
     Streamable* d_node_data_type_arr[MAX_SIZE];
 };

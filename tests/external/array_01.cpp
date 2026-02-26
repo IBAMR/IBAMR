@@ -21,10 +21,10 @@
 #include <ibamr/app_namespaces.h>
 
 static tbox::Array<double> s_array_1;
-static tbox::Array<tbox::Array<double> > s_array_2(10);
-static tbox::Array<tbox::Array<double> > s_array_3(100);
-static tbox::Array<tbox::Array<double> > s_array_4(1000);
-static tbox::Array<tbox::Array<double> > s_array_5(10000);
+static tbox::Array<tbox::Array<double>> s_array_2(10);
+static tbox::Array<tbox::Array<double>> s_array_3(100);
+static tbox::Array<tbox::Array<double>> s_array_4(1000);
+static tbox::Array<tbox::Array<double>> s_array_5(10000);
 
 int
 main()

@@ -57,8 +57,8 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
 CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
-                                             Pointer<CellVariable<NDIM, double> > H_var,
-                                             Pointer<CellVariable<NDIM, double> > lf_var,
+                                             Pointer<CellVariable<NDIM, double>> H_var,
+                                             Pointer<CellVariable<NDIM, double>> lf_var,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                              Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                              Pointer<Database> input_db,
@@ -106,9 +106,9 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
 
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
@@ -138,17 +138,17 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
     // Set the rigid body velocity in u_idx
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
+        Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
+        Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -216,7 +216,7 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Ghost fill the level set values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -245,20 +245,20 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     hier_bdry_fill->fillData(time);
 
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
+        Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
+        Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {

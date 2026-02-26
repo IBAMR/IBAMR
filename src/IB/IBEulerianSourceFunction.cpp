@@ -62,8 +62,8 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 void
 IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
     const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > /*var*/,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
     const double data_time,
     const bool initial_time,
     const int coarsest_ln_in,
@@ -75,7 +75,7 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(level->checkAllocated(data_idx));
     }
 
@@ -93,18 +93,18 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
 
 void
 IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
-                                                                Pointer<Variable<NDIM> > /*var*/,
-                                                                Pointer<Patch<NDIM> > patch,
+                                                                Pointer<Variable<NDIM>> /*var*/,
+                                                                Pointer<Patch<NDIM>> patch,
                                                                 const double /*data_time*/,
                                                                 const bool initial_time,
-                                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                                Pointer<PatchLevel<NDIM>> /*level*/)
 {
     // This function is called during initialization, but at that point we are
     // not guaranteed that Lagrangian data is set up in a way that we can
     // actually compute fluid sources: in that case zero everything out.
     if (initial_time)
     {
-        Pointer<CellData<NDIM, double> > q_cc_data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> q_cc_data = patch->getPatchData(data_idx);
         TBOX_ASSERT(q_cc_data);
         q_cc_data->fillAll(0.0);
     }

@@ -62,11 +62,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                        Pointer<Patch<NDIM>> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
+                        Pointer<PatchLevel<NDIM>> patch_level = nullptr);
 
     //\}
 

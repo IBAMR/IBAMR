@@ -236,7 +236,7 @@ PhaseChangeHierarchyIntegrator::PhaseChangeHierarchyIntegrator(const std::string
 } // PhaseChangeHierarchyIntegrator
 
 void
-PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(Pointer<CellVariable<NDIM, double> > specific_heat_var,
+PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(Pointer<CellVariable<NDIM, double>> specific_heat_var,
                                                              const bool output_Cp)
 {
     d_specific_heat_var = specific_heat_var;
@@ -246,7 +246,7 @@ PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(Pointer<CellVariabl
 } // registerSpecificHeatVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerDensityVariable(Pointer<CellVariable<NDIM, double> > rho_var,
+PhaseChangeHierarchyIntegrator::registerDensityVariable(Pointer<CellVariable<NDIM, double>> rho_var,
                                                         const bool output_rho)
 {
     d_rho_var = rho_var;
@@ -280,8 +280,8 @@ PhaseChangeHierarchyIntegrator::registerResetDiffusionCoefficientFcn(ResetPhaseP
 } // registerResetDiffusionCoefficientFcn
 
 void
-PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                              Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                              Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -517,7 +517,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_C_rhs_scratch_idx)) level->allocatePatchData(d_C_rhs_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_C_idx)) level->allocatePatchData(d_T_C_idx, current_time);
         if (!level->checkAllocated(d_T_temp_rhs_idx)) level->allocatePatchData(d_T_temp_rhs_idx, current_time);
@@ -596,7 +596,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_C_rhs_scratch_idx);
         level->deallocatePatchData(d_T_C_idx);
         level->deallocatePatchData(d_T_temp_rhs_idx);
@@ -638,7 +638,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 } // postprocessIntegrateHierarchy
 
 void
-PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > lf_var,
+PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double>> lf_var,
                                                                const bool output_lf_var)
 {
     d_lf_var = lf_var;
@@ -651,7 +651,7 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVaria
 
 void
 PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
-    Pointer<CellVariable<NDIM, double> > lf_gradient_var,
+    Pointer<CellVariable<NDIM, double>> lf_gradient_var,
     const bool output_lf_gradient_var)
 {
     d_lf_gradient_var = lf_gradient_var;
@@ -661,27 +661,27 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
 } // registerLiquidFractionGradientVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double> > H_var)
+PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double>> H_var)
 {
     d_H_var = H_var;
     return;
 } // registerHeavisideVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable<NDIM, double> > T_var,
+PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable<NDIM, double>> T_var,
                                                             const bool output_T_var)
 {
     d_T_var = T_var;
     d_output_T = output_T_var;
 
-    Pointer<CellDataFactory<NDIM, double> > T_factory = T_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double>> T_factory = T_var->getPatchDataFactory();
     const int T_depth = T_factory->getDefaultDepth();
-    Pointer<CellVariable<NDIM, double> > T_rhs_var =
+    Pointer<CellVariable<NDIM, double>> T_rhs_var =
         new CellVariable<NDIM, double>(T_var->getName() + "::T_rhs", T_depth);
-    Pointer<CellVariable<NDIM, double> > T_F_var = new CellVariable<NDIM, double>(T_var->getName() + "::F", T_depth);
-    Pointer<SideVariable<NDIM, double> > T_diffusion_coef_var =
+    Pointer<CellVariable<NDIM, double>> T_F_var = new CellVariable<NDIM, double>(T_var->getName() + "::F", T_depth);
+    Pointer<SideVariable<NDIM, double>> T_diffusion_coef_var =
         new SideVariable<NDIM, double>(T_var->getName() + "::diff_coef", T_depth);
-    Pointer<CellVariable<NDIM, double> > T_diffusion_coef_cc_var =
+    Pointer<CellVariable<NDIM, double>> T_diffusion_coef_cc_var =
         new CellVariable<NDIM, double>(T_var->getName() + "::diff_coef_cc", T_depth);
 
     // Set default values.
@@ -697,7 +697,7 @@ PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable
 } // registerTemperatureVariable
 
 void
-PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVariable<NDIM, double> > lf_var,
+PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVariable<NDIM, double>> lf_var,
                                                                   Pointer<IBTK::CartGridFunction> lf_init)
 {
 #if !defined(NDEBUG)
@@ -708,7 +708,7 @@ PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVa
 } // setLiquidFractionInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVariable<NDIM, double> > T_var,
+PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVariable<NDIM, double>> T_var,
                                                                Pointer<IBTK::CartGridFunction> T_init)
 {
 #if !defined(NDEBUG)
@@ -719,7 +719,7 @@ PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVaria
 } // setTemperatureInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setDensityInitialCondition(Pointer<CellVariable<NDIM, double> > rho_var,
+PhaseChangeHierarchyIntegrator::setDensityInitialCondition(Pointer<CellVariable<NDIM, double>> rho_var,
                                                            Pointer<IBTK::CartGridFunction> rho_init)
 {
 #if !defined(NDEBUG)
@@ -730,7 +730,7 @@ PhaseChangeHierarchyIntegrator::setDensityInitialCondition(Pointer<CellVariable<
 } // setDensityInitialCondition
 
 void
-PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(Pointer<CellVariable<NDIM, double> > T_var,
+PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(Pointer<CellVariable<NDIM, double>> T_var,
                                                              RobinBcCoefStrategy<NDIM>* T_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -811,7 +811,7 @@ PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(Ro
 } // registerThermalConductivityBoundaryConditions
 
 void
-PhaseChangeHierarchyIntegrator::setAdvectionVelocity(Pointer<FaceVariable<NDIM, double> > u_var)
+PhaseChangeHierarchyIntegrator::setAdvectionVelocity(Pointer<FaceVariable<NDIM, double>> u_var)
 {
     d_u_adv_var = u_var;
 
@@ -928,14 +928,14 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCSimpleAveraging(int sc_idx, con
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(sc_idx);
-            Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(cc_idx);
+            Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(sc_idx);
+            Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(cc_idx);
 
             C_TO_S_CWISE_INTERP_FC(sc_data->getPointer(0),
                                    sc_data->getPointer(1),
@@ -969,14 +969,14 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(sc_idx);
-            Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(cc_idx);
+            Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(sc_idx);
+            Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(cc_idx);
 
             // Use this only k var
             C_TO_S_CWISE_HARMONIC_INTERP_FC(sc_data->getPointer(0),
@@ -1004,7 +1004,7 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
 } // interpolateCCTOSCHarmonicAveraging
 
 Pointer<PoissonSolver>
-PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double>> T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -1027,7 +1027,7 @@ PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(Pointer<CellVar
 } // getEnergyEquationHelmholtzSolver
 
 Pointer<LaplaceOperator>
-PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double>> T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -1050,12 +1050,12 @@ PhaseChangeHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
+            Pointer<CellData<NDIM, double>> lf_new_data = patch->getPatchData(lf_new_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

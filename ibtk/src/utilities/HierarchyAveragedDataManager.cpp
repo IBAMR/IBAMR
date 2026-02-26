@@ -47,35 +47,35 @@ namespace
 void
 allocate_patch_data(const int idx,
                     const double time,
-                    Pointer<PatchHierarchy<NDIM> > hierarchy,
+                    Pointer<PatchHierarchy<NDIM>> hierarchy,
                     const int coarsest_ln,
                     const int finest_ln)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(idx)) level->allocatePatchData(idx, time);
     }
 }
 
 void
 deallocate_patch_data(const int idx,
-                      Pointer<PatchHierarchy<NDIM> > hierarchy,
+                      Pointer<PatchHierarchy<NDIM>> hierarchy,
                       const int coarsest_ln,
                       const int finest_ln)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
     }
 }
 } // namespace
 
 HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
-                                                           Pointer<Variable<NDIM> > var,
+                                                           Pointer<Variable<NDIM>> var,
                                                            Pointer<Database> input_db,
-                                                           Pointer<GridGeometry<NDIM> > grid_geom,
+                                                           Pointer<GridGeometry<NDIM>> grid_geom,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_var(var),
@@ -106,13 +106,13 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
 }
 
 HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
-                                                           Pointer<Variable<NDIM> > var,
+                                                           Pointer<Variable<NDIM>> var,
                                                            Pointer<Database> input_db,
                                                            std::set<double> snapshot_time_points,
                                                            const double period_start,
                                                            const double period_end,
                                                            const double threshold,
-                                                           Pointer<GridGeometry<NDIM> > grid_geom,
+                                                           Pointer<GridGeometry<NDIM>> grid_geom,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_var(var),
@@ -149,19 +149,19 @@ HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db)
 
     // Determine depth for drawing.
     int depth = 1;
-    Pointer<CellVariable<NDIM, double> > c_var = d_var;
-    Pointer<NodeVariable<NDIM, double> > n_var = d_var;
-    Pointer<SideVariable<NDIM, double> > s_var = d_var;
-    Pointer<FaceVariable<NDIM, double> > f_var = d_var;
-    Pointer<EdgeVariable<NDIM, double> > e_var = d_var;
+    Pointer<CellVariable<NDIM, double>> c_var = d_var;
+    Pointer<NodeVariable<NDIM, double>> n_var = d_var;
+    Pointer<SideVariable<NDIM, double>> s_var = d_var;
+    Pointer<FaceVariable<NDIM, double>> f_var = d_var;
+    Pointer<EdgeVariable<NDIM, double>> e_var = d_var;
     if (c_var)
     {
-        Pointer<CellDataFactory<NDIM, double> > data_factory = c_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, double>> data_factory = c_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     else if (n_var)
     {
-        Pointer<NodeDataFactory<NDIM, double> > data_factory = n_var->getPatchDataFactory();
+        Pointer<NodeDataFactory<NDIM, double>> data_factory = n_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     else if (s_var || f_var)
@@ -170,7 +170,7 @@ HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db)
     }
     else if (e_var)
     {
-        Pointer<EdgeDataFactory<NDIM, double> > data_factory = e_var->getPatchDataFactory();
+        Pointer<EdgeDataFactory<NDIM, double>> data_factory = e_var->getPatchDataFactory();
         depth = data_factory->getDefaultDepth();
     }
     d_mean_var = new CellVariable<NDIM, double>(d_object_name + "::MeanVar", depth);
@@ -179,7 +179,7 @@ HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db)
     {
         d_mean_idx = var_db->registerVariableAndContext(d_mean_var, var_db->getContext(d_object_name + "::ctx"), 1);
         d_dev_idx = var_db->registerVariableAndContext(d_dev_var, var_db->getContext(d_object_name + "::ctx"), 1);
-        d_visit_data_writer = std::make_unique<VisItDataWriter<NDIM> >(d_object_name + "::VisitWriter", dir_dump_name);
+        d_visit_data_writer = std::make_unique<VisItDataWriter<NDIM>>(d_object_name + "::VisitWriter", dir_dump_name);
         d_visit_data_writer->registerPlotQuantity("mean_flow_field", "VECTOR", d_mean_idx);
         d_visit_data_writer->registerPlotQuantity("deviation", "VECTOR", d_dev_idx);
     }
@@ -198,14 +198,14 @@ HierarchyAveragedDataManager::clearSnapshots()
 bool
 HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
                                                          double time,
-                                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                          const std::string& refine_type,
                                                          const int wgt_idx,
                                                          const double tol)
 {
     // Create the hierarchy data ops
     auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
+    Pointer<HierarchyDataOpsReal<NDIM, double>> hier_data_ops =
         hier_math_ops->getOperationsDouble(d_var, hierarchy, true /*get_unique*/);
 
     if (d_period_length == 0.0)
@@ -258,11 +258,11 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
         hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
         hier_math_ops.setPatchHierarchy(hierarchy);
-        Pointer<SideVariable<NDIM, double> > sc_var = d_var;
-        Pointer<NodeVariable<NDIM, double> > nc_var = d_var;
-        Pointer<EdgeVariable<NDIM, double> > ec_var = d_var;
-        Pointer<FaceVariable<NDIM, double> > fc_var = d_var;
-        Pointer<CellVariable<NDIM, double> > cc_var = d_var;
+        Pointer<SideVariable<NDIM, double>> sc_var = d_var;
+        Pointer<NodeVariable<NDIM, double>> nc_var = d_var;
+        Pointer<EdgeVariable<NDIM, double>> ec_var = d_var;
+        Pointer<FaceVariable<NDIM, double>> fc_var = d_var;
+        Pointer<CellVariable<NDIM, double>> cc_var = d_var;
         if (sc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, sc_var, ghost_fill, time, false);
         if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time, false);
         if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time, false);

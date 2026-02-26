@@ -30,10 +30,10 @@ std::string TotalAmountRefine::s_object_name = "AMOUNT_CONSTANT_REFINE";
 static const int REFINE_OP_PRIORITY = 0;
 
 bool
-TotalAmountRefine::findRefineOperator(const Pointer<hier::Variable<NDIM> >& var, const std::string& op_name) const
+TotalAmountRefine::findRefineOperator(const Pointer<hier::Variable<NDIM>>& var, const std::string& op_name) const
 {
     // This operation is only valid on CellVariable's
-    Pointer<CellVariable<NDIM, double> > cast_var = var;
+    Pointer<CellVariable<NDIM, double>> cast_var = var;
     if (!cast_var.isNull() && op_name == s_object_name)
         return true;
     else
@@ -68,8 +68,8 @@ TotalAmountRefine::refine(Patch<NDIM>& fine,
 {
     // Fill in fine_box with refined values from the coarse patch. We assume a constant profile across the coarse cell.
     // Therefore, the fine cells will be the amount from the coarse cell divided by the total number of fine cells.
-    Pointer<CellData<NDIM, double> > fine_data = fine.getPatchData(dst_component);
-    Pointer<CellData<NDIM, double> > coarse_data = coarse.getPatchData(src_component);
+    Pointer<CellData<NDIM, double>> fine_data = fine.getPatchData(dst_component);
+    Pointer<CellData<NDIM, double>> coarse_data = coarse.getPatchData(src_component);
     int fine_cells_per_coarse = 1;
     for (int d = 0; d < NDIM; ++d) fine_cells_per_coarse *= ratio(d);
     // Loop over the fine box.
@@ -88,10 +88,10 @@ std::string TotalAmountCoarsen::s_object_name = "AMOUNT_CONSTANT_COARSEN";
 static const int COARSEN_OP_PRIORITY = 0;
 
 bool
-TotalAmountCoarsen::findCoarsenOperator(const Pointer<hier::Variable<NDIM> >& var, const std::string& op_name) const
+TotalAmountCoarsen::findCoarsenOperator(const Pointer<hier::Variable<NDIM>>& var, const std::string& op_name) const
 {
     // This operation is only valid on CellVariable's
-    Pointer<CellVariable<NDIM, double> > cast_var = var;
+    Pointer<CellVariable<NDIM, double>> cast_var = var;
     if (!cast_var.isNull() && op_name == s_object_name)
         return true;
     else
@@ -126,8 +126,8 @@ TotalAmountCoarsen::coarsen(Patch<NDIM>& coarse,
 {
     // Fill in fine_box with refined values from the coarse patch. The coarse data will simply be the sum of all refined
     // cells inside the coarse cell.
-    Pointer<CellData<NDIM, double> > fine_data = fine.getPatchData(src_component);
-    Pointer<CellData<NDIM, double> > coarse_data = coarse.getPatchData(dst_component);
+    Pointer<CellData<NDIM, double>> fine_data = fine.getPatchData(src_component);
+    Pointer<CellData<NDIM, double>> coarse_data = coarse.getPatchData(dst_component);
     // Loop over the coarse box.
     for (CellIterator<NDIM> ci(coarse_box); ci; ci++)
     {

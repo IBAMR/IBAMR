@@ -64,7 +64,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                             IBAMR::IBFEMethod* ib_method_ops,
                             double data_time);
 
@@ -166,12 +166,12 @@ private:
     /*!
      * \brief Initialize mappings from Cartesian grid patches to meter quadrature points.
      */
-    void computeMeterQuadratureData(std::vector<std::map<int, std::vector<int> > >& meter_idx_map,
-                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_x_map,
-                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_u_corr_map,
-                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_normal_map,
-                                    std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void computeMeterQuadratureData(std::vector<std::map<int, std::vector<int>>>& meter_idx_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector>>>& meter_x_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector>>>& meter_u_corr_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector>>>& meter_normal_map,
+                                    std::vector<std::map<int, std::vector<double>>>& meter_JxW_map,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                     const IBFEMethod* ib_method_ops);
 
     /*!
@@ -241,17 +241,17 @@ private:
     /*!
      * \brief Position and velocity DOF indices that link the meter mesh to the parent mesh data structures.
      */
-    std::vector<std::vector<std::array<libMesh::dof_id_type, NDIM> > > d_x_dof_idx, d_u_dof_idx;
+    std::vector<std::vector<std::array<libMesh::dof_id_type, NDIM>>> d_x_dof_idx, d_u_dof_idx;
 
     /*!
      * \brief The meter meshes.
      */
-    std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
+    std::vector<std::unique_ptr<libMesh::SerialMesh>> d_meter_meshes;
 
     /*!
      * \brief Equation systems for the meter meshes.
      */
-    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_meter_systems;
 
     /*!
      * \brief Names for each meter mesh.

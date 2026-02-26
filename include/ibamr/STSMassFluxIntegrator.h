@@ -127,7 +127,7 @@ public:
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
     virtual void
-    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) = 0;
+    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> base_hierarchy) = 0;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -229,7 +229,7 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Boundary condition object for velocity field.
@@ -239,27 +239,27 @@ protected:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_bc_coefs;
 
     // Hierarchy operation objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double>> d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>> d_hier_sc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_V_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_V_var;
     int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
         d_V_new_idx = IBTK::invalid_index, d_V_composite_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_rho_var;
     int d_rho_current_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index,
         d_rho_new_idx = IBTK::invalid_index, d_rho_composite_idx = IBTK::invalid_index;
     int d_N_idx = IBTK::invalid_index;
 
     // Source term variable and function for the mass density update.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_S_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_S_var;
     int d_S_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 
     // Variable and index to store the error of mass conservation equation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_E_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_E_var;
     int d_E_scratch_idx = IBTK::invalid_index;
 
     // Mathematical operators.
@@ -292,7 +292,7 @@ protected:
            d_dt_prev = -1.0;
 
     // Coarse-fine boundary objects.
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
 
 private:
     /*!

@@ -49,7 +49,7 @@ main()
     const double Z_cm = DIAMETER / 2.0 / 3.0;
 
     int total_lag_pts = 0;
-    std::vector<std::vector<double> > sphere_coords(NDIM);
+    std::vector<std::vector<double>> sphere_coords(NDIM);
     for (int k = 0; k < NZ; ++k)
     {
         const double Z = Z_cm - 0.5 * DIAMETER + k * DZ;

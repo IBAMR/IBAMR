@@ -36,8 +36,8 @@ namespace IBTK
 double
 InterpolationUtilities::interpolate(const vector<double>& X,
                                     const int data_idx,
-                                    Pointer<CellVariable<NDIM, double> > Q_var,
-                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                    Pointer<CellVariable<NDIM, double>> Q_var,
+                                    Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                     const double data_time,
                                     const int depth)
@@ -48,7 +48,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
         var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVector<NDIM>(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy);
@@ -64,16 +64,16 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p && !done; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(data_idx_temp);
+            Pointer<CellData<NDIM, double>> S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
@@ -116,7 +116,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     }
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     q_val = IBTK_MPI::sumReduction(q_val);
@@ -126,8 +126,8 @@ InterpolationUtilities::interpolate(const vector<double>& X,
 double
 InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                                       const int data_idx,
-                                      Pointer<CellVariable<NDIM, double> > Q_var,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                      Pointer<CellVariable<NDIM, double>> Q_var,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                       const double data_time,
                                       const int depth)
@@ -138,7 +138,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
         var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVector<NDIM>(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy);
@@ -154,16 +154,16 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p && !done; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(data_idx_temp);
+            Pointer<CellData<NDIM, double>> S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
@@ -248,7 +248,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
 
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     return q_val;
@@ -281,7 +281,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
                                              const std::vector<double>& X,
                                              CellData<NDIM, int>& r_data,
                                              CellData<NDIM, double>& q_data,
-                                             Pointer<CartesianPatchGeometry<NDIM> > pgeom,
+                                             Pointer<CartesianPatchGeometry<NDIM>> pgeom,
                                              const Box<NDIM>& pbox,
                                              int dim,
                                              int cycle,
@@ -289,7 +289,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
 {
     double q_val = 0.0;
     // form list of indices.
-    std::vector<CellIndex<NDIM> > idx_list;
+    std::vector<CellIndex<NDIM>> idx_list;
     std::vector<int> i_list;
     bool done = false;
     while (!done)
@@ -344,7 +344,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
     {
         std::vector<int> i_list;
         std::vector<double> y_data;
-        for (std::vector<CellIndex<NDIM> >::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
+        for (std::vector<CellIndex<NDIM>>::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
         {
             const CellIndex<NDIM>& cidx = *cit;
             q_data(cidx, cycle + 1) = InterpolationUtilities::interpolate_in_boxes(
@@ -362,7 +362,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
     {
         std::vector<int> i_list;
         std::vector<double> y_data;
-        for (std::vector<CellIndex<NDIM> >::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
+        for (std::vector<CellIndex<NDIM>>::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
         {
             const CellIndex<NDIM>& cidx = *cit;
             i_list.push_back(cidx(dim));

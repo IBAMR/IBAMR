@@ -44,7 +44,7 @@ public:
     KnifeFishKinematics(const std::string& object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                         bool register_for_restart = true);
 
     /*!
@@ -65,7 +65,7 @@ public:
      * \brief Get the kinematics velocity on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of eel at the required time.
@@ -77,7 +77,7 @@ public:
      * \brief Get the shape of eel at the required level.
      * \see IBAMR::ConstraintIBKinematics::getShape
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
@@ -113,8 +113,8 @@ private:
     /*!
      * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<double>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Radius and angle of excursion of the fin

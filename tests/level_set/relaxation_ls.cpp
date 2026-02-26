@@ -53,25 +53,25 @@ circular_interface_neighborhood(int D_idx,
                                 bool /*initial_time*/,
                                 void* /*ctx*/)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector coord = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
                 const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
@@ -148,7 +148,7 @@ main(int argc, char* argv[])
         Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
             new AdvectorPredictorCorrectorHyperbolicPatchOps(
@@ -156,27 +156,27 @@ main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
                 explicit_predictor,
                 grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
+        Pointer<HyperbolicLevelIntegrator<NDIM>> hyp_level_integrator =
             new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
                                                 app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
                                                 hyp_patch_ops,
                                                 true,
                                                 using_refined_timestepping);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                hyp_level_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator =
+        Pointer<TimeRefinementIntegrator<NDIM>> time_integrator =
             new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
                                                app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
                                                patch_hierarchy,
@@ -193,7 +193,7 @@ main(int argc, char* argv[])
         {
             pout << "advection velocity u is NOT discretely divergence free.\n";
         }
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
+        Pointer<FaceVariable<NDIM, double>> u_var = new FaceVariable<NDIM, double>("u");
         Pointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
             "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry);
         hyp_patch_ops->registerAdvectionVelocity(u_var);
@@ -206,7 +206,7 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<CellVariable<NDIM, double>> Q_var = new CellVariable<NDIM, double>("Q");
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
@@ -220,7 +220,7 @@ main(int argc, char* argv[])
         hyp_patch_ops->setInitialConditions(Q_var, Q_init);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
@@ -237,16 +237,16 @@ main(int argc, char* argv[])
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, current_ctx);
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, scratch_ctx);
 
-        Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
+        Pointer<CellVariable<NDIM, double>> E_var = new CellVariable<NDIM, double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, scratch_ctx);
 
         // Heaviside
-        Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("H");
+        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("H");
         const int H_idx = var_db->registerVariableAndContext(H_var, scratch_ctx);
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(Q_scratch_idx))
                 level->allocatePatchData(Q_scratch_idx, time_integrator->getIntegratorTime());
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
@@ -279,21 +279,21 @@ main(int argc, char* argv[])
         // Compute L1 error from analytical solution
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                Pointer<CellData<NDIM, double> > Q_scratch_data = patch->getPatchData(Q_scratch_idx);
-                Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+                Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(E_idx);
+                Pointer<CellData<NDIM, double>> Q_scratch_data = patch->getPatchData(Q_scratch_idx);
+                Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector coord = IBTK::Vector::Zero();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
                     const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                     const double* const patch_dx = patch_geom->getDx();
@@ -329,21 +329,21 @@ main(int argc, char* argv[])
         // Compute L1 Norm for specific regions
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(Q_scratch_idx);
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                Pointer<CellData<NDIM, double> > W_data = patch->getPatchData(wgt_cc_idx);
+                Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(Q_scratch_idx);
+                Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(E_idx);
+                Pointer<CellData<NDIM, double>> W_data = patch->getPatchData(wgt_cc_idx);
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> ci(it());
                     const double phi = (*D_data)(ci);
                     const double err = (*E_data)(ci);
                     const double dV = (*W_data)(ci);
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                     const double* const patch_dx = patch_geom->getDx();
 
                     if (std::abs(phi) < 1.2 * patch_dx[0])
@@ -382,7 +382,7 @@ main(int argc, char* argv[])
         cc_data_ops.copyData(Q_current_idx, Q_scratch_idx);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             if (level->checkAllocated(Q_scratch_idx)) level->deallocatePatchData(Q_scratch_idx);
         }
 

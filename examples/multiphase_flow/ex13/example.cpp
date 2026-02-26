@@ -57,7 +57,7 @@
 #include "RigidBodyKinematics.h"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -181,18 +181,18 @@ main(int argc, char* argv[])
                                               ib_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -222,7 +222,7 @@ main(int argc, char* argv[])
         }
         else
         {
-            const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
+            const std::vector<std::vector<double>>& structure_COM = ib_method_ops->getCurrentStructureCOM();
             rectangle.X0(0) = structure_COM[0][0];
             rectangle.X0(1) = structure_COM[0][1];
 #if (NDIM == 3)
@@ -234,7 +234,7 @@ main(int argc, char* argv[])
 
         const string& ls_name_solid = "level_set_solid";
         const double vol_elem = input_db->getDoubleWithDefault("VOL_ELEM", -1.0);
-        Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        Pointer<CellVariable<NDIM, double>> phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
             new RelaxationLSMethod(ls_name_solid, app_initializer->getComponentDatabase("LevelSet_Solid"));
         LSLocateStructureInterface setLSLocateStructureInterface("LSLocateStructureInterface",
@@ -247,7 +247,7 @@ main(int argc, char* argv[])
             &callLSLocateStructureInterfaceCallbackFunction, static_cast<void*>(&setLSLocateStructureInterface));
 
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
+        Pointer<CellVariable<NDIM, double>> phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface setLSLocateGasInterface(
@@ -286,7 +286,7 @@ main(int argc, char* argv[])
         adv_diff_integrator->setInitialConditions(phi_var_solid, phi_init_solid);
 
         // Setup the advected and diffused quantities.
-        Pointer<Variable<NDIM> > rho_var;
+        Pointer<Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
@@ -298,7 +298,7 @@ main(int argc, char* argv[])
 
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
 
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -451,7 +451,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(eul_forces);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -464,7 +464,7 @@ main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Create ConstraintIBKinematics objects
-        vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
+        vector<Pointer<ConstraintIBKinematics>> ibkinematics_ops_vec;
         Pointer<ConstraintIBKinematics> ib_kinematics_op;
         // struct_0
         const string& object_name = "Rectangle";
@@ -505,7 +505,7 @@ main(int argc, char* argv[])
         // Get the probe points from the input file
         Pointer<Database> pressure_probe_db = input_db->getDatabase("PressureProbes");
         const int num_pressure_probes = (pressure_probe_db->getAllKeys()).getSize();
-        std::vector<std::vector<double> > pressure_probe_points;
+        std::vector<std::vector<double>> pressure_probe_points;
         std::vector<std::ofstream*> pressure_probe_streams;
         pressure_probe_points.resize(num_pressure_probes);
         pressure_probe_streams.resize(num_pressure_probes);
@@ -588,7 +588,7 @@ main(int argc, char* argv[])
             // Note that it will print the nearest cell center
             // Max reduction over p_val array to ensure that only processor 0 prints
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<CellVariable<NDIM, double> > p_var = navier_stokes_integrator->getPressureVariable();
+            Pointer<CellVariable<NDIM, double>> p_var = navier_stokes_integrator->getPressureVariable();
             int p_idx = var_db->mapVariableAndContextToIndex(p_var, navier_stokes_integrator->getCurrentContext());
             std::vector<double> p_val(num_pressure_probes);
             for (int i = 0; i < num_pressure_probes; ++i)
@@ -598,18 +598,18 @@ main(int argc, char* argv[])
                 for (int ln = finest_ln; ln >= coarsest_ln; --ln)
                 {
                     // Get the cell index for this point
-                    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                     const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
                         &pressure_probe_points[i][0], level->getGridGeometry(), level->getRatio());
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
                         const Box<NDIM>& patch_box = patch->getBox();
                         const bool contains_probe = patch_box.contains(cell_idx);
                         if (!contains_probe) continue;
 
                         // Get the level set value at this particular cell and print to stream
-                        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_idx);
+                        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
                         p_val[i] = (*p_data)(cell_idx);
                         found_point_in_patch = true;
                         if (found_point_in_patch) break;
@@ -674,7 +674,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator,
             LDataManager* l_data_manager,
             const int iteration_num,

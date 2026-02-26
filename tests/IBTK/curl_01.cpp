@@ -56,15 +56,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -75,8 +75,8 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<Variable<NDIM> > u_var;
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
+        Pointer<Variable<NDIM>> u_var;
+        Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
 
         if (src_var_type == "SIDE")
         {
@@ -89,10 +89,10 @@ main(int argc, char* argv[])
 
         const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
         const unsigned int curl_dim = (NDIM == 2 ? 1 : NDIM);
-        Pointer<Variable<NDIM> > curl_u_var, e_var;
-        Pointer<NodeVariable<NDIM, double> > curl_u_nc_var =
+        Pointer<Variable<NDIM>> curl_u_var, e_var;
+        Pointer<NodeVariable<NDIM, double>> curl_u_nc_var =
             new NodeVariable<NDIM, double>("curl_u_nc", curl_dim, fine_boundary_represents_var);
-        Pointer<NodeVariable<NDIM, double> > e_nc_var =
+        Pointer<NodeVariable<NDIM, double>> e_nc_var =
             new NodeVariable<NDIM, double>("e_nc", curl_dim, fine_boundary_represents_var);
 
         if (dst_var_type == "NODE")
@@ -110,7 +110,7 @@ main(int argc, char* argv[])
         const int e_idx = var_db->registerVariableAndContext(e_var, ctx, IntVector<NDIM>(0));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
         if (dst_var_type == "NODE")
         {
@@ -147,7 +147,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
             level->allocatePatchData(curl_u_idx, 0.0);
             level->allocatePatchData(e_idx, 0.0);
@@ -201,8 +201,8 @@ main(int argc, char* argv[])
         }
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&curl_u_vec, false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<NDIM, double>>(&curl_u_vec, false));
         const double max_norm = e_vec.maxNorm();
 
         if (IBTK_MPI::getRank() == 0)

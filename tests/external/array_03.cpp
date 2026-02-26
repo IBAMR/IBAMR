@@ -30,7 +30,7 @@ main()
 
     for (int i = 0; i < 100000; ++i)
     {
-        Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             touches_regular_bdry[axis].resizeArray(2);
@@ -41,15 +41,15 @@ main()
                 touches_periodic_bdry[axis][upperlower] = (i + 1) % (upperlower + 1) == NDIM;
             }
 
-            Array<Array<bool> > touches_regular_bdry_2 = touches_regular_bdry;
-            Array<Array<bool> > touches_regular_bdry_3 = touches_regular_bdry;
-            Array<Array<bool> > touches_regular_bdry_4 = touches_regular_bdry;
-            Array<Array<bool> > touches_regular_bdry_5 = touches_regular_bdry;
+            Array<Array<bool>> touches_regular_bdry_2 = touches_regular_bdry;
+            Array<Array<bool>> touches_regular_bdry_3 = touches_regular_bdry;
+            Array<Array<bool>> touches_regular_bdry_4 = touches_regular_bdry;
+            Array<Array<bool>> touches_regular_bdry_5 = touches_regular_bdry;
         }
     }
 
     output << "total number of Array<int> allocations = " << Array<int>::getNumberOfAllocations() << std::endl;
     output << "total number of Array<bool> allocations = " << Array<bool>::getNumberOfAllocations() << std::endl;
-    output << "total number of Array<Array<bool>> allocations = " << Array<Array<bool> >::getNumberOfAllocations()
+    output << "total number of Array<Array<bool>> allocations = " << Array<Array<bool>>::getNumberOfAllocations()
            << std::endl;
 }

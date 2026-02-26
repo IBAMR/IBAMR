@@ -58,7 +58,7 @@ public:
      * \brief Constructor of the class.
      */
     LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
     {
@@ -67,7 +67,7 @@ public:
     } // LevelSetContainer
 
     LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
+                      std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> ls_vars,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
     {
@@ -95,14 +95,14 @@ public:
         return d_adv_diff_integrator;
     } // getAdvDiffHierarchyIntegrator
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable(int idx = 0) const
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> getLevelSetVariable(int idx = 0) const
     {
         return d_ls_vars[idx];
     } // getLSVariable
 
 private:
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_ls_vars;
     double d_ncells = 1.0;
 };
 
@@ -116,7 +116,7 @@ public:
      * \brief Constructor of the class.
      */
     TagLSRefinementCells(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                          double tag_min_value = 0.0,
                          double tag_max_value = 0.0)
         : d_ls_container(adv_diff_integrator, ls_var), d_tag_min_value(tag_min_value), d_tag_max_value(tag_max_value)
@@ -171,7 +171,7 @@ private:
  *
  * \param ctx is the pointer to the TagLSRefinementCells class object.
  */
-void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                 const int level_number,
                 const double error_data_time,
                 const int tag_index,
@@ -193,7 +193,7 @@ public:
      */
     LevelSetMassLossFixer(std::string object_name,
                           SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
+                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> ls_vars,
                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
                           bool register_for_restart = true);
 

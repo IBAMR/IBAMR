@@ -117,8 +117,8 @@ public:
      */
     void setNullSpace(
         bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -230,14 +230,14 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    virtual void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                                       std::vector<std::set<int> >& nonoverlap_is);
+    virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                                       std::vector<std::set<int>>& nonoverlap_is);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
-                                              std::vector<std::set<int> >& field_is);
+                                              std::vector<std::set<int>>& field_is);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -279,14 +279,14 @@ protected:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
 
     /*!
      * \brief Scratch data.

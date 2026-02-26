@@ -37,7 +37,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db);
+    QInit(const string& object_name, Pointer<GridGeometry<NDIM>> grid_geom, Pointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -56,11 +56,11 @@ public:
      * Set the data on the patch interior to the exact answer.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<Variable<NDIM>> var,
+                        Pointer<Patch<NDIM>> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > level = nullptr);
+                        Pointer<PatchLevel<NDIM>> level = nullptr);
 
 protected:
 private:
@@ -105,7 +105,7 @@ private:
     /*
      * The grid geometry.
      */
-    Pointer<CartesianGridGeometry<NDIM> > d_grid_geom;
+    Pointer<CartesianGridGeometry<NDIM>> d_grid_geom;
 
     /*
      * The center of the initial data.

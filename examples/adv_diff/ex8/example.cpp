@@ -51,10 +51,10 @@
 struct BrinkmanPenalizationCtx
 {
     Pointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<SideVariable<NDIM, double> > grad_phi_sc_var;
-    Pointer<CellVariable<NDIM, double> > grad_phi_cc_var;
-    Pointer<CellVariable<NDIM, double> > beta_var;
-    Pointer<CellVariable<NDIM, double> > g_cc_var;
+    Pointer<SideVariable<NDIM, double>> grad_phi_sc_var;
+    Pointer<CellVariable<NDIM, double>> grad_phi_cc_var;
+    Pointer<CellVariable<NDIM, double>> beta_var;
+    Pointer<CellVariable<NDIM, double>> g_cc_var;
     int beta_scratch_idx;
     int grad_phi_sc_idx;
     int grad_phi_cc_idx;
@@ -66,13 +66,13 @@ struct BrinkmanPenalizationCtx
 
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx,
-                                  Pointer<CellVariable<NDIM, double> > ls_solid_var,
+                                  Pointer<CellVariable<NDIM, double>> ls_solid_var,
                                   Pointer<HierarchyMathOps> hier_math_ops,
                                   double time,
                                   void* ctx)
 {
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
 
     int g_cc_scratch_idx = bp_ctx->g_cc_scratch_idx;
     int grad_phi_sc_idx = bp_ctx->grad_phi_sc_idx;
@@ -85,7 +85,7 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(g_cc_scratch_idx)) level->allocatePatchData(g_cc_scratch_idx, time);
         if (!level->checkAllocated(grad_phi_sc_idx)) level->allocatePatchData(grad_phi_sc_idx, time);
         if (!level->checkAllocated(grad_phi_cc_idx)) level->allocatePatchData(grad_phi_cc_idx, time);
@@ -123,17 +123,17 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     hier_bdry_fill->fillData(time);
 
     // Computing the gradient of signed distance at cell center.
-    Pointer<CellVariable<NDIM, double> > grad_phi_cc_var = bp_ctx->grad_phi_cc_var;
+    Pointer<CellVariable<NDIM, double>> grad_phi_cc_var = bp_ctx->grad_phi_cc_var;
     hier_math_ops->grad(grad_phi_cc_idx, grad_phi_cc_var, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
 
     // computing the gradient of signed distance at side center.
-    Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
+    Pointer<SideVariable<NDIM, double>> grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
     hier_math_ops->grad(grad_phi_sc_idx, grad_phi_sc_var, true, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
 
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     IntVector<NDIM> ratio = finest_level->getRatio();
 
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const SAMRAI::hier::Box<NDIM> domain_box =
         SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
@@ -141,15 +141,15 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
 
-        Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(phi_scratch_idx);
-        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_idx);
+        Pointer<CellData<NDIM, double>> grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
+        Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(phi_scratch_idx);
+        Pointer<CellData<NDIM, double>> g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        Pointer<CellData<NDIM, double>> interface_cell_data = patch->getPatchData(interface_cell_idx);
         for (Box<NDIM>::Iterator it(patch_box); it; it++)
         {
             CellIndex<NDIM> ci(it());
@@ -225,13 +225,13 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     // Propagate the interfacial g value to the neighboring cells along the normal direction.
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
-        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_idx);
-        Pointer<CellData<NDIM, double> > prop_counter_data = patch->getPatchData(prop_counter_idx);
-        Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
+        Pointer<CellData<NDIM, double>> g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        Pointer<CellData<NDIM, double>> interface_cell_data = patch->getPatchData(interface_cell_idx);
+        Pointer<CellData<NDIM, double>> prop_counter_data = patch->getPatchData(prop_counter_idx);
+        Pointer<CellData<NDIM, double>> grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
         const Box<NDIM>& ghost_box = g_cc_data->getGhostBox();
         const hier::Index<NDIM>& ghost_lower_idx = ghost_box.lower();
         const hier::Index<NDIM>& ghost_upper_idx = ghost_box.upper();
@@ -242,10 +242,10 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 
             if ((*interface_cell_data)(ci) > 0.0)
             {
-                std::vector<CellIndex<NDIM> > nbr_cell_normal(num_prop_cells);     // vector stores cell index of
-                                                                                   // virtual cells in +n direction
-                std::vector<CellIndex<NDIM> > nbr_cell_neg_normal(num_prop_cells); // vector stores cell index of
-                                                                                   // virtual cells in -n direction
+                std::vector<CellIndex<NDIM>> nbr_cell_normal(num_prop_cells);     // vector stores cell index of
+                                                                                  // virtual cells in +n direction
+                std::vector<CellIndex<NDIM>> nbr_cell_neg_normal(num_prop_cells); // vector stores cell index of
+                                                                                  // virtual cells in -n direction
 
                 // location of the interface cells.
                 IBTK::VectorNd coord = IBTK::Vector::Zero();
@@ -311,11 +311,11 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
-        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        Pointer<SideData<NDIM, double>> grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
+        Pointer<SideData<NDIM, double>> B_data = patch->getPatchData(B_idx);
+        Pointer<CellData<NDIM, double>> g_cc_data = patch->getPatchData(g_cc_scratch_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
@@ -361,10 +361,10 @@ external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& 
     return;
 } // external_force_torque
 
-void compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void compute_T_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                       Pointer<CellVariable<NDIM, double> > T_var,
-                       Pointer<CellVariable<NDIM, double> > phi_var,
+                       Pointer<CellVariable<NDIM, double>> T_var,
+                       Pointer<CellVariable<NDIM, double>> phi_var,
                        const double data_time,
                        const string& data_dump_dirname);
 /*******************************************************************************
@@ -434,17 +434,17 @@ main(int argc, char* argv[])
             app_initializer->getComponentDatabase("BrinkmanAdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -454,12 +454,12 @@ main(int argc, char* argv[])
         // Set up the advected and diffused quantity.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const string& ls_name_inner_solid = "level_set_inner_solid";
-        Pointer<CellVariable<NDIM, double> > phi_inner_solid_var = new CellVariable<NDIM, double>(ls_name_inner_solid);
+        Pointer<CellVariable<NDIM, double>> phi_inner_solid_var = new CellVariable<NDIM, double>(ls_name_inner_solid);
         adv_diff_integrator->registerTransportedQuantity(phi_inner_solid_var, true);
         adv_diff_integrator->setDiffusionCoefficient(phi_inner_solid_var, 0.0);
 
         const string& ls_name_outer_solid = "level_set_outer_solid";
-        Pointer<CellVariable<NDIM, double> > phi_outer_solid_var = new CellVariable<NDIM, double>(ls_name_outer_solid);
+        Pointer<CellVariable<NDIM, double>> phi_outer_solid_var = new CellVariable<NDIM, double>(ls_name_outer_solid);
         adv_diff_integrator->registerTransportedQuantity(phi_outer_solid_var, true);
         adv_diff_integrator->setDiffusionCoefficient(phi_outer_solid_var, 0.0);
 
@@ -482,7 +482,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(phi_inner_solid_var, phi_bc_coef);
             adv_diff_integrator->setPhysicalBcCoef(phi_outer_solid_var, phi_bc_coef);
         }
-        Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("T");
+        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("T");
         adv_diff_integrator->registerTransportedQuantity(T_var, true);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
 
@@ -508,10 +508,10 @@ main(int argc, char* argv[])
         adv_diff_integrator->setResetPriority(T_var, 2);
 
         // Setup the INS maintained material properties.
-        Pointer<SAMRAI::hier::Variable<NDIM> > rho_var = new SideVariable<NDIM, double>("rho");
+        Pointer<SAMRAI::hier::Variable<NDIM>> rho_var = new SideVariable<NDIM, double>("rho");
         time_integrator->registerMassDensityVariable(rho_var);
 
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -592,22 +592,22 @@ main(int argc, char* argv[])
         // Variables for computing flux-forcing function.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int num_prop_cells = input_db->getInteger("NUMBER_OF_PROPAGATION_CELLS");
-        Pointer<CellVariable<NDIM, double> > g_cc_var = new CellVariable<NDIM, double>("g_cc");
+        Pointer<CellVariable<NDIM, double>> g_cc_var = new CellVariable<NDIM, double>("g_cc");
         const int g_cc_scratch_idx =
             var_db->registerVariableAndContext(g_cc_var, var_db->getContext("g_cc_context"), num_prop_cells);
-        Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = new SideVariable<NDIM, double>("grad_phi_sc_var");
-        Pointer<CellVariable<NDIM, double> > grad_phi_cc_var = new CellVariable<NDIM, double>("grad_phi_cc_var", NDIM);
+        Pointer<SideVariable<NDIM, double>> grad_phi_sc_var = new SideVariable<NDIM, double>("grad_phi_sc_var");
+        Pointer<CellVariable<NDIM, double>> grad_phi_cc_var = new CellVariable<NDIM, double>("grad_phi_cc_var", NDIM);
         const int grad_phi_sc_idx =
             var_db->registerVariableAndContext(grad_phi_sc_var, var_db->getContext("grad_phi_sc_context"), 0);
         const int grad_phi_cc_idx = var_db->registerVariableAndContext(
             grad_phi_cc_var, var_db->getContext("grad_phi_cc_context"), num_prop_cells);
-        Pointer<CellVariable<NDIM, double> > beta_var = new CellVariable<NDIM, double>("beta", NDIM);
+        Pointer<CellVariable<NDIM, double>> beta_var = new CellVariable<NDIM, double>("beta", NDIM);
         const int beta_scratch_idx =
             var_db->registerVariableAndContext(beta_var, var_db->getContext("beta_context"), 0);
-        Pointer<CellVariable<NDIM, double> > interface_cell_var = new CellVariable<NDIM, double>("interface_cell_var");
+        Pointer<CellVariable<NDIM, double>> interface_cell_var = new CellVariable<NDIM, double>("interface_cell_var");
         const int interface_cell_idx = var_db->registerVariableAndContext(
             interface_cell_var, var_db->getContext("interface_cell_context"), num_prop_cells);
-        Pointer<CellVariable<NDIM, double> > prop_counter_var = new CellVariable<NDIM, double>("prop_counter");
+        Pointer<CellVariable<NDIM, double>> prop_counter_var = new CellVariable<NDIM, double>("prop_counter");
         const int prop_counter_idx = var_db->registerVariableAndContext(
             prop_counter_var, var_db->getContext("prop_counter_context"), num_prop_cells);
 
@@ -692,7 +692,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(boussinesq_forcing_fcn);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -824,10 +824,10 @@ main(int argc, char* argv[])
 } // main
 
 void
-compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+compute_T_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                   Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                  Pointer<CellVariable<NDIM, double> > T_var,
-                  Pointer<CellVariable<NDIM, double> > phi_var,
+                  Pointer<CellVariable<NDIM, double>> T_var,
+                  Pointer<CellVariable<NDIM, double>> phi_var,
                   const double data_time,
                   const string& data_dump_dirname)
 {
@@ -847,7 +847,7 @@ compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(phi_scratch_idx);
     }
     // Filling ghost cells for level set.
@@ -869,17 +869,17 @@ compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_dx = patch_geom->getDx();
             const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_current_idx);
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_current_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_scratch_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -923,7 +923,7 @@ compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(phi_scratch_idx);
     }
 

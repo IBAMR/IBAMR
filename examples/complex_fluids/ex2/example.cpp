@@ -71,7 +71,7 @@ tether_force_function(VectorValue<double>& F,
                       Elem* const /*elem*/,
                       unsigned short int /*side*/,
                       const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                       double /*time*/,
                       void* /*ctx*/)
 {
@@ -96,7 +96,7 @@ using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_force_stream, sxx_component_stream;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                       Pointer<CFINSForcing> polymericStressForcing,
@@ -276,17 +276,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -346,7 +346,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -501,7 +501,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                  Pointer<CFINSForcing> polymericStressForcing,
@@ -553,15 +553,15 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
     U_vec->localize(*U_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<libMesh::Point>& q_point = fe->get_xyz();
-    const vector<vector<double> >& phi = fe->get_phi();
-    const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+    const vector<vector<double>>& phi = fe->get_phi();
+    const vector<vector<VectorValue<double>>>& dphi = fe->get_dphi();
 
     std::unique_ptr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule_face(QBase::build(QGAUSS, dim - 1, SEVENTH));
@@ -569,13 +569,13 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     const vector<double>& JxW_face = fe_face->get_JxW();
     const vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const vector<libMesh::Point>& normal_face = fe_face->get_normals();
-    const vector<vector<double> >& phi_face = fe_face->get_phi();
-    const vector<vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+    const vector<vector<double>>& phi_face = fe_face->get_phi();
+    const vector<vector<VectorValue<double>>>& dphi_face = fe_face->get_dphi();
 
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
-    std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
+    std::vector<const std::vector<libMesh::VectorValue<double>>*> grad_var_data;
     void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF, FF_inv_trans;
@@ -649,9 +649,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     if (polymericStressForcing)
     {
         if (IBTK_MPI::getRank() == 0) sxx_component_stream << loop_time << " ";
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
-        Pointer<Patch<NDIM> > patch = level->getPatch(PatchLevel<NDIM>::Iterator(level)());
-        const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+        Pointer<Patch<NDIM>> patch = level->getPatch(PatchLevel<NDIM>::Iterator(level)());
+        const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
         const double* dx = p_geom->getDx();
         double xp, yp, sxx;
         std::vector<double> X(2);

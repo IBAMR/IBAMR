@@ -71,19 +71,19 @@ void
 PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                        const int data_idx,
                                        const int dof_index_idx,
-                                       Pointer<PatchLevel<NDIM> > patch_level)
+                                       Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    Pointer<Variable<NDIM>> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > data_cc_var = data_var;
-    Pointer<SideVariable<NDIM, double> > data_sc_var = data_var;
+    Pointer<CellVariable<NDIM, double>> data_cc_var = data_var;
+    Pointer<SideVariable<NDIM, double>> data_sc_var = data_var;
     if (data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > dof_index_var;
+        Pointer<Variable<NDIM>> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
+        Pointer<CellVariable<NDIM, int>> dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -91,9 +91,9 @@ PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else if (data_sc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > dof_index_var;
+        Pointer<Variable<NDIM>> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+        Pointer<SideVariable<NDIM, int>> dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
@@ -110,21 +110,21 @@ void
 PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                          const int data_idx,
                                          const int dof_index_idx,
-                                         Pointer<PatchLevel<NDIM> > patch_level,
-                                         Pointer<RefineSchedule<NDIM> > data_synch_sched,
-                                         Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+                                         Pointer<PatchLevel<NDIM>> patch_level,
+                                         Pointer<RefineSchedule<NDIM>> data_synch_sched,
+                                         Pointer<RefineSchedule<NDIM>> ghost_fill_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    Pointer<Variable<NDIM>> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > data_cc_var = data_var;
-    Pointer<SideVariable<NDIM, double> > data_sc_var = data_var;
+    Pointer<CellVariable<NDIM, double>> data_cc_var = data_var;
+    Pointer<SideVariable<NDIM, double>> data_sc_var = data_var;
     if (data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > dof_index_var;
+        Pointer<Variable<NDIM>> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
+        Pointer<CellVariable<NDIM, int>> dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -132,15 +132,15 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else if (data_sc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > dof_index_var;
+        Pointer<Variable<NDIM>> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+        Pointer<SideVariable<NDIM, int>> dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
+            Pointer<RefineClasses<NDIM>> data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
             data_synch_alg.registerRefine(data_idx, data_idx, data_idx, nullptr, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
@@ -155,7 +155,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        Pointer<RefineClasses<NDIM>> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
         ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, nullptr);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
@@ -165,15 +165,15 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> >
-PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM>>
+PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    Pointer<Variable<NDIM>> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > data_cc_var = data_var;
-    Pointer<SideVariable<NDIM, double> > data_sc_var = data_var;
-    Pointer<RefineSchedule<NDIM> > data_synch_sched;
+    Pointer<CellVariable<NDIM, double>> data_cc_var = data_var;
+    Pointer<SideVariable<NDIM, double>> data_sc_var = data_var;
+    Pointer<RefineSchedule<NDIM>> data_synch_sched;
     if (data_cc_var)
     {
         // intentionally blank
@@ -195,8 +195,8 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchL
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> >
-PETScVecUtilities::constructGhostFillSchedule(const int data_idx, Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM>>
+PETScVecUtilities::constructGhostFillSchedule(const int data_idx, Pointer<PatchLevel<NDIM>> patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, nullptr);
@@ -206,13 +206,13 @@ PETScVecUtilities::constructGhostFillSchedule(const int data_idx, Pointer<PatchL
 void
 PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                  const int dof_index_idx,
-                                                 Pointer<PatchLevel<NDIM> > patch_level)
+                                                 Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > dof_index_var;
+    Pointer<Variable<NDIM>> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
-    Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+    Pointer<CellVariable<NDIM, int>> dof_index_cc_var = dof_index_var;
+    Pointer<SideVariable<NDIM, int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
@@ -233,14 +233,14 @@ void
 PETScVecUtilities::constructPatchLevelAO(AO& ao,
                                          std::vector<int>& num_dofs_per_proc,
                                          int dof_index_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                                          const int ao_offset)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > dof_index_var;
+    Pointer<Variable<NDIM>> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
-    Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+    Pointer<CellVariable<NDIM, int>> dof_index_cc_var = dof_index_var;
+    Pointer<SideVariable<NDIM, int>> dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
         constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level, ao_offset);
@@ -265,7 +265,7 @@ void
 PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
                                             const int data_idx,
                                             const int dof_index_idx,
-                                            Pointer<PatchLevel<NDIM> > patch_level)
+                                            Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -273,11 +273,11 @@ PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -306,7 +306,7 @@ void
 PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
                                             const int data_idx,
                                             const int dof_index_idx,
-                                            Pointer<PatchLevel<NDIM> > patch_level)
+                                            Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -314,11 +314,11 @@ PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > data = patch->getPatchData(data_idx);
+        Pointer<SideData<NDIM, double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -350,7 +350,7 @@ void
 PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
                                               const int data_idx,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -358,11 +358,11 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -387,7 +387,7 @@ void
 PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
                                               const int data_idx,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -395,11 +395,11 @@ PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > data = patch->getPatchData(data_idx);
+        Pointer<SideData<NDIM, double>> data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
@@ -426,15 +426,15 @@ PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
 void
 PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+                                                      Pointer<PatchLevel<NDIM>> patch_level)
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         local_dof_count += depth * CellGeometry<NDIM>::toCellBox(patch_box).size();
     }
@@ -452,9 +452,9 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
     int counter = local_dof_offset;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
@@ -477,30 +477,30 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
 void
 PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+                                                      Pointer<PatchLevel<NDIM>> patch_level)
 {
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var =
+    Pointer<SideVariable<NDIM, int>> patch_num_var =
         new SideVariable<NDIM, int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > mastr_loc_var =
+    Pointer<SideVariable<NDIM, bool>> mastr_loc_var =
         new SideVariable<NDIM, bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM, int>> patch_num_data = patch->getPatchData(patch_num_idx);
         patch_num_data->fillAll(patch_num);
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        Pointer<SideData<NDIM, bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -528,13 +528,13 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        Pointer<SideData<NDIM, int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM, bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
@@ -564,12 +564,12 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     counter = local_dof_offset;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        Pointer<SideData<NDIM, bool>> mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         std::array<Box<NDIM>, NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -615,7 +615,7 @@ void
 PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                                               std::vector<int>& num_dofs_per_proc,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level,
+                                              Pointer<PatchLevel<NDIM>> patch_level,
                                               const int ao_offset)
 {
     if (ao)
@@ -631,7 +631,7 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 #endif
     const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     hier::Index<NDIM> num_cells = 1;
     num_cells += domain_upper - domain_lower;
@@ -649,9 +649,9 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
     int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
@@ -682,7 +682,7 @@ void
 PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
                                               std::vector<int>& num_dofs_per_proc,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level,
+                                              Pointer<PatchLevel<NDIM>> patch_level,
                                               const int ao_offset)
 {
     if (ao)
@@ -698,7 +698,7 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
 #endif
     const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     std::array<hier::Index<NDIM>, NDIM> num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
@@ -717,9 +717,9 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
 
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
 
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)

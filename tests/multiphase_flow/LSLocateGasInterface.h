@@ -37,7 +37,7 @@ class LSLocateGasInterface
 public:
     LSLocateGasInterface(const std::string& object_name,
                          SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                          const double init_height)
         : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_height(init_height)
     {
@@ -52,7 +52,7 @@ public:
                               const double /*time*/,
                               const bool initial_time)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -75,19 +75,19 @@ public:
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
                 for (SAMRAI::hier::Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     SAMRAI::pdat::CellIndex<NDIM> ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector coord = IBTK::Vector::Zero();
-                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>> patch_geom =
                         patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
                     const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
@@ -126,7 +126,7 @@ private:
     /*!
      * Level set variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
 
     /*!
      * Initial level set information.
