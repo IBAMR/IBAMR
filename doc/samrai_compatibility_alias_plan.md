@@ -1,4 +1,4 @@
-# SAMRAI Compatability Migration Plan
+# SAMRAI Compatibility Migration Plan
 
 ## Overall Plan
 
