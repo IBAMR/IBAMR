@@ -1424,3 +1424,14 @@ ADD_CUSTOM_TARGET(indent-all
   COMMAND ./scripts/formatting/indent-all
   COMMENT "Indenting all IBAMR files"
   )
+ADD_CUSTOM_TARGET(rewrite-samrai-compatibility
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/maintenance/rewrite-samrai-compatibility
+  COMMENT "Rewriting SAMRAI compatibility aliases in recently changed files"
+  )
+
+ADD_CUSTOM_TARGET(rewrite-samrai-compatibility-all
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/maintenance/rewrite-samrai-compatibility-all
+  COMMENT "Rewriting SAMRAI compatibility aliases in all files"
+  )

@@ -24,6 +24,10 @@ __pycache__/
 __pycache__/
 *.py[cod]
 
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
 ### Linux ###
@@ -187,3 +191,6 @@ objs-*
 *.py
 *.sh
 !scripts/maintenance/rewrite_include_quotes_to_angle_brackets.py
+!scripts/maintenance/rewrite_samrai_compatibility_file.py
+!scripts/maintenance/generate_samrai_legacy_wrappers.py
+!scripts/maintenance/run_samrai_compatibility_adoption.py

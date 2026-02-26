@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Apply SAMRAI compatibility alias rewriting to all supported source/header files.
+# Run from repository root or via CMake target rewrite-samrai-compatibility-all.
+
+if [ ! -f scripts/maintenance/rewrite-samrai-compatibility-all ]; then
+  echo "*** This script must be run from the top-level directory of IBAMR."
+  exit 1
+fi
+
+if [ ! -f scripts/formatting/indent_common.sh ]; then
+  echo "*** This script requires scripts/formatting/indent_common.sh."
+  exit 1
+fi
+
+source scripts/formatting/indent_common.sh
+
+rewrite_samrai_compatibility_file()
+{
+  file="${1}"
+  python3 ./scripts/maintenance/rewrite_samrai_compatibility_file.py --write "${file}" >/dev/null
+}
+export -f rewrite_samrai_compatibility_file
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_samrai_compatibility_file
