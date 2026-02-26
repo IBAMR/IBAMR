@@ -20,6 +20,10 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
 ### Linux ###
@@ -182,3 +186,4 @@ build-*.sh
 objs-*
 *.py
 *.sh
+!scripts/maintenance/rewrite_include_quotes_to_angle_brackets.py
