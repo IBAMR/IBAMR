@@ -16,34 +16,36 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIndex.h>
-#include <CellIterator.h>
-#include <EdgeData.h>
-#include <EdgeIndex.h>
-#include <EdgeIterator.h>
-#include <FaceData.h>
-#include <FaceIndex.h>
-#include <FaceIterator.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <NodeData.h>
-#include <NodeIndex.h>
-#include <NodeIterator.h>
-#include <Patch.h>
-#include <PatchData.h>
-#include <SideData.h>
-#include <SideIndex.h>
-#include <SideIterator.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIEdgeData.h>
+#include <SAMRAIEdgeIndex.h>
+#include <SAMRAIEdgeIterator.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceIndex.h>
+#include <SAMRAIFaceIterator.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAINodeIndex.h>
+#include <SAMRAINodeIterator.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <muParser.h>
@@ -87,8 +89,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(std::string object_name,
-                                                   Pointer<Database> input_db,
-                                                   Pointer<CartesianGridGeometry<NDIM>> grid_geom)
+                                                   SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                   SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom)
     : CartGridFunction(std::move(object_name)), d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -96,7 +98,7 @@ muParserCartGridFunction::muParserCartGridFunction(std::string object_name,
     TBOX_ASSERT(input_db);
 #endif
     // Read in user-provided constants.
-    Array<std::string> db_key_names = input_db->getAllKeys();
+    SAMRAIArray<std::string> db_key_names = input_db->getAllKeys();
     for (int k = 0; k < db_key_names.size(); ++k)
     {
         const std::string& name = db_key_names[k];
@@ -271,31 +273,31 @@ muParserCartGridFunction::isTimeDependent() const
 
 void
 muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM>> /*var*/,
-                                         Pointer<Patch<NDIM>> patch,
+                                         SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                         SAMRAIPointer<SAMRAIPatch> patch,
                                          const double data_time,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevel<NDIM>> /*level*/)
+                                         SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
     d_parser_time = data_time;
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    Pointer<PatchData<NDIM>> data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAIPatchData> data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
-    Pointer<CellData<NDIM, double>> cc_data = data;
-    Pointer<FaceData<NDIM, double>> fc_data = data;
-    Pointer<NodeData<NDIM, double>> nc_data = data;
-    Pointer<SideData<NDIM, double>> sc_data = data;
-    Pointer<EdgeData<NDIM, double>> ec_data = data;
+    SAMRAIPointer<SAMRAICellData<double>> cc_data = data;
+    SAMRAIPointer<SAMRAIFaceData<double>> fc_data = data;
+    SAMRAIPointer<SAMRAINodeData<double>> nc_data = data;
+    SAMRAIPointer<SAMRAISideData<double>> sc_data = data;
+    SAMRAIPointer<SAMRAIEdgeData<double>> ec_data = data;
     if (cc_data)
     {
 #if !defined(NDEBUG)
@@ -304,9 +306,9 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            for (SAMRAICellIterator ic(patch_box); ic; ic++)
             {
-                const CellIndex<NDIM>& i = ic();
+                const SAMRAICellIndex& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
@@ -360,10 +362,10 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (FaceIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                for (SAMRAIFaceIterator ic(patch_box, axis); ic; ic++)
                 {
-                    const FaceIndex<NDIM>& i = ic();
-                    const hier::Index<NDIM>& cell_idx = i.toCell(1);
+                    const SAMRAIFaceIndex& i = ic();
+                    const SAMRAIIndex& cell_idx = i.toCell(1);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
@@ -403,9 +405,9 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (NodeIterator<NDIM> ic(patch_box); ic; ic++)
+            for (SAMRAINodeIterator ic(patch_box); ic; ic++)
             {
-                const NodeIndex<NDIM>& i = ic();
+                const SAMRAINodeIndex& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
@@ -459,9 +461,9 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (SideIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                for (SAMRAISideIterator ic(patch_box, axis); ic; ic++)
                 {
-                    const SideIndex<NDIM>& i = ic();
+                    const SAMRAISideIndex& i = ic();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
@@ -523,9 +525,9 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (EdgeIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                for (SAMRAIEdgeIterator ic(patch_box, axis); ic; ic++)
                 {
-                    const EdgeIndex<NDIM>& i = ic();
+                    const SAMRAIEdgeIndex& i = ic();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

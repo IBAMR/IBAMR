@@ -16,28 +16,28 @@
 #include <ibtk/DebuggingUtilities.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <CellData.h>
-#include <CellGeometry.h>
-#include <CellIndex.h>
-#include <FaceData.h>
-#include <FaceGeometry.h>
-#include <FaceIndex.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <NodeData.h>
-#include <NodeGeometry.h>
-#include <NodeIndex.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceGeometry.h>
+#include <SAMRAIFaceIndex.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAINodeGeometry.h>
+#include <SAMRAINodeIndex.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -59,7 +59,7 @@ namespace IBTK
 
 bool
 DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                         const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -69,16 +69,16 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-            Pointer<CellData<NDIM, double>> patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box<NDIM>::Iterator it(data_box); it; it++)
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+            SAMRAIPointer<SAMRAICellData<double>> patch_data = patch->getPatchData(patch_data_idx);
+            const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            for (SAMRAIBox::Iterator it(data_box); it; it++)
             {
-                const hier::Index<NDIM>& i = it();
+                const SAMRAIIndex& i = it();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))
@@ -107,7 +107,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                         const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -117,19 +117,19 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-            Pointer<FaceData<NDIM, double>> patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+            SAMRAIPointer<SAMRAIFaceData<double>> patch_data = patch->getPatchData(patch_data_idx);
+            const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAIFaceGeometry::toFaceBox(data_box, axis)); it; it++)
                 {
-                    const hier::Index<NDIM>& i = it();
-                    const FaceIndex<NDIM> i_f(i, axis, FaceIndex<NDIM>::Lower);
+                    const SAMRAIIndex& i = it();
+                    const SAMRAIFaceIndex i_f(i, axis, SAMRAIFaceIndex::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_f, d) != (*patch_data)(i_f, d) || std::isnan((*patch_data)(i_f, d)))
@@ -159,7 +159,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                         const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -169,17 +169,17 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-            Pointer<NodeData<NDIM, double>> patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(data_box)); it; it++)
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+            SAMRAIPointer<SAMRAINodeData<double>> patch_data = patch->getPatchData(patch_data_idx);
+            const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            for (SAMRAIBox::Iterator it(SAMRAINodeGeometry::toNodeBox(data_box)); it; it++)
             {
-                const hier::Index<NDIM>& i = it();
-                const NodeIndex<NDIM> i_n(i, 0);
+                const SAMRAIIndex& i = it();
+                const SAMRAINodeIndex i_n(i, 0);
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i_n, d) != (*patch_data)(i_n, d) || std::isnan((*patch_data)(i_n, d)))
@@ -208,7 +208,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                         const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -218,19 +218,19 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-            Pointer<SideData<NDIM, double>> patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+            SAMRAIPointer<SAMRAISideData<double>> patch_data = patch->getPatchData(patch_data_idx);
+            const SAMRAIBox& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(data_box, axis)); it; it++)
                 {
-                    const hier::Index<NDIM>& i = it();
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const SAMRAIIndex& i = it();
+                    const SAMRAISideIndex i_s(i, axis, SAMRAISideIndex::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_s, d) != (*patch_data)(i_s, d) || std::isnan((*patch_data)(i_s, d)))
@@ -260,7 +260,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -279,13 +279,13 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double>> data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+                    const SAMRAIBox& patch_box = patch->getBox();
+                    SAMRAIPointer<SAMRAICellData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -300,9 +300,9 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(patch_box)); it; it++)
+                        for (SAMRAIBox::Iterator it(SAMRAICellGeometry::toCellBox(patch_box)); it; it++)
                         {
-                            const CellIndex<NDIM> i(it());
+                            const SAMRAICellIndex i(it());
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -317,7 +317,7 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -336,13 +336,13 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<FaceData<NDIM, double>> data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+                    const SAMRAIBox& patch_box = patch->getBox();
+                    SAMRAIPointer<SAMRAIFaceData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -359,9 +359,9 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(patch_box, face)); it; it++)
+                            for (SAMRAIBox::Iterator it(SAMRAIFaceGeometry::toFaceBox(patch_box, face)); it; it++)
                             {
-                                const FaceIndex<NDIM> i(it(), face, FaceIndex<NDIM>::Lower);
+                                const SAMRAIFaceIndex i(it(), face, SAMRAIFaceIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }
@@ -377,7 +377,7 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -396,13 +396,13 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<NodeData<NDIM, double>> data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+                    const SAMRAIBox& patch_box = patch->getBox();
+                    SAMRAIPointer<SAMRAINodeData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -417,9 +417,9 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box)); it; it++)
+                        for (SAMRAIBox::Iterator it(SAMRAINodeGeometry::toNodeBox(patch_box)); it; it++)
                         {
-                            const NodeIndex<NDIM> i(it(), IntVector<NDIM>(0));
+                            const SAMRAINodeIndex i(it(), SAMRAIIntVector(0));
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -434,7 +434,7 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -453,13 +453,13 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double>> data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(patch_num);
+                    const SAMRAIBox& patch_box = patch->getBox();
+                    SAMRAIPointer<SAMRAISideData<double>> data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -476,9 +476,9 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, side)); it; it++)
+                            for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, side)); it; it++)
                             {
-                                const SideIndex<NDIM> i(it(), side, SideIndex<NDIM>::Lower);
+                                const SAMRAISideIndex i(it(), side, SAMRAISideIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }
@@ -493,7 +493,7 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
 } // saveSideData
 
 void
-DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
+DebuggingUtilities::saveLagrangianData(const SAMRAIPointer<LData> lag_data,
                                        const bool save_ghost_nodes,
                                        const std::string& filename,
                                        const std::string& dirname)

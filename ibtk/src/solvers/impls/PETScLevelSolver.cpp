@@ -17,13 +17,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscis.h>
 #include <petscistypes.h>
@@ -35,11 +29,17 @@
 #include <petscvec.h>
 #include <petscversion.h>
 
-#include <CoarseFineBoundary.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <algorithm>
 #include <limits>
@@ -59,9 +59,9 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_system;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 
 void
 generate_petsc_is_from_std_is(std::vector<std::set<int>>& overlap_std,
@@ -129,11 +129,11 @@ PETScLevelSolver::PETScLevelSolver()
     d_overlap_size = 1;
 
     // Setup Timers.
-    IBTK_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::solveSystem()");
+    IBTK_DO_ONCE(t_solve_system = SAMRAITimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::solveSystem()");
                  t_initialize_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::initializeSolverState()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::initializeSolverState()");
                  t_deallocate_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::deallocateSolverState()"););
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::deallocateSolverState()"););
     return;
 } // PETScLevelSolver
 
@@ -193,7 +193,7 @@ PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
 
 void
 PETScLevelSolver::setNullSpace(bool contains_constant_vec,
-                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
+                               const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs)
 {
     LinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullSpace();
@@ -201,7 +201,7 @@ PETScLevelSolver::setNullSpace(bool contains_constant_vec,
 } // setNullSpace
 
 bool
-PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+PETScLevelSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -245,8 +245,8 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
 } // solveSystem
 
 void
-PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                        const SAMRAIVectorReal<NDIM, double>& b)
+PETScLevelSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                                        const SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -258,7 +258,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<SAMRAIPatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -314,7 +314,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary = new SAMRAICoarseFineBoundary(*d_hierarchy, d_level_num, SAMRAIIntVector(1));
     }
 
     // Setup data cache.
@@ -735,7 +735,7 @@ PETScLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+PETScLevelSolver::init(SAMRAIPointer<SAMRAIDatabase> input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)

@@ -14,16 +14,29 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/interpolation_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIEdgeData.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariable.h>
 
 #include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {
 int
-determine_depth(Pointer<hier::Variable<NDIM>> var, int depth)
+determine_depth(Pointer<SAMRAIVariable> var, int depth)
 {
-    Pointer<SideVariable<NDIM, double>> sc_var = var;
-    Pointer<FaceVariable<NDIM, double>> fc_var = var;
+    Pointer<SAMRAISideVariable<double>> sc_var = var;
+    Pointer<SAMRAIFaceVariable<double>> fc_var = var;
     if (sc_var || fc_var)
         return depth * NDIM;
     else
@@ -58,9 +71,9 @@ check_consistent_across_ranks(std::vector<T> data)
 std::vector<double>
 interpolate(const VectorNd& X,
             const int data_idx,
-            Pointer<hier::Variable<NDIM>> Q_var,
+            Pointer<SAMRAIVariable> Q_var,
             int Q_depth,
-            Pointer<PatchHierarchy<NDIM>> hierarchy,
+            Pointer<SAMRAIPatchHierarchy> hierarchy,
             std::string interp_fcn)
 {
     std::vector<VectorNd> X_vec = { X };
@@ -70,9 +83,9 @@ interpolate(const VectorNd& X,
 std::vector<double>
 interpolate(const std::vector<VectorNd>& X,
             const int data_idx,
-            Pointer<hier::Variable<NDIM>> Q_var,
+            Pointer<SAMRAIVariable> Q_var,
             int Q_depth,
-            Pointer<PatchHierarchy<NDIM>> hierarchy,
+            Pointer<SAMRAIPatchHierarchy> hierarchy,
             std::string interp_fcn)
 {
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -94,17 +107,17 @@ interpolate(const std::vector<VectorNd>& X,
 #endif
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
         std::vector<double>& Q_data = Q_data_ln_vec[ln];
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& box = patch->getBox();
             // Note that LEInteractor currently only interpolates cell, side, node, and edge data.
-            Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(data_idx);
-            Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(data_idx);
-            Pointer<NodeData<NDIM, double>> nc_data = patch->getPatchData(data_idx);
-            Pointer<EdgeData<NDIM, double>> ec_data = patch->getPatchData(data_idx);
+            Pointer<SAMRAICellData<double>> cc_data = patch->getPatchData(data_idx);
+            Pointer<SAMRAISideData<double>> sc_data = patch->getPatchData(data_idx);
+            Pointer<SAMRAINodeData<double>> nc_data = patch->getPatchData(data_idx);
+            Pointer<SAMRAIEdgeData<double>> ec_data = patch->getPatchData(data_idx);
             if (cc_data)
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),

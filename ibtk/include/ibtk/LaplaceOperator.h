@@ -21,9 +21,10 @@
 #include <ibtk/config.h>
 
 #include <ibtk/LinearOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <memory>
 #include <string>
@@ -54,13 +55,13 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    virtual void setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Get the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual const SAMRAI::solv::PoissonSpecifications& getPoissonSpecifications() const;
+    virtual const SAMRAIPoissonSpecifications& getPoissonSpecifications() const;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -72,7 +73,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    virtual void setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -85,19 +86,19 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs);
 
     /*!
      * \brief Get the SAMRAI::solv::RobinBcCoefStrategy object(s) used to
      * specify physical boundary conditions.
      */
-    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getPhysicalBcCoefs() const;
+    virtual const std::vector<SAMRAIRobinBcCoefStrategy*>& getPhysicalBcCoefs() const;
 
 protected:
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM>> d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    SAMRAIPoissonSpecifications d_poisson_spec;
+    std::unique_ptr<SAMRAIRobinBcCoefStrategy> d_default_bc_coef;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
 
 private:
     /*!

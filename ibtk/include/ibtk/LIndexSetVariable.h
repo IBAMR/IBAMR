@@ -20,7 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include <Variable.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIVariable.h>
 
 #include <string>
 
@@ -33,7 +35,7 @@ namespace IBTK
  * corresponding to patch data of type LIndexSetData.
  */
 template <class T>
-class LIndexSetVariable : public SAMRAI::hier::Variable<NDIM>
+class LIndexSetVariable : public SAMRAIVariable
 {
 public:
     /*!

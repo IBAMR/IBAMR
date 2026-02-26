@@ -22,11 +22,14 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <PatchLevel.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <muParser.h>
@@ -68,8 +71,8 @@ public:
      * \brief Constructor.
      */
     muParserCartGridFunction(std::string object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom);
+                             SAMRAIPointer<SAMRAIDatabase> input_db,
+                             SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom);
 
     /*!
      * \brief Empty destructor.
@@ -91,12 +94,11 @@ public:
      * \brief Virtual function to evaluate the function on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
+                        SAMRAIPointer<SAMRAIPatchLevel> level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr)) override;
 
     //\}
 
@@ -133,7 +135,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

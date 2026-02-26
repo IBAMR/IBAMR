@@ -17,9 +17,7 @@
 #include <ibtk/FEMapping.h>
 #include <ibtk/FEValues.h>
 #include <ibtk/IBTK_MPI.h>
-
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_fe_family.h>
@@ -29,6 +27,9 @@
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
 #include <libmesh/type_vector.h>
+
+#include <SAMRAIPIO.h>
+#include <SAMRAIUtilities.h>
 
 #include <map>
 #include <vector>

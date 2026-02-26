@@ -15,15 +15,17 @@
 
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FEProjector.h>
-
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
 #include <libmesh/elem.h>
 #include <libmesh/enum_preconditioner_type.h>
 #include <libmesh/enum_solver_type.h>
+
+#include <SAMRAIPointer.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -36,12 +38,12 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_build_L2_projection_solver;
-static Timer* t_build_lumped_L2_projection_solver;
-static Timer* t_build_stab_L2_projection_solver;
-static Timer* t_build_diag_L2_mass_matrix;
-static Timer* t_compute_L2_projection;
-static Timer* t_compute_stab_L2_projection;
+static SAMRAITimer* t_build_L2_projection_solver;
+static SAMRAITimer* t_build_lumped_L2_projection_solver;
+static SAMRAITimer* t_build_stab_L2_projection_solver;
+static SAMRAITimer* t_build_diag_L2_mass_matrix;
+static SAMRAITimer* t_compute_L2_projection;
+static SAMRAITimer* t_compute_stab_L2_projection;
 
 // Remove entries that are due to roundoff in an element mass matrix.
 inline void
@@ -149,17 +151,17 @@ FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Databa
       d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
 {
     IBTK_DO_ONCE(t_build_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
                  t_build_lumped_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
-                 t_build_stab_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
+                 t_build_stab_L2_projection_solver = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
                  t_build_diag_L2_mass_matrix =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
                  t_compute_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
                  t_compute_stab_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
 }
 
 FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database>& input_db)
@@ -169,17 +171,17 @@ FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database
 {
     TBOX_ASSERT(d_fe_data);
     IBTK_DO_ONCE(t_build_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
                  t_build_lumped_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
-                 t_build_stab_L2_projection_solver =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
+                 t_build_stab_L2_projection_solver = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
                  t_build_diag_L2_mass_matrix =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
                  t_compute_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
                  t_compute_stab_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
+                     SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
@@ -683,11 +685,11 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
                                  const double tol,
                                  const unsigned int max_its)
 {
-    tbox::Pointer<tbox::Timer>& system_timer = d_linear_solve_system_timers[system_name];
+    SAMRAIPointer<SAMRAITimer>& system_timer = d_linear_solve_system_timers[system_name];
     if (system_timer.isNull())
     {
         system_timer =
-            TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()[" + system_name + "]");
+            SAMRAITimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()[" + system_name + "]");
         TBOX_ASSERT(system_timer);
     }
     IBTK_TIMER_START(system_timer);

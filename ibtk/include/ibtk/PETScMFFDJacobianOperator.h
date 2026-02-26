@@ -23,15 +23,15 @@
 #include <ibtk/GeneralOperator.h>
 #include <ibtk/JacobianOperator.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
-
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscmat.h>
 #include <petscsys.h>
 #include <petscvec.h>
 
-#include <IntVector.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 
@@ -61,13 +61,13 @@ public:
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
      */
-    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> F);
+    void setOperator(SAMRAIPointer<GeneralOperator> F);
 
     /*!
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
-    void setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
+    void setNewtonKrylovSolver(SAMRAIPointer<PETScNewtonKrylovSolver> nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.
@@ -79,7 +79,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
+    void formJacobian(SAMRAISAMRAIVectorReal<double>& u) override;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -87,7 +87,7 @@ public:
      * \note This member function returns a nullptr pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> getBaseVector() const override;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> getBaseVector() const override;
 
     //\}
 
@@ -118,8 +118,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -153,8 +152,8 @@ public:
      *
      * \note The default implementation is empty.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -202,10 +201,10 @@ private:
 
     static PetscErrorCode FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f);
 
-    SAMRAI::tbox::Pointer<GeneralOperator> d_F;
-    SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
+    SAMRAIPointer<GeneralOperator> d_F;
+    SAMRAIPointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_op_u, d_op_x, d_op_y;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
     std::string d_options_prefix;
 };

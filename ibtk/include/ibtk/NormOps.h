@@ -20,6 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAISAMRAIVectorReal.h>
+
 namespace SAMRAI
 {
 namespace solv
@@ -44,17 +48,17 @@ public:
     /*!
      * \brief Compute the discrete L1 norm of the SAMRAI vector.
      */
-    static double L1Norm(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>* samrai_vector, bool local_only = false);
+    static double L1Norm(const SAMRAISAMRAIVectorReal<double>* samrai_vector, bool local_only = false);
 
     /*!
      * \brief Compute the discrete L2 norm of the SAMRAI vector.
      */
-    static double L2Norm(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>* samrai_vector, bool local_only = false);
+    static double L2Norm(const SAMRAISAMRAIVectorReal<double>* samrai_vector, bool local_only = false);
 
     /*!
      * \brief Compute the discrete max-norm of the SAMRAI vector.
      */
-    static double maxNorm(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>* samrai_vector, bool local_only = false);
+    static double maxNorm(const SAMRAISAMRAIVectorReal<double>* samrai_vector, bool local_only = false);
 
 protected:
 private:
@@ -88,12 +92,12 @@ private:
     /*!
      * \brief Compute the local L1 norm.
      */
-    static double L1Norm_local(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>* samrai_vector);
+    static double L1Norm_local(const SAMRAISAMRAIVectorReal<double>* samrai_vector);
 
     /*!
      * \brief Compute the local L2 norm.
      */
-    static double L2Norm_local(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>* samrai_vector);
+    static double L2Norm_local(const SAMRAISAMRAIVectorReal<double>* samrai_vector);
 };
 } // namespace IBTK
 

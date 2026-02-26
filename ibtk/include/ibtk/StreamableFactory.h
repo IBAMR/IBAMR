@@ -20,8 +20,12 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 namespace IBTK
 {
@@ -91,8 +95,8 @@ public:
     /*!
      * \brief Build a Streamable object by unpacking data from the data stream.
      */
-    virtual SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                           const SAMRAI::hier::IntVector<NDIM>& offset) = 0;
+    virtual SAMRAIPointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                   const SAMRAIIntVector& offset) = 0;
 
 private:
     /*!

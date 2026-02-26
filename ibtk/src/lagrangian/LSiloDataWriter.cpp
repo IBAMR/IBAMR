@@ -17,11 +17,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LSiloDataWriter.h>
-
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscao.h>
 #include <petscis.h>
@@ -29,8 +25,12 @@
 #include <petscsys.h>
 #include <petscvec.h>
 
-#include <IntVector.h>
-#include <PatchHierarchy.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIUtilities.h>
 #include <mpi.h>
 
 #include <algorithm>
@@ -190,8 +190,8 @@ build_local_marker_cloud(DBfile* dbfile,
 void
 build_local_curv_block(DBfile* dbfile,
                        std::string& dirname,
-                       const IntVector<NDIM>& nelem_in,
-                       const IntVector<NDIM>& periodic,
+                       const SAMRAIIntVector& nelem_in,
+                       const SAMRAIIntVector& periodic,
                        const double* const X,
                        const int nvars,
                        const std::vector<std::string>& varnames,
@@ -203,7 +203,7 @@ build_local_curv_block(DBfile* dbfile,
                        const double simulation_time)
 {
     // Check for co-dimension 1 or 2 data.
-    IntVector<NDIM> nelem, degenerate;
+    SAMRAIIntVector nelem, degenerate;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (nelem_in(d) == 1)
@@ -627,7 +627,7 @@ LSiloDataWriter::LSiloDataWriter(std::string object_name, std::string dump_direc
       d_ucd_mesh_names(d_finest_ln + 1),
       d_ucd_mesh_vertices(d_finest_ln + 1),
       d_ucd_mesh_edge_maps(d_finest_ln + 1),
-      d_coords_data(d_finest_ln + 1, Pointer<LData>(nullptr)),
+      d_coords_data(d_finest_ln + 1, SAMRAIPointer<LData>(nullptr)),
       d_nvars(d_finest_ln + 1, 0),
       d_var_names(d_finest_ln + 1),
       d_var_start_depths(d_finest_ln + 1),
@@ -647,11 +647,11 @@ LSiloDataWriter::LSiloDataWriter(std::string object_name, std::string dump_direc
 #endif
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     // Initialize object with data read from the restart database.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         getFromRestart();
@@ -663,7 +663,7 @@ LSiloDataWriter::~LSiloDataWriter()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
 
     // Destroy any remaining PETSc objects.
@@ -693,7 +693,7 @@ LSiloDataWriter::~LSiloDataWriter()
 } // ~LSiloDataWriter
 
 void
-LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy)
+LSiloDataWriter::setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -865,8 +865,8 @@ LSiloDataWriter::registerMarkerCloud(const std::string& name,
 
 void
 LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
-                                                 const IntVector<NDIM>& nelem,
-                                                 const IntVector<NDIM>& periodic,
+                                                 const SAMRAIIntVector& nelem,
+                                                 const SAMRAIIntVector& periodic,
                                                  const int first_lag_idx,
                                                  const int level_number)
 {
@@ -931,8 +931,8 @@ LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
 
 void
 LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
-                                                      const std::vector<IntVector<NDIM>>& nelem,
-                                                      const std::vector<IntVector<NDIM>>& periodic,
+                                                      const std::vector<SAMRAIIntVector>& nelem,
+                                                      const std::vector<SAMRAIIntVector>& periodic,
                                                       const std::vector<int>& first_lag_idx,
                                                       const int level_number)
 {
@@ -1072,7 +1072,7 @@ LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
 } // registerUnstructuredMesh
 
 void
-LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_number)
+LSiloDataWriter::registerCoordsData(SAMRAIPointer<LData> coords_data, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1088,7 +1088,9 @@ LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_
 } // registerCoordsData
 
 void
-LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData> var_data, const int level_number)
+LSiloDataWriter::registerVariableData(const std::string& var_name,
+                                      SAMRAIPointer<LData> var_data,
+                                      const int level_number)
 {
     const int start_depth = 0;
     const int var_depth = var_data->getDepth();
@@ -1098,7 +1100,7 @@ LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData
 
 void
 LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                      Pointer<LData> var_data,
+                                      SAMRAIPointer<LData> var_data,
                                       const int start_depth,
                                       const int var_depth,
                                       const int level_number)
@@ -1215,7 +1217,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
     std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
     std::string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
 
-    Utilities::recursiveMkdir(dump_dirname);
+    SAMRAIUtilities::recursiveMkdir(dump_dirname);
 
     // Create one local DBfile per MPI process.
     std::snprintf(temp_buf, sizeof(temp_buf), "%04d", mpi_rank);
@@ -1320,8 +1322,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             // Add the local blocks to the local DBfile.
             for (int block = 0; block < d_nblocks[ln]; ++block)
             {
-                const IntVector<NDIM>& nelem = d_block_nelems[ln][block];
-                const IntVector<NDIM>& periodic = d_block_periodic[ln][block];
+                const SAMRAIIntVector& nelem = d_block_nelems[ln][block];
+                const SAMRAIIntVector& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
 
                 std::string dirname = "level_" + std::to_string(ln) + "_block_" + std::to_string(block);
@@ -1365,8 +1367,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             {
                 for (int block = 0; block < d_mb_nblocks[ln][mb]; ++block)
                 {
-                    const IntVector<NDIM>& nelem = d_mb_nelems[ln][mb][block];
-                    const IntVector<NDIM>& periodic = d_mb_periodic[ln][mb][block];
+                    const SAMRAIIntVector& nelem = d_mb_nelems[ln][mb][block];
+                    const SAMRAIIntVector& periodic = d_mb_periodic[ln][mb][block];
                     const int ntot = nelem.getProduct();
 
                     std::string dirname =
@@ -1971,7 +1973,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 } // writePlotData
 
 void
-LSiloDataWriter::putToDatabase(Pointer<Database> db)
+LSiloDataWriter::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -2140,7 +2142,7 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 
     for (int block = 0; block < d_nblocks[level_number]; ++block)
     {
-        const IntVector<NDIM>& nelem = d_block_nelems[level_number][block];
+        const SAMRAIIntVector& nelem = d_block_nelems[level_number][block];
         const int ntot = nelem.getProduct();
         const int first_lag_idx = d_block_first_lag_idx[level_number][block];
         ref_is_idxs.reserve(ref_is_idxs.size() + ntot);
@@ -2155,7 +2157,7 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     {
         for (int block = 0; block < d_mb_nblocks[level_number][mb]; ++block)
         {
-            const IntVector<NDIM>& nelem = d_mb_nelems[level_number][mb][block];
+            const SAMRAIIntVector& nelem = d_mb_nelems[level_number][mb][block];
             const int ntot = nelem.getProduct();
             const int first_lag_idx = d_mb_first_lag_idx[level_number][mb][block];
             ref_is_idxs.reserve(ref_is_idxs.size() + ntot);
@@ -2240,8 +2242,8 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 void
 LSiloDataWriter::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

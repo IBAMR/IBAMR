@@ -20,46 +20,49 @@
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
-
-#include <BasePatchHierarchy.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenOperator.h>
-#include <CoarsenPatchStrategy.h>
-#include <CoarsenSchedule.h>
-#include <ComponentSelector.h>
-#include <EdgeData.h>
-#include <FaceData.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <LoadBalancer.h>
 #include <MultiblockDataTranslator.h>
-#include <NodeData.h>
-#include <Patch.h>
-#include <PatchData.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefinePatchStrategy.h>
-#include <RefineSchedule.h>
-#include <SideData.h>
-#include <TagAndInitializeStrategy.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
-#include <VisItDataWriter.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAICoarsenPatchStrategy.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIComponentSelector.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIEdgeData.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefinePatchStrategy.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAISideData.h>
+#include <SAMRAITagAndInitializeStrategy.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <algorithm>
 #include <deque>
@@ -96,10 +99,12 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+HierarchyIntegrator::HierarchyIntegrator(std::string object_name,
+                                         SAMRAIPointer<SAMRAIDatabase> input_db,
+                                         bool register_for_restart)
     : d_object_name(std::move(object_name))
 {
-    auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
+    auto set_timer = [&](const char* name) { return SAMRAITimerManager::getManager()->getTimer(name); };
     IBTK_DO_ONCE(t_apply_gradient_detector = set_timer("IBTK::HierarchyIntegrator::applyGradientDetector()");
                  t_advance_hierarchy = set_timer("IBTK::HierarchyIntegrator::advanceHierarchy()");
                  t_regrid_hierarchy = set_timer("IBTK::HierarchyIntegrator::regridHierarchy()"););
@@ -109,12 +114,12 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
 #endif
     if (register_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
 
     // Initialize object with data read from the input and restart databases.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         getFromRestart();
@@ -127,15 +132,15 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize all variable contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
     d_plot_context = var_db->getContext(d_object_name + "::PLOT");
 
     // Create default communications algorithms.
-    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new SAMRAICoarsenAlgorithm();
+    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new SAMRAICoarsenAlgorithm();
     return;
 } // HierarchyIntegrator
 
@@ -143,7 +148,7 @@ HierarchyIntegrator::~HierarchyIntegrator()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -156,8 +161,8 @@ HierarchyIntegrator::getName() const
 } // getName
 
 void
-HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                              Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
+HierarchyIntegrator::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                              SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
@@ -190,7 +195,7 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hier
     plog << "\n";
 
     // Initialize the patch hierarchy.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
@@ -552,7 +557,7 @@ HierarchyIntegrator::updateWorkloadEstimates()
         // ourselves
         allocatePatchData(d_workload_idx, d_integrator_time);
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy);
         hier_cc_data_ops.setToScalar(d_workload_idx, 1.0, /*interior_only*/ false);
 
         addWorkloadEstimate(d_hierarchy, d_workload_idx);
@@ -565,20 +570,20 @@ HierarchyIntegrator::updateWorkloadEstimates()
     return;
 } // updateWorkloadEstimates
 
-Pointer<PatchHierarchy<NDIM>>
+SAMRAIPointer<SAMRAIPatchHierarchy>
 HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-Pointer<GriddingAlgorithm<NDIM>>
+SAMRAIPointer<SAMRAIGriddingAlgorithm>
 HierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
 } // getGriddingAlgorithm
 
 void
-HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer)
+HierarchyIntegrator::registerLoadBalancer(SAMRAIPointer<SAMRAILoadBalancer> load_balancer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -586,7 +591,7 @@ HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balan
     d_load_balancer = load_balancer;
     if (d_workload_idx == IBTK::invalid_index)
     {
-        d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
+        d_workload_var = new SAMRAICellVariable<double>(d_object_name + "::workload");
         registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext(), false);
     }
     d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx);
@@ -604,7 +609,7 @@ HierarchyIntegrator::getWorkloadDataIndex() const
 }
 
 void
-HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM>> visit_writer)
+HierarchyIntegrator::registerVisItDataWriter(SAMRAIPointer<SAMRAIVisItDataWriter> visit_writer)
 {
     d_visit_writer = visit_writer;
     for (const auto& child_integrator : d_child_integrators)
@@ -614,7 +619,7 @@ HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM>> visi
     return;
 } // registerVisItDataWriter
 
-Pointer<VisItDataWriter<NDIM>>
+SAMRAIPointer<SAMRAIVisItDataWriter>
 HierarchyIntegrator::getVisItDataWriter() const
 {
     return d_visit_writer;
@@ -773,16 +778,16 @@ HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, boo
 } // initializeCompositeHierarchyData
 
 void
-HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+HierarchyIntegrator::initializeLevelData(const SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
                                          const int level_number,
                                          const double init_data_time,
                                          const bool can_be_refined,
                                          const bool initial_time,
-                                         const Pointer<BasePatchLevel<NDIM>> base_old_level,
+                                         const SAMRAIPointer<SAMRAIBasePatchLevel> base_old_level,
                                          const bool allocate_data)
 {
-    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
-    const Pointer<PatchLevel<NDIM>> old_level = base_old_level;
+    const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
+    const SAMRAIPointer<SAMRAIPatchLevel> old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -797,7 +802,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>>
     //
     // Since time gets set when we allocate data, re-stamp it to current time if
     // we don't need to allocate.
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
@@ -811,7 +816,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>>
     if (!initial_time && (level_number > 0 || old_level))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-        std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_prolong_patch_strategies;
+        std::vector<SAMRAIRefinePatchStrategy*> fill_after_regrid_prolong_patch_strategies;
         CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
         fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
@@ -838,25 +843,25 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>>
             d_hier_math_ops->resetLevels(0, std::max(level_number, hierarchy->getFinestLevelNumber()));
         }
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         for (const auto& var : d_state_variables)
         {
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
-            Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
+            SAMRAIPointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
             if (var_init)
             {
                 var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
             }
             else
             {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (SAMRAIPatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    Pointer<CellData<NDIM, double>> var_current_cc_data = patch->getPatchData(var_current_idx);
-                    Pointer<EdgeData<NDIM, double>> var_current_ec_data = patch->getPatchData(var_current_idx);
-                    Pointer<FaceData<NDIM, double>> var_current_fc_data = patch->getPatchData(var_current_idx);
-                    Pointer<NodeData<NDIM, double>> var_current_nc_data = patch->getPatchData(var_current_idx);
-                    Pointer<SideData<NDIM, double>> var_current_sc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                    SAMRAIPointer<SAMRAICellData<double>> var_current_cc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAIEdgeData<double>> var_current_ec_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAIFaceData<double>> var_current_fc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAINodeData<double>> var_current_nc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SAMRAISideData<double>> var_current_sc_data = patch->getPatchData(var_current_idx);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -886,11 +891,11 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>>
 } // initializeLevelData
 
 void
-HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+HierarchyIntegrator::resetHierarchyConfiguration(const SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
                                                  const int coarsest_level,
                                                  const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+    const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -933,7 +938,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
                 level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
         }
@@ -945,9 +950,13 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            d_prolong_scheds[prolong_alg.first][ln] = prolong_alg.second->createSchedule(
-                level, Pointer<PatchLevel<NDIM>>(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+            d_prolong_scheds[prolong_alg.first][ln] =
+                prolong_alg.second->createSchedule(level,
+                                                   SAMRAIPointer<SAMRAIPatchLevel>(),
+                                                   ln - 1,
+                                                   hierarchy,
+                                                   d_prolong_strategies[prolong_alg.first].get());
         }
     }
 
@@ -957,8 +966,8 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM>> coarser_level = hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> coarser_level = hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[coarsen_alg.first][ln] =
                 coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
         }
@@ -979,7 +988,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
 } // resetHierarchyConfiguration
 
 void
-HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+HierarchyIntegrator::applyGradientDetector(const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                            const int level_number,
                                            const double error_data_time,
                                            const int tag_index,
@@ -992,15 +1001,15 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
     if (!d_parent_integrator)
     {
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, int>> tags_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICellData<int>> tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
     }
@@ -1021,25 +1030,25 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
     return;
 } // applyGradientDetector
 
-Pointer<VariableContext>
+SAMRAIPointer<SAMRAIVariableContext>
 HierarchyIntegrator::getCurrentContext() const
 {
     return d_current_context;
 } // getCurrentContext
 
-Pointer<VariableContext>
+SAMRAIPointer<SAMRAIVariableContext>
 HierarchyIntegrator::getNewContext() const
 {
     return d_new_context;
 } // getNewContext
 
-Pointer<VariableContext>
+SAMRAIPointer<SAMRAIVariableContext>
 HierarchyIntegrator::getScratchContext() const
 {
     return d_scratch_context;
 } // getScratchContext
 
-Pointer<VariableContext>
+SAMRAIPointer<SAMRAIVariableContext>
 HierarchyIntegrator::getPlotContext() const
 {
     return d_plot_context;
@@ -1053,7 +1062,7 @@ HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, i
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) return false;
     }
     return true;
@@ -1067,7 +1076,7 @@ HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_tim
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
     }
     return;
@@ -1081,13 +1090,13 @@ HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_ln, in
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
     }
     return;
 } // deallocatePatchData
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 HierarchyIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
@@ -1097,11 +1106,11 @@ void
 HierarchyIntegrator::registerVariable(int& current_idx,
                                       int& new_idx,
                                       int& scratch_idx,
-                                      const Pointer<Variable<NDIM>> variable,
-                                      const IntVector<NDIM>& scratch_ghosts,
+                                      const SAMRAIPointer<SAMRAIVariable> variable,
+                                      const SAMRAIIntVector& scratch_ghosts,
                                       const std::string& coarsen_name,
                                       const std::string& refine_name,
-                                      Pointer<CartGridFunction> init_fcn,
+                                      SAMRAIPointer<CartGridFunction> init_fcn,
                                       const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -1109,9 +1118,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
 #endif
     d_state_var_init_fcns[variable] = init_fcn;
 
-    const IntVector<NDIM> no_ghosts = 0;
+    const SAMRAIIntVector no_ghosts = 0;
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     current_idx = invalid_index; // insure that uninitialized variable patch data
     new_idx = invalid_index;     // descriptor indices cause errors
@@ -1136,9 +1145,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
     d_scratch_data.setFlag(scratch_idx);
 
     // Get the data transfer operators.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM>> refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
-    Pointer<CoarsenOperator<NDIM>> coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAIRefineOperator> refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
+    SAMRAIPointer<SAMRAICoarsenOperator> coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
@@ -1160,9 +1169,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
 
 void
 HierarchyIntegrator::registerVariable(int& idx,
-                                      const Pointer<Variable<NDIM>> variable,
-                                      const IntVector<NDIM>& ghosts,
-                                      Pointer<VariableContext> ctx,
+                                      const SAMRAIPointer<SAMRAIVariable> variable,
+                                      const SAMRAIIntVector& ghosts,
+                                      SAMRAIPointer<SAMRAIVariableContext> ctx,
                                       const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -1170,7 +1179,7 @@ HierarchyIntegrator::registerVariable(int& idx,
 #endif
     if (!ctx) ctx = getScratchContext();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
 
@@ -1204,7 +1213,7 @@ HierarchyIntegrator::registerVariable(int& idx,
 } // registerVariable
 
 void
-HierarchyIntegrator::putToDatabase(Pointer<Database> db)
+HierarchyIntegrator::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     db->putInteger("HIERARCHY_INTEGRATOR_VERSION", HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("d_integrator_time", d_integrator_time);
@@ -1308,7 +1317,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
     ++d_integrator_step;
 
     // Swap PatchData<NDIM> pointers between the current and new contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     for (const auto& v : d_state_variables)
     {
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
@@ -1316,17 +1325,17 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
             // If a variable is in the current context but not registered for
             // restarts, then it will not be allocated at this point, so
             // double-check that dst is allocated:
             if (!level->checkAllocated(dst_idx)) level->allocatePatchData(dst_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<PatchData<NDIM>> src_data = patch->getPatchData(src_idx);
-                Pointer<PatchData<NDIM>> dst_data = patch->getPatchData(dst_idx);
+                SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+                SAMRAIPointer<SAMRAIPatchData> src_data = patch->getPatchData(src_idx);
+                SAMRAIPointer<SAMRAIPatchData> dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(src_data);
                 TBOX_ASSERT(dst_data);
@@ -1343,7 +1352,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->setTime(d_integrator_time, d_current_data);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
@@ -1361,7 +1370,7 @@ HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
         level->setTime(d_integrator_time, d_current_data);
@@ -1402,12 +1411,12 @@ HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init_d
 } // initializeLevelDataSpecialized
 
 void
-HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
+HierarchyIntegrator::initializeLevelDataSpecialized(const SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                                     const int /*level_number*/,
                                                     const double /*init_data_time*/,
                                                     const bool /*can_be_refined*/,
                                                     const bool /*initial_time*/,
-                                                    const Pointer<BasePatchLevel<NDIM>> /*old_level*/,
+                                                    const SAMRAIPointer<SAMRAIBasePatchLevel> /*old_level*/,
                                                     const bool /*allocate_data*/)
 {
     // intentionally blank
@@ -1415,7 +1424,7 @@ HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHiera
 } // initializeLevelDataSpecialized
 
 void
-HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
+HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                                             const int /*coarsest_level*/,
                                                             const int /*finest_level*/)
 {
@@ -1424,7 +1433,7 @@ HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePa
 } // resetHierarchyConfigurationSpecialized
 
 void
-HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
+HierarchyIntegrator::applyGradientDetectorSpecialized(const SAMRAIPointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                                       const int /*level_number*/,
                                                       const double /*error_data_time*/,
                                                       const int /*tag_index*/,
@@ -1436,14 +1445,14 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
 } // applyGradientDetectorSpecialized
 
 void
-HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+HierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> /*db*/)
 {
     // intentionally blank
     return;
 } // putToDatabaseSpecialized
 
 void
-HierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>>, const int)
+HierarchyIntegrator::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy>, const int)
 {
     // intentionally blank
     return;
@@ -1491,7 +1500,7 @@ HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(double cur
 } // executePostprocessIntegrateHierarchyCallbackFcns
 
 void
-HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                               const int level_number,
                                                               const double error_data_time,
                                                               const int tag_index,
@@ -1514,7 +1523,7 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
 } // executeApplyGradientDetectorCallbackFcns
 
 void
-HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                         const double data_time,
                                                         const bool initial_time)
 {
@@ -1529,8 +1538,8 @@ HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchH
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(
     const std::string& name,
-    Pointer<RefineAlgorithm<NDIM>> ghostfill_alg,
-    std::unique_ptr<RefinePatchStrategy<NDIM>> ghostfill_patch_strategy)
+    SAMRAIPointer<SAMRAIRefineAlgorithm> ghostfill_alg,
+    std::unique_ptr<SAMRAIRefinePatchStrategy> ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
@@ -1541,8 +1550,8 @@ HierarchyIntegrator::registerGhostfillRefineAlgorithm(
 
 void
 HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
-                                                    Pointer<RefineAlgorithm<NDIM>> prolong_alg,
-                                                    std::unique_ptr<RefinePatchStrategy<NDIM>> prolong_patch_strategy)
+                                                    SAMRAIPointer<SAMRAIRefineAlgorithm> prolong_alg,
+                                                    std::unique_ptr<SAMRAIRefinePatchStrategy> prolong_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
@@ -1553,8 +1562,8 @@ HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
 
 void
 HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
-                                              Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg,
-                                              std::unique_ptr<CoarsenPatchStrategy<NDIM>> coarsen_patch_strategy)
+                                              SAMRAIPointer<SAMRAICoarsenAlgorithm> coarsen_alg,
+                                              std::unique_ptr<SAMRAICoarsenPatchStrategy> coarsen_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
@@ -1563,7 +1572,7 @@ HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     d_coarsen_strategies[name] = std::move(coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
-Pointer<RefineAlgorithm<NDIM>>
+SAMRAIPointer<SAMRAIRefineAlgorithm>
 HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     auto alg_it = d_ghostfill_algs.find(name);
@@ -1573,7 +1582,7 @@ HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithm<NDIM>>
+SAMRAIPointer<SAMRAIRefineAlgorithm>
 HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     auto alg_it = d_prolong_algs.find(name);
@@ -1583,7 +1592,7 @@ HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithm<NDIM>>
+SAMRAIPointer<SAMRAICoarsenAlgorithm>
 HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     auto alg_it = d_coarsen_algs.find(name);
@@ -1593,7 +1602,7 @@ HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getCoarsenAlgorithm
 
-const std::vector<Pointer<RefineSchedule<NDIM>>>&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_ghostfill_scheds.find(name);
@@ -1603,7 +1612,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
-const std::vector<Pointer<RefineSchedule<NDIM>>>&
+const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_prolong_scheds.find(name);
@@ -1613,7 +1622,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getProlongRefineSchedules
 
-const std::vector<Pointer<CoarsenSchedule<NDIM>>>&
+const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     auto sched_it = d_coarsen_scheds.find(name);
@@ -1646,8 +1655,8 @@ HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator* pare
     return;
 } // registerParentHierarchyIntegrator
 
-Pointer<HierarchyMathOps>
-HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchy<NDIM>> hierarchy)
+SAMRAIPointer<HierarchyMathOps>
+HierarchyIntegrator::buildHierarchyMathOps(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy)
 {
     if (!d_parent_integrator)
     {
@@ -1666,10 +1675,10 @@ HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchy<NDIM>> hierarc
 } // buildHierarchyMathOps
 
 void
-HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
+HierarchyIntegrator::setupTagBuffer(SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
-    Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));
+    SAMRAIArray<int> new_tag_buffer(std::max(finest_hier_ln, 1));
     new_tag_buffer[0] = 0;
     for (int i = 0; i < finest_hier_ln; ++i)
     {
@@ -1685,7 +1694,7 @@ HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm<NDIM>> gridding_al
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
+HierarchyIntegrator::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1724,8 +1733,8 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
 void
 HierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

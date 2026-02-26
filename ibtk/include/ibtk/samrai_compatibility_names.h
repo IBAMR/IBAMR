@@ -17,6 +17,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/samrai_compatibility_legacy_aliases.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <samrai_compatibility/samrai_compatibility_environment.h>
 #include <samrai_compatibility/shim_aliases.h>

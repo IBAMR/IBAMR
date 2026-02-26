@@ -22,35 +22,37 @@
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenOperator.h>
-#include <CoarsenSchedule.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
 #include <MultiblockDataTranslator.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PoissonSpecifications.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefinePatchStrategy.h>
-#include <RefineSchedule.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
-#include <VariableFillPattern.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAIPatchDescriptor.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefinePatchStrategy.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <algorithm>
 #include <memory>
@@ -70,24 +72,24 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_restrict_residual;
-static Timer* t_prolong_error;
-static Timer* t_prolong_error_and_correct;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static SAMRAITimer* t_restrict_residual;
+static SAMRAITimer* t_prolong_error;
+static SAMRAITimer* t_prolong_error_and_correct;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string object_name,
-                                                                   Pointer<Variable<NDIM>> scratch_var,
+                                                                   SAMRAIPointer<SAMRAIVariable> scratch_var,
                                                                    const int ghost_cell_width,
-                                                                   const Pointer<Database> input_db,
+                                                                   const SAMRAIPointer<SAMRAIDatabase> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(std::move(object_name)),
       d_poisson_spec(d_object_name + "::poisson_spec"),
-      d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
+      d_default_bc_coef(new SAMRAILocationIndexRobinBcCoefs(d_object_name + "::default_bc_coef",
+                                                            SAMRAIPointer<SAMRAIDatabase>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef.get()),
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse")
@@ -98,7 +100,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
+    auto p_default_bc_coef = dynamic_cast<SAMRAILocationIndexRobinBcCoefs*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
@@ -127,9 +129,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
     }
 
     // Setup scratch variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    const IntVector<NDIM> ghosts = d_gcw;
+    const SAMRAIIntVector ghosts = d_gcw;
     if (var_db->checkVariableExists(scratch_var->getName()))
     {
         scratch_var = var_db->getVariable(scratch_var->getName());
@@ -139,17 +141,16 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
     d_scratch_idx = var_db->registerVariableAndContext(scratch_var, d_context, ghosts);
 
     // Setup Timers.
-    IBTK_DO_ONCE(
-        t_restrict_residual =
-            TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::restrictResidual()");
-        t_prolong_error =
-            TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::prolongError()");
-        t_prolong_error_and_correct =
-            TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::prolongErrorAndCorrect()");
-        t_initialize_operator_state =
-            TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::initializeOperatorState()");
-        t_deallocate_operator_state =
-            TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::deallocateOperatorState()"););
+    IBTK_DO_ONCE(t_restrict_residual = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::PoissonFACPreconditionerStrategy::restrictResidual()");
+                 t_prolong_error = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::PoissonFACPreconditionerStrategy::prolongError()");
+                 t_prolong_error_and_correct = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::PoissonFACPreconditionerStrategy::prolongErrorAndCorrect()");
+                 t_initialize_operator_state = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::PoissonFACPreconditionerStrategy::initializeOperatorState()");
+                 t_deallocate_operator_state = SAMRAITimerManager::getManager()->getTimer(
+                     "IBTK::PoissonFACPreconditionerStrategy::deallocateOperatorState()"););
     return;
 } // PoissonFACPreconditionerStrategy
 
@@ -164,21 +165,21 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
 } // ~PoissonFACPreconditionerStrategy
 
 void
-PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+PoissonFACPreconditionerStrategy::setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
 
 void
-PoissonFACPreconditionerStrategy::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
+PoissonFACPreconditionerStrategy::setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
+    setPhysicalBcCoefs(std::vector<SAMRAIRobinBcCoefStrategy*>(1, bc_coef));
     return;
 } // setPhysicalBcCoef
 
 void
-PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -256,7 +257,7 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
 } // setRestrictionMethod
 
 void
-PoissonFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+PoissonFACPreconditionerStrategy::setToZero(SAMRAISAMRAIVectorReal<double>& vec, int level_num)
 {
     const int data_idx = vec.getComponentDescriptorIndex(0);
     d_level_data_ops[level_num]->setToScalar(data_idx, 0.0, /*interior_only*/ false);
@@ -264,8 +265,8 @@ PoissonFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec,
 } // setToZero
 
 void
-PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
-                                                   SAMRAIVectorReal<NDIM, double>& dst,
+PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAISAMRAIVectorReal<double>& src,
+                                                   SAMRAISAMRAIVectorReal<double>& dst,
                                                    int dst_ln)
 {
     IBTK_TIMER_START(t_restrict_residual);
@@ -284,8 +285,8 @@ PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, 
 } // restrictResidual
 
 void
-PoissonFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
-                                               SAMRAIVectorReal<NDIM, double>& dst,
+PoissonFACPreconditionerStrategy::prolongError(const SAMRAISAMRAIVectorReal<double>& src,
+                                               SAMRAISAMRAIVectorReal<double>& dst,
                                                int dst_ln)
 {
     IBTK_TIMER_START(t_prolong_error);
@@ -302,8 +303,8 @@ PoissonFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<NDIM, doub
 } // prolongError
 
 void
-PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
-                                                         SAMRAIVectorReal<NDIM, double>& dst,
+PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAISAMRAIVectorReal<double>& src,
+                                                         SAMRAISAMRAIVectorReal<double>& dst,
                                                          int dst_ln)
 {
     IBTK_TIMER_START(t_prolong_error_and_correct);
@@ -325,8 +326,8 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
 } // prolongErrorAndCorrect
 
 void
-PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                          const SAMRAIVectorReal<NDIM, double>& rhs)
+PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& solution,
+                                                          const SAMRAISAMRAIVectorReal<double>& rhs)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -352,7 +353,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
 
-    Pointer<Variable<NDIM>> sol_var = d_solution->getComponentVariable(0);
+    SAMRAIPointer<SAMRAIVariable> sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -363,8 +364,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
 #if !defined(NDEBUG)
     // To prevent very obtuse errors later on, we check that the rhs index has the correct ghost cell width.
-    Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
-    const IntVector<NDIM>& gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
+    SAMRAIPointer<SAMRAIPatchDescriptor> pd = SAMRAIVariableDatabase::getDatabase()->getPatchDescriptor();
+    const SAMRAIIntVector& gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
     if (gcw != d_gcw)
     {
         TBOX_ERROR(
@@ -385,7 +386,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_level_data_ops.resize(d_finest_ln + 1);
     d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
     d_level_math_ops.resize(d_finest_ln + 1, nullptr);
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var,
@@ -399,12 +400,12 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
     d_cf_bdry_op->setConsistentInterpolationScheme(false);
@@ -414,7 +415,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
-    std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
+    std::vector<SAMRAIRefinePatchStrategy*> prolongation_refine_patch_strategies;
     prolongation_refine_patch_strategies.push_back(d_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_bc_op);
     d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
@@ -425,18 +426,18 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
-    d_prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
-    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
+    d_prolongation_refine_algorithm = new SAMRAIRefineAlgorithm();
+    d_restriction_coarsen_algorithm = new SAMRAICoarsenAlgorithm();
+    d_ghostfill_nocoarse_refine_algorithm = new SAMRAIRefineAlgorithm();
+    d_synch_refine_algorithm = new SAMRAIRefineAlgorithm();
 
     d_prolongation_refine_algorithm->registerRefine(
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_op_stencil_fill_pattern);
+        sol_idx, sol_idx, sol_idx, SAMRAIPointer<SAMRAIRefineOperator>(), d_op_stencil_fill_pattern);
     d_synch_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_synch_fill_pattern);
+        sol_idx, sol_idx, sol_idx, SAMRAIPointer<SAMRAIRefineOperator>(), d_synch_fill_pattern);
 
     // TODO: Here we take a pessimistic approach and are recreating refine schedule for
     // (coarsest_reset_ln - 1) level as well.
@@ -444,7 +445,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     {
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            Pointer<PatchLevel<NDIM>>(),
+                                                            SAMRAIPointer<SAMRAIPatchLevel>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -493,7 +494,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
          ln <= std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() });
          ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
@@ -560,7 +561,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
             extended_bc_coef->setHomogeneousBc(true);
         }
     }
-    RefineAlgorithm<NDIM> refiner;
+    SAMRAIRefineAlgorithm refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
@@ -576,7 +577,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
 void
 PoissonFACPreconditionerStrategy::xeqScheduleRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
-    CoarsenAlgorithm<NDIM> coarsener;
+    SAMRAICoarsenAlgorithm coarsener;
     coarsener.registerCoarsen(dst_idx, src_idx, d_restriction_coarsen_operator);
     coarsener.resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
     d_restriction_coarsen_schedules[dst_ln]->coarsenData();
@@ -599,8 +600,8 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
             extended_bc_coef->setHomogeneousBc(true);
         }
     }
-    RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM>>(), d_op_stencil_fill_pattern);
+    SAMRAIRefineAlgorithm refiner;
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, SAMRAIPointer<SAMRAIRefineOperator>(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -615,8 +616,8 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
 void
 PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
-    RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM>>(), d_synch_fill_pattern);
+    SAMRAIRefineAlgorithm refiner;
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, SAMRAIPointer<SAMRAIRefineOperator>(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

@@ -21,12 +21,14 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <tbox/DescribedClass.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/Utilities.h>
 
-#include <IntVector.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIUtilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -66,8 +68,8 @@ public:
     LNodeIndex(int lagrangian_nidx = -1,
                int global_petsc_nidx = -1,
                int local_petsc_nidx = -1,
-               const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-               const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+               const SAMRAIIntVector& initial_periodic_offset = SAMRAIIntVector(0),
+               const SAMRAIIntVector& current_periodic_offset = SAMRAIIntVector(0),
                const Vector& initial_periodic_displacement = Vector::Zero(),
                const Vector& current_periodic_displacement = Vector::Zero());
 
@@ -81,7 +83,7 @@ public:
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAIIntVector& offset);
 
     /*!
      * \brief Virtual destructor.
@@ -131,17 +133,17 @@ public:
      * \brief Indicate that the LNodeIndex object has been shifted across a
      * periodic boundary.
      */
-    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAIIntVector& offset, const Vector& displacement);
 
     /*!
      * \brief Get the initial (t = 0) periodic offset.
      */
-    virtual const SAMRAI::hier::IntVector<NDIM>& getInitialPeriodicOffset() const;
+    virtual const SAMRAIIntVector& getInitialPeriodicOffset() const;
 
     /*!
      * \brief Get the periodic offset.
      */
-    virtual const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
+    virtual const SAMRAIIntVector& getPeriodicOffset() const;
 
     /*!
      * \brief Get the initial (t = 0) periodic displacement.
@@ -158,9 +160,8 @@ public:
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    virtual void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                                const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                                const LNodeIndex& src_item);
+    virtual void
+    copySourceItem(const SAMRAIIndex& src_index, const SAMRAIIntVector& src_offset, const LNodeIndex& src_item);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
@@ -176,7 +177,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAIIntVector& offset);
 
 private:
     /*!
@@ -189,7 +190,7 @@ private:
     int d_local_petsc_nidx;  // the local PETSc index
 
     // the periodic offset and displacement
-    SAMRAI::hier::IntVector<NDIM> d_offset_0, d_offset;
+    SAMRAIIntVector d_offset_0, d_offset;
     Vector d_displacement_0, d_displacement;
 };
 

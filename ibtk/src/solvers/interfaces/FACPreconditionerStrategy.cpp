@@ -14,12 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/FACPreconditionerStrategy.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/ConstPointer.h>
-
-#include <Box.h>
-#include <PatchHierarchy.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIConstPointer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <ostream>
 #include <string>
@@ -55,7 +55,7 @@ FACPreconditionerStrategy::getIsInitialized() const
 } // getIsInitialized
 
 void
-FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
+FACPreconditionerStrategy::setFACPreconditioner(SAMRAIConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
@@ -108,8 +108,8 @@ FACPreconditionerStrategy::getDt() const
 } // getDt
 
 void
-FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-                                                   const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+FACPreconditionerStrategy::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& /*solution*/,
+                                                   const SAMRAISAMRAIVectorReal<double>& /*rhs*/)
 {
     d_is_initialized = true;
     return;
@@ -138,10 +138,10 @@ FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<SAMRAIVectorReal<NDIM, double>>
-FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec, int level_num) const
+Pointer<SAMRAISAMRAIVectorReal<double>>
+FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAISAMRAIVectorReal<double>& vec, int level_num) const
 {
-    Pointer<SAMRAIVectorReal<NDIM, double>> level_vec = new SAMRAIVectorReal<NDIM, double>(
+    Pointer<SAMRAISAMRAIVectorReal<double>> level_vec = new SAMRAISAMRAIVectorReal<double>(
         vec.getName() + "::level_" + std::to_string(level_num), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {

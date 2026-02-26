@@ -22,8 +22,10 @@
 
 #include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 
@@ -51,7 +53,7 @@ public:
      * \brief Constructor.
      */
     PETScKrylovPoissonSolver(std::string object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAIPointer<SAMRAIDatabase> input_db,
                              std::string default_options_prefix);
 
     /*!

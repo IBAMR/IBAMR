@@ -14,9 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/Utilities.h>
+#include <SAMRAISAMRAI_MPI.h>
+#include <SAMRAIUtilities.h>
 
 #include <ostream>
 #include <string>
@@ -41,7 +42,7 @@ IBTK_MPI::getCommunicator()
 MPI_Comm
 IBTK_MPI::getSAMRAIWorld()
 {
-    return SAMRAI::tbox::SAMRAI_MPI::commWorld;
+    return SAMRAISAMRAI_MPI::commWorld;
 }
 
 int

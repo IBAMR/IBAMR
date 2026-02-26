@@ -16,11 +16,11 @@
 #include <ibtk/LinearOperator.h>
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 #include <utility>
@@ -49,7 +49,7 @@ LinearOperator::~LinearOperator()
 } // ~LinearOperator()
 
 void
-LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+LinearOperator::modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& y)
 {
     if (d_homogeneous_bc) return;
 
@@ -58,7 +58,7 @@ LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     SAMRAIScopedVectorDuplicate<double> x(y);
     SAMRAIScopedVectorCopy<double> b(y);
     apply(x, b);
-    y.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), b);
+    y.subtract(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&y, false), b);
     return;
 } // modifyRhsForBcs
 

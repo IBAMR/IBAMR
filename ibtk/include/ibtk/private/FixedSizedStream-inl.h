@@ -21,8 +21,9 @@
 #include <ibtk/config.h>
 
 #include <ibtk/FixedSizedStream.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Utilities.h>
+#include <SAMRAIUtilities.h>
 
 #include <cstring>
 

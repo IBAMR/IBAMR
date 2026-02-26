@@ -14,6 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -47,9 +53,9 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
 } // ~RefinePatchStrategySet
 
 void
-RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+RefinePatchStrategySet::setPhysicalBoundaryConditions(SAMRAIPatch& patch,
                                                       const double fill_time,
-                                                      const IntVector<NDIM>& ghost_width_to_fill)
+                                                      const SAMRAIIntVector& ghost_width_to_fill)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -58,22 +64,22 @@ RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM>
+SAMRAIIntVector
 RefinePatchStrategySet::getRefineOpStencilWidth() const
 {
-    IntVector<NDIM> width = 0;
+    SAMRAIIntVector width = 0;
     for (const auto& strategy : d_strategy_set)
     {
-        width = IntVector<NDIM>::max(width, strategy->getRefineOpStencilWidth());
+        width = SAMRAIIntVector::max(width, strategy->getRefineOpStencilWidth());
     }
     return width;
 } // getRefineOpStencilWidth()
 
 void
-RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
-                                         const Patch<NDIM>& coarse,
-                                         const Box<NDIM>& fine_box,
-                                         const IntVector<NDIM>& ratio)
+RefinePatchStrategySet::preprocessRefine(SAMRAIPatch& fine,
+                                         const SAMRAIPatch& coarse,
+                                         const SAMRAIBox& fine_box,
+                                         const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -83,10 +89,10 @@ RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
 } // preprocessRefine
 
 void
-RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine,
-                                          const Patch<NDIM>& coarse,
-                                          const Box<NDIM>& fine_box,
-                                          const IntVector<NDIM>& ratio)
+RefinePatchStrategySet::postprocessRefine(SAMRAIPatch& fine,
+                                          const SAMRAIPatch& coarse,
+                                          const SAMRAIBox& fine_box,
+                                          const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -96,10 +102,10 @@ RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine,
 } // postprocessRefine
 
 void
-RefinePatchStrategySet::preprocessRefineBoxes(Patch<NDIM>& fine,
-                                              const Patch<NDIM>& coarse,
-                                              const BoxList<NDIM>& fine_boxes,
-                                              const IntVector<NDIM>& ratio)
+RefinePatchStrategySet::preprocessRefineBoxes(SAMRAIPatch& fine,
+                                              const SAMRAIPatch& coarse,
+                                              const SAMRAIBoxList& fine_boxes,
+                                              const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -109,10 +115,10 @@ RefinePatchStrategySet::preprocessRefineBoxes(Patch<NDIM>& fine,
 } // preprocessRefineBoxes
 
 void
-RefinePatchStrategySet::postprocessRefineBoxes(Patch<NDIM>& fine,
-                                               const Patch<NDIM>& coarse,
-                                               const BoxList<NDIM>& fine_boxes,
-                                               const IntVector<NDIM>& ratio)
+RefinePatchStrategySet::postprocessRefineBoxes(SAMRAIPatch& fine,
+                                               const SAMRAIPatch& coarse,
+                                               const SAMRAIBoxList& fine_boxes,
+                                               const SAMRAIIntVector& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {

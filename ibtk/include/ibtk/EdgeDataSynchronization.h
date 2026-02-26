@@ -21,15 +21,18 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineSchedule.h>
 
 #include <array>
 #include <string>
@@ -137,7 +140,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -145,7 +148,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
+                                 SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
@@ -196,16 +199,16 @@ private:
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_coarsen_alg;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_coarsen_scheds;
 
-    std::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>>, NDIM> d_refine_alg;
-    std::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>, NDIM> d_refine_scheds;
+    std::array<SAMRAIPointer<SAMRAIRefineAlgorithm>, NDIM> d_refine_alg;
+    std::array<std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

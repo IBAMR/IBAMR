@@ -15,32 +15,36 @@
 
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <ComponentSelector.h>
-#include <FaceData.h>
-#include <FaceIndex.h>
-#include <FaceIterator.h>
-#include <FaceVariable.h>
-#include <NodeData.h>
-#include <NodeIndex.h>
-#include <NodeIterator.h>
-#include <NodeVariable.h>
-#include <Patch.h>
-#include <PatchGeometry.h>
-#include <SideData.h>
-#include <SideIndex.h>
-#include <SideIterator.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIComponentSelector.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceIndex.h>
+#include <SAMRAIFaceIterator.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAINodeIndex.h>
+#include <SAMRAINodeIterator.h>
+#include <SAMRAINodeVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <array>
 #include <ostream>
@@ -64,7 +68,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 0;
 
 template <typename D, typename I>
 inline double
-compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVector<NDIM>& i_shft, const int depth)
+compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const SAMRAIIntVector& i_shft, const int depth)
 {
     double ret_val = patch_data(i_intr, depth);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -92,7 +96,7 @@ inline double
 compute_quadratic_extrap(D& patch_data,
                          const I& i,
                          const I& i_intr,
-                         const IntVector<NDIM>& i_shft,
+                         const SAMRAIIntVector& i_shft,
                          const int depth,
                          const int codim)
 {
@@ -145,7 +149,8 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indic
     return;
 } // CartExtrapPhysBdryOp
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_indices, const std::string& extrap_type)
+CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const SAMRAIComponentSelector& patch_data_indices,
+                                           const std::string& extrap_type)
 {
     setPatchDataIndices(patch_data_indices);
     setExtrapolationType(extrap_type);
@@ -170,7 +175,7 @@ CartExtrapPhysBdryOp::setPatchDataIndices(const std::set<int>& patch_data_indice
 } // setPatchDataIndices
 
 void
-CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+CartExtrapPhysBdryOp::setPatchDataIndices(const SAMRAIComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -200,53 +205,53 @@ CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
 } // setExtrapolationType
 
 void
-CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(SAMRAIPatch& patch,
                                                     const double /*fill_time*/,
-                                                    const IntVector<NDIM>& ghost_width_to_fill)
+                                                    const SAMRAIIntVector& ghost_width_to_fill)
 {
-    if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
+    if (ghost_width_to_fill == SAMRAIIntVector(0)) return;
 
-    Pointer<PatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
-    const Box<NDIM>& patch_box = patch.getBox();
+    SAMRAIPointer<SAMRAIPatchGeometry> pgeom = patch.getPatchGeometry();
+    const SAMRAIBox& patch_box = patch.getBox();
 
-    std::vector<std::pair<Box<NDIM>, std::pair<int, int>>> bdry_fill_boxes;
+    std::vector<std::pair<SAMRAIBox, std::pair<int, int>>> bdry_fill_boxes;
 
 #if (NDIM > 1)
 #if (NDIM > 2)
     // Compute the co-dimension three boundary fill boxes.
-    const Array<BoundaryBox<NDIM>> physical_codim3_boxes =
+    const SAMRAIArray<SAMRAIBoundaryBox> physical_codim3_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const SAMRAIBoundaryBox& bdry_box = physical_codim3_boxes[n];
+        const SAMRAIBox bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 3;
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #endif
     // Compute the co-dimension two boundary fill boxes.
-    const Array<BoundaryBox<NDIM>> physical_codim2_boxes =
+    const SAMRAIArray<SAMRAIBoundaryBox> physical_codim2_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const SAMRAIBoundaryBox& bdry_box = physical_codim2_boxes[n];
+        const SAMRAIBox bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 2;
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #endif
     // Compute the co-dimension one boundary fill boxes.
-    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+    const SAMRAIArray<SAMRAIBoundaryBox> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const SAMRAIBoundaryBox& bdry_box = physical_codim1_boxes[n];
+        const SAMRAIBox bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 1;
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
@@ -260,27 +265,27 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM>
+SAMRAIIntVector
 CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
 void
-CartExtrapPhysBdryOp::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                       const Patch<NDIM>& /*coarse*/,
-                                       const Box<NDIM>& /*fine_box*/,
-                                       const IntVector<NDIM>& /*ratio*/)
+CartExtrapPhysBdryOp::preprocessRefine(SAMRAIPatch& /*fine*/,
+                                       const SAMRAIPatch& /*coarse*/,
+                                       const SAMRAIBox& /*fine_box*/,
+                                       const SAMRAIIntVector& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
 void
-CartExtrapPhysBdryOp::postprocessRefine(Patch<NDIM>& /*fine*/,
-                                        const Patch<NDIM>& /*coarse*/,
-                                        const Box<NDIM>& /*fine_box*/,
-                                        const IntVector<NDIM>& /*ratio*/)
+CartExtrapPhysBdryOp::postprocessRefine(SAMRAIPatch& /*fine*/,
+                                        const SAMRAIPatch& /*coarse*/,
+                                        const SAMRAIBox& /*fine_box*/,
+                                        const SAMRAIIntVector& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -292,12 +297,12 @@ CartExtrapPhysBdryOp::postprocessRefine(Patch<NDIM>& /*fine*/,
 
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
-    Patch<NDIM>& patch,
-    const std::vector<std::pair<Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes)
+    SAMRAIPatch& patch,
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const hier::Index<NDIM>& patch_upper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    const SAMRAIIndex& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -312,19 +317,19 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     // indices.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM>> var;
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
         if (!cc_var) continue;
 
-        Pointer<CellData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
-        const Box<NDIM>& ghost_box = patch_data->getGhostBox();
+        SAMRAIPointer<SAMRAICellData<double>> patch_data = patch.getPatchData(patch_data_idx);
+        const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const SAMRAIBox& bdry_fill_box = bdry_fill_box_pair.first;
             const unsigned int location_index = bdry_fill_box_pair.second.first;
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
@@ -349,11 +354,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             // interior index.
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
-                for (CellIterator<NDIM> b(bdry_fill_box * ghost_box); b; b++)
+                for (SAMRAICellIterator b(bdry_fill_box * ghost_box); b; b++)
                 {
-                    const CellIndex<NDIM>& i = b();
-                    CellIndex<NDIM> i_intr = i;
-                    IntVector<NDIM> i_shft = 0;
+                    const SAMRAICellIndex& i = b();
+                    SAMRAICellIndex i_intr = i;
+                    SAMRAIIntVector i_shft = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (is_lower[d])
@@ -391,12 +396,12 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
-    Patch<NDIM>& patch,
-    const std::vector<std::pair<Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes)
+    SAMRAIPatch& patch,
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const hier::Index<NDIM>& patch_upper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    const SAMRAIIndex& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -411,18 +416,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     // indices.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM>> var;
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<FaceVariable<NDIM, double>> fc_var = var;
+        SAMRAIPointer<SAMRAIFaceVariable<double>> fc_var = var;
         if (!fc_var) continue;
-        Pointer<FaceData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
-        const Box<NDIM>& ghost_box = patch_data->getGhostBox();
+        SAMRAIPointer<SAMRAIFaceData<double>> patch_data = patch.getPatchData(patch_data_idx);
+        const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const SAMRAIBox& bdry_fill_box = bdry_fill_box_pair.first;
             const unsigned int location_index = bdry_fill_box_pair.second.first;
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
@@ -447,11 +452,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (FaceIterator<NDIM> b(bdry_fill_box * ghost_box, axis); b; b++)
+                    for (SAMRAIFaceIterator b(bdry_fill_box * ghost_box, axis); b; b++)
                     {
-                        const FaceIndex<NDIM> i = b();
-                        FaceIndex<NDIM> i_bdry = i;
-                        IntVector<NDIM> i_shft = 0;
+                        const SAMRAIFaceIndex i = b();
+                        SAMRAIFaceIndex i_bdry = i;
+                        SAMRAIIntVector i_shft = 0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (is_lower[d])
@@ -497,12 +502,12 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
-    Patch<NDIM>& patch,
-    const std::vector<std::pair<Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes)
+    SAMRAIPatch& patch,
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const hier::Index<NDIM>& patch_upper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    const SAMRAIIndex& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -517,18 +522,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     // indices.
     for (int patch_data_idx : d_patch_data_indices)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM>> var;
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<NodeVariable<NDIM, double>> nc_var = var;
+        SAMRAIPointer<SAMRAINodeVariable<double>> nc_var = var;
         if (!nc_var) continue;
-        Pointer<NodeData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
-        const Box<NDIM>& ghost_box = patch_data->getGhostBox();
+        SAMRAIPointer<SAMRAINodeData<double>> patch_data = patch.getPatchData(patch_data_idx);
+        const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const SAMRAIBox& bdry_fill_box = bdry_fill_box_pair.first;
             const unsigned int location_index = bdry_fill_box_pair.second.first;
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
@@ -553,11 +558,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             // nearest interior index.
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
-                for (NodeIterator<NDIM> b(bdry_fill_box * ghost_box); b; b++)
+                for (SAMRAINodeIterator b(bdry_fill_box * ghost_box); b; b++)
                 {
-                    const NodeIndex<NDIM>& i = b();
-                    NodeIndex<NDIM> i_bdry = i;
-                    IntVector<NDIM> i_shft = 0;
+                    const SAMRAINodeIndex& i = b();
+                    SAMRAINodeIndex i_bdry = i;
+                    SAMRAIIntVector i_shft = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (is_lower[d])
@@ -595,12 +600,12 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
-    Patch<NDIM>& patch,
-    const std::vector<std::pair<Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes)
+    SAMRAIPatch& patch,
+    const std::vector<std::pair<SAMRAIBox, std::pair<int, int>>>& bdry_fill_boxes)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    const hier::Index<NDIM>& patch_upper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    const SAMRAIIndex& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -615,18 +620,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     // indices.
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM>> var;
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        SAMRAIPointer<SAMRAIVariable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<SideVariable<NDIM, double>> sc_var = var;
+        SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
         if (!sc_var) continue;
-        Pointer<SideData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
-        const Box<NDIM>& ghost_box = patch_data->getGhostBox();
+        SAMRAIPointer<SAMRAISideData<double>> patch_data = patch.getPatchData(patch_data_idx);
+        const SAMRAIBox& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (const auto& bdry_fill_box_map : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = bdry_fill_box_map.first;
+            const SAMRAIBox& bdry_fill_box = bdry_fill_box_map.first;
             const unsigned int location_index = bdry_fill_box_map.second.first;
             const int codim = bdry_fill_box_map.second.second;
 #if (NDIM == 2)
@@ -651,11 +656,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator<NDIM> b(bdry_fill_box * ghost_box, axis); b; b++)
+                    for (SAMRAISideIterator b(bdry_fill_box * ghost_box, axis); b; b++)
                     {
-                        const SideIndex<NDIM> i = b();
-                        SideIndex<NDIM> i_bdry = i;
-                        IntVector<NDIM> i_shft = 0;
+                        const SAMRAISideIndex i = b();
+                        SAMRAISideIndex i_bdry = i;
+                        SAMRAIIntVector i_shft = 0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (is_lower[d])

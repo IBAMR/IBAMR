@@ -23,10 +23,11 @@
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/Streamable.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <IntVector.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -66,12 +67,11 @@ public:
     LNode(int lagrangian_nidx = -1,
           int global_petsc_nidx = -1,
           int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-          const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+          const SAMRAIIntVector& initial_periodic_offset = SAMRAIIntVector(0),
+          const SAMRAIIntVector& current_periodic_offset = SAMRAIIntVector(0),
           const Vector& initial_periodic_displacement = Vector::Zero(),
           const Vector& current_periodic_displacement = Vector::Zero(),
-          const std::vector<SAMRAI::tbox::Pointer<Streamable>>& node_data =
-              std::vector<SAMRAI::tbox::Pointer<Streamable>>());
+          const std::vector<SAMRAIPointer<Streamable>>& node_data = std::vector<SAMRAIPointer<Streamable>>());
 
     /*!
      * \brief Copy constructor.
@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAIIntVector& offset);
 
     /*!
      * \brief Destructor.
@@ -103,20 +103,20 @@ public:
      * \return A constant reference to any additional data items associated with
      * the node referenced by this LNode object.
      */
-    const std::vector<SAMRAI::tbox::Pointer<Streamable>>& getNodeData() const;
+    const std::vector<SAMRAIPointer<Streamable>>& getNodeData() const;
 
     /*!
      * \brief Reset the collection of additional data items associated with the
      * node referenced by this LNode object.
      */
-    void setNodeData(const std::vector<SAMRAI::tbox::Pointer<Streamable>>& node_data);
+    void setNodeData(const std::vector<SAMRAIPointer<Streamable>>& node_data);
 
     /*!
      * \brief Append a data item to the collection of data items associated with
      * this node.  The appended item will appear at the end of the vector of
      * node data items associated with this node.
      */
-    void appendNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_item);
+    void appendNodeDataItem(const SAMRAIPointer<Streamable>& node_data_item);
 
     /*!
      * \brief Remove a data item to the collection of data items associated with
@@ -125,7 +125,7 @@ public:
      *
      * \note Removing items is potentially an inefficient operation.
      */
-    void removeNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_item);
+    void removeNodeDataItem(const SAMRAIPointer<Streamable>& node_data_item);
 
     /*!
      * \return A pointer to the first data item of type T associated with the
@@ -161,15 +161,15 @@ public:
      * \brief Indicate that the LNode object has been shifted across a periodic
      * boundary.
      */
-    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement) override;
+    void registerPeriodicShift(const SAMRAIIntVector& offset, const Vector& displacement) override;
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+    void copySourceItem(const SAMRAIIndex& src_index,
+                        const SAMRAIIntVector& src_offset,
                         const LNodeIndex& src_item) override;
 
     /*!
@@ -186,8 +186,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                              const SAMRAI::hier::IntVector<NDIM>& offset) override;
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAIIntVector& offset) override;
 
 private:
     /*!
@@ -202,7 +201,7 @@ private:
 
     // a (possibly empty) collection of data objects that are associated with
     // the node
-    std::vector<SAMRAI::tbox::Pointer<Streamable>> d_node_data;
+    std::vector<SAMRAIPointer<Streamable>> d_node_data;
     static const short int MAX_SIZE = 8;
     Streamable* d_node_data_type_arr[MAX_SIZE];
 };

@@ -20,15 +20,18 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIDatabase.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/QuadratureCache.h>
 #include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
 
 #include <libmesh/dof_map.h>
 #include <libmesh/elem.h>
@@ -42,11 +45,13 @@
 #include <libmesh/sparse_matrix.h>
 #include <libmesh/system.h>
 
-#include <CellVariable.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <RefineSchedule.h>
-#include <VariableContext.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISerializable.h>
+#include <SAMRAIVariableContext.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -92,7 +97,7 @@ namespace IBTK
  * Class containing all of the finite element data structures that will be
  * used by FEDataManager and IBFEMethod.
  */
-class FEData : public SAMRAI::tbox::Serializable
+class FEData : public SAMRAISerializable
 {
 public:
     /*!
@@ -191,7 +196,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * \brief Set the equations systems object that is associated with the
@@ -289,7 +294,7 @@ public:
      */
     SubdomainToPatchLevelTranslation(const int max_level_number,
                                      const std::set<libMesh::subdomain_id_type>& subdomain_ids,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+                                     const SAMRAIPointer<SAMRAIDatabase>& input_db);
 
     /*!
      * Given a libMesh subdomain id, return the patch level of the Cartesian
@@ -416,7 +421,7 @@ private:
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable
+class FEDataManager : public SAMRAISerializable
 {
 public:
     /*!
@@ -610,17 +615,16 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static FEDataManager*
-    getManager(std::shared_ptr<FEData> fe_data,
-               const std::string& name,
-               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
-               const int max_levels,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const WorkloadSpec& default_workload_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
+    static FEDataManager* getManager(std::shared_ptr<FEData> fe_data,
+                                     const std::string& name,
+                                     const SAMRAIPointer<SAMRAIDatabase>& input_db,
+                                     const int max_levels,
+                                     const InterpSpec& default_interp_spec,
+                                     const SpreadSpec& default_spread_spec,
+                                     const WorkloadSpec& default_workload_spec,
+                                     const SAMRAIIntVector& min_ghost_width = SAMRAIIntVector(0),
+                                     std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
+                                     bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.
@@ -686,12 +690,12 @@ public:
      * tag cells for refinement to create the initial hierarchy then use
      * applyGradientDetector, which does not use the stored patch hierarchy.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
+    void setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> getPatchHierarchy() const;
+    SAMRAIPointer<SAMRAIPatchHierarchy> getPatchHierarchy() const;
 
     /*!
      * Get the coarsest patch level number on which elements are assigned.
@@ -707,7 +711,7 @@ public:
      * \return The ghost cell width used for quantities that are to be
      * interpolated from the Cartesian grid to the FE mesh.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getGhostCellWidth() const;
+    const SAMRAIIntVector& getGhostCellWidth() const;
 
     /*!
      * \return The specifications of the scheme used for interpolating from the
@@ -938,8 +942,8 @@ public:
                         libMesh::NumericVector<double>& F,
                         libMesh::NumericVector<double>& X,
                         const std::string& system_name,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
-                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds =
+                            std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                         double fill_data_time = 0.0,
                         bool close_F = true,
                         bool close_X = true);
@@ -956,8 +960,8 @@ public:
                         libMesh::NumericVector<double>& X,
                         const std::string& system_name,
                         const InterpSpec& interp_spec,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
-                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                        const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds =
+                            std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                         double fill_data_time = 0.0,
                         bool close_F = true,
                         bool close_X = true);
@@ -970,8 +974,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -984,8 +988,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_refine_scheds =
+                    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -1074,7 +1078,7 @@ public:
      * main documentation of this class for information on how this is
      * computed) to the <code>d_workload_idx</code> cell variable.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    void addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                              const int workload_data_idx,
                              const int coarsest_ln = invalid_level_number,
                              const int finest_ln = invalid_level_number);
@@ -1101,7 +1105,7 @@ public:
      * SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector() and is
      * only meant to be called from IBAMR::IBFEMethod::applyGradientDetector().
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+    void applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -1113,7 +1117,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * \brief Zero the values corresponding to points on the given patch
@@ -1135,7 +1139,7 @@ public:
      * infinity) since we are guaranteed, by the previous assumptions, that
      * that data must also lie on the lower face of a neighboring patch.
      */
-    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
+    static void zeroExteriorValues(const SAMRAICartesianPatchGeometry& patch_geom,
                                    const std::vector<double>& X_qp,
                                    std::vector<double>& F_qp,
                                    int n_vars);
@@ -1146,12 +1150,12 @@ protected:
      * co-owned by other objects.
      */
     FEDataManager(std::string object_name,
-                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                  const SAMRAIPointer<SAMRAIDatabase>& input_db,
                   const int max_levels,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
-                  SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  SAMRAIIntVector ghost_width,
                   std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                   std::shared_ptr<FEData> fe_data,
                   bool register_for_restart = true);
@@ -1300,7 +1304,7 @@ private:
     /*!
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
 
     /*!
      * Maximum possible level number in the patch hierarchy.
@@ -1315,14 +1319,14 @@ private:
     /*!
      * SAMRAI::hier::VariableContext object used for data management.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAIPointer<SAMRAIVariableContext> d_context;
 
     /*!
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_qp_count_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_qp_count_var;
     int d_qp_count_idx;
 
     /*!
@@ -1350,7 +1354,7 @@ private:
      * SAMRAI::hier::IntVector object which determines the required ghost cell
      * width of this class.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
+    const SAMRAIIntVector d_ghost_width;
 
     /*!
      * SAMRAI::hier::IntVector object which determines how many ghost cells we
@@ -1362,7 +1366,7 @@ private:
      * @note At the present time this is always 1, which matches the
      * assumption made by IBTK::LEInteractor::getMinimumGhostWidth().
      */
-    const SAMRAI::hier::IntVector<NDIM> d_associated_elem_ghost_width = SAMRAI::hier::IntVector<NDIM>(1);
+    const SAMRAIIntVector d_associated_elem_ghost_width = SAMRAIIntVector(1);
 
     /*!
      * Data to manage mappings between mesh elements and grid patches.

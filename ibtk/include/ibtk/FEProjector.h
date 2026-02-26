@@ -20,17 +20,21 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FischerGuess.h>
-
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
 #include <libmesh/petsc_matrix.h>
 #include <libmesh/petsc_vector.h>
+
+#include <SAMRAIPointer.h>
+#include <SAMRAITimer.h>
 
 #include <map>
 #include <string>
@@ -63,11 +67,10 @@ class FEProjector
 {
 public:
     /// Constructor.
-    FEProjector(libMesh::EquationSystems* equation_systems,
-                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(libMesh::EquationSystems* equation_systems, const SAMRAIPointer<SAMRAIDatabase>& input_db);
 
     /// Alternative constructor that takes in a shared pointer to an FEData object.
-    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAIPointer<SAMRAIDatabase>& input_db);
 
     /// Deleted default constructor.
     FEProjector() = delete;
@@ -204,7 +207,7 @@ private:
      * SAMRAI stores timers in a single unsorted array. To keep timer lookups
      * quick we cache the pointers here.
      */
-    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer>> d_linear_solve_system_timers;
+    std::map<std::string, SAMRAIPointer<SAMRAITimer>> d_linear_solve_system_timers;
 
     /*!
      * Whether or not to log data to the screen: see

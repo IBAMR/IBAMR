@@ -18,15 +18,15 @@
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LSet.h>
 #include <ibtk/LSetData.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellIndex.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <Patch.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
 
 #include <algorithm>
 #include <array>
@@ -44,7 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts) : LSetData<T>(std::move(box), std::move(ghosts))
+LIndexSetData<T>::LIndexSetData(SAMRAIBox box, SAMRAIIntVector ghosts) : LSetData<T>(std::move(box), std::move(ghosts))
 {
     // intentionally blank
     return;
@@ -52,7 +52,7 @@ LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts) : LSetDat
 
 template <class T>
 void
-LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<NDIM>& periodic_shift)
+LIndexSetData<T>::cacheLocalIndices(SAMRAIPointer<SAMRAIPatch> patch, const SAMRAIIntVector& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -67,11 +67,11 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<
     d_interior_periodic_shifts.clear();
     d_ghost_periodic_shifts.clear();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const SAMRAIIndex& ilower = patch_box.lower();
+    const SAMRAIIndex& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -82,7 +82,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<
 
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
-        const CellIndex<NDIM>& i = it.getIndex();
+        const SAMRAICellIndex& i = it.getIndex();
         std::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {

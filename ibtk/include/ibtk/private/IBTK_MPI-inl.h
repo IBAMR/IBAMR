@@ -19,8 +19,9 @@
 #include <ibtk/config.h>
 
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Utilities.h>
+#include <SAMRAIUtilities.h>
 
 namespace IBTK
 {

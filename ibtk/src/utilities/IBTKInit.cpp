@@ -15,11 +15,12 @@
 
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
+
+#include <SAMRAISAMRAIManager.h>
+#include <SAMRAISAMRAI_MPI.h>
 
 #include <ibtk/app_namespaces.h>
 
@@ -43,17 +44,17 @@ IBTKInit::IBTKInit(int argc, char** argv, MPI_Comm communicator, char* petsc_fil
     // We need to initialize PETSc.
     PetscInitialize(&argc, &argv, petsc_file, petsc_help);
 #endif
-    SAMRAIManager::setMaxNumberPatchDataEntries(2048);
-    SAMRAI_MPI::setCommunicator(communicator);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    SAMRAISAMRAIManager::setMaxNumberPatchDataEntries(2048);
+    SAMRAISAMRAI_MPI::setCommunicator(communicator);
+    SAMRAISAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAISAMRAIManager::startup();
     IBTK_MPI::setCommunicator(communicator);
     s_initialized = true;
 }
 
 IBTKInit::~IBTKInit()
 {
-    SAMRAIManager::shutdown();
+    SAMRAISAMRAIManager::shutdown();
 #ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif
