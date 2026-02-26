@@ -39,9 +39,9 @@ namespace IBTK
  */
 std::vector<double> interpolate(const VectorNd& X,
                                 int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
                                 int Q_depth,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
 /*
@@ -55,9 +55,9 @@ std::vector<double> interpolate(const VectorNd& X,
  */
 std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
                                 int Q_depth,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
 } // namespace IBTK

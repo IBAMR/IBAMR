@@ -102,7 +102,7 @@ FSI_tether_line_force_function(VectorValue<double>& F,
                                Elem* const /*elem*/,
                                const unsigned short /*side*/,
                                const vector<const vector<double>*>& var_data,
-                               const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                               const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                double /*time*/,
                                void* /*ctx*/)
 {
@@ -135,7 +135,7 @@ FSI_tether_tube_lower_force_function(VectorValue<double>& F,
                                      Elem* const elem,
                                      const unsigned short /*side*/,
                                      const vector<const vector<double>*>& var_data,
-                                     const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                     const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                      double /*time*/,
                                      void* /*ctx*/)
 {
@@ -190,7 +190,7 @@ FSI_tether_tube_upper_force_function(VectorValue<double>& F,
                                      Elem* const elem,
                                      const unsigned short /*side*/,
                                      const vector<const vector<double>*>& var_data,
-                                     const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                     const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                      double /*time*/,
                                      void* /*ctx*/)
 {
@@ -242,7 +242,7 @@ solid_surface_force_tube_upper_function(VectorValue<double>& F,
                                         Elem* const elem,
                                         const unsigned short int side,
                                         const vector<const vector<double>*>& /*var_data*/,
-                                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                        const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                         double /*time*/,
                                         void* /*ctx*/)
 {
@@ -277,7 +277,7 @@ solid_surface_force_tube_lower_function(VectorValue<double>& F,
                                         Elem* const elem,
                                         const unsigned short int side,
                                         const vector<const vector<double>*>& /*var_data*/,
-                                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                        const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                         double /*time*/,
                                         void* /*ctx*/)
 {
@@ -309,7 +309,7 @@ PK1_dev_stress_tube_upper_function(TensorValue<double>& PP,
                                    const libMesh::Point& /*X*/,
                                    Elem* const /*elem*/,
                                    const vector<const vector<double>*>& /*var_data*/,
-                                   const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                   const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                    double /*time*/,
                                    void* /*ctx*/)
 {
@@ -335,7 +335,7 @@ PK1_dev_stress_tube_lower_function(TensorValue<double>& PP,
                                    const libMesh::Point& /*X*/,
                                    Elem* const /*elem*/,
                                    const vector<const vector<double>*>& /*var_data*/,
-                                   const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                   const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                                    double /*time*/,
                                    void* /*ctx*/)
 {
@@ -359,7 +359,7 @@ using namespace ModelData;
 
 static ofstream dx_posn_stream;
 
-void postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(tbox::Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       const FEMechanicsExplicitIntegrator* fem_solver,
                       ReplicatedMesh& tube_mesh,
@@ -696,18 +696,17 @@ main(int argc, char* argv[])
                                               ibfe_bndry_ops,
                                               navier_stokes_integrator);
 
-        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        tbox::Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        tbox::Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
+        tbox::Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        tbox::Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        tbox::Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -825,7 +824,7 @@ main(int argc, char* argv[])
         }
         // Set up visualization plot file writers.
 
-        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        tbox::Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -1122,7 +1121,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+postprocess_data(tbox::Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                  tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  const FEMechanicsExplicitIntegrator* const fem_solver,
                  ReplicatedMesh& /*tube_mesh*/,
@@ -1133,7 +1132,7 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 {
     System& X_system = tube_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
-    std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    std::unique_ptr<NumericVector<Number>> X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();

@@ -58,7 +58,7 @@ solid_surface_force_function(VectorValue<double>& F,
                              Elem* const elem,
                              const unsigned short int side,
                              const vector<const vector<double>*>& /*var_data*/,
-                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                              double time,
                              void* /*ctx*/)
 {
@@ -85,7 +85,7 @@ PK1_dev_stress_function_mod(TensorValue<double>& PP,
                             const libMesh::Point& /*X*/,
                             Elem* const /*elem*/,
                             const vector<const vector<double>*>& /*var_data*/,
-                            const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double /*time*/,
                             void* /*ctx*/)
 {
@@ -102,7 +102,7 @@ PK1_dev_stress_function_unmod(TensorValue<double>& PP,
                               const libMesh::Point& /*X*/,
                               Elem* const /*elem*/,
                               const vector<const vector<double>*>& /*var_data*/,
-                              const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                              const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                               double /*time*/,
                               void* /*ctx*/)
 {
@@ -116,7 +116,7 @@ PK1_dev_stress_function_dev(TensorValue<double>& PP,
                             const libMesh::Point& /*X*/,
                             Elem* const /*elem*/,
                             const vector<const vector<double>*>& /*var_data*/,
-                            const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double /*time*/,
                             void* /*ctx*/)
 {
@@ -132,7 +132,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         Elem* const /*elem*/,
                         const vector<const vector<double>*>& /*var_data*/,
-                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -146,7 +146,7 @@ solid_body_force_function(VectorValue<double>& F,
                           const libMesh::Point& /*X*/,
                           Elem* const /*elem*/,
                           const vector<const vector<double>*>& var_data,
-                          const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                          const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                           double /*time*/,
                           void* /*ctx*/)
 {
@@ -429,12 +429,12 @@ main(int argc, char* argv[])
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            vector<vector<unsigned int> > X_dof_indices(NDIM);
+            vector<vector<unsigned int>> X_dof_indices(NDIM);
             unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
             unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const vector<double>& JxW = fe->get_JxW();
-            const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            const vector<vector<VectorValue<double>>>& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
             const auto el_begin = mesh.active_local_elements_begin();

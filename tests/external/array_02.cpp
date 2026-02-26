@@ -118,7 +118,7 @@ main()
     test<A>("A", output);
     test<double>("double", output);
     test<std::string>("std::string", output);
-    test<std::vector<double> >("std::vector<double>", output);
+    test<std::vector<double>>("std::vector<double>", output);
 
     tbox::Array<std::string> a(100);
 }

@@ -39,7 +39,7 @@ public:
     RigidBodyKinematics(const std::string& object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                         bool register_for_restart = true)
         : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
           d_parser_time(0.0),
@@ -100,7 +100,7 @@ public:
         const int total_levels = finest_ln - coarsest_ln + 1;
         d_kinematics_vel.resize(total_levels);
 
-        const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+        const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
         for (int ln = 0; ln < total_levels; ++ln)
         {
             const int nodes_this_ln = idx_range[ln].second - idx_range[ln].first;
@@ -152,7 +152,7 @@ public:
     /*!
      * \brief Get the kinematics velocity at new time for rigid body on the specified level.
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const
     {
         static const StructureParameters& struct_param = getStructureParameters();
         static const int coarsest_ln = struct_param.getCoarsestLevelNumber();
@@ -179,7 +179,7 @@ public:
     /*!
      * \brief Get the shape of rigid body at new time on the specified level.
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int /*level*/) const
+    virtual const std::vector<std::vector<double>>& getShape(const int /*level*/) const
     {
         return d_shape;
     } // getShape
@@ -220,7 +220,7 @@ private:
         static const int coarsest_ln = struct_param.getCoarsestLevelNumber();
         static const int finest_ln = struct_param.getFinestLevelNumber();
         static const int total_levels = finest_ln - coarsest_ln + 1;
-        static const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+        static const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
 
         for (int ln = 0; ln < total_levels; ++ln)
         {
@@ -263,8 +263,8 @@ private:
      * \NOTE Current velocity is always equal to new velocity. Position is
      * updated via CONSTRAINT_VELOCITY method, so new shape is not filled in.
      */
-    std::vector<std::vector<std::vector<double> > > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<std::vector<double>>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.

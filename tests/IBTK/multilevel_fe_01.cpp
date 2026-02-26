@@ -134,23 +134,23 @@ public:
         d_fe_data_manager->setCurrentCoordinatesSystemName(X_system.name());
     }
 
-    void initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                              const int /*level_number*/,
                              const double /*init_data_time*/,
                              const bool /*can_be_refined*/,
                              const bool /*initial_time*/,
-                             const tbox::Pointer<hier::BasePatchLevel<NDIM> > /*old_level*/ = nullptr,
+                             const tbox::Pointer<hier::BasePatchLevel<NDIM>> /*old_level*/ = nullptr,
                              const bool /*allocate_data*/ = true) override
     {
     }
 
-    void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                      const int /*coarsest_level*/,
                                      const int /*finest_level*/) override
     {
     }
 
-    void applyGradientDetector(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(const tbox::Pointer<hier::BasePatchHierarchy<NDIM>> hierarchy,
                                const int level_number,
                                const double error_data_time,
                                const int tag_index,
@@ -182,15 +182,15 @@ main(int argc, char** argv)
     Pointer<Database> input_db = app_initializer->getInputDatabase();
     TestTag tag(init.comm(), input_db);
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+    Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
         "StandardTagAndInitialize", &tag, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-    Pointer<LoadBalancer<NDIM> > load_balancer =
+    Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+    Pointer<LoadBalancer<NDIM>> load_balancer =
         new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+    Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
         new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -216,17 +216,17 @@ main(int argc, char** argv)
     // plot stuff
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> ctx = var_db->getContext("context");
-    Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
+    Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc");
     const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(level);
         level->allocatePatchData(u_cc_idx, 0.0);
     }
 
     // Register variables for plotting.
-    Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+    Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
     TBOX_ASSERT(visit_data_writer);
     visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
     visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);

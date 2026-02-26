@@ -241,7 +241,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) override;
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy) override;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -297,15 +297,15 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_refine_op =
         new SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM>();
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_sc_indicator_var =
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_sc_indicator_var =
         new SAMRAI::pdat::SideVariable<NDIM, int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
     int d_sc_indicator_idx = IBTK::invalid_index;
 };

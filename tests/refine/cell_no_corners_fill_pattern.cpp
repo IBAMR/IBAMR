@@ -73,7 +73,7 @@ main(int argc, char* argv[])
                 CellGeometry<NDIM> src_geometry(src_box, gcw);
                 Box<NDIM> src_mask = src_box;
 
-                Pointer<CellOverlap<NDIM> > overlap;
+                Pointer<CellOverlap<NDIM>> overlap;
 
                 tbox::plog << "default overlap, overwrite_interior == false:\n";
                 overlap = dst_geometry.calculateOverlap(dst_geometry,

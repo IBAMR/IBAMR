@@ -56,8 +56,8 @@ public:
      * @param[in] ratio The ratio of the Path's level to the coarsest level.
      */
     MarkerPatch(const SAMRAI::hier::Box<NDIM>& patch_box,
-                const std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlapping_patch_boxes,
-                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                const std::vector<SAMRAI::hier::Box<NDIM>>& nonoverlapping_patch_boxes,
+                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>>& grid_geom,
                 const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /**
@@ -74,7 +74,7 @@ public:
      * Remove all marker points which do not lie in cells uniquely owned by
      * this patch.
      */
-    std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> > prune();
+    std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector>> prune();
 
     /*!
      * Return the @p index-th marker point stored by the present Patch.
@@ -100,7 +100,7 @@ private:
     SAMRAI::hier::Box<NDIM> d_patch_box;
 
     // The unique subset of index space assigned to this Patch.
-    std::vector<SAMRAI::hier::Box<NDIM> > d_nonoverlapping_patch_boxes;
+    std::vector<SAMRAI::hier::Box<NDIM>> d_nonoverlapping_patch_boxes;
 
     // Data for computing cell indices. Passed along to IndexUtilities::getCellIndex();
     SAMRAI::hier::Box<NDIM> d_domain_box;
@@ -130,7 +130,7 @@ public:
      * their array index.
      */
     MarkerPatchHierarchy(const std::string& name,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                          const std::vector<IBTK::Point>& positions,
                          const std::vector<IBTK::Point>& velocities,
                          const bool register_for_restart = true);
@@ -179,7 +179,7 @@ public:
     /**
      * Collect all markers on all processors in a single array.
      */
-    std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
+    std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>> collectAllMarkers() const;
 
     /**
      * Set marker velocities with some given velocity field @p u_idx and
@@ -252,9 +252,9 @@ protected:
 
     std::size_t d_num_markers;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
 
-    std::vector<std::deque<MarkerPatch> > d_marker_patches;
+    std::vector<std::deque<MarkerPatch>> d_marker_patches;
 
     MarkerPatch d_markers_outside_domain;
 };

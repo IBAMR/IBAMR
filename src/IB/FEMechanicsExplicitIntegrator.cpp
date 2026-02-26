@@ -91,9 +91,9 @@ void
 FEMechanicsExplicitIntegrator::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBAMR_TIMER_START(t_postprocess_integrate_data);
-    std::vector<std::vector<PetscVector<double>*> > vecs{ d_X_vecs->get("new"),
-                                                          d_U_vecs->get("new"),
-                                                          d_F_vecs->get("new") };
+    std::vector<std::vector<PetscVector<double>*>> vecs{ d_X_vecs->get("new"),
+                                                         d_U_vecs->get("new"),
+                                                         d_F_vecs->get("new") };
     if (d_P_vecs) vecs.push_back(d_P_vecs->get("new"));
     batch_vec_ghost_update(vecs, INSERT_VALUES, SCATTER_FORWARD);
 

@@ -44,7 +44,7 @@ public:
      * \brief Class constructor.
      */
     AdvDiffPPMConvectiveOperator(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  ConvectiveDifferencingType difference_form,
                                  std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
@@ -59,7 +59,7 @@ public:
      */
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)

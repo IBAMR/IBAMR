@@ -372,7 +372,7 @@ IIMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -639,7 +639,7 @@ void
 IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     IBAMR_TIMER_START(t_postprocess_integrate_data);
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = {
         d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs
     };
 
@@ -801,8 +801,8 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
 void
 IIMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                              const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                              const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -827,7 +827,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
     }
 
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = { d_X_IB_ghost_vecs };
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = { d_X_IB_ghost_vecs };
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -918,8 +918,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         const DofMap& X_dof_map = X_system.get_dof_map();
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> U_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         FEType U_fe_type = U_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
         FEType X_fe_type = X_dof_map.variable_type(0);
@@ -929,14 +929,14 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         std::array<System*, NDIM> DU_jump_system;
         std::array<const DofMap*, NDIM> DU_jump_dof_map;
         std::array<FEDataManager::SystemDofMapCache*, NDIM> DU_jump_dof_map_cache;
-        std::array<std::vector<std::vector<unsigned int> >, NDIM> DU_jump_dof_indices;
+        std::array<std::vector<std::vector<unsigned int>>, NDIM> DU_jump_dof_indices;
         FEType DU_jump_fe_type;
-        std::vector<std::vector<unsigned int> > WSS_out_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> WSS_out_dof_indices(NDIM);
         System* WSS_out_system;
         const DofMap* WSS_out_dof_map = nullptr;
         FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache = nullptr;
 
-        std::vector<std::vector<unsigned int> > WSS_in_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> WSS_in_dof_indices(NDIM);
         System* WSS_in_system;
         const DofMap* WSS_in_dof_map = nullptr;
         FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = nullptr;
@@ -977,34 +977,34 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         FEType fe_type = U_fe_type;
         std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe_X->get_JxW();
-        const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
 
         FEType fe_DU_jump_type = DU_jump_fe_type;
         std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
         const std::vector<double>& JxW_jump = fe_DU_jump->get_JxW();
-        const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
+        const std::vector<std::vector<double>>& phi_DU_jump = fe_DU_jump->get_phi();
 
         X_ghost_vec->close();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        std::unique_ptr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
-        std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
-        std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
-        std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_rhs_vec = U_vec->zero_clone();
+        std::vector<DenseVector<double>> U_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_n_rhs_vec = U_n_vec->zero_clone();
+        std::vector<DenseVector<double>> U_n_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_t_rhs_vec = U_t_vec->zero_clone();
+        std::vector<DenseVector<double>> U_t_rhs_e(NDIM);
 
-        std::unique_ptr<NumericVector<double> > WSS_out_rhs_vec =
-            (d_use_u_interp_correction ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double>> WSS_out_rhs_vec =
+            (d_use_u_interp_correction ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double>>());
         DenseVector<double> WSS_out_rhs_e[NDIM];
 
-        std::unique_ptr<NumericVector<double> > WSS_in_rhs_vec =
-            (d_use_u_interp_correction ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double>> WSS_in_rhs_vec =
+            (d_use_u_interp_correction ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double>>());
         DenseVector<double> WSS_in_rhs_e[NDIM];
 
         boost::multi_array<double, 2> x_node;
@@ -1014,7 +1014,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n;
         std::array<VectorValue<double>, 2> dx_dxi;
 
-        Pointer<PatchLevel<NDIM> > level =
+        Pointer<PatchLevel<NDIM>> level =
             d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1024,9 +1024,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1189,17 +1189,17 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
             const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
+            Pointer<PatchData<NDIM>> u_data = patch->getPatchData(u_data_idx);
 
             const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(u_ghost_num));
 
-            Pointer<CellData<NDIM, double> > u_cc_data = u_data;
+            Pointer<CellData<NDIM, double>> u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideData<NDIM, double> > u_sc_data = u_data;
+            Pointer<SideData<NDIM, double>> u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
@@ -1627,10 +1627,10 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     P_out_vec = d_P_out_half_vecs[part];
     copy_and_synch(*P_out_vec, *P_out_ghost_vec);
 
-    std::unique_ptr<NumericVector<double> > TAU_in_rhs_vec = TAU_in_vec->zero_clone();
+    std::unique_ptr<NumericVector<double>> TAU_in_rhs_vec = TAU_in_vec->zero_clone();
     std::array<DenseVector<double>, NDIM> TAU_in_rhs_e;
 
-    std::unique_ptr<NumericVector<double> > TAU_out_rhs_vec = TAU_out_vec->zero_clone();
+    std::unique_ptr<NumericVector<double>> TAU_out_rhs_vec = TAU_out_vec->zero_clone();
     std::array<DenseVector<double>, NDIM> TAU_out_rhs_e;
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1703,19 +1703,19 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
-    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+    const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
     dphi_dxi_X[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_out_fe_type);
-    const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
+    const std::vector<std::vector<double>>& phi_P = fe_P->get_phi();
 
     std::unique_ptr<FEBase> fe_tau = FEBase::build(dim, TAU_out_fe_type);
-    const std::vector<std::vector<double> >& phi_tau = fe_tau->get_phi();
+    const std::vector<std::vector<double>>& phi_tau = fe_tau->get_phi();
 
     std::unique_ptr<FEBase> fe_wss = FEBase::build(dim, WSS_out_fe_type);
-    const std::vector<std::vector<double> >& phi_wss = fe_wss->get_phi();
+    const std::vector<std::vector<double>>& phi_wss = fe_wss->get_phi();
 
     X_ghost_vec->close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
@@ -1724,11 +1724,11 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
-    std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+    std::unique_ptr<NumericVector<double>> X0_vec = X_petsc_vec->clone();
     copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
     X0_vec->close();
 
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node, X_node, WSS_in_node, WSS_out_node, n_qp_node, TAU_in_node, TAU_out_node;
@@ -1738,9 +1738,8 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
-    Pointer<PatchLevel<NDIM> > level =
-        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1748,12 +1747,12 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -2037,7 +2036,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         INSERT_VALUES,
         SCATTER_FORWARD);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
@@ -2045,11 +2044,11 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* X_vec = nullptr;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
-    std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
+    std::unique_ptr<NumericVector<double>> P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
     DenseVector<double> P_in_rhs_e;
 
-    std::unique_ptr<NumericVector<double> > P_out_rhs_vec = (*P_out_vec).zero_clone();
+    std::unique_ptr<NumericVector<double>> P_out_rhs_vec = (*P_out_vec).zero_clone();
     P_out_rhs_vec->zero();
     DenseVector<double> P_out_rhs_e;
 
@@ -2075,7 +2074,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2087,8 +2086,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<unsigned int> P_jump_dof_indices;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
-    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+    const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
     dphi_dxi_X[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
@@ -2106,9 +2105,9 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<unsigned int> P_out_dof_indices;
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_out_fe_type);
-    const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
+    const std::vector<std::vector<double>>& phi_P = fe_P->get_phi();
 
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node;
@@ -2117,9 +2116,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<double> P_i_qp, P_o_qp, P_in_qp, P_out_qp, P_jump_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
-    Pointer<PatchLevel<NDIM> > level =
-        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
     X_ghost_vec->close();
     int local_patch_num = 0;
@@ -2129,12 +2127,12 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
 
@@ -2290,7 +2288,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
         const Box<NDIM>& interp_box = patch->getBox();
 
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_data_idx);
 
         const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
 
@@ -2430,7 +2428,7 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
     RefineAlgorithm<NDIM> ghost_fill_alg_p;
     // TODO: Can we cache this algorithm/schedule?
     ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
-    Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
+    Pointer<RefineSchedule<NDIM>> ghost_fill_schd_p =
         ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -2558,7 +2556,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* F_vec = d_F_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        std::unique_ptr<NumericVector<double>> F_rhs_vec = F_vec->zero_clone();
         std::array<DenseVector<double>, NDIM> F_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -2567,7 +2565,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         double surface_area = 0.0;
 
         NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump_half_vecs[part] : nullptr;
-        std::unique_ptr<NumericVector<double> > P_jump_rhs_vec;
+        std::unique_ptr<NumericVector<double>> P_jump_rhs_vec;
         DenseVector<double> P_jump_rhs_e;
         if (d_use_pressure_jump_conditions)
         {
@@ -2576,7 +2574,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         double P_jump_rhs_integral = 0.0;
 
         std::array<NumericVector<double>*, NDIM> DU_jump_vec;
-        std::array<std::unique_ptr<NumericVector<double> >, NDIM> DU_jump_rhs_vec;
+        std::array<std::unique_ptr<NumericVector<double>>, NDIM> DU_jump_rhs_vec;
         std::array<std::array<DenseVector<double>, NDIM>, NDIM> DU_jump_rhs_e;
         if (d_use_velocity_jump_conditions)
         {
@@ -2648,8 +2646,8 @@ IIMethod::computeLagrangianForce(const double data_time)
         std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
         fe_X->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe_X->get_JxW();
-        const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
-        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X;
+        const std::vector<std::vector<double>>& phi_X = fe_X->get_phi();
+        std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi_X;
         dphi_dxi_X[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
@@ -2665,7 +2663,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 
         std::unique_ptr<FEBase> fe_jump = FEBase::build(dim, fe_jump_type);
         fe_jump->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi_jump = fe_jump->get_phi();
+        const std::vector<std::vector<double>>& phi_jump = fe_jump->get_phi();
 
         FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]->getFEData());
         fe_interpolator.attachQuadratureRule(qrule.get());
@@ -2679,7 +2677,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         fe_interpolator.init();
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
+        std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
@@ -2930,13 +2928,13 @@ IIMethod::computeLagrangianForce(const double data_time)
 void
 IIMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                      const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
                       const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     IBAMR_TIMER_START(t_spread_force);
 
-    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
+    std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = {
         d_X_IB_ghost_vecs, d_X_half_vecs, d_F_IB_ghost_vecs, d_F_half_vecs
     };
 
@@ -3273,11 +3271,11 @@ IIMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                   Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                   Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                    int /*u_data_idx*/,
-                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                   const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                   const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                    int /*integrator_step*/,
                                    double /*init_data_time*/,
                                    bool /*initial_time*/)
@@ -3300,7 +3298,7 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3312,8 +3310,8 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
 } // addWorkloadEstimate
 
 void
-IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                  Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3322,8 +3320,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // beginDataRedistribution
 
 void
-IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -3338,12 +3336,12 @@ IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // endDataRedistribution
 
 void
-IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                               int /*level_number*/,
                               double /*init_data_time*/,
                               bool /*can_be_refined*/,
                               bool /*initial_time*/,
-                              Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                              Pointer<BasePatchLevel<NDIM>> /*old_level*/,
                               bool /*allocate_data*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3354,7 +3352,7 @@ IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                       int /*coarsest_level*/,
                                       int /*finest_level*/)
 {
@@ -3367,7 +3365,7 @@ IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarc
 } // resetHierarchyConfiguration
 
 void
-IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                 int level_number,
                                 double error_data_time,
                                 int tag_index,
@@ -3375,7 +3373,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
                                 bool uses_richardson_extrapolation_too)
 {
     IBAMR_TIMER_START(t_apply_gradient_detector);
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -3482,19 +3480,19 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
     FEType fe_type = X_fe_type;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
-    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    std::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
 
     std::unique_ptr<FEBase> fe_P_jump = FEBase::build(dim, P_jump_fe_type);
-    const std::vector<std::vector<double> >& phi_P_jump = fe_P_jump->get_phi();
+    const std::vector<std::vector<double>>& phi_P_jump = fe_P_jump->get_phi();
 
     FEType fe_DU_jump_type = DU_jump_fe_type;
     std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
-    const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
+    const std::vector<std::vector<double>>& phi_DU_jump = fe_DU_jump->get_phi();
 
     // Loop over the patches to impose jump conditions on the Eulerian grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getFinestPatchLevelNumber();
     boost::multi_array<double, 1> P_jump_node;
@@ -3504,9 +3502,9 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n, jn;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -3515,8 +3513,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         std::array<Box<NDIM>, NDIM> side_ghost_boxes;
@@ -3531,23 +3529,23 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
             side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
         }
 
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
         std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double>>, IndexOrder>, NDIM>
             intersection_normals;
 
         std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
             intersection_u_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double>>, IndexOrder>, NDIM>
             intersection_u_normals;
 
         std::array<std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_points, intersectionSide_u_ref_coords;
-        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double>>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
         // Loop over the elements.
@@ -3674,8 +3672,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         }
                     }
 
-                    std::vector<std::pair<double, libMesh::Point> > intersections;
-                    std::array<std::vector<std::pair<double, libMesh::Point> >, NDIM - 1> intersectionsSide;
+                    std::vector<std::pair<double, libMesh::Point>> intersections;
+                    std::array<std::vector<std::pair<double, libMesh::Point>>, NDIM - 1> intersectionsSide;
 
                     static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
 
@@ -3734,7 +3732,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         intersection_points[axis][i_s_prime];
                                     const std::vector<libMesh::Point>& candidate_ref_coords =
                                         intersection_ref_coords[axis][i_s_prime];
-                                    const std::vector<VectorValue<double> >& candidate_normals =
+                                    const std::vector<VectorValue<double>>& candidate_normals =
                                         intersection_normals[axis][i_s_prime];
 
                                     found_same_intersection_point =
@@ -3813,7 +3811,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         intersection_u_points[axis][i_s_prime];
                                     const std::vector<libMesh::Point>& candidate_ref_coords =
                                         intersection_u_ref_coords[axis][i_s_prime];
-                                    const std::vector<VectorValue<double> >& candidate_normals =
+                                    const std::vector<VectorValue<double>>& candidate_normals =
                                         intersection_u_normals[axis][i_s_prime];
 
                                     found_same_intersection_point =
@@ -3988,7 +3986,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                             intersectionSide_u_points[j][axis][i_s_prime];
                                         const std::vector<libMesh::Point>& candidate_ref_coords =
                                             intersectionSide_u_ref_coords[j][axis][i_s_prime];
-                                        const std::vector<VectorValue<double> >& candidate_normals =
+                                        const std::vector<VectorValue<double>>& candidate_normals =
                                             intersectionSide_u_normals[j][axis][i_s_prime];
 
                                         found_same_intersection_point =
@@ -4070,12 +4068,12 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
                                           const SideIndex<NDIM>& i_s_prime,
                                           const std::vector<libMesh::Point>& candidate_coords,
                                           const std::vector<libMesh::Point>& candidate_ref_coords,
-                                          const std::vector<libMesh::VectorValue<double> >& candidate_normals)
+                                          const std::vector<libMesh::VectorValue<double>>& candidate_normals)
 {
     bool found_same_intersection_point = false;
     std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
     std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
-    std::vector<VectorValue<double> >::const_iterator n_prime_it = candidate_normals.begin();
+    std::vector<VectorValue<double>>::const_iterator n_prime_it = candidate_normals.begin();
     for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
     {
         const libMesh::Point& x_prime = *x_prime_it;

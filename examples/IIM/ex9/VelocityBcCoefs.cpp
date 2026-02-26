@@ -75,10 +75,10 @@ VelocityBcCoefs::~VelocityBcCoefs()
 } // ~VelocityBcCoefs
 
 void
-VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                            Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                            Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                            const Pointer<Variable<NDIM> >& /*variable*/,
+VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                            Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                            Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                            const Pointer<Variable<NDIM>>& /*variable*/,
                             const Patch<NDIM>& patch,
                             const BoundaryBox<NDIM>& bdry_box,
                             double fill_time) const
@@ -106,7 +106,7 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
 
     const Box<NDIM>& patch_box = patch.getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower(); // pointer to lower coordinates of patch
 

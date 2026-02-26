@@ -93,8 +93,8 @@ protected:
 
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_correlation_matrix;
 
-    std::vector<std::unique_ptr<libMesh::NumericVector<double> > > d_solutions;
-    std::vector<std::unique_ptr<libMesh::NumericVector<double> > > d_rhs;
+    std::vector<std::unique_ptr<libMesh::NumericVector<double>>> d_solutions;
+    std::vector<std::unique_ptr<libMesh::NumericVector<double>>> d_rhs;
 };
 } // namespace IBTK
 

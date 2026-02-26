@@ -178,14 +178,14 @@ private:
                 d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
     int d_level_solver_max_iterations = 1;
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver>> d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

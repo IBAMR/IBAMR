@@ -40,7 +40,7 @@ smooth_kernel(const double r)
 FeedbackForcer::FeedbackForcer(const double height,
                                const double diameter,
                                const INSHierarchyIntegrator* fluid_solver,
-                               const Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                               const Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
     : d_H(height), d_D(diameter), d_fluid_solver(fluid_solver), d_patch_hierarchy(patch_hierarchy)
 {
     // intentionally blank
@@ -61,13 +61,13 @@ FeedbackForcer::isTimeDependent() const
 
 void
 FeedbackForcer::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
+                               Pointer<Variable<NDIM>> /*var*/,
+                               Pointer<Patch<NDIM>> patch,
                                const double /*data_time*/,
                                const bool initial_time,
-                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                               Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -77,19 +77,19 @@ FeedbackForcer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.25 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data =
+    Pointer<SideData<NDIM, double>> U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data =
+    Pointer<SideData<NDIM, double>> U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_patch_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_patch_hierarchy->getGridGeometry();
     const double* const dx_coarsest = grid_geometry->getDx();
     double dx_finest[NDIM];
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();

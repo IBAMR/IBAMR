@@ -281,14 +281,14 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
 
     /*!
      * \name hypre objects.
@@ -307,7 +307,7 @@ private:
     HYPRE_SStructMatrix d_matrix = nullptr;
     HYPRE_SStructVector d_rhs_vec = nullptr, d_sol_vec = nullptr;
     HYPRE_SStructSolver d_solver = nullptr, d_precond = nullptr;
-    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
+    std::vector<SAMRAI::hier::Index<NDIM>> d_stencil_offsets;
 
     std::string d_solver_type = "Split", d_precond_type = "none", d_split_solver_type = "PFMG";
     int d_rel_change = 0;

@@ -58,7 +58,7 @@
 #include "LSLocateGasInterface.cpp"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator,
                  const int iteration_num,
                  const double loop_time,
@@ -157,18 +157,18 @@ main(int argc, char* argv[])
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -178,7 +178,7 @@ main(int argc, char* argv[])
         // Setup level set information
         const double fluid_height = input_db->getDouble("DEPTH");
         const string& ls_name = "level_set";
-        Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
+        Pointer<CellVariable<NDIM, double>> phi_var = new CellVariable<NDIM, double>(ls_name);
         adv_diff_integrator->registerTransportedQuantity(phi_var);
         adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
@@ -196,7 +196,7 @@ main(int argc, char* argv[])
             phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // Setup the INS maintained material properties.
-        Pointer<Variable<NDIM> > rho_var;
+        Pointer<Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
 
         time_integrator->registerMassDensityVariable(rho_var);
 
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -427,7 +427,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(eul_forces);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -456,7 +456,7 @@ main(int argc, char* argv[])
         // Get the probe points from the input file
         Pointer<Database> probe_db = input_db->getDatabase("ProbePoints");
         const int num_probes = (probe_db->getAllKeys()).getSize();
-        std::vector<std::vector<double> > probe_points;
+        std::vector<std::vector<double>> probe_points;
         std::vector<std::ofstream*> probe_streams;
         probe_points.resize(num_probes);
         probe_streams.resize(num_probes);
@@ -563,18 +563,18 @@ main(int argc, char* argv[])
                 for (int ln = finest_ln; ln >= coarsest_ln; --ln)
                 {
                     // Get the cell index for this point
-                    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                     const CellIndex<NDIM> cell_idx =
                         IndexUtilities::getCellIndex(&probe_points[i][0], level->getGridGeometry(), level->getRatio());
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
                         const Box<NDIM>& patch_box = patch->getBox();
                         const bool contains_probe = patch_box.contains(cell_idx);
                         if (!contains_probe) continue;
 
                         // Get the level set value at this particular cell and print to stream
-                        Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+                        Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
                         ls_val[i] = (*phi_data)(cell_idx);
                         found_point_in_patch = true;
                         if (found_point_in_patch) break;
@@ -636,7 +636,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator,
             const int iteration_num,
             const double loop_time,

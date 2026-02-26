@@ -108,9 +108,9 @@ public:
      * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
                                  bool register_for_restart = true);
 
     /*!
@@ -127,13 +127,13 @@ public:
      * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  std::set<double> snapshot_time_points,
                                  double period_start_time,
                                  double period_end_time,
                                  double threshold,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
                                  bool register_for_restart = true);
 
     /*!
@@ -161,7 +161,7 @@ public:
     //\{
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                     const int wgt_idx = IBTK::invalid_index,
                                     double tol = 1.0e-8)
     {
@@ -170,7 +170,7 @@ public:
 
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                     const std::string& mean_refine_type,
                                     const int wgt_idx = IBTK::invalid_index,
                                     double tol = 1.0e-8);
@@ -238,7 +238,7 @@ private:
     /*
      * Data for tracking mean flow quantities.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_var;
     int d_scratch_idx = IBTK::invalid_index;
     std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
@@ -274,10 +274,10 @@ private:
     SnapshotCache d_snapshot_cache;
 
     // Drawing stuff
-    std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mean_var;
+    std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM>> d_visit_data_writer;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_mean_var;
     int d_mean_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dev_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dev_var;
     int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
     bool d_output_data = true;

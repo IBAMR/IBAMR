@@ -20,10 +20,10 @@
 namespace IBTK
 {
 int
-determine_depth(Pointer<hier::Variable<NDIM> > var, int depth)
+determine_depth(Pointer<hier::Variable<NDIM>> var, int depth)
 {
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
-    Pointer<FaceVariable<NDIM, double> > fc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
+    Pointer<FaceVariable<NDIM, double>> fc_var = var;
     if (sc_var || fc_var)
         return depth * NDIM;
     else
@@ -58,9 +58,9 @@ check_consistent_across_ranks(std::vector<T> data)
 std::vector<double>
 interpolate(const VectorNd& X,
             const int data_idx,
-            Pointer<hier::Variable<NDIM> > Q_var,
+            Pointer<hier::Variable<NDIM>> Q_var,
             int Q_depth,
-            Pointer<PatchHierarchy<NDIM> > hierarchy,
+            Pointer<PatchHierarchy<NDIM>> hierarchy,
             std::string interp_fcn)
 {
     std::vector<VectorNd> X_vec = { X };
@@ -70,9 +70,9 @@ interpolate(const VectorNd& X,
 std::vector<double>
 interpolate(const std::vector<VectorNd>& X,
             const int data_idx,
-            Pointer<hier::Variable<NDIM> > Q_var,
+            Pointer<hier::Variable<NDIM>> Q_var,
             int Q_depth,
-            Pointer<PatchHierarchy<NDIM> > hierarchy,
+            Pointer<PatchHierarchy<NDIM>> hierarchy,
             std::string interp_fcn)
 {
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -80,7 +80,7 @@ interpolate(const std::vector<VectorNd>& X,
     // Determine the actual depth of the Q_var, taking into account data layout.
     int actual_depth = determine_depth(Q_var, Q_depth);
     // We store interpolated data separately on each level, so we can correctly reduce it later.
-    std::vector<std::vector<double> > Q_data_ln_vec(finest_ln + 1, std::vector<double>(X.size() * actual_depth, 0.0));
+    std::vector<std::vector<double>> Q_data_ln_vec(finest_ln + 1, std::vector<double>(X.size() * actual_depth, 0.0));
     // Flatten the vector of VectorNd to a single list of doubles.
     std::vector<double> X_data = flatten_eig_vec(X);
 #ifndef NDEBUG
@@ -94,17 +94,17 @@ interpolate(const std::vector<VectorNd>& X,
 #endif
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         std::vector<double>& Q_data = Q_data_ln_vec[ln];
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& box = patch->getBox();
             // Note that LEInteractor currently only interpolates cell, side, node, and edge data.
-            Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(data_idx);
-            Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(data_idx);
-            Pointer<NodeData<NDIM, double> > nc_data = patch->getPatchData(data_idx);
-            Pointer<EdgeData<NDIM, double> > ec_data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(data_idx);
+            Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(data_idx);
+            Pointer<NodeData<NDIM, double>> nc_data = patch->getPatchData(data_idx);
+            Pointer<EdgeData<NDIM, double>> ec_data = patch->getPatchData(data_idx);
             if (cc_data)
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),

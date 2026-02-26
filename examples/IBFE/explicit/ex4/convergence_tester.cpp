@@ -120,7 +120,7 @@ main(int argc, char* argv[])
         }
 
         // Create major algorithm and data objects which comprise application.
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geom =
+        tbox::Pointer<geom::CartesianGridGeometry<NDIM>> grid_geom =
             new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
@@ -131,7 +131,7 @@ main(int argc, char* argv[])
         tbox::Pointer<hier::VariableContext> scratch_ctx =
             var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-        tbox::Pointer<pdat::SideVariable<NDIM, double> > U_var =
+        tbox::Pointer<pdat::SideVariable<NDIM, double>> U_var =
             new pdat::SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
         const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
         const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
@@ -139,14 +139,14 @@ main(int argc, char* argv[])
 
         //      tbox::Pointer<pdat::CellVariable<NDIM,double> > P_var = new
         //      pdat::CellVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::P");
-        tbox::Pointer<pdat::CellVariable<NDIM, double> > P_var =
+        tbox::Pointer<pdat::CellVariable<NDIM, double>> P_var =
             new pdat::CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P_extrap");
         const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
         const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
         const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
         // Set up visualization plot file writer.
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
+        tbox::Pointer<appu::VisItDataWriter<NDIM>> visit_data_writer =
             new appu::VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
@@ -205,7 +205,7 @@ main(int argc, char* argv[])
             tbox::Pointer<tbox::HDFDatabase> coarse_hier_db = new tbox::HDFDatabase("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarse_patch_hierarchy =
+            tbox::Pointer<hier::PatchHierarchy<NDIM>> coarse_patch_hierarchy =
                 new hier::PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
             coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -216,7 +216,7 @@ main(int argc, char* argv[])
             tbox::Pointer<tbox::HDFDatabase> fine_hier_db = new tbox::HDFDatabase("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > fine_patch_hierarchy = new hier::PatchHierarchy<NDIM>(
+            tbox::Pointer<hier::PatchHierarchy<NDIM>> fine_patch_hierarchy = new hier::PatchHierarchy<NDIM>(
                 "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
             fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -228,7 +228,7 @@ main(int argc, char* argv[])
             loop_time = fine_loop_time;
             tbox::pout << "     loop time = " << loop_time << endl;
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy =
+            tbox::Pointer<hier::PatchHierarchy<NDIM>> coarsened_fine_patch_hierarchy =
                 fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
             // Setup hierarchy operations objects.
@@ -245,7 +245,7 @@ main(int argc, char* argv[])
             // Allocate patch data.
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> level = coarse_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_interp_idx, loop_time);
                 level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
@@ -254,7 +254,7 @@ main(int argc, char* argv[])
 
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level = fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> level = fine_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_interp_idx, loop_time);
                 level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
@@ -263,7 +263,7 @@ main(int argc, char* argv[])
 
             for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_idx, loop_time);
                 level->allocatePatchData(P_idx, loop_time);
                 level->allocatePatchData(U_interp_idx, loop_time);
@@ -275,11 +275,11 @@ main(int argc, char* argv[])
             // Synchronize the coarse hierarchy data.
             for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
-                tbox::Pointer<hier::PatchLevel<NDIM> > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+                tbox::Pointer<hier::PatchLevel<NDIM>> finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm<NDIM> coarsen_alg;
-                tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
+                tbox::Pointer<xfer::CoarsenOperator<NDIM>> coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -293,11 +293,11 @@ main(int argc, char* argv[])
             // Synchronize the fine hierarchy data.
             for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
-                tbox::Pointer<hier::PatchLevel<NDIM> > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+                tbox::Pointer<hier::PatchLevel<NDIM>> finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm<NDIM> coarsen_alg;
-                tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
+                tbox::Pointer<xfer::CoarsenOperator<NDIM>> coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -311,14 +311,14 @@ main(int argc, char* argv[])
             // Coarsen data from the fine hierarchy to the coarsened fine hierarchy.
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-                tbox::Pointer<hier::PatchLevel<NDIM> > src_level = fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-                tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
+                tbox::Pointer<xfer::CoarsenOperator<NDIM>> coarsen_op;
                 for (hier::PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
                 {
-                    tbox::Pointer<hier::Patch<NDIM> > dst_patch = dst_level->getPatch(p());
-                    tbox::Pointer<hier::Patch<NDIM> > src_patch = src_level->getPatch(p());
+                    tbox::Pointer<hier::Patch<NDIM>> dst_patch = dst_level->getPatch(p());
+                    tbox::Pointer<hier::Patch<NDIM>> src_patch = src_level->getPatch(p());
                     const hier::Box<NDIM>& coarse_box = dst_patch->getBox();
                     TBOX_ASSERT(hier::Box<NDIM>::coarsen(src_patch->getBox(), 2) == coarse_box);
 
@@ -334,11 +334,11 @@ main(int argc, char* argv[])
             // the coarse patch hierarchy.
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
-                tbox::Pointer<hier::PatchLevel<NDIM> > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM>> src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::RefineAlgorithm<NDIM> refine_alg;
-                tbox::Pointer<xfer::RefineOperator<NDIM> > refine_op;
+                tbox::Pointer<xfer::RefineOperator<NDIM>> refine_op;
 
                 refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
                 refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);

@@ -23,8 +23,8 @@ namespace IBAMR
 {
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
                                                    const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const Pointer<CellVariable<NDIM, double> > H_var,
-                                                   const Pointer<FaceVariable<NDIM, double> > U_adv_var)
+                                                   const Pointer<CellVariable<NDIM, double>> H_var,
+                                                   const Pointer<FaceVariable<NDIM, double>> U_adv_var)
     : d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
 {
     // intentionally blank
@@ -39,8 +39,8 @@ HeavisideForcingFunction::isTimeDependent() const
 
 void
 HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable<NDIM> > /*var*/,
-                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  Pointer<Variable<NDIM>> /*var*/,
+                                                  Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                   const double data_time,
                                                   const bool initial_time,
                                                   const int coarsest_ln_in,
@@ -84,11 +84,11 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 HeavisideForcingFunction::setDataOnPatch(const int /*data_idx*/,
-                                         Pointer<Variable<NDIM> > /*var*/,
-                                         Pointer<Patch<NDIM> > /*patch*/,
+                                         Pointer<Variable<NDIM>> /*var*/,
+                                         Pointer<Patch<NDIM>> /*patch*/,
                                          const double /*data_time*/,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                         Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     // As we directly compute and set data on the patch hierarchy don't do anything over here.
     return;

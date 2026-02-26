@@ -150,8 +150,8 @@ AllenCahnHierarchyIntegrator::AllenCahnHierarchyIntegrator(const std::string& ob
 } // AllenCahnHierarchyIntegrator
 
 void
-AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                            Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -310,7 +310,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_lf_C_idx)) level->allocatePatchData(d_lf_C_idx, current_time);
         if (!level->checkAllocated(d_lf_temp_rhs_idx)) level->allocatePatchData(d_lf_temp_rhs_idx, current_time);
         if (!level->checkAllocated(d_g_firstder_idx)) level->allocatePatchData(d_g_firstder_idx, current_time);
@@ -1104,7 +1104,7 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_lf_C_idx);
         level->deallocatePatchData(d_lf_temp_rhs_idx);
         level->deallocatePatchData(d_g_firstder_idx);
@@ -1127,18 +1127,18 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
 } // postprocessIntegrateHierarchy
 
 void
-AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > lf_var,
+AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double>> lf_var,
                                                              const bool output_lf_var)
 {
     d_lf_var = lf_var;
     d_output_lf = output_lf_var;
 
-    Pointer<CellDataFactory<NDIM, double> > lf_factory = lf_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double>> lf_factory = lf_var->getPatchDataFactory();
     const int lf_depth = lf_factory->getDefaultDepth();
-    Pointer<CellVariable<NDIM, double> > lf_rhs_var =
+    Pointer<CellVariable<NDIM, double>> lf_rhs_var =
         new CellVariable<NDIM, double>(lf_var->getName() + "::lf_rhs", lf_depth);
-    Pointer<CellVariable<NDIM, double> > lf_F_var = new CellVariable<NDIM, double>(lf_var->getName() + "::F", lf_depth);
-    Pointer<SideVariable<NDIM, double> > lf_diff_coef_var =
+    Pointer<CellVariable<NDIM, double>> lf_F_var = new CellVariable<NDIM, double>(lf_var->getName() + "::F", lf_depth);
+    Pointer<SideVariable<NDIM, double>> lf_diff_coef_var =
         new SideVariable<NDIM, double>(lf_var->getName() + "::diff_coef", lf_depth);
 
     // Set default values.
@@ -1153,7 +1153,7 @@ AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariabl
 } // registerLiquidFractionVariable
 
 Pointer<PoissonSolver>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double>> lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1176,7 +1176,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVa
 } // getAllenCahnEquationHelmholtzSolver
 
 Pointer<LaplaceOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double>> lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1192,7 +1192,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<C
 } // getAllenCahnEquationHelmholtzRHSOperator
 
 void
-AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariable<NDIM, double> > lf_var,
+AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariable<NDIM, double>> lf_var,
                                                               RobinBcCoefStrategy<NDIM>* lf_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -1209,8 +1209,8 @@ AllenCahnHierarchyIntegrator::getLiquidFractionPhysicalBcCoef()
 } // getLiquidFractionPhysicalBcCoef
 
 Pointer<CellConvectiveOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<CellVariable<NDIM, double> > lf_var,
-                                                                     Pointer<CellVariable<NDIM, double> > H_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<CellVariable<NDIM, double>> lf_var,
+                                                                     Pointer<CellVariable<NDIM, double>> H_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lf_var);
@@ -1268,16 +1268,16 @@ AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int
     int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellData<NDIM, double> > H_new_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
-            Pointer<CellData<NDIM, double> > H_current_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
+            Pointer<CellData<NDIM, double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
+            Pointer<CellData<NDIM, double>> H_new_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double>> lf_current_data = patch->getPatchData(d_lf_current_idx);
+            Pointer<CellData<NDIM, double>> H_current_data = patch->getPatchData(H_current_idx);
+            Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_scratch_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -1339,19 +1339,19 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
-            Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
-            Pointer<CellData<NDIM, double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(d_T_new_idx);
+            Pointer<CellData<NDIM, double>> q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double>> rho_data = patch->getPatchData(d_rho_new_idx);
+            Pointer<CellData<NDIM, double>> g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            Pointer<CellData<NDIM, double>> g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            Pointer<CellData<NDIM, double>> chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
+            Pointer<CellData<NDIM, double>> Div_U_F_data = patch->getPatchData(Div_U_F_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -1434,15 +1434,15 @@ AllenCahnHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(g_firstder_idx);
-            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(g_secondder_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(liquid_fraction_idx);
+            Pointer<CellData<NDIM, double>> g_firstder_data = patch->getPatchData(g_firstder_idx);
+            Pointer<CellData<NDIM, double>> g_secondder_data = patch->getPatchData(g_secondder_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -1479,15 +1479,15 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(q_firstder_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(liquid_fraction_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double>> q_firstder_data = patch->getPatchData(q_firstder_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -1586,19 +1586,19 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
-            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            Pointer<CellData<NDIM, double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(d_T_new_idx);
+            Pointer<CellData<NDIM, double>> q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_scratch_idx);
+            Pointer<CellData<NDIM, double>> g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            Pointer<CellData<NDIM, double>> g_secondder_data = patch->getPatchData(d_g_secondder_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

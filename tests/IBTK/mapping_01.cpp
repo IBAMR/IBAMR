@@ -80,7 +80,7 @@ test(LibMeshInit& init)
         libmesh_fe->get_JxW();
 
         const quadrature_key_type key{ elem_type, quad_type, THIRD, true };
-        std::unique_ptr<FEMapping<dim> > mapping =
+        std::unique_ptr<FEMapping<dim>> mapping =
             FEMapping<dim>::build(key, FEUpdateFlags::update_JxW | FEUpdateFlags::update_quadrature_points);
 
         for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();

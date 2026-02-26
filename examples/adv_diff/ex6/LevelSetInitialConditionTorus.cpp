@@ -19,7 +19,7 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialConditionTorus::LevelSetInitialConditionTorus(const std::string& object_name,
-                                                             const Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+                                                             const Pointer<CartesianGridGeometry<NDIM>> grid_geom,
                                                              const IBTK::VectorNd& origin,
                                                              const IBTK::Vector2d& t)
     : d_object_name(object_name), d_grid_geom(grid_geom), d_origin(origin), d_t(t)
@@ -36,24 +36,24 @@ LevelSetInitialConditionTorus::isTimeDependent() const
 
 void
 LevelSetInitialConditionTorus::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Variable<NDIM>> /*var*/,
+                                              Pointer<Patch<NDIM>> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              Pointer<PatchLevel<NDIM>> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
 
         // Get physical coordinates
         IBTK::VectorNd coord = IBTK::Vector::Zero();
         IBTK::VectorNd p = IBTK::Vector::Zero();
         IBTK::Vector2d q(0.0, 0.0);
 
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
         IntVector<NDIM> ratio = patch_level->getRatio();

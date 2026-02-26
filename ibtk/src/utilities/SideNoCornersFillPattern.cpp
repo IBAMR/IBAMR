@@ -48,7 +48,7 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width, cons
     return;
 } // SideNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM> >
+Pointer<BoxOverlap<NDIM>>
 SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,
                                            const Box<NDIM>& /*dst_patch_box*/,
@@ -59,7 +59,7 @@ SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     return dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM> >
+Pointer<BoxOverlap<NDIM>>
 SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
                                                   const BoxGeometry<NDIM>& src_geometry,
                                                   const Box<NDIM>& dst_patch_box,
@@ -71,7 +71,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
 {
     if (d_target_level_num == dst_level_num)
     {
-        Pointer<SideOverlap<NDIM> > default_overlap = dst_geometry.calculateOverlap(
+        Pointer<SideOverlap<NDIM>> default_overlap = dst_geometry.calculateOverlap(
             dst_geometry, src_geometry, src_mask, overwrite_interior, src_offset, /*retry*/ false);
 
         // If we are on the target level, we set up the stencil to include overlaps
@@ -97,7 +97,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
             }
             dst_boxes[axis].intersectBoxes(stencil_boxes);
         }
-        Pointer<SideOverlap<NDIM> > overlap = new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
+        Pointer<SideOverlap<NDIM>> overlap = new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
         return overlap;
     }
     else

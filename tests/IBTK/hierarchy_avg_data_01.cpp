@@ -59,7 +59,7 @@ private:
 };
 
 void fill_data(int idx,
-               Pointer<PatchHierarchy<NDIM> > hierarchy,
+               Pointer<PatchHierarchy<NDIM>> hierarchy,
                double time,
                std::mt19937& gen,
                uniform_double_distribution& dis);
@@ -67,7 +67,7 @@ void fill_data(int idx,
 void test(const std::string& test_name,
           const int idx,
           const std::unique_ptr<HierarchyAveragedDataManager>& avg_manager,
-          Pointer<PatchHierarchy<NDIM> > hierarchy,
+          Pointer<PatchHierarchy<NDIM>> hierarchy,
           const std::set<double>& times,
           const int max_periods,
           const std::string& refine_type,
@@ -104,15 +104,15 @@ main(int argc, char* argv[])
         // start by setting up the same half-dozen objects.
         // Note we generate two patch hierarchies. We want to test our code that interpolates snapshots from one
         // hierarchy onto a different hierarchy.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -145,19 +145,19 @@ main(int argc, char* argv[])
         Pointer<Database> avg_manager_db = new InputDatabase("AvgManager");
         avg_manager_db->putBool("output_data", false);
         avg_manager_db->putBool("enable_logging", false);
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_var");
+        Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_var");
         std::unique_ptr<HierarchyAveragedDataManager> c_avg_manager(new HierarchyAveragedDataManager(
             "CellAvgManager", c_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
-        Pointer<NodeVariable<NDIM, double> > n_var = new NodeVariable<NDIM, double>("n_var");
+        Pointer<NodeVariable<NDIM, double>> n_var = new NodeVariable<NDIM, double>("n_var");
         std::unique_ptr<HierarchyAveragedDataManager> n_avg_manager(new HierarchyAveragedDataManager(
             "NodeAvgManager", n_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
-        Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_var");
+        Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_var");
         std::unique_ptr<HierarchyAveragedDataManager> s_avg_manager(new HierarchyAveragedDataManager(
             "SideAvgManager", s_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
-        Pointer<EdgeVariable<NDIM, double> > e_var = new EdgeVariable<NDIM, double>("e_var");
+        Pointer<EdgeVariable<NDIM, double>> e_var = new EdgeVariable<NDIM, double>("e_var");
         std::unique_ptr<HierarchyAveragedDataManager> e_avg_manager(new HierarchyAveragedDataManager(
             "EdgeAvgManager", e_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
-        Pointer<FaceVariable<NDIM, double> > f_var = new FaceVariable<NDIM, double>("f_var");
+        Pointer<FaceVariable<NDIM, double>> f_var = new FaceVariable<NDIM, double>("f_var");
         std::unique_ptr<HierarchyAveragedDataManager> f_avg_manager(new HierarchyAveragedDataManager(
             "FaceAvgManager", f_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
 
@@ -230,7 +230,7 @@ void
 test(const std::string& test_name,
      const int idx,
      const std::unique_ptr<HierarchyAveragedDataManager>& avg_manager,
-     Pointer<PatchHierarchy<NDIM> > hierarchy,
+     Pointer<PatchHierarchy<NDIM>> hierarchy,
      const std::set<double>& times,
      const int max_periods,
      const std::string& refine_type,
@@ -241,7 +241,7 @@ test(const std::string& test_name,
     // Fill in data.
     std::mt19937 gen(1);
     uniform_double_distribution dis(-noise_max, noise_max);
-    std::vector<std::pair<bool, int> > steady_state_vec(times.size(), std::make_pair(false, 0));
+    std::vector<std::pair<bool, int>> steady_state_vec(times.size(), std::make_pair(false, 0));
     pout << "Testing " << test_name << "\n";
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     int period = from_restart ? 15 : 0;
@@ -281,7 +281,7 @@ test(const std::string& test_name,
 
 void
 fill_data(const int idx,
-          Pointer<PatchHierarchy<NDIM> > hierarchy,
+          Pointer<PatchHierarchy<NDIM>> hierarchy,
           const double time,
           std::mt19937& gen,
           uniform_double_distribution& dis)
@@ -289,20 +289,20 @@ fill_data(const int idx,
     // Fill idx with the function value
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(idx)) level->allocatePatchData(idx, time);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double* const xlow = pgeom->getXLower();
             const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-            Pointer<CellData<NDIM, double> > c_data = patch->getPatchData(idx);
-            Pointer<NodeData<NDIM, double> > n_data = patch->getPatchData(idx);
-            Pointer<EdgeData<NDIM, double> > e_data = patch->getPatchData(idx);
-            Pointer<SideData<NDIM, double> > s_data = patch->getPatchData(idx);
-            Pointer<FaceData<NDIM, double> > f_data = patch->getPatchData(idx);
+            Pointer<CellData<NDIM, double>> c_data = patch->getPatchData(idx);
+            Pointer<NodeData<NDIM, double>> n_data = patch->getPatchData(idx);
+            Pointer<EdgeData<NDIM, double>> e_data = patch->getPatchData(idx);
+            Pointer<SideData<NDIM, double>> s_data = patch->getPatchData(idx);
+            Pointer<FaceData<NDIM, double>> f_data = patch->getPatchData(idx);
 
             if (c_data)
             {

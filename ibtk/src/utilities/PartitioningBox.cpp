@@ -86,11 +86,11 @@ PartitioningBoxes::PartitioningBoxes(const PatchHierarchy<NDIM>& hierarchy)
 {
     std::vector<IBTK::PartitioningBox> boxes;
     const int finest_level = hierarchy.getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = hierarchy.getPatchLevel(finest_level);
+    Pointer<PatchLevel<NDIM>> level = hierarchy.getPatchLevel(finest_level);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Patch<NDIM>& patch = *level->getPatch(p());
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geometry = patch.getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = patch.getPatchGeometry();
         boxes.emplace_back(*patch_geometry);
     }
 

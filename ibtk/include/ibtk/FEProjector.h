@@ -176,8 +176,8 @@ protected:
     std::shared_ptr<FEData> d_fe_data;
 
     /// Data structures for consistent mass matrices and related solvers.
-    std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double>>> d_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double>>> d_L2_proj_solver;
 
     /// Data structures for lumped mass matrices. These are computed in the same
     /// way as the normal mass matrix, except the quadrature rule used to
@@ -187,14 +187,13 @@ protected:
     /// Here we refer to the unconstrained matrix (which is always diagonal) as
     /// proj_matrix_diag and the constrained (should there be constraints) matrix
     /// as lumped_L2_proj_matrix.
-    std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_lumped_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_lumped_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_diag_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double>>> d_lumped_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double>>> d_lumped_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::PetscVector<double>>> d_diag_L2_proj_matrix;
 
     /// Data structures for consistent mass matrices and related solvers with local projection stabilization.
-    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscMatrix<double> > > > d_stab_L2_proj_matrix;
-    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscLinearSolver<double> > > >
-        d_stab_L2_proj_solver;
+    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscMatrix<double>>>> d_stab_L2_proj_matrix;
+    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscLinearSolver<double>>>> d_stab_L2_proj_solver;
 
     std::map<std::string, FischerGuess> d_initial_guesses;
 
@@ -205,7 +204,7 @@ private:
      * SAMRAI stores timers in a single unsorted array. To keep timer lookups
      * quick we cache the pointers here.
      */
-    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> > d_linear_solve_system_timers;
+    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer>> d_linear_solve_system_timers;
 
     /*!
      * Whether or not to log data to the screen: see

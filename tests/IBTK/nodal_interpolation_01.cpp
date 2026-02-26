@@ -58,15 +58,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -77,10 +77,10 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<hier::Variable<NDIM> > u_var, e_var;
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        Pointer<FaceVariable<NDIM, double> > u_fc_var = new FaceVariable<NDIM, double>("u_fc");
+        Pointer<hier::Variable<NDIM>> u_var, e_var;
+        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
+        Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
+        Pointer<FaceVariable<NDIM, double>> u_fc_var = new FaceVariable<NDIM, double>("u_fc");
 
         if (var_type == "CELL")
         {
@@ -102,11 +102,11 @@ main(int argc, char* argv[])
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
 
         const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
-        Pointer<NodeVariable<NDIM, double> > u_nc_var =
+        Pointer<NodeVariable<NDIM, double>> u_nc_var =
             new NodeVariable<NDIM, double>("u_nc", NDIM, fine_boundary_represents_var);
-        Pointer<NodeVariable<NDIM, double> > e_nc_var =
+        Pointer<NodeVariable<NDIM, double>> e_nc_var =
             new NodeVariable<NDIM, double>("e_nc", NDIM, fine_boundary_represents_var);
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
+        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
 
         // Don't add more ghosts unless we need them to interpolate_back
         const bool interp_back = input_db->getBoolWithDefault("interp_back", false);
@@ -127,7 +127,7 @@ main(int argc, char* argv[])
         }
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_nc_var->getName(), "VECTOR", u_nc_idx);
@@ -157,7 +157,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
             level->allocatePatchData(u_nc_idx, 0.0);
             level->allocatePatchData(e_idx, 0.0);
@@ -227,8 +227,8 @@ main(int argc, char* argv[])
 
             hier_math_ops.interp(e_idx, e_cc_var, u_nc_idx, u_nc_var, nullptr, 0.0, true);
         }
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
 
         // Compute error and print error norms.
         const double max_norm = e_vec.maxNorm();
@@ -244,16 +244,16 @@ main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             BoxArray<NDIM> refined_region_boxes;
-            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<NodeData<NDIM, double> > e_nc_data = patch->getPatchData(e_idx);
+                Pointer<NodeData<NDIM, double>> e_nc_data = patch->getPatchData(e_idx);
                 if (e_nc_data)
                 {
                     for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -277,12 +277,12 @@ main(int argc, char* argv[])
             for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 out << "level = " << ln << '\n';
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<NodeData<NDIM, double> > u_data = patch->getPatchData(u_nc_idx);
-                    Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<NodeData<NDIM, double>> u_data = patch->getPatchData(u_nc_idx);
+                    Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
                     for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
                     {

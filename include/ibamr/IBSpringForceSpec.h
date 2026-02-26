@@ -106,7 +106,7 @@ public:
     IBSpringForceSpec(int master_idx,
                       const std::vector<int>& slave_idxs,
                       const std::vector<int>& force_fcn_idxs,
-                      const std::vector<std::vector<double> >& parameters);
+                      const std::vector<std::vector<double>>& parameters);
 
     /*!
      * \return The number of springs attached to the master node.
@@ -154,7 +154,7 @@ public:
      * \warning Users may change parameter values but \em must \em not resize
      * the parameter vectors.
      */
-    const std::vector<std::vector<double> >& getParameters() const;
+    const std::vector<std::vector<double>>& getParameters() const;
 
     /*!
      * \return A non-const reference to the parameters of the springs attached
@@ -163,7 +163,7 @@ public:
      * \warning Users may change parameter values but \em must \em not resize
      * the parameter vectors.
      */
-    std::vector<std::vector<double> >& getParameters();
+    std::vector<std::vector<double>>& getParameters();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -209,7 +209,7 @@ private:
      */
     int d_master_idx = IBTK::invalid_index;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
-    std::vector<std::vector<double> > d_parameters;
+    std::vector<std::vector<double>> d_parameters;
 
     /*!
      * \brief A factory class to rebuild IBSpringForceSpec objects from

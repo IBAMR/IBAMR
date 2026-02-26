@@ -53,7 +53,7 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     // only implemented when we use SAMRAI's partitioning
     TBOX_ASSERT(n == static_cast<unsigned int>(IBTK_MPI::getNodes()));
 
-    std::vector<std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*> > centroids;
+    std::vector<std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*>> centroids;
     auto el_end = mesh.elements_end();
     for (auto it = mesh.elements_begin(); it != el_end; ++it)
     {

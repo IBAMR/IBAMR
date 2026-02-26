@@ -85,15 +85,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -126,30 +126,30 @@ main(int argc, char* argv[])
         // boundaries to obtain ghost cell values.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_v");
-        Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_v");
+        Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_v");
+        Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_v");
         const int gcw = 1;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(c_idx);
             level->allocatePatchData(s_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const hier::Index<NDIM>& patch_lower = patch_box.lower();
 
                 pout << "checking robin bc handling . . .\n";
 
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();
                 if (var_centering == "CELL")
                 {
-                    Pointer<CellData<NDIM, double> > data = patch->getPatchData(c_idx);
+                    Pointer<CellData<NDIM, double>> data = patch->getPatchData(c_idx);
                     for (CellIterator<NDIM> ci(patch_box); ci; ci++)
                     {
                         const CellIndex<NDIM>& i = ci();
@@ -163,7 +163,7 @@ main(int argc, char* argv[])
                 }
                 else if (var_centering == "SIDE")
                 {
-                    Pointer<SideData<NDIM, double> > data = patch->getPatchData(s_idx);
+                    Pointer<SideData<NDIM, double>> data = patch->getPatchData(s_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         for (SideIterator<NDIM> si(patch_box, axis); si; si++)
@@ -203,11 +203,11 @@ main(int argc, char* argv[])
                 if (var_centering == "CELL")
                 {
                     CartCellRobinPhysBdryOp bc_fill_op(c_idx, bc_coefs, false, extrap_type);
-                    Pointer<CellData<NDIM, double> > data = patch->getPatchData(c_idx);
+                    Pointer<CellData<NDIM, double>> data = patch->getPatchData(c_idx);
                     bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
 
                     warning = false;
-                    std::vector<Box<NDIM> > ghost_boxes;
+                    std::vector<Box<NDIM>> ghost_boxes;
                     if (extrap_type == "LINEAR")
                     {
                         ghost_boxes.push_back(data->getGhostBox());
@@ -215,7 +215,7 @@ main(int argc, char* argv[])
                     else if (extrap_type == "QUADRATIC")
                     {
                         ghost_boxes.push_back(patch->getBox());
-                        const tbox::Array<BoundaryBox<NDIM> > codim1_boxes =
+                        const tbox::Array<BoundaryBox<NDIM>> codim1_boxes =
                             PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                         if (codim1_boxes.size() != 0)
                         {
@@ -249,11 +249,11 @@ main(int argc, char* argv[])
                 else if (var_centering == "SIDE")
                 {
                     CartSideRobinPhysBdryOp bc_fill_op(s_idx, bc_coefs, false, extrap_type);
-                    Pointer<SideData<NDIM, double> > data = patch->getPatchData(s_idx);
+                    Pointer<SideData<NDIM, double>> data = patch->getPatchData(s_idx);
                     bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
 
                     warning = false;
-                    std::vector<Box<NDIM> > ghost_boxes;
+                    std::vector<Box<NDIM>> ghost_boxes;
                     if (extrap_type == "LINEAR")
                     {
                         ghost_boxes.push_back(data->getGhostBox());
@@ -261,7 +261,7 @@ main(int argc, char* argv[])
                     else if (extrap_type == "QUADRATIC")
                     {
                         ghost_boxes.push_back(patch->getBox());
-                        const tbox::Array<BoundaryBox<NDIM> > codim1_boxes =
+                        const tbox::Array<BoundaryBox<NDIM>> codim1_boxes =
                             PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                         if (codim1_boxes.size() != 0)
                         {

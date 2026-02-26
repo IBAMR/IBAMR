@@ -46,7 +46,7 @@
 #include "RigidBodyKinematics.h"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -114,18 +114,18 @@ main(int argc, char* argv[])
                                               ib_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -187,7 +187,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -200,7 +200,7 @@ main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Create ConstraintIBKinematics objects
-        vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
+        vector<Pointer<ConstraintIBKinematics>> ibkinematics_ops_vec;
         Pointer<ConstraintIBKinematics> ib_kinematics_op;
         // struct_0
         ib_kinematics_op = new RigidBodyKinematics(
@@ -237,7 +237,7 @@ main(int argc, char* argv[])
 
         // Get the center of mass of the cylinder
         IBTK::Vector3d Cylinder_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
+        std::vector<std::vector<double>> structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -251,11 +251,11 @@ main(int argc, char* argv[])
         // Get velocity and pressure variables from integrator
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<Variable<NDIM>> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<Variable<NDIM>> p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
@@ -311,10 +311,10 @@ main(int argc, char* argv[])
             Cylinder_mom.setZero();
             Cylinder_ang_mom.setZero();
 
-            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getStructureMomentum();
+            std::vector<std::vector<double>> structure_linear_momentum = ib_method_ops->getStructureMomentum();
             for (int d = 0; d < 3; ++d) Cylinder_mom[d] = structure_linear_momentum[0][d];
 
-            std::vector<std::vector<double> > structure_rotational_momentum =
+            std::vector<std::vector<double>> structure_rotational_momentum =
                 ib_method_ops->getStructureRotationalMomentum();
             for (int d = 0; d < 3; ++d) Cylinder_ang_mom[d] = structure_rotational_momentum[0][d];
 
@@ -384,7 +384,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             LDataManager* l_data_manager,
             const int iteration_num,

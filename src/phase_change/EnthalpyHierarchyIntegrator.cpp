@@ -118,8 +118,8 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
 } // EnthalpyHierarchyIntegrator
 
 void
-EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -181,7 +181,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_dh_dT_scratch_idx)) level->allocatePatchData(d_dh_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
@@ -589,7 +589,7 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_T_pre_idx);
         level->deallocatePatchData(d_dh_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
@@ -639,18 +639,18 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellData<NDIM, double> > h_new_data = patch->getPatchData(d_h_new_idx);
-            Pointer<CellData<NDIM, double> > h_current_data = patch->getPatchData(d_h_current_idx);
-            Pointer<CellData<NDIM, double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellData<NDIM, double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
-            Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
+            Pointer<CellData<NDIM, double>> T_new_data = patch->getPatchData(d_T_new_idx);
+            Pointer<CellData<NDIM, double>> h_new_data = patch->getPatchData(d_h_new_idx);
+            Pointer<CellData<NDIM, double>> h_current_data = patch->getPatchData(d_h_current_idx);
+            Pointer<CellData<NDIM, double>> rho_new_data = patch->getPatchData(d_rho_new_idx);
+            Pointer<CellData<NDIM, double>> rho_current_data = patch->getPatchData(d_rho_current_idx);
+            Pointer<CellData<NDIM, double>> dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_scratch_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -702,15 +702,15 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(d_h_new_idx);
-            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellData<NDIM, double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(d_h_new_idx);
+            Pointer<CellData<NDIM, double>> rho_data = patch->getPatchData(d_rho_new_idx);
+            Pointer<CellData<NDIM, double>> Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_new_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -749,16 +749,16 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
+            Pointer<CellData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -800,14 +800,14 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -847,15 +847,15 @@ EnthalpyHierarchyIntegrator::updateEnthalpy(int h_new_idx, const int T_new_idx, 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > h_new_data = patch->getPatchData(h_new_idx);
-            Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(T_new_idx);
-            Pointer<CellData<NDIM, double> > T_pre_data = patch->getPatchData(T_pre_idx);
-            Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double>> h_new_data = patch->getPatchData(h_new_idx);
+            Pointer<CellData<NDIM, double>> T_new_data = patch->getPatchData(T_new_idx);
+            Pointer<CellData<NDIM, double>> T_pre_data = patch->getPatchData(T_pre_idx);
+            Pointer<CellData<NDIM, double>> dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -876,14 +876,14 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(dh_dT_idx);
+            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> dh_dT_data = patch->getPatchData(dh_dT_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -925,14 +925,14 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+            Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

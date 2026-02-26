@@ -488,8 +488,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 } // postprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                             Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                             Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -503,8 +503,8 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
 } // initializeHierarchyIntegrator
 
 void
-IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                        Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     IBHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -583,7 +583,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const std::vector<IBTK::Point>& marker
     d_marker_velocities_set = false;
 } // setMarkers
 
-std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 IBExplicitHierarchyIntegrator::collectAllMarkers() const
 {
     if (d_markers)

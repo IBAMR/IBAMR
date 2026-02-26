@@ -39,7 +39,7 @@ void
 MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
                                       hier::ProcessorMapping& mapping,
                                       const hier::BoxList<NDIM>& in_boxes,
-                                      const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+                                      const tbox::Pointer<hier::PatchHierarchy<NDIM>> hierarchy,
                                       int level_number,
                                       const hier::BoxArray<NDIM>& physical_domain,
                                       const hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
@@ -61,13 +61,13 @@ MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
                                                bad_interval);
 
     // pairs of processors and boxes
-    std::vector<std::pair<int, hier::Box<NDIM> > > new_boxes;
+    std::vector<std::pair<int, hier::Box<NDIM>>> new_boxes;
 
     const int n_nodes = IBTK_MPI::getNodes();
     for (int r = 0; r < n_nodes; ++r)
     {
         // get all boxes on processor r.
-        std::vector<hier::Box<NDIM> > boxes;
+        std::vector<hier::Box<NDIM>> boxes;
         for (int i = 0; i < out_boxes.size(); ++i)
             if (mapping.getProcessorAssignment(i) == r) boxes.push_back(out_boxes[i]);
 

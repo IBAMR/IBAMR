@@ -217,7 +217,7 @@ LDataManager::getLagrangianStructureIndexRange(const int structure_id, const int
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::map<int, std::pair<int, int> >::const_iterator cit =
+    std::map<int, std::pair<int, int>>::const_iterator cit =
         d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_lag_idx_range_map[level_number].end())) return std::make_pair(-1, -1);
     return cit->second;

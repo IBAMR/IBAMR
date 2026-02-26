@@ -65,7 +65,7 @@ discard_comments(const std::string& input_string)
 KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                          IBTK::LDataManager* l_data_manager,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_vel(NDIM),
@@ -127,7 +127,7 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln == finest_ln);
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
 
     if (input_db->keyExists("fin_starting_index")) d_fin_start_idx = input_db->getInteger("fin_starting_index");
 
@@ -250,7 +250,7 @@ void
 KnifeFishKinematics::setKnifefishSpecificVelocity(const double time)
 {
     static const StructureParameters& struct_param = getStructureParameters();
-    static const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    static const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     static const int nodes_fin = idx_range[0].second - idx_range[0].first;
 
     // Vector iterators
@@ -291,7 +291,7 @@ KnifeFishKinematics::setKinematicsVelocity(const double new_time,
 
 } // setKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 KnifeFishKinematics::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
@@ -307,7 +307,7 @@ KnifeFishKinematics::setShape(const double /*time*/,
 
 } // setShape
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 KnifeFishKinematics::getShape(const int /*level*/) const
 {
     return d_shape;

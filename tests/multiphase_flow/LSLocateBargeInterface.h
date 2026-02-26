@@ -50,7 +50,7 @@ class LSLocateBargeInterface
 public:
     LSLocateBargeInterface(const std::string& object_name,
                            SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                            IBTK::LDataManager* lag_data_manager,
                            double vol_elem,
                            BargeInterface* barge)
@@ -95,7 +95,7 @@ private:
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
 
     /*!
      * IB information
@@ -120,7 +120,7 @@ private:
                                         double /*time*/,
                                         bool /*initial_time*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -162,19 +162,19 @@ private:
         // Analytical distance away from the rectangle
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch = level->getPatch(p());
                 const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
                 for (SAMRAI::hier::Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     SAMRAI::pdat::CellIndex<NDIM> ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector X = IBTK::Vector::Zero();
-                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>> patch_geom =
                         patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
                     const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
@@ -232,11 +232,11 @@ private:
 
         IBTK::Vector c_xmin, c_xmax, c_ymin, c_ymax;
 
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1,
-                                                                SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> X_data(finest_ln + 1,
+                                                               SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
         X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

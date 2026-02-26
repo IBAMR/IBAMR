@@ -74,7 +74,7 @@ main(int argc, char* argv[])
                 SideGeometry<NDIM> src_geometry(src_box, gcw, axes);
                 Box<NDIM> src_mask = src_box;
 
-                Pointer<SideOverlap<NDIM> > overlap;
+                Pointer<SideOverlap<NDIM>> overlap;
 
                 tbox::plog << "default overlap, overwrite_interior == false:\n";
                 overlap = dst_geometry.calculateOverlap(dst_geometry,

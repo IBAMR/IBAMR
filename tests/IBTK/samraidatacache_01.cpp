@@ -39,7 +39,7 @@
 #include <ibtk/app_namespaces.h>
 
 void
-print_patch_descriptor_data(Pointer<PatchDescriptor<NDIM> > descriptor)
+print_patch_descriptor_data(Pointer<PatchDescriptor<NDIM>> descriptor)
 {
     int max_number_registered_components = descriptor->getMaxNumberRegisteredComponents();
     pout << "patch descriptor configuration:\n";
@@ -79,15 +79,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -99,18 +99,18 @@ main(int argc, char* argv[])
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
         pout << "adding double variables\n";
-        Pointer<CellVariable<NDIM, double> > cc_double_var = new CellVariable<NDIM, double>("cc_double");
-        Pointer<EdgeVariable<NDIM, double> > ec_double_var = new EdgeVariable<NDIM, double>("ec_double");
-        Pointer<FaceVariable<NDIM, double> > fc_double_var = new FaceVariable<NDIM, double>("fc_double");
-        Pointer<NodeVariable<NDIM, double> > nc_double_var = new NodeVariable<NDIM, double>("nc_double");
-        Pointer<OuteredgeVariable<NDIM, double> > oec_double_var = new OuteredgeVariable<NDIM, double>("oec_double");
-        Pointer<OuterfaceVariable<NDIM, double> > ofc_double_var = new OuterfaceVariable<NDIM, double>("ofc_double");
-        Pointer<OuternodeVariable<NDIM, double> > onc_double_var = new OuternodeVariable<NDIM, double>("onc_double");
-        Pointer<OutersideVariable<NDIM, double> > osc_double_var = new OutersideVariable<NDIM, double>("osc_double");
-        Pointer<SideVariable<NDIM, double> > sc_double_var = new SideVariable<NDIM, double>("sc_double");
-        std::vector<Pointer<Variable<NDIM> > > double_vars{ cc_double_var,  ec_double_var,  fc_double_var,
-                                                            nc_double_var,  oec_double_var, ofc_double_var,
-                                                            onc_double_var, osc_double_var, sc_double_var };
+        Pointer<CellVariable<NDIM, double>> cc_double_var = new CellVariable<NDIM, double>("cc_double");
+        Pointer<EdgeVariable<NDIM, double>> ec_double_var = new EdgeVariable<NDIM, double>("ec_double");
+        Pointer<FaceVariable<NDIM, double>> fc_double_var = new FaceVariable<NDIM, double>("fc_double");
+        Pointer<NodeVariable<NDIM, double>> nc_double_var = new NodeVariable<NDIM, double>("nc_double");
+        Pointer<OuteredgeVariable<NDIM, double>> oec_double_var = new OuteredgeVariable<NDIM, double>("oec_double");
+        Pointer<OuterfaceVariable<NDIM, double>> ofc_double_var = new OuterfaceVariable<NDIM, double>("ofc_double");
+        Pointer<OuternodeVariable<NDIM, double>> onc_double_var = new OuternodeVariable<NDIM, double>("onc_double");
+        Pointer<OutersideVariable<NDIM, double>> osc_double_var = new OutersideVariable<NDIM, double>("osc_double");
+        Pointer<SideVariable<NDIM, double>> sc_double_var = new SideVariable<NDIM, double>("sc_double");
+        std::vector<Pointer<Variable<NDIM>>> double_vars{ cc_double_var,  ec_double_var,  fc_double_var,
+                                                          nc_double_var,  oec_double_var, ofc_double_var,
+                                                          onc_double_var, osc_double_var, sc_double_var };
         std::vector<int> double_idxs;
         for (const auto& var : double_vars)
         {
@@ -119,19 +119,19 @@ main(int argc, char* argv[])
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
         pout << "adding float variables\n";
-        Pointer<CellVariable<NDIM, float> > cc_float_var = new CellVariable<NDIM, float>("cc_float");
-        Pointer<EdgeVariable<NDIM, float> > ec_float_var = new EdgeVariable<NDIM, float>("ec_float");
-        Pointer<FaceVariable<NDIM, float> > fc_float_var = new FaceVariable<NDIM, float>("fc_float");
-        Pointer<NodeVariable<NDIM, float> > nc_float_var = new NodeVariable<NDIM, float>("nc_float");
-        Pointer<OuteredgeVariable<NDIM, float> > oec_float_var = new OuteredgeVariable<NDIM, float>("oec_float");
-        Pointer<OuterfaceVariable<NDIM, float> > ofc_float_var = new OuterfaceVariable<NDIM, float>("ofc_float");
-        Pointer<OuternodeVariable<NDIM, float> > onc_float_var = new OuternodeVariable<NDIM, float>("onc_float");
-        Pointer<OutersideVariable<NDIM, float> > osc_float_var = new OutersideVariable<NDIM, float>("osc_float");
-        Pointer<SideVariable<NDIM, float> > sc_float_var = new SideVariable<NDIM, float>("sc_float");
+        Pointer<CellVariable<NDIM, float>> cc_float_var = new CellVariable<NDIM, float>("cc_float");
+        Pointer<EdgeVariable<NDIM, float>> ec_float_var = new EdgeVariable<NDIM, float>("ec_float");
+        Pointer<FaceVariable<NDIM, float>> fc_float_var = new FaceVariable<NDIM, float>("fc_float");
+        Pointer<NodeVariable<NDIM, float>> nc_float_var = new NodeVariable<NDIM, float>("nc_float");
+        Pointer<OuteredgeVariable<NDIM, float>> oec_float_var = new OuteredgeVariable<NDIM, float>("oec_float");
+        Pointer<OuterfaceVariable<NDIM, float>> ofc_float_var = new OuterfaceVariable<NDIM, float>("ofc_float");
+        Pointer<OuternodeVariable<NDIM, float>> onc_float_var = new OuternodeVariable<NDIM, float>("onc_float");
+        Pointer<OutersideVariable<NDIM, float>> osc_float_var = new OutersideVariable<NDIM, float>("osc_float");
+        Pointer<SideVariable<NDIM, float>> sc_float_var = new SideVariable<NDIM, float>("sc_float");
 
-        std::vector<Pointer<Variable<NDIM> > > float_vars{ cc_float_var,  ec_float_var,  fc_float_var,
-                                                           nc_float_var,  oec_float_var, ofc_float_var,
-                                                           onc_float_var, osc_float_var, sc_float_var };
+        std::vector<Pointer<Variable<NDIM>>> float_vars{ cc_float_var,  ec_float_var,  fc_float_var,
+                                                         nc_float_var,  oec_float_var, ofc_float_var,
+                                                         onc_float_var, osc_float_var, sc_float_var };
         std::vector<int> float_idxs;
         for (const auto& var : float_vars)
         {
@@ -140,18 +140,18 @@ main(int argc, char* argv[])
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
         pout << "adding int variables\n";
-        Pointer<CellVariable<NDIM, int> > cc_int_var = new CellVariable<NDIM, int>("cc_int");
-        Pointer<EdgeVariable<NDIM, int> > ec_int_var = new EdgeVariable<NDIM, int>("ec_int");
-        Pointer<FaceVariable<NDIM, int> > fc_int_var = new FaceVariable<NDIM, int>("fc_int");
-        Pointer<NodeVariable<NDIM, int> > nc_int_var = new NodeVariable<NDIM, int>("nc_int");
-        Pointer<OuteredgeVariable<NDIM, int> > oec_int_var = new OuteredgeVariable<NDIM, int>("oec_int");
-        Pointer<OuterfaceVariable<NDIM, int> > ofc_int_var = new OuterfaceVariable<NDIM, int>("ofc_int");
-        Pointer<OuternodeVariable<NDIM, int> > onc_int_var = new OuternodeVariable<NDIM, int>("onc_int");
-        Pointer<OutersideVariable<NDIM, int> > osc_int_var = new OutersideVariable<NDIM, int>("osc_int");
-        Pointer<SideVariable<NDIM, int> > sc_int_var = new SideVariable<NDIM, int>("sc_int");
+        Pointer<CellVariable<NDIM, int>> cc_int_var = new CellVariable<NDIM, int>("cc_int");
+        Pointer<EdgeVariable<NDIM, int>> ec_int_var = new EdgeVariable<NDIM, int>("ec_int");
+        Pointer<FaceVariable<NDIM, int>> fc_int_var = new FaceVariable<NDIM, int>("fc_int");
+        Pointer<NodeVariable<NDIM, int>> nc_int_var = new NodeVariable<NDIM, int>("nc_int");
+        Pointer<OuteredgeVariable<NDIM, int>> oec_int_var = new OuteredgeVariable<NDIM, int>("oec_int");
+        Pointer<OuterfaceVariable<NDIM, int>> ofc_int_var = new OuterfaceVariable<NDIM, int>("ofc_int");
+        Pointer<OuternodeVariable<NDIM, int>> onc_int_var = new OuternodeVariable<NDIM, int>("onc_int");
+        Pointer<OutersideVariable<NDIM, int>> osc_int_var = new OutersideVariable<NDIM, int>("osc_int");
+        Pointer<SideVariable<NDIM, int>> sc_int_var = new SideVariable<NDIM, int>("sc_int");
 
-        std::vector<Pointer<Variable<NDIM> > > int_vars{ cc_int_var,  ec_int_var,  fc_int_var,  nc_int_var, oec_int_var,
-                                                         ofc_int_var, onc_int_var, osc_int_var, sc_int_var };
+        std::vector<Pointer<Variable<NDIM>>> int_vars{ cc_int_var,  ec_int_var,  fc_int_var,  nc_int_var, oec_int_var,
+                                                       ofc_int_var, onc_int_var, osc_int_var, sc_int_var };
         std::vector<int> int_idxs;
         for (const auto& var : int_vars)
         {

@@ -22,7 +22,7 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialCondition1D::LevelSetInitialCondition1D(const std::string& object_name,
-                                                       const Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+                                                       const Pointer<CartesianGridGeometry<NDIM>> grid_geom,
                                                        const IBTK::VectorNd& interface_loc,
                                                        const bool left_side)
     : d_object_name(object_name), d_grid_geom(grid_geom), d_interface_loc(interface_loc), d_left_side(left_side)
@@ -39,19 +39,19 @@ LevelSetInitialCondition1D::isTimeDependent() const
 
 void
 LevelSetInitialCondition1D::setDataOnPatch(const int data_idx,
-                                           Pointer<Variable<NDIM> > /*var*/,
-                                           Pointer<Patch<NDIM> > patch,
+                                           Pointer<Variable<NDIM>> /*var*/,
+                                           Pointer<Patch<NDIM>> patch,
                                            const double /*data_time*/,
                                            const bool initial_time,
-                                           Pointer<PatchLevel<NDIM> > patch_level)
+                                           Pointer<PatchLevel<NDIM>> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
         IntVector<NDIM> ratio = patch_level->getRatio();

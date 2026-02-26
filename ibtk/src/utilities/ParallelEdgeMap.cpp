@@ -121,7 +121,7 @@ ParallelEdgeMap::communicateData()
         }
     }
 
-    using multimap_iterator = std::multimap<int, std::pair<int, int> >::iterator;
+    using multimap_iterator = std::multimap<int, std::pair<int, int>>::iterator;
     for (const auto& pending_addition : d_pending_additions)
     {
         d_edge_map.insert(std::make_pair(pending_addition.first, pending_addition.second));
@@ -174,7 +174,7 @@ ParallelEdgeMap::communicateData()
     return;
 } // communicateData
 
-const std::multimap<int, std::pair<int, int> >&
+const std::multimap<int, std::pair<int, int>>&
 ParallelEdgeMap::getEdgeMap() const
 {
     return d_edge_map;

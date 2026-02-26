@@ -33,7 +33,7 @@ namespace IBTK
 {
 template <typename TYPE>
 SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(
-    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >& vector,
+    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>& vector,
     const std::string& name)
     : SAMRAIScopedVectorDuplicate(checked_dereference(vector), name)
 {
@@ -55,18 +55,18 @@ SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAI::solv::SAMRAIVectorReal<NDIM,
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >()
+SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>()
 {
-    return SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >(&*d_vector, false);
+    return SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>(&*d_vector, false);
 }
 
 template <typename TYPE>
-std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> > >
+std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>>
 SAMRAIScopedVectorDuplicate<TYPE>::getComponentVectors() const
 {
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> > > comps;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>> comps;
     for (int comp = 0; comp < d_vector->getNumberOfComponents(); ++comp)
     {
         comps.emplace_back(

@@ -75,29 +75,29 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_writer = app_initializer->getVisItDataWriter();
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> var_ctx = var_db->getContext("Context");
-        Pointer<CellVariable<NDIM, double> > q_var = new CellVariable<NDIM, double>("CC_var");
-        Pointer<CellVariable<NDIM, double> > convec_var = new CellVariable<NDIM, double>("Convec var");
-        Pointer<CellVariable<NDIM, double> > exact_var = new CellVariable<NDIM, double>("Exact var");
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("U");
+        Pointer<CellVariable<NDIM, double>> q_var = new CellVariable<NDIM, double>("CC_var");
+        Pointer<CellVariable<NDIM, double>> convec_var = new CellVariable<NDIM, double>("Convec var");
+        Pointer<CellVariable<NDIM, double>> exact_var = new CellVariable<NDIM, double>("Exact var");
+        Pointer<FaceVariable<NDIM, double>> u_var = new FaceVariable<NDIM, double>("U");
 
         const int q_idx = var_db->registerVariableAndContext(q_var, var_ctx);
         const int convec_idx = var_db->registerVariableAndContext(convec_var, var_ctx);
@@ -126,7 +126,7 @@ main(int argc, char* argv[])
                 new muParserRobinBcCoefs("Q_bcs", app_initializer->getComponentDatabase("Q_bcs"), grid_geometry);
 
         std::vector<std::string> convec_oper_types = { "CENTERED", "CUI", "PPM", "WAVE_PROP" };
-        std::vector<Pointer<ConvectiveOperator> > convec_opers(convec_oper_types.size());
+        std::vector<Pointer<ConvectiveOperator>> convec_opers(convec_oper_types.size());
         auto oper_manager = AdvDiffConvectiveOperatorManager::getManager();
         int i = 0;
         for (const auto& convec_oper_type : convec_oper_types)
@@ -153,7 +153,7 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(q_idx, 0.0);
             level->allocatePatchData(convec_idx, 0.0);
             level->allocatePatchData(exact_idx, 0.0);
@@ -196,7 +196,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(q_idx);
             level->deallocatePatchData(convec_idx);
             level->deallocatePatchData(exact_idx);

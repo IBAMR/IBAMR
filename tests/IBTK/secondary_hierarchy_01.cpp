@@ -57,15 +57,15 @@ main(int argc, char* argv[])
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -77,13 +77,13 @@ main(int argc, char* argv[])
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
         // custom workload vars for primary hierarchy (ph) and secondary hierarchy (sh)
-        Pointer<CellVariable<NDIM, double> > ph_work_cc_var = new CellVariable<NDIM, double>("ph_work_cc");
-        Pointer<CellVariable<NDIM, double> > sh_work_cc_var = new CellVariable<NDIM, double>("sh_work_cc");
+        Pointer<CellVariable<NDIM, double>> ph_work_cc_var = new CellVariable<NDIM, double>("ph_work_cc");
+        Pointer<CellVariable<NDIM, double>> sh_work_cc_var = new CellVariable<NDIM, double>("sh_work_cc");
         const int ph_work_cc_idx = var_db->registerVariableAndContext(ph_work_cc_var, ctx, IntVector<NDIM>(0));
         const int sh_work_cc_idx = var_db->registerVariableAndContext(sh_work_cc_var, ctx, IntVector<NDIM>(0));
 
         // setup plotting
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
         visit_data_writer->registerPlotQuantity(ph_work_cc_var->getName(), "SCALAR", ph_work_cc_idx);
         visit_data_writer->registerPlotQuantity(sh_work_cc_var->getName(), "SCALAR", sh_work_cc_idx);
@@ -106,7 +106,7 @@ main(int argc, char* argv[])
         // hierarchy.
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(ph_work_cc_idx, 0.0);
             level->allocatePatchData(sh_work_cc_idx, 0.0);
         }
@@ -120,13 +120,13 @@ main(int argc, char* argv[])
         unsigned int index = 0;
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 const Patch<NDIM>& patch = *level->getPatch(p());
                 const Box<NDIM>& patch_box = patch.getBox();
-                Pointer<CellData<NDIM, double> > sh_work_cc_data = patch.getPatchData(sh_work_cc_idx);
-                Pointer<CellData<NDIM, double> > ph_work_cc_data = patch.getPatchData(ph_work_cc_idx);
+                Pointer<CellData<NDIM, double>> sh_work_cc_data = patch.getPatchData(sh_work_cc_idx);
+                Pointer<CellData<NDIM, double>> ph_work_cc_data = patch.getPatchData(ph_work_cc_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
                     const hier::Index<NDIM>& i = ic();
@@ -146,7 +146,7 @@ main(int argc, char* argv[])
 
         visit_data_writer->writePlotData(secondary_hierarchy.getSecondaryHierarchy(), 1, 1.0);
 
-        std::array<std::pair<Pointer<PatchHierarchy<NDIM> >, std::string>, 2> data{
+        std::array<std::pair<Pointer<PatchHierarchy<NDIM>>, std::string>, 2> data{
             { { patch_hierarchy, "primary" }, { secondary_hierarchy.getSecondaryHierarchy(), "secondary" } }
         };
 

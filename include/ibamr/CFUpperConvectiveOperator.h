@@ -90,7 +90,7 @@ public:
      * "DEFAULT", "CENTERED", "CUI", "PPM", or "WAVE_PROP"
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                               const std::string& convective_op_type,
                               ConvectiveDifferencingType difference_type,
@@ -101,7 +101,7 @@ public:
      * Constructor that takes in a convective operator
      */
     CFUpperConvectiveOperator(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                               SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
                               ConvectiveDifferencingType difference_type,
@@ -134,12 +134,12 @@ public:
 private:
     void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_adv_var;
     int d_u_scratch_idx = IBTK::invalid_index;
 
     // Source function data.

@@ -117,7 +117,7 @@ main(int argc, char** argv)
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
-        std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
+        std::vector<std::unique_ptr<ReplicatedMesh>> meshes;
         meshes.emplace_back(std::make_unique<ReplicatedMesh>(init.comm(), NDIM));
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
@@ -227,13 +227,13 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
             new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -275,11 +275,11 @@ main(int argc, char** argv)
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -320,7 +320,7 @@ main(int argc, char** argv)
 
         // Now for the actual test. Set up a new variable containing ghost data:
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
+        const Pointer<SAMRAI::hier::Variable<NDIM>> f_var = time_integrator->getBodyForceVariable();
         const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
 
         int n_ghosts = input_db->keyExists("IB_DELTA_FUNCTION") ?
@@ -334,12 +334,12 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(f_ghost_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_ghost_idx);
                 f_data->fillAll(0.0);
             }
         }
@@ -405,11 +405,11 @@ main(int argc, char** argv)
             // computed by these two combined calls would be wrong.
             bdry_op->setPatchDataIndex(f_ghost_idx);
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_ghost_idx);
+                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_ghost_idx);
                 bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
@@ -417,7 +417,7 @@ main(int argc, char** argv)
         std::ostringstream out;
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
 
             // We don't need to print this if we are running in serial
             if (IBTK_MPI::getNodes() != 1)
@@ -430,8 +430,8 @@ main(int argc, char** argv)
                 std::ostringstream patch_out;
                 patch_out << "patch number " << p() << '\n';
                 patch_out.precision(16);
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
 
                 // same as SideData::print, but elides zero values. We don't

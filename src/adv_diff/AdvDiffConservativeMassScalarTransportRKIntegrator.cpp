@@ -883,37 +883,37 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(d_N_idx);
-            Pointer<FaceData<NDIM, double> > V_adv_data = patch->getPatchData(d_V_composite_idx);
-            Pointer<CellData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-            Pointer<CellData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-            Pointer<CellData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellData<NDIM, double> > Q_pre_data = patch->getPatchData(d_Q_cc_scratch_idx);
+            Pointer<CellData<NDIM, double>> N_data = patch->getPatchData(d_N_idx);
+            Pointer<FaceData<NDIM, double>> V_adv_data = patch->getPatchData(d_V_composite_idx);
+            Pointer<CellData<NDIM, double>> R_cur_data = patch->getPatchData(d_rho_current_idx);
+            Pointer<CellData<NDIM, double>> R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+            Pointer<CellData<NDIM, double>> R_new_data = patch->getPatchData(d_rho_new_idx);
+            Pointer<CellData<NDIM, double>> Q_pre_data = patch->getPatchData(d_Q_cc_scratch_idx);
 
-            Pointer<CellData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+            Pointer<CellData<NDIM, double>> R_src_data = patch->getPatchData(d_S_scratch_idx);
 
-            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(d_E_scratch_idx);
+            Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(d_E_scratch_idx);
 
             // Define variables that live on the "faces" of control
             // volumes centered about side-centered staggered velocity
             // components
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            Pointer<FaceData<NDIM, double> > C_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
-            Pointer<FaceData<NDIM, double> > Q_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
-            Pointer<FaceData<NDIM, double> > R_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
-            Pointer<FaceData<NDIM, double> > P_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
+            Pointer<FaceData<NDIM, double>> C_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
+            Pointer<FaceData<NDIM, double>> Q_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
+            Pointer<FaceData<NDIM, double>> R_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
+            Pointer<FaceData<NDIM, double>> P_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
 
             std::vector<RobinBcCoefStrategy<NDIM>*> rho_cc_bc_coefs(1, d_rho_cc_bc_coefs);
 
@@ -933,8 +933,8 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
             if (d_gamma_cc_var)
             {
-                Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
-                Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
+                Pointer<CellData<NDIM, double>> C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                Pointer<CellData<NDIM, double>> C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
 
                 std::vector<RobinBcCoefStrategy<NDIM>*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
 
@@ -1003,7 +1003,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
                 if (d_gamma_cc_var)
                 {
-                    Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                    Pointer<CellData<NDIM, double>> C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
                     (*N_data)(ci) -= (*C_pre_data)(ci) * (*Q_pre_data)(ci) * (*E_data)(ci);
                 }
                 else
@@ -1063,12 +1063,12 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
-    Pointer<BasePatchHierarchy<NDIM> > base_hierarchy)
+    Pointer<BasePatchHierarchy<NDIM>> base_hierarchy)
 {
     IBAMR_TIMER_START(t_initialize_integrator);
 
     // Get the hierarchy configuration.
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
 
     if (d_is_initialized) deallocateSTSIntegrator();
@@ -1135,7 +1135,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
@@ -1188,7 +1188,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegrator()
     // Deallocate data.
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
@@ -1313,7 +1313,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setTransportQuantityPatchDat
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setMaterialPropertyVariable(
-    Pointer<CellVariable<NDIM, double> > gamma_var)
+    Pointer<CellVariable<NDIM, double>> gamma_var)
 {
     d_gamma_cc_var = gamma_var;
     return;
@@ -1323,9 +1323,9 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setMaterialPropertyVariable(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
-    Pointer<FaceData<NDIM, double> > Q_half_data,
-    Pointer<FaceData<NDIM, double> > U_adv_data,
-    const Pointer<CellData<NDIM, double> > Q_data,
+    Pointer<FaceData<NDIM, double>> Q_half_data,
+    Pointer<FaceData<NDIM, double>> U_adv_data,
+    const Pointer<CellData<NDIM, double>> Q_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
     const Box<NDIM>& patch_box,
@@ -1464,18 +1464,17 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::computeConvectiveDerivative(
-    Pointer<CellData<NDIM, double> > N_data,
-    Pointer<FaceData<NDIM, double> > P_half_data,
-    const Pointer<FaceData<NDIM, double> > U_adv_data,
-    const Pointer<FaceData<NDIM, double> > R_half_data,
-    const Pointer<FaceData<NDIM, double> > Q_half_data,
-    const Pointer<FaceData<NDIM, double> > G_half_data,
+    Pointer<CellData<NDIM, double>> N_data,
+    Pointer<FaceData<NDIM, double>> P_half_data,
+    const Pointer<FaceData<NDIM, double>> U_adv_data,
+    const Pointer<FaceData<NDIM, double>> R_half_data,
+    const Pointer<FaceData<NDIM, double>> Q_half_data,
+    const Pointer<FaceData<NDIM, double>> G_half_data,
     const Box<NDIM>& patch_box,
     const double* const dx)
 {
     static const double dt = 1.0;
-    Pointer<FaceData<NDIM, double> > GQ_half_data =
-        new FaceData<NDIM, double>(patch_box, 1, 1); // to store (G*Q)^n+half
+    Pointer<FaceData<NDIM, double>> GQ_half_data = new FaceData<NDIM, double>(patch_box, 1, 1); // to store (G*Q)^n+half
     const IntVector<NDIM>& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
     const IntVector<NDIM>& P_half_data_gcw = P_half_data->getGhostCellWidth();
     const IntVector<NDIM>& R_half_data_gcw = R_half_data->getGhostCellWidth();
@@ -1635,15 +1634,15 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::computeConvectiveDerivative(
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::computeDensityUpdate(
-    Pointer<CellData<NDIM, double> > R_data,
+    Pointer<CellData<NDIM, double>> R_data,
     const double& a0,
-    const Pointer<CellData<NDIM, double> > R0_data,
+    const Pointer<CellData<NDIM, double>> R0_data,
     const double& a1,
-    const Pointer<CellData<NDIM, double> > R1_data,
+    const Pointer<CellData<NDIM, double>> R1_data,
     const double& a2,
-    const Pointer<FaceData<NDIM, double> > U_adv_data,
-    const Pointer<FaceData<NDIM, double> > R_half_data,
-    const Pointer<CellData<NDIM, double> > S_data,
+    const Pointer<FaceData<NDIM, double>> U_adv_data,
+    const Pointer<FaceData<NDIM, double>> R_half_data,
+    const Pointer<CellData<NDIM, double>> S_data,
     const Box<NDIM>& patch_box,
     const double& dt,
     const double* const dx)
@@ -1731,11 +1730,11 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::computeDensityUpdate(
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::computeErrorOfMassConservationEquation(
-    Pointer<CellData<NDIM, double> > E_data,
-    const Pointer<CellData<NDIM, double> > Rnew_data,
-    const Pointer<CellData<NDIM, double> > Rold_data,
-    const Pointer<FaceData<NDIM, double> > U_adv_data,
-    const Pointer<FaceData<NDIM, double> > R_half_data,
+    Pointer<CellData<NDIM, double>> E_data,
+    const Pointer<CellData<NDIM, double>> Rnew_data,
+    const Pointer<CellData<NDIM, double>> Rold_data,
+    const Pointer<FaceData<NDIM, double>> U_adv_data,
+    const Pointer<FaceData<NDIM, double>> R_half_data,
     const Box<NDIM>& patch_box,
     const double& dt,
     const double* const dx)

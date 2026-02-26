@@ -66,8 +66,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM>> gridding_alg);
 
 protected:
     /*!

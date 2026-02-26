@@ -63,8 +63,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<Variable<NDIM> > var,
-                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<Variable<NDIM>> var,
+                                 Pointer<PatchHierarchy<NDIM>> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -74,11 +74,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<Variable<NDIM>> var,
+                        Pointer<Patch<NDIM>> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
+                        Pointer<PatchLevel<NDIM>> patch_level = nullptr);
 
     //\}
 
