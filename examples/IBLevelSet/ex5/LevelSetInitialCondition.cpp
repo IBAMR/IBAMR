@@ -13,7 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <HierarchyDataOpsManager.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIVariable.h>
 
 // Application includes
 #include "LevelSetInitialCondition.h"
@@ -41,11 +51,11 @@ LevelSetInitialCondition::isTimeDependent() const
 
 void
 LevelSetInitialCondition::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM>> /*var*/,
-                                         Pointer<Patch<NDIM>> patch,
+                                         Pointer<SAMRAIVariable> /*var*/,
+                                         Pointer<SAMRAIPatch> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevel<NDIM>> /*patch_level*/)
+                                         Pointer<SAMRAIPatchLevel> /*patch_level*/)
 {
     // Set the level set function throughout the domain
     if (initial_time)
@@ -69,17 +79,17 @@ LevelSetInitialCondition::setDataOnPatch(const int data_idx,
 
         double distance1[2], distance2[3]; // Foil has three surfaces and 1 surface for circle.
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        const SAMRAIBox& patch_box = patch->getBox();
+        Pointer<SAMRAICellData<double>> D_data = patch->getPatchData(data_idx);
+        for (SAMRAIBox::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            SAMRAICellIndex ci(it());
 
             // Get physical coordinates
             IBTK::Vector3d coord = IBTK::Vector3d::Zero();
-            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            Pointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const SAMRAIIndex& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
             for (int d = 0; d < NDIM; ++d)
             {

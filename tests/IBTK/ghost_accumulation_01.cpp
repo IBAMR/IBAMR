@@ -19,15 +19,29 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 
 #include <random>
 
@@ -50,34 +64,34 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
         // TODO: make depth, cell vs side, ghost width input arguments
         const int u_depth = input_db->getIntegerWithDefault("depth", 1);
-        const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("ghost_width", 1));
+        const SAMRAIIntVector gcw(input_db->getIntegerWithDefault("ghost_width", 1));
         plog << "GCW: " << gcw << '\n';
         const bool use_cell = input_db->getStringWithDefault("var_type", "CELL") == "CELL";
 
         // disambiguate between libMesh::Variable and SAMRAI::hier::Variable
-        auto u_var = use_cell ? Pointer<hier::Variable<NDIM>>(new CellVariable<NDIM, double>("u", u_depth)) :
-                                Pointer<hier::Variable<NDIM>>(new SideVariable<NDIM, double>("u", u_depth));
+        auto u_var = use_cell ? Pointer<SAMRAIVariable>(new SAMRAICellVariable<double>("u", u_depth)) :
+                                Pointer<SAMRAIVariable>(new SAMRAISideVariable<double>("u", u_depth));
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, gcw);
 
@@ -93,25 +107,25 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
         }
 
         // Set up values for u
-        Pointer<PatchLevel<NDIM>> patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        Pointer<SAMRAIPatchLevel> patch_level = patch_hierarchy->getPatchLevel(finest_ln);
         if (input_db->getStringWithDefault("fill_test", "uniform") == "uniform")
         {
-            for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+                Pointer<SAMRAIPatch> patch = patch_level->getPatch(p());
                 if (use_cell)
                 {
-                    Pointer<CellData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                    Pointer<SAMRAICellData<double>> u_data = patch->getPatchData(u_idx);
                     u_data->fillAll(1.0);
                 }
                 else
                 {
-                    Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                    Pointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
                     u_data->fillAll(1.0);
                 }
             }
@@ -136,19 +150,19 @@ main(int argc, char* argv[])
 
             // spread *only points in patch interiors*:
             const std::string spread_fcn = input_db->getString("IB_DELTA_FUNCTION");
-            for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
-                const Box<NDIM> box = patch->getBox();
+                Pointer<SAMRAIPatch> patch = patch_level->getPatch(p());
+                const SAMRAIBox box = patch->getBox();
                 if (use_cell)
                 {
-                    Pointer<CellData<NDIM, double>> q_data = patch->getPatchData(u_idx);
+                    Pointer<SAMRAICellData<double>> q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
                     LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
                 else
                 {
-                    Pointer<SideData<NDIM, double>> q_data = patch->getPatchData(u_idx);
+                    Pointer<SAMRAISideData<double>> q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
                     LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
@@ -161,10 +175,10 @@ main(int argc, char* argv[])
 
         std::ostringstream out;
         out.precision(16);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
-            tbox::Pointer<CartesianPatchGeometry<NDIM>> patch_geo = patch->getPatchGeometry();
+            Pointer<SAMRAIPatch> patch = patch_level->getPatch(p());
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geo = patch->getPatchGeometry();
             TBOX_ASSERT(patch_geo);
             IBTK::VectorNd x_lo;
             IBTK::VectorNd x_up;
@@ -174,15 +188,15 @@ main(int argc, char* argv[])
             out << "x lower:\n" << x_lo << '\n';
             out << "x upper:\n" << x_up << '\n';
 
-            Box<NDIM> patch_box = patch->getBox();
+            SAMRAIBox patch_box = patch->getBox();
             if (use_cell)
             {
-                Pointer<CellData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                Pointer<SAMRAICellData<double>> u_data = patch->getPatchData(u_idx);
                 u_data->print(patch_box, out, 16);
             }
             else
             {
-                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                Pointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
                 u_data->print(patch_box, out, 16);
             }
         }

@@ -13,12 +13,14 @@
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "RigidBodyKinematics.h"
-#include <tbox/MathUtilities.h>
 
-#include <CartesianPatchGeometry.h>
-#include <PatchLevel.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
 #include <muParser.h>
 
 #include <cmath>
@@ -34,7 +36,7 @@ namespace IBAMR
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          LDataManager* l_data_manager,
-                                         Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                         Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_data(),
@@ -90,7 +92,7 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 void
-RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/)
+RigidBodyKinematics::setImmersedBodyLayout(Pointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();

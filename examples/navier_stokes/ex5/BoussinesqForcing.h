@@ -19,6 +19,13 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIVariable.h>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -34,7 +41,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(Pointer<Variable<NDIM>> T_var,
+    BoussinesqForcing(Pointer<SAMRAIVariable> T_var,
                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                       int gamma);
 
@@ -59,8 +66,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<Variable<NDIM>> var,
-                                 Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 Pointer<SAMRAIVariable> var,
+                                 Pointer<SAMRAIPatchHierarchy> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -70,11 +77,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<Variable<NDIM>> var,
-                        Pointer<Patch<NDIM>> patch,
+                        Pointer<SAMRAIVariable> var,
+                        Pointer<SAMRAIPatch> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM>> patch_level = nullptr);
+                        Pointer<SAMRAIPatchLevel> patch_level = nullptr);
 
     //\}
 
@@ -85,7 +92,7 @@ private:
 
     BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
-    Pointer<Variable<NDIM>> d_T_var;
+    Pointer<SAMRAIVariable> d_T_var;
     Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
     double d_gamma;
 };

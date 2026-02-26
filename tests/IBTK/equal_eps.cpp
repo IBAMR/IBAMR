@@ -14,8 +14,9 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/MathUtilities.h>
+#include <SAMRAIMathUtilities.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -57,7 +58,7 @@ main(int argc, char* argv[])
                                                            // MathUtilities<double>::equalEps};
     fcns.push_back([](double a, double b) -> bool { return IBTK::rel_equal_eps(a, b); });
     fcns.push_back([](double a, double b) -> bool { return IBTK::abs_equal_eps(a, b); });
-    fcns.push_back(MathUtilities<double>::equalEps);
+    fcns.push_back(SAMRAIMathUtilities<double>::equalEps);
     std::vector<std::string> strs = { "Relative", "Absolute", "SAMRAI" };
 
     auto loop_test = [&](const double a, const double b)

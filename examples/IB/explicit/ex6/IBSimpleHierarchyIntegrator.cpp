@@ -11,7 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #include "IBSimpleHierarchyIntegrator.h"
+
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIVariableDatabase.h>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -129,7 +135,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     // "current" data (defined at time level n) or some other velocity field
     // here.  We use the "current" Lagrangian position data to define the
     // locations to where the velocities are interpolated.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -168,8 +174,8 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<SAMRAIPatchHierarchy> hierarchy,
+                                                           Pointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

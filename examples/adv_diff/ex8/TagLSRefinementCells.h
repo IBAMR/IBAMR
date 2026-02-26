@@ -20,11 +20,14 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <BasePatchHierarchy.h>
-#include <PatchHierarchy.h>
+#include <tbox/DescribedClass.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 
@@ -39,19 +42,18 @@
  *
  */
 
-void
-callTagSolidLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
-                                              const int level_number,
-                                              const double error_data_time,
-                                              const int tag_index,
-                                              const bool initial_time,
-                                              const bool uses_richardson_extrapolation_too,
-                                              void* ctx);
+void callTagSolidLSRefinementCellsCallbackFunction(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
+                                                   const int level_number,
+                                                   const double error_data_time,
+                                                   const int tag_index,
+                                                   const bool initial_time,
+                                                   const bool uses_richardson_extrapolation_too,
+                                                   void* ctx);
 
 struct TagLSRefinementCells
 {
-    TagLSRefinementCells(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
+    TagLSRefinementCells(SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                         SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                          double tag_value,
                          double tag_abs_thresh)
         : d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_tag_value(tag_value), d_tag_abs_thresh(tag_abs_thresh)
@@ -59,8 +61,8 @@ struct TagLSRefinementCells
         return;
     }
 
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_var;
     double d_tag_value;
     double d_tag_abs_thresh;
 };

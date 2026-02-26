@@ -15,9 +15,10 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RestartCleaner.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/MemoryDatabase.h>
-#include <tbox/SAMRAIManager.h>
+#include <SAMRAIMemoryDatabase.h>
+#include <SAMRAISAMRAIManager.h>
 
 // MPI header
 #include <mpi.h>
@@ -57,7 +58,7 @@ main(int argc, char** argv)
         try
         {
             // Test that we can create SAMRAI Database objects (header inclusion test)
-            Pointer<MemoryDatabase> test_db = new MemoryDatabase("TestDB");
+            Pointer<SAMRAIMemoryDatabase> test_db = new SAMRAIMemoryDatabase("TestDB");
             pout << "Header inclusion: successful" << std::endl;
         }
         catch (const std::exception& e)
@@ -90,7 +91,7 @@ main(int argc, char** argv)
                 }
             } cleanup_guard{ temp_dir };
 
-            Pointer<MemoryDatabase> db = new MemoryDatabase("BasicCleanerTest");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("BasicCleanerTest");
             db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -132,7 +133,7 @@ main(int argc, char** argv)
                 }
             } cleanup_guard{ temp_dir };
 
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunConfig");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DryRunConfig");
             db->putString("restart_directory", temp_dir);
             db->putInteger("keep_recent_files", 5);
             db->putBool("enable_logging", false);
@@ -176,7 +177,7 @@ main(int argc, char** argv)
             } cleanup_guard{ temp_dir };
 
             // Minimal database - only required parameter (restart_directory)
-            Pointer<MemoryDatabase> db = new MemoryDatabase("MinimalConfig");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("MinimalConfig");
             db->putString("restart_directory", temp_dir);
             db->putBool("dry_run", true); // Use dry_run to avoid file operations
 

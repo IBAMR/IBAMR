@@ -14,6 +14,7 @@
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>

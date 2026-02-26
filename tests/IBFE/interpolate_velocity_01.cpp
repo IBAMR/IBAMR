@@ -18,13 +18,20 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 // other samrai stuff
-#include <HierarchyDataOpsManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -222,13 +229,13 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy =
+            new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry, false);
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -264,12 +271,12 @@ main(int argc, char** argv)
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -287,8 +294,8 @@ main(int argc, char** argv)
 
         // Now for the actual test. The stored velocity field does not contain
         // ghost data, so we set up a new context and velocity field that does:
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        const Pointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ghost_ctx = var_db->getContext("u_ghost");
 
         int n_ghosts = 3;
@@ -300,7 +307,7 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_ghost_idx);
         }
         u_init->setDataOnPatchHierarchy(u_ghost_idx, u_var, patch_hierarchy, 0.0);

@@ -12,10 +12,17 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "SetFluidSolidDensity.h"
 
-#include <CartesianGridGeometry.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -23,7 +30,7 @@
 
 void
 callSetFluidSolidDensityCallbackFunction(int rho_idx,
-                                         Pointer<Variable<NDIM>> rho_var,
+                                         Pointer<SAMRAIVariable> rho_var,
                                          Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                          const int cycle_num,
                                          const double time,
@@ -53,27 +60,27 @@ SetFluidSolidDensity::SetFluidSolidDensity(const std::string& object_name, const
 
 void
 SetFluidSolidDensity::setDensityPatchData(int rho_idx,
-                                          Pointer<Variable<NDIM>> rho_var,
+                                          Pointer<SAMRAIVariable> rho_var,
                                           Pointer<HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
                                           const double /*time*/,
                                           const double /*current_time*/,
                                           const double /*new_time*/)
 {
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    Pointer<SideVariable<NDIM, double>> rho_sc_var = rho_var;
+    Pointer<SAMRAISideVariable<double>> rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_idx);
                 rho_data->fillAll(d_rho_fluid);
             }
         }

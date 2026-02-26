@@ -15,8 +15,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/SAMRAIManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -27,6 +26,7 @@
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_refinement.h>
 
+#include <SAMRAISAMRAIManager.h>
 #include <SAMRAI_config.h>
 
 // Set up application namespace declarations

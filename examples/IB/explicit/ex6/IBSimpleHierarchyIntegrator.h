@@ -20,6 +20,11 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -66,8 +71,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                       Pointer<GriddingAlgorithm<NDIM>> gridding_alg);
+    void initializeHierarchyIntegrator(Pointer<SAMRAIPatchHierarchy> hierarchy,
+                                       Pointer<SAMRAIGriddingAlgorithm> gridding_alg);
 
 protected:
     /*!

@@ -17,13 +17,14 @@
 
 // SAMRAI INCLUDES
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
-
-#include <CartesianPatchGeometry.h>
-#include <PatchLevel.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIUtilities.h>
 
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
@@ -42,7 +43,7 @@ namespace IBAMR
 OscillatingCylinderKinematics::OscillatingCylinderKinematics(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              LDataManager* l_data_manager,
-                                                             Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
+                                                             Pointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
                                                              bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_prescribed_trans_vel(0.0),

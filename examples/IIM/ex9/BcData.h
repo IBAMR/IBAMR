@@ -14,7 +14,10 @@
 #ifndef included_bcdata
 #define included_bcdata
 
-#include <tbox/Database.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 struct BcData
 {
@@ -33,7 +36,7 @@ struct BcData
     const double z_min;
     const double z_max;
 
-    BcData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    BcData(SAMRAIPointer<SAMRAIDatabase> input_db)
         : U1(input_db->getDouble("U1")),
           U2(input_db->getDouble("U2")),
           t_load(input_db->getDouble("T_LOAD")),

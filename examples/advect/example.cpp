@@ -18,11 +18,22 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HyperbolicLevelIntegrator.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHyperbolicLevelIntegrator.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAITimeRefinementIntegrator.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
@@ -31,9 +42,6 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
-
-#include <LocationIndexRobinBcCoefs.h>
-#include <TimeRefinementIntegrator.h>
 
 // Set up application namespace declarations
 #include "QInit.h"
@@ -108,7 +116,7 @@ main(int argc, char* argv[])
         Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
             new AdvectorPredictorCorrectorHyperbolicPatchOps(
@@ -116,28 +124,28 @@ main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
                 explicit_predictor,
                 grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM>> hyp_level_integrator =
-            new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
+        Pointer<SAMRAIHyperbolicLevelIntegrator> hyp_level_integrator =
+            new SAMRAIHyperbolicLevelIntegrator("HyperbolicLevelIntegrator",
                                                 app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
                                                 hyp_patch_ops,
                                                 true,
                                                 using_refined_timestepping);
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                hyp_level_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM>> time_integrator =
-            new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
+        Pointer<SAMRAITimeRefinementIntegrator> time_integrator =
+            new SAMRAITimeRefinementIntegrator("TimeRefinementIntegrator",
                                                app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
                                                patch_hierarchy,
                                                hyp_level_integrator,
@@ -153,7 +161,7 @@ main(int argc, char* argv[])
         {
             pout << "advection velocity u is NOT discretely divergence free.\n";
         }
-        Pointer<FaceVariable<NDIM, double>> u_var = new FaceVariable<NDIM, double>("u");
+        Pointer<SAMRAIFaceVariable<double>> u_var = new SAMRAIFaceVariable<double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
@@ -165,9 +173,9 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM, double>> Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<SAMRAICellVariable<double>> Q_var = new SAMRAICellVariable<double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        SAMRAILocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
         hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
@@ -176,7 +184,7 @@ main(int argc, char* argv[])
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
@@ -246,7 +254,7 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const Pointer<VariableContext> Q_ctx = hyp_level_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
@@ -264,7 +272,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"

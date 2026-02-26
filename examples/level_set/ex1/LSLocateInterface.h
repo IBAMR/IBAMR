@@ -12,8 +12,9 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
+#include <SAMRAIPointer.h>
 
 namespace IBTK
 {
@@ -27,7 +28,7 @@ struct CircularInterface
     double R;
 };
 void circular_interface_neighborhood(int D_idx,
-                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                     SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                      double time,
                                      bool initial_time,
                                      void* ctx);

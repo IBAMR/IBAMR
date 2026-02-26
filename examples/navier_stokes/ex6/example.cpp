@@ -18,10 +18,17 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
@@ -91,33 +98,33 @@ main(int argc, char* argv[])
                 "AdvDiffSemiImplicitHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Setup the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("T");
+        Pointer<SAMRAICellVariable<double>> T_var = new SAMRAICellVariable<double>("T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
+        SAMRAIRobinBcCoefStrategy* T_bc_coef = nullptr;
         if (!periodic_domain)
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -125,7 +132,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef);
         }
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
-        Pointer<CellVariable<NDIM, double>> F_T_var = new CellVariable<NDIM, double>("F_T");
+        Pointer<SAMRAICellVariable<double>> F_T_var = new SAMRAICellVariable<double>("F_T");
         adv_diff_integrator->registerSourceTerm(F_T_var);
         adv_diff_integrator->setSourceTermFunction(
             F_T_var,
@@ -142,7 +149,7 @@ main(int argc, char* argv[])
             new INSStaggeredStochasticForcing("INSStaggeredStochasticForcing",
                                               app_initializer->getComponentDatabase("VelocityStochasticForcing"),
                                               time_integrator));
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = nullptr;
         if (!periodic_domain)
         {
@@ -169,7 +176,7 @@ main(int argc, char* argv[])
         RNG::parallel_seed(seed);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

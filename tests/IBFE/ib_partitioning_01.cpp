@@ -23,6 +23,7 @@
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
@@ -35,12 +36,14 @@
 
 #include <boost/multi_array.hpp>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <HierarchyDataOpsManager.h>
-#include <LoadBalancer.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 #include <mpi.h>
 
 #include <string>
@@ -128,13 +131,13 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy =
+            new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry, false);
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -170,12 +173,12 @@ main(int argc, char** argv)
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,

@@ -19,16 +19,35 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
-#include <LocationIndexRobinBcCoefs.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAINodeIndex.h>
+#include <SAMRAINodeIterator.h>
+#include <SAMRAINodeVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 
 #include <ibtk/app_namespaces.h>
 
@@ -62,16 +81,16 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -79,11 +98,11 @@ main(int argc, char* argv[])
 
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc");
-        Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc");
-        Pointer<NodeVariable<NDIM, double>> nc_var = new NodeVariable<NDIM, double>("nc", NDIM);
+        Pointer<SAMRAICellVariable<double>> cc_var = new SAMRAICellVariable<double>("cc");
+        Pointer<SAMRAISideVariable<double>> sc_var = new SAMRAISideVariable<double>("sc");
+        Pointer<SAMRAINodeVariable<double>> nc_var = new SAMRAINodeVariable<double>("nc", NDIM);
         const int gcw = 4;
         const int cc_idx = var_db->registerVariableAndContext(cc_var, context, gcw);
         const int sc_idx = var_db->registerVariableAndContext(sc_var, context, gcw);
@@ -106,23 +125,23 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(cc_idx);
             level->allocatePatchData(nc_idx);
             level->allocatePatchData(sc_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(cc_idx);
-                Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(sc_idx);
-                Pointer<NodeData<NDIM, double>> nc_data = patch->getPatchData(nc_idx);
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> cc_data = patch->getPatchData(cc_idx);
+                Pointer<SAMRAISideData<double>> sc_data = patch->getPatchData(sc_idx);
+                Pointer<SAMRAINodeData<double>> nc_data = patch->getPatchData(nc_idx);
+                Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
-                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                const SAMRAIIndex& idx_low = patch->getBox().lower();
+                for (SAMRAICellIterator ci(patch->getBox()); ci; ci++)
                 {
-                    const CellIndex<NDIM>& idx = ci();
+                    const SAMRAICellIndex& idx = ci();
                     VectorNd x;
                     for (int d = 0; d < NDIM; ++d)
                         x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
@@ -131,9 +150,9 @@ main(int argc, char* argv[])
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator<NDIM> si(patch->getBox(), axis); si; si++)
+                    for (SAMRAISideIterator si(patch->getBox(), axis); si; si++)
                     {
-                        const SideIndex<NDIM>& idx = si();
+                        const SAMRAISideIndex& idx = si();
                         VectorNd x;
                         for (int d = 0; d < NDIM; ++d)
                             x[d] =
@@ -142,9 +161,9 @@ main(int argc, char* argv[])
                     }
                 }
 
-                for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                for (SAMRAINodeIterator ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM>& idx = ni();
+                    const SAMRAINodeIndex& idx = ni();
                     VectorNd x;
                     for (int d = 0; d < NDIM; ++d) x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)));
                     for (int d = 0; d < NDIM; ++d) (*nc_data)(idx, d) = exact_fcn(x);

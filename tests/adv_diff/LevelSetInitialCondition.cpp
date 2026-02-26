@@ -11,7 +11,20 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #include "LevelSetInitialCondition.h"
+
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIVariable.h>
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <SAMRAI_config.h>
@@ -19,7 +32,7 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialCondition::LevelSetInitialCondition(const std::string& object_name,
-                                                   const Pointer<CartesianGridGeometry<NDIM>> grid_geom,
+                                                   const Pointer<SAMRAICartesianGridGeometry> grid_geom,
                                                    const double radius,
                                                    const IBTK::VectorNd& origin,
                                                    const bool fluid_is_interior_to_cylinder)
@@ -41,29 +54,28 @@ LevelSetInitialCondition::isTimeDependent() const
 
 void
 LevelSetInitialCondition::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM>> /*var*/,
-                                         Pointer<Patch<NDIM>> patch,
+                                         Pointer<SAMRAIVariable> /*var*/,
+                                         Pointer<SAMRAIPatch> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevel<NDIM>> patch_level)
+                                         Pointer<SAMRAIPatchLevel> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
+        const SAMRAIBox& patch_box = patch->getBox();
+        Pointer<SAMRAICellData<double>> D_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+        Pointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
-        IntVector<NDIM> ratio = patch_level->getRatio();
-        const SAMRAI::hier::Box<NDIM> domain_box =
-            SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
-        const hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+        SAMRAIIntVector ratio = patch_level->getRatio();
+        const SAMRAIBox domain_box = SAMRAIBox::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
+        const SAMRAIIndex& grid_lower_idx = domain_box.lower();
 
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        for (SAMRAIBox::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            SAMRAICellIndex ci(it());
 
             // Get physical coordinates
             IBTK::Vector coord = IBTK::Vector::Zero();

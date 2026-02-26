@@ -22,18 +22,32 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <ibamr/app_namespaces.h>
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void output_data(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
@@ -109,18 +123,18 @@ main(int argc, char* argv[])
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -135,8 +149,8 @@ main(int argc, char* argv[])
         time_integrator->registerPressureInitialConditions(p_init);
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -163,7 +177,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -274,20 +288,20 @@ main(int argc, char* argv[])
         }
 
         // Compute errors at the final time.
-        Pointer<CellVariable<NDIM, double>> s_var = polymericStressForcing->getVariable();
-        Pointer<CellVariable<NDIM, double>> sxx_var = new CellVariable<NDIM, double>("Sxx");
-        Pointer<CellVariable<NDIM, double>> syy_var = new CellVariable<NDIM, double>("Syy");
-        Pointer<CellVariable<NDIM, double>> sxy_var = new CellVariable<NDIM, double>("Sxy");
+        Pointer<SAMRAICellVariable<double>> s_var = polymericStressForcing->getVariable();
+        Pointer<SAMRAICellVariable<double>> sxx_var = new SAMRAICellVariable<double>("Sxx");
+        Pointer<SAMRAICellVariable<double>> syy_var = new SAMRAICellVariable<double>("Syy");
+        Pointer<SAMRAICellVariable<double>> sxy_var = new SAMRAICellVariable<double>("Sxy");
         const Pointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int s_idx = var_db->mapVariableAndContextToIndex(s_var, s_ctx);
         const int s_cloned_idx = var_db->registerClonedPatchDataIndex(s_var, s_idx);
         const int sxx_idx = var_db->registerVariableAndContext(sxx_var, s_ctx);
         const int syy_idx = var_db->registerVariableAndContext(syy_var, s_ctx);
         const int sxy_idx = var_db->registerVariableAndContext(sxy_var, s_ctx);
 
-        const Pointer<Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+        const Pointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
@@ -313,21 +327,21 @@ main(int argc, char* argv[])
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         if (!using_exact_u) hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         hier_cc_data_ops.subtract(s_idx, s_idx, s_cloned_idx);
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> s_data = patch->getPatchData(s_idx);
-                Pointer<CellData<NDIM, double>> sxx_data = patch->getPatchData(sxx_idx);
-                Pointer<CellData<NDIM, double>> syy_data = patch->getPatchData(syy_idx);
-                Pointer<CellData<NDIM, double>> sxy_data = patch->getPatchData(sxy_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> s_data = patch->getPatchData(s_idx);
+                Pointer<SAMRAICellData<double>> sxx_data = patch->getPatchData(sxx_idx);
+                Pointer<SAMRAICellData<double>> syy_data = patch->getPatchData(syy_idx);
+                Pointer<SAMRAICellData<double>> sxy_data = patch->getPatchData(sxy_idx);
 
                 sxx_data->copyDepth(0, *s_data, 0);
                 syy_data->copyDepth(0, *s_data, 1);
@@ -365,7 +379,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             if (!using_exact_u) level->deallocatePatchData(u_cloned_idx);
             level->deallocatePatchData(s_cloned_idx);
             level->deallocatePatchData(sxx_idx);
@@ -377,7 +391,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+output_data(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> ins_integrator,
             const int iteration_num,
             const double loop_time,
@@ -391,7 +405,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(),
                                                            ins_integrator->getCurrentContext()));

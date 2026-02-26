@@ -19,10 +19,21 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
@@ -74,18 +85,18 @@ main(int argc, char* argv[])
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -99,7 +110,7 @@ main(int argc, char* argv[])
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -147,13 +158,13 @@ main(int argc, char* argv[])
             loop_time += dt;
         }
 
-        Pointer<CellVariable<NDIM, double>> s_var = polymericStressForcing->getVariable();
-        Pointer<CellVariable<NDIM, double>> sxx_var = new CellVariable<NDIM, double>("Sxx");
-        Pointer<CellVariable<NDIM, double>> syy_var = new CellVariable<NDIM, double>("Syy");
-        Pointer<CellVariable<NDIM, double>> sxy_var = new CellVariable<NDIM, double>("Sxy");
+        Pointer<SAMRAICellVariable<double>> s_var = polymericStressForcing->getVariable();
+        Pointer<SAMRAICellVariable<double>> sxx_var = new SAMRAICellVariable<double>("Sxx");
+        Pointer<SAMRAICellVariable<double>> syy_var = new SAMRAICellVariable<double>("Syy");
+        Pointer<SAMRAICellVariable<double>> sxy_var = new SAMRAICellVariable<double>("Sxy");
         const Pointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
         const int s_idx = var_db->mapVariableAndContextToIndex(s_var, s_ctx);
         const int sxx_idx = var_db->registerVariableAndContext(sxx_var, s_ctx);
         const int syy_idx = var_db->registerVariableAndContext(syy_var, s_ctx);
@@ -166,14 +177,14 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(sxx_idx, loop_time);
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(syy_idx, loop_time);
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(sxy_idx, loop_time);
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> s_data = patch->getPatchData(s_idx);
-                Pointer<CellData<NDIM, double>> sxx_data = patch->getPatchData(sxx_idx);
-                Pointer<CellData<NDIM, double>> syy_data = patch->getPatchData(syy_idx);
-                Pointer<CellData<NDIM, double>> sxy_data = patch->getPatchData(sxy_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> s_data = patch->getPatchData(s_idx);
+                Pointer<SAMRAICellData<double>> sxx_data = patch->getPatchData(sxx_idx);
+                Pointer<SAMRAICellData<double>> syy_data = patch->getPatchData(syy_idx);
+                Pointer<SAMRAICellData<double>> sxy_data = patch->getPatchData(sxy_idx);
 
                 sxx_data->copyDepth(0, *s_data, 0);
                 syy_data->copyDepth(0, *s_data, 1);
@@ -185,7 +196,7 @@ main(int argc, char* argv[])
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
         pout << "Soln norms in sxx at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(sxx_idx, wgt_cc_idx) << "\n"

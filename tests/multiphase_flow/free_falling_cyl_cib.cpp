@@ -19,10 +19,20 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -163,19 +173,19 @@ main(int argc, char* argv[])
                                               ib_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -199,7 +209,7 @@ main(int argc, char* argv[])
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
 
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariable<NDIM, double>> phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        Pointer<SAMRAICellVariable<double>> phi_var_solid = new SAMRAICellVariable<double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
             new RelaxationLSMethod(ls_name_solid, app_initializer->getComponentDatabase("LevelSet_Solid"));
         LSLocateCircularInterface setLSLocateCircularInterface(
@@ -208,7 +218,7 @@ main(int argc, char* argv[])
             &callLSLocateCircularInterfaceCallbackFunction, static_cast<void*>(&setLSLocateCircularInterface));
 
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double>> phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
+        Pointer<SAMRAICellVariable<double>> phi_var_gas = new SAMRAICellVariable<double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface setLSLocateGasInterface(
@@ -238,19 +248,19 @@ main(int argc, char* argv[])
                                                    static_cast<void*>(&setSetLSPropertiesGas));
 
         // Setup the advected and diffused quantities.
-        Pointer<Variable<NDIM>> rho_var;
+        Pointer<SAMRAIVariable> rho_var;
         if (conservative_form)
         {
-            rho_var = new SideVariable<NDIM, double>("rho");
+            rho_var = new SAMRAISideVariable<double>("rho");
         }
         else
         {
-            rho_var = new CellVariable<NDIM, double>("rho");
+            rho_var = new SAMRAICellVariable<double>("rho");
         }
 
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
 
-        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<SAMRAICellVariable<double>> mu_var = new SAMRAICellVariable<double>("mu");
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -307,8 +317,8 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -330,7 +340,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
+        SAMRAIRobinBcCoefStrategy* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -338,7 +348,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
+        SAMRAIRobinBcCoefStrategy* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -346,7 +356,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
+        SAMRAIRobinBcCoefStrategy* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -357,7 +367,7 @@ main(int argc, char* argv[])
 
         // LS reinit boundary conditions, which is set to be the same as the BCs
         // for advection
-        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = phi_bc_coef;
+        SAMRAIRobinBcCoefStrategy* ls_reinit_bcs = phi_bc_coef;
         level_set_solid_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
         level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
 
@@ -379,7 +389,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(eul_forces);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {

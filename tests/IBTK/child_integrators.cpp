@@ -21,16 +21,22 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <LocationIndexRobinBcCoefs.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAILogger.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVisItDataWriter.h>
 #include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -93,17 +99,17 @@ protected:
     {
         plog << d_object_name << ": initializeCompositeHierarchyDataSpecialized()\n";
     }
-    void initializeLevelDataSpecialized(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
+    void initializeLevelDataSpecialized(Pointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                         int /*level_number*/,
                                         double /*init_data_time*/,
                                         bool /*can_be_refined*/,
                                         bool /*initial_time*/,
-                                        Pointer<BasePatchLevel<NDIM>> /*old_level*/,
+                                        Pointer<SAMRAIBasePatchLevel> /*old_level*/,
                                         bool /*allocate_data*/) override
     {
         plog << d_object_name << ": initializeLevelDataSpecialized()\n";
     }
-    void resetHierarchyConfigurationSpecialized(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
+    void resetHierarchyConfigurationSpecialized(Pointer<SAMRAIBasePatchHierarchy> /*hierarchy*/,
                                                 int /*coarsest_level*/,
                                                 int /*finest_level*/) override
     {
@@ -113,7 +119,7 @@ protected:
     {
         plog << d_object_name << ": putToDatabaseSpecialized()\n";
     }
-    void addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/, const int /*workload_data_idx*/) override
+    void addWorkloadEstimate(Pointer<SAMRAIPatchHierarchy> /*hierarchy*/, const int /*workload_data_idx*/) override
     {
         plog << d_object_name << ": addWorkloadEstimate()\n";
     }
@@ -156,7 +162,7 @@ main(int argc, char* argv[])
 
 #ifndef IBTK_HAVE_SILO
     // Suppress warnings caused by running without silo
-    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+    SAMRAILogger::getInstance()->setWarning(false);
 #endif
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -205,18 +211,18 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -230,7 +236,7 @@ main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
