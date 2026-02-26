@@ -21,6 +21,18 @@
 
 #include <ibamr/STSMassFluxIntegrator.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+
 namespace SAMRAI
 {
 namespace solv
@@ -77,8 +89,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    AdvDiffConservativeMassScalarTransportRKIntegrator(std::string object_name,
-                                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    AdvDiffConservativeMassScalarTransportRKIntegrator(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor.
@@ -98,7 +109,7 @@ public:
     /*!
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
-    void initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> base_hierarchy) override;
+    void initializeSTSIntegrator(SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -125,17 +136,17 @@ public:
     /*!
      * \brief Set the boundary condition object for the cell-centered density.
      */
-    void setCellCenteredDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs);
+    void setCellCenteredDensityBoundaryConditions(SAMRAIRobinBcCoefStrategy*& rho_cc_bc_coefs);
 
     /*!
      * \brief Set the boundary condition object for the cell-centered material property.
      */
-    void setCellCenteredMaterialPropertyBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs);
+    void setCellCenteredMaterialPropertyBoundaryConditions(SAMRAIRobinBcCoefStrategy*& gamma_cc_bc_coefs);
 
     /*!
      * \brief Set the boundary condition object for the cell-centered transport quantity.
      */
-    void setCellCenteredTransportQuantityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs);
+    void setCellCenteredTransportQuantityBoundaryConditions(SAMRAIRobinBcCoefStrategy*& Q_cc_bc_coefs);
 
     /*!
      * \brief Get the newly constructed cell-centered density patch data index.
@@ -167,7 +178,7 @@ public:
     /*!
      * \brief Set the material property variable.
      */
-    void setMaterialPropertyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> gamma_var);
+    void setMaterialPropertyVariable(SAMRAIPointer<SAMRAICellVariable<double>> gamma_var);
 
 private:
     /*!
@@ -202,40 +213,40 @@ private:
     /*!
      * \brief Compute the interpolation of a quantity Q onto faces of the cell centered control volumes
      */
-    void interpolateCellQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> Q_half_data,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> U_adv_data,
-                                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Q_data,
-                                 const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-                                 const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-                                 const SAMRAI::hier::Box<NDIM>& patch_box,
+    void interpolateCellQuantity(SAMRAIPointer<SAMRAIFaceData<double>> Q_half_data,
+                                 SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                 const SAMRAIPointer<SAMRAICellData<double>> Q_data,
+                                 const SAMRAIIntVector& patch_lower,
+                                 const SAMRAIIntVector& patch_upper,
+                                 const SAMRAIBox& patch_box,
                                  const LimiterType& convective_limiter);
 
     /*!
      * \brief Compute div[rho_lim * gamma_lim * u_adv * Q_lim]. Here, rho_lim * u_adv is obtained from
      * integrating the mass balance equation.
      */
-    void computeConvectiveDerivative(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> N_data,
-                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> P_half_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> U_adv_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> R_half_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> Q_half_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> G_half_data,
-                                     const SAMRAI::hier::Box<NDIM>& patch_box,
+    void computeConvectiveDerivative(SAMRAIPointer<SAMRAICellData<double>> N_data,
+                                     SAMRAIPointer<SAMRAIFaceData<double>> P_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> Q_half_data,
+                                     const SAMRAIPointer<SAMRAIFaceData<double>> G_half_data,
+                                     const SAMRAIBox& patch_box,
                                      const double* const dx);
 
     /*!
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
-    void computeDensityUpdate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> R_data,
+    void computeDensityUpdate(SAMRAIPointer<SAMRAICellData<double>> R_data,
                               const double& a0,
-                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> R0_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> R0_data,
                               const double& a1,
-                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> R1_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> R1_data,
                               const double& a2,
-                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> U_adv_data,
-                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> R_half_data,
-                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> S_data,
-                              const SAMRAI::hier::Box<NDIM>& patch_box,
+                              const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                              const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
+                              const SAMRAIPointer<SAMRAICellData<double>> S_data,
+                              const SAMRAIBox& patch_box,
                               const double& dt,
                               const double* const dx);
 
@@ -243,15 +254,14 @@ private:
      * \brief Compute the error of the mass conservation equation using the integrated
      * density field pointwise.
      */
-    void computeErrorOfMassConservationEquation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> E_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Rnew_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Rold_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> R_half_data,
-        const SAMRAI::hier::Box<NDIM>& patch_box,
-        const double& dt,
-        const double* const dx);
+    void computeErrorOfMassConservationEquation(SAMRAIPointer<SAMRAICellData<double>> E_data,
+                                                const SAMRAIPointer<SAMRAICellData<double>> Rnew_data,
+                                                const SAMRAIPointer<SAMRAICellData<double>> Rold_data,
+                                                const SAMRAIPointer<SAMRAIFaceData<double>> U_adv_data,
+                                                const SAMRAIPointer<SAMRAIFaceData<double>> R_half_data,
+                                                const SAMRAIBox& patch_box,
+                                                const double& dt,
+                                                const double* const dx);
 
     // Book keeping
     std::string d_object_name;
@@ -261,22 +271,22 @@ private:
     // Cached communications operators.
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_Q_transaction_comps,
         d_gamma_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_Q_bdry_fill, d_hier_gamma_bdry_fill;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_Q_bdry_fill, d_hier_gamma_bdry_fill;
 
     /*
      * Boundary condition objects
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_cc_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_gamma_cc_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Q_cc_bc_coefs;
+    SAMRAIRobinBcCoefStrategy* d_rho_cc_bc_coefs;
+    SAMRAIRobinBcCoefStrategy* d_gamma_cc_bc_coefs;
+    SAMRAIRobinBcCoefStrategy* d_Q_cc_bc_coefs;
 
     /*!
      * Variables.
      */
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_rho_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_gamma_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Q_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_rho_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_gamma_cc_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Q_cc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

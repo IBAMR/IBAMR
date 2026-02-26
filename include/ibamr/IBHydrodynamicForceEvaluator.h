@@ -19,14 +19,20 @@
 #include <ibamr/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-#include <Box.h>
-#include <CellVariable.h>
-#include <RobinBcCoefStrategy.h>
-#include <SideVariable.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISerializable.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVisItDataWriter.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Core>
@@ -95,7 +101,7 @@ namespace IBAMR
  * \note  Various IB methods need to provide linear and angular momentum of the
  *  enclosed body to the class.
  */
-class IBHydrodynamicForceEvaluator : public SAMRAI::tbox::Serializable
+class IBHydrodynamicForceEvaluator : public SAMRAISerializable
 {
 public:
     /*!
@@ -171,7 +177,7 @@ public:
      */
     void registerStructure(IBTK::Vector3d& box_X_lower,
                            IBTK::Vector3d& box_X_upper,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                           SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                            const IBTK::Vector3d& box_vel = IBTK::Vector3d::Zero(),
                            int strct_id = 0);
 
@@ -190,7 +196,7 @@ public:
      */
     void updateStructureDomain(const IBTK::Vector3d& box_vel_new,
                                double dt,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                               SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                int strct_id = 0);
 
     /*!
@@ -228,10 +234,10 @@ public:
      *
      */
 
-    void computeLaggedMomentumIntegral(int u_old_idx,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
-                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+    void computeLaggedMomentumIntegral(
+        int u_old_idx,
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+        const std::vector<SAMRAIRobinBcCoefStrategy*>& u_src_bc_coef = std::vector<SAMRAIRobinBcCoefStrategy*>());
 
     /*!
      * \brief Update the new momenta of the bodies within the structure.
@@ -265,14 +271,14 @@ public:
      * \param p_src_bc_coef Pressure boundary condition object maintained by the integrator.
      *
      */
-    virtual void computeHydrodynamicForce(int u_idx,
-                                          int p_idx,
-                                          int f_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                          double dt,
-                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
-                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = nullptr);
+    virtual void computeHydrodynamicForce(
+        int u_idx,
+        int p_idx,
+        int f_idx,
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+        double dt,
+        const std::vector<SAMRAIRobinBcCoefStrategy*>& u_src_bc_coef = std::vector<SAMRAIRobinBcCoefStrategy*>(),
+        SAMRAIRobinBcCoefStrategy* p_src_bc_coef = nullptr);
 
     /*!
      * \brief Postprocess data for the next timestep.
@@ -282,15 +288,15 @@ public:
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * \brief Create the control volume plot data and register it with the VisIt data writer
      *
      * \param strct_id A unique integer id to associate with an integration domain.
      */
-    void registerStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM>> visit_data_writer,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+    void registerStructurePlotData(SAMRAIPointer<SAMRAIVisItDataWriter> visit_data_writer,
+                                   SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                    int strct_id = 0);
 
     /*!
@@ -298,8 +304,7 @@ public:
      *
      * \param strct_id A unique integer id to associate with an integration domain
      */
-    void updateStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                 int strct_id = 0);
+    void updateStructurePlotData(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy, int strct_id = 0);
 
 private:
     /*!
@@ -325,30 +330,30 @@ private:
     /*!
      * \brief Reset weight of the cell face to face area.
      */
-    void resetFaceAreaWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
+    void resetFaceAreaWeight(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Reset weight of the cell face to cell volume.
      */
-    void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
+    void resetFaceVolWeight(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Allocate and fill velocity and pressure patch data.
      */
     void fillPatchData(const int u_src_idx,
                        const int p_src_idx,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef,
+                       SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+                       const std::vector<SAMRAIRobinBcCoefStrategy*>& u_src_bc_coef,
+                       SAMRAIRobinBcCoefStrategy* p_src_bc_coef,
                        const double fill_time);
 
     /*!
      * \brief Compute the physical coordinate of a given side index
      */
     void getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                            const SAMRAI::pdat::SideIndex<NDIM> side_idx,
+                                            SAMRAIPointer<SAMRAIPatchLevel> patch_level,
+                                            SAMRAIPointer<SAMRAIPatch> patch,
+                                            const SAMRAISideIndex side_idx,
                                             const int axis);
 
     /*!
@@ -369,8 +374,8 @@ private:
     /*!
      * \brief Fluid velocity and pressure with appropriate ghost width.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_u_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_p_var;
     int d_u_idx, d_p_idx;
 
     /*!

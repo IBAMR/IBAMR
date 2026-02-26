@@ -15,6 +15,10 @@
 
 #include <ibamr/IBLagrangianSourceStrategy.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIPatchHierarchy.h>
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
@@ -46,7 +50,7 @@ IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, const
 } // setTimeInterval
 
 void
-IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBLagrangianSourceStrategy::initializeLevelData(const Pointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                 const int /*level_number*/,
                                                 const double /*init_data_time*/,
                                                 const bool /*initial_time*/,

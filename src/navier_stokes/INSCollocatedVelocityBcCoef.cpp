@@ -20,17 +20,19 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/MathUtilities.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <ArrayData.h>
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <RobinBcCoefStrategy.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
 
 #include <algorithm>
 #include <limits>
@@ -68,7 +70,7 @@ namespace IBAMR
 
 INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(const unsigned int comp_idx,
                                                          const INSCollocatedHierarchyIntegrator* fluid_solver,
-                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                         const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                          const TractionBcType traction_bc_type,
                                                          const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, nullptr)
@@ -141,7 +143,7 @@ INSCollocatedVelocityBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -201,12 +203,12 @@ INSCollocatedVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
-                                        Pointer<ArrayData<NDIM, double>>& bcoef_data,
-                                        Pointer<ArrayData<NDIM, double>>& gcoef_data,
-                                        const Pointer<Variable<NDIM>>& variable,
-                                        const Patch<NDIM>& patch,
-                                        const BoundaryBox<NDIM>& bdry_box,
+INSCollocatedVelocityBcCoef::setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                                        SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                                        SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
+                                        const SAMRAIPointer<SAMRAIVariable>& variable,
+                                        const SAMRAIPatch& patch,
+                                        const SAMRAIBoundaryBox& bdry_box,
                                         double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -242,16 +244,16 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const SAMRAIBox& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const double mu = d_problem_coefs->getMu();
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (SAMRAIBox::Iterator it(bc_coef_box); it; it++)
     {
-        const hier::Index<NDIM>& i = it();
+        const SAMRAIIndex& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
@@ -310,7 +312,7 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -319,10 +321,10 @@ INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    SAMRAIIntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = SAMRAIIntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

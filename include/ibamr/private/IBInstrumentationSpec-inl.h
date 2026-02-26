@@ -23,9 +23,11 @@
 #include <ibamr/IBInstrumentationSpec.h>
 
 #include <ibtk/StreamableManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <tbox/AbstractStream.h>
-#include <tbox/Utilities.h>
+
+#include <SAMRAIUtilities.h>
 
 #include <string>
 #include <vector>

@@ -16,27 +16,31 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Utilities.h>
-
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <FaceData.h>
-#include <FaceIndex.h>
-#include <Index.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchLevel.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <SideIndex.h>
-#include <SideIterator.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceIndex.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -176,15 +180,15 @@ extern "C"
 namespace IBAMR
 {
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     Pointer<CellVariable<NDIM, double>> Q_var,
-                                                     Pointer<Database> input_db,
+                                                     Pointer<SAMRAICellVariable<double>> Q_var,
+                                                     Pointer<SAMRAIDatabase> input_db,
                                                      const std::string& convective_op_type,
                                                      ConvectiveDifferencingType difference_form,
-                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+                                                     const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coefs,
+                                                     const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_Q_var(Q_var),
-      d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
+      d_u_adv_var(new SAMRAISideVariable<double>("Complex U var")),
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)
 {
@@ -195,15 +199,15 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
 } // Constructor
 
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
-                                                     Pointer<CellVariable<NDIM, double>> Q_var,
-                                                     Pointer<Database> input_db,
+                                                     Pointer<SAMRAICellVariable<double>> Q_var,
+                                                     Pointer<SAMRAIDatabase> input_db,
                                                      Pointer<ConvectiveOperator> convective_op,
                                                      ConvectiveDifferencingType difference_form,
-                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
-                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+                                                     const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coefs,
+                                                     const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_Q_var(Q_var),
-      d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
+      d_u_adv_var(new SAMRAISideVariable<double>("Complex U var")),
       d_convec_oper(convective_op),
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)
@@ -212,7 +216,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
 } // Constructor
 
 void
-CFUpperConvectiveOperator::commonConstructor(Pointer<Database> input_db)
+CFUpperConvectiveOperator::commonConstructor(Pointer<SAMRAIDatabase> input_db)
 {
     if (input_db)
     {
@@ -223,12 +227,12 @@ CFUpperConvectiveOperator::commonConstructor(Pointer<Database> input_db)
             d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolve_type"));
     }
     // Register some scratch variables
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
     d_Q_convec_idx = var_db->registerVariableAndContext(
-        d_Q_var, var_db->getContext(d_object_name + "::CONVECTIVE"), IntVector<NDIM>(0));
-    Pointer<VariableContext> new_cxt = var_db->getContext(d_object_name + "::U_ADV_CXT");
-    d_u_scratch_idx = var_db->registerVariableAndContext(d_u_adv_var, new_cxt, IntVector<NDIM>(2));
-    Pointer<VariableContext> src_cxt = var_db->getContext(d_object_name + "::SOURCE");
+        d_Q_var, var_db->getContext(d_object_name + "::CONVECTIVE"), SAMRAIIntVector(0));
+    Pointer<SAMRAIVariableContext> new_cxt = var_db->getContext(d_object_name + "::U_ADV_CXT");
+    d_u_scratch_idx = var_db->registerVariableAndContext(d_u_adv_var, new_cxt, SAMRAIIntVector(2));
+    Pointer<SAMRAIVariableContext> src_cxt = var_db->getContext(d_object_name + "::SOURCE");
     d_s_idx = var_db->registerVariableAndContext(d_Q_var, src_cxt);
 }
 
@@ -256,7 +260,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     // Set up velocity information:
     d_convec_oper->setAdvectionVelocity(d_u_idx);
     d_convec_oper->setSolutionTime(d_solution_time);
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     // Copy data to side centered velocity field
     //
     // TODO: This is only done because we currently only have operators to
@@ -264,20 +268,20 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     // quantities.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-            Pointer<FaceData<NDIM, double>> u_f_data = patch->getPatchData(d_u_idx);
-            Pointer<SideData<NDIM, double>> u_s_data = patch->getPatchData(d_u_scratch_idx);
-            const Box<NDIM> box = patch->getBox();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            Pointer<SAMRAIFaceData<double>> u_f_data = patch->getPatchData(d_u_idx);
+            Pointer<SAMRAISideData<double>> u_s_data = patch->getPatchData(d_u_scratch_idx);
+            const SAMRAIBox box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator<NDIM> i(box, axis); i; i++)
+                for (SAMRAISideIterator i(box, axis); i; i++)
                 {
-                    const SideIndex<NDIM>& si = i();
-                    FaceIndex<NDIM> fi(si.toCell(0), axis, 1);
+                    const SAMRAISideIndex& si = i();
+                    SAMRAIFaceIndex fi(si.toCell(0), axis, 1);
                     (*u_s_data)(si) = (*u_f_data)(fi);
                 }
             }
@@ -298,26 +302,26 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
     for (int level_num = d_coarsest_ln; level_num <= d_finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(d_u_scratch_idx);
-            const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAISideData<double>> u_data = patch->getPatchData(d_u_scratch_idx);
+            const Pointer<SAMRAICartesianPatchGeometry> p_geom = patch->getPatchGeometry();
             const double* dx = p_geom->getDx();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM> patch_lower = patch_box.lower();
-            const IntVector<NDIM> patch_upper = patch_box.upper();
-            Pointer<CellData<NDIM, double>> Q_data = patch->getPatchData(Q_idx);
-            Pointer<CellData<NDIM, double>> Y_data = patch->getPatchData(Y_idx);
-            const IntVector<NDIM> Q_data_gcw = Q_data->getGhostCellWidth();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector patch_lower = patch_box.lower();
+            const SAMRAIIntVector patch_upper = patch_box.upper();
+            Pointer<SAMRAICellData<double>> Q_data = patch->getPatchData(Q_idx);
+            Pointer<SAMRAICellData<double>> Y_data = patch->getPatchData(Y_idx);
+            const SAMRAIIntVector Q_data_gcw = Q_data->getGhostCellWidth();
 
-            const IntVector<NDIM> u_data_gcw = u_data->getGhostCellWidth();
-            const IntVector<NDIM> Y_data_gcw = Y_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(d_Q_convec_idx);
-            const IntVector<NDIM> C_data_gcw = C_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double>> S_data = patch->getPatchData(d_s_idx);
-            const IntVector<NDIM> S_data_gcw = S_data->getGhostCellWidth();
+            const SAMRAIIntVector u_data_gcw = u_data->getGhostCellWidth();
+            const SAMRAIIntVector Y_data_gcw = Y_data->getGhostCellWidth();
+            Pointer<SAMRAICellData<double>> C_data = patch->getPatchData(d_Q_convec_idx);
+            const SAMRAIIntVector C_data_gcw = C_data->getGhostCellWidth();
+            Pointer<SAMRAICellData<double>> S_data = patch->getPatchData(d_s_idx);
+            const SAMRAIIntVector S_data_gcw = S_data->getGhostCellWidth();
 
             switch (d_evolve_type)
             {
@@ -454,8 +458,8 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 } // applyConvectiveOperator
 
 void
-CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                   const SAMRAIVectorReal<NDIM, double>& out)
+CFUpperConvectiveOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                                   const SAMRAISAMRAIVectorReal<double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     // Get Hierarchy Information
@@ -474,7 +478,7 @@ CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     // Allocate Patch Data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_u_scratch_idx)) level->allocatePatchData(d_u_scratch_idx);
         if (!level->checkAllocated(d_Q_convec_idx)) level->allocatePatchData(d_Q_convec_idx);
         if (!level->checkAllocated(d_s_idx)) level->allocatePatchData(d_s_idx);
@@ -491,7 +495,7 @@ CFUpperConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_convec_idx)) level->deallocatePatchData(d_Q_convec_idx);
         if (level->checkAllocated(d_u_scratch_idx)) level->deallocatePatchData(d_u_scratch_idx);
         if (level->checkAllocated(d_s_idx)) level->deallocatePatchData(d_s_idx);

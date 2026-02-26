@@ -15,7 +15,9 @@
 
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 
-#include <tbox/Database.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -28,7 +30,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(const std::string& object_name,
-                                                                   Pointer<Database> input_db,
+                                                                   Pointer<SAMRAIDatabase> input_db,
                                                                    const std::string& default_options_prefix)
     : PETScKrylovLinearSolver(object_name, input_db, default_options_prefix)
 {

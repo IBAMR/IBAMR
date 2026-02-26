@@ -22,12 +22,15 @@
 
 #include <ibamr/ibamr_enums.h>
 
-#include <tbox/Database.h>
+#include <ibtk/samrai_compatibility_names.h>
+
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
 #include <petscmat.h>
 #include <petscvec.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <map>
 #include <string>
@@ -61,8 +64,8 @@ public:
      * \brief The only constructor of this class.
      */
     DirectMobilitySolver(std::string object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
+                         SAMRAIPointer<SAMRAIDatabase> input_db,
+                         SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy);
 
     /*!
      * \brief Destructor for this class.
@@ -212,7 +215,7 @@ private:
     /*!
      * \brief Get input options.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Factorize mobility matrix using direct solvers.
@@ -248,7 +251,7 @@ private:
     std::string d_object_name;
     bool d_is_initialized = false;
     double d_solution_time, d_current_time, d_new_time;
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
+    SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Structure(s) stuff.
     //\{

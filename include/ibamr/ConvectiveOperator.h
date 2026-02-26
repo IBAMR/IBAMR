@@ -24,6 +24,9 @@
 
 #include <ibtk/GeneralOperator.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 
@@ -110,8 +113,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     //\}
 

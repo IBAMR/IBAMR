@@ -21,12 +21,15 @@
 #include <ibamr/config.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
-#include <PatchLevel.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <array>
 #include <string>
@@ -64,11 +67,10 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesOpenBoundaryStabilizer(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const INSHierarchyIntegrator* fluid_solver,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry);
+    StaggeredStokesOpenBoundaryStabilizer(const std::string& object_name,
+                                          SAMRAIPointer<SAMRAIDatabase> input_db,
+                                          const INSHierarchyIntegrator* fluid_solver,
+                                          SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -89,12 +91,11 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
+                        SAMRAIPointer<SAMRAIPatchLevel> level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr)) override;
 
     //\}
 
@@ -129,7 +130,7 @@ private:
     std::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
     std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geometry;
 };
 } // namespace IBAMR
 

@@ -24,13 +24,15 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/LinearOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <IntVector.h>
-#include <PoissonSpecifications.h>
-#include <SAMRAIVectorReal.h>
-#include <VariableFillPattern.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <string>
 #include <vector>
@@ -85,7 +87,7 @@ public:
      */
     StaggeredStokesOperator(const std::string& object_name,
                             bool homogeneous_bc = true,
-                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                            SAMRAIPointer<SAMRAIDatabase> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -97,14 +99,14 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    virtual void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Get the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual const SAMRAI::solv::PoissonSpecifications& getVelocityPoissonSpecifications() const;
+    virtual const SAMRAIPoissonSpecifications& getVelocityPoissonSpecifications() const;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -121,13 +123,13 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAIRobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Set the physical boundary condition helper object.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Linear operator functionality.
@@ -160,8 +162,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -193,8 +194,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                 const SAMRAISAMRAIVectorReal<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -211,30 +212,30 @@ public:
     /*!
      * \brief Modify the RHS vector to account for physical boundary conditions.
      */
-    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& y) override;
 
     /*!
      * \brief Modify the solution vector to account for physical boundary conditions.
      */
-    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
+    void imposeSolBcs(SAMRAISAMRAIVectorReal<double>& u) override;
 
     //\}
 
 protected:
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAIPoissonSpecifications d_U_problem_coefs;
+    SAMRAIRobinBcCoefStrategy* d_default_U_bc_coef;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_U_bc_coefs;
+    SAMRAIRobinBcCoefStrategy* d_default_P_bc_coef;
+    SAMRAIRobinBcCoefStrategy* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_U_fill_pattern, d_P_fill_pattern;
+    SAMRAIPointer<SAMRAIVariableFillPattern> d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     std::string d_refine_type = "NONE";
     std::string d_coarsen_type = "CUBIC_COARSEN";

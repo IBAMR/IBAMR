@@ -18,7 +18,9 @@
 
 #include <ibamr/config.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIPointer.h>
 
 namespace IBTK
 {
@@ -33,9 +35,8 @@ namespace IBAMR
  *
  * \param location_idx of the boundary at which the integral is evaluated
  */
-double computeNetInflowPhysicalBoundary(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                        int u_idx,
-                                        int bdry_loc_idx);
+double
+computeNetInflowPhysicalBoundary(SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops, int u_idx, int bdry_loc_idx);
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

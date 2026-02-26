@@ -15,9 +15,10 @@
 
 #include <ibamr/RNG.h>
 
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
+#include <SAMRAIPIO.h>
+#include <SAMRAIUtilities.h>
 #include <mpi.h>
 
 #include <cmath>

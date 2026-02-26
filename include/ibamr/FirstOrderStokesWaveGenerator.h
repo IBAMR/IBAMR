@@ -22,7 +22,10 @@
 
 #include <ibamr/StokesWaveGeneratorStrategy.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 
@@ -42,8 +45,7 @@ namespace IBAMR
 class FirstOrderStokesWaveGenerator : public StokesWaveGeneratorStrategy
 {
 public:
-    FirstOrderStokesWaveGenerator(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    FirstOrderStokesWaveGenerator(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * Get surface elevation at a specified horizontal position and time.

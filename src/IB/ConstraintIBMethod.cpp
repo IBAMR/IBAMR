@@ -42,34 +42,41 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Array.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscvec.h>
 
-#include <ArrayData.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIndex.h>
-#include <CellIterator.h>
-#include <ComponentSelector.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PoissonSpecifications.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <VariableDatabase.h>
-#include <VariableFillPattern.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIComponentSelector.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -104,16 +111,16 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_postprocessSolveFluidEquation;
-static Pointer<Timer> t_calculateCOMandMOIOfStructures;
-static Pointer<Timer> t_interpolateFluidSolveVelocity;
-static Pointer<Timer> t_calculateKinematicsVelocity;
-static Pointer<Timer> t_calculateRigidMomentum;
-static Pointer<Timer> t_correctVelocityOnLagrangianMesh;
-static Pointer<Timer> t_spreadCorrectedLagrangianVelocity;
-static Pointer<Timer> t_applyProjection;
-static Pointer<Timer> t_eulerStep;
-static Pointer<Timer> t_midpointStep;
+static Pointer<SAMRAITimer> t_postprocessSolveFluidEquation;
+static Pointer<SAMRAITimer> t_calculateCOMandMOIOfStructures;
+static Pointer<SAMRAITimer> t_interpolateFluidSolveVelocity;
+static Pointer<SAMRAITimer> t_calculateKinematicsVelocity;
+static Pointer<SAMRAITimer> t_calculateRigidMomentum;
+static Pointer<SAMRAITimer> t_correctVelocityOnLagrangianMesh;
+static Pointer<SAMRAITimer> t_spreadCorrectedLagrangianVelocity;
+static Pointer<SAMRAITimer> t_applyProjection;
+static Pointer<SAMRAITimer> t_eulerStep;
+static Pointer<SAMRAITimer> t_midpointStep;
 
 // Number of ghost cells used for each variable quantity.
 static const int CELLG = 1;
@@ -233,7 +240,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
     // sets object name.
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
@@ -249,7 +256,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
         }
 
         d_velcorrection_projection_spec.reset(
-            new PoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec"));
+            new SAMRAIPoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec"));
         d_velcorrection_projection_op =
             new CCLaplaceOperator(d_object_name + "ConstraintIBMethodProjection::PoissonOperator",
                                   /*input_db*/ nullptr,
@@ -378,23 +385,25 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
 
     // Setup the Timers.
     IBTK_DO_ONCE(
-        t_postprocessSolveFluidEquation =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::postprocessSolveFluidEquation()", true);
-        t_calculateCOMandMOIOfStructures =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::calculateCOMandMOIOfStructures()", true);
-        t_interpolateFluidSolveVelocity =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::interpolateFluidSolveVelocity()", true);
-        t_calculateKinematicsVelocity =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::calculateKinematicsVelocity()", true);
+        t_postprocessSolveFluidEquation = SAMRAITimerManager::getManager()->getTimer(
+            "IBAMR::ConstraintIBMethod::postprocessSolveFluidEquation()", true);
+        t_calculateCOMandMOIOfStructures = SAMRAITimerManager::getManager()->getTimer(
+            "IBAMR::ConstraintIBMethod::calculateCOMandMOIOfStructures()", true);
+        t_interpolateFluidSolveVelocity = SAMRAITimerManager::getManager()->getTimer(
+            "IBAMR::ConstraintIBMethod::interpolateFluidSolveVelocity()", true);
+        t_calculateKinematicsVelocity = SAMRAITimerManager::getManager()->getTimer(
+            "IBAMR::ConstraintIBMethod::calculateKinematicsVelocity()", true);
         t_calculateRigidMomentum =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::calculateRigidMomentum()", true);
-        t_correctVelocityOnLagrangianMesh =
-            TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::correctVelocityOnLagrangianMesh()", true);
-        t_spreadCorrectedLagrangianVelocity = TimerManager::getManager()->getTimer(
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::calculateRigidMomentum()", true);
+        t_correctVelocityOnLagrangianMesh = SAMRAITimerManager::getManager()->getTimer(
+            "IBAMR::ConstraintIBMethod::correctVelocityOnLagrangianMesh()", true);
+        t_spreadCorrectedLagrangianVelocity = SAMRAITimerManager::getManager()->getTimer(
             "IBAMR::ConstraintIBMethod::spreadCorrectedLagrangianVelocity()", true);
-        t_applyProjection = TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::applyProjection()", true);
-        t_eulerStep = TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::eulerStep()", true);
-        t_midpointStep = TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::midpointStep()", true););
+        t_applyProjection =
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::applyProjection()", true);
+        t_eulerStep = SAMRAITimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::eulerStep()", true);
+        t_midpointStep =
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::midpointStep()", true););
 
     return;
 } // ConstraintIBMethod
@@ -407,7 +416,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
         if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
     }
@@ -492,30 +501,30 @@ ConstraintIBMethod::calculateEulerianMomentum()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    SAMRAIVectorReal<NDIM, double> wgt_sc("sc_wgt_original", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> wgt_sc("sc_wgt_original", d_hierarchy, coarsest_ln, finest_ln);
     wgt_sc.addComponent(getHierarchyMathOps()->getSideWeightVariable(),
                         getHierarchyMathOps()->getSideWeightPatchDescriptorIndex());
 
     for (int active = 0; active < NDIM; ++active)
     {
-        Pointer<SAMRAIVectorReal<NDIM, double>> wgt_sc_active = wgt_sc.cloneVector("");
+        Pointer<SAMRAISAMRAIVectorReal<double>> wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&wgt_sc, false));
+        wgt_sc_active->copyVector(Pointer<SAMRAISAMRAIVectorReal<double>>(&wgt_sc, false));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double>> wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAISideData<double>> wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (d != active)
                     {
-                        ArrayData<NDIM, double>& arraydata = wgt_sc_active_data->getArrayData(d);
+                        SAMRAIArrayData<double>& arraydata = wgt_sc_active_data->getArrayData(d);
                         arraydata.fill(0.0);
                     }
                 }
@@ -556,7 +565,7 @@ ConstraintIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     // Register a scratch fluid velocity variable with appropriate IB-width.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_u_fluidSolve_var = d_ib_solver->getVelocityVariable();
     Pointer<VariableContext> u_new_ctx = d_ib_solver->getNewContext();
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
@@ -567,10 +576,10 @@ ConstraintIBMethod::registerEulerianVariables()
     // Initialize  variables & variable contexts associated with projection step.
     if (d_needs_div_free_projection)
     {
-        d_u_var = new SideVariable<NDIM, double>(d_object_name + "::u");
-        d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
-        d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
-        const IntVector<NDIM> cell_ghosts = CELLG;
+        d_u_var = new SAMRAISideVariable<double>(d_object_name + "::u");
+        d_Div_u_var = new SAMRAICellVariable<double>(d_object_name + "::Div_u");
+        d_phi_var = new SAMRAICellVariable<double>(d_object_name + "::phi");
+        const SAMRAIIntVector cell_ghosts = CELLG;
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
@@ -617,7 +626,7 @@ ConstraintIBMethod::registerEulerianVariables()
 #if !defined(NDEBUG)
             TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
-            d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
+            d_rho_var = new SAMRAISideVariable<double>(d_object_name + "::rho");
             d_rho_scratch_idx =
                 var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
         }
@@ -630,16 +639,16 @@ void
 ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc_var");
+    SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+    Pointer<SAMRAICellVariable<double>> cc_var = new SAMRAICellVariable<double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc_var");
+    Pointer<SAMRAISideVariable<double>> sc_var = new SAMRAISideVariable<double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
     d_volume = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
 
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateVolumeElement();
     setInitialLagrangianVelocity();
 
@@ -810,14 +819,14 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
             << std::endl);
 
     if (!from_restart)
-        tbox::Utilities::recursiveMkdir(d_dir_name);
+        SAMRAIUtilities::recursiveMkdir(d_dir_name);
     else
     {
         const bool restart_output_dump_dir_exists = output_db->keyExists("restart_output_dump_dir");
         if (restart_output_dump_dir_exists)
         {
             std::string restart_output_dump_dir = output_db->getString("restart_output_dump_dir");
-            tbox::Utilities::recursiveMkdir(restart_output_dump_dir);
+            SAMRAIUtilities::recursiveMkdir(restart_output_dump_dir);
             d_base_output_filename = restart_output_dump_dir + "/" +
                                      output_db->getStringWithDefault("base_filename", d_base_output_filename);
         }
@@ -829,7 +838,7 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
 void
 ConstraintIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
@@ -871,7 +880,7 @@ ConstraintIBMethod::setInitialLagrangianVelocity()
 {
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
 
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateCOMandMOIOfStructures();
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -902,7 +911,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -910,7 +919,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const SAMRAIIntVector& periodic_shift = grid_geom->getPeriodicShift();
 
     // Zero out the COM vector.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1243,8 +1252,8 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-    tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
-    tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+    SAMRAIArray<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+    SAMRAIArray<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const std::vector<std::pair<int, int>>& range = struct_param.getLagIdxRange();
@@ -1387,9 +1396,9 @@ ConstraintIBMethod::calculateVolumeElement()
 
     // Initialize variables and variable contexts associated with Eulerian
     // tracking of the Lagrangian points.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const IntVector<NDIM> cell_ghosts = 0;
-    Pointer<CellVariable<NDIM, int>> vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    const SAMRAIIntVector cell_ghosts = 0;
+    Pointer<SAMRAICellVariable<int>> vol_cc_var = new SAMRAICellVariable<int>(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
 
     const int coarsest_ln = 0;
@@ -1397,12 +1406,12 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAICellData<int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
     }
@@ -1414,7 +1423,7 @@ ConstraintIBMethod::calculateVolumeElement()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
@@ -1436,15 +1445,15 @@ ConstraintIBMethod::calculateVolumeElement()
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-                Pointer<CartesianGridGeometry<NDIM>> ggeom = level->getGridGeometry();
-                const IntVector<NDIM>& ratio = level->getRatio();
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+                Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                Pointer<SAMRAICartesianGridGeometry> ggeom = level->getGridGeometry();
+                const SAMRAIIntVector& ratio = level->getRatio();
                 const double* const dx = pgeom->getDx();
-                const Box<NDIM>& patch_box = patch->getBox();
+                const SAMRAIBox& patch_box = patch->getBox();
 #if (NDIM == 2)
                 const double patch_cell_vol = dx[0] * dx[1];
 #endif
@@ -1463,13 +1472,13 @@ ConstraintIBMethod::calculateVolumeElement()
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
                         const double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
+                        const SAMRAICellIndex Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
 
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
                 } // on a patch
 
-                for (CellData<NDIM, int>::Iterator it(patch_box); it; it++)
+                for (SAMRAICellData<int>::Iterator it(patch_box); it; it++)
                 {
                     if ((*vol_cc_scratch_idx_data)(*it)) d_structure_vol[location_struct_handle] += patch_cell_vol;
 
@@ -1518,7 +1527,7 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(vol_cc_scratch_idx)) level->deallocatePatchData(vol_cc_scratch_idx);
     }
     var_db->removePatchDataIndex(vol_cc_scratch_idx);
@@ -1591,7 +1600,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         if (struct_param.getStructureIsSelfTranslating())
         {
             IBTK_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
-            tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+            SAMRAIArray<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (calculate_trans_mom[d])
@@ -1702,7 +1711,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
 
 #if (NDIM == 3)
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
-            tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+            SAMRAIArray<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
@@ -1948,12 +1957,12 @@ ConstraintIBMethod::applyProjection()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Allocate temporary data.
-    ComponentSelector scratch_idxs;
+    SAMRAIComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_phi_idx);
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_FuRMoRP_new_time);
     }
 
@@ -1963,7 +1972,7 @@ ConstraintIBMethod::applyProjection()
                                d_Div_u_var, // dst
                                +1.0,        // alpha
                                d_u_fluidSolve_idx,
-                               Pointer<SideVariable<NDIM, double>>(d_u_fluidSolve_var), // src
+                               Pointer<SAMRAISideVariable<double>>(d_u_fluidSolve_var), // src
                                d_no_fill_op,                                            // src_bdry_fill
                                d_FuRMoRP_new_time,                                      // src_bdry_fill_time
                                U_current_cf_bdry_synch);                                // src_cf_bdry_synch
@@ -1987,10 +1996,10 @@ ConstraintIBMethod::applyProjection()
     const double Div_u_mean = (1.0 / d_volume) * d_hier_cc_data_ops->integral(d_Div_u_scratch_idx, d_wgt_cc_idx);
     d_hier_cc_data_ops->addScalar(d_Div_u_scratch_idx, d_Div_u_scratch_idx, -Div_u_mean);
 
-    SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(d_phi_var, d_phi_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
     rhs_vec.addComponent(d_Div_u_var, d_Div_u_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the Poisson solver.
@@ -2053,22 +2062,22 @@ ConstraintIBMethod::applyProjection()
     if (!d_rho_is_const)
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double>>(d_u_var),
+                                    Pointer<SAMRAISideVariable<double>>(d_u_var),
                                     U_scratch_cf_bdry_synch,
                                     d_rho_scratch_idx,
-                                    Pointer<SideVariable<NDIM, double>>(d_rho_var),
+                                    Pointer<SAMRAISideVariable<double>>(d_rho_var),
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double>>(d_u_var));
+                                    Pointer<SAMRAISideVariable<double>>(d_u_var));
     }
     else
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double>>(d_u_var),
+                                    Pointer<SAMRAISideVariable<double>>(d_u_var),
                                     U_scratch_cf_bdry_synch,
                                     -1.0 / d_rho_fluid,
                                     d_phi_idx,
@@ -2077,13 +2086,13 @@ ConstraintIBMethod::applyProjection()
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double>>(d_u_var));
+                                    Pointer<SAMRAISideVariable<double>>(d_u_var));
     }
 
     // Update pressure p = p + phi/dt
-    const Pointer<Variable<NDIM>> p_var = d_ib_solver->getPressureVariable();
+    const Pointer<SAMRAIVariable> p_var = d_ib_solver->getPressureVariable();
     const Pointer<VariableContext> p_ctx = d_ib_solver->getNewContext();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
     d_hier_cc_data_ops->axpy(p_idx, 1.0 / dt, d_phi_idx, p_idx);
@@ -2097,7 +2106,7 @@ ConstraintIBMethod::applyProjection()
                                    d_Div_u_var, // dst
                                    +1.0,        // alpha
                                    d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<NDIM, double>>(d_u_fluidSolve_var), // src
+                                   Pointer<SAMRAISideVariable<double>>(d_u_fluidSolve_var), // src
                                    d_no_fill_op,                                            // src_bdry_fill
                                    d_FuRMoRP_new_time,                                      // src_bdry_fill_time
                                    U_current_cf_bdry_synch);                                // src_cf_bdry_synch
@@ -2114,7 +2123,7 @@ ConstraintIBMethod::applyProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -2352,17 +2361,17 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
-    SAMRAIVectorReal<NDIM, double> u_from(d_object_name + "from", d_hierarchy, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> u_to(d_object_name + "to", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> u_from(d_object_name + "from", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> u_to(d_object_name + "to", d_hierarchy, coarsest_ln, finest_ln);
 
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_from, false));
+    u_to.copyVector(Pointer<SAMRAISAMRAIVectorReal<double>>(&u_from, false));
 
     using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -2372,7 +2381,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 SIDE_DATA_COARSEN_TYPE,
                                                 BDRY_EXTRAP_TYPE,
                                                 CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr),
+                                                std::vector<SAMRAIRobinBcCoefStrategy*>(NDIM, nullptr),
                                                 nullptr);
     transaction_comps.push_back(component);
 
@@ -2393,7 +2402,7 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2410,8 +2419,8 @@ ConstraintIBMethod::interpolateFluidSolveVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAIPointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAIPointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAIPointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAIPointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2431,8 +2440,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAIPointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAIPointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAIPointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAIPointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2445,8 +2454,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     // zero-out the scratch variable, spread to it and then add the correction
     // to u_ins. This assumes that the structure is away from the physical
     // domain.
-    SAMRAIVectorReal<NDIM, double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAISAMRAIVectorReal<double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
 
     u_cib.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_cib_idx, d_wgt_sc_idx);
     u_ins.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_idx, d_wgt_sc_idx);
@@ -2454,8 +2463,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
 
-    u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_ins, false),
-              Pointer<SAMRAIVectorReal<NDIM, double>>(&u_cib, false));
+    u_ins.add(Pointer<SAMRAISAMRAIVectorReal<double>>(&u_ins, false),
+              Pointer<SAMRAISAMRAIVectorReal<double>>(&u_cib, false));
 
     return;
 } // spreadCorrectedLagrangianVelocity

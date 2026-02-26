@@ -22,12 +22,17 @@
 #include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <HierarchyFaceDataOpsReal.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyFaceDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideVariable.h>
 
 #include <map>
 #include <set>
@@ -98,7 +103,7 @@ public:
      * manager when requested.
      */
     BrinkmanAdvDiffSemiImplicitHierarchyIntegrator(const std::string& object_name,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                   SAMRAIPointer<SAMRAIDatabase> input_db,
                                                    bool register_for_restart = true);
 
     /*!
@@ -115,9 +120,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                       SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -135,12 +139,12 @@ public:
      * \brief Register BrinkmanAdvDiffBcHelper object to add Brinkman penalization terms to the advection-diffusion
      * solver.
      */
-    void registerBrinkmanAdvDiffBcHelper(SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper> brinkman_penalization);
+    void registerBrinkmanAdvDiffBcHelper(SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper> brinkman_penalization);
 
     /*!
      * \brief Get the BrinkmanAdvDiffBcHelper object registered with this class.
      */
-    const SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper>& getBrinkmanPenalization() const
+    const SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper>& getBrinkmanPenalization() const
     {
         return d_brinkman_penalization;
     } // getBrinkmanPenalization
@@ -149,8 +153,7 @@ public:
      * \brief Indicate if are solving a time independent problem for the transport variable Q.
      * Default option is false, which means Q is assumed to vary with time.
      */
-    void setTransportQuantityTimeIndependent(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
-                                             bool Q_time_independent);
+    void setTransportQuantityTimeIndependent(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, bool Q_time_independent);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
@@ -159,7 +162,7 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
+    virtual void registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                              const bool output_Q = true) override;
 
 protected:
@@ -172,23 +175,21 @@ protected:
     /*!
      * Additional variables required for Brinkman penalization
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>
-        d_Q_Cb_map, d_Q_Cb_rhs_map, d_Q_Fb_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>>
-        d_Q_Db_map, d_Q_Db_rhs_map;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAICellVariable<double>>> d_Q_Cb_map,
+        d_Q_Cb_rhs_map, d_Q_Fb_map;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, SAMRAIPointer<SAMRAISideVariable<double>>> d_Q_Db_map,
+        d_Q_Db_rhs_map;
 
     /*!
      * Flag to zero out the temporal term contribution when the Brinkman approach
      * is used.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, bool> d_Q_time_independent;
+    std::map<SAMRAIPointer<SAMRAICellVariable<double>>, bool> d_Q_time_independent;
 
     /*!
      * Brinkman penalization object registred with this integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper> d_brinkman_penalization;
+    SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper> d_brinkman_penalization;
 
 private:
     /*!

@@ -23,8 +23,13 @@
 #include <ibamr/LSInitStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICellData.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
 
 #include <string>
 #include <vector>
@@ -87,7 +92,7 @@ public:
      * \brief Constructor.
      */
     RelaxationLSMethod(std::string object_name,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr,
+                       SAMRAIPointer<SAMRAIDatabase> db = nullptr,
                        bool register_for_restart = true);
 
     /*!
@@ -99,7 +104,7 @@ public:
      * \brief Initialize level set data using the relaxation method.
      */
     void initializeLSData(int D_idx,
-                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                          SAMRAIPointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
                           bool initial_time) override;
@@ -154,8 +159,8 @@ private:
     /*!
      * \brief Do one relaxation step over the hierarchy.
      */
-    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> D_fill_op,
-               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+    void relax(SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> D_fill_op,
+               SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                int dist_idx,
                int dist_init_idx,
                int dist_copy_idx,
@@ -166,29 +171,28 @@ private:
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_init_data,
-               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dt_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+    void relax(SAMRAIPointer<SAMRAICellData<double>> dist_data,
+               const SAMRAIPointer<SAMRAICellData<double>> dist_init_data,
+               SAMRAIPointer<SAMRAICellData<double>> dt_data,
+               const SAMRAIPointer<SAMRAIPatch> patch,
                const int iter) const;
 
     /*!
      * \brief Compute the Hamiltonian of the indicator field over the hierarchy
      */
-    void
-    computeHamiltonian(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int ham_idx, int dist_idx) const;
+    void computeHamiltonian(SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops, int ham_idx, int dist_idx) const;
 
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void computeHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> ham_data,
-                            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
-                            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
+    void computeHamiltonian(SAMRAIPointer<SAMRAICellData<double>> ham_data,
+                            const SAMRAIPointer<SAMRAICellData<double>> dist_data,
+                            const SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*!
      * \brief Apply the mass constraint over the hierarchy
      */
-    void applyMassConstraint(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+    void applyMassConstraint(SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                              int dist_idx,
                              int dist_copy_idx,
                              int dist_init_idx,
@@ -197,16 +201,16 @@ private:
     /*!
      * \brief Apply the mass constraint over a patch
      */
-    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_copy_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> ham_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
+    void applyMassConstraint(SAMRAIPointer<SAMRAICellData<double>> dist_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> dist_copy_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> dist_init_data,
+                             const SAMRAIPointer<SAMRAICellData<double>> ham_init_data,
+                             const SAMRAIPointer<SAMRAIPatch> patch) const;
 
     /*
      * \brief Apply the volume redistribution algorithm over the hierarchy
      */
-    void applyVolumeRedistribution(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+    void applyVolumeRedistribution(SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                    int lambda_idx,
                                    int dist_idx,
                                    int dist_init_idx,
@@ -216,7 +220,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     /*!
      * Read object state from the restart file and initialize class data

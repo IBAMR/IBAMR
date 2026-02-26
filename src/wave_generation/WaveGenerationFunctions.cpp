@@ -19,24 +19,25 @@
 #include <ibamr/WaveGenerationFunctions.h>
 #include <ibamr/WaveUtilities.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <cmath>
 #include <string>
@@ -65,14 +66,14 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
     const double sign_gas = stokes_wave_generator->d_wave_gen_data.d_sign_gas_phase;
     const double depth = stokes_wave_generator->getWaterDepth();
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy =
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getPatchHierarchy();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     int u_new_idx = var_db->mapVariableAndContextToIndex(
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getVelocityVariable(),
         stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getNewContext());
 
-    Pointer<CellVariable<NDIM, double>> phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
     if (!phi_cc_var)
     {
         TBOX_ERROR(
@@ -88,17 +89,17 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_new_idx);
 
             // Compute a representative grid spacing
             double vol_cell = 1.0;
@@ -108,10 +109,10 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
                 {
-                    hier::Index<NDIM> i = it();
-                    SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
+                    SAMRAIIndex i = it();
+                    SAMRAISideIndex i_side(i, axis, SAMRAISideIndex::Lower);
                     double x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)));
                     const double shift_x = (axis == 0 ? 0.0 : 0.5);
                     x_posn += patch_dx[0] * shift_x;
@@ -155,20 +156,20 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
     // Modify the level set in the generation zone.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector& patch_lower = patch_box.lower();
 
-            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_new_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<SAMRAICellData<double>> phi_data = patch->getPatchData(phi_new_idx);
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                hier::Index<NDIM> i = it();
+                SAMRAIIndex i = it();
 
                 const double x_posn =
                     patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);

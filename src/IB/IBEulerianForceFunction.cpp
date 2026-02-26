@@ -16,20 +16,20 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CellData.h>
-#include <HierarchyDataOpsReal.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchCellDataBasicOps.h>
-#include <PatchData.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PatchSideDataBasicOps.h>
-#include <SideData.h>
-#include <Variable.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchCellDataBasicOps.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPatchSideDataBasicOps.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 
@@ -58,8 +58,8 @@ IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 
 void
 IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                                        Pointer<Variable<NDIM>> var,
-                                                                        Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                                        SAMRAIPointer<SAMRAIVariable> var,
+                                                                        SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                                         const double data_time,
                                                                         const bool initial_time,
                                                                         const int coarsest_ln_in,
@@ -91,18 +91,18 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const in
 
 void
 IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
-                                                               Pointer<Variable<NDIM>> /*var*/,
-                                                               Pointer<Patch<NDIM>> patch,
+                                                               SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                                               SAMRAIPointer<SAMRAIPatch> patch,
                                                                const double /*data_time*/,
                                                                const bool initial_time,
-                                                               Pointer<PatchLevel<NDIM>> /*level*/)
+                                                               SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
-    Pointer<PatchData<NDIM>> f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SAMRAIPatchData> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-    Pointer<SideData<NDIM, double>> f_sc_data = f_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_cc_data = f_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -112,24 +112,24 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_id
         if (f_sc_data) f_sc_data->fillAll(0.0);
         return;
     }
-    Pointer<PatchData<NDIM>> f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
+    SAMRAIPointer<SAMRAIPatchData> f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_data);
 #endif
-    Pointer<CellData<NDIM, double>> f_ib_cc_data = f_ib_data;
-    Pointer<SideData<NDIM, double>> f_ib_sc_data = f_ib_data;
+    SAMRAIPointer<SAMRAICellData<double>> f_ib_cc_data = f_ib_data;
+    SAMRAIPointer<SAMRAISideData<double>> f_ib_sc_data = f_ib_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
 #endif
     if (f_cc_data)
     {
-        PatchCellDataBasicOps<NDIM, double> patch_ops;
+        SAMRAIPatchCellDataBasicOps<double> patch_ops;
         patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch->getBox());
     }
     if (f_sc_data)
     {
-        PatchSideDataBasicOps<NDIM, double> patch_ops;
+        SAMRAIPatchSideDataBasicOps<double> patch_ops;
         patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());
     }
     return;

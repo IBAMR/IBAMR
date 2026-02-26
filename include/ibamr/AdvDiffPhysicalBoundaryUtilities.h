@@ -20,7 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICellData.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 
@@ -60,10 +66,10 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Q_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> u_ADV_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    static void setPhysicalBoundaryConditions(SAMRAIPointer<SAMRAICellData<double>> Q_data,
+                                              SAMRAIPointer<SAMRAIFaceData<double>> u_ADV_data,
+                                              SAMRAIPointer<SAMRAIPatch> patch,
+                                              const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                               const double fill_time,
                                               const bool inflow_boundaries_only,
                                               const bool homogeneous_bc);

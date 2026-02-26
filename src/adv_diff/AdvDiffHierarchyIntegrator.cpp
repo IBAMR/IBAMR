@@ -27,42 +27,43 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/MemoryDatabase.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
-
-#include <BasePatchHierarchy.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellDataFactory.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenOperator.h>
-#include <FaceData.h>
-#include <FaceVariable.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <Index.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SAMRAIVectorReal.h>
-#include <SideDataFactory.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
-#include <VisItDataWriter.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellDataFactory.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMemoryDatabase.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideDataFactory.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <algorithm>
 #include <cmath>
@@ -153,7 +154,7 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 
 // Function to reset variables registered by this integrator
 using ResetPropertiesFcnPtr = void (*)(int property_idx,
-                                       Pointer<HierarchyMathOps> hier_math_ops,
+                                       SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                        int integrator_step,
                                        double time,
                                        bool initial_time,
@@ -198,7 +199,7 @@ AdvDiffHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
 } // getDefaultConvectiveDifferencingType
 
 void
-AdvDiffHierarchyIntegrator::registerAdvectionVelocity(Pointer<FaceVariable<NDIM, double>> u_var)
+AdvDiffHierarchyIntegrator::registerAdvectionVelocity(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_var);
@@ -215,7 +216,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(Pointer<FaceVariable<NDIM,
 } // registerAdvectionVelocity
 
 void
-AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(Pointer<FaceVariable<NDIM, double>> u_var,
+AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var,
                                                                  const bool is_div_free)
 {
 #if !defined(NDEBUG)
@@ -226,7 +227,7 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(Pointer<FaceVar
 } // setAdvectionVelocityIsDivergenceFree
 
 bool
-AdvDiffHierarchyIntegrator::getAdvectionVelocityIsDivergenceFree(Pointer<FaceVariable<NDIM, double>> u_var) const
+AdvDiffHierarchyIntegrator::getAdvectionVelocityIsDivergenceFree(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
@@ -235,8 +236,8 @@ AdvDiffHierarchyIntegrator::getAdvectionVelocityIsDivergenceFree(Pointer<FaceVar
 } // getAdvectionVelocityIsDivergenceFree
 
 void
-AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(Pointer<FaceVariable<NDIM, double>> u_var,
-                                                         Pointer<IBTK::CartGridFunction> u_fcn)
+AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var,
+                                                         SAMRAIPointer<IBTK::CartGridFunction> u_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
@@ -245,8 +246,8 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(Pointer<FaceVariable<ND
     return;
 } // setAdvectionVelocityFunction
 
-Pointer<IBTK::CartGridFunction>
-AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(Pointer<FaceVariable<NDIM, double>> u_var) const
+SAMRAIPointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(SAMRAIPointer<SAMRAIFaceVariable<double>> u_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
@@ -255,7 +256,7 @@ AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(Pointer<FaceVariable<ND
 } // getAdvectionVelocityFunction
 
 void
-AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double>> F_var, const bool F_output)
+AdvDiffHierarchyIntegrator::registerSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> F_var, const bool F_output)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_var);
@@ -272,8 +273,8 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double
 } // registerSourceTerm
 
 void
-AdvDiffHierarchyIntegrator::setSourceTermFunction(Pointer<CellVariable<NDIM, double>> F_var,
-                                                  Pointer<IBTK::CartGridFunction> F_fcn)
+AdvDiffHierarchyIntegrator::setSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double>> F_var,
+                                                  SAMRAIPointer<IBTK::CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) != d_F_var.end());
@@ -281,7 +282,7 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(Pointer<CellVariable<NDIM, dou
     if (d_F_fcn[F_var])
     {
         const std::string& F_var_name = F_var->getName();
-        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
+        SAMRAIPointer<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
         if (!p_F_fcn)
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
@@ -301,8 +302,8 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(Pointer<CellVariable<NDIM, dou
     return;
 } // setSourceTermFunction
 
-Pointer<IBTK::CartGridFunction>
-AdvDiffHierarchyIntegrator::getSourceTermFunction(Pointer<CellVariable<NDIM, double>> F_var) const
+SAMRAIPointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getSourceTermFunction(SAMRAIPointer<SAMRAICellVariable<double>> F_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) != d_F_var.end());
@@ -311,7 +312,7 @@ AdvDiffHierarchyIntegrator::getSourceTermFunction(Pointer<CellVariable<NDIM, dou
 } // getSourceTermFunction
 
 void
-AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double>> Q_var, bool output_Q)
+AdvDiffHierarchyIntegrator::registerTransportedQuantity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, bool output_Q)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
@@ -320,10 +321,10 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     if (d_integrator_is_initialized)
         TBOX_ERROR(d_object_name + "::registerTransportedQuantity(): Integrator has already been initialized.\n");
     d_Q_var.push_back(Q_var);
-    Pointer<CellDataFactory<NDIM, double>> Q_factory = Q_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
-    Pointer<CellVariable<NDIM, double>> Q_rhs_var =
-        new CellVariable<NDIM, double>(Q_var->getName() + "::Q_rhs", Q_depth);
+    SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var =
+        new SAMRAICellVariable<double>(Q_var->getName() + "::Q_rhs", Q_depth);
 
     // Set default values.
     d_Q_u_map[Q_var] = nullptr;
@@ -337,7 +338,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = nullptr;
-    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, nullptr);
+    d_Q_bc_coef[Q_var] = std::vector<SAMRAIRobinBcCoefStrategy*>(Q_depth, nullptr);
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     d_Q_output[Q_var] = output_Q;
     setRefineAndCoarsenOperators(Q_var);
@@ -345,8 +346,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
 } // registerTransportedQuantity
 
 void
-AdvDiffHierarchyIntegrator::setAdvectionVelocity(Pointer<CellVariable<NDIM, double>> Q_var,
-                                                 Pointer<FaceVariable<NDIM, double>> u_var)
+AdvDiffHierarchyIntegrator::setAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                 SAMRAIPointer<SAMRAIFaceVariable<double>> u_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -356,8 +357,8 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocity(Pointer<CellVariable<NDIM, doub
     return;
 } // setAdvectionVelocity
 
-Pointer<FaceVariable<NDIM, double>>
-AdvDiffHierarchyIntegrator::getAdvectionVelocity(Pointer<CellVariable<NDIM, double>> Q_var) const
+SAMRAIPointer<SAMRAIFaceVariable<double>>
+AdvDiffHierarchyIntegrator::getAdvectionVelocity(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -366,8 +367,8 @@ AdvDiffHierarchyIntegrator::getAdvectionVelocity(Pointer<CellVariable<NDIM, doub
 } // getAdvectionVelocity
 
 void
-AdvDiffHierarchyIntegrator::setSourceTerm(Pointer<CellVariable<NDIM, double>> Q_var,
-                                          Pointer<CellVariable<NDIM, double>> F_var)
+AdvDiffHierarchyIntegrator::setSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                          SAMRAIPointer<SAMRAICellVariable<double>> F_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -377,8 +378,8 @@ AdvDiffHierarchyIntegrator::setSourceTerm(Pointer<CellVariable<NDIM, double>> Q_
     return;
 } // setSourceTerm
 
-Pointer<CellVariable<NDIM, double>>
-AdvDiffHierarchyIntegrator::getSourceTerm(Pointer<CellVariable<NDIM, double>> Q_var) const
+SAMRAIPointer<SAMRAICellVariable<double>>
+AdvDiffHierarchyIntegrator::getSourceTerm(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -387,7 +388,7 @@ AdvDiffHierarchyIntegrator::getSourceTerm(Pointer<CellVariable<NDIM, double>> Q_
 } // getSourceTerm
 
 void
-AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(Pointer<CellVariable<NDIM, double>> Q_var,
+AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                          const TimeSteppingType diffusion_time_stepping_type)
 {
 #if !defined(NDEBUG)
@@ -398,7 +399,7 @@ AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(Pointer<CellVariable<ND
 } // setDiffusionTimeSteppingType
 
 TimeSteppingType
-AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -407,7 +408,7 @@ AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(Pointer<CellVariable<ND
 } // getDiffusionTimeSteppingType
 
 void
-AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(Pointer<CellVariable<NDIM, double>> Q_var,
+AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                           const ConvectiveDifferencingType difference_form)
 {
 #if !defined(NDEBUG)
@@ -418,7 +419,7 @@ AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(Pointer<CellVariable<N
 } // setConvectiveDifferencingType
 
 ConvectiveDifferencingType
-AdvDiffHierarchyIntegrator::getConvectiveDifferencingType(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getConvectiveDifferencingType(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -427,7 +428,7 @@ AdvDiffHierarchyIntegrator::getConvectiveDifferencingType(Pointer<CellVariable<N
 } // getConvectiveDifferencingType
 
 void
-AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, double>> Q_var, const double kappa)
+AdvDiffHierarchyIntegrator::setDiffusionCoefficient(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, const double kappa)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -439,7 +440,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
     if (d_Q_diffusion_coef_variable[Q_var])
     {
         const std::string& Q_var_name = Q_var->getName();
-        Pointer<SideVariable<NDIM, double>> D_var = d_Q_diffusion_coef_variable[Q_var];
+        SAMRAIPointer<SAMRAISideVariable<double>> D_var = d_Q_diffusion_coef_variable[Q_var];
         // print a warning.
         pout << d_object_name
              << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > "
@@ -458,7 +459,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
 } // setDiffusionCoefficient
 
 double
-AdvDiffHierarchyIntegrator::getDiffusionCoefficient(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getDiffusionCoefficient(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -467,7 +468,7 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficient(Pointer<CellVariable<NDIM, d
 } // getDiffusionCoefficient
 
 void
-AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVariable<NDIM, double>> D_var)
+AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(SAMRAIPointer<SAMRAISideVariable<double>> D_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(D_var);
@@ -478,10 +479,10 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVar
         TBOX_ERROR(d_object_name +
                    "::registerDiffusionCoefficientVariable(): Integrator has already been initialized.\n");
     d_diffusion_coef_var.push_back(D_var);
-    Pointer<SideDataFactory<NDIM, double>> D_factory = D_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAISideDataFactory<double>> D_factory = D_var->getPatchDataFactory();
     const int D_depth = D_factory->getDefaultDepth();
-    Pointer<SideVariable<NDIM, double>> D_rhs_var =
-        new SideVariable<NDIM, double>(D_var->getName() + "::D_rhs", D_depth);
+    SAMRAIPointer<SAMRAISideVariable<double>> D_rhs_var =
+        new SAMRAISideVariable<double>(D_var->getName() + "::D_rhs", D_depth);
 
     // Set default values.
     d_diffusion_coef_fcn[D_var] = nullptr;
@@ -492,8 +493,8 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVar
 } // registerDiffusionCoefficientVariable
 
 void
-AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(Pointer<SideVariable<NDIM, double>> D_var,
-                                                            Pointer<IBTK::CartGridFunction> D_fcn)
+AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(SAMRAIPointer<SAMRAISideVariable<double>> D_var,
+                                                            SAMRAIPointer<IBTK::CartGridFunction> D_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) !=
@@ -502,7 +503,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(Pointer<SideVariable
     if (d_diffusion_coef_fcn[D_var])
     {
         const std::string& D_var_name = D_var->getName();
-        Pointer<CartGridFunctionSet> p_D_fcn = d_diffusion_coef_fcn[D_var];
+        SAMRAIPointer<CartGridFunctionSet> p_D_fcn = d_diffusion_coef_fcn[D_var];
         if (!p_D_fcn)
         {
             pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
@@ -526,8 +527,8 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(Pointer<SideVariable
     return;
 } // setDiffusionCoefficientFunction
 
-Pointer<IBTK::CartGridFunction>
-AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(Pointer<SideVariable<NDIM, double>> D_var) const
+SAMRAIPointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(SAMRAIPointer<SAMRAISideVariable<double>> D_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) !=
@@ -537,8 +538,8 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(Pointer<SideVariable
 } // getDiffusionCoefficientFunction
 
 void
-AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(Pointer<CellVariable<NDIM, double>> Q_var,
-                                                            Pointer<SideVariable<NDIM, double>> D_var)
+AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                            SAMRAIPointer<SAMRAISideVariable<double>> D_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -553,8 +554,8 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(Pointer<CellVariable
     return;
 } // setDiffusionCoefficientVariable
 
-Pointer<SideVariable<NDIM, double>>
-AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(Pointer<CellVariable<NDIM, double>> Q_var) const
+SAMRAIPointer<SAMRAISideVariable<double>>
+AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -563,7 +564,7 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(Pointer<CellVariable
 } // getDiffusionCoefficientVariable
 
 bool
-AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -572,7 +573,7 @@ AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(Pointer<CellVariable<
 } // isDiffusionCoefficientVariable
 
 void
-AdvDiffHierarchyIntegrator::setDampingCoefficient(Pointer<CellVariable<NDIM, double>> Q_var, const double lambda)
+AdvDiffHierarchyIntegrator::setDampingCoefficient(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, const double lambda)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -582,7 +583,7 @@ AdvDiffHierarchyIntegrator::setDampingCoefficient(Pointer<CellVariable<NDIM, dou
 } // setDampingCoefficient
 
 double
-AdvDiffHierarchyIntegrator::getDampingCoefficient(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getDampingCoefficient(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -591,8 +592,8 @@ AdvDiffHierarchyIntegrator::getDampingCoefficient(Pointer<CellVariable<NDIM, dou
 } // getDampingCoefficient
 
 void
-AdvDiffHierarchyIntegrator::setInitialConditions(Pointer<CellVariable<NDIM, double>> Q_var,
-                                                 Pointer<IBTK::CartGridFunction> Q_init)
+AdvDiffHierarchyIntegrator::setInitialConditions(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                 SAMRAIPointer<IBTK::CartGridFunction> Q_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -601,8 +602,8 @@ AdvDiffHierarchyIntegrator::setInitialConditions(Pointer<CellVariable<NDIM, doub
     return;
 } // setInitialConditions
 
-Pointer<IBTK::CartGridFunction>
-AdvDiffHierarchyIntegrator::getInitialConditions(Pointer<CellVariable<NDIM, double>> Q_var) const
+SAMRAIPointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getInitialConditions(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -611,20 +612,20 @@ AdvDiffHierarchyIntegrator::getInitialConditions(Pointer<CellVariable<NDIM, doub
 } // getInitialConditions
 
 void
-AdvDiffHierarchyIntegrator::setPhysicalBcCoef(Pointer<CellVariable<NDIM, double>> Q_var,
-                                              RobinBcCoefStrategy<NDIM>* Q_bc_coef)
+AdvDiffHierarchyIntegrator::setPhysicalBcCoef(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                              SAMRAIRobinBcCoefStrategy* Q_bc_coef)
 {
-    setPhysicalBcCoefs(Q_var, std::vector<RobinBcCoefStrategy<NDIM>*>(1, Q_bc_coef));
+    setPhysicalBcCoefs(Q_var, std::vector<SAMRAIRobinBcCoefStrategy*>(1, Q_bc_coef));
     return;
 } // setPhysicalBcCoef
 
 void
-AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(Pointer<CellVariable<NDIM, double>> Q_var,
-                                               const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef)
+AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& Q_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
-    Pointer<CellDataFactory<NDIM, double>> Q_factory = Q_var->getPatchDataFactory();
+    SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
     const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
 #endif
@@ -632,8 +633,8 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(Pointer<CellVariable<NDIM, double
     return;
 } // setPhysicalBcCoefs
 
-std::vector<RobinBcCoefStrategy<NDIM>*>
-AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(Pointer<CellVariable<NDIM, double>> Q_var) const
+std::vector<SAMRAIRobinBcCoefStrategy*>
+AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -642,8 +643,8 @@ AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(Pointer<CellVariable<NDIM, double
 } // getPhysicalBcCoefs
 
 void
-AdvDiffHierarchyIntegrator::setHelmholtzSolver(Pointer<CellVariable<NDIM, double>> Q_var,
-                                               Pointer<PoissonSolver> helmholtz_solver)
+AdvDiffHierarchyIntegrator::setHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                               SAMRAIPointer<PoissonSolver> helmholtz_solver)
 {
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
@@ -659,8 +660,8 @@ AdvDiffHierarchyIntegrator::setHelmholtzSolver(Pointer<CellVariable<NDIM, double
     return;
 } // setHelmholtzSolver
 
-Pointer<PoissonSolver>
-AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double>> Q_var)
+SAMRAIPointer<PoissonSolver>
+AdvDiffHierarchyIntegrator::getHelmholtzSolver(SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
@@ -696,7 +697,7 @@ AdvDiffHierarchyIntegrator::setHelmholtzSolversNeedInit()
 }
 
 void
-AdvDiffHierarchyIntegrator::setHelmholtzSolverNeedsInit(Pointer<CellVariable<NDIM, double>> Q_var)
+AdvDiffHierarchyIntegrator::setHelmholtzSolverNeedsInit(SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -707,8 +708,8 @@ AdvDiffHierarchyIntegrator::setHelmholtzSolverNeedsInit(Pointer<CellVariable<NDI
 }
 
 void
-AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double>> Q_var,
-                                                    Pointer<LaplaceOperator> helmholtz_op)
+AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                    SAMRAIPointer<LaplaceOperator> helmholtz_op)
 {
     d_helmholtz_rhs_ops.resize(d_Q_var.size());
     d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
@@ -724,8 +725,8 @@ AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
     return;
 } // setHelmholtzRHSOperator
 
-Pointer<LaplaceOperator>
-AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double>> Q_var)
+SAMRAIPointer<LaplaceOperator>
+AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
     d_helmholtz_rhs_ops.resize(d_Q_var.size());
     d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
@@ -755,7 +756,7 @@ AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorsNeedInit()
 }
 
 void
-AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(Pointer<CellVariable<NDIM, double>> Q_var)
+AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(SAMRAIPointer<SAMRAICellVariable<double>> Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -766,7 +767,7 @@ AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(Pointer<CellVariabl
 }
 
 void
-AdvDiffHierarchyIntegrator::setRefineAndCoarsenOperators(Pointer<CellVariable<NDIM, double>> Q_var,
+AdvDiffHierarchyIntegrator::setRefineAndCoarsenOperators(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                          std::string Q_refine_type,
                                                          std::string Q_coarsen_type)
 {
@@ -782,20 +783,20 @@ AdvDiffHierarchyIntegrator::setRefineAndCoarsenOperators(Pointer<CellVariable<ND
 }
 
 void
-AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                          Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
+AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                          SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc_var");
+    SAMRAIHierarchyDataOpsManager* hier_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = new SAMRAICellVariable<double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc_var");
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = new SAMRAISideVariable<double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Operators and solvers are maintained for each variable registered with the
@@ -843,24 +844,24 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
     HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     const bool initial_time = false;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     // Build the priority mapping, which determines which variables are reset
     // first
-    std::multimap<int, Pointer<CellVariable<NDIM, double>>> priority_Q_map;
+    std::multimap<int, SAMRAIPointer<SAMRAICellVariable<double>>> priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
         const int priority = d_Q_reset_priority[l];
         priority_Q_map.insert(std::make_pair(priority, Q_var));
     }
 
     // Reset the desired transported quantities.
-    std::multimap<int, Pointer<CellVariable<NDIM, double>>>::iterator it;
+    std::multimap<int, SAMRAIPointer<SAMRAICellVariable<double>>>::iterator it;
     for (it = priority_Q_map.begin(); it != priority_Q_map.end(); ++it)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = it->second;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = it->second;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         for (unsigned k = 0; k < d_Q_reset_fcns[Q_var].size(); ++k)
         {
@@ -877,7 +878,7 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
 } // preprocessIntegrateHierarchy
 
 void
-AdvDiffHierarchyIntegrator::registerResetFunction(Pointer<CellVariable<NDIM, double>> Q_var,
+AdvDiffHierarchyIntegrator::registerResetFunction(SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
                                                   ResetPropertiesFcnPtr callback,
                                                   void* ctx)
 {
@@ -890,7 +891,7 @@ AdvDiffHierarchyIntegrator::registerResetFunction(Pointer<CellVariable<NDIM, dou
 } // registerResetFunction
 
 void
-AdvDiffHierarchyIntegrator::setResetPriority(Pointer<CellVariable<NDIM, double>> Q_var, int reset_priority)
+AdvDiffHierarchyIntegrator::setResetPriority(SAMRAIPointer<SAMRAICellVariable<double>> Q_var, int reset_priority)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -901,7 +902,7 @@ AdvDiffHierarchyIntegrator::setResetPriority(Pointer<CellVariable<NDIM, double>>
 } // setResetPriority
 
 std::vector<ResetPropertiesFcnPtr>
-AdvDiffHierarchyIntegrator::getResetFunctions(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getResetFunctions(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -910,7 +911,7 @@ AdvDiffHierarchyIntegrator::getResetFunctions(Pointer<CellVariable<NDIM, double>
 } // getResetFunctions
 
 int
-AdvDiffHierarchyIntegrator::getResetPriority(Pointer<CellVariable<NDIM, double>> Q_var) const
+AdvDiffHierarchyIntegrator::getResetPriority(SAMRAIPointer<SAMRAICellVariable<double>> Q_var) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -922,7 +923,7 @@ AdvDiffHierarchyIntegrator::getResetPriority(Pointer<CellVariable<NDIM, double>>
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object_name,
-                                                       Pointer<Database> input_db,
+                                                       SAMRAIPointer<SAMRAIDatabase> input_db,
                                                        bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_helmholtz_solver_type(CCPoissonSolverManager::UNDEFINED),
@@ -933,7 +934,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object
     TBOX_ASSERT(input_db);
 #endif
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
     return;
@@ -945,19 +946,19 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const hier::Index<NDIM>& ilower = patch_box.lower();
-            const hier::Index<NDIM>& iupper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIndex& ilower = patch_box.lower();
+            const SAMRAIIndex& iupper = patch_box.upper();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
             for (const auto& u_var : d_u_var)
             {
-                Pointer<FaceData<NDIM, double>> u_data = patch->getPatchData(u_var, getCurrentContext());
-                const IntVector<NDIM>& u_ghost_cells = u_data->getGhostCellWidth();
+                SAMRAIPointer<SAMRAIFaceData<double>> u_data = patch->getPatchData(u_var, getCurrentContext());
+                const SAMRAIIntVector& u_ghost_cells = u_data->getGhostCellWidth();
                 double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)
                 ADVECT_STABLEDT_FC(dx,
@@ -997,15 +998,15 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 void
 AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     // Build the priority mapping, which determines which variables are reset
     // first
-    std::multimap<int, Pointer<CellVariable<NDIM, double>>> priority_Q_map;
+    std::multimap<int, SAMRAIPointer<SAMRAICellVariable<double>>> priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
         const int priority = d_Q_reset_priority[l];
         priority_Q_map.insert(std::make_pair(priority, Q_var));
     }
@@ -1013,7 +1014,7 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
     // Reset the desired transported quantities.
     for (const auto& var_pair : priority_Q_map)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = var_pair.second;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = var_pair.second;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         for (unsigned k = 0; k < d_Q_reset_fcns[Q_var].size(); ++k)
         {
@@ -1032,11 +1033,11 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
 
 void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+    const SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+    const SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -1055,12 +1056,12 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
 
     // Reset the interpolation operators.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
 
         // Setup the interpolation transaction information.
@@ -1085,18 +1086,18 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double>> Q_var = *cit;
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_var = *cit;
         const std::string& name = Q_var->getName();
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         d_sol_vecs[l] =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec::" + name, d_hierarchy, 0, finest_hier_level);
+            new SAMRAISAMRAIVectorReal<double>(d_object_name + "::sol_vec::" + name, d_hierarchy, 0, finest_hier_level);
         d_sol_vecs[l]->addComponent(Q_var, Q_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
-        Pointer<CellVariable<NDIM, double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        SAMRAIPointer<SAMRAICellVariable<double>> Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
         d_rhs_vecs[l] =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::rhs_vec::" + name, d_hierarchy, 0, finest_hier_level);
+            new SAMRAISAMRAIVectorReal<double>(d_object_name + "::rhs_vec::" + name, d_hierarchy, 0, finest_hier_level);
         d_rhs_vecs[l]->addComponent(Q_rhs_var, Q_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
     }
 
@@ -1109,7 +1110,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void
-AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1126,8 +1127,8 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 void
 AdvDiffHierarchyIntegrator::registerVariables()
 {
-    const IntVector<NDIM> cell_ghosts = CELLG;
-    const IntVector<NDIM> face_ghosts = FACEG;
+    const SAMRAIIntVector cell_ghosts = CELLG;
+    const SAMRAIIntVector face_ghosts = FACEG;
     for (const auto& u_var : d_u_var)
     {
         int u_current_idx, u_new_idx, u_scratch_idx;
@@ -1151,7 +1152,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          d_Q_coarsen_map[Q_var],
                          d_Q_refine_map[Q_var],
                          d_Q_init[Q_var]);
-        Pointer<CellDataFactory<NDIM, double>> Q_factory = Q_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
         const bool Q_data_output = d_Q_output[Q_var];
         if (d_visit_writer && Q_data_output)
@@ -1190,7 +1191,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE",
                          d_F_fcn[F_var]);
-        Pointer<CellDataFactory<NDIM, double>> F_factory = F_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> F_factory = F_var->getPatchDataFactory();
         const int F_depth = F_factory->getDefaultDepth();
         const bool F_data_output = d_F_output[F_var];
         if (d_visit_writer && F_data_output)
@@ -1246,7 +1247,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
+AdvDiffHierarchyIntegrator::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1301,7 +1302,7 @@ AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_rest
         else if (db->keyExists("helmholtz_solver_db"))
             d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
     }
-    if (!d_helmholtz_solver_db) d_helmholtz_solver_db = new MemoryDatabase("helmholtz_solver_db");
+    if (!d_helmholtz_solver_db) d_helmholtz_solver_db = new SAMRAIMemoryDatabase("helmholtz_solver_db");
 
     if (db->keyExists("precond_type"))
         d_helmholtz_precond_type = db->getString("precond_type");
@@ -1314,7 +1315,7 @@ AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_rest
         else if (db->keyExists("helmholtz_precond_db"))
             d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     }
-    if (!d_helmholtz_precond_db) d_helmholtz_precond_db = new MemoryDatabase("helmholtz_precond_db");
+    if (!d_helmholtz_precond_db) d_helmholtz_precond_db = new SAMRAIMemoryDatabase("helmholtz_precond_db");
 
     if (db->keyExists("sub_precond_type"))
         d_helmholtz_sub_precond_type = db->getString("sub_precond_type");
@@ -1327,15 +1328,15 @@ AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_rest
         else if (db->keyExists("helmholtz_sub_precond_db"))
             d_helmholtz_sub_precond_db = db->getDatabase("helmholtz_sub_precond_db");
     }
-    if (!d_helmholtz_sub_precond_db) d_helmholtz_sub_precond_db = new MemoryDatabase("helmholtz_sub_precond_db");
+    if (!d_helmholtz_sub_precond_db) d_helmholtz_sub_precond_db = new SAMRAIMemoryDatabase("helmholtz_sub_precond_db");
     return;
 } // getFromInput
 
 void
 AdvDiffHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

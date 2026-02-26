@@ -16,13 +16,17 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CellData.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchCellDataBasicOps.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchCellDataBasicOps.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 
@@ -61,14 +65,13 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void
-IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
-    const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-    const double data_time,
-    const bool initial_time,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(const int data_idx,
+                                                                         SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                                                         SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                                         const double data_time,
+                                                                         const bool initial_time,
+                                                                         const int coarsest_ln_in,
+                                                                         const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -76,11 +79,11 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(level->checkAllocated(data_idx));
     }
 
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(hierarchy, coarsest_ln, finest_ln);
+    SAMRAIHierarchyCellDataOpsReal<double> hier_cc_ops(hierarchy, coarsest_ln, finest_ln);
     hier_cc_ops.setToScalar(data_idx, 0.0, false);
 
     // At the initial time the structures may not yet be set up, so we cannot
@@ -94,18 +97,18 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatchHierarchy(
 
 void
 IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
-                                                                Pointer<Variable<NDIM>> /*var*/,
-                                                                Pointer<Patch<NDIM>> patch,
+                                                                SAMRAIPointer<SAMRAIVariable> /*var*/,
+                                                                SAMRAIPointer<SAMRAIPatch> patch,
                                                                 const double /*data_time*/,
                                                                 const bool initial_time,
-                                                                Pointer<PatchLevel<NDIM>> /*level*/)
+                                                                SAMRAIPointer<SAMRAIPatchLevel> /*level*/)
 {
     // This function is called during initialization, but at that point we are
     // not guaranteed that Lagrangian data is set up in a way that we can
     // actually compute fluid sources: in that case zero everything out.
     if (initial_time)
     {
-        Pointer<CellData<NDIM, double>> q_cc_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SAMRAICellData<double>> q_cc_data = patch->getPatchData(data_idx);
         TBOX_ASSERT(q_cc_data);
         q_cc_data->fillAll(0.0);
     }

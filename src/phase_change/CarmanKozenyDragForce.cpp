@@ -20,31 +20,31 @@
 
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
-
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefineSchedule.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <cmath>
 #include <string>
@@ -58,11 +58,11 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
 CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
-                                             Pointer<CellVariable<NDIM, double>> H_var,
-                                             Pointer<CellVariable<NDIM, double>> lf_var,
-                                             Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                             Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
-                                             Pointer<Database> input_db,
+                                             SAMRAIPointer<SAMRAICellVariable<double>> H_var,
+                                             SAMRAIPointer<SAMRAICellVariable<double>> lf_var,
+                                             SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                             SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
+                                             SAMRAIPointer<SAMRAIDatabase> input_db,
                                              bool register_for_restart)
     : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
@@ -71,7 +71,7 @@ CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
       d_lf_var(lf_var)
 {
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -89,7 +89,7 @@ void
 CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cycle_num*/)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
+    TBOX_ASSERT(SAMRAIMathUtilities<double>::equalEps(time, d_new_time));
 #endif
     const double dt = d_new_time - d_current_time;
 
@@ -100,16 +100,16 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
     // Ghost fill the heaviside and liquid fraction values.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<SAMRAIPatchLevel> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
 
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
@@ -132,30 +132,30 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 
     // Set the rigid body velocity in u_idx
-    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = finest_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_scratch_idx);
+        SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+            for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
             {
-                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                SAMRAISideIndex s_i(it(), axis, SAMRAISideIndex::Lower);
 
                 const double H_lower = (*H_data)(s_i.toCell(0));
                 const double H_upper = (*H_data)(s_i.toCell(1));
@@ -197,7 +197,7 @@ void
 CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle_num*/)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
+    TBOX_ASSERT(SAMRAIMathUtilities<double>::equalEps(time, d_new_time));
 #else
     NULL_USE(time);
 #endif
@@ -210,14 +210,14 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Ghost fill the level set values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -241,31 +241,31 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    for (SAMRAIPatchLevel::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = finest_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> H_data = patch->getPatchData(H_scratch_idx);
+        SAMRAIPointer<SAMRAICellData<double>> lf_data = patch->getPatchData(lf_scratch_idx);
+        SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SAMRAISideData<double>> rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<SAMRAICellData<double>> mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+            for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
             {
-                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                SAMRAISideIndex s_i(it(), axis, SAMRAISideIndex::Lower);
 
                 const double H_lower = (*H_data)(s_i.toCell(0));
                 const double H_upper = (*H_data)(s_i.toCell(1));
@@ -308,7 +308,7 @@ CarmanKozenyDragForce::postprocessComputeBrinkmanPenalization(double current_tim
 } // postprocessComputeBrinkmanPenalization
 
 void
-CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
+CarmanKozenyDragForce::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     db->putDouble("penalty_factor", d_penalty_factor);
     db->putBool("use_rho_scale", d_use_rho_scale);
@@ -320,7 +320,7 @@ CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+CarmanKozenyDragForce::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -350,8 +350,8 @@ CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_res
 void
 CarmanKozenyDragForce::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

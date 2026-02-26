@@ -23,11 +23,12 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/GeneralSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <LocationIndexRobinBcCoefs.h>
-#include <PoissonSpecifications.h>
+#include <SAMRAILocationIndexRobinBcCoefs.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 
@@ -66,7 +67,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    virtual void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Set if velocity and pressure have nullspace.
@@ -88,25 +89,25 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAIRobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 protected:
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAIPoissonSpecifications d_U_problem_coefs;
+    SAMRAILocationIndexRobinBcCoefs d_default_U_bc_coef;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_U_bc_coefs;
+    SAMRAILocationIndexRobinBcCoefs d_default_P_bc_coef;
+    SAMRAIRobinBcCoefStrategy* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Null space info
     bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;

@@ -24,11 +24,13 @@
 
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Pointer.h>
-
-#include <Box.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 namespace SAMRAI
 {
@@ -56,11 +58,11 @@ class Wall
 {
 public:
     // typedef for Wall Force Function Pointer
-    using WallForceFcnPtr = double (*)(double D, const SAMRAI::tbox::Array<double> params);
+    using WallForceFcnPtr = double (*)(double D, const SAMRAIArray<double> params);
 
     // Constructor.
-    Wall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db,
-         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry,
+    Wall(SAMRAIPointer<SAMRAIDatabase> wall_db,
+         SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry,
          double wall_ghost_dist);
 
     // Copy constructor.
@@ -73,7 +75,7 @@ public:
     void registerWallForceFcn(WallForceFcnPtr wall_force_fcn);
 
     // Get the force area box of the wall.
-    SAMRAI::hier::Box<NDIM> getForceArea();
+    SAMRAIBox getForceArea();
 
     // Function to get the wall axis.
     int getAxis();
@@ -92,10 +94,10 @@ private:
     double d_force_distance;
 
     // Parameters used in the wall force function:
-    SAMRAI::tbox::Array<double> d_parameters;
+    SAMRAIArray<double> d_parameters;
 
     // The area of the domain that the wall influences:
-    SAMRAI::hier::Box<NDIM> d_force_area;
+    SAMRAIBox d_force_area;
 
     // Function for applying wall force:
     WallForceFcnPtr d_wall_force_fcn;

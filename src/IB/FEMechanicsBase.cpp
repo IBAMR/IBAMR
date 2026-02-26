@@ -26,8 +26,7 @@
 #include <ibtk/LibMeshSystemVectors.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/RestartManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/boundary_info.h>
 #include <libmesh/compare_types.h>
@@ -68,6 +67,8 @@
 #include <libmesh/type_vector.h>
 #include <libmesh/variant_filter_iterator.h>
 #include <libmesh/vector_value.h>
+
+#include <SAMRAIRestartManager.h>
 
 #include <utility>
 
@@ -245,7 +246,7 @@ FEMechanicsBase::~FEMechanicsBase()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
 }
@@ -373,7 +374,7 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     // This system has a single variable so we don't need to also specify diagonal coupling
     P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors at restart.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
                                { getPressureSystemName() },
                                { "current", "half", "new", "tmp", "RHS Vector" },
@@ -398,7 +399,7 @@ FEMechanicsBase::registerDynamicPressurePart(PressureProjectionType projection_t
     // This system has a single variable so we don't need to also specify diagonal coupling
     P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors at restart.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
                                { getPressureSystemName() },
                                { "current", "half", "new", "tmp", "RHS Vector" },
@@ -452,7 +453,7 @@ FEMechanicsBase::initializeFEData()
     if (d_fe_data_initialized) return;
 
     initializeFEEquationSystems();
-    doInitializeFEData(RestartManager::getManager()->isFromRestart());
+    doInitializeFEData(SAMRAIRestartManager::getManager()->isFromRestart());
     d_fe_data_initialized = true;
 }
 
@@ -493,7 +494,7 @@ void
 FEMechanicsBase::doInitializeFEEquationSystems()
 {
     // Setup equation systems objects used by all subclasses.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     d_equation_systems.resize(d_meshes.size());
     d_fe_data.resize(d_meshes.size());
     d_fe_projectors.resize(d_meshes.size());
@@ -1483,13 +1484,13 @@ FEMechanicsBase::setup_system_vectors(EquationSystems* equation_systems,
                                       const std::vector<std::string>& vector_names)
 {
     IBTK::setup_system_vectors(
-        equation_systems, system_names, vector_names, RestartManager::getManager()->isFromRestart());
+        equation_systems, system_names, vector_names, SAMRAIRestartManager::getManager()->isFromRestart());
 }
 
 void
 FEMechanicsBase::setup_system_vector(System& system, const std::string& vector_name)
 {
-    IBTK::setup_system_vector(system, vector_name, RestartManager::getManager()->isFromRestart());
+    IBTK::setup_system_vector(system, vector_name, SAMRAIRestartManager::getManager()->isFromRestart());
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1507,7 +1508,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     d_registered_for_restart = false;
     if (register_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
     d_libmesh_restart_read_dir = restart_read_dirname;
@@ -1651,7 +1652,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     }
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -1750,7 +1751,7 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
 void
 FEMechanicsBase::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

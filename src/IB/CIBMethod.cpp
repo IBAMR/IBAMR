@@ -25,34 +25,39 @@
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscis.h>
 #include <petscistypes.h>
 #include <petsclog.h>
 #include <petscsys.h>
 
-#include <BasePatchHierarchy.h>
-#include <BasePatchLevel.h>
-#include <CartesianGridGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <GriddingAlgorithm.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <SideData.h>
-#include <SideIterator.h>
-#include <VariableContext.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIterator.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -93,7 +98,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(std::string object_name,
-                     Pointer<Database> input_db,
+                     Pointer<SAMRAIDatabase> input_db,
                      const int no_structures,
                      bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
@@ -106,7 +111,7 @@ CIBMethod::CIBMethod(std::string object_name,
     d_reg_filename.resize(d_num_rigid_parts);
 
     // Initialize object with data read from the input and restart databases.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db);
 
@@ -216,8 +221,8 @@ CIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    d_eul_lambda_var = new CellVariable<NDIM, double>(d_object_name + "::eul_lambda", NDIM);
+    const SAMRAIIntVector ib_ghosts = getMinimumGhostCellWidth();
+    d_eul_lambda_var = new SAMRAICellVariable<double>(d_object_name + "::eul_lambda", NDIM);
     registerVariable(d_eul_lambda_idx, d_eul_lambda_var, ib_ghosts, d_ib_solver->getCurrentContext());
 
     return;
@@ -228,9 +233,9 @@ CIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<RefineAlgorithm<NDIM>> refine_alg_lambda;
-    Pointer<RefineOperator<NDIM>> refine_op;
-    refine_alg_lambda = new RefineAlgorithm<NDIM>();
+    Pointer<SAMRAIRefineAlgorithm> refine_alg_lambda;
+    Pointer<SAMRAIRefineOperator> refine_op;
+    refine_alg_lambda = new SAMRAIRefineAlgorithm();
     refine_op = nullptr;
     refine_alg_lambda->registerRefine(d_eul_lambda_idx, d_eul_lambda_idx, d_eul_lambda_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::eul_lambda", refine_alg_lambda);
@@ -440,11 +445,11 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
         // Initialize the S[lambda] variable to zero.
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -464,12 +469,12 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
 } // postprocessIntegrateData
 
 void
-CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+CIBMethod::initializeLevelData(Pointer<SAMRAIBasePatchHierarchy> hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
                                bool initial_time,
-                               Pointer<BasePatchLevel<NDIM>> old_level,
+                               Pointer<SAMRAIBasePatchLevel> old_level,
                                bool allocate_data)
 {
     IBMethod::initializeLevelData(
@@ -504,11 +509,11 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
 } // initializeLevelData
 
 void
-CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                    Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
+CIBMethod::initializePatchHierarchy(Pointer<SAMRAIPatchHierarchy> hierarchy,
+                                    Pointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                     int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
+                                    const std::vector<Pointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                                    const std::vector<Pointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                     int integrator_step,
                                     double init_data_time,
                                     bool initial_time)
@@ -547,11 +552,11 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
         // Initialize Eulerian lambda (S[lambda]) variable.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -624,8 +629,8 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
 
 void
 CIBMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
-                               const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
+                               const std::vector<Pointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                               const std::vector<Pointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     if (d_lag_velvec_is_initialized)
@@ -647,11 +652,10 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-CIBMethod::spreadForce(
-    int f_data_idx,
-    IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
-    double data_time)
+CIBMethod::spreadForce(int f_data_idx,
+                       IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& f_prolongation_scheds,
+                       double data_time)
 {
     if (d_constraint_force_is_initialized)
     {
@@ -684,7 +688,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Get the domain limits.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -692,7 +696,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const SAMRAIIntVector& periodic_shift = grid_geom->getPeriodicShift();
 
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.
@@ -804,7 +808,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         d_use_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Get the grid extents.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -812,7 +816,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const SAMRAIIntVector& periodic_shift = grid_geom->getPeriodicShift();
 
     // Rotate the body with new rotational velocity about origin
     // and translate the body to newer position.
@@ -927,14 +931,14 @@ CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 } // trapezoidalStep
 
 void
-CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM>> visit_writer)
+CIBMethod::registerVisItDataWriter(Pointer<SAMRAIVisItDataWriter> visit_writer)
 {
     d_visit_writer = visit_writer;
     return;
 } // registerVisItDataWriter
 
 void
-CIBMethod::putToDatabase(Pointer<Database> db)
+CIBMethod::putToDatabase(Pointer<SAMRAIDatabase> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -1050,15 +1054,15 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
     const double vol_domain = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> p_data = patch->getPatchData(f_data_idx);
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAISideData<double>> p_data = patch->getPatchData(f_data_idx);
+            const SAMRAIBox& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator<NDIM> it(patch_box, axis); it; it++)
+                for (SAMRAISideIterator it(patch_box, axis); it; it++)
                 {
                     (*p_data)(it()) -= F[axis] / vol_domain;
                 }
@@ -1706,16 +1710,16 @@ CIBMethod::flagRegrid() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-CIBMethod::getFromInput(Pointer<Database> input_db)
+CIBMethod::getFromInput(Pointer<SAMRAIDatabase> input_db)
 {
     d_use_steady_stokes = input_db->getBoolWithDefault("use_steady_stokes", d_use_steady_stokes);
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
     d_lambda_dump_interval = input_db->getIntegerWithDefault("lambda_dump_interval", d_lambda_dump_interval);
     if (d_lambda_dump_interval)
     {
-        const bool from_restart = RestartManager::getManager()->isFromRestart();
+        const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
         std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./lambda");
-        if (!from_restart) Utilities::recursiveMkdir(dir_name);
+        if (!from_restart) SAMRAIUtilities::recursiveMkdir(dir_name);
 
         if (IBTK_MPI::getRank() == 0)
         {
@@ -1732,7 +1736,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
 
     if (input_db->keyExists("lambda_filenames"))
     {
-        tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
+        SAMRAIArray<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
         TBOX_ASSERT(lambda_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
@@ -1742,7 +1746,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
 
     if (input_db->keyExists("weight_filenames"))
     {
-        tbox::Array<std::string> weight_filenames = input_db->getStringArray("weight_filenames");
+        SAMRAIArray<std::string> weight_filenames = input_db->getStringArray("weight_filenames");
         TBOX_ASSERT(weight_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
@@ -1756,8 +1760,8 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
 void
 CIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    Pointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    Pointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -1844,8 +1848,8 @@ void
 CIBMethod::setRegularizationWeight(const int level_number)
 {
     Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
+    Pointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    const SAMRAIIntVector& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
 
     const double* const dx0 = grid_geom->getDx();
     double cell_volume = 1;

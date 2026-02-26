@@ -21,8 +21,7 @@
 #include <ibtk/FEDataInterpolation.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/dof_map.h>
 #include <libmesh/enum_fe_family.h>
@@ -40,6 +39,8 @@
 #include <libmesh/type_vector.h>
 #include <libmesh/variant_filter_iterator.h>
 #include <libmesh/vector_value.h>
+
+#include <SAMRAIUtilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 

@@ -19,27 +19,27 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <BasePatchLevel.h>
-#include <Box.h>
 #include <BoxArray.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <ostream>
 #include <string>
@@ -91,7 +91,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name,
+                                           SAMRAIPointer<SAMRAIDatabase> db,
+                                           bool register_for_restart)
     : LSInitStrategy(std::move(object_name), register_for_restart)
 {
     for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
@@ -104,7 +106,7 @@ FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Data
 
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
-                                       Pointer<HierarchyMathOps> hier_math_ops,
+                                       SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                        int integrator_step,
                                        double time,
                                        bool initial_time)
@@ -113,22 +115,22 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
         d_reinitialize_ls || initial_time || (d_reinit_interval && integrator_step % d_reinit_interval == 0);
     if (!initialize_ls) return;
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM>> data_var;
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariable> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariable<NDIM, double>> D_var = data_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
 
-    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     // Create a temporary variable to hold previous iteration values with
     // appropriate ghost cell width since it is not guaranteed that D_idx will
     // have proper ghost cell width.
-    IntVector<NDIM> cell_ghosts;
+    SAMRAIIntVector cell_ghosts;
     if (d_ls_order == FIRST_ORDER_LS)
     {
         cell_ghosts = 1;
@@ -158,9 +160,9 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     fill_op->initializeOperatorState(D_transaction, hierarchy);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out iterations
     double diff_L2_norm = 1.0e12;
@@ -226,24 +228,24 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
+FastSweepingLSMethod::fastSweep(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
 {
-    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
         const BoxArray<NDIM>& domain_boxes = level->getPhysicalDomain();
 #if !defined(NDEBUG)
         TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
 
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double>> dist_data = patch->getPatchData(dist_idx);
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAICellData<double>> dist_data = patch->getPatchData(dist_idx);
             fastSweep(dist_data, patch, domain_boxes[0]);
         }
     }
@@ -252,16 +254,16 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 } // fastSweep
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double>> dist_data,
-                                const Pointer<Patch<NDIM>> patch,
-                                const Box<NDIM>& domain_box) const
+FastSweepingLSMethod::fastSweep(SAMRAIPointer<SAMRAICellData<double>> dist_data,
+                                const SAMRAIPointer<SAMRAIPatch> patch,
+                                const SAMRAIBox& domain_box) const
 {
     double* const D = dist_data->getPointer(0);
     const int D_ghosts = (dist_data->getGhostCellWidth()).max();
 
     // Check if the patch touches physical domain.
     int touches_wall_loc_idx[NDIM * 2] = { 0 };
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const bool patch_touches_bdry = pgeom->getTouchesRegularBoundary() || pgeom->getTouchesPeriodicBoundary();
     if (patch_touches_bdry)
     {
@@ -282,7 +284,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double>> dist_data,
     if (d_ls_order == FIRST_ORDER_LS) TBOX_ASSERT(D_ghosts >= 1);
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
     const double* const dx = pgeom->getDx();
     if (d_ls_order == FIRST_ORDER_LS)
     {
@@ -317,7 +319,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double>> dist_data,
 } // fastSweep
 
 void
-FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
+FastSweepingLSMethod::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     std::string ls_order = "FIRST_ORDER";
     ls_order = input_db->getStringWithDefault("order", ls_order);
@@ -333,7 +335,7 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
     d_reinit_interval = input_db->getIntegerWithDefault("reinit_interval", d_reinit_interval);
 
     d_consider_phys_bdry_wall = input_db->getBoolWithDefault("physical_bdry_wall", d_consider_phys_bdry_wall);
-    Array<int> wall_loc_idices;
+    SAMRAIArray<int> wall_loc_idices;
     if (input_db->keyExists("physical_bdry_wall_loc_idx"))
     {
         input_db->getArray("physical_bdry_wall_loc_idx", wall_loc_idices);

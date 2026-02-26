@@ -15,6 +15,15 @@
 
 #include <ibamr/AdvDiffCenteredConvectiveOperator.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
@@ -72,10 +81,10 @@ static const int Q_MIN_GCW = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string object_name,
-                                                                     Pointer<CellVariable<NDIM, double>> Q_var,
+                                                                     Pointer<SAMRAICellVariable<double>> Q_var,
                                                                      Pointer<Database> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
-                                                                     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+                                                                     std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs)
     : CellConvectiveOperator(std::move(object_name), Q_var, Q_MIN_GCW, input_db, difference_form, std::move(bc_coefs))
 {
     // intentionally blank
@@ -83,24 +92,24 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string
 } // AdvDiffCenteredConvectiveOperator
 
 void
-AdvDiffCenteredConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q_interp_data,
-                                                            const CellData<NDIM, double>& Q_cell_data,
-                                                            const FaceData<NDIM, double>& u_data,
-                                                            const Patch<NDIM>& patch)
+AdvDiffCenteredConvectiveOperator::interpolateToFaceOnPatch(SAMRAIFaceData<double>& q_interp_data,
+                                                            const SAMRAICellData<double>& Q_cell_data,
+                                                            const SAMRAIFaceData<double>& u_data,
+                                                            const SAMRAIPatch& patch)
 {
     const auto& patch_box = patch.getBox();
     const auto& patch_lower = patch_box.lower();
     const auto& patch_upper = patch_box.upper();
 
-    const IntVector<NDIM>& Q_cell_data_gcw = Q_cell_data.getGhostCellWidth();
+    const SAMRAIIntVector& Q_cell_data_gcw = Q_cell_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_cell_data_gcw.min() == Q_cell_data_gcw.max());
 #endif
-    const IntVector<NDIM>& u_data_gcw = u_data.getGhostCellWidth();
+    const SAMRAIIntVector& u_data_gcw = u_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data_gcw.min() == u_data_gcw.max());
 #endif
-    const IntVector<NDIM>& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
+    const SAMRAIIntVector& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
