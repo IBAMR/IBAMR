@@ -1,0 +1,3 @@
+Adopted C++11 clang-format baseline formatting for repository-wide style normalization prior to SAMRAI compatibility migration.
+<br>
+(Boyce Griffith and Codex, 2026/02/27)
