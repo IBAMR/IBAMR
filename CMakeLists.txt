@@ -159,6 +159,86 @@ IF("${IBAMR_FORCE_BUNDLED_MUPARSER}" STREQUAL "")
   SET(IBAMR_FORCE_BUNDLED_MUPARSER "OFF")
 ENDIF()
 
+# Normalize linker flags and library search path items so we can reliably
+# remove duplicates without reordering linkage.
+FUNCTION(IBAMR_CANONICALIZE_LINK_ITEM _input _output)
+  SET(_item "${_input}")
+
+  IF("${_item}" MATCHES "^-Wl,-rpath,(.+)$")
+    SET(_path "${CMAKE_MATCH_1}")
+    STRING(REGEX REPLACE "/+$" "" _path "${_path}")
+    IF("${_path}" STREQUAL "")
+      SET(_path "/")
+    ENDIF()
+    SET(_item "-Wl,-rpath,${_path}")
+  ELSEIF("${_item}" MATCHES "^-L(.+)$")
+    SET(_path "${CMAKE_MATCH_1}")
+    STRING(REGEX REPLACE "/+$" "" _path "${_path}")
+    IF("${_path}" STREQUAL "")
+      SET(_path "/")
+    ENDIF()
+    SET(_item "-L${_path}")
+  ENDIF()
+
+  SET(${_output} "${_item}" PARENT_SCOPE)
+ENDFUNCTION()
+
+FUNCTION(IBAMR_NORMALIZE_LINK_ITEMS _output)
+  SET(_seen)
+  SET(_normalized)
+
+  FOREACH(_item IN LISTS ARGN)
+    IF(NOT "${_item}" STREQUAL "")
+      IBAMR_CANONICALIZE_LINK_ITEM("${_item}" _canonical_item)
+      LIST(FIND _seen "${_canonical_item}" _index)
+      IF(${_index} EQUAL -1)
+        LIST(APPEND _seen "${_canonical_item}")
+        LIST(APPEND _normalized "${_canonical_item}")
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+
+  SET(${_output} "${_normalized}" PARENT_SCOPE)
+ENDFUNCTION()
+
+FUNCTION(IBAMR_REMOVE_LINK_ITEMS _output _input_list_var _remove_list_var)
+  SET(_remove_canonical)
+  FOREACH(_remove_item IN LISTS ${_remove_list_var})
+    IF(NOT "${_remove_item}" STREQUAL "")
+      IBAMR_CANONICALIZE_LINK_ITEM("${_remove_item}" _canonical_remove_item)
+      LIST(APPEND _remove_canonical "${_canonical_remove_item}")
+    ENDIF()
+  ENDFOREACH()
+  LIST(REMOVE_DUPLICATES _remove_canonical)
+
+  SET(_result)
+  FOREACH(_input_item IN LISTS ${_input_list_var})
+    IF(NOT "${_input_item}" STREQUAL "")
+      IBAMR_CANONICALIZE_LINK_ITEM("${_input_item}" _canonical_input_item)
+      LIST(FIND _remove_canonical "${_canonical_input_item}" _remove_index)
+      IF(${_remove_index} EQUAL -1)
+        LIST(APPEND _result "${_canonical_input_item}")
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+
+  SET(${_output} "${_result}" PARENT_SCOPE)
+ENDFUNCTION()
+
+FUNCTION(IBAMR_REMOVE_LINK_ITEMS_BY_PREFIX _output _input_list_var _prefix)
+  SET(_result)
+  FOREACH(_input_item IN LISTS ${_input_list_var})
+    IF(NOT "${_input_item}" STREQUAL "")
+      STRING(FIND "${_input_item}" "${_prefix}" _prefix_index)
+      IF(NOT ${_prefix_index} EQUAL 0)
+        LIST(APPEND _result "${_input_item}")
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+
+  SET(${_output} "${_result}" PARENT_SCOPE)
+ENDFUNCTION()
+
 # ---------------------------------------------------------------------------- #
 #                       1: manage mandatory dependencies                       #
 # ---------------------------------------------------------------------------- #
@@ -316,7 +396,7 @@ ELSE()
   SET(Boost_INCLUDE_DIRS
     $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
-  TARGET_INCLUDE_DIRECTORIES(BUNDLED_BOOST INTERFACE ${Boost_INCLUDE_DIRS})
+  TARGET_INCLUDE_DIRECTORIES(BUNDLED_BOOST SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
   INSTALL(TARGETS BUNDLED_BOOST EXPORT IBAMRTargets)
   # The bundled version doesn't compile anything so always set the no-lib mode
@@ -351,7 +431,7 @@ ELSE()
   ADD_LIBRARY(BUNDLED_EIGEN3 INTERFACE)
   TARGET_INCLUDE_DIRECTORIES(
     BUNDLED_EIGEN3
-    INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/eigen>
+    SYSTEM INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/eigen>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen>)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
@@ -652,6 +732,8 @@ PETSc BLAS+LAPACK libraries in the file ${PETSC_VARIABLES_FILE}.")
   STRING(REGEX REPLACE "^BLASLAPACK_LIB = *(.*)" "\\1" _petsc_blaslapack_libs ${_petsc_raw_blaslapack_libs})
   SEPARATE_ARGUMENTS(_petsc_blaslapack_libs)
   LIST(APPEND PETSC_LIBRARIES "${_petsc_blaslapack_libs}")
+  IBAMR_NORMALIZE_LINK_ITEMS(PETSC_LIBRARIES ${PETSC_LIBRARIES})
+  IBAMR_REMOVE_LINK_ITEMS_BY_PREFIX(PETSC_LIBRARIES PETSC_LIBRARIES "-Wl,-rpath,")
 
   MESSAGE(STATUS "PETSC LIBRARIES: ${PETSC_LIBRARIES}")
 
@@ -725,6 +807,38 @@ libMesh is installed incorrectly or the wrong LIBMESH_METHOD was given to \
 CMake.")
     ENDIF()
     LIST(PREPEND LIBMESH_LIBRARIES ${LIBMESH_LIBRARY})
+    IBAMR_NORMALIZE_LINK_ITEMS(LIBMESH_LIBRARIES ${LIBMESH_LIBRARIES})
+
+    # libmesh-config may include transitive external dependency libraries that
+    # we already link elsewhere. For shared builds, remove exact duplicates to
+    # avoid warning noise from repeated linker inputs.
+    IF(BUILD_SHARED_LIBS)
+      SET(_libmesh_transitive_filters
+        ${PETSC_LIBRARIES}
+        ${HYPRE_LIBRARIES}
+        ${HDF5_LIBRARIES}
+        ${MPI_C_LIBRARIES}
+        ${MPI_CXX_LIBRARIES}
+        -lmpi
+        -lmpi_mpifh
+        -lmpi_usempi_ignore_tkr
+        -lmpi_usempif08
+        -lc++
+        -lemutls_w
+        -lheapt_w
+        -lgfortran
+        -lquadmath
+        -lHYPRE
+        -lpetsc
+        -lhdf5
+        -lhdf5_hl
+        -lopenblas
+        -lparmetis
+        -lmetis)
+      IBAMR_REMOVE_LINK_ITEMS(LIBMESH_LIBRARIES LIBMESH_LIBRARIES _libmesh_transitive_filters)
+    ENDIF()
+    IBAMR_REMOVE_LINK_ITEMS_BY_PREFIX(LIBMESH_LIBRARIES LIBMESH_LIBRARIES "-Wl,-rpath,")
+
     MESSAGE(STATUS "LIBMESH_LIBRARIES: ${LIBMESH_LIBRARIES}")
 
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--include" OUTPUT_VARIABLE _libmesh_raw_includes)
@@ -989,6 +1103,7 @@ FUNCTION(IBAMR_CHECK_COMPILATION_WITH_MPI _dependency_name _src _dependency_libr
   LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${PETSC_LIBRARIES}")
   LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
   LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_CXX_LIBRARIES}")
+  IBAMR_NORMALIZE_LINK_ITEMS(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES})
 
   # we need to avoid -Werror here since we may get warnings from external
   # project headers that are totally irrelevant to checking MPI versions
@@ -1269,23 +1384,23 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   # libMesh:
   IF(${IBAMR_HAVE_LIBMESH})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${LIBMESH_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${LIBMESH_INCLUDE_DIRS}")
+    TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC "${LIBMESH_INCLUDE_DIRS}")
   ENDIF()
   # PETSc:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${PETSC_LIBRARIES}")
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${PETSC_INCLUDE_DIRS}")
+  TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC "${PETSC_INCLUDE_DIRS}")
   # Silo is underlinked and depends on HDF5, so do it first:
   IF(${IBAMR_HAVE_SILO})
     TARGET_LINK_LIBRARIES(${target_library} PRIVATE SILO)
   ENDIF()
   # SAMRAI is also underlinked and depends on HDF5:
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC ${SAMRAI_INCLUDE_DIRS})
+  TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC ${SAMRAI_INCLUDE_DIRS})
   FOREACH(_lib ${SAMRAI${_d}d_LIBRARIES})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC ${_lib})
   ENDFOREACH()
   # HDF5:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
+  TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC "${HDF5_INCLUDE_DIRS}")
 
   # we and our users will use these MPI functions so make the interface public:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
@@ -1316,14 +1431,14 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_MUPARSER)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${MUPARSER_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${MUPARSER_INCLUDE_DIRS}")
+    TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC "${MUPARSER_INCLUDE_DIRS}")
   ENDIF()
 
   # Hypre:
   # This must be last since, if HYPRE is staticly linked, its symbols may end up
   # in libMesh or PETSc libraries
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HYPRE_INCLUDE_DIRS}")
+  TARGET_INCLUDE_DIRECTORIES(${target_library} SYSTEM PUBLIC "${HYPRE_INCLUDE_DIRS}")
 ENDFUNCTION()
 
 MESSAGE(STATUS "")
