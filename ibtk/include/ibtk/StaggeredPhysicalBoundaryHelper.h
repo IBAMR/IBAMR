@@ -94,9 +94,9 @@ public:
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
      * boundaries on a single patch.
      */
-    void copyDataAtDirichletBoundaries(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_out_data,
-                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_in_data,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void copyDataAtDirichletBoundaries(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_out_data,
+                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_in_data,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Setup a masking function over the specified range of levels in the
@@ -109,20 +109,20 @@ public:
     /*!
      * \brief Setup a masking function on a single patch.
      */
-    void setupMaskingFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int> > u_data,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void setupMaskingFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int>> u_data,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries.
      */
-    bool patchTouchesDirichletBoundary(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    bool patchTouchesDirichletBoundary(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries in the specified coordinate axis.
      */
-    bool patchTouchesDirichletBoundaryAxis(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    bool patchTouchesDirichletBoundaryAxis(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                            const unsigned int axis) const;
 
     /*!
@@ -130,7 +130,7 @@ public:
      */
     void cacheBcCoefData(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                          double fill_time,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Clear cached boundary coefficient data.
@@ -145,14 +145,14 @@ protected:
     static void setupBcCoefBoxes(SAMRAI::hier::Box<NDIM>& bc_coef_box,
                                  SAMRAI::hier::BoundaryBox<NDIM>& trimmed_bdry_box,
                                  const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch);
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
-    std::vector<std::map<int, std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, bool> > > > >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+    std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>>> d_physical_codim1_boxes;
+    std::vector<std::map<int, std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, bool>>>>>
         d_dirichlet_bdry_locs;
 
 private:

@@ -46,7 +46,7 @@
 #include "RigidBodyKinematics.h"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -122,18 +122,18 @@ main(int argc, char* argv[])
                                               ib_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -195,7 +195,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Create ConstraintIBKinematics objects
-        vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
+        vector<Pointer<ConstraintIBKinematics>> ibkinematics_ops_vec;
         Pointer<RigidBodyKinematics> ib_kinematics_op;
         ib_kinematics_op = new RigidBodyKinematics(
             "plate2d",
@@ -243,7 +243,7 @@ main(int argc, char* argv[])
 
         // Get the center of mass of the plate
         IBTK::Vector3d Plate_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
+        std::vector<std::vector<double>> structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Register optional plot data
         hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
@@ -260,11 +260,11 @@ main(int argc, char* argv[])
         // Setup data to compute hydrodynamic traction.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<Variable<NDIM>> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<Variable<NDIM>> p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
@@ -308,8 +308,8 @@ main(int argc, char* argv[])
             COMTransVelocity(current_time, box_vel);
 
             const int coarsest_ln = 0;
-            Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-            const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+            Pointer<PatchLevel<NDIM>> coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+            const Pointer<CartesianGridGeometry<NDIM>> coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
 
             // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
@@ -351,10 +351,10 @@ main(int argc, char* argv[])
             Plate_mom.setZero();
             Plate_ang_mom.setZero();
 
-            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getStructureMomentum();
+            std::vector<std::vector<double>> structure_linear_momentum = ib_method_ops->getStructureMomentum();
             for (int d = 0; d < 3; ++d) Plate_mom[d] = structure_linear_momentum[0][d];
 
-            std::vector<std::vector<double> > structure_rotational_momentum =
+            std::vector<std::vector<double>> structure_rotational_momentum =
                 ib_method_ops->getStructureRotationalMomentum();
             for (int d = 0; d < 3; ++d) Plate_ang_mom[d] = structure_rotational_momentum[0][d];
 
@@ -424,7 +424,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             LDataManager* l_data_manager,
             const int iteration_num,

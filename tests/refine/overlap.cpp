@@ -75,7 +75,7 @@ main(int argc, char* argv[])
                 CellGeometry<NDIM> cell_dst_geometry(dst_box, gcw);
                 CellGeometry<NDIM> cell_src_geometry(src_box, gcw);
 
-                Pointer<CellOverlap<NDIM> > cell_overlap;
+                Pointer<CellOverlap<NDIM>> cell_overlap;
 
                 tbox::plog << "cell overlap, overwrite_interior == false:\n";
                 cell_overlap = cell_dst_geometry.calculateOverlap(cell_dst_geometry,
@@ -98,7 +98,7 @@ main(int argc, char* argv[])
                 EdgeGeometry<NDIM> edge_dst_geometry(dst_box, gcw);
                 EdgeGeometry<NDIM> edge_src_geometry(src_box, gcw);
 
-                Pointer<EdgeOverlap<NDIM> > edge_overlap;
+                Pointer<EdgeOverlap<NDIM>> edge_overlap;
 
                 tbox::plog << "edge overlap, overwrite_interior == false:\n";
                 edge_overlap = edge_dst_geometry.calculateOverlap(edge_dst_geometry,
@@ -121,7 +121,7 @@ main(int argc, char* argv[])
                 FaceGeometry<NDIM> face_dst_geometry(dst_box, gcw);
                 FaceGeometry<NDIM> face_src_geometry(src_box, gcw);
 
-                Pointer<FaceOverlap<NDIM> > face_overlap;
+                Pointer<FaceOverlap<NDIM>> face_overlap;
 
                 tbox::plog << "face overlap, overwrite_interior == false:\n";
                 face_overlap = face_dst_geometry.calculateOverlap(face_dst_geometry,
@@ -144,7 +144,7 @@ main(int argc, char* argv[])
                 NodeGeometry<NDIM> node_dst_geometry(dst_box, gcw);
                 NodeGeometry<NDIM> node_src_geometry(src_box, gcw);
 
-                Pointer<NodeOverlap<NDIM> > node_overlap;
+                Pointer<NodeOverlap<NDIM>> node_overlap;
 
                 tbox::plog << "node overlap, overwrite_interior == false:\n";
                 node_overlap = node_dst_geometry.calculateOverlap(node_dst_geometry,
@@ -167,7 +167,7 @@ main(int argc, char* argv[])
                 SideGeometry<NDIM> side_dst_geometry(dst_box, gcw, 1);
                 SideGeometry<NDIM> side_src_geometry(src_box, gcw, 1);
 
-                Pointer<SideOverlap<NDIM> > side_overlap;
+                Pointer<SideOverlap<NDIM>> side_overlap;
 
                 tbox::plog << "side overlap, overwrite_interior == false:\n";
                 side_overlap = side_dst_geometry.calculateOverlap(side_dst_geometry,
@@ -190,7 +190,7 @@ main(int argc, char* argv[])
                 OuteredgeGeometry<NDIM> oedge_dst_geometry(dst_box, gcw);
                 OuteredgeGeometry<NDIM> oedge_src_geometry(dst_box, gcw);
 
-                Pointer<EdgeOverlap<NDIM> > oedge_overlap;
+                Pointer<EdgeOverlap<NDIM>> oedge_overlap;
 
                 tbox::plog << "outer edge overlap, overwrite_interior == false:\n";
                 oedge_overlap = oedge_dst_geometry.calculateOverlap(oedge_dst_geometry,
@@ -229,7 +229,7 @@ main(int argc, char* argv[])
                 OuterfaceGeometry<NDIM> oface_dst_geometry(dst_box, gcw);
                 OuterfaceGeometry<NDIM> oface_src_geometry(dst_box, gcw);
 
-                Pointer<FaceOverlap<NDIM> > oface_overlap;
+                Pointer<FaceOverlap<NDIM>> oface_overlap;
 
                 tbox::plog << "outer face overlap, overwrite_interior == false:\n";
                 oface_overlap = oface_dst_geometry.calculateOverlap(face_dst_geometry,
@@ -252,7 +252,7 @@ main(int argc, char* argv[])
                 OuternodeGeometry<NDIM> onode_dst_geometry(dst_box, gcw);
                 OuternodeGeometry<NDIM> onode_src_geometry(dst_box, gcw);
 
-                Pointer<NodeOverlap<NDIM> > onode_overlap;
+                Pointer<NodeOverlap<NDIM>> onode_overlap;
 
                 tbox::plog << "outer node overlap, overwrite_interior == false:\n";
                 onode_overlap = onode_dst_geometry.calculateOverlap(onode_dst_geometry,
@@ -291,7 +291,7 @@ main(int argc, char* argv[])
                 OutersideGeometry<NDIM> oside_dst_geometry(dst_box, gcw);
                 OutersideGeometry<NDIM> oside_src_geometry(dst_box, gcw);
 
-                Pointer<SideOverlap<NDIM> > oside_overlap;
+                Pointer<SideOverlap<NDIM>> oside_overlap;
 
                 tbox::plog << "outer side overlap, overwrite_interior == false:\n";
                 oside_overlap = oside_dst_geometry.calculateOverlap(side_dst_geometry,

@@ -79,13 +79,13 @@ main(int argc, char** argv)
     IntVector<NDIM> lower(0);
     IntVector<NDIM> upper(ratio(0) * N);
     Box<NDIM> patch_box(lower, upper);
-    std::vector<Box<NDIM> > nonoverlapping_patch_boxes;
+    std::vector<Box<NDIM>> nonoverlapping_patch_boxes;
     {
         IntVector<NDIM> mid(ratio(0) * N / 2);
         nonoverlapping_patch_boxes.emplace_back(lower, mid);
         nonoverlapping_patch_boxes.emplace_back(mid, upper);
     }
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry =
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry =
         new CartesianGridGeometry<NDIM>("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
 
     std::ofstream output("output");

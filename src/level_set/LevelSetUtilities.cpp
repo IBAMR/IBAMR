@@ -39,7 +39,7 @@ std::vector<double>
 compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, double ncells)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = hier_math_ops->getPatchHierarchy();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     double vol_phase1 = 0.0;
@@ -47,17 +47,17 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     double integral_delta = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
-            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
             for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
@@ -92,7 +92,7 @@ std::vector<double>
 compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, int psi_idx, double ncells)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = hier_math_ops->getPatchHierarchy();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     double vol_phase1 = 0.0;
@@ -101,18 +101,18 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     double integral_delta = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
-            Pointer<CellData<NDIM, double> > psi_data = patch->getPatchData(psi_idx);
-            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> psi_data = patch->getPatchData(psi_idx);
+            Pointer<CellData<NDIM, double>> wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
             for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
@@ -153,7 +153,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 namespace LevelSetUtilities
 {
 void
-tagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+tagLSCells(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
            const int level_number,
            const double /*error_data_time*/,
            const int tag_index,
@@ -184,13 +184,13 @@ tagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const double& tag_max_val = ls_tagger->getTagMaxValue();
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+        Pointer<CellData<NDIM, int>> tags_data = patch->getPatchData(tag_index);
+        Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_idx);
 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
@@ -209,7 +209,7 @@ tagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 
 LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                                             std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars,
+                                             std::vector<Pointer<CellVariable<NDIM, double>>> ls_vars,
                                              Pointer<Database> input_db,
                                              bool register_for_restart)
     : d_object_name(std::move(object_name)),
@@ -299,7 +299,7 @@ fixMassLoss2PhaseFlows(double /*current_time*/,
 
     if (integrator_step % mass_correction_interval != 0) return;
 
-    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
@@ -367,7 +367,7 @@ fixMassLoss3PhaseFlows(double /*current_time*/,
 
     if (integrator_step % mass_correction_interval != 0) return;
 
-    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
@@ -424,7 +424,7 @@ computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc)
 {
     const double ncells = lsc.getInterfaceHalfWidth();
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
-    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time
@@ -444,7 +444,7 @@ computeHeavisideIntegrals3PhaseFlows(const LevelSetContainer& lsc)
 {
     const double ncells = lsc.getInterfaceHalfWidth();
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
-    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time

@@ -34,7 +34,7 @@ namespace IBAMR
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          LDataManager* l_data_manager,
-                                         Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                         Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_data(),
@@ -90,13 +90,13 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 void
-RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/)
+RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln == finest_ln);
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int total_lag_pts = idx_range[0].second - idx_range[0].first;
 
     for (int d = 0; d < NDIM; ++d)
@@ -140,7 +140,7 @@ RigidBodyKinematics::setRigidBodyVelocity(const double time,
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln == finest_ln);
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int total_lag_pts = idx_range[0].second - idx_range[0].first;
 
     Eigen::Vector3d trans_vel;
@@ -178,7 +178,7 @@ RigidBodyKinematics::setKinematicsVelocity(const double time,
 
 } // setNewKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 RigidBodyKinematics::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
@@ -201,7 +201,7 @@ RigidBodyKinematics::setShape(const double time, const std::vector<double>& /*in
     return;
 } // setShape
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 RigidBodyKinematics::getShape(const int /*level*/) const
 {
     return d_shape;

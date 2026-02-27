@@ -210,8 +210,8 @@ IBInterpolantMethod::registerEulerianVariables()
 void
 IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
 {
-    Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+    Pointer<RefineAlgorithm<NDIM>> ghost_fill_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM>> refine_op = nullptr;
 
     for (const auto& q_pair : d_q_interp_idx)
     {
@@ -226,7 +226,7 @@ IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
 void
 IBInterpolantMethod::registerVariableAndHierarchyIntegrator(const std::string& var_name,
                                                             const int var_depth,
-                                                            Pointer<Variable<NDIM> > var,
+                                                            Pointer<Variable<NDIM>> var,
                                                             Pointer<HierarchyIntegrator> hier_integrator)
 {
 #if !defined(NDEBUG)
@@ -306,7 +306,7 @@ IBInterpolantMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBInterpolantMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBInterpolantMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -420,8 +420,8 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
 
 void
 IBInterpolantMethod::interpolateVelocity(const int /*u_data_idx*/,
-                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                         const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                         const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                          const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl);
@@ -432,9 +432,9 @@ void
 IBInterpolantMethod::interpolateQ(const double data_time)
 {
     int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<Pointer<LData>>* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<Pointer<LData> >* Q_data;
+    std::vector<Pointer<LData>>* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -445,7 +445,7 @@ IBInterpolantMethod::interpolateQ(const double data_time)
         d_l_data_manager->interp(q_data_idx,
                                  *Q_data,
                                  *X_data,
-                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(finest_ln + 1, nullptr),
+                                 std::vector<Pointer<CoarsenSchedule<NDIM>>>(finest_ln + 1, nullptr),
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
                                  data_time);
     }
@@ -572,7 +572,7 @@ IBInterpolantMethod::computeLagrangianForce(double /*data_time*/)
 void
 IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,
                                  RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                                 const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
                                  const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::spreadForce(). This method is not implemented." << std::endl);
@@ -583,9 +583,9 @@ void
 IBInterpolantMethod::spreadQ(double data_time)
 {
     int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     const IntVector<NDIM>& ratio = finest_level->getRatio();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const double* dx0 = grid_geom->getDx();
     std::array<double, NDIM> dx;
     PetscScalar vol = 1.0;
@@ -595,9 +595,9 @@ IBInterpolantMethod::spreadQ(double data_time)
         vol *= dx[i];
     }
 
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<Pointer<LData>>* X_data;
     getPositionData(&X_data, data_time);
-    std::vector<Pointer<LData> >* Q_data;
+    std::vector<Pointer<LData>>* Q_data;
 
     for (auto& Q_pair : d_Q_current_data)
     {
@@ -628,15 +628,14 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(double data_time)
 } // copyEulerianDataToIntegrator
 
 void
-IBInterpolantMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    int /*integrator_step*/,
-    double /*init_data_time*/,
-    bool initial_time)
+IBInterpolantMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                              Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
+                                              int /*u_data_idx*/,
+                                              const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                              const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
+                                              int /*integrator_step*/,
+                                              double /*init_data_time*/,
+                                              bool initial_time)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -656,7 +655,7 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     // Initialize initial center of mass of structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X0_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<Pointer<LData>> X0_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_data_vec[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
     computeCenterOfMass(d_center_of_mass_initial, X0_data_vec);
 
@@ -669,35 +668,35 @@ IBInterpolantMethod::initializePatchHierarchy(
 } // initializePatchHierarchy
 
 void
-IBInterpolantMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBInterpolantMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
 {
     d_l_data_manager->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
 } // addWorkloadEstimate
 
 void
-IBInterpolantMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                             Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBInterpolantMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                             Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
 void
-IBInterpolantMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                           Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBInterpolantMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                           Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 } // endDataRedistribution
 
 void
-IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                          int level_number,
                                          double init_data_time,
                                          bool can_be_refined,
                                          bool initial_time,
-                                         Pointer<BasePatchLevel<NDIM> > old_level,
+                                         Pointer<BasePatchLevel<NDIM>> old_level,
                                          bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -719,7 +718,7 @@ IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hier
 } // initializeLevelData
 
 void
-IBInterpolantMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBInterpolantMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                  int coarsest_level,
                                                  int finest_level)
 {
@@ -732,14 +731,14 @@ IBInterpolantMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM
 } // resetHierarchyConfiguration
 
 void
-IBInterpolantMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBInterpolantMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                            int level_number,
                                            double error_data_time,
                                            int tag_index,
                                            bool initial_time,
                                            bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -784,7 +783,7 @@ IBInterpolantMethod::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBInterpolantMethod::getPositionData(std::vector<Pointer<LData> >** X_data, double data_time)
+IBInterpolantMethod::getPositionData(std::vector<Pointer<LData>>** X_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -809,7 +808,7 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     int q_hier_idx = invalid_index;
 
     Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    Pointer<Variable<NDIM>> var = d_q_var[var_name];
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     if (IBTK::rel_equal_eps(data_time, d_current_time))
@@ -828,8 +827,8 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    Pointer<CellVariable<NDIM, double>> cc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
@@ -848,10 +847,10 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
 void
 IBInterpolantMethod::zeroOutEulerianData(const std::string& var_name, int q_data_idx)
 {
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    Pointer<Variable<NDIM>> var = d_q_var[var_name];
 
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    Pointer<CellVariable<NDIM, double>> cc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
@@ -873,7 +872,7 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     int q_hier_idx = invalid_index;
 
     Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
-    Pointer<Variable<NDIM> > var = d_q_var[var_name];
+    Pointer<Variable<NDIM>> var = d_q_var[var_name];
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     if (IBTK::rel_equal_eps(data_time, d_current_time))
@@ -892,8 +891,8 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    Pointer<CellVariable<NDIM, double>> cc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
@@ -910,7 +909,7 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
 } // copyEulerianDataToIntegrator
 
 void
-IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<LData> >** Q_data, double data_time)
+IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<LData>>** Q_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -929,7 +928,7 @@ IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<L
 
 void
 IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
-                                         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data)
+                                         std::vector<SAMRAI::tbox::Pointer<IBTK::LData>>& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

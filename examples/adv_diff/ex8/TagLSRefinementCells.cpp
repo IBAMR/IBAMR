@@ -25,7 +25,7 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-callTagSolidLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+callTagSolidLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                               const int level_number,
                                               const double /*error_data_time*/,
                                               const int tag_index,
@@ -45,13 +45,13 @@ callTagSolidLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<N
         ptr_ls_tagger->d_ls_var, ptr_ls_tagger->d_adv_diff_solver->getCurrentContext());
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_current_idx);
+        Pointer<CellData<NDIM, int>> tags_data = patch->getPatchData(tag_index);
+        Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_current_idx);
 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {

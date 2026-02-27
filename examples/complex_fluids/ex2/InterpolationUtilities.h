@@ -56,16 +56,16 @@ public:
     // Use polynomial interpolation
     static double interpolate(const std::vector<double>& X,
                               const int data_idx,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                               const double data_time,
                               const int depth = 0);
     // Use least squares interpolation
     static double interpolateL2(const std::vector<double>& X,
                                 const int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                 const double data_time,
                                 const int depth = 0);
@@ -78,7 +78,7 @@ private:
                                        const std::vector<double>& X,
                                        SAMRAI::pdat::CellData<NDIM, int>& r_data,
                                        SAMRAI::pdat::CellData<NDIM, double>& q_data,
-                                       Pointer<CartesianPatchGeometry<NDIM> > pgeom,
+                                       Pointer<CartesianPatchGeometry<NDIM>> pgeom,
                                        const Box<NDIM>& pbox,
                                        int dim,
                                        int cycle,

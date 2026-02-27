@@ -132,7 +132,7 @@ IBInterpolantHierarchyIntegrator::integrateHierarchySpecialized(const double cur
 
     // Move the mesh to new location.
     Pointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
-    const std::vector<Pointer<BrinkmanPenalizationStrategy> >& brinkman_force =
+    const std::vector<Pointer<BrinkmanPenalizationStrategy>>& brinkman_force =
         vc_ins_integrator->getBrinkmanPenalizationStrategy();
     const std::size_t num_objects = brinkman_force.size();
     std::vector<Eigen::Vector3d> U(num_objects), W(num_objects);
@@ -172,8 +172,8 @@ IBInterpolantHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 } // postprocessIntegrateHierarchy
 
 void
-IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

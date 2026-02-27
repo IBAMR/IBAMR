@@ -78,17 +78,17 @@ main(int argc, char* argv[])
         Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
             new AdvDiffSemiImplicitHierarchyIntegrator(
                 "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                adv_diff_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -107,7 +107,7 @@ main(int argc, char* argv[])
         // Initialize the AMR patch hierarchy.
         adv_diff_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        Pointer<Variable<NDIM> > c_var;
+        Pointer<Variable<NDIM>> c_var;
         std::string var_centering = input_db->getString("VAR_CENTERING");
         if (var_centering == "SIDE")
         {
@@ -126,7 +126,7 @@ main(int argc, char* argv[])
         const int c_cloned_idx = var_db->registerClonedPatchDataIndex(c_var, c_idx);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(c_idx);
             level->allocatePatchData(c_cloned_idx);
         }
@@ -154,13 +154,13 @@ main(int argc, char* argv[])
             bool error = false;
             for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM, double> > draw_data = patch->getPatchData(
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double>> draw_data = patch->getPatchData(
                         var_db->getVariable("ComplexFluid::conform_draw"), var_db->getContext("ComplexFluid::CONTEXT"));
-                    Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(cf_forcing->getVariableIdx());
+                    Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(cf_forcing->getVariableIdx());
                     for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
                     {
                         const CellIndex<NDIM>& idx = ci();
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(c_idx);
             level->deallocatePatchData(c_cloned_idx);
         }

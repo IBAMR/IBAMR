@@ -173,7 +173,7 @@ public:
         return *d_normal_face;
     }
 
-    inline const std::vector<std::vector<double> >& getPhi(const libMesh::FEType& fe_type) const
+    inline const std::vector<std::vector<double>>& getPhi(const libMesh::FEType& fe_type) const
     {
         TBOX_ASSERT(d_initialized);
         const size_t fe_type_idx = getFETypeIndex(fe_type);
@@ -182,7 +182,7 @@ public:
         return *d_phi[fe_type_idx];
     }
 
-    inline const std::vector<std::vector<libMesh::VectorValue<double> > >& getDphi(const libMesh::FEType& fe_type) const
+    inline const std::vector<std::vector<libMesh::VectorValue<double>>>& getDphi(const libMesh::FEType& fe_type) const
     {
         TBOX_ASSERT(d_initialized);
         const size_t fe_type_idx = getFETypeIndex(fe_type);
@@ -191,7 +191,7 @@ public:
         return *d_dphi[fe_type_idx];
     }
 
-    inline const std::vector<std::vector<double> >& getPhiFace(const libMesh::FEType& fe_type) const
+    inline const std::vector<std::vector<double>>& getPhiFace(const libMesh::FEType& fe_type) const
     {
         TBOX_ASSERT(d_initialized);
         const size_t fe_type_idx = getFETypeIndex(fe_type);
@@ -200,7 +200,7 @@ public:
         return *d_phi_face[fe_type_idx];
     }
 
-    inline const std::vector<std::vector<libMesh::VectorValue<double> > >&
+    inline const std::vector<std::vector<libMesh::VectorValue<double>>>&
     getDphiFace(const libMesh::FEType& fe_type) const
     {
         TBOX_ASSERT(d_initialized);
@@ -239,7 +239,7 @@ public:
      *
      * NOTE: Data are indexed via [qp][system_idx][var_idx].
      */
-    inline const std::vector<std::vector<std::vector<double> > >& getVarInterpolation()
+    inline const std::vector<std::vector<std::vector<double>>>& getVarInterpolation()
     {
         return d_system_var_data;
     }
@@ -249,7 +249,7 @@ public:
      *
      * NOTE: Data are indexed via [qp][system_idx][var_idx].
      */
-    inline const std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > >& getGradVarInterpolation()
+    inline const std::vector<std::vector<std::vector<libMesh::VectorValue<double>>>>& getGradVarInterpolation()
     {
         return d_system_grad_var_data;
     }
@@ -265,7 +265,7 @@ public:
      * \brief Set up pointers to the interpolated data to be evaluated.
      */
     void setInterpolatedDataPointers(std::vector<const std::vector<double>*>& var_data,
-                                     std::vector<const std::vector<libMesh::VectorValue<double> >*>& grad_var_data,
+                                     std::vector<const std::vector<libMesh::VectorValue<double>>*>& grad_var_data,
                                      const std::vector<size_t>& system_idxs,
                                      const libMesh::Elem* const elem,
                                      const unsigned int qp);
@@ -328,11 +328,10 @@ private:
 
     size_t getFETypeIndex(const libMesh::FEType& fe_type) const;
 
-    void
-    interpolateCommon(std::vector<std::vector<std::vector<double> > >& system_var_data,
-                      std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > >& system_grad_var_data,
-                      const std::vector<const std::vector<std::vector<double> >*>& phi_data,
-                      const std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*>& dphi_data);
+    void interpolateCommon(std::vector<std::vector<std::vector<double>>>& system_var_data,
+                           std::vector<std::vector<std::vector<libMesh::VectorValue<double>>>>& system_grad_var_data,
+                           const std::vector<const std::vector<std::vector<double>>*>& phi_data,
+                           const std::vector<const std::vector<std::vector<libMesh::VectorValue<double>>>*>& dphi_data);
 
     const unsigned int d_dim;
     std::shared_ptr<FEData> d_fe_data;
@@ -347,28 +346,28 @@ private:
     // Data associated with systems.
     std::vector<const libMesh::System*> d_systems;
     std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches;
-    std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
-    std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
+    std::vector<std::vector<int>> d_system_all_vars, d_system_vars, d_system_grad_vars;
+    std::vector<std::vector<size_t>> d_system_var_idx, d_system_grad_var_idx;
     std::vector<libMesh::NumericVector<double>*> d_system_vecs;
-    std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
-    std::vector<std::vector<std::vector<double> > > d_system_var_data;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data;
+    std::vector<std::vector<size_t>> d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
+    std::vector<std::vector<std::vector<double>>> d_system_var_data;
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double>>>> d_system_grad_var_data;
     std::vector<const libMesh::System*> d_noninterp_systems;
-    std::vector<std::vector<int> > d_noninterp_system_all_vars, d_noninterp_system_phi_vars,
+    std::vector<std::vector<int>> d_noninterp_system_all_vars, d_noninterp_system_phi_vars,
         d_noninterp_system_dphi_vars;
 
     // Data associated with FETypes.
     std::vector<libMesh::FEType> d_fe_types;
-    std::vector<std::unique_ptr<IBTK::FEValuesBase> > d_fe;
-    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe_face;
+    std::vector<std::unique_ptr<IBTK::FEValuesBase>> d_fe;
+    std::vector<std::unique_ptr<libMesh::FEBase>> d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
-    std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
-    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
+    std::vector<const std::vector<std::vector<double>>*> d_phi, d_phi_face;
+    std::vector<const std::vector<std::vector<libMesh::VectorValue<double>>>*> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem = nullptr;
     unsigned int d_current_side = std::numeric_limits<unsigned int>::max();
-    std::vector<boost::multi_array<double, 2> > d_system_elem_data;
+    std::vector<boost::multi_array<double, 2>> d_system_elem_data;
     unsigned int d_n_qp = std::numeric_limits<unsigned int>::max();
 };
 } // namespace IBTK

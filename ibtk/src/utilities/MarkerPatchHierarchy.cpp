@@ -64,12 +64,12 @@ static Timer* t_midpoint_step;
 static Timer* t_trapezoidal_step;
 static Timer* t_prune_and_redistribute;
 
-std::vector<std::vector<hier::Box<NDIM> > >
-compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level,
-                                   const Pointer<BasePatchLevel<NDIM> >& f_level)
+std::vector<std::vector<hier::Box<NDIM>>>
+compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
+                                   const Pointer<BasePatchLevel<NDIM>>& f_level)
 {
-    const Pointer<PatchLevel<NDIM> > coarse_level = c_level;
-    const Pointer<PatchLevel<NDIM> > fine_level = f_level;
+    const Pointer<PatchLevel<NDIM>> coarse_level = c_level;
+    const Pointer<PatchLevel<NDIM>> fine_level = f_level;
     TBOX_ASSERT(coarse_level);
     TBOX_ASSERT(fine_level);
     TBOX_ASSERT(coarse_level->getLevelNumber() + 1 == fine_level->getLevelNumber());
@@ -90,7 +90,7 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
 
     // Remove said boxes from each coarse-level patch:
     const auto rank = IBTK_MPI::getRank();
-    std::vector<std::vector<Box<NDIM> > > result;
+    std::vector<std::vector<Box<NDIM>>> result;
     long coarse_size = 0;
     for (int i = 0; i < coarse_level->getNumberOfPatches(); ++i)
     {
@@ -101,7 +101,7 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
 
         const bool patch_is_local = rank == coarse_level->getMappingForPatch(i);
         if (patch_is_local) result.emplace_back();
-        typename tbox::List<Box<NDIM> >::Iterator it(coarse_box_list);
+        typename tbox::List<Box<NDIM>>::Iterator it(coarse_box_list);
         while (it)
         {
             if (patch_is_local) result.back().push_back(*it);
@@ -115,7 +115,7 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
     return result;
 }
 
-std::tuple<std::vector<double>, std::vector<double>, std::vector<int> >
+std::tuple<std::vector<double>, std::vector<double>, std::vector<int>>
 collect_markers(const std::vector<double>& local_positions,
                 const std::vector<double>& local_velocities,
                 const std::vector<int>& local_indices)
@@ -174,13 +174,13 @@ collect_markers(const std::vector<double>& local_positions,
 void
 do_interpolation(const int data_idx,
                  const std::vector<double>& positions,
-                 const Pointer<Patch<NDIM> > patch,
+                 const Pointer<Patch<NDIM>> patch,
                  const std::string& kernel,
                  std::vector<double>& velocities)
 {
-    Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
-    Pointer<CellData<NDIM, double> > cc_data = data;
-    Pointer<SideData<NDIM, double> > sc_data = data;
+    Pointer<PatchData<NDIM>> data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double>> cc_data = data;
+    Pointer<SideData<NDIM, double>> sc_data = data;
     const bool is_cc_data = cc_data;
     const bool is_sc_data = sc_data;
     // Only interpolate things within 1 cell of the patch box - we aren't
@@ -219,8 +219,8 @@ do_interpolation(const int data_idx,
 } // namespace
 
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
-                         const std::vector<Box<NDIM> >& nonoverlapping_patch_boxes,
-                         const Pointer<CartesianGridGeometry<NDIM> >& grid_geom,
+                         const std::vector<Box<NDIM>>& nonoverlapping_patch_boxes,
+                         const Pointer<CartesianGridGeometry<NDIM>>& grid_geom,
                          const IntVector<NDIM>& ratio)
     : d_patch_box(patch_box), d_nonoverlapping_patch_boxes(nonoverlapping_patch_boxes)
 {
@@ -259,7 +259,7 @@ MarkerPatch::contains(const IBTK::Point& position) const
     return false;
 }
 
-std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 MarkerPatch::prune()
 {
     std::vector<int> indices;
@@ -316,7 +316,7 @@ MarkerPatch::size() const
 }
 
 MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
-                                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                           Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                            const std::vector<IBTK::Point>& positions,
                                            const std::vector<IBTK::Point>& velocities,
                                            const bool register_for_restart)
@@ -326,7 +326,7 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
       d_hierarchy(patch_hierarchy),
       d_markers_outside_domain(
           Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()),
-          std::vector<Box<NDIM> >{ Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()) },
+          std::vector<Box<NDIM>>{ Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()) },
           d_hierarchy->getGridGeometry(),
           IntVector<NDIM>(1))
 {
@@ -373,7 +373,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
     IBTK_TIMER_START(t_reinit);
     d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
@@ -401,8 +401,8 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
     //    patch in the present level.
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > finer_level =
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> finer_level =
             ln == d_hierarchy->getFinestLevelNumber() ? nullptr : d_hierarchy->getPatchLevel(ln + 1);
         const IntVector<NDIM>& ratio = current_level->getRatio();
 
@@ -415,7 +415,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
                 if (rank == current_level->getMappingForPatch(i))
                 {
                     const Box<NDIM> box = current_level->getPatch(i)->getBox();
-                    d_marker_patches[ln].emplace_back(box, std::vector<Box<NDIM> >{ box }, grid_geom, ratio);
+                    d_marker_patches[ln].emplace_back(box, std::vector<Box<NDIM>>{ box }, grid_geom, ratio);
                     insert_markers(d_marker_patches[ln].back());
                 }
             }
@@ -423,7 +423,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         // otherwise we need to subtract off the boxes on the finer level first.
         else
         {
-            const std::vector<std::vector<hier::Box<NDIM> > > nonoverlapping_patch_boxes =
+            const std::vector<std::vector<hier::Box<NDIM>>> nonoverlapping_patch_boxes =
                 compute_nonoverlapping_patch_boxes(current_level, finer_level);
             unsigned int local_num = 0;
             for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
@@ -446,7 +446,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         d_markers_outside_domain.d_positions.resize(0);
         d_markers_outside_domain.d_velocities.resize(0);
 
-        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
         const double* const domain_x_lower = grid_geom->getXLower();
         const double* const domain_x_upper = grid_geom->getXUpper();
         for (unsigned int k = 0; k < positions.size(); ++k)
@@ -727,7 +727,7 @@ MarkerPatchHierarchy::getNumberOfMarkers() const
     return d_num_markers;
 }
 
-std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>>
 MarkerPatchHierarchy::collectAllMarkers() const
 {
     IBTK_TIMER_START(t_collect_all_markers);
@@ -787,12 +787,12 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
                 do_interpolation(u_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
                 ++local_patch_num;
@@ -809,13 +809,13 @@ MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, con
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
@@ -841,13 +841,13 @@ MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, co
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 std::vector<double> new_positions(marker_patch.d_positions);
@@ -889,13 +889,13 @@ MarkerPatchHierarchy::midpointStep(const double dt,
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
 
                 // 1. Do a half of a forward Euler step:
                 std::vector<double> half_positions(marker_patch.d_positions);
@@ -934,13 +934,13 @@ MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, cons
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
         for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
         {
             if (rank == current_level->getMappingForPatch(p))
             {
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
 
                 // 1. Do a forward Euler step:
                 std::vector<double> new_positions(marker_patch.d_positions);
@@ -1014,7 +1014,7 @@ MarkerPatchHierarchy::pruneAndRedistribute()
         collect_markers(moved_positions, moved_velocities, moved_indices);
 
     // 3. Apply periodicity constraints.
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();

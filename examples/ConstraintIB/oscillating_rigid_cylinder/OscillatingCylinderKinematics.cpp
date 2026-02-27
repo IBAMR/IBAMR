@@ -41,7 +41,7 @@ namespace IBAMR
 OscillatingCylinderKinematics::OscillatingCylinderKinematics(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              LDataManager* l_data_manager,
-                                                             Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                                                             Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                                                              bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_prescribed_trans_vel(0.0),
@@ -83,7 +83,7 @@ OscillatingCylinderKinematics::OscillatingCylinderKinematics(const std::string& 
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const int total_levels = finest_ln - coarsest_ln + 1;
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
 
     if (total_levels > 1)
     {
@@ -167,7 +167,7 @@ OscillatingCylinderKinematics::setOscillatingCylinderSpecificVelocity(const doub
 {
     // Set the size of vectors.
     const StructureParameters& struct_param = getStructureParameters();
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int number_lag_points = idx_range[0].second - idx_range[0].first;
 
     for (int k = 0; k < number_lag_points; ++k)
@@ -202,7 +202,7 @@ OscillatingCylinderKinematics::setKinematicsVelocity(
 
 } // setNewKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 OscillatingCylinderKinematics::getKinematicsVelocity(const int level) const
 {
     static const StructureParameters& struct_param = getStructureParameters();
@@ -213,7 +213,7 @@ OscillatingCylinderKinematics::getKinematicsVelocity(const int level) const
 
 } // getNewKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 OscillatingCylinderKinematics::getCurrentKinematicsVelocity(const int level) const
 {
     static const StructureParameters& struct_param = getStructureParameters();
@@ -232,7 +232,7 @@ OscillatingCylinderKinematics::setShape(const double /*new_time*/, const std::ve
 
 } // setNewShape
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 OscillatingCylinderKinematics::getShape(const int /*level*/) const
 {
     return d_new_shape;

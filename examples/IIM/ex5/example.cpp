@@ -67,7 +67,7 @@ tether_force_function(VectorValue<double>& F,
                       Elem* const elem,
                       const unsigned short /*side*/,
                       const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                       double /*time*/,
                       void* /*ctx*/)
 {
@@ -99,7 +99,7 @@ tether_force_function(VectorValue<double>& F,
 using namespace ModelData;
 
 static ofstream w_new_stream, v_new_stream, x_com_stream, c1_traction_stream, c2_traction_stream, c3_traction_stream;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -142,13 +142,13 @@ calculateGeomQuantitiesOfStructure(const double* params,
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
 
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
@@ -250,19 +250,19 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> TAU_dof_indices(NDIM);
     std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
 
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
-    const vector<vector<double> >& phi = fe->get_phi();
+    const vector<vector<double>>& phi = fe->get_phi();
 
     boost::multi_array<double, 2> x_node, TAU_node;
     VectorValue<double> F_qp, x_qp, W_qp, TAU_qp, R_qp;
@@ -318,7 +318,7 @@ calculateGravitationalForce(const double* params, VectorValue<double>& F_g, Equa
 
     Y_system.solution->localize(*Y_system.current_local_solution);
     DofMap& Y_dof_map = Y_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > Y_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> Y_dof_indices(NDIM);
 
     FEType fe_type = Y_dof_map.variable_type(0);
 
@@ -661,17 +661,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -834,7 +834,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

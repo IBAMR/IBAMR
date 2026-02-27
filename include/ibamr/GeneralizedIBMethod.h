@@ -124,8 +124,8 @@ public:
      */
     void interpolateVelocity(
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
         double data_time) override;
 
     /*!
@@ -159,7 +159,7 @@ public:
     void
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
                 double data_time) override;
 
     /*!
@@ -172,11 +172,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
@@ -187,12 +187,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -204,7 +204,7 @@ protected:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_f_var, d_w_var, d_n_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_f_var, d_w_var, d_n_var;
     int d_f_idx, d_w_idx, d_n_idx;
 
     /*
@@ -216,9 +216,9 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_D_current_data, d_D_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_N_current_data, d_N_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> d_D_current_data, d_D_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> d_N_current_data, d_N_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> d_W_current_data, d_W_new_data;
 
     /*
      * The force and torque generator.

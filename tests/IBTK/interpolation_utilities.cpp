@@ -62,15 +62,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -81,9 +81,9 @@ main(int argc, char* argv[])
         // boundaries to obtain ghost cell values.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM, double> > cc_var = new CellVariable<NDIM, double>("cc");
-        Pointer<SideVariable<NDIM, double> > sc_var = new SideVariable<NDIM, double>("sc");
-        Pointer<NodeVariable<NDIM, double> > nc_var = new NodeVariable<NDIM, double>("nc", NDIM);
+        Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc");
+        Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc");
+        Pointer<NodeVariable<NDIM, double>> nc_var = new NodeVariable<NDIM, double>("nc", NDIM);
         const int gcw = 4;
         const int cc_idx = var_db->registerVariableAndContext(cc_var, context, gcw);
         const int sc_idx = var_db->registerVariableAndContext(sc_var, context, gcw);
@@ -106,17 +106,17 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(cc_idx);
             level->allocatePatchData(nc_idx);
             level->allocatePatchData(sc_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(cc_idx);
-                Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(sc_idx);
-                Pointer<NodeData<NDIM, double> > nc_data = patch->getPatchData(nc_idx);
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> cc_data = patch->getPatchData(cc_idx);
+                Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(sc_idx);
+                Pointer<NodeData<NDIM, double>> nc_data = patch->getPatchData(nc_idx);
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
                 const hier::Index<NDIM>& idx_low = patch->getBox().lower();

@@ -28,26 +28,26 @@ namespace IBAMR
 double
 computeNetInflowPhysicalBoundary(Pointer<HierarchyMathOps> hier_math_ops, int u_idx, int bdry_loc_idx)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = hier_math_ops->getPatchHierarchy();
     const int wgt_sc_idx = hier_math_ops->getSideWeightPatchDescriptorIndex();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     double integral = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             if (!pgeom->getTouchesRegularBoundary()) continue;
 
-            const tbox::Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            const tbox::Array<BoundaryBox<NDIM>> physical_codim1_boxes =
                 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
             if (physical_codim1_boxes.size() == 0) continue;
 
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-            Pointer<SideData<NDIM, double> > wgt_data = patch->getPatchData(wgt_sc_idx);
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            Pointer<SideData<NDIM, double>> wgt_data = patch->getPatchData(wgt_sc_idx);
             const double* const dx = pgeom->getDx();
 
             for (int n = 0; n < physical_codim1_boxes.size(); ++n)

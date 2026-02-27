@@ -117,9 +117,9 @@ namespace IBAMR
 CFINSForcing::CFINSForcing(const std::string& object_name,
                            Pointer<Database> input_db,
                            Pointer<CartGridFunction> u_fcn,
-                           Pointer<CartesianGridGeometry<NDIM> > grid_geometry,
+                           Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
                            Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                           Pointer<VisItDataWriter<NDIM> > visit_data_writer)
+                           Pointer<VisItDataWriter<NDIM>> visit_data_writer)
     : CartGridFunction(object_name),
       d_C_cc_var(new CellVariable<NDIM, double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
       d_adv_diff_integrator(adv_diff_integrator),
@@ -138,9 +138,9 @@ CFINSForcing::CFINSForcing(const std::string& object_name,
 CFINSForcing::CFINSForcing(const std::string& object_name,
                            Pointer<Database> input_db,
                            const Pointer<INSHierarchyIntegrator> fluid_solver,
-                           Pointer<CartesianGridGeometry<NDIM> > grid_geometry,
+                           Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
                            Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                           Pointer<VisItDataWriter<NDIM> > visit_data_writer)
+                           Pointer<VisItDataWriter<NDIM>> visit_data_writer)
     : CartGridFunction(object_name),
       d_C_cc_var(new CellVariable<NDIM, double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
       d_adv_diff_integrator(adv_diff_integrator),
@@ -159,7 +159,7 @@ CFINSForcing::~CFINSForcing()
     int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (d_conform_draw && level->checkAllocated(d_conform_idx_draw)) level->deallocatePatchData(d_conform_idx_draw);
         if (d_stress_draw && level->checkAllocated(d_stress_idx_draw)) level->deallocatePatchData(d_stress_idx_draw);
         if ((d_div_sig_idx_draw != IBTK::invalid_index) && level->checkAllocated(d_div_sig_idx_draw))
@@ -170,8 +170,8 @@ CFINSForcing::~CFINSForcing()
 
 void
 CFINSForcing::commonConstructor(const Pointer<Database> input_db,
-                                Pointer<VisItDataWriter<NDIM> > visit_data_writer,
-                                Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+                                Pointer<VisItDataWriter<NDIM>> visit_data_writer,
+                                Pointer<CartesianGridGeometry<NDIM>> grid_geom,
                                 const std::vector<RobinBcCoefStrategy<NDIM>*> vel_bcs)
 {
     // Set up initial conditions
@@ -293,8 +293,8 @@ CFINSForcing::isTimeDependent() const
 
 void
 CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
-                                      Pointer<Variable<NDIM> > var,
-                                      Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      Pointer<Variable<NDIM>> var,
+                                      Pointer<PatchHierarchy<NDIM>> hierarchy,
                                       const double data_time,
                                       const bool initial_time,
                                       const int coarsest_ln_in,
@@ -309,7 +309,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     // Allocate Data to store components of the Complex stress tensor
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_num);
         if (!level->checkAllocated(d_C_scratch_idx)) level->allocatePatchData(d_C_scratch_idx);
         if (d_stress_draw && !level->checkAllocated(d_stress_idx_draw)) level->allocatePatchData(d_stress_idx_draw);
         if (d_conform_draw && !level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
@@ -329,7 +329,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         const int W_new_idx = var_db->mapVariableAndContextToIndex(d_C_cc_var, d_adv_diff_integrator->getNewContext());
         const bool W_new_is_allocated = d_adv_diff_integrator->isAllocatedPatchData(W_new_idx);
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
         if (d_adv_diff_integrator->getCurrentCycleNumber() == 0 || !W_new_is_allocated)
         {
@@ -344,7 +344,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     }
 
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+    Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
         hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
 
     // Fill in boundary conditions for evolved quantity.
@@ -445,7 +445,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     // Deallocate data as needed.
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_num);
         if (level->checkAllocated(d_C_scratch_idx)) level->deallocatePatchData(d_C_scratch_idx);
     }
     return;
@@ -453,8 +453,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CFINSForcing::setDataOnPatchLevel(const int data_idx,
-                                  Pointer<Variable<NDIM> > var,
-                                  Pointer<PatchLevel<NDIM> > level,
+                                  Pointer<Variable<NDIM>> var,
+                                  Pointer<PatchLevel<NDIM>> level,
                                   const double data_time,
                                   const bool initial_time)
 {
@@ -472,7 +472,7 @@ CFINSForcing::setDataOnPatchLevel(const int data_idx,
     }
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
     }
     return;
@@ -480,26 +480,26 @@ CFINSForcing::setDataOnPatchLevel(const int data_idx,
 
 void
 CFINSForcing::setDataOnPatch(const int data_idx,
-                             Pointer<Variable<NDIM> > /*var*/,
-                             Pointer<Patch<NDIM> > patch,
+                             Pointer<Variable<NDIM>> /*var*/,
+                             Pointer<Patch<NDIM>> patch,
                              const double /*data_time*/,
                              const bool initial_time,
-                             Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                             Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
     const double* dx = p_geom->getDx();
     // NOTE: We precomputed the stress, which is stored in d_C_scratch_idx.
-    Pointer<CellData<NDIM, double> > sig_data = patch->getPatchData(d_C_scratch_idx);
-    Pointer<CellData<NDIM, double> > div_sig_draw_data =
+    Pointer<CellData<NDIM, double>> sig_data = patch->getPatchData(d_C_scratch_idx);
+    Pointer<CellData<NDIM, double>> div_sig_draw_data =
         d_div_sig_idx_draw != IBTK::invalid_index ? patch->getPatchData(d_div_sig_idx_draw) : nullptr;
     if (d_log_div_sig || d_div_sig_draw || d_div_sig_abs_tag || d_div_sig_rel_tag) div_sig_draw_data->fillAll(0.0);
-    Pointer<SideData<NDIM, double> > div_sig_sc_data = patch->getPatchData(data_idx);
-    Pointer<CellData<NDIM, double> > div_sig_cc_data = patch->getPatchData(data_idx);
+    Pointer<SideData<NDIM, double>> div_sig_sc_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double>> div_sig_cc_data = patch->getPatchData(data_idx);
     // If we are drawing the stress tensor, print it out.
     if (d_stress_draw)
     {
-        Pointer<CellData<NDIM, double> > stress_data_draw = patch->getPatchData(d_stress_idx_draw);
+        Pointer<CellData<NDIM, double>> stress_data_draw = patch->getPatchData(d_stress_idx_draw);
         for (CellIterator<NDIM> ci(patch_box); ci; ci++)
         {
             CellIndex<NDIM> idx = *ci;
@@ -657,20 +657,20 @@ CFINSForcing::registerCFStrategy(Pointer<CFStrategy> strategy)
 
 void
 CFINSForcing::checkPositiveDefinite(const int data_idx,
-                                    const Pointer<Variable<NDIM> > /*var*/,
+                                    const Pointer<Variable<NDIM>> /*var*/,
                                     const double /*data_time*/,
                                     const bool initial_time)
 {
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& box = patch->getBox();
-            const Pointer<PatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            const Pointer<PatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
             if (initial_time) return;
-            Pointer<CellData<NDIM, double> > s_data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> s_data = patch->getPatchData(data_idx);
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 const CellIndex<NDIM>& ci = *it;
@@ -691,8 +691,8 @@ CFINSForcing::checkPositiveDefinite(const int data_idx,
 
 void
 CFINSForcing::squareMatrix(const int data_idx,
-                           const Pointer<Variable<NDIM> > /*var*/,
-                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                           const Pointer<Variable<NDIM>> /*var*/,
+                           const Pointer<PatchHierarchy<NDIM>> hierarchy,
                            const double /*data_time*/,
                            const bool initial_time,
                            const int coarsest_ln,
@@ -701,14 +701,14 @@ CFINSForcing::squareMatrix(const int data_idx,
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             if (initial_time) return;
-            Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
             const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
-            const Pointer<PatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            const Pointer<PatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
 
             for (CellIterator<NDIM> it(box); it; it++)
             {
@@ -733,19 +733,19 @@ CFINSForcing::squareMatrix(const int data_idx,
 
 void
 CFINSForcing::findDeterminant(const int data_idx,
-                              const Pointer<Variable<NDIM> > /*var*/,
+                              const Pointer<Variable<NDIM>> /*var*/,
                               const double /*data_time*/,
                               const bool /*initial_time*/)
 {
     double det;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator i(level); i; i++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(i());
+            Pointer<Patch<NDIM>> patch = level->getPatch(i());
             const Box<NDIM>& box = patch->getBox();
-            Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
@@ -768,8 +768,8 @@ CFINSForcing::findDeterminant(const int data_idx,
 
 void
 CFINSForcing::exponentiateMatrix(const int data_idx,
-                                 const Pointer<Variable<NDIM> > /*var*/,
-                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const Pointer<Variable<NDIM>> /*var*/,
+                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
                                  const int coarsest_ln,
@@ -778,11 +778,11 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ln++)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
             const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (CellIterator<NDIM> it(box); it; it++)
             {
@@ -811,13 +811,13 @@ CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
     if (!d_conform_draw) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(C_cc_idx);
-            Pointer<CellData<NDIM, double> > conform_data_draw = patch->getPatchData(d_conform_idx_draw);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(C_cc_idx);
+            Pointer<CellData<NDIM, double>> conform_data_draw = patch->getPatchData(d_conform_idx_draw);
 #if (NDIM == 2)
             conform_data_draw->copyDepth(0, *C_data, 0);
             conform_data_draw->copyDepth(1, *C_data, 2);
@@ -841,20 +841,20 @@ CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
 
 void
 CFINSForcing::projectTensor(const int data_idx,
-                            const Pointer<Variable<NDIM> > /*var*/,
+                            const Pointer<Variable<NDIM>> /*var*/,
                             const double /*data_time*/,
                             const bool initial_time,
                             const bool extended_box)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = d_adv_diff_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = d_adv_diff_integrator->getPatchHierarchy();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             if (initial_time) return;
-            Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
             const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (CellIterator<NDIM> it(box); it; it++)
             {
@@ -886,7 +886,7 @@ CFINSForcing::projectTensor(const int data_idx,
 } // projectTensor
 
 void
-CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                     int level_number,
                                     double /*error_data_time*/,
                                     int tag_index,
@@ -894,7 +894,7 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy
                                     bool /*richardson_extrapolation_too*/)
 {
     if (initial_time) return;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
     double divC_rel_thresh = 0.0;
     if (d_div_sig_rel_thresh.size() > 0)
         divC_rel_thresh = d_div_sig_rel_thresh[std::max(std::min(level_number, d_div_sig_rel_thresh.size() - 1), 0)];
@@ -909,10 +909,10 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         thresh += sqrt(std::numeric_limits<double>::epsilon());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(d_div_sig_idx_draw);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(d_div_sig_idx_draw);
             if (!C_data) continue;
-            Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+            Pointer<CellData<NDIM, int>> tag_data = patch->getPatchData(tag_index);
             const Box<NDIM>& box = patch->getBox();
             for (CellIterator<NDIM> ic(box); ic; ic++)
             {
@@ -928,7 +928,7 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy
 } // applyGradientDetector
 
 void
-CFINSForcing::apply_gradient_detector_callback(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+CFINSForcing::apply_gradient_detector_callback(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                int level_number,
                                                double error_data_time,
                                                int tag_index,

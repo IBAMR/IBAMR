@@ -76,7 +76,7 @@ main(int argc, char** argv)
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
-    Pointer<hier::Variable<NDIM> > u_var;
+    Pointer<hier::Variable<NDIM>> u_var;
     if (set_velocity)
     {
         // Set up the velocity on the Cartesian grid:
@@ -89,18 +89,18 @@ main(int argc, char** argv)
         u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(ghost_width));
     }
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
     grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<NDIM>());
     grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+    Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
         "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-    Pointer<LoadBalancer<NDIM> > load_balancer =
+    Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+    Pointer<LoadBalancer<NDIM>> load_balancer =
         new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+    Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
         new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -142,7 +142,7 @@ main(int argc, char** argv)
     {
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            tbox::Pointer<hier::PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
         }
         HierarchySideDataOpsReal<NDIM, double> ops(patch_hierarchy);
@@ -150,7 +150,7 @@ main(int argc, char** argv)
         IBTK::muParserCartGridFunction u_fcn("u", test_db->getDatabase("u"), patch_hierarchy->getGridGeometry());
         u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
 
-        std::vector<std::unique_ptr<muParserRobinBcCoefs> > u_bc_coefs;
+        std::vector<std::unique_ptr<muParserRobinBcCoefs>> u_bc_coefs;
         std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coef_ptrs;
 
         if (test_db->keyExists("UBcCoefs_0"))
@@ -181,7 +181,7 @@ main(int argc, char** argv)
     if (timestep)
     {
         // Pick CFL = 1.0 to simulate the largest marker point travel possible:
-        Pointer<PatchLevel<NDIM> > finest_level =
+        Pointer<PatchLevel<NDIM>> finest_level =
             patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
         const double dx = get_min_patch_dx(*finest_level);
         const double U_MAX = 1.0;
@@ -310,7 +310,7 @@ main(int argc, char** argv)
             for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 int local_patch_num = 0;
-                Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> current_level = patch_hierarchy->getPatchLevel(ln);
                 for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
                 {
                     if (rank == current_level->getMappingForPatch(p))

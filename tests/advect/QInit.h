@@ -37,7 +37,7 @@ public:
      * \brief Constructor.
      */
     QInit(const string& object_name,
-          SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+          SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom,
           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
         : CartGridFunction(object_name),
           d_object_name(object_name),
@@ -94,19 +94,19 @@ public:
      * Set the data on the patch interior to the exact answer.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<Variable<NDIM> > /*var*/,
-                        SAMRAI::tbox::Pointer<Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<Variable<NDIM>> /*var*/,
+                        SAMRAI::tbox::Pointer<Patch<NDIM>> patch,
                         const double data_time,
                         const bool /*initial_time*/,
-                        SAMRAI::tbox::Pointer<PatchLevel<NDIM> > /*level*/)
+                        SAMRAI::tbox::Pointer<PatchLevel<NDIM>> /*level*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(Q_data);
 #endif
         const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
         const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
@@ -226,7 +226,7 @@ private:
     /*
      * The grid geometry.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom;
 
     /*
      * The center of the initial data.

@@ -111,8 +111,8 @@ public:
      * to calling initializePatchHierarchy().
      */
     void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
 
     /*!
      * Initialize the PatchHierarchy and initialize any markers from restart.
@@ -122,8 +122,8 @@ public:
      * patch hierarchy. Hence, this is the earliest the restart marker data can
      * be used to create the marker points.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
     /*!
      * Get the global number of markers.
      */
@@ -139,7 +139,7 @@ public:
      * Collect all marker point positions and velocities. This call is
      * collective.
      */
-    virtual std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
+    virtual std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector>> collectAllMarkers() const;
 
     /*!
      * Write marker plot data. This function does nothing if there are no markers.

@@ -29,7 +29,7 @@ main()
 {
     std::ofstream out("output");
 
-    SAMRAI::tbox::Array<SAMRAI::tbox::Array<bool> > bdry_data(NDIM);
+    SAMRAI::tbox::Array<SAMRAI::tbox::Array<bool>> bdry_data(NDIM);
     for (int i = 0; i < NDIM; ++i)
     {
         SAMRAI::tbox::Array<bool>& entry = bdry_data[i];

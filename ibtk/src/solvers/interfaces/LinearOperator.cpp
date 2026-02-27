@@ -57,7 +57,7 @@ LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     SAMRAIScopedVectorDuplicate<double> x(y);
     SAMRAIScopedVectorCopy<double> b(y);
     apply(x, b);
-    y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
+    y.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), b);
     return;
 } // modifyRhsForBcs
 

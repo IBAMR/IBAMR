@@ -58,7 +58,7 @@ public:
     /*!
      * \brief The container class.
      */
-    using DataSet = std::vector<SAMRAI::tbox::Pointer<T> >;
+    using DataSet = std::vector<SAMRAI::tbox::Pointer<T>>;
 
     /*!
      * \brief The type of object, T, stored in the collection.

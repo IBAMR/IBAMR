@@ -57,23 +57,23 @@ static Timer* t_secondary_to_primary;
  */
 class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
-    virtual void initializeLevelData(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    virtual void initializeLevelData(const tbox::Pointer<hier::BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                      const int /*level_number*/,
                                      const double /*init_data_time*/,
                                      const bool /*can_be_refined*/,
                                      const bool /*initial_time*/,
-                                     const tbox::Pointer<hier::BasePatchLevel<NDIM> > /*old_level*/ = nullptr,
+                                     const tbox::Pointer<hier::BasePatchLevel<NDIM>> /*old_level*/ = nullptr,
                                      const bool /*allocate_data*/ = true) override
     {
     }
 
-    virtual void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    virtual void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                              const int /*coarsest_level*/,
                                              const int /*finest_level*/) override
     {
     }
 
-    virtual void applyGradientDetector(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    virtual void applyGradientDetector(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                                        const int level_number,
                                        const double /*error_data_time*/,
                                        const int tag_index,
@@ -81,9 +81,9 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
                                        const bool /*uses_richardson_extrapolation_too*/) override
     {
         if (level_number == hierarchy->getFinestLevelNumber()) return;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hierarchy;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy = hierarchy;
         TBOX_ASSERT(patch_hierarchy);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
 
         if (!level->checkAllocated(tag_index)) level->allocatePatchData(tag_index, 0.0);
         HierarchyCellDataOpsInteger<NDIM> hier_cc_data_ops(hierarchy, level_number, level_number);
@@ -96,7 +96,7 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
         // be tagged on this level, since we don't care about tagging in the
         // secondary hierarchy - just load balancing (but samrai requires we do
         // both simultaneously)
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(level_number + 1);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> finer_level = hierarchy->getPatchLevel(level_number + 1);
         const auto& boxes = finer_level->getBoxes();
         for (int i = 0; i < boxes.getNumberOfBoxes(); ++i)
         {
@@ -112,9 +112,9 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 
             for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM> box = patch->getBox();
-                Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+                Pointer<CellData<NDIM, int>> tag_data = patch->getPatchData(tag_index);
 
                 // SAMRAI's intersection code is wrong and returns nonsense
                 // answers when the intersection should be empty
@@ -167,7 +167,7 @@ SecondaryHierarchy::SecondaryHierarchy(std::string name,
 void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
-                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                           Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
 {
     IBTK_TIMER_START(t_reinit);
     d_coarsest_patch_level_number = coarsest_patch_level_number;
@@ -188,7 +188,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
 void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
-                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                           Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                            int workload_idx)
 {
     IBTK_TIMER_START(t_reinit);
@@ -209,13 +209,13 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     // worry about boundary stuff
     for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > old_level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> old_level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(old_level->checkAllocated(workload_idx));
-        Pointer<PatchLevel<NDIM> > new_level = new_secondary_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> new_level = new_secondary_hierarchy->getPatchLevel(ln);
         new_level->allocatePatchData(workload_idx);
 
-        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        Pointer<RefineAlgorithm<NDIM>> refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
 
@@ -245,15 +245,15 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     // for analysis purposes, also transfer the workload data to the new partitioning
     for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > old_level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> old_level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(old_level->checkAllocated(workload_idx));
-        Pointer<PatchLevel<NDIM> > new_level = d_secondary_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> new_level = d_secondary_hierarchy->getPatchLevel(ln);
         if (!new_level->checkAllocated(workload_idx)) new_level->allocatePatchData(workload_idx);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_secondary_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(workload_idx, 0.0, false);
 
-        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        Pointer<RefineAlgorithm<NDIM>> refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
         schedule->fillData(0.0);
@@ -273,11 +273,11 @@ SecondaryHierarchy::transferPrimaryToSecondary(const int level_number,
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_transfer_forward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevel<NDIM> > level = d_primary_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM>> level = d_primary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM>> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
         if (!scratch_level->checkAllocated(scratch_data_idx)) scratch_level->allocatePatchData(scratch_data_idx, 0.0);
-        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
+        Pointer<RefineAlgorithm<NDIM>> refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM>> refine_op_f = nullptr;
         refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
         d_transfer_forward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy);
@@ -298,10 +298,10 @@ SecondaryHierarchy::transferSecondaryToPrimary(const int level_number,
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_transfer_backward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevel<NDIM> > level = d_primary_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
-        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op_b = nullptr;
+        Pointer<PatchLevel<NDIM>> level = d_primary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM>> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
+        Pointer<RefineAlgorithm<NDIM>> refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM>> refine_op_b = nullptr;
         refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
         d_transfer_backward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy);
@@ -316,13 +316,13 @@ SecondaryHierarchy::getSAMRAIDataCache()
     return d_eulerian_data_cache;
 }
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>
 SecondaryHierarchy::getPrimaryHierarchy()
 {
     return d_primary_hierarchy;
 }
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>
 SecondaryHierarchy::getSecondaryHierarchy()
 {
     return d_secondary_hierarchy;

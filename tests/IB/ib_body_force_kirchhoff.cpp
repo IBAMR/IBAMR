@@ -72,7 +72,7 @@ generate_structure(const unsigned int& struct_num,
 void
 generate_rods_and_directors(const unsigned int& /*struct_num*/,
                             const int& /*ln*/,
-                            std::vector<std::vector<double> >& director_spec,
+                            std::vector<std::vector<double>>& director_spec,
                             std::multimap<int, IBRedundantInitializer::Edge>& /*rod_edge_map*/,
                             std::map<IBRedundantInitializer::Edge,
                                      IBRedundantInitializer::RodSpec,
@@ -97,7 +97,7 @@ generate_structure_file(const std::string& base_name, int struct_num)
 
     file.open(base_name + ".director");
     file << "1\n";
-    std::vector<std::vector<double> > director_spec(1);
+    std::vector<std::vector<double>> director_spec(1);
     director_spec[0].resize(9);
     director_spec[0][0] = director_spec[0][4] = director_spec[0][8] = 1.0;
     for (const auto& directors : director_spec)
@@ -144,17 +144,17 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,

@@ -48,7 +48,7 @@ static const int EXTENSIONS_FILLABLE = 128;
 StokesFifthOrderWaveBcCoef::StokesFifthOrderWaveBcCoef(std::string object_name,
                                                        const int comp_idx,
                                                        Pointer<Database> input_db,
-                                                       Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                                       Pointer<CartesianGridGeometry<NDIM>> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -74,10 +74,10 @@ StokesFifthOrderWaveBcCoef::~StokesFifthOrderWaveBcCoef()
 } // ~StokesFifthOrderWaveBcCoef
 
 void
-StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                       const Pointer<Variable<NDIM> >& variable,
+StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                       const Pointer<Variable<NDIM>>& variable,
                                        const Patch<NDIM>& patch,
                                        const BoundaryBox<NDIM>& bdry_box,
                                        double fill_time) const
@@ -85,7 +85,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     // Get pgeom info.
     const Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 

@@ -63,12 +63,12 @@ public:
         return d_quadrature_points;
     }
 
-    inline const std::vector<std::vector<double> >& getShapeValues() const
+    inline const std::vector<std::vector<double>>& getShapeValues() const
     {
         return d_shape_values;
     }
 
-    inline const std::vector<std::vector<libMesh::VectorValue<double> > >& getShapeGradients() const
+    inline const std::vector<std::vector<libMesh::VectorValue<double>>>& getShapeGradients() const
     {
         return d_shape_gradients;
     }
@@ -84,9 +84,9 @@ protected:
 
     std::vector<libMesh::Point> d_quadrature_points;
 
-    std::vector<std::vector<double> > d_shape_values;
+    std::vector<std::vector<double>> d_shape_values;
 
-    std::vector<std::vector<libMesh::VectorValue<double> > > d_shape_gradients;
+    std::vector<std::vector<libMesh::VectorValue<double>>> d_shape_gradients;
 };
 
 /**
@@ -133,7 +133,7 @@ protected:
     /*
      * Mappings, indexed by element type.
      */
-    std::map<libMesh::ElemType, std::unique_ptr<FEMapping<dim, spacedim> > > d_mappings;
+    std::map<libMesh::ElemType, std::unique_ptr<FEMapping<dim, spacedim>>> d_mappings;
 
     /*
      * Reference values, indexed by element type.

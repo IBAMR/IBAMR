@@ -82,7 +82,7 @@ PK1_stress_function(TensorValue<double>& PP,
                     const libMesh::Point& /*s*/,
                     Elem* const /*elem*/,
                     const std::vector<const std::vector<double>*>& /*var_data*/,
-                    const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                    const std::vector<const std::vector<VectorValue<double>>*>& /*grad_var_data*/,
                     double /*time*/,
                     void* /*ctx*/)
 {
@@ -98,7 +98,7 @@ PK1_stress_function(TensorValue<double>& PP,
 using namespace ModelData;
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -244,17 +244,17 @@ main(int argc, char** argv)
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -275,7 +275,7 @@ main(int argc, char** argv)
         Pointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
         {
-            Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+            Pointer<hier::Variable<NDIM>> p_var = navier_stokes_integrator->getPressureVariable();
             Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
             HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
                 /*data_idx*/ -1,
@@ -339,7 +339,7 @@ main(int argc, char** argv)
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -361,14 +361,14 @@ main(int argc, char** argv)
         app_initializer.setNull();
 
         // Setup data used to determine the accuracy of the computed solution.
-        const Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<hier::Variable<NDIM>> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<hier::Variable<NDIM>> p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -480,7 +480,7 @@ main(int argc, char** argv)
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
                 if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
             }
@@ -499,7 +499,7 @@ main(int argc, char** argv)
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+            Pointer<CellVariable<NDIM, double>> u_cc_var = u_var;
             if (u_cc_var)
             {
                 HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -511,7 +511,7 @@ main(int argc, char** argv)
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
             }
 
-            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+            Pointer<SideVariable<NDIM, double>> u_sc_var = u_var;
             if (u_sc_var)
             {
                 HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -542,12 +542,12 @@ main(int argc, char** argv)
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             copy_and_synch(*X_vec, *X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+            std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
             std::unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
             std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const std::vector<double>& JxW = fe->get_JxW();
-            const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            const std::vector<std::vector<VectorValue<double>>>& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
             const auto el_begin = mesh.active_local_elements_begin();
@@ -593,7 +593,7 @@ main(int argc, char** argv)
 }
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             Mesh& mesh,
             EquationSystems* equation_systems,

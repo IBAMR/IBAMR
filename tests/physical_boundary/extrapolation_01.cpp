@@ -91,15 +91,15 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -129,10 +129,10 @@ main(int argc, char* argv[])
         // boundaries to obtain ghost cell values.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_u");
-        Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_u");
-        Pointer<FaceVariable<NDIM, double> > f_var = new FaceVariable<NDIM, double>("f_u");
-        Pointer<NodeVariable<NDIM, double> > n_var = new NodeVariable<NDIM, double>("n_u");
+        Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_u");
+        Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_u");
+        Pointer<FaceVariable<NDIM, double>> f_var = new FaceVariable<NDIM, double>("f_u");
+        Pointer<NodeVariable<NDIM, double>> n_var = new NodeVariable<NDIM, double>("n_u");
         const int gcw = 4;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
@@ -149,20 +149,20 @@ main(int argc, char* argv[])
         fcnMap["QUADRATIC"] = &quadratic_f;
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(typeMap[var_centering]);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const hier::Index<NDIM>& patch_lower = patch_box.lower();
-                Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
                 const double* const x_low = p_geom->getXLower();
                 const double* const dx = p_geom->getDx();
-                Pointer<CellData<NDIM, double> > c_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<SideData<NDIM, double> > s_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<FaceData<NDIM, double> > f_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<NodeData<NDIM, double> > n_data = patch->getPatchData(typeMap[var_centering]);
+                Pointer<CellData<NDIM, double>> c_data = patch->getPatchData(typeMap[var_centering]);
+                Pointer<SideData<NDIM, double>> s_data = patch->getPatchData(typeMap[var_centering]);
+                Pointer<FaceData<NDIM, double>> f_data = patch->getPatchData(typeMap[var_centering]);
+                Pointer<NodeData<NDIM, double>> n_data = patch->getPatchData(typeMap[var_centering]);
                 std::vector<double> x(NDIM);
                 if (var_centering == "CELL")
                 {

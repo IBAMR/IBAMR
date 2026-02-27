@@ -56,10 +56,10 @@ public:
      * \brief Function to fill arrays of Robin boundary condition coefficients
      * at a patch boundary.
      */
-    void setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                    Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                    Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                    const Pointer<hier::Variable<NDIM> >& variable,
+    void setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                    const Pointer<hier::Variable<NDIM>>& variable,
                     const Patch<NDIM>& patch,
                     const BoundaryBox<NDIM>& bdry_box,
                     double fill_time) const;

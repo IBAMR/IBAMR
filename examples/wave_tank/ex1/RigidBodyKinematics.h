@@ -41,7 +41,7 @@ public:
     RigidBodyKinematics(const std::string& object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                         bool register_for_restart = true);
 
     /*!
@@ -60,7 +60,7 @@ public:
     /*!
      * \brief Get the kinematics velocity at new time for rigid body on the specified level.
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of rigid body at new time on all levels.
@@ -70,7 +70,7 @@ public:
     /*!
      * \brief Get the shape of rigid body at new time on the specified level.
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Override the base Serializable method.
@@ -134,8 +134,8 @@ private:
      * \NOTE Current velocity is always equal to new velocity. Position is
      * updated via CONSTRAINT_VELOCITY method, so new shape is not filled in.
      */
-    std::vector<std::vector<std::vector<double> > > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<std::vector<double>>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.

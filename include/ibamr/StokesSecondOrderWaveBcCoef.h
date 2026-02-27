@@ -85,7 +85,7 @@ public:
     StokesSecondOrderWaveBcCoef(std::string object_name,
                                 const int comp_idx,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
+                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom);
 
     /*!
      * \brief Destructor.
@@ -125,10 +125,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& acoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& bcoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& gcoef_data,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                     double fill_time = 0.0) const override;
@@ -204,7 +204,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom;
 
     /*!
      * \brief Wave parameters.

@@ -115,8 +115,8 @@ public:
      * to calling initializePatchHierarchy().
      */
     void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -140,14 +140,13 @@ public:
     /*!
      * Register the specific heat \f$ C_p \f$ variable.
      */
-    void
-    registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > specific_heat_var,
-                                 const bool output_Cp = false);
+    void registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> specific_heat_var,
+                                      const bool output_Cp = false);
 
     /*!
      * Register the density \f$ \rho \f$ variable.
      */
-    void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
+    void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> rho_var,
                                  const bool output_rho = false);
 
     /*!
@@ -155,7 +154,7 @@ public:
      * maintained by this integrator.
      */
     using ResetPhasePropertiesFcnPtr = void (*)(int property_idx,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
+                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> property_var,
                                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                 int cycle_num,
                                                 double time,
@@ -181,53 +180,53 @@ public:
     /*!
      * \brief Get the liquid fraction variable that is being manintained by this integrator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLiquidFractionVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> getLiquidFractionVariable() const;
 
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    virtual void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    virtual void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                                 const bool output_lf_var = true);
 
     /*!
      * \brief Register gradient of liquid fraction variable.
      */
     virtual void registerLiquidFractionGradientVariable(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_gradient_var,
         const bool output_lf_gradient_var = true);
 
     /*!
      * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
      */
-    void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
+    void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> H_var);
 
     /*!
      * \brief Register temperature variable \f$ T \f$.
      */
-    void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
+    void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> T_var,
                                      const bool output_T_var = true);
 
     /*!
      * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
      */
-    void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);
     /*!
      * \brief Set a grid function to provide initial conditions for  \f$ T \f$ variable.
      */
-    void setTemperatureInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
+    void setTemperatureInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> T_var,
                                         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> T_init);
 
     /*!
      * \brief Set a grid function to provide initial conditions for \f$ \rho \f$ variable.
      */
-    void setDensityInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
+    void setDensityInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init);
 
     /*!
      * \brief Set boundary conditions for \f$ T \f$ variable.
      */
-    void setTemperaturePhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
+    void setTemperaturePhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> T_var,
                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
     /*!
      * \brief Return \f$ T \f$ boundary condition object.
@@ -243,13 +242,13 @@ public:
      * \brief Get the solver of the energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getEnergyEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
+    getEnergyEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> var);
 
     /*!
      * \brief Get the operator that is used to evaluate the right-hand side of energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getEnergyEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
+    getEnergyEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> var);
 
     /*!
      * \brief Register an IBTK::CartGridFunction object to specify the value of the
@@ -308,7 +307,7 @@ public:
     /*!
      * \brief Set the face-centered advection velocity.
      */
-    void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> u_var);
 
     /*!
      * \brief Write out specialized object state to the given database.
@@ -355,22 +354,22 @@ protected:
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var, d_lf_gradient_var, d_lf_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_coef_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_N_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_C_var, d_T_temp_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_specific_heat_var, d_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var, d_rho_vec_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_updated_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_var, d_lf_gradient_var, d_lf_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_diffusion_coef_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_C_var, d_T_temp_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_specific_heat_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_C_var, d_rho_vec_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_H_var, d_H_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_D_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_updated_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Div_U_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_u_adv_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_U_old_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -412,7 +411,7 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_T_rhs_op;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_T_solver;
     bool d_T_solver_needs_init, d_T_rhs_op_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_T_sol, d_T_rhs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_T_sol, d_T_rhs;
 
     TimeSteppingType d_T_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
     TimeSteppingType d_T_convective_time_stepping_type = d_default_convective_time_stepping_type;

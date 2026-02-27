@@ -189,7 +189,7 @@ yPosition(double s, void* params)
 IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      LDataManager* l_data_manager,
-                                     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                     Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                      bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_mesh_width(NDIM),
@@ -262,13 +262,13 @@ IBEELKinematics3d::getFromRestart()
 } // getFromRestart
 
 void
-IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln == finest_ln);
-    const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& idx_range = struct_param.getLagIdxRange();
     const int total_lag_pts = idx_range[0].second - idx_range[0].first;
 
     for (int d = 0; d < NDIM; ++d)
@@ -278,10 +278,10 @@ IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hi
     }
 
     // Get Background mesh related data.
-    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(coarsest_ln);
     PatchLevel<NDIM>::Iterator p(level);
-    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {
@@ -408,7 +408,7 @@ IBEELKinematics3d::setKinematicsVelocity(const double new_time,
 
 } // setKinematicsVelocity
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 IBEELKinematics3d::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
@@ -531,7 +531,7 @@ IBEELKinematics3d::setShape(const double time, const std::vector<double>& increm
 
 } // setShape
 
-const std::vector<std::vector<double> >&
+const std::vector<std::vector<double>>&
 IBEELKinematics3d::getShape(const int /*level*/) const
 {
     return d_shape;

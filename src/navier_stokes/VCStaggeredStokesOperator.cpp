@@ -86,10 +86,10 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
 
-    Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > A_P_cc_var = y.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> U_sc_var = x.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> P_cc_var = x.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> A_U_sc_var = y.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -145,9 +145,9 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(nullptr),
+                                Pointer<NodeVariable<NDIM, double>>(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
+                                Pointer<EdgeVariable<NDIM, double>>(nullptr),
 #endif
                                 U_idx,
                                 U_sc_var,
@@ -155,7 +155,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 d_new_time,
                                 d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
-                                Pointer<SideVariable<NDIM, double> >(nullptr),
+                                Pointer<SideVariable<NDIM, double>>(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);

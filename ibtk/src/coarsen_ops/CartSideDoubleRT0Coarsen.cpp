@@ -144,9 +144,9 @@ CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(IntVector<NDIM> gcw) : d_gcw(
 } // CartSideDoubleRT0Coarsen
 
 bool
-CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -176,8 +176,8 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
                                   const Box<NDIM>& coarse_box,
                                   const IntVector<NDIM>& ratio) const
 {
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(src_component);
+    Pointer<SideData<NDIM, double>> cdata = coarse.getPatchData(dst_component);
+    Pointer<SideData<NDIM, double>> fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)
@@ -208,7 +208,7 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
 #endif
     const Box<NDIM>& patch_box_fine = fine.getBox();
     const Box<NDIM>& patch_box_crse = coarse.getBox();
-    Array<BoundaryBox<NDIM> > bboxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(fine);
+    Array<BoundaryBox<NDIM>> bboxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(fine);
     for (int depth = 0; depth < data_depth; ++depth)
     {
         double* const U_crse0 = cdata->getPointer(0, depth);

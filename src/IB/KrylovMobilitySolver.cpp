@@ -120,7 +120,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
-      d_samrai_temp(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(nullptr)),
+      d_samrai_temp(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar>>(nullptr)),
       d_ins_integrator(navier_stokes_integrator),
       d_cib_strategy(cib_strategy)
 {
@@ -469,7 +469,7 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     Vec *vx, *vb;
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(b, nullptr, &vb);
-    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
+    Pointer<SAMRAIVectorReal<NDIM, double>> vx0, vb0;
 
     // Create the RHS Vec to be used in the KSP object.
     VecDuplicate(vb[1], &d_petsc_b);
@@ -587,7 +587,7 @@ void
 KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double>& sol_vec,
                                              const SAMRAIVectorReal<NDIM, double>& rhs_vec)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hier = sol_vec.getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = sol_vec.getPatchHierarchy();
     const int coarsest_ln = sol_vec.getCoarsestLevelNumber();
     const int finest_ln = sol_vec.getFinestLevelNumber();
 
@@ -629,14 +629,14 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
             d_U_nul_vecs[k]->setToScalar(0.0);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hier->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = patch_hier->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double> > nul_data =
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<SideData<NDIM, double>> nul_data =
                         patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                     nul_data->getArrayData(k).fillAll(1.0);
-                    Pointer<SideData<NDIM, double> > U_nul_data =
+                    Pointer<SideData<NDIM, double>> U_nul_data =
                         patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                     U_nul_data->getArrayData(k).fillAll(1.0);
                 }
@@ -661,10 +661,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const int b_u_idx = rhs_vec.getComponentDescriptorIndex(0);
     const int b_p_idx = rhs_vec.getComponentDescriptorIndex(1);
 
-    Pointer<SideVariable<NDIM, double> > x_u_sc_var = sol_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > x_p_cc_var = sol_vec.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> x_u_sc_var = sol_vec.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> x_p_cc_var = sol_vec.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> b_u_sc_var = rhs_vec.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> b_p_cc_var = rhs_vec.getComponentVariable(1);
 
     SAMRAIVectorReal<NDIM, double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
     SAMRAIVectorReal<NDIM, double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
@@ -889,7 +889,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
     ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
                                nullptr,
-                               std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                               std::vector<Pointer<RefineSchedule<NDIM>>>(),
                                half_time);
     if (solver->d_normalize_spread_force)
     {
@@ -921,8 +921,8 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     // 3b) Interpolate velocity
     solver->d_cib_strategy->setInterpolatedVelocityVector(y, half_time);
     ib_method_ops->interpolateVelocity(u_data_idx,
-                                       std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                       std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                       std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
+                                       std::vector<Pointer<RefineSchedule<NDIM>>>(),
                                        half_time);
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 

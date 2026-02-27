@@ -53,7 +53,7 @@ public:
     IBEELKinematics(const std::string& object_name,
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     IBTK::LDataManager* l_data_manager,
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                     bool register_for_restart = true);
 
     /*!
@@ -74,7 +74,7 @@ public:
      * \brief Get the kinematics velocity on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of eel at the required time.
@@ -86,7 +86,7 @@ public:
      * \brief Get the shape of eel at the required level.
      * \see IBAMR::ConstraintIBKinematics::getShape
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
@@ -117,7 +117,7 @@ private:
     /*!
      * \brief set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
 
     /*!
      * \brief Set deformation kinematics velocity of the eel.
@@ -140,8 +140,8 @@ private:
     /*!
      * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<double>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.
@@ -183,7 +183,7 @@ private:
      * Vector of coordinates defining the axis of maneuvering. The reference axis will rotate with body omega.
      * The coordinates of the rotated maneuver axis is stored separately.
      */
-    std::vector<std::vector<double> > d_maneuverAxisReferenceCoordinates_vec, d_maneuverAxisTransformedCoordinates_vec;
+    std::vector<std::vector<double>> d_maneuverAxisReferenceCoordinates_vec, d_maneuverAxisTransformedCoordinates_vec;
 
     /*!
      * map of tangents along the body/maneuver axis in rotated frame. The key used is arc length 's' and it stores only
@@ -208,14 +208,14 @@ private:
      * sign of t_x and t_y
      * respectively.
      */
-    std::map<double, std::vector<int> > d_map_transformed_sign;
+    std::map<double, std::vector<int>> d_map_transformed_sign;
 
     /*!
      * Sign of tangent vector in reference/unrotated frame. The key used is arc length 's'. 'mapped_value' is a vector
      * which has sign of t_x and t_y
      * respectively.
      */
-    std::map<double, std::vector<int> > d_map_reference_sign;
+    std::map<double, std::vector<int>> d_map_reference_sign;
 
     /*!
      * mu::Parser object which evaluates the maneuvering axis equation.

@@ -128,7 +128,7 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     // Guard against the case that y == z.
     SAMRAIScopedVectorCopy<double> zz(z);
     apply(x, zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
+    z.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), zz);
     return;
 } // applyAdd
 

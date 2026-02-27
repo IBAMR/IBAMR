@@ -41,7 +41,7 @@ callForceProjectorCallBackFunction(const double current_time, const double new_t
 
 ForceProjector::ForceProjector(const std::string& object_name,
                                LDataManager* lag_data_manager,
-                               Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                               Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                Pointer<Database> input_db,
                                const std::string solver_type)
     : d_object_name(object_name),
@@ -165,21 +165,21 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_patch_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_body_force_idx)) level->deallocatePatchData(d_body_force_idx);
         level->allocatePatchData(d_body_force_idx, current_time);
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             if (d_solver_type == "STAGGERED")
             {
-                Pointer<SideData<NDIM, double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                Pointer<SideData<NDIM, double>> body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else if (d_solver_type == "COLLOCATED")
             {
-                Pointer<CellData<NDIM, double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                Pointer<CellData<NDIM, double>> body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else
@@ -193,8 +193,8 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     } // all levels.
 
     // spread the lagrangian force from finest level to the finest level.
-    std::vector<Pointer<LData> > F_data(finest_ln + 1, Pointer<LData>(nullptr));
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<Pointer<LData>> F_data(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<Pointer<LData>> X_data(finest_ln + 1, Pointer<LData>(nullptr));
 
     // Fill in the above vectors at the finest level.
     F_data[finest_ln] = d_lag_force[finest_ln];

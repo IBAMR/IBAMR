@@ -91,8 +91,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int /*data_idx*/,
-                                 SAMRAI::tbox::Pointer<Variable<NDIM> > /*var*/,
-                                 SAMRAI::tbox::Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                 SAMRAI::tbox::Pointer<Variable<NDIM>> /*var*/,
+                                 SAMRAI::tbox::Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
                                  const int /*coarsest_ln_in*/,
@@ -106,11 +106,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<Variable<NDIM> > /*var*/,
-                        SAMRAI::tbox::Pointer<Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<Variable<NDIM>> /*var*/,
+                        SAMRAI::tbox::Pointer<Patch<NDIM>> patch,
                         const double /*data_time*/,
                         const bool initial_time,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > /*patch_level*/)
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> /*patch_level*/)
     {
         // Set the initial velocity inside and outside the level set
         if (initial_time)
@@ -120,9 +120,9 @@ public:
             const IBTK::Vector3d& X0 = d_init_circle.X0;
 
             // Initial velocity patch data
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(data_idx);
+            Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(data_idx);
 
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];

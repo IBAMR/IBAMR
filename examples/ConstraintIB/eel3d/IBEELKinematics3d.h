@@ -48,7 +48,7 @@ public:
     IBEELKinematics3d(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       IBTK::LDataManager* l_data_manager,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                       bool register_for_restart = true);
 
     /*!
@@ -69,7 +69,7 @@ public:
      * \brief Get the kinematics velocity on the specified level.
      * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const;
 
     /*!
      * \brief Set the shape of eel at specified time. The shape should have
@@ -85,7 +85,7 @@ public:
      * to it.
      * \see IBAMR::ConstraintIBKinematics::getShape
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const;
 
     /*!
      * \brief Write state necessary for restarted runs.
@@ -122,7 +122,7 @@ private:
     /*!
      * \brief Set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
 
     /*!
      * \brief Set eel kinematics velocity.
@@ -138,8 +138,8 @@ private:
      * d_IBWidthHeight stores width and height of a cross section.
      * width of cross section of eel varies with arc length.
      */
-    std::vector<std::pair<int, int> > d_IBPts;
-    std::vector<std::pair<double, double> > d_IBWidthHeight;
+    std::vector<std::pair<int, int>> d_IBPts;
+    std::vector<std::pair<double, double>> d_IBWidthHeight;
 
     /*!
      * Eulerian Mesh width parameters.
@@ -154,8 +154,8 @@ private:
     /*!
      * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> > d_kinematics_vel;
-    std::vector<std::vector<double> > d_shape;
+    std::vector<std::vector<double>> d_kinematics_vel;
+    std::vector<std::vector<double>> d_shape;
 
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.

@@ -285,7 +285,7 @@ protected:
                   int mu);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
     MGCycleType d_cycle_type = V_CYCLE;

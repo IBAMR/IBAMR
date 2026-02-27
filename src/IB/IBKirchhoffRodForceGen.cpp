@@ -107,7 +107,7 @@ IBKirchhoffRodForceGen::setUniformBodyForce(IBTK::Vector F, int structure_id, in
 } // setUniformBodyForce
 
 void
-IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                             const int level_number,
                                             const double /*init_data_time*/,
                                             const bool /*initial_time*/,
@@ -122,7 +122,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 #endif
     int ierr;
 
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -140,7 +140,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_num];
 
     if (D_next_mat)
@@ -174,7 +174,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
+            const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& params =
                 force_spec->getMaterialParams();
 #if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
@@ -320,7 +320,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
                                                         Pointer<LData> N_data,
                                                         Pointer<LData> X_data,
                                                         Pointer<LData> D_data,
-                                                        const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                        const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                         const int level_number,
                                                         const double data_time,
                                                         LDataManager* const l_data_manager)
@@ -382,7 +382,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_number];
 
     const size_t local_sz = petsc_curr_node_idxs.size();
@@ -537,7 +537,7 @@ IBKirchhoffRodForceGen::getFromInput(Pointer<Database> db)
 
 void
 IBKirchhoffRodForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
-                                                   Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                   Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*data_time*/,
                                                    LDataManager* const l_data_manager)

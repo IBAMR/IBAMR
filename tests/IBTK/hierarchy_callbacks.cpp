@@ -72,7 +72,7 @@ integrateHierarchyCallback(double /*current_time*/, double /*new_time*/, int /*c
 }
 
 void
-gradientDetectorCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+gradientDetectorCallback(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                          int /*level_num*/,
                          double /*error_data_time*/,
                          int /*tag_index*/,
@@ -84,7 +84,7 @@ gradientDetectorCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
     if (test) pout << "Executing gradient detector callback\n";
 }
 void
-regridHierarchyCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+regridHierarchyCallback(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                         double /*data_time*/,
                         bool /*initial_time*/,
                         void* ctx)
@@ -139,17 +139,17 @@ main(int argc, char* argv[])
         Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -157,7 +157,7 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Setup the advection velocity.
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
+        Pointer<FaceVariable<NDIM, double>> u_var = new FaceVariable<NDIM, double>("u");
         Pointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
             "UFunction", app_initializer->getComponentDatabase("UFunction"), grid_geometry);
         const bool u_is_div_free = true;
@@ -169,7 +169,7 @@ main(int argc, char* argv[])
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<CellVariable<NDIM, double>> Q_var = new CellVariable<NDIM, double>("Q");
         Pointer<CartGridFunction> Q_init =
             new muParserCartGridFunction("QInit", app_initializer->getComponentDatabase("QInit"), grid_geometry);
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
@@ -194,7 +194,7 @@ main(int argc, char* argv[])
         time_integrator->registerRegridHierarchyCallback(regridHierarchyCallback, static_cast<void*>(&callbackObject));
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

@@ -65,36 +65,36 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
+        Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx);
-        Pointer<SideVariable<NDIM, double> > exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
+        Pointer<SideVariable<NDIM, double>> exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
         const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx);
         // u_cc_var is only for plotting (and testing): uncomment if output is desired
 // #define DO_PLOT
 #ifdef DO_PLOT
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
+        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx);
-        Pointer<CellVariable<NDIM, double> > exact_cc_var = new CellVariable<NDIM, double>("exact_cc", NDIM);
+        Pointer<CellVariable<NDIM, double>> exact_cc_var = new CellVariable<NDIM, double>("exact_cc", NDIM);
         const int exact_cc_idx = var_db->registerVariableAndContext(exact_cc_var, ctx);
 #endif
 
@@ -110,7 +110,7 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(exact_sc_idx, 0.0);
 #ifdef DO_PLOT
@@ -119,7 +119,7 @@ main(int argc, char* argv[])
 #endif
         }
 
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_writer = app_initializer->getVisItDataWriter();
 
         // The rest is just book-keeping, this is the actual test:
         auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n)
@@ -133,17 +133,17 @@ main(int argc, char* argv[])
             u_vec.addComponent(u_sc_var, u_sc_idx);
 
             const int fine_level_n = coarse_level_n + 1;
-            Pointer<PatchLevel<NDIM> > level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
-            Pointer<PatchLevel<NDIM> > level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
+            Pointer<PatchLevel<NDIM>> level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
+            Pointer<PatchLevel<NDIM>> level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
 
             // there should only be one patch on each patch level
-            Pointer<SideData<NDIM, double> > u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
-            Pointer<SideData<NDIM, double> > u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
+            Pointer<SideData<NDIM, double>> u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
+            Pointer<SideData<NDIM, double>> u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
             const Box<NDIM> patch_box_0 = level_0->getPatch(0)->getBox();
             const Box<NDIM> patch_box_1 = level_1->getPatch(0)->getBox();
 
-            Pointer<SideData<NDIM, double> > exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
-            Pointer<SideData<NDIM, double> > exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
+            Pointer<SideData<NDIM, double>> exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
+            Pointer<SideData<NDIM, double>> exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
 
             const IntVector<NDIM> ratio = level_1->getRatioToCoarserLevel();
             IBTK::CartSideDoubleRT0Refine refine_op;
@@ -151,8 +151,8 @@ main(int argc, char* argv[])
 
             solv::SAMRAIVectorReal<NDIM, double> exact_vec("e", patch_hierarchy, coarse_level_n, fine_level_n);
             exact_vec.addComponent(exact_sc_var, exact_sc_idx);
-            exact_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false),
-                               Pointer<SAMRAIVectorReal<NDIM, double> >(&exact_vec, false));
+            exact_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false),
+                               Pointer<SAMRAIVectorReal<NDIM, double>>(&exact_vec, false));
 
             pout << "test results for " << db_u_fcn_name << '\n';
             pout << "max norm of u_sc: " << u_vec.maxNorm() << '\n';

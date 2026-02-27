@@ -182,14 +182,14 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 
         // Shape functions are tabulated in the same way so they should be
         // identical, down to the bit:
-        const std::vector<std::vector<double> >& phi = libmesh_fe->get_phi();
-        const std::vector<std::vector<double> >& phi_2 = ibtk_fe.getShapeValues();
+        const std::vector<std::vector<double>>& phi = libmesh_fe->get_phi();
+        const std::vector<std::vector<double>>& phi_2 = ibtk_fe.getShapeValues();
         TBOX_ASSERT(phi == phi_2);
 
         // gradients are calculated with our own mapping classes so these will
         // be slightly different from what libMesh gets:
-        const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi = libmesh_fe->get_dphi();
-        const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi_2 = ibtk_fe.getShapeGradients();
+        const std::vector<std::vector<libMesh::VectorValue<double>>>& dphi = libmesh_fe->get_dphi();
+        const std::vector<std::vector<libMesh::VectorValue<double>>>& dphi_2 = ibtk_fe.getShapeGradients();
         for (unsigned int i = 0; i < dphi.size(); ++i)
         {
             for (unsigned int q = 0; q < dphi[i].size(); ++q)

@@ -60,22 +60,22 @@ struct CircularInterface
 CircularInterface circle;
 
 void
-calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, int E_idx)
+calculate_distance_analytically(Pointer<PatchHierarchy<NDIM>> patch_hierarchy, int E_idx)
 {
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
+            Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(E_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -102,7 +102,7 @@ calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, 
 } // calculate_distance_analytically
 
 void
-calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+calculate_error_near_band(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                           int E_idx,
                           int d_idx,
                           int W_idx,
@@ -117,21 +117,21 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(d_idx);
-            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-            Pointer<CellData<NDIM, double> > W_data = patch->getPatchData(W_idx);
+            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(d_idx);
+            Pointer<CellData<NDIM, double>> E_data = patch->getPatchData(E_idx);
+            Pointer<CellData<NDIM, double>> W_data = patch->getPatchData(W_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
                 const double phi = (*D_data)(ci);
                 const double err = (*E_data)(ci);
                 const double dV = (*W_data)(ci);
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
 
                 if (std::abs(err) <= 4.0 * patch_dx[0])
@@ -298,15 +298,15 @@ main(int argc, char* argv[])
 
         Mesh& mesh = solid_mesh;
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -315,8 +315,8 @@ main(int argc, char* argv[])
 
         // Compute distance function from FE mesh.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > n_var = new CellVariable<NDIM, double>("num_elements", 1);
-        Pointer<CellVariable<NDIM, double> > d_var = new CellVariable<NDIM, double>("distance", 1);
+        Pointer<CellVariable<NDIM, double>> n_var = new CellVariable<NDIM, double>("num_elements", 1);
+        Pointer<CellVariable<NDIM, double>> d_var = new CellVariable<NDIM, double>("distance", 1);
         const IntVector<NDIM> no_width = 0;
         Pointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int n_idx = var_db->registerVariableAndContext(n_var, main_ctx, no_width);
@@ -337,7 +337,7 @@ main(int argc, char* argv[])
         int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(n_idx, 0.0);
             level->allocatePatchData(d_idx, 0.0);
         }
@@ -346,7 +346,7 @@ main(int argc, char* argv[])
         hier_cc_data_ops.setToScalar(d_idx, 5 * dx);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         std::unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         visit_data_writer->registerPlotQuantity(d_var->getName(), "SCALAR", d_idx);
@@ -371,11 +371,11 @@ main(int argc, char* argv[])
         pout << "Finished updating sign" << std::endl;
 
         // Compute the error.
-        Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
+        Pointer<CellVariable<NDIM, double>> E_var = new CellVariable<NDIM, double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, main_ctx);
         for (int ln = 0; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, 0.0);
         }
 
