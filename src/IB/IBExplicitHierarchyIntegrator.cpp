@@ -402,7 +402,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                     d_ins_hier_integrator->getVelocityBoundaryConditions());
         }
         HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghostfills, d_hierarchy);
+        ghost_fill_op.initializeOperatorState(ghostfills, d_hierarchy, "DEFAULT_FILL");
         ghost_fill_op.fillData(current_time);
     };
 

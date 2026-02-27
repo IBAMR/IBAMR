@@ -869,7 +869,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     {
         d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
-            transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+            transaction_comp, d_hierarchy, "FILL_PATCH_BORDERS_ONLY_STAR", coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);

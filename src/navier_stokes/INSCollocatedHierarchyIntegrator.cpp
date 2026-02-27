@@ -1607,7 +1607,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_U_star_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
                                                      DATA_REFINE_TYPE,
@@ -1616,7 +1616,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_bdry_extrap_type,
                                                      CONSISTENT_TYPE_2_BDRY);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
+    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     InterpolationTransactionComponent Phi_bc_component(d_Phi_idx,
                                                        DATA_REFINE_TYPE,
@@ -1626,7 +1626,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        d_Phi_bc_coef.get());
     d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     if (d_Q_fcn)
     {
@@ -1637,7 +1637,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                          d_bdry_extrap_type,
                                                          CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy, "DEFAULT_FILL");
     }
 
     // Indicate that vectors and solvers need to be re-initialized.
@@ -1853,7 +1853,7 @@ INSCollocatedHierarchyIntegrator::regridProjection(const bool initial_time)
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy, "DEFAULT_FILL");
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
     d_hier_math_ops->grad(d_Grad_Phi_fc_idx,

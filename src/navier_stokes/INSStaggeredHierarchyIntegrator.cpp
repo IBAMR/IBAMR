@@ -1927,7 +1927,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      nullptr,
                                                      d_U_P_bdry_interp_type);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
                                                      DATA_REFINE_TYPE,
@@ -1939,7 +1939,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      nullptr,
                                                      d_U_P_bdry_interp_type);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
+    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     if (d_Q_fcn)
     {
@@ -1950,7 +1950,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy, "DEFAULT_FILL");
     }
 
     // Indicate that vectors and solvers need to be re-initialized.
@@ -2065,7 +2065,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    false,
                                                    getVelocityBoundaryConditions());
             Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
+            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy, "DEFAULT_FILL");
             hier_bdry_fill->fillData(d_integrator_time);
         }
 
@@ -2097,7 +2097,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    false,
                                                    nullptr);
             Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
+            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy, "DEFAULT_FILL");
             hier_bdry_fill->fillData(d_integrator_time);
         }
 
@@ -2129,7 +2129,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                          CONSISTENT_TYPE_2_BDRY,
                                                          d_U_bc_coefs);
         HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
-        U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
+        U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, "DEFAULT_FILL", coarsest_ln, finest_ln);
         U_bdry_bc_fill_op.fillData(d_integrator_time);
         d_hier_math_ops->curl(d_Omega_nc_idx,
                               d_Omega_nc_var,
@@ -2283,7 +2283,7 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy, "DEFAULT_FILL");
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
     d_hier_math_ops->grad(d_U_current_idx,
