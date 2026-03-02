@@ -20,15 +20,16 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/CartGridFunction.h"
+#include <ibtk/CartGridFunction.h>
 
-#include "CoarsenPatchStrategy.h"
-#include "IntVector.h"
-#include "RefinePatchStrategy.h"
-#include "StandardTagAndInitStrategy.h"
-#include "VariableContext.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
+
+#include <CoarsenPatchStrategy.h>
+#include <IntVector.h>
+#include <RefinePatchStrategy.h>
+#include <StandardTagAndInitStrategy.h>
+#include <VariableContext.h>
 
 #include <limits>
 #include <memory>

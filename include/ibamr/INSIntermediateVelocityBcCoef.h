@@ -20,9 +20,9 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
-#include "IntVector.h"
+#include <IntVector.h>
 
 #include <vector>
 

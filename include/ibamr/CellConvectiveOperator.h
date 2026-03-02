@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/ConvectiveOperator.h"
+#include <ibamr/ConvectiveOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

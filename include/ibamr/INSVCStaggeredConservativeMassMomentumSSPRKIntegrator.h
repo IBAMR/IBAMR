@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h"
+#include <ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h>
 
 namespace SAMRAI
 {

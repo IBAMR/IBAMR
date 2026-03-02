@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearOperator.h"
+#include <ibtk/LinearOperator.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <string>
 

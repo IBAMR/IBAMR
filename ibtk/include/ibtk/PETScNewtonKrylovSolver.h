@@ -20,15 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/NewtonKrylovSolver.h"
+#include <ibtk/NewtonKrylovSolver.h>
 
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
-#include "petscmat.h"
-#include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
+#include <petscmat.h>
+#include <petscsnes.h>
+#include <petscsys.h>
+#include <petscvec.h>
 
 #include <mpi.h>
 

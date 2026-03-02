@@ -13,17 +13,17 @@
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
 #include "RigidBodyKinematics.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include <tbox/PIO.h>
+#include <tbox/Utilities.h>
 
-#include "muParser.h"
+#include <muParser.h>
 
 #include <string>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

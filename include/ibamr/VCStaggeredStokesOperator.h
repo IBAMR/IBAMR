@@ -20,14 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesOperator.h"
+#include <ibamr/StaggeredStokesOperator.h>
 
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/ibtk_enums.h"
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/ibtk_enums.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
+#include <SAMRAIVectorReal.h>
 
 #include <string>
 #include <vector>

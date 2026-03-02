@@ -15,22 +15,23 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/MergingLoadBalancer.h"
-#include "ibtk/SecondaryHierarchy.h"
+#include <ibtk/MergingLoadBalancer.h>
+#include <ibtk/SecondaryHierarchy.h>
 
-#include "BergerRigoutsos.h"
-#include "BoxGeneratorStrategy.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyCellDataOpsInteger.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "IntVector.h"
-#include "LoadBalancer.h"
-#include "PatchHierarchy.h"
-#include "RefinePatchStrategy.h"
-#include "StandardTagAndInitialize.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <BergerRigoutsos.h>
+#include <BoxGeneratorStrategy.h>
+#include <GriddingAlgorithm.h>
+#include <HierarchyCellDataOpsInteger.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <IntVector.h>
+#include <LoadBalancer.h>
+#include <PatchHierarchy.h>
+#include <RefinePatchStrategy.h>
+#include <StandardTagAndInitialize.h>
 
 #include <map>
 #include <memory>
@@ -38,7 +39,7 @@
 #include <utility>
 #include <vector>
 
-#include "ibtk/app_namespaces.h"
+#include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {

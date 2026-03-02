@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
+#include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <string>
 

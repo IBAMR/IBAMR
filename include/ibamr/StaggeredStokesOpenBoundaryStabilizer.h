@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/CartGridFunction.h"
+#include <ibtk/CartGridFunction.h>
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "PatchLevel.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <CartesianGridGeometry.h>
+#include <IntVector.h>
+#include <PatchLevel.h>
 
 #include <array>
 #include <string>

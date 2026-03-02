@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Utilities.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/MathUtilities.h>
+#include <tbox/Utilities.h>
+
+#include <IntVector.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -417,7 +418,7 @@ struct LNodeIndexLocalPETScIndexEqual
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LNodeIndex-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LNodeIndex-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

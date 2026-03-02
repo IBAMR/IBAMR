@@ -35,10 +35,10 @@
 #include <LocationIndexRobinBcCoefs.h>
 
 // Set up application namespace declarations
-#include "ibamr/AdvDiffConvectiveOperatorManager.h"
+#include <ibamr/AdvDiffConvectiveOperatorManager.h>
 
-#include "ibtk/muParserCartGridFunction.h"
-#include "ibtk/muParserRobinBcCoefs.h"
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 #include <SAMRAIVectorReal.h>
 

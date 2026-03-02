@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LIndexSetVariable.h"
-#include "ibtk/LNodeIndex.h"
+#include <ibtk/LIndexSetVariable.h>
+#include <ibtk/LNodeIndex.h>
 
 /////////////////////////////// TYPEDEFS /////////////////////////////////////
 

@@ -13,25 +13,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/IndexUtilities.h"
+#include <ibtk/CartSideDoubleDivPreservingRefine.h>
+#include <ibtk/IndexUtilities.h>
 
-#include "Box.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchGeometry.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "tbox/Array.h"
+#include <tbox/Array.h>
+
+#include <Box.h>
+#include <Patch.h>
+#include <PatchDescriptor.h>
+#include <PatchGeometry.h>
+#include <RefineOperator.h>
+#include <RefinePatchStrategy.h>
+#include <SideData.h>
+#include <SideGeometry.h>
+#include <SideIndex.h>
 
 #include <cmath>
 #include <limits>
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

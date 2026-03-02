@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/SCLaplaceOperator.h"
+#include <ibtk/SCLaplaceOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

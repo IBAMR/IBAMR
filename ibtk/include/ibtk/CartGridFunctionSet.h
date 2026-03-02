@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/CartGridFunction.h"
+#include <ibtk/CartGridFunction.h>
 
-#include "IntVector.h"
-#include "PatchLevel.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
+#include <PatchLevel.h>
 
 #include <string>
 #include <vector>

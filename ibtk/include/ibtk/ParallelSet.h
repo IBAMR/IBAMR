@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
 #include <set>
 #include <vector>

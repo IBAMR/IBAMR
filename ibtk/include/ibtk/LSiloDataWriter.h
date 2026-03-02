@@ -20,13 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
 
-#include "petscao.h"
-#include "petscvec.h"
+#include <petscao.h>
+#include <petscvec.h>
+
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 #include <map>
 #include <set>

@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/Streamable.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/Streamable.h>
+#include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
 
 #include <vector>
 
@@ -210,7 +211,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LNode-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LNode-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

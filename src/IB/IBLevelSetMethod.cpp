@@ -13,20 +13,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBLevelSetMethod.h"
+#include <ibamr/IBLevelSetMethod.h>
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <BasePatchHierarchy.h>
+#include <BasePatchLevel.h>
+#include <GriddingAlgorithm.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 #include <string>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

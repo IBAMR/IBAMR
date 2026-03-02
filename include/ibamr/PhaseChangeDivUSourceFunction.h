@@ -19,9 +19,9 @@
 // IBAMR INCLUDES
 #include <ibamr/config.h>
 
-#include "ibtk/CartGridFunction.h"
+#include <ibtk/CartGridFunction.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 namespace SAMRAI
 {

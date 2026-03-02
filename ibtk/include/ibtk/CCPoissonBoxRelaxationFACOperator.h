@@ -20,18 +20,19 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/PoissonFACPreconditioner.h"
-#include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/PoissonSolver.h"
+#include <ibtk/PoissonFACPreconditioner.h>
+#include <ibtk/PoissonFACPreconditionerStrategy.h>
+#include <ibtk/PoissonSolver.h>
 
-#include "IntVector.h"
-#include "PoissonSpecifications.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscksp.h>
+#include <petscmat.h>
+#include <petscvec.h>
+
+#include <IntVector.h>
+#include <PoissonSpecifications.h>
 
 #include <map>
 #include <string>

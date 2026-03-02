@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "CartesianCellDoubleWeightedAverage.h"
-#include "CoarsenOperator.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CartesianCellDoubleWeightedAverage.h>
+#include <CoarsenOperator.h>
+#include <IntVector.h>
 
 #include <string>
 

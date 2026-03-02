@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/HeavisideForcingFunction.h"
+#include <ibamr/HeavisideForcingFunction.h>
 
 #include <ibamr/app_namespaces.h>
 

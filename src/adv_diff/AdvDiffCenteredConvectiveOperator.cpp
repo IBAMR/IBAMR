@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/AdvDiffCenteredConvectiveOperator.h"
+#include <ibamr/AdvDiffCenteredConvectiveOperator.h>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

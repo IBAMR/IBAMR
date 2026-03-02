@@ -24,8 +24,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include "libmesh/enum_fe_family.h"
 #include <libmesh/boundary_info.h>
+#include <libmesh/enum_fe_family.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
@@ -34,17 +34,17 @@
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/FEMechanicsBase.h"
+#include <ibamr/FEMechanicsBase.h>
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
-#include "ibtk/ibtk_utilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>

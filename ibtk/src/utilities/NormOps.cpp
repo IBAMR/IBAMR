@@ -13,22 +13,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/NormOps.h"
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/NormOps.h>
 
-#include "CellData.h"
-#include "CellVariable.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchCellDataNormOpsReal.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PatchSideDataNormOpsReal.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideVariable.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <CellData.h>
+#include <CellVariable.h>
+#include <IntVector.h>
+#include <Patch.h>
+#include <PatchCellDataNormOpsReal.h>
+#include <PatchData.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <PatchSideDataNormOpsReal.h>
+#include <SAMRAIVectorReal.h>
+#include <SideData.h>
+#include <SideVariable.h>
 
 #include <algorithm>
 #include <cmath>
@@ -37,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 namespace SAMRAI
 {

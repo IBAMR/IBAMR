@@ -20,11 +20,12 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBStrategy.h"
+#include <ibamr/IBStrategy.h>
 
-#include "IntVector.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
+
+#include <IntVector.h>
 
 #include <ostream>
 #include <vector>

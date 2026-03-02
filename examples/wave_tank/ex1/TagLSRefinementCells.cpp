@@ -12,9 +12,8 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include "TagLSRefinementCells.h"
-
 #include <CartesianGridGeometry.h>
+#include <TagLSRefinementCells.h>
 
 #include <fstream>
 

@@ -13,14 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FirstOrderStokesWaveGenerator.h"
+#include <ibamr/FirstOrderStokesWaveGenerator.h>
 
-#include "tbox/Database.h"
+#include <tbox/Database.h>
 
 #include <cmath>
 #include <limits>
 
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 namespace IBAMR
 {

@@ -19,7 +19,7 @@
 #include <numeric>
 
 // Headers for basic PETSc objects
-#include "petscao.h"
+#include <petscao.h>
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects

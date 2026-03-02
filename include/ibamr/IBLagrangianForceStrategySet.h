@@ -20,11 +20,11 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
 
 #include <vector>
 

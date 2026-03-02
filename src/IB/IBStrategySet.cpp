@@ -13,23 +13,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBStrategy.h"
-#include "ibamr/IBStrategySet.h"
-#include "ibamr/ibamr_utilities.h"
+#include <ibamr/IBStrategy.h>
+#include <ibamr/IBStrategySet.h>
+#include <ibamr/ibamr_utilities.h>
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "LoadBalancer.h"
-#include "PatchHierarchy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <BasePatchHierarchy.h>
+#include <BasePatchLevel.h>
+#include <GriddingAlgorithm.h>
+#include <IntVector.h>
+#include <LoadBalancer.h>
+#include <PatchHierarchy.h>
 
 #include <string>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

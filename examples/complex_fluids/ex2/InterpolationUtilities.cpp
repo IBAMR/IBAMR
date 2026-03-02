@@ -14,8 +14,8 @@
 #include <ibtk/config.h>
 
 #include "InterpolationUtilities.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
+#include <tbox/MathUtilities.h>
+#include <tbox/Pointer.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Core>

@@ -25,8 +25,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFINSForcing.h"
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/CFINSForcing.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 

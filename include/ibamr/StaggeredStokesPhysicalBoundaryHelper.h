@@ -20,9 +20,9 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <vector>
 

@@ -11,16 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibamr/CFOldroydBStrategy.h"
+#include <ibamr/CFOldroydBStrategy.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "CellData.h"
-#include "CellIterator.h"
-#include "Patch.h"
-#include "tbox/Database.h"
+#include <tbox/Database.h>
 
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include <CellData.h>
+#include <CellIterator.h>
+#include <Patch.h>
+
+#include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 // Namespace
 namespace IBAMR

@@ -30,7 +30,7 @@
 using namespace libMesh;
 
 // SAMRAI INCLUDES
-#include "ibtk/IBTKInit.h"
+#include <ibtk/IBTKInit.h>
 
 #include <tbox/Database.h>
 #include <tbox/HDFDatabase.h>

@@ -13,15 +13,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/ParallelSet.h"
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/ParallelSet.h>
 
 #include <tbox/Utilities.h>
 
 #include <set>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

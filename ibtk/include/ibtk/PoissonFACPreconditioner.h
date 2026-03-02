@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/FACPreconditioner.h"
-#include "ibtk/PoissonSolver.h"
+#include <ibtk/FACPreconditioner.h>
+#include <ibtk/PoissonSolver.h>
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <PoissonSpecifications.h>
 
 #include <string>
 #include <vector>

@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/PhaseChangeHierarchyIntegrator.h"
+#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
 namespace IBTK
 {

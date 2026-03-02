@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBStrategy.h"
+#include <ibamr/IBStrategy.h>
 
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscmat.h>
+#include <petscvec.h>
 
 #include <vector>
 

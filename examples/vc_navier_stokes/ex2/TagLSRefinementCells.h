@@ -19,10 +19,11 @@
 ///////////////////////////// INCLUDES ///////////////////////////////////
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "BasePatchHierarchy.h"
-#include "PatchHierarchy.h"
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
+
+#include <BasePatchHierarchy.h>
+#include <PatchHierarchy.h>
 
 #include <string>
 

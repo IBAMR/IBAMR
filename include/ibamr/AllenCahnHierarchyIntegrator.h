@@ -20,8 +20,8 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/CellConvectiveOperator.h"
-#include "ibamr/PhaseChangeHierarchyIntegrator.h"
+#include <ibamr/CellConvectiveOperator.h>
+#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
 namespace IBTK
 {

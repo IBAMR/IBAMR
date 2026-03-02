@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/ParallelEdgeMap.h"
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/ParallelEdgeMap.h>
 
 #include <tbox/Utilities.h>
 
@@ -22,7 +22,7 @@
 #include <map>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -13,15 +13,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/CartSideDoubleRT0Refine.h"
+#include <ibtk/CartSideDoubleRT0Refine.h>
 
-#include "Box.h"
-#include "SideVariable.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <SideVariable.h>
 
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 namespace SAMRAI
 {

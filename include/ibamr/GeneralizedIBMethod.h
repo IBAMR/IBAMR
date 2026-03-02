@@ -20,13 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBKirchhoffRodForceGen.h"
-#include "ibamr/IBMethod.h"
+#include <ibamr/IBKirchhoffRodForceGen.h>
+#include <ibamr/IBMethod.h>
 
-#include "ibtk/LData.h"
+#include <ibtk/LData.h>
 
-#include "Variable.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Variable.h>
 
 #include <string>
 #include <vector>

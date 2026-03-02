@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/WaveUtilities.h"
+#include <ibamr/WaveUtilities.h>
 
 namespace IBAMR
 {

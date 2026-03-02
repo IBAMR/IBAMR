@@ -20,11 +20,11 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/STSMassFluxIntegrator.h"
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/STSMassFluxIntegrator.h>
 
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/LaplaceOperator.h"
+#include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/LaplaceOperator.h>
 
 namespace IBTK
 {

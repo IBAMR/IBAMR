@@ -20,12 +20,12 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
-#include "petscksp.h"
+#include <petscksp.h>
 
 #include <limits>
 #include <string>

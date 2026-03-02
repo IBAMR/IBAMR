@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 namespace SAMRAI
 {
@@ -215,7 +215,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/IBSourceSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/IBSourceSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -17,7 +17,7 @@
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
 // C++ INCLUDES
 #include <vector>

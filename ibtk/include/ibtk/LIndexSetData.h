@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSetData.h"
+#include <ibtk/LSetData.h>
 
-#include "Box.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <IntVector.h>
 
 #include <vector>
 
@@ -180,7 +181,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LIndexSetData-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LIndexSetData-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

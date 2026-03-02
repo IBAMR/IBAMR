@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
 namespace SAMRAI
 {

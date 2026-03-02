@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "IntVector.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Pointer.h>
 
 #include <Eigen/Core>
+
+#include <Box.h>
+#include <IntVector.h>
 
 #include <array>
 #include <string>

@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/BrinkmanPenalizationStrategy.h"
+#include <ibamr/BrinkmanPenalizationStrategy.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

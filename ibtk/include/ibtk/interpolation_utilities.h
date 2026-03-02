@@ -14,14 +14,15 @@
 #ifndef included_IBTK_interpolation_utilities
 #define included_IBTK_interpolation_utilities
 
-#include "ibtk/config.h"
+#include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "Variable.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Patch.h>
+#include <PatchHierarchy.h>
+#include <Variable.h>
 
 #include <string>
 #include <vector>

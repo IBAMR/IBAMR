@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/SurfaceTensionForceFunction.h"
+#include <ibamr/SurfaceTensionForceFunction.h>
 
 namespace IBAMR
 {

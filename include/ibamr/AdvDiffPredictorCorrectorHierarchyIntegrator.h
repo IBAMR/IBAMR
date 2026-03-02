@@ -20,15 +20,16 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h>
+#include <ibamr/AdvectorExplicitPredictorPatchOps.h>
 
-#include "HyperbolicLevelIntegrator.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <HyperbolicLevelIntegrator.h>
+#include <IntVector.h>
+#include <MultiblockDataTranslator.h>
 
 #include <string>
 

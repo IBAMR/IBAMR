@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/CellConvectiveOperator.h"
+#include <ibamr/CellConvectiveOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

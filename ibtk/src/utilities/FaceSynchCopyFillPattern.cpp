@@ -13,19 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/FaceSynchCopyFillPattern.h"
+#include <ibtk/FaceSynchCopyFillPattern.h>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "BoxList.h"
-#include "BoxOverlap.h"
-#include "FaceGeometry.h"
-#include "FaceOverlap.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <BoxGeometry.h>
+#include <BoxList.h>
+#include <BoxOverlap.h>
+#include <FaceGeometry.h>
+#include <FaceOverlap.h>
 
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

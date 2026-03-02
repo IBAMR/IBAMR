@@ -22,15 +22,16 @@
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
+#include <ibtk/LInitStrategy.h>
+#include <ibtk/LSiloDataWriter.h>
 
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "libmesh/id_types.h"
+#include <libmesh/id_types.h>
+
+#include <GriddingAlgorithm.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 #include <map>
 #include <string>

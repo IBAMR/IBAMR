@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include <tbox/Pointer.h>
+#include <tbox/Serializable.h>
 
-#include "petscvec.h"
+#include <petscvec.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -370,7 +370,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LData-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LData-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

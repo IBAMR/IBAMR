@@ -16,7 +16,7 @@
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
 #include <vector>
 

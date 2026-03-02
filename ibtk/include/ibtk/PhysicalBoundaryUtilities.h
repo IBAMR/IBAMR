@@ -20,9 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "tbox/Array.h"
+#include <tbox/Array.h>
+
+#include <BoundaryBox.h>
+#include <Box.h>
 
 namespace SAMRAI
 {

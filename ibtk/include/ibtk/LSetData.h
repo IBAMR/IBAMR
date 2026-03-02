@@ -20,14 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LSetDataIterator.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/LSetDataIterator.h>
 
-#include "Box.h"
-#include "CellIterator.h"
-#include "IndexData.h"
-#include "IntVector.h"
+#include <Box.h>
+#include <CellIterator.h>
+#include <IndexData.h>
+#include <IntVector.h>
 
 namespace IBTK
 {
@@ -137,7 +137,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LSetData-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LSetData-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

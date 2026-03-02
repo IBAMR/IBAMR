@@ -20,15 +20,16 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
+#include <ibtk/LData.h>
+#include <ibtk/LDataManager.h>
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Pointer.h>
+
+#include <CartesianGridGeometry.h>
+#include <IntVector.h>
 
 #include <vector>
 

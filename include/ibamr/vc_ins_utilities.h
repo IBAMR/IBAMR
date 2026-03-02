@@ -22,9 +22,9 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/ibamr_enums.h>
 
-#include "ibtk/CartGridFunction.h"
+#include <ibtk/CartGridFunction.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 namespace IBTK
 {

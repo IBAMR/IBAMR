@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearSolver.h"
+#include <ibtk/LinearSolver.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <map>
 #include <string>

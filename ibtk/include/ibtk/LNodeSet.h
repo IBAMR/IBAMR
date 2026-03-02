@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNode.h"
-#include "ibtk/LSet.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LSet.h>
 
 /////////////////////////////// TYPEDEFS /////////////////////////////////////
 

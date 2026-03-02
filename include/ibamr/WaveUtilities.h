@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
-#include "Variable.h"
-#include "VariableContext.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Variable.h>
+#include <VariableContext.h>
 
 #include <string>
 

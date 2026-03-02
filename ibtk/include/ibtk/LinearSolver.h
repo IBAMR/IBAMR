@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralSolver.h"
+#include <ibtk/GeneralSolver.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
+#include <SAMRAIVectorReal.h>
 
 #include <iosfwd>
 #include <vector>

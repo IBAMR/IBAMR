@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
+#include <ibtk/SCPoissonPointRelaxationFACOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

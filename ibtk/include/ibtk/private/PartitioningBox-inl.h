@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/PartitioningBox.h"
+#include <ibtk/PartitioningBox.h>
 
 #include <algorithm>
 #include <limits>

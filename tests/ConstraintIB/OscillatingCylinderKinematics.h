@@ -17,7 +17,7 @@
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
 // C++ INCLUDES
 #include <iostream>
@@ -25,10 +25,11 @@
 #include <vector>
 
 // SAMRAI INCLUDES
-#include "PatchHierarchy.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <PatchHierarchy.h>
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
 

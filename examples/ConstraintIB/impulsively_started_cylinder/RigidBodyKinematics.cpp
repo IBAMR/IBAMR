@@ -18,18 +18,18 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include <tbox/PIO.h>
+#include <tbox/Utilities.h>
 
 // IBAMR INCLUDES
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 
 // THIRD-PARTY INCLUDES
-#include "muParser.h"
+#include <muParser.h>
 
 namespace IBAMR
 {

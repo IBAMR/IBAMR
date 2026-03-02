@@ -11,13 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibamr/CFGiesekusStrategy.h"
-#include "ibamr/CFOldroydBStrategy.h"
-#include "ibamr/CFRoliePolyStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/CFGiesekusStrategy.h>
+#include <ibamr/CFOldroydBStrategy.h>
+#include <ibamr/CFRoliePolyStrategy.h>
 #include <ibamr/CFUpperConvectiveOperator.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/muParserCartGridFunction.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
@@ -25,6 +24,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <tbox/Array.h>
@@ -38,7 +38,7 @@
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // Dummy CF Strategy class that does nothing
 class DummyCFStrategy : public CFStrategy

@@ -20,9 +20,9 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StokesWaveGeneratorStrategy.h"
+#include <ibamr/StokesWaveGeneratorStrategy.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <fstream>
 #include <limits>

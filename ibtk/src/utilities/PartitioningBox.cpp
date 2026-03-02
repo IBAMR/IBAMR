@@ -15,14 +15,14 @@
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <CartesianPatchGeometry.h>
+#include <IntVector.h>
+#include <Patch.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
 
 #include <algorithm>
 #include <limits>

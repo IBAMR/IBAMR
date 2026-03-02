@@ -25,7 +25,7 @@
 #include <ibtk/FECache.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>

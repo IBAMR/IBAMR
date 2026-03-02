@@ -13,17 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
 
 #include <ostream>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

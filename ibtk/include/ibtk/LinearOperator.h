@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralOperator.h"
+#include <ibtk/GeneralOperator.h>
 
 #include <string>
 

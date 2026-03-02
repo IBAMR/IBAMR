@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "RobinBcCoefStrategy.h"
+#include <RobinBcCoefStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LNode.h"
+#include <ibtk/LNode.h>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

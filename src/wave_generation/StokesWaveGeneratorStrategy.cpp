@@ -13,13 +13,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StokesWaveGeneratorStrategy.h"
+#include <ibamr/StokesWaveGeneratorStrategy.h>
 
-#include "tbox/Database.h"
+#include <tbox/Database.h>
 
 #include <limits>
 
-#include "ibamr/app_namespaces.h"
+#include <ibamr/app_namespaces.h>
 
 namespace IBAMR
 {

@@ -20,10 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "IntVector.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <IntVector.h>
+#include <VariableFillPattern.h>
 
 #include <string>
 

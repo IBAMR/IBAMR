@@ -16,9 +16,9 @@
 #ifndef included_TotalAmountRefineAndCoarsen
 #define included_TotalAmountRefineAndCoarsen
 
-#include "CoarsenOperator.h"
-#include "IBTK_config.h"
-#include "RefineOperator.h"
+#include <CoarsenOperator.h>
+#include <IBTK_config.h>
+#include <RefineOperator.h>
 
 #include <string>
 

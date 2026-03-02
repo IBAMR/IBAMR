@@ -15,12 +15,13 @@
 #define included_IBEELKinematics
 
 /////////////////////////////////////// INCLUDES ////////////////////////////////
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
-#include "PatchHierarchy.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <PatchHierarchy.h>
 
 #include <iostream>
 #include <map>
