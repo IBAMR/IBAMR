@@ -33,14 +33,6 @@ checks() {
     exit 1
   fi
 
-  if ! [ -x "$(command -v "python3")" ]; then
-    echo "***   Warning: no python3 program found."
-    echo "***   Include-style rewrite will be skipped for this indent run."
-    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=true
-  else
-    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=false
-  fi
-
   # Make sure to have the right version.
   CLANG_FORMAT_VERSION="$(clang-format --version)"
   CLANG_FORMAT_MAJOR_VERSION=$(echo "${CLANG_FORMAT_VERSION}" | sed 's/^[^0-9]*\([0-9]*\).*$/\1/g')
@@ -282,31 +274,31 @@ ensure_single_trailing_newline()
 export -f ensure_single_trailing_newline
 
 #
-# Rewrite include delimiters using the canonical maintenance script.
+# Ensure we write #include <header.h> and not #include "header.h" (except for
+# relative paths and files in the same directory, which we permit)
 #
-rewrite_include_style_file()
+ensure_bracket_includes()
 {
   file="${1}"
-  python3 ./scripts/maintenance/rewrite_include_quotes_to_angle_brackets.py --write "${file}" >/dev/null
-}
-export -f rewrite_include_style_file
+  tmpfile1="$(mktemp "${TMPDIR}/$(basename "$1").tmp.XXXXXXXX")"
+  tmpfile2="$(mktemp "${TMPDIR}/$(basename "$1").tmp.XXXXXXXX")"
 
-rewrite_include_style_changed()
-{
-  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
-    return
-  fi
-  process_changed "include src ibtk/include ibtk/src examples ibtk/examples tests" \
-    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
-}
-export -f rewrite_include_style_changed
+  # sed doesn't support negative lookahead: work around it by collecting local
+  # files first
+  local_files=""
+  for local_file in $(find "$(dirname "$1")" -type f)
+  do
+    local_files="$local_files$(echo $(basename $local_file) | sed 's/\./\\./')|"
+  done
+  local_files=$(echo "$local_files" | sed 's/|$//')
 
-rewrite_include_style_all()
-{
-  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
-    return
-  fi
-  process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
-    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
+  # assume that if we start with a '.' then we really have a relative path
+  sed -E 's/^#( *)include( *)"([^.].*)"/#\1include\2<\3>/' "${file}" > "${tmpfile1}"
+  # fixup local includes
+  sed -E "s/^#( *)include( *)<($local_files)>/#\1include\2\"\3\"/" "${tmpfile1}" > "${tmpfile2}"
+
+  rm -f "${tmpfile1}"
+  fix_or_report "${file}" "${tmpfile2}" "file does not use <> for includes"
+  rm -f "${tmpfile2}"
 }
-export -f rewrite_include_style_all
+export -f ensure_bracket_includes
