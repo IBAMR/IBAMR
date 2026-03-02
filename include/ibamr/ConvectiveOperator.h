@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/GeneralOperator.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/GeneralOperator.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <string>
 

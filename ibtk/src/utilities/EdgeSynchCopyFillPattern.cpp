@@ -13,19 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/EdgeSynchCopyFillPattern.h"
+#include <ibtk/EdgeSynchCopyFillPattern.h>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "BoxList.h"
-#include "BoxOverlap.h"
-#include "EdgeGeometry.h"
-#include "EdgeOverlap.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <BoxGeometry.h>
+#include <BoxList.h>
+#include <BoxOverlap.h>
+#include <EdgeGeometry.h>
+#include <EdgeOverlap.h>
 
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

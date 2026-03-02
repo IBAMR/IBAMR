@@ -19,7 +19,7 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "CartesianGridGeometry.h"
+#include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
 

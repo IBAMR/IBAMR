@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
 #include <filesystem>
 #include <optional>

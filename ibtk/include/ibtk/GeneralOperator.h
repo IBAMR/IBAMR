@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/HierarchyMathOps.h"
+#include <ibtk/HierarchyMathOps.h>
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
 #include <iosfwd>
 #include <limits>

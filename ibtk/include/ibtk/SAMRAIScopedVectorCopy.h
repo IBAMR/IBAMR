@@ -55,7 +55,7 @@ public:
 };
 } // namespace IBTK
 
-#include "ibtk/private/SAMRAIScopedVectorCopy-inl.h"
+#include <ibtk/private/SAMRAIScopedVectorCopy-inl.h>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -12,20 +12,20 @@
 // ---------------------------------------------------------------------
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "CartesianPatchGeometry.h"
 #include "IBEELKinematics.h"
-#include "PatchLevel.h"
-#include "tbox/MathUtilities.h"
+#include <tbox/MathUtilities.h>
 
-#include "muParser.h"
+#include <CartesianPatchGeometry.h>
+#include <PatchLevel.h>
+#include <muParser.h>
 
 #include <cmath>
 #include <fstream>
 #include <iostream>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

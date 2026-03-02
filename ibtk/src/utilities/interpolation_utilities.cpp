@@ -11,9 +11,9 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/interpolation_utilities.h"
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/LEInteractor.h>
+#include <ibtk/interpolation_utilities.h>
 
 #include <ibtk/app_namespaces.h>
 

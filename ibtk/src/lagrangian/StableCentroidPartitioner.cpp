@@ -12,9 +12,9 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/PIO.h>
 

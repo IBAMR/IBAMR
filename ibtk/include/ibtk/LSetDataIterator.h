@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSet.h"
+#include <ibtk/LSet.h>
 
-#include "Box.h"
-#include "IndexData.h"
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
+
+#include <Box.h>
+#include <IndexData.h>
 
 namespace SAMRAI
 {
@@ -132,7 +133,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LSetDataIterator-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LSetDataIterator-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

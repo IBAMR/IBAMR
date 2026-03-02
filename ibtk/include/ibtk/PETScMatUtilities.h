@@ -20,14 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_enums.h"
+#include <ibtk/ibtk_enums.h>
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscao.h"
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscao.h>
+#include <petscmat.h>
+#include <petscvec.h>
+
+#include <PoissonSpecifications.h>
 
 #include <cmath>
 #include <vector>

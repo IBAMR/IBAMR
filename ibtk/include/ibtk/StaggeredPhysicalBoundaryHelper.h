@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 #include <map>
 #include <vector>

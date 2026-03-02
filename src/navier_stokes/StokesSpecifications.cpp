@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StokesSpecifications.h"
+#include <ibamr/StokesSpecifications.h>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "CartesianCellDoubleConservativeLinearRefine.h"
-#include "CellDoubleConstantRefine.h"
-#include "IntVector.h"
-#include "RefineOperator.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CartesianCellDoubleConservativeLinearRefine.h>
+#include <CellDoubleConstantRefine.h>
+#include <IntVector.h>
+#include <RefineOperator.h>
 
 #include <string>
 

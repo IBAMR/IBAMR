@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
 #include <string>
 #include <vector>

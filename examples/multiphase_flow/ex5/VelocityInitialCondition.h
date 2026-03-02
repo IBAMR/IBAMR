@@ -22,7 +22,7 @@
 #include <ibamr/app_namespaces.h>
 
 // Application includes
-#include "LSLocateFluidInterface.h"
+#include <LSLocateFluidInterface.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

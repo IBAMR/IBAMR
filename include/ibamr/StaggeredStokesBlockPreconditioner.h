@@ -20,18 +20,19 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/HierarchyMathOps.h>
+#include <ibtk/LinearSolver.h>
+#include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <HierarchyDataOpsReal.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <PoissonSpecifications.h>
 
 #include <string>
 #include <vector>

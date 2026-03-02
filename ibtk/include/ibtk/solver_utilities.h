@@ -20,18 +20,18 @@
 
 #include <ibtk/config.h>
 
-#include "petscksp.h"
-#include "petscsnes.h"
+#include <petscksp.h>
+#include <petscsnes.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "HYPRE_sstruct_ls.h"
-#include "HYPRE_sstruct_mv.h"
-#include "HYPRE_struct_ls.h"
-#include "HYPRE_struct_mv.h"
+#include <HYPRE_sstruct_ls.h>
+#include <HYPRE_sstruct_mv.h>
+#include <HYPRE_struct_ls.h>
+#include <HYPRE_struct_mv.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include "CellData.h"
-#include "SideData.h"
+#include <CellData.h>
+#include <SideData.h>
 
 #include <array>
 #include <vector>

@@ -13,20 +13,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/SideNoCornersFillPattern.h"
+#include <ibtk/SideNoCornersFillPattern.h>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "BoxList.h"
-#include "BoxOverlap.h"
-#include "IntVector.h"
-#include "SideGeometry.h"
-#include "SideOverlap.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <BoxGeometry.h>
+#include <BoxList.h>
+#include <BoxOverlap.h>
+#include <IntVector.h>
+#include <SideGeometry.h>
+#include <SideOverlap.h>
 
 #include <array>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

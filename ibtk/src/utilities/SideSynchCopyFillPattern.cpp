@@ -13,17 +13,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/SideSynchCopyFillPattern.h"
+#include <ibtk/SideSynchCopyFillPattern.h>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "SideGeometry.h"
-#include "SideOverlap.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <BoxGeometry.h>
+#include <SideGeometry.h>
+#include <SideOverlap.h>
 
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

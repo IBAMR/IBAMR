@@ -13,22 +13,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/NormOps.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/NormOps.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
+#include <tbox/MathUtilities.h>
+#include <tbox/Pointer.h>
+#include <tbox/Timer.h>
 
-#include "petscis.h"
-#include "petscvec.h"
+#include <petscis.h>
+#include <petscvec.h>
 
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <SAMRAIVectorReal.h>
 #include <mpi.h>
 
 #include <algorithm>
@@ -36,7 +36,7 @@
 #include <ostream>
 #include <string>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

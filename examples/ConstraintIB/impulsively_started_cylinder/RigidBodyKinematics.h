@@ -17,19 +17,20 @@
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
 // IBAMR INCLUDES
-#include "ibamr/ConstraintIBKinematics.h"
+#include <ibamr/ConstraintIBKinematics.h>
 
 // IBTK INCLUDES
-#include "ibtk/LDataManager.h"
+#include <ibtk/LDataManager.h>
 
 // SAMRAI INCLUDES
-#include "PatchHierarchy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <PatchHierarchy.h>
 
 // C++ INCLUDES
-#include "string"
-#include "vector"
+#include <string>
+#include <vector>
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
 

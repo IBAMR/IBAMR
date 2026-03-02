@@ -13,23 +13,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 
-#include "BoundaryBox.h"
-#include "CoarseFineBoundary.h"
-#include "ComponentSelector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Array.h"
+#include <tbox/Array.h>
+
+#include <BoundaryBox.h>
+#include <CoarseFineBoundary.h>
+#include <ComponentSelector.h>
+#include <Patch.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <RefineAlgorithm.h>
+#include <RefineOperator.h>
+#include <RefineSchedule.h>
+#include <SideData.h>
+#include <SideVariable.h>
+#include <Variable.h>
+#include <VariableContext.h>
+#include <VariableDatabase.h>
 
 #include <algorithm>
 #include <memory>
@@ -37,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

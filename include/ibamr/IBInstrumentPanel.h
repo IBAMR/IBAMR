@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "Index.h"
-#include "IntVector.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
+
+#include <Index.h>
+#include <IntVector.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

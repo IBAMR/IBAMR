@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/GeneralSolver.h"
+#include <ibtk/GeneralSolver.h>
 
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
+#include <PoissonSpecifications.h>
+#include <RobinBcCoefStrategy.h>
 
 #include <memory>
 #include <string>

@@ -33,10 +33,10 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/vc_ins_utilities.h>
 
-#include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 

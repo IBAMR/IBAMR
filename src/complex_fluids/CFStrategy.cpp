@@ -11,17 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibamr/CFStrategy.h"
+#include <ibamr/CFStrategy.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <unsupported/Eigen/MatrixFunctions>
 IBTK_ENABLE_EXTRA_WARNINGS
 
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 // Namespace
 namespace IBAMR

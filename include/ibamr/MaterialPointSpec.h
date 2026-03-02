@@ -22,12 +22,12 @@
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "libmesh/id_types.h"
+#include <libmesh/id_types.h>
 
 #include <vector>
 
@@ -251,7 +251,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/MaterialPointSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/MaterialPointSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -22,16 +22,17 @@
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibamr/IBFEMethod.h"
+#include <ibamr/IBFEMethod.h>
 
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/libmesh_utilities.h"
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/libmesh_utilities.h>
 
-#include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "libmesh/boundary_mesh.h"
+#include <libmesh/boundary_mesh.h>
+
+#include <PatchHierarchy.h>
 
 #include <map>
 #include <vector>

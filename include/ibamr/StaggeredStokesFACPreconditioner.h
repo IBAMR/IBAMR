@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "ibtk/FACPreconditioner.h"
+#include <ibtk/FACPreconditioner.h>
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <PoissonSpecifications.h>
 
 #include <string>
 #include <vector>

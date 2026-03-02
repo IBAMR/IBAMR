@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IndexUtilities.h"
+#include <ibtk/IndexUtilities.h>
 
 #include <cmath>
 

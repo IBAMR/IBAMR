@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/AbstractStream.h"
-#include "tbox/Complex.h"
+#include <tbox/AbstractStream.h>
+#include <tbox/Complex.h>
 
 #include <vector>
 
@@ -339,7 +339,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/FixedSizedStream-inl.h" // IWYU pragma: keep
+#include <ibtk/private/FixedSizedStream-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

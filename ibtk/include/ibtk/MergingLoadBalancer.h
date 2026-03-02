@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/box_utilities.h>
 
 #include <tbox/PIO.h>

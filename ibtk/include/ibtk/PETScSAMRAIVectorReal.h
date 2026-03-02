@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscsys.h"
-#include "petscvec.h"
+#include <petscsys.h>
+#include <petscvec.h>
 
+#include <IntVector.h>
+#include <SAMRAIVectorReal.h>
 #include <mpi.h>
 // IWYU pragma: no_include "petscmath.h"
 
@@ -262,7 +262,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/PETScSAMRAIVectorReal-inl.h" // IWYU pragma: keep
+#include <ibtk/private/PETScSAMRAIVectorReal-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

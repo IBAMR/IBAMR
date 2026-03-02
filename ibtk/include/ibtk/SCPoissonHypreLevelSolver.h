@@ -20,21 +20,22 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/LinearSolver.h>
+#include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
-#include "Box.h"
-#include "CoarseFineBoundary.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CoarseFineBoundary.h>
+#include <Index.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "HYPRE_sstruct_ls.h"
-#include "HYPRE_sstruct_mv.h"
+#include <HYPRE_sstruct_ls.h>
+#include <HYPRE_sstruct_mv.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <string>

@@ -18,7 +18,7 @@
 
 #include <ibamr/config.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 namespace IBTK
 {

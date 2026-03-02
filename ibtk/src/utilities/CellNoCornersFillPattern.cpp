@@ -13,18 +13,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/CellNoCornersFillPattern.h"
+#include <ibtk/CellNoCornersFillPattern.h>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "BoxList.h"
-#include "BoxOverlap.h"
-#include "CellGeometry.h"
-#include "CellOverlap.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <Box.h>
+#include <BoxGeometry.h>
+#include <BoxList.h>
+#include <BoxOverlap.h>
+#include <CellGeometry.h>
+#include <CellOverlap.h>
+#include <IntVector.h>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

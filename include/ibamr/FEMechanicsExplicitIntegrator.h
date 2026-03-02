@@ -18,11 +18,11 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/FEMechanicsBase.h"
+#include <ibamr/FEMechanicsBase.h>
 
-#include "libmesh/libmesh_common.h"
-#include "libmesh/numeric_vector.h"
-#include "libmesh/petsc_vector.h"
+#include <libmesh/libmesh_common.h>
+#include <libmesh/numeric_vector.h>
+#include <libmesh/petsc_vector.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

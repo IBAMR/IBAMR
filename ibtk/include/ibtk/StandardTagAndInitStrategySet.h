@@ -20,10 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "BasePatchLevel.h"
-#include "IntVector.h"
-#include "StandardTagAndInitStrategy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <BasePatchLevel.h>
+#include <IntVector.h>
+#include <StandardTagAndInitStrategy.h>
 
 #include <ostream>
 #include <string>

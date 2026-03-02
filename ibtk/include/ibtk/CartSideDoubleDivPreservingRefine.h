@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "CoarsenOperator.h"
-#include "IntVector.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CoarsenOperator.h>
+#include <IntVector.h>
+#include <RefineOperator.h>
+#include <RefinePatchStrategy.h>
 
 namespace SAMRAI
 {

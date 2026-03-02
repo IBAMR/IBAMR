@@ -20,11 +20,12 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StokesBcCoefStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/StokesBcCoefStrategy.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
 
 #include <vector>
 

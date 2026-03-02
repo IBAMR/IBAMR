@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "CoarsenPatchStrategy.h"
-#include "IntVector.h"
+#include <Box.h>
+#include <CoarsenPatchStrategy.h>
+#include <IntVector.h>
 
 #include <vector>
 

@@ -22,12 +22,12 @@
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibamr/IBFEPostProcessor.h"
+#include <ibamr/IBFEPostProcessor.h>
 
-#include "ibtk/libmesh_utilities.h"
+#include <ibtk/libmesh_utilities.h>
 
-#include "libmesh/enum_fe_family.h"
-#include "libmesh/enum_order.h"
+#include <libmesh/enum_fe_family.h>
+#include <libmesh/enum_order.h>
 
 #include <string>
 #include <vector>

@@ -20,15 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
+#include <Box.h>
+#include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
+#include <CellIndex.h>
+#include <Index.h>
+#include <IntVector.h>
+#include <Patch.h>
 
 #include <functional>
 #include <vector>
@@ -336,7 +336,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/IndexUtilities-inl.h" // IWYU pragma: keep
+#include <ibtk/private/IndexUtilities-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

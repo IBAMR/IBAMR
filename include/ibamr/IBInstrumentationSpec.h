@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/Streamable.h"
-#include "ibtk/StreamableFactory.h"
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <string>
 #include <vector>
@@ -247,7 +247,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibamr/private/IBInstrumentationSpec-inl.h" // IWYU pragma: keep
+#include <ibamr/private/IBInstrumentationSpec-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -13,19 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 
-#include "BoundaryBox.h"
-#include "BoxArray.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CoarseFineBoundary.h"
-#include "GridGeometry.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineOperator.h"
-#include "tbox/Array.h"
+#include <tbox/Array.h>
+
+#include <BoundaryBox.h>
+#include <BoxArray.h>
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CoarseFineBoundary.h>
+#include <GridGeometry.h>
+#include <Patch.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <RefineOperator.h>
 
 #include <array>
 #include <memory>
@@ -33,7 +34,7 @@
 #include <string>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

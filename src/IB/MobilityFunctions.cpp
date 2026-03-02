@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/MobilityFunctions.h"
+#include <ibamr/MobilityFunctions.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 #include <cmath>
 #include <cstdlib>

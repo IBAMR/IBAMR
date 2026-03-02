@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <vector>
 

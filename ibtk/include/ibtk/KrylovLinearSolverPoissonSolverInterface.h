@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/PoissonSolver.h"
+#include <ibtk/PoissonSolver.h>
 
-#include "PoissonSpecifications.h"
+#include <PoissonSpecifications.h>
 
 #include <vector>
 

@@ -22,10 +22,10 @@
 
 #include <ibamr/IBInstrumentationSpec.h>
 
-#include "ibtk/StreamableManager.h"
+#include <ibtk/StreamableManager.h>
 
-#include "tbox/AbstractStream.h"
-#include "tbox/Utilities.h"
+#include <tbox/AbstractStream.h>
+#include <tbox/Utilities.h>
 
 #include <string>
 #include <vector>

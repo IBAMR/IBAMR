@@ -12,11 +12,11 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/vc_ins_utilities.h"
+#include <ibamr/vc_ins_utilities.h>
 
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <ibamr/app_namespaces.h>

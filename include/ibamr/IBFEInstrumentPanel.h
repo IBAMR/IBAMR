@@ -22,12 +22,12 @@
 
 #ifdef IBAMR_HAVE_LIBMESH
 
-#include "ibamr/IBFEMethod.h"
+#include <ibamr/IBFEMethod.h>
 
-#include "libmesh/enum_order.h"
-#include "libmesh/enum_quadrature_type.h"
-#include "libmesh/equation_systems.h"
-#include "libmesh/serial_mesh.h"
+#include <libmesh/enum_order.h>
+#include <libmesh/enum_quadrature_type.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/serial_mesh.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

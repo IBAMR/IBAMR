@@ -20,19 +20,20 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/ibtk_utilities.h>
 
-#include "CellVariable.h"
-#include "EdgeVariable.h" // IWYU pragma: keep
-#include "IntVector.h"
-#include "NodeVariable.h" // IWYU pragma: keep
-#include "PatchLevel.h"
-#include "VariableContext.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Pointer.h>
+
+#include <CellVariable.h>
+#include <EdgeVariable.h> // IWYU pragma: keep
+#include <IntVector.h>
+#include <NodeVariable.h> // IWYU pragma: keep
+#include <PatchLevel.h>
+#include <VariableContext.h>
 
 #include <string>
 #include <vector>

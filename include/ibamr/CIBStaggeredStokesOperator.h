@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/CIBStrategy.h"
-#include "ibamr/StaggeredStokesOperator.h"
+#include <ibamr/CIBStrategy.h>
+#include <ibamr/StaggeredStokesOperator.h>
 
-#include "ibtk/LinearOperator.h"
+#include <ibtk/LinearOperator.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscvec.h"
+#include <petscvec.h>
 
 #include <string>
 

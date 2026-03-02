@@ -13,44 +13,45 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IBTK_MPI.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/SideSynchCopyFillPattern.h>
 
-#include "Box.h"
-#include "BoxArray.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CellData.h"
-#include "CellGeometry.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineClasses.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
-#include "petscao.h"
-#include "petscsys.h"
-#include "petscvec.h"
+#include <petscao.h>
 #include <petsclog.h>
+#include <petscsys.h>
+#include <petscvec.h>
+
+#include <Box.h>
+#include <BoxArray.h>
+#include <BoxList.h>
+#include <CartesianGridGeometry.h>
+#include <CellData.h>
+#include <CellGeometry.h>
+#include <CellIndex.h>
+#include <CellVariable.h>
+#include <Index.h>
+#include <IntVector.h>
+#include <MultiblockDataTranslator.h>
+#include <Patch.h>
+#include <PatchLevel.h>
+#include <RefineAlgorithm.h>
+#include <RefineClasses.h>
+#include <RefineOperator.h>
+#include <RefineSchedule.h>
+#include <SideData.h>
+#include <SideGeometry.h>
+#include <SideIndex.h>
+#include <SideVariable.h>
+#include <Variable.h>
+#include <VariableDatabase.h>
+#include <VariableFillPattern.h>
 
 #include <algorithm>
 #include <array>
@@ -59,7 +60,7 @@
 #include <string>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

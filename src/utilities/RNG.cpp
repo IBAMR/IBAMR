@@ -13,10 +13,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/RNG.h"
+#include <ibamr/RNG.h>
 
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include <tbox/PIO.h>
+#include <tbox/Utilities.h>
 
 #include <mpi.h>
 
@@ -27,7 +27,7 @@
 #include <set>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

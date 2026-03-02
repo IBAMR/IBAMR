@@ -19,7 +19,7 @@
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
-#include "ibtk/muParserCartGridFunction.h"
+#include <ibtk/muParserCartGridFunction.h>
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
@@ -28,12 +28,12 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/CFGiesekusStrategy.h"
-#include "ibamr/CFINSForcing.h"
-#include "ibamr/CFOldroydBStrategy.h"
-#include "ibamr/CFRoliePolyStrategy.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/CFGiesekusStrategy.h>
+#include <ibamr/CFINSForcing.h>
+#include <ibamr/CFOldroydBStrategy.h>
+#include <ibamr/CFRoliePolyStrategy.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -46,7 +46,7 @@
 
 #include <tbox/Array.h>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>

@@ -13,23 +13,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LSetData.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LNodeIndex.h>
+#include <ibtk/LSetData.h>
 
-#include "Box.h"
-#include "CellGeometry.h"
-#include "IndexData.h"
-#include "IndexDataFactory.h"
-#include "IndexVariable.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CellGeometry.h>
+#include <IndexData.h>
+#include <IndexDataFactory.h>
+#include <IndexVariable.h>
+#include <IntVector.h>
 
 #include <algorithm>
 #include <ostream>
 #include <utility>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,7 +58,7 @@ LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#include "ibtk/LNodeSet.h"
+#include <ibtk/LNodeSet.h>
 
 template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
 template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
@@ -66,7 +67,7 @@ template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeSet, CellGeometry<ND
 template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM>>;
 template class IBTK::LSetData<IBTK::LNode>;
 
-#include "ibtk/LNodeIndexSet.h"
+#include <ibtk/LNodeIndexSet.h>
 
 template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;
 template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM>>;

@@ -20,16 +20,17 @@
 
 #include <ibtk/config.h>
 
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/MathUtilities.h>
+#include <tbox/PIO.h>
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
+
+#include <PatchHierarchy.h>
+#include <SAMRAIVectorReal.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "Eigen/Core" // IWYU pragma: export
-#include "Eigen/StdVector"
+#include <Eigen/Core> // IWYU pragma: export
+#include <Eigen/StdVector>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>

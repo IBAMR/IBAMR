@@ -20,14 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesBlockPreconditioner.h>
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 
-#include "CellVariable.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <CellVariable.h>
 
 #include <string>
 

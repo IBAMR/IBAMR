@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/PoissonSolver.h"
+#include <ibtk/PoissonSolver.h>
 
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
 #include <map>
 #include <string>

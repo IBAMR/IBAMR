@@ -13,21 +13,22 @@
 
 //////////////////////////////////// INCLUDES ////////////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "CartesianPatchGeometry.h"
 #include "IBEELKinematics3d.h"
-#include "PatchLevel.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Utilities.h"
+#include <tbox/MathUtilities.h>
+#include <tbox/Utilities.h>
 
 #include <boost/math/quadrature/gauss_kronrod.hpp>
+
+#include <CartesianPatchGeometry.h>
+#include <PatchLevel.h>
 
 #include <cmath>
 #include <iostream>
 #include <sstream>
 
-#include "ibamr/namespaces.h"
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

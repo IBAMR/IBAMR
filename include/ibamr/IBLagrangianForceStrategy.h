@@ -20,10 +20,10 @@
 
 #include <ibamr/config.h>
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
 
 #include <vector>
 

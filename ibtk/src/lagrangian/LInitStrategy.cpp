@@ -13,17 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LInitStrategy.h"
+#include <ibtk/LInitStrategy.h>
 
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

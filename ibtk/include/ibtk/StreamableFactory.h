@@ -20,8 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
 
 namespace IBTK
 {

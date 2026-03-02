@@ -27,9 +27,9 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include "libmesh/edge_edge2.h"
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
+#include <libmesh/edge_edge2.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/explicit_system.h>

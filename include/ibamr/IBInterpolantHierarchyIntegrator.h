@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBHierarchyIntegrator.h"
+#include <ibamr/IBHierarchyIntegrator.h>
 
 namespace IBAMR
 {

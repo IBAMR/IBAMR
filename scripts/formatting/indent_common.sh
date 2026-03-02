@@ -33,6 +33,14 @@ checks() {
     exit 1
   fi
 
+  if ! [ -x "$(command -v "python3")" ]; then
+    echo "***   Warning: no python3 program found."
+    echo "***   Include-style rewrite will be skipped for this indent run."
+    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=true
+  else
+    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=false
+  fi
+
   # Make sure to have the right version.
   CLANG_FORMAT_VERSION="$(clang-format --version)"
   CLANG_FORMAT_MAJOR_VERSION=$(echo "${CLANG_FORMAT_VERSION}" | sed 's/^[^0-9]*\([0-9]*\).*$/\1/g')
@@ -272,3 +280,33 @@ ensure_single_trailing_newline()
   fi
 }
 export -f ensure_single_trailing_newline
+
+#
+# Rewrite include delimiters using the canonical maintenance script.
+#
+rewrite_include_style_file()
+{
+  file="${1}"
+  python3 ./scripts/maintenance/rewrite_include_quotes_to_angle_brackets.py --write "${file}" >/dev/null
+}
+export -f rewrite_include_style_file
+
+rewrite_include_style_changed()
+{
+  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
+    return
+  fi
+  process_changed "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
+}
+export -f rewrite_include_style_changed
+
+rewrite_include_style_all()
+{
+  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
+    return
+  fi
+  process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
+}
+export -f rewrite_include_style_all

@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "Variable.h"
+#include <Variable.h>
 
 #include <string>
 

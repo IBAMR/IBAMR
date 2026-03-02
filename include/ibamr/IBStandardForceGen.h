@@ -20,15 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/IBSpringForceFunctions.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/IBSpringForceFunctions.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
-#include "petscmat.h"
+#include <petscmat.h>
 
 #include <map>
 #include <set>

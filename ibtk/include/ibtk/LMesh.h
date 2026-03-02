@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
 #include <string>
 #include <vector>
@@ -89,7 +89,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LMesh-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LMesh-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

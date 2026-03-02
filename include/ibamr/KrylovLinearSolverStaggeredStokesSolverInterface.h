@@ -20,10 +20,11 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <PoissonSpecifications.h>
 
 #include <vector>
 

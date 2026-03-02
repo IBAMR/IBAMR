@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "IntVector.h"
-#include "PatchData.h"
-#include "PatchLevel.h"
-#include "tbox/Pointer.h"
-#include "tbox/Transaction.h"
+#include <tbox/Pointer.h>
+#include <tbox/Transaction.h>
+
+#include <IntVector.h>
+#include <PatchData.h>
+#include <PatchLevel.h>
 
 #include <iosfwd>
 #include <string>

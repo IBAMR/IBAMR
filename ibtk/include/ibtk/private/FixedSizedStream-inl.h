@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/FixedSizedStream.h"
+#include <ibtk/FixedSizedStream.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 #include <cstring>
 

@@ -13,17 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBLagrangianForceStrategySet.h"
+#include <ibamr/IBLagrangianForceStrategySet.h>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/LData.h>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
+#include <IntVector.h>
+#include <PatchHierarchy.h>
 
 #include <string>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBTK
 {

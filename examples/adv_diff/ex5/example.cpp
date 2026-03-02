@@ -28,9 +28,9 @@
 #include <ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/IBInterpolantHierarchyIntegrator.h>
 
-#include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 

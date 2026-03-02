@@ -82,7 +82,7 @@ protected:
 };
 } // namespace IBTK
 
-#include "ibtk/private/SAMRAIScopedVectorDuplicate-inl.h"
+#include <ibtk/private/SAMRAIScopedVectorDuplicate-inl.h>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -20,13 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscksp.h>
+#include <petscmat.h>
+#include <petscvec.h>
 
 #include <array>
 #include <string>

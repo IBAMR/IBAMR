@@ -20,15 +20,16 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 
-#include "Box.h"
-#include "CartesianCellDoubleLinearRefine.h"
-#include "ComponentSelector.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "RefineOperator.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <Box.h>
+#include <CartesianCellDoubleLinearRefine.h>
+#include <ComponentSelector.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <RefineOperator.h>
 
 #include <set>
 #include <vector>

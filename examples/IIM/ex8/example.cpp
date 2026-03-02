@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibamr/FEMechanicsBase.h"
+#include <ibamr/FEMechanicsBase.h>
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IIMethod.h>

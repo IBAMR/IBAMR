@@ -20,20 +20,21 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/ConvectiveOperator.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "FaceVariable.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "RefineAlgorithm.h"
-#include "RefinePatchStrategy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
+#include <CellVariable.h>
+#include <CoarsenAlgorithm.h>
+#include <FaceVariable.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <RefineAlgorithm.h>
+#include <RefinePatchStrategy.h>
 
 #include <string>
 #include <vector>

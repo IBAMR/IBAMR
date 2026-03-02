@@ -20,14 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/StaggeredStokesSolver.h"
+#include <ibamr/StaggeredStokesSolver.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscvec.h"
+#include <petscvec.h>
+
+#include <IntVector.h>
 
 #include <string>
 

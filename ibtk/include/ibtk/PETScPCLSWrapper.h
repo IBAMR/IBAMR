@@ -20,14 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LinearSolver.h"
+#include <ibtk/LinearSolver.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscpc.h"
-#include "petscvec.h"
+#include <petscpc.h>
+#include <petscvec.h>
+
+#include <IntVector.h>
+#include <SAMRAIVectorReal.h>
 
 #include <string>
 

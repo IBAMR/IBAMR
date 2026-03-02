@@ -13,21 +13,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/StandardTagAndInitStrategySet.h"
+#include <ibtk/StandardTagAndInitStrategySet.h>
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "StandardTagAndInitStrategy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <BasePatchHierarchy.h>
+#include <BasePatchLevel.h>
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <StandardTagAndInitStrategy.h>
 
 #include <algorithm>
 #include <limits>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -11,19 +11,20 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibamr/CFRoliePolyStrategy.h"
+#include <ibamr/CFRoliePolyStrategy.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIterator.h"
-#include "Patch.h"
-#include "tbox/Database.h"
+#include <tbox/Database.h>
+
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIterator.h>
+#include <Patch.h>
 
 #include <cmath>
 
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 // Namespace
 namespace IBAMR

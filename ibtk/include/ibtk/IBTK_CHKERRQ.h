@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/compiler_hints.h"
+#include <ibtk/compiler_hints.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 #include <ostream>
 

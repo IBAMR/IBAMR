@@ -20,11 +20,11 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
+#include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h>
 
-#include "ibtk/PETScKrylovLinearSolver.h"
+#include <ibtk/PETScKrylovLinearSolver.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <string>
 

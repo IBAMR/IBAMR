@@ -14,7 +14,7 @@
 #include "LevelSetInitialConditionHexagram.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 #include <SAMRAI_config.h>
 

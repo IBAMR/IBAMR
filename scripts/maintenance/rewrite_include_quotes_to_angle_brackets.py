@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+"""Normalize #include directives between quotes and angle brackets.
+
+Default behavior:
+  - Rewrites quoted includes to angle-bracket includes.
+  - Preserves/forces quoted includes for:
+    - headers matching --keep-quoted-regex,
+    - headers that are local to the including file's directory.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+from pathlib import Path
+from typing import Iterable
+
+CPP_EXTENSIONS = {
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".inl",
+    ".tcc",
+}
+
+INCLUDE_RE = re.compile(r'^(\s*#\s*include\s*)(["<])([^">]+)([">])(\s*(?://.*)?)$')
+
+
+def iter_candidate_files(paths: Iterable[Path]) -> list[Path]:
+    result: list[Path] = []
+    for path in paths:
+        if path.is_file():
+            if path.suffix in CPP_EXTENSIONS:
+                result.append(path)
+            continue
+        for f in path.rglob("*"):
+            if f.is_file() and f.suffix in CPP_EXTENSIONS:
+                result.append(f)
+    # Deterministic order keeps output stable.
+    return sorted(set(result))
+
+
+def should_keep_quoted(include_path: str, source_file: Path, keep_quoted: re.Pattern[str]) -> bool:
+    if keep_quoted.search(include_path):
+        return True
+
+    # Same-directory private headers/sources should stay quoted.
+    if "/" not in include_path and (source_file.parent / include_path).exists():
+        return True
+
+    return False
+
+
+def rewrite_text(text: str, source_file: Path, keep_quoted: re.Pattern[str]) -> tuple[str, bool]:
+    changed = False
+    new_lines = []
+
+    for line in text.splitlines(keepends=True):
+        line_no_nl = line[:-1] if line.endswith("\n") else line
+        match = INCLUDE_RE.match(line_no_nl)
+        if not match:
+            new_lines.append(line)
+            continue
+
+        prefix, left_delim, header, right_delim, suffix = match.groups()
+        keep_quoted_for_header = should_keep_quoted(header, source_file, keep_quoted)
+
+        if keep_quoted_for_header:
+            desired_left, desired_right = '"', '"'
+        else:
+            desired_left, desired_right = "<", ">"
+
+        if left_delim == desired_left and right_delim == desired_right:
+            new_lines.append(line)
+            continue
+
+        replacement = f"{prefix}{desired_left}{header}{desired_right}{suffix}"
+        if line.endswith("\n"):
+            replacement += "\n"
+        new_lines.append(replacement)
+        changed = True
+
+    return "".join(new_lines), changed
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "paths",
+        nargs="+",
+        type=Path,
+        help="Files or directories to process",
+    )
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help="Write changes to disk (default is dry-run)",
+    )
+    parser.add_argument(
+        "--keep-quoted-regex",
+        default=r"(^|/)tests\.h$",
+        help=(
+            "Regex for include header paths that must remain quoted. "
+            "Default keeps tests.h includes quoted."
+        ),
+    )
+
+    args = parser.parse_args()
+    keep_quoted = re.compile(args.keep_quoted_regex)
+
+    files = iter_candidate_files(args.paths)
+    changed_files: list[Path] = []
+
+    for f in files:
+        text = f.read_text(encoding="utf-8")
+        new_text, changed = rewrite_text(text, f, keep_quoted)
+        if not changed:
+            continue
+        changed_files.append(f)
+        if args.write:
+            f.write_text(new_text, encoding="utf-8")
+
+    mode = "write" if args.write else "dry-run"
+    print(f"mode: {mode}")
+    print(f"files scanned: {len(files)}")
+    print(f"files changed: {len(changed_files)}")
+    for f in changed_files:
+        print(f)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

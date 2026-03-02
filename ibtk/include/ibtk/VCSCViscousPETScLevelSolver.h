@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/SCPoissonPETScLevelSolver.h"
+#include <ibtk/SCPoissonPETScLevelSolver.h>
 
 namespace SAMRAI
 {

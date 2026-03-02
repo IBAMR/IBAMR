@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 
-#include "ComponentSelector.h"
-#include "IntVector.h"
-#include "tbox/Array.h"
+#include <tbox/Array.h>
+
+#include <ComponentSelector.h>
+#include <IntVector.h>
 
 #include <set>
 #include <vector>

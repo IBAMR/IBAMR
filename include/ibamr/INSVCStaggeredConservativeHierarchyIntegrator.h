@@ -20,8 +20,8 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/STSMassFluxIntegrator.h"
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/STSMassFluxIntegrator.h>
 
 #include <string>
 #include <vector>

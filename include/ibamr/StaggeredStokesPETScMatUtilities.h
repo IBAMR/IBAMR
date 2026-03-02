@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "IntVector.h"
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
-#include "petscao.h"
-#include "petscmat.h"
+#include <petscao.h>
+#include <petscmat.h>
+
+#include <IntVector.h>
+#include <PoissonSpecifications.h>
 
 #include <set>
 #include <string>

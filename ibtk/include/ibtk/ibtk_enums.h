@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "tbox/Utilities.h"
+#include <tbox/Utilities.h>
 
 #include <cstring>
 

@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/solver_utilities.h"
+#include <ibtk/solver_utilities.h>
 
 #include <memory>
 

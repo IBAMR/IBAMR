@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSetData.h"
+#include <ibtk/LSetData.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -20,12 +20,13 @@
 
 #include <ibamr/config.h>
 
-#include "ibtk/ibtk_utilities.h"
+#include <ibtk/ibtk_utilities.h>
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
+
+#include <CartesianGridGeometry.h>
+#include <IntVector.h>
+#include <RobinBcCoefStrategy.h>
 
 #include <string>
 

@@ -20,10 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include "Box.h"
-#include "BoxList.h"
-#include "IntVector.h"
-#include "RefinePatchStrategy.h"
+#include <Box.h>
+#include <BoxList.h>
+#include <IntVector.h>
+#include <RefinePatchStrategy.h>
 
 #include <vector>
 

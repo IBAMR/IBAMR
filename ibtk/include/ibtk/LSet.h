@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
+#include <ibtk/LNode.h>
+#include <ibtk/LNodeIndex.h>
 
-#include "IntVector.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include <tbox/DescribedClass.h>
+#include <tbox/Pointer.h>
+
+#include <IntVector.h>
 
 #include <vector>
 
@@ -268,7 +269,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/LSet-inl.h" // IWYU pragma: keep
+#include <ibtk/private/LSet-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

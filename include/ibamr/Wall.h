@@ -20,14 +20,15 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBLagrangianForceStrategy.h"
+#include <ibamr/IBLagrangianForceStrategy.h>
 
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
+#include <ibtk/LData.h>
+#include <ibtk/LDataManager.h>
 
-#include "Box.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include <tbox/Array.h>
+#include <tbox/Pointer.h>
+
+#include <Box.h>
 
 namespace SAMRAI
 {

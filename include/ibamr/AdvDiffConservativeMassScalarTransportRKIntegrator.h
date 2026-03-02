@@ -19,7 +19,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibamr/config.h>
 
-#include "ibamr/STSMassFluxIntegrator.h"
+#include <ibamr/STSMassFluxIntegrator.h>
 
 namespace SAMRAI
 {

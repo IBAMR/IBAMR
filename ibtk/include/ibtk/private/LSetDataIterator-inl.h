@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LSetDataIterator.h"
+#include <ibtk/LSetDataIterator.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

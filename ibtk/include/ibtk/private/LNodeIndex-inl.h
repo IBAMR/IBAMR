@@ -20,9 +20,9 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LNodeIndex.h"
+#include <ibtk/LNodeIndex.h>
 
-#include "tbox/AbstractStream.h"
+#include <tbox/AbstractStream.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

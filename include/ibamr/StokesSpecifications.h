@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include "tbox/DescribedClass.h"
+#include <tbox/DescribedClass.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
