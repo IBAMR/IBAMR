@@ -1,0 +1,3 @@
+Changed: Reduced CMake warning noise by normalizing and deduplicating dependency link items, removing redundant rpath flags from PETSc/libMesh link lists, and treating external dependency headers as system includes in IBAMR target setup.
+<br>
+(Boyce Griffith + Codex, 2026/02/27)
