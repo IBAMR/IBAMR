@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
