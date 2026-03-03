@@ -14,11 +14,11 @@
 // APPLICATION INCLUDES
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetLSProperties.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "SetLSProperties.h"
 
 // C++ INCLUDES
 

@@ -15,13 +15,13 @@
 
 #include <ibtk/IndexUtilities.h>
 
-#include "TotalAmountRefineAndCoarsen.h"
-
 #include <CellVariable.h>
 
 #include <ibtk/app_namespaces.h>
 
 #include <ibtk/namespaces.h>
+
+#include "TotalAmountRefineAndCoarsen.h"
 
 namespace IBTK
 {

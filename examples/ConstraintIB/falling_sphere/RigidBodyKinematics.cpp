@@ -15,7 +15,6 @@
 
 #include <ibtk/IBTK_MPI.h>
 
-#include "RigidBodyKinematics.h"
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
 
@@ -24,6 +23,8 @@
 #include <string>
 
 #include <ibamr/namespaces.h>
+
+#include "RigidBodyKinematics.h"
 
 namespace IBAMR
 {

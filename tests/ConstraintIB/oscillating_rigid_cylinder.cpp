@@ -41,9 +41,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "OscillatingCylinderKinematics.h"
-
 #include "OscillatingCylinderKinematics.cpp"
+#include "OscillatingCylinderKinematics.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,

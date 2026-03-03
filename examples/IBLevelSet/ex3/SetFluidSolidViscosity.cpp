@@ -13,11 +13,11 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetFluidSolidViscosity.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "SetFluidSolidViscosity.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

@@ -13,13 +13,13 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "TagInterfaceRefinementCells.h"
-
 #include <BasePatchHierarchy.h>
 #include <CartesianGridGeometry.h>
 #include <PatchHierarchy.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "TagInterfaceRefinementCells.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

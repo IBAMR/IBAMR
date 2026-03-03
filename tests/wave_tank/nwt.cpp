@@ -53,9 +53,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LSLocateGasInterface.h"
-
 #include "LSLocateGasInterface.cpp"
+#include "LSLocateGasInterface.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,

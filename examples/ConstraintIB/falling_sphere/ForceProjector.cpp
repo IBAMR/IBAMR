@@ -13,7 +13,6 @@
 
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
 
-#include "ForceProjector.h"
 #include <tbox/Array.h>
 #include <tbox/PIO.h>
 
@@ -23,6 +22,8 @@
 #include <VariableDatabase.h>
 
 #include <ibamr/namespaces.h>
+
+#include "ForceProjector.h"
 
 namespace IBTK
 {

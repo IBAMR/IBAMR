@@ -13,11 +13,11 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "LSLocateFluidInterface.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "LSLocateFluidInterface.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

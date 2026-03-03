@@ -43,15 +43,14 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "BoussinesqForcing.h"
-#include "LevelSetInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "TagLSRefinementCells.h"
-
 #include "BoussinesqForcing.cpp"
+#include "BoussinesqForcing.h"
 #include "LevelSetInitialCondition.cpp"
+#include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.cpp"
+#include "SetFluidProperties.h"
 #include "TagLSRefinementCells.cpp"
+#include "TagLSRefinementCells.h"
 
 // Struct to specify the variables required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx

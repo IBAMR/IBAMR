@@ -13,11 +13,11 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "LSLocateLayerInterface.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "LSLocateLayerInterface.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

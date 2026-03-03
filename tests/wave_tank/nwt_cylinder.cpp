@@ -67,9 +67,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes.
-#include "LSLocateGasInterface.h"
-
 #include "LSLocateGasInterface.cpp"
+#include "LSLocateGasInterface.h"
 
 int coarsest_ln, max_finest_ln;
 double dx, ds;

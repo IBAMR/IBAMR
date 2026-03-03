@@ -54,51 +54,51 @@ UseTab: Never
 IncludeBlocks: Regroup
 IncludeCategories:
 # our config files are first:
-  - Regex: "(ibtk|ibamr)/config.h"
+  - Regex: "<(ibtk|ibamr)/config.h>"
     Priority: -1
 # app_namespaces.h is always last:
-  - Regex: "(ibtk|ibamr)/app_namespaces.h"
+  - Regex: "<(ibtk|ibamr)/app_namespaces.h>"
     Priority: 9999
 # so is namespaces.h:
-  - Regex: "(ibtk|ibamr)/namespaces.h"
+  - Regex: "<(ibtk|ibamr)/namespaces.h>"
     Priority: 10000
 # then the library:
-  - Regex: "ibamr/.*\\.h.$"
+  - Regex: "<ibamr/.*\\.h>"
     Priority: 10
-  - Regex: "ibtk/.*\\.h.$"
+  - Regex: "<ibtk/.*\\.h>"
     Priority: 20
 # silo has a limited number of headers so just hard-code it:
-  - Regex: "[<\"](ioperf\\.h|lite_pdb\\.h|lite_score\\.h|pmpio\\.h|silo_exports\\.h|silo\\.h)[\">]"
+  - Regex: "<(ioperf\\.h|lite_pdb\\.h|lite_score\\.h|pmpio\\.h|silo_exports\\.h|silo\\.h)>"
     Priority: 700
 # libMesh:
-  - Regex: "libmesh/"
+  - Regex: "<libmesh/.*\\.h>"
     Priority: 200
 # PETSc:
-  - Regex: "[<\"]petsc[a-z]*\\.h[>\"]$"
+  - Regex: "<petsc[a-z]*\\.h>"
     Priority: 300
 # HYPRE:
-  - Regex: "[<\"]HYPRE[a-z_]*\\.h[>\"]$"
+  - Regex: "<HYPRE[a-z_]*\\.h>"
     Priority: 350
 # other standardized headers:
   - Regex: "<[A-Za-z_]*\\.h>"
     Priority: 1000
 # boost:
-  - Regex: "boost/"
+  - Regex: "<boost/.*\\.hpp>"
     Priority: 400
 # eigen:
-  - Regex: "Eigen/"
+  - Regex: "<Eigen/.*>"
     Priority: 500
 # muParser:
-  - Regex: "muParser"
+  - Regex: "<muParser.h>"
     Priority: 600
 # standard library stuff
-  - Regex: "[\"<][a-z_]*[\">]"
+  - Regex: "<[a-z_]*>"
     Priority: 2000
 # SAMRAI (which goes after IBAMR). This is last since we have headers that are
 # not in a folder starting with the library's name:
-  - Regex: "[<\"][A-Z].*\\.h[>\"]$"
+  - Regex: "<[A-Z].*\\.h>"
     Priority: 100
-  - Regex: "[<\"]tbox/[A-Z].*\\.h[>\"]$"
+  - Regex: "<tbox/[A-Z].*\\.h>"
     Priority: 110
 
 SortIncludes: true

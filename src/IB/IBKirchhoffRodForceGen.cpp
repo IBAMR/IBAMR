@@ -41,6 +41,7 @@
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Geometry>
+
 #include <unsupported/Eigen/MatrixFunctions>
 IBTK_ENABLE_EXTRA_WARNINGS
 

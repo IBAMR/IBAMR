@@ -13,11 +13,11 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "LSLocateCircularInterface.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "LSLocateCircularInterface.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

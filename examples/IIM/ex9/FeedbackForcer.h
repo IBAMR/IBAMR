@@ -18,12 +18,12 @@
 
 #include <ibamr/INSHierarchyIntegrator.h>
 
-#include "BcData.h"
-
 #include <Patch.h>
 #include <Variable.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "BcData.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -39,9 +39,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "LevelSetInitialCondition1D.h"
-
 #include "LevelSetInitialCondition1D.cpp"
+#include "LevelSetInitialCondition1D.h"
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *

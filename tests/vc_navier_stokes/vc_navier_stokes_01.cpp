@@ -38,9 +38,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Applications
-#include "SetFluidProperties.h"
-
 #include "SetFluidProperties.cpp"
+#include "SetFluidProperties.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,

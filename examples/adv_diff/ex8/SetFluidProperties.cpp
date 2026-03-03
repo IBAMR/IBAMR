@@ -14,11 +14,11 @@
 // APPLICATION INCLUDES
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetFluidProperties.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+#include "SetFluidProperties.h"
 
 // C++ INCLUDES
 

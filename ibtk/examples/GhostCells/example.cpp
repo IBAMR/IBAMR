@@ -31,12 +31,12 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 
-#include "TotalAmountRefineAndCoarsen.h"
-
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
+
+#include "TotalAmountRefineAndCoarsen.h"
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
