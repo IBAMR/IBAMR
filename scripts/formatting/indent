@@ -28,10 +28,16 @@ source scripts/formatting/indent_common.sh
 checks
 
 #
-# Process all source and header files:
+# Ensure we use #include <header.h> and not #include "header.h" (this has to
+# come before format_file since that will fix header include orders)
 #
 
-rewrite_include_style_changed
+process_changed "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(cpp|h)" ensure_bracket_includes
+
+#
+# Process all source and header files:
+#
 
 process_changed "include src ibtk/include ibtk/src examples ibtk/examples tests" \
   ".*\.(cpp|h)" format_file
