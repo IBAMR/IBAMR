@@ -184,7 +184,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
                                                      const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_Q_var(Q_var),
-      d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
+      d_u_adv_var(new SideVariable<NDIM, double>(d_object_name + "::Complex U var")),
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)
 {
@@ -203,7 +203,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
                                                      const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_Q_var(Q_var),
-      d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
+      d_u_adv_var(new SideVariable<NDIM, double>(d_object_name + "::Complex U var")),
       d_convec_oper(convective_op),
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)

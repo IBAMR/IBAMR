@@ -106,7 +106,7 @@ main(int argc, char* argv[])
         }
         // Create body force function specification objects (when necessary).
         Pointer<CartGridFunctionSet> external_functions = new CartGridFunctionSet("ExternalFunctions");
-        Pointer<CFINSForcing> polymericStressForcing;
+        Pointer<CFINSForcing> polymericStressForcing, polymericStressForcing2;
         Pointer<CartGridFunction> f_fcn;
         if (input_db->keyExists("ForcingFunction"))
         {
@@ -124,6 +124,16 @@ main(int argc, char* argv[])
                                                       visit_data_writer);
 
             external_functions->addFunction(polymericStressForcing);
+        }
+        if (input_db->getBoolWithDefault("USE_2_CF", false))
+        {
+            polymericStressForcing2 = new CFINSForcing("PolymericStressForcing2",
+                                                       app_initializer->getComponentDatabase("ComplexFluid"),
+                                                       time_integrator,
+                                                       grid_geometry,
+                                                       adv_diff_integrator,
+                                                       visit_data_writer);
+            external_functions->addFunction(polymericStressForcing2);
         }
         time_integrator->registerBodyForceFunction(external_functions);
         // Initialize hierarchy configuration and data on all patches.
