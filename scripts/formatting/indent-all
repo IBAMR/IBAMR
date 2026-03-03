@@ -31,7 +31,10 @@ checks
 # Process all source and header files:
 #
 
-rewrite_include_style_all
+if should_rewrite_include_style; then
+  process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
+fi
 
 process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
   ".*\.(cpp|h)" format_file

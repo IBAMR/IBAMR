@@ -33,14 +33,6 @@ checks() {
     exit 1
   fi
 
-  if ! [ -x "$(command -v "python3")" ]; then
-    echo "***   Warning: no python3 program found."
-    echo "***   Include-style rewrite will be skipped for this indent run."
-    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=true
-  else
-    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=false
-  fi
-
   # Make sure to have the right version.
   CLANG_FORMAT_VERSION="$(clang-format --version)"
   CLANG_FORMAT_MAJOR_VERSION=$(echo "${CLANG_FORMAT_VERSION}" | sed 's/^[^0-9]*\([0-9]*\).*$/\1/g')
@@ -54,6 +46,14 @@ checks() {
     echo "***   script, or the 'scripts/formatting/compile-clang-format' script "
     echo "***   to install a compatible binary into 'scripts/formatting/programs'."
     exit 1
+  fi
+
+  if ! [ -x "$(command -v "python3")" ]; then
+    echo "***   Warning: no python3 program found."
+    echo "***   Include-style rewrite will be skipped for this indent run."
+    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=true
+  else
+    export IBAMR_SKIP_INCLUDE_STYLE_REWRITE=false
   fi
 }
 
@@ -291,22 +291,8 @@ rewrite_include_style_file()
 }
 export -f rewrite_include_style_file
 
-rewrite_include_style_changed()
+should_rewrite_include_style()
 {
-  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
-    return
-  fi
-  process_changed "include src ibtk/include ibtk/src examples ibtk/examples tests" \
-    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
+  [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" != "true" ]
 }
-export -f rewrite_include_style_changed
-
-rewrite_include_style_all()
-{
-  if [ "${IBAMR_SKIP_INCLUDE_STYLE_REWRITE:-false}" = "true" ]; then
-    return
-  fi
-  process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
-    ".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|tcc)" rewrite_include_style_file
-}
-export -f rewrite_include_style_all
+export -f should_rewrite_include_style
