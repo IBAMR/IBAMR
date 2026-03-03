@@ -47,9 +47,9 @@
 #include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibamr/app_namespaces.h>
 
 System&
 setup_deformation_system(ReplicatedMesh& mesh, EquationSystems& equation_systems, const libMesh::Order order)

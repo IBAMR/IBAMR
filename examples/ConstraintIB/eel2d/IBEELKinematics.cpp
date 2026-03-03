@@ -24,9 +24,9 @@
 #include <fstream>
 #include <iostream>
 
-#include <ibamr/namespaces.h>
-
 #include "IBEELKinematics.h"
+
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

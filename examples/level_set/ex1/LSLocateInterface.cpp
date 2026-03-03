@@ -15,9 +15,9 @@
 
 #include <CartesianGridGeometry.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "LSLocateInterface.h"
+
+#include <ibamr/app_namespaces.h>
 
 // Initialize the neighborhood of a circular interface.
 void

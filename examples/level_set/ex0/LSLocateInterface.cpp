@@ -15,9 +15,9 @@
 
 #include <CartesianGridGeometry.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "LSLocateInterface.h"
+
+#include <ibamr/app_namespaces.h>
 
 static const double init_positive = 1e8;
 static const double init_negative = -1e8;

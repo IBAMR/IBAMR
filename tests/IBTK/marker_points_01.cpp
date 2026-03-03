@@ -17,9 +17,9 @@
 
 #include <fstream>
 
-#include <ibtk/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibtk/app_namespaces.h>
 
 void
 test(MarkerPatch& marker_patch, std::ostream& output)

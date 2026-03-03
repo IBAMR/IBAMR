@@ -15,9 +15,9 @@
 
 #include <CartesianGridGeometry.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "SetFluidSolidDensity.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

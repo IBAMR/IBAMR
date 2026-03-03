@@ -17,9 +17,9 @@
 #include <CartesianGridGeometry.h>
 #include <PatchHierarchy.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "TagInterfaceRefinementCells.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

@@ -32,9 +32,9 @@
 // Set up application namespace declarations
 #include <boost/multi_array.hpp>
 
-#include <ibamr/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibamr/app_namespaces.h>
 
 // Verify that FEMapping and descendants output the same values as libMesh::FEMap.
 using key_type = quadrature_key_type;

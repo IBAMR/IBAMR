@@ -15,9 +15,9 @@
 
 #include <CartesianGridGeometry.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "LSLocateTrapezoidalInterface.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

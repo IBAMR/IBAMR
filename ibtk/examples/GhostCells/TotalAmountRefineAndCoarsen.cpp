@@ -17,11 +17,11 @@
 
 #include <CellVariable.h>
 
+#include "TotalAmountRefineAndCoarsen.h"
+
 #include <ibtk/app_namespaces.h>
 
 #include <ibtk/namespaces.h>
-
-#include "TotalAmountRefineAndCoarsen.h"
 
 namespace IBTK
 {

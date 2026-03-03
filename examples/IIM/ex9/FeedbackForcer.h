@@ -21,9 +21,9 @@
 #include <Patch.h>
 #include <Variable.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "BcData.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

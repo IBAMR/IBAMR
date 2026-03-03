@@ -16,9 +16,9 @@
 
 #include <CartesianGridGeometry.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "SetLSProperties.h"
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 

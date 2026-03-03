@@ -21,9 +21,9 @@
 #include <PatchLevel.h>
 #include <VariableDatabase.h>
 
-#include <ibamr/namespaces.h>
-
 #include "ForceProjector.h"
+
+#include <ibamr/namespaces.h>
 
 namespace IBTK
 {

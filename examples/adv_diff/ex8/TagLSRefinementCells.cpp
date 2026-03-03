@@ -16,9 +16,9 @@
 
 #include <fstream>
 
-#include <ibamr/app_namespaces.h>
-
 #include "TagLSRefinementCells.h"
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 

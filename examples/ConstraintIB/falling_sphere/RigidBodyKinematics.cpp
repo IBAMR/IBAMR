@@ -22,9 +22,9 @@
 
 #include <string>
 
-#include <ibamr/namespaces.h>
-
 #include "RigidBodyKinematics.h"
+
+#include <ibamr/namespaces.h>
 
 namespace IBAMR
 {

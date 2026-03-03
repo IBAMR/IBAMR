@@ -33,9 +33,9 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include "TagInterfaceRefinementCells.cpp"
+
+#include <ibamr/app_namespaces.h>
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *

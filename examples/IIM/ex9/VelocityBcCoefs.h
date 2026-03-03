@@ -22,9 +22,9 @@
 
 #include <RobinBcCoefStrategy.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "BcData.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
