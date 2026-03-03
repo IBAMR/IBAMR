@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/ibamr_enums.h>
+
 #include <tbox/Pointer.h>
 
 #include <petscao.h>
@@ -28,6 +30,7 @@
 #include <IntVector.h>
 #include <PoissonSpecifications.h>
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -60,6 +63,17 @@ class StaggeredStokesPETScMatUtilities
 {
 public:
     /*!
+     * \brief Patch-level maps used by coupling-aware ASM construction.
+     */
+    struct PatchLevelCellClosureMapData
+    {
+        std::map<int, std::set<int>> velocity_dof_to_adjacent_cell_dofs;
+        std::map<int, std::set<int>> cell_dof_to_closure_dofs;
+        std::map<int, int> velocity_dof_to_component_axis;
+        std::map<int, std::set<int>> velocity_dof_to_paired_seed_velocity_dofs;
+    };
+
+    /*!
      * \name Methods acting on SAMRAI::hier::PatchLevel and
      * SAMRAI::hier::Variable objects.
      */
@@ -80,19 +94,70 @@ public:
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
-     * \brief Partition the patch level into subdomains suitable to be used for
-     * additive Schwarz method.
+     * \brief Partition the patch level into geometrical subdomains suitable to
+     * be used for additive Schwarz method.
      */
-    static void
-    constructPatchLevelASMSubdomains(std::vector<std::set<int>>& is_overlap,
-                                     std::vector<std::set<int>>& is_nonoverlap,
-                                     const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                     const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                     const std::vector<int>& num_dofs_per_proc,
-                                     int u_dof_index_idx,
-                                     int p_dof_index_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
+    static void constructPatchLevelGeometricalASMSubdomains(
+        std::vector<std::set<int>>& is_overlap,
+        std::vector<std::set<int>>& is_nonoverlap,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary,
+        int p_dof_index_idx,
+        const SAMRAI::hier::IntVector<NDIM>& box_size,
+        const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+
+    /*!
+     * \brief Build all patch-level maps used by coupling-aware ASM into a
+     * reusable container.
+     */
+    static void buildPatchLevelCellClosureMaps(PatchLevelCellClosureMapData& map_data,
+                                               int u_dof_index_idx,
+                                               int p_dof_index_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Determine involved cells from A00 row sparsity and seed velocity
+     * DOFs.
+     */
+    static void findCoupledCellDofsFromA00(std::set<int>& involved_cell_dofs,
+                                           Mat A00_mat,
+                                           const std::set<int>& seed_velocity_dofs,
+                                           const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                           const std::map<int, std::set<int>>& cell_dof_to_closure_dofs);
+
+    /*!
+     * \brief Construct coupling-aware ASM subdomains from A00 sparsity.
+     *
+     * Subdomains are coupling-defined: overlap subdomains are generated from
+     * seed velocity DOFs (for the selected component axis) via A00-induced cell
+     * closures, and nonoverlap subdomains are then derived from overlap
+     * subdomains by removing overlaps.
+     */
+    static void constructPatchLevelCouplingAwareASMSubdomains(
+        std::vector<std::set<int>>& is_overlap,
+        std::vector<std::set<int>>& is_nonoverlap,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary,
+        Mat A00_mat,
+        const PatchLevelCellClosureMapData& map_data,
+        int seed_velocity_axis = 0,
+        int seed_velocity_stride = 1,
+        CouplingAwareASMClosurePolicy closure_policy = CouplingAwareASMClosurePolicy::RELAXED);
+
+    /*!
+     * \brief Extract the velocity-velocity block from a full A00 matrix using
+     * patch-level velocity field DOF indices.
+     */
+    static void constructA00VelocitySubmatrix(Mat& A00_velocity_mat,
+                                              Mat A00_mat,
+                                              const std::vector<int>& num_dofs_per_proc,
+                                              int u_dof_index_idx,
+                                              int p_dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
