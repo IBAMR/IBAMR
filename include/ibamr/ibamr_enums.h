@@ -51,6 +51,62 @@ enum_to_string(T /*val*/)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for coupling-aware ASM closure policy.
+ */
+enum class CouplingAwareASMClosurePolicy
+{
+    RELAXED = 0,
+    STRICT = 1,
+    UNKNOWN = -1
+};
+
+template <>
+inline CouplingAwareASMClosurePolicy
+string_to_enum<CouplingAwareASMClosurePolicy>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "RELAXED") == 0) return CouplingAwareASMClosurePolicy::RELAXED;
+    if (strcasecmp(val.c_str(), "STRICT") == 0) return CouplingAwareASMClosurePolicy::STRICT;
+    return CouplingAwareASMClosurePolicy::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val)
+{
+    if (val == CouplingAwareASMClosurePolicy::RELAXED) return "RELAXED";
+    if (val == CouplingAwareASMClosurePolicy::STRICT) return "STRICT";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for ASM subdomain construction mode.
+ */
+enum class ASMSubdomainConstructionMode
+{
+    GEOMETRICAL = 0,
+    COUPLING_AWARE = 1,
+    UNKNOWN = -1
+};
+
+template <>
+inline ASMSubdomainConstructionMode
+string_to_enum<ASMSubdomainConstructionMode>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "GEOMETRICAL") == 0) return ASMSubdomainConstructionMode::GEOMETRICAL;
+    if (strcasecmp(val.c_str(), "COUPLING_AWARE") == 0) return ASMSubdomainConstructionMode::COUPLING_AWARE;
+    return ASMSubdomainConstructionMode::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val)
+{
+    if (val == ASMSubdomainConstructionMode::GEOMETRICAL) return "GEOMETRICAL";
+    if (val == ASMSubdomainConstructionMode::COUPLING_AWARE) return "COUPLING_AWARE";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different convective differencing schemes.
  */
 enum ConvectiveDifferencingType
