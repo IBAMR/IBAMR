@@ -5,7 +5,7 @@ Focus on a staged roadmap to stabilize implicit IB, validate algorithmic corresp
 Use deterministic CMake tests as the main confidence signal, but treat milestone checks as directional goals rather than strict gates.
 
 ## Roadmap Record
-- Store and maintain roadmap at: `/Users/boyceg/code/IBAMR/doc/plans/implicit-ib/roadmap.md`
+- Store and maintain roadmap at: `plans/implicit-ib/roadmap.md`
 - Keep this file updated with:
 1. Current reference configs
 2. Milestones and status
@@ -14,20 +14,20 @@ Use deterministic CMake tests as the main confidence signal, but treat milestone
 
 ---
 
-## Current State (2026-03-01)
+## Current State (2026-03-04)
 1. Development is on branch `codex/implicit-ib-milestone-1`.
-2. Milestone 1 work is in-progress and currently under review (not yet merged).
+2. Milestone 1 work is complete on branch and under review in PR `#1887`.
 3. Reference implicit stabilization changes are applied in:
-   - `/Users/boyceg/code/IBAMR/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp`
-   - `/Users/boyceg/code/IBAMR/src/navier_stokes/INSStaggeredHierarchyIntegrator.cpp`
-   - `/Users/boyceg/code/IBAMR/include/ibamr/INSStaggeredHierarchyIntegrator.h`
+   - `src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp`
 4. A promoted finished reference implicit test is added in:
-   - `/Users/boyceg/code/IBAMR/tests/IB/implicit_stokes_ib_01.cpp`
-   - `/Users/boyceg/code/IBAMR/tests/IB/implicit_stokes_ib_01.baseline.input`
-   - `/Users/boyceg/code/IBAMR/tests/IB/implicit_stokes_ib_01.baseline.output`
-   - `/Users/boyceg/code/IBAMR/tests/CMakeLists.txt` (test registration)
-5. Focused validation currently passing:
+   - `tests/IB/implicit_stokes_ib_01.cpp`
+   - `tests/IB/implicit_stokes_ib_01.baseline.input`
+   - `tests/IB/implicit_stokes_ib_01.baseline.output`
+   - `tests/CMakeLists.txt` (test registration)
+5. Focused validation passing:
    - `attest -R 'IB/implicit_stokes_ib_01.baseline.input'`
+6. Expanded validation on the milestone-1 branch is passing:
+   - `attest -R '^IB/'` (all `IB` tests in current CMake build subset).
 
 ---
 
@@ -37,19 +37,16 @@ Clean up implicit IB implementation and land a focused stabilization PR that res
 
 ### Scope
 1. Remove accidental/debug artifacts that interfere with reference implicit solves.
-2. Stabilize the `IBImplicitHierarchyIntegrator` execution path and required INS-side plumbing.
+2. Stabilize the `IBImplicitStaggeredHierarchyIntegrator` execution path and required INS-side plumbing.
 3. Promote core reference implicit tests from unfinished/development status into finished attest-managed tests.
 4. Keep this milestone strictly reference-oriented (no new smoother feature development).
 
 ### Status
-- In progress.
-- Completed so far:
-1. Reference stabilization edits applied for `IBImplicitStaggeredHierarchyIntegrator` and `INSStaggeredHierarchyIntegrator` synchronization path.
+- Complete on this branch (PR open: `#1887`).
+- Completed:
+1. Reference stabilization edits applied for `IBImplicitStaggeredHierarchyIntegrator`.
 2. Reference finished implicit attest test added and passing in focused runs.
-3. Roadmap file created under `doc/`.
-- Remaining before closeout:
-1. Final review and cleanup of staged diffs.
-2. Land commit sequence and changelog entry for milestone 1.
+3. Roadmap file moved to top-level `plans/implicit-ib/`.
 
 ### Explicitly Deferred from M1
 1. Coupling-aware vs geometrical ASM behavior work.
@@ -59,7 +56,33 @@ Clean up implicit IB implementation and land a focused stabilization PR that res
 
 ---
 
-## Milestone 2 — Stokes infrastructure verification (without IB coupling)
+## Milestone 2 — Coupling-Aware Vanka (CAV) smoother implementation
+### Goal
+Implement coupling-aware Vanka smoother construction for implicit Stokes-IB solves using A00-sparsity-driven subdomain construction.
+
+### Scope
+1. Construct CAV subdomains from operator sparsity in a deterministic way.
+2. Keep geometric and CAV subdomain modes clearly separated (one or the other).
+3. Preserve required ASM overlap/nonoverlap structure for PETSc usage.
+4. Validate serial behavior first with focused deterministic tests and smoke runs.
+5. Keep implementation general enough for later parallel extension.
+
+### Status
+- Not started on this branch.
+
+### Delivery Plan (Stacked PRs)
+1. PR-A (base: M1):
+   - CAV subdomain construction utilities in `StaggeredStokesPETScMatUtilities`.
+   - Deterministic serial tests for sparsity-to-cells, cells-to-closure, strict/relaxed closure, and overlap/nonoverlap invariants.
+   - MATLAB parity audit document and mapping table for `extract_coupled_dofs(.m/.m2)` semantics.
+2. PR-B (stacked on PR-A):
+   - Solver wiring and input-driven mode selection for geometrical vs CAV construction.
+   - Serial integration/smoke checks and logging consistency updates.
+   - Status: in progress.
+
+---
+
+## Milestone 3 — Stokes infrastructure verification (without IB coupling)
 ### Goal
 Verify that Stokes-only infrastructure corresponds to basic Vanka-style multigrid behavior, including known special cases where strict CAV and classical Vanka should coincide.
 
@@ -73,7 +96,7 @@ Verify that Stokes-only infrastructure corresponds to basic Vanka-style multigri
 
 ---
 
-## Milestone 3 — RT0 prolongation validation
+## Milestone 4 — RT0 prolongation validation
 ### Goal
 Add confidence that RT0 prolongation is behaving as expected, especially divergence-related behavior for velocity transfer.
 
@@ -91,7 +114,7 @@ Add confidence that RT0 prolongation is behaving as expected, especially diverge
 
 ---
 
-## Milestone 4 — MATLAB parity for Stokes + IB
+## Milestone 5 — MATLAB parity for Stokes + IB
 ### Goal
 Build exact-comparison cases between IBAMR and MATLAB for Stokes+IB using programmatic structure generation, then identify and reduce discrepancies.
 
@@ -105,7 +128,7 @@ Build exact-comparison cases between IBAMR and MATLAB for Stokes+IB using progra
 
 ---
 
-## Milestone 5 — Bespoke Gauss-Seidel performance work
+## Milestone 6 — Bespoke Gauss-Seidel performance work
 ### Goal
 Improve performance of the custom GS-like smoother while preserving intended solver semantics.
 
@@ -119,7 +142,7 @@ Improve performance of the custom GS-like smoother while preserving intended sol
 
 ---
 
-## Milestone 6 — Parallel correctness and robustness
+## Milestone 7 — Parallel correctness and robustness
 ### Goal
 Extend current serial-validated behavior to parallel runs with consistent subdomain and solver behavior.
 
@@ -133,7 +156,7 @@ Extend current serial-validated behavior to parallel runs with consistent subdom
 
 ---
 
-## Milestone 7 — Kernel generalization beyond `IB_4`
+## Milestone 8 — Kernel generalization beyond `IB_4`
 ### Goal
 Generalize implementation to support additional IB kernel functions while preserving coupling-aware logic and solver correctness.
 
@@ -164,7 +187,7 @@ Flexible batching, with clear milestone intent:
    - avoid coupling-aware/classical-Vanka feature coverage in Milestone 1.
 
 ## Key Comparison Notes vs MATLAB
-- Deferred until Milestones 2 and 4.
+- Deferred until Milestones 3 and 5.
 - Current milestone does not treat MATLAB parity as a gate.
 
 ## PR History and Follow-up Items
@@ -175,3 +198,10 @@ Flexible batching, with clear milestone intent:
   - Summary: `<what changed>`
   - Validation: `<tests/runs>`
   - Follow-up: `<next tasks>`
+
+- Current active PR:
+  - PR: `https://github.com/IBAMR/IBAMR/pull/1887`
+  - Milestone: `M1`
+  - Summary: stabilize implicit hierarchy integrator path and promote a finished implicit attest test
+  - Validation: focused `IB/implicit_stokes_ib_01` runs and full `IB` subset attest runs
+  - Follow-up: merge milestone-1 branch, then begin milestone-2 work on stacked branch
