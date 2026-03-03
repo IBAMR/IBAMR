@@ -17,9 +17,9 @@
 
 #include <tbox/Logger.h>
 
-#include <ibtk/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibtk/app_namespaces.h>
 
 int
 main(int argc, char** argv)

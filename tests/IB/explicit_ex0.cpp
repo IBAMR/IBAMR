@@ -44,9 +44,9 @@
 // Set up application namespace declarations
 #include <array>
 
-#include <ibamr/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibamr/app_namespaces.h>
 
 int finest_ln;
 std::array<int, NDIM> N;

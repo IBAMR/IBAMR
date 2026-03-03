@@ -41,8 +41,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "OscillatingCylinderKinematics.h"
-
 #include "OscillatingCylinderKinematics.cpp"
 
 // Function prototypes

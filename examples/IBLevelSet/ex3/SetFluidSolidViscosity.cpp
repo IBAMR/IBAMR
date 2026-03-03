@@ -13,9 +13,9 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetFluidSolidViscosity.h"
-
 #include <CartesianGridGeometry.h>
+
+#include "SetFluidSolidViscosity.h"
 
 #include <ibamr/app_namespaces.h>
 

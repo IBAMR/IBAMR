@@ -40,8 +40,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "LevelSetInitialCondition.h"
-
 #include "LevelSetInitialCondition.cpp"
 
 void

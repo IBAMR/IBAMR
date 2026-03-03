@@ -13,7 +13,6 @@
 
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
 
-#include "ForceProjector.h"
 #include <tbox/Array.h>
 #include <tbox/PIO.h>
 
@@ -21,6 +20,8 @@
 #include <Patch.h>
 #include <PatchLevel.h>
 #include <VariableDatabase.h>
+
+#include "ForceProjector.h"
 
 #include <ibamr/namespaces.h>
 

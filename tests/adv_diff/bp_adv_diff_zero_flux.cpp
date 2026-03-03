@@ -39,8 +39,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "LevelSetInitialCondition1D.h"
-
 #include "LevelSetInitialCondition1D.cpp"
 
 /*******************************************************************************

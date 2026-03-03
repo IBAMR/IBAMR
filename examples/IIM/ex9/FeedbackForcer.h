@@ -18,10 +18,10 @@
 
 #include <ibamr/INSHierarchyIntegrator.h>
 
-#include "BcData.h"
-
 #include <Patch.h>
 #include <Variable.h>
+
+#include "BcData.h"
 
 #include <ibamr/app_namespaces.h>
 

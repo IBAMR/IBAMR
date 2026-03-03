@@ -15,13 +15,14 @@
 
 #include <ibtk/IBTK_MPI.h>
 
-#include "RigidBodyKinematics.h"
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
 
 #include <muParser.h>
 
 #include <string>
+
+#include "RigidBodyKinematics.h"
 
 #include <ibamr/namespaces.h>
 

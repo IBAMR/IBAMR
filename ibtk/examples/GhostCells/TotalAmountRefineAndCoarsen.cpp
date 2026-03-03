@@ -15,9 +15,9 @@
 
 #include <ibtk/IndexUtilities.h>
 
-#include "TotalAmountRefineAndCoarsen.h"
-
 #include <CellVariable.h>
+
+#include "TotalAmountRefineAndCoarsen.h"
 
 #include <ibtk/app_namespaces.h>
 

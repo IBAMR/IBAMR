@@ -31,9 +31,9 @@
 #include <ibtk/libmesh_utilities.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibamr/app_namespaces.h>
 
 template <int dim, libMesh::Order order, libMesh::FEFamily fe_family, libMesh::ElemType elem_type>
 void

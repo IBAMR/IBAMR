@@ -53,8 +53,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LSLocateGasInterface.h"
-
 #include "LSLocateGasInterface.cpp"
 
 // Function prototypes

@@ -38,8 +38,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Applications
-#include "SetFluidProperties.h"
-
 #include "SetFluidProperties.cpp"
 
 // Function prototypes

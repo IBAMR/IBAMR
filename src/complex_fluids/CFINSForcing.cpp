@@ -52,6 +52,7 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Cholesky>
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
+
 #include <unsupported/Eigen/MatrixFunctions>
 IBTK_ENABLE_EXTRA_WARNINGS
 

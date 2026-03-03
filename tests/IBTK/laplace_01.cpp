@@ -26,9 +26,9 @@
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
-#include <ibtk/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibtk/app_namespaces.h>
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *

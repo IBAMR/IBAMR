@@ -14,7 +14,6 @@
 //////////////////////////// INCLUDES /////////////////////////////////////////
 #include <ibtk/IBTK_MPI.h>
 
-#include "IBEELKinematics.h"
 #include <tbox/MathUtilities.h>
 
 #include <CartesianPatchGeometry.h>
@@ -24,6 +23,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+
+#include "IBEELKinematics.h"
 
 #include <ibamr/namespaces.h>
 

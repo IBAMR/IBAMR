@@ -13,9 +13,9 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "LSLocateStructureInterface.h"
-
 #include <CartesianGridGeometry.h>
+
+#include "LSLocateStructureInterface.h"
 
 #include <ibamr/app_namespaces.h>
 

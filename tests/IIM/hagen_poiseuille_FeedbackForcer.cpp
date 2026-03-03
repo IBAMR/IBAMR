@@ -17,6 +17,8 @@
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
 
+#include "hagen_poiseuille_FeedbackForcer.h"
+
 namespace
 {
 inline double

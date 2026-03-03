@@ -15,7 +15,6 @@
 
 #include <ibtk/IBTK_MPI.h>
 
-#include "IBEELKinematics3d.h"
 #include <tbox/MathUtilities.h>
 #include <tbox/Utilities.h>
 
@@ -27,6 +26,8 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+
+#include "IBEELKinematics3d.h"
 
 #include <ibamr/namespaces.h>
 

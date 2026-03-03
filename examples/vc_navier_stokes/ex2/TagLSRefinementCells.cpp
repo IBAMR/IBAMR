@@ -12,11 +12,11 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include "TagLSRefinementCells.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <fstream>
+
+#include "TagLSRefinementCells.h"
 
 #include <ibamr/app_namespaces.h>
 

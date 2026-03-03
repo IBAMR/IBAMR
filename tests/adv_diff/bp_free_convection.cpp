@@ -43,11 +43,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "BoussinesqForcing.h"
-#include "LevelSetInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "TagLSRefinementCells.h"
-
 #include "BoussinesqForcing.cpp"
 #include "LevelSetInitialCondition.cpp"
 #include "SetFluidProperties.cpp"

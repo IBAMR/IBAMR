@@ -20,9 +20,9 @@
 
 #include <ibtk/ibtk_utilities.h>
 
-#include "BcData.h"
-
 #include <RobinBcCoefStrategy.h>
+
+#include "BcData.h"
 
 #include <ibamr/app_namespaces.h>
 

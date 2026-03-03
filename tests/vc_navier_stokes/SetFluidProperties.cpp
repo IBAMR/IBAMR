@@ -15,9 +15,9 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetFluidProperties.h"
-
 #include <CartesianGridGeometry.h>
+
+#include "SetFluidProperties.h"
 
 #include <ibamr/app_namespaces.h>
 

@@ -50,8 +50,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes
-#include "LevelSetInitialConditionHexagram.h"
-
 #include "LevelSetInitialConditionHexagram.cpp"
 
 // Struct to specify the variables required for inhomogeneous Neumann conditions for Brinkman penalization

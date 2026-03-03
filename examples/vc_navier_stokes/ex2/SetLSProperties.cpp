@@ -14,9 +14,9 @@
 // APPLICATION INCLUDES
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetLSProperties.h"
-
 #include <CartesianGridGeometry.h>
+
+#include "SetLSProperties.h"
 
 #include <ibamr/app_namespaces.h>
 

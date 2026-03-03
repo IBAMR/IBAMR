@@ -23,9 +23,9 @@
 
 #include <SAMRAI_config.h>
 
-#include <ibamr/app_namespaces.h>
-
 #include "../tests.h"
+
+#include <ibamr/app_namespaces.h>
 
 using namespace IBAMR;
 using namespace IBTK;

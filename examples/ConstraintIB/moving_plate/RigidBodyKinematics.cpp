@@ -14,7 +14,6 @@
 //////////////////////////// INCLUDES /////////////////////////////////////////
 #include <ibtk/IBTK_MPI.h>
 
-#include "RigidBodyKinematics.h"
 #include <tbox/MathUtilities.h>
 
 #include <CartesianPatchGeometry.h>
@@ -24,6 +23,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+
+#include "RigidBodyKinematics.h"
 
 #include <ibamr/namespaces.h>
 
