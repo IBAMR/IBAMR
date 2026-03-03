@@ -165,6 +165,11 @@ SETUP_3D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
 SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
 SETUP_3D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_cav_shell_semantics.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_sparse_map_closure.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_patch_level_maps.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_matlab_relaxed_parity.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_matlab_strict_parity.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
 # physical_boundary:

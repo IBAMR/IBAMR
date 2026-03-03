@@ -1,0 +1,3 @@
+Main {
+   log_file_name = "output"
+}
