@@ -17,18 +17,19 @@
 #include <ibamr/RNG.h>
 
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Utilities.h>
-
-#include <ArrayData.h>
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <Patch.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
 
 #include <algorithm>
 #include <cmath>
@@ -54,8 +55,8 @@ static const unsigned SEED = 1234567;
 
 IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
                                          const int comp_idx,
-                                         Pointer<Database> input_db,
-                                         Pointer<CartesianGridGeometry<NDIM>> grid_geom)
+                                         Pointer<SAMRAIDatabase> input_db,
+                                         Pointer<SAMRAICartesianGridGeometry> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -159,18 +160,18 @@ IrregularWaveBcCoef::~IrregularWaveBcCoef()
 } // ~IrregularWaveBcCoef
 
 void
-IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
-                                Pointer<ArrayData<NDIM, double>>& bcoef_data,
-                                Pointer<ArrayData<NDIM, double>>& gcoef_data,
-                                const Pointer<Variable<NDIM>>& variable,
-                                const Patch<NDIM>& patch,
-                                const BoundaryBox<NDIM>& bdry_box,
+IrregularWaveBcCoef::setBcCoefs(Pointer<SAMRAIArrayData<double>>& acoef_data,
+                                Pointer<SAMRAIArrayData<double>>& bcoef_data,
+                                Pointer<SAMRAIArrayData<double>>& gcoef_data,
+                                const Pointer<SAMRAIVariable>& variable,
+                                const SAMRAIPatch& patch,
+                                const SAMRAIBoundaryBox& bdry_box,
                                 double fill_time) const
 {
     // Get pgeom info.
-    const Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const SAMRAIBox& patch_box = patch.getBox();
+    const SAMRAIIndex& patch_lower = patch_box.lower();
+    Pointer<SAMRAICartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
@@ -190,19 +191,19 @@ IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
     else
     {
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+        const SAMRAIBox& bc_coef_box = (acoef_data ? acoef_data->getBox() :
                                         bcoef_data ? bcoef_data->getBox() :
                                         gcoef_data ? gcoef_data->getBox() :
-                                                     Box<NDIM>());
+                                                     SAMRAIBox());
 #if !defined(NDEBUG)
         TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
         TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
         TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
 #endif
 
-        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+        for (SAMRAIBox::Iterator b(bc_coef_box); b; b++)
         {
-            const SAMRAI::hier::Index<NDIM>& i = b();
+            const SAMRAIIndex& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
@@ -242,7 +243,7 @@ IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+SAMRAIIntVector
 IrregularWaveBcCoef::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
@@ -251,9 +252,9 @@ IrregularWaveBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IrregularWaveBcCoef::getFromInput(Pointer<Database> input_db)
+IrregularWaveBcCoef::getFromInput(Pointer<SAMRAIDatabase> input_db)
 {
-    Pointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
+    Pointer<SAMRAIDatabase> wave_db = input_db->getDatabase("wave_parameters_db");
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db->isDatabase("wave_parameters_db"));
 #endif

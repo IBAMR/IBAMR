@@ -18,9 +18,12 @@
 #include <ibtk/Streamable.h>
 #include <ibtk/StreamableManager.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <tbox/AbstractStream.h>
-#include <tbox/Pointer.h>
+
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -58,10 +61,10 @@ IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream, const SAMRAIIntVector& /*offset*/)
 {
-    Pointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
+    SAMRAIPointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_kappa_target, 1);
     stream.unpack(&ret_val->d_eta_target, 1);

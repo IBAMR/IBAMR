@@ -14,16 +14,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/SideNoCornersFillPattern.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <BoxGeometry.h>
-#include <BoxList.h>
-#include <BoxOverlap.h>
-#include <IntVector.h>
-#include <SideGeometry.h>
-#include <SideOverlap.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxGeometry.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAIBoxOverlap.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideOverlap.h>
 
 #include <array>
 
@@ -49,56 +49,56 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width, cons
     return;
 } // SideNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM>>
-SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
+SAMRAIPointer<SAMRAIBoxOverlap>
+SideNoCornersFillPattern::calculateOverlap(const SAMRAIBoxGeometry& dst_geometry,
+                                           const SAMRAIBoxGeometry& src_geometry,
+                                           const SAMRAIBox& /*dst_patch_box*/,
+                                           const SAMRAIBox& src_mask,
                                            const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+                                           const SAMRAIIntVector& src_offset) const
 {
     return dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM>>
-SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
-                                                  const BoxGeometry<NDIM>& src_geometry,
-                                                  const Box<NDIM>& dst_patch_box,
-                                                  const Box<NDIM>& src_mask,
+SAMRAIPointer<SAMRAIBoxOverlap>
+SideNoCornersFillPattern::calculateOverlapOnLevel(const SAMRAIBoxGeometry& dst_geometry,
+                                                  const SAMRAIBoxGeometry& src_geometry,
+                                                  const SAMRAIBox& dst_patch_box,
+                                                  const SAMRAIBox& src_mask,
                                                   const bool overwrite_interior,
-                                                  const IntVector<NDIM>& src_offset,
+                                                  const SAMRAIIntVector& src_offset,
                                                   const int dst_level_num,
                                                   const int /*src_level_num*/) const
 {
     if (d_target_level_num == dst_level_num)
     {
-        Pointer<SideOverlap<NDIM>> default_overlap = dst_geometry.calculateOverlap(
+        SAMRAIPointer<SAMRAISideOverlap> default_overlap = dst_geometry.calculateOverlap(
             dst_geometry, src_geometry, src_mask, overwrite_interior, src_offset, /*retry*/ false);
 
         // If we are on the target level, we set up the stencil to include overlaps
         // only if this->d_overwrite_interior == true.
-        std::array<BoxList<NDIM>, NDIM> dst_boxes;
+        std::array<SAMRAIBoxList, NDIM> dst_boxes;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             dst_boxes[axis] = default_overlap->getDestinationBoxList(axis);
-            BoxList<NDIM> stencil_boxes;
-            auto dst_side_box = SideGeometry<NDIM>::toSideBox(dst_patch_box, axis);
+            SAMRAIBoxList stencil_boxes;
+            auto dst_side_box = SAMRAISideGeometry::toSideBox(dst_patch_box, axis);
             if (d_overwrite_interior) stencil_boxes.addItem(dst_side_box);
             for (int d = 0; d < NDIM; ++d)
             {
-                Box<NDIM> lower_box = dst_side_box;
+                SAMRAIBox lower_box = dst_side_box;
                 lower_box.lower(d) = dst_side_box.lower(d) - d_stencil_width(d);
                 lower_box.upper(d) = dst_side_box.lower(d) - 1;
                 stencil_boxes.addItem(lower_box);
 
-                Box<NDIM> upper_box = dst_side_box;
+                SAMRAIBox upper_box = dst_side_box;
                 upper_box.lower(d) = dst_side_box.upper(d) + 1;
                 upper_box.upper(d) = dst_side_box.upper(d) + d_stencil_width(d);
                 stencil_boxes.addItem(upper_box);
             }
             dst_boxes[axis].intersectBoxes(stencil_boxes);
         }
-        Pointer<SideOverlap<NDIM>> overlap = new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
+        SAMRAIPointer<SAMRAISideOverlap> overlap = new SAMRAISideOverlap(dst_boxes.data(), src_offset);
         return overlap;
     }
     else
@@ -114,7 +114,7 @@ SideNoCornersFillPattern::setTargetPatchLevelNumber(const int level_num)
     return;
 } // setTargetPatchLevelNumber
 
-IntVector<NDIM>&
+SAMRAIIntVector&
 SideNoCornersFillPattern::getStencilWidth()
 {
     return d_stencil_width;

@@ -23,11 +23,15 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/LSInitStrategy.h>
 
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <CellVariable.h>
+#include <tbox/DescribedClass.h>
+
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
 
 #include <limits>
 #include <string>
@@ -58,8 +62,8 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
+    LevelSetContainer(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                      SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
     {
@@ -67,8 +71,8 @@ public:
         return;
     } // LevelSetContainer
 
-    LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> ls_vars,
+    LevelSetContainer(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                      std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars,
                       double ncells = 1.0)
         : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
     {
@@ -91,19 +95,19 @@ public:
         return d_ncells;
     } // getInterfaceHalfWidth
 
-    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator() const
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator() const
     {
         return d_adv_diff_integrator;
     } // getAdvDiffHierarchyIntegrator
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> getLevelSetVariable(int idx = 0) const
+    SAMRAIPointer<SAMRAICellVariable<double>> getLevelSetVariable(int idx = 0) const
     {
         return d_ls_vars[idx];
     } // getLSVariable
 
 private:
-    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_ls_vars;
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
+    std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> d_ls_vars;
     double d_ncells = 1.0;
 };
 
@@ -116,8 +120,8 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    TagLSRefinementCells(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
+    TagLSRefinementCells(SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                         SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                          double tag_min_value = 0.0,
                          double tag_max_value = 0.0)
         : d_ls_container(adv_diff_integrator, ls_var), d_tag_min_value(tag_min_value), d_tag_max_value(tag_max_value)
@@ -172,7 +176,7 @@ private:
  *
  * \param ctx is the pointer to the TagLSRefinementCells class object.
  */
-void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+void tagLSCells(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                 const int level_number,
                 const double error_data_time,
                 const int tag_index,
@@ -184,7 +188,7 @@ void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hi
  * \brief A lightweight class that stores the current value of the Lagrange multiplier
  *  for the level set variable.
  */
-class LevelSetMassLossFixer : public SAMRAI::tbox::Serializable
+class LevelSetMassLossFixer : public SAMRAISerializable
 {
 public:
     /*!
@@ -193,14 +197,14 @@ public:
      * half_width.
      */
     LevelSetMassLossFixer(std::string object_name,
-                          SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> ls_vars,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
+                          SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                          std::vector<SAMRAIPointer<SAMRAICellVariable<double>>> ls_vars,
+                          SAMRAIPointer<SAMRAIDatabase> input_db = nullptr,
                           bool register_for_restart = true);
 
     ~LevelSetMassLossFixer();
 
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     const LevelSetContainer& getLevelSetContainer() const
     {
@@ -301,7 +305,7 @@ private:
 
     void getFromRestart();
 
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db);
 };
 
 /*!
@@ -378,7 +382,7 @@ public:
     /*!
      * The only constructor of this class.
      */
-    SetLSProperties(const std::string& object_name, SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops)
+    SetLSProperties(const std::string& object_name, SAMRAIPointer<IBAMR::LSInitStrategy> ls_ops)
         : d_object_name(object_name), d_ls_ops(ls_ops)
     {
         // intentionally left blank
@@ -394,7 +398,7 @@ public:
      * Set the level set value on the patch hierarchy
      */
     void setLSData(int ls_idx,
-                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                   SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                    const int integrator_step,
                    const double current_time,
                    const bool initial_time,
@@ -421,7 +425,7 @@ private:
      */
     std::string d_object_name;
 
-    SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
+    SAMRAIPointer<IBAMR::LSInitStrategy> d_ls_ops;
 
 }; // SetLSProperties
 
@@ -429,7 +433,7 @@ private:
  * \brief A function that sets or resets the level set data on the patch hierarchy
  */
 void setLSDataPatchHierarchy(int ls_idx,
-                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                             SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int integrator_step,
                              const double current_time,
                              const bool initial_time,

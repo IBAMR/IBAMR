@@ -22,12 +22,14 @@
 
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
+
+#include <SAMRAIArray.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
 
 #include <string>
 #include <utility>
@@ -51,7 +53,7 @@ namespace IBAMR
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-class ConstraintIBKinematics : public SAMRAI::tbox::Serializable
+class ConstraintIBKinematics : public SAMRAISerializable
 {
 public:
     class StructureParameters
@@ -60,7 +62,7 @@ public:
         /*!
          * \brief Constructor.
          */
-        StructureParameters(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
+        StructureParameters(SAMRAIPointer<SAMRAIDatabase> input_db, IBTK::LDataManager* l_data_manager);
 
         /*!
          * \brief Lagrangian point to tag on this structure.
@@ -73,7 +75,7 @@ public:
         /*!
          * \brief Get the unlocked components of translational momentum.
          */
-        inline SAMRAI::tbox::Array<int> getCalculateTranslationalMomentum() const
+        inline SAMRAIArray<int> getCalculateTranslationalMomentum() const
         {
             return d_calculate_trans_mom;
         } // getCalculateTranslationalMomentum
@@ -81,7 +83,7 @@ public:
         /*!
          * \brief Get the unlocked components of rotational momentum.
          */
-        inline SAMRAI::tbox::Array<int> getCalculateRotationalMomentum() const
+        inline SAMRAIArray<int> getCalculateRotationalMomentum() const
         {
             return d_calculate_rot_mom;
         } // getCalculateRotationalMomentum
@@ -148,7 +150,7 @@ public:
         std::vector<std::pair<int, int>> d_idx_range;
         int d_total_nodes;
         int d_tagged_pt_idx;
-        SAMRAI::tbox::Array<int> d_calculate_trans_mom, d_calculate_rot_mom;
+        SAMRAIArray<int> d_calculate_trans_mom, d_calculate_rot_mom;
         bool d_struct_is_self_translating, d_struct_is_self_rotating;
     };
 
@@ -156,7 +158,7 @@ public:
      * \brief Constructor.
      */
     ConstraintIBKinematics(std::string object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           SAMRAIPointer<SAMRAIDatabase> input_db,
                            IBTK::LDataManager* l_data_manager,
                            bool register_for_restart = true);
 
@@ -223,7 +225,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 protected:
     /*!

@@ -19,36 +19,37 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-#include <BasePatchHierarchy.h>
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CoarseFineBoundary.h>
-#include <FaceData.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchySideDataOpsReal.h>
-#include <Index.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <array>
 #include <limits>
@@ -78,14 +79,14 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_integrate;
-static Timer* t_initialize_integrator;
-static Timer* t_deallocate_integrator;
+static SAMRAITimer* t_apply_convective_operator;
+static SAMRAITimer* t_integrate;
+static SAMRAITimer* t_initialize_integrator;
+static SAMRAITimer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Database> input_db)
+STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db)
     : d_object_name(std::move(object_name)), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
 {
     if (input_db)
@@ -120,14 +121,15 @@ STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Da
     }
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
-                                                                                     "applyConvectiveOperator()");
-                  t_integrate = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::integrate("
-                                                                     ")");
-                  t_initialize_integrator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
-                                                                                 "initializeTimeIntegrator()");
-                  t_deallocate_integrator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
-                                                                                 "deallocateTimeIntegrator()"););
+    IBAMR_DO_ONCE(t_apply_convective_operator =
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
+                                                                 "applyConvectiveOperator()");
+                  t_integrate = SAMRAITimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::integrate("
+                                                                           ")");
+                  t_initialize_integrator = SAMRAITimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
+                                                                                       "initializeTimeIntegrator()");
+                  t_deallocate_integrator = SAMRAITimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
+                                                                                       "deallocateTimeIntegrator()"););
     return;
 } // STSMassFluxIntegrator
 
@@ -150,7 +152,7 @@ STSMassFluxIntegrator::setConvectiveDerivativePatchDataIndex(int N_idx)
 } // setConvectiveDerivativePatchDataIndex
 
 void
-STSMassFluxIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
+STSMassFluxIntegrator::setDensityBoundaryConditions(const std::vector<SAMRAIRobinBcCoefStrategy*>& rho_bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_bc_coefs.size() == NDIM);
@@ -237,14 +239,14 @@ STSMassFluxIntegrator::getTimeStepSize() const
 } // getTimeStepSize
 
 void
-STSMassFluxIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+STSMassFluxIntegrator::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 STSMassFluxIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;

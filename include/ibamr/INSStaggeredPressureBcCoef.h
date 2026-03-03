@@ -23,9 +23,15 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <IntVector.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIVariable.h>
 
 #include <vector>
 
@@ -79,7 +85,7 @@ public:
      * \brief Constructor.
      */
     INSStaggeredPressureBcCoef(const INSStaggeredHierarchyIntegrator* fluid_solver,
-                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                TractionBcType traction_bc_type,
                                bool homogeneous_bc = false);
 
@@ -94,7 +100,7 @@ public:
      *
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -204,12 +210,12 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& variable,
-                    const SAMRAI::hier::Patch<NDIM>& patch,
-                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
+                    const SAMRAIPointer<SAMRAIVariable>& variable,
+                    const SAMRAIPatch& patch,
+                    const SAMRAIBoundaryBox& bdry_box,
                     double fill_time = 0.0) const override;
 
     /*
@@ -227,7 +233,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
+    SAMRAIIntVector numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -268,7 +274,7 @@ private:
     /*
      * The boundary condition specification objects for the velocity.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_bc_coefs;
 };
 } // namespace IBAMR
 

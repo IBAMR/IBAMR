@@ -16,15 +16,15 @@
 #include <ibtk/LNode.h>
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LSetData.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <CellGeometry.h>
-#include <IndexData.h>
-#include <IndexDataFactory.h>
-#include <IndexVariable.h>
-#include <IntVector.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAIIndexData.h>
+#include <SAMRAIIndexDataFactory.h>
+#include <SAMRAIIndexVariable.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 #include <algorithm>
 #include <ostream>
@@ -41,8 +41,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
-    : IndexData<NDIM, LSet<T>, CellGeometry<NDIM>>(std::move(box), std::move(ghosts))
+LSetData<T>::LSetData(SAMRAIBox box, SAMRAIIntVector ghosts)
+    : SAMRAIIndexData<LSet<T>, SAMRAICellGeometry>(std::move(box), std::move(ghosts))
 {
     // intentionally blank
     return;

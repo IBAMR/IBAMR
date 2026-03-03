@@ -16,9 +16,14 @@
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBKinematics.h>
@@ -37,9 +42,9 @@ public:
      * \brief Constructor.
      */
     RigidBodyKinematics(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        SAMRAIPointer<SAMRAIDatabase> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> /*patch_hierarchy*/,
+                        SAMRAIPointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
                         bool register_for_restart = true)
         : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
           d_parser_time(0.0),

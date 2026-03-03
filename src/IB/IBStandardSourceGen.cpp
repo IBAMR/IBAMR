@@ -22,11 +22,13 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -64,8 +66,8 @@ std::vector<std::vector<double>> IBStandardSourceGen::s_source_radii;
 
 IBStandardSourceGen::IBStandardSourceGen()
 {
-    RestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    SAMRAIRestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
+    const bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
 } // IBStandardSourceGen
@@ -131,7 +133,7 @@ IBStandardSourceGen::getSourcePressures(const int ln) const
 } // getSourcePressures
 
 void
-IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardSourceGen::initializeLevelData(const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                          const int level_number,
                                          const double /*init_data_time*/,
                                          const bool /*initial_time*/,
@@ -157,7 +159,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*h
     d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (const auto& node_idx : local_nodes)
     {
@@ -172,7 +174,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*h
 } // initializeLevelData
 
 unsigned int
-IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardSourceGen::getNumSources(const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                    const int level_number,
                                    const double /*data_time*/,
                                    LDataManager* const /*l_data_manager*/)
@@ -186,8 +188,8 @@ IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM>> /*hierarc
 void
 IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                         std::vector<double>& r_src,
-                                        Pointer<LData> X_data,
-                                        const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                        SAMRAIPointer<LData> X_data,
+                                        const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const l_data_manager)
@@ -205,7 +207,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     // Determine the positions of the sources.
     std::fill(X_src.begin(), X_src.end(), Point::Zero());
     const double* const X_node = X_data->getLocalFormVecArray()->data();
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (const auto& node_idx : local_nodes)
     {
@@ -242,7 +244,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 
 void
 IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                        const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                        const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const /*l_data_manager*/)
@@ -253,7 +255,7 @@ IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 
 void
 IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                            const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                            const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                             const int level_number,
                                             const double /*data_time*/,
                                             LDataManager* const /*l_data_manager*/)
@@ -263,7 +265,7 @@ IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
 } // computeSourceStrengths
 
 void
-IBStandardSourceGen::putToDatabase(Pointer<Database> db)
+IBStandardSourceGen::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -306,8 +308,8 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 void
 IBStandardSourceGen::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase("IBStandardSourceGen")) // TODO: Make this ID string a variable.
     {
         db = restart_db->getDatabase("IBStandardSourceGen");

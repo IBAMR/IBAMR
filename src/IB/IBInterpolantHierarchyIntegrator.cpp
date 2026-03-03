@@ -25,29 +25,29 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_enums.h>
-
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <Eigen/Core>
 
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <GriddingAlgorithm.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchCellDataOpsReal.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <PatchSideDataOpsReal.h>
-#include <SideData.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchCellDataOpsReal.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPatchSideDataOpsReal.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAISideData.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <algorithm>
 #include <ostream>
@@ -79,11 +79,12 @@ static const int IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(std::string object_name,
-                                                                   Pointer<Database> input_db,
-                                                                   Pointer<IBLevelSetMethod> ib_ls_method_ops,
-                                                                   Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-                                                                   bool register_for_restart)
+IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(
+    std::string object_name,
+    SAMRAIPointer<SAMRAIDatabase> input_db,
+    SAMRAIPointer<IBLevelSetMethod> ib_ls_method_ops,
+    SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
+    bool register_for_restart)
     : IBHierarchyIntegrator(std::move(object_name),
                             input_db,
                             ib_ls_method_ops,
@@ -94,7 +95,7 @@ IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(std::string o
     d_ib_interpolant_method_ops = d_ib_ls_method_ops->getIBMethodOps();
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
 } // IBInterpolantHierarchyIntegrator
@@ -132,14 +133,14 @@ IBInterpolantHierarchyIntegrator::integrateHierarchySpecialized(const double cur
     // (3) Solve the fluid equations using the updated value of the scalar.
 
     // Move the mesh to new location.
-    Pointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
-    const std::vector<Pointer<BrinkmanPenalizationStrategy>>& brinkman_force =
+    SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
+    const std::vector<SAMRAIPointer<BrinkmanPenalizationStrategy>>& brinkman_force =
         vc_ins_integrator->getBrinkmanPenalizationStrategy();
     const std::size_t num_objects = brinkman_force.size();
     std::vector<Eigen::Vector3d> U(num_objects), W(num_objects);
     for (std::size_t k = 0; k < num_objects; ++k)
     {
-        Pointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
+        SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
         U[k] = rbd->getNewCOMTransVelocity();
         W[k] = rbd->getNewCOMRotVelocity();
     }
@@ -173,8 +174,8 @@ IBInterpolantHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 } // postprocessIntegrateHierarchy
 
 void
-IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
+IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                                SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -192,7 +193,7 @@ IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION", IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION);
@@ -204,8 +205,8 @@ IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 void
 IBInterpolantHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

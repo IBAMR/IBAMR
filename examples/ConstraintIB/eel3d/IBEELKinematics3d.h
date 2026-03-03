@@ -17,11 +17,12 @@
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
 #include <ibamr/ConstraintIBKinematics.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <PatchHierarchy.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <iostream>
 #include <vector>
@@ -47,9 +48,9 @@ public:
      * \brief Constructor.
      */
     IBEELKinematics3d(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      SAMRAIPointer<SAMRAIDatabase> input_db,
                       IBTK::LDataManager* l_data_manager,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                      SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                       bool register_for_restart = true);
 
     /*!
@@ -91,7 +92,7 @@ public:
     /*!
      * \brief Write state necessary for restarted runs.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
 private:
     /*!
@@ -123,7 +124,7 @@ private:
     /*!
      * \brief Set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
+    void setImmersedBodyLayout(SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy);
 
     /*!
      * \brief Set eel kinematics velocity.
@@ -166,7 +167,7 @@ private:
     /*!
      * Curvatures from input file.
      */
-    SAMRAI::tbox::Array<double> d_interp_coefs;
+    SAMRAIArray<double> d_interp_coefs;
 
     /*!
      * Tau tail from the input file.

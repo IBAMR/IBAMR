@@ -31,14 +31,7 @@
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/compare_types.h>
 #include <libmesh/tensor_value.h>
@@ -48,31 +41,38 @@
 
 #include <petscvec.h>
 
-#include <BasePatchHierarchy.h>
-#include <BasePatchLevel.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellIndex.h>
-#include <CellIterator.h>
-#include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <LoadBalancer.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineSchedule.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -163,19 +163,19 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+IMPMethod::IMPMethod(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db, bool register_for_restart)
     : d_ghosts(LEInteractor::getMinimumGhostWidth(KERNEL_FCN)), d_object_name(std::move(object_name))
 {
     // Set the object name and register it with the restart manager.
     d_registered_for_restart = false;
     if (register_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -194,14 +194,14 @@ IMPMethod::~IMPMethod()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
 } // ~IMPMethod
 
 void
-IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
+IMPMethod::registerLInitStrategy(SAMRAIPointer<LInitStrategy> l_initializer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
@@ -226,7 +226,7 @@ IMPMethod::getLDataManager() const
 } // getLDataManager
 
 void
-IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+IMPMethod::registerLSiloDataWriter(SAMRAIPointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -236,14 +236,14 @@ IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     return;
 } // registerLSiloDataWriter
 
-const IntVector<NDIM>&
+const SAMRAIIntVector&
 IMPMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
+IMPMethod::setupTagBuffer(SAMRAIArray<int>& tag_buffer, SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -374,23 +374,23 @@ IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/
 
 void
 IMPMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
-                               const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& u_synch_scheds,
+                               const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable<NDIM>> u_var;
+    SAMRAIPointer<SAMRAIVariable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    Pointer<SideVariable<NDIM, double>> u_sc_var = u_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> u_sc_var = u_var;
     const bool sc_data = u_sc_var;
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<Pointer<LData>>*U_data, *Grad_U_data, *X_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -409,7 +409,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
     *X_needs_ghost_fill = false;
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -420,25 +420,26 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_data_idx);
+            SAMRAIPointer<LNodeSetData> idx_data =
+                patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
-            Box<NDIM> side_boxes[NDIM];
+            SAMRAIBox side_boxes[NDIM];
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
+                side_boxes[axis] = SAMRAISideGeometry::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
             }
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const hier::Index<NDIM>& i = *it;
+                const SAMRAIIndex& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -450,7 +451,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
 
                     // Interpolate U and Grad U using a smoothed kernel
                     // function evaluated about X.
-                    Box<NDIM> stencil_box;
+                    SAMRAIBox stencil_box;
                     const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
                     std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
@@ -473,11 +474,11 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (SAMRAIBox::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const hier::Index<NDIM>& i = b();
-                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
-                            const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
+                            const SAMRAIIndex& i = b();
+                            const SAMRAIIndex i_shift = i - stencil_box.lower();
+                            const SAMRAISideIndex i_s(i, component, SAMRAISideIndex::Lower);
                             const double u = (*u_data)(i_s);
                             double w = 1.0;
                             for (unsigned int d = 0; d < NDIM; ++d)
@@ -529,7 +530,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData>>*U_data, *Grad_U_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -540,7 +541,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -586,7 +587,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData>>*U_data, *Grad_U_data;
+    std::vector<SAMRAIPointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -597,7 +598,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -640,7 +641,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData>>*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<SAMRAIPointer<LData>>*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -655,7 +656,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -698,14 +699,14 @@ IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData>>*X_data, *F_data;
+    std::vector<SAMRAIPointer<LData>>*X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& x_array = *(*X_data)[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& X_array = *d_X0_data[ln]->getVecArray();
@@ -760,17 +761,17 @@ IMPMethod::computeLagrangianForce(const double data_time)
 void
 IMPMethod::spreadForce(const int f_data_idx,
                        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                       const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                       const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*f_prolongation_scheds*/,
                        const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable<NDIM>> f_var;
+    SAMRAIPointer<SAMRAIVariable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<SideVariable<NDIM, double>> f_sc_var = f_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> f_sc_var = f_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(sc_data);
 
@@ -778,16 +779,16 @@ IMPMethod::spreadForce(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<NDIM, double>> f_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    SAMRAIPointer<SAMRAIHierarchyDataOpsReal<double>> f_data_ops =
+        SAMRAIHierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Synchronize Lagrangian values.
-    std::vector<Pointer<LData>>* X_data;
+    std::vector<SAMRAIPointer<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -803,22 +804,23 @@ IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Box<NDIM> side_boxes[NDIM];
-            for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAISideData<double>> f_data = patch->getPatchData(f_data_idx);
+            SAMRAIPointer<LNodeSetData> idx_data =
+                patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            const SAMRAIBox& patch_box = patch->getBox();
+            SAMRAIBox side_boxes[NDIM];
+            for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SAMRAISideGeometry::toSideBox(patch_box, d);
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -826,7 +828,7 @@ IMPMethod::spreadForce(const int f_data_idx,
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const hier::Index<NDIM>& i = *it;
+                const SAMRAIIndex& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -847,7 +849,7 @@ IMPMethod::spreadForce(const int f_data_idx,
 
                     // Weight tau using a smooth kernel function evaluated about
                     // X.
-                    Box<NDIM> stencil_box;
+                    SAMRAIBox stencil_box;
                     const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
                     std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
@@ -870,11 +872,11 @@ IMPMethod::spreadForce(const int f_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (SAMRAIBox::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const hier::Index<NDIM>& i = b();
-                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
-                            const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
+                            const SAMRAIIndex& i = b();
+                            const SAMRAIIndex i_shift = i - stencil_box.lower();
+                            const SAMRAISideIndex i_s(i, component, SAMRAISideIndex::Lower);
                             double f = 0.0;
                             for (unsigned int k = 0; k < NDIM; ++k)
                             {
@@ -910,7 +912,7 @@ IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -918,11 +920,11 @@ IMPMethod::spreadForce(const int f_data_idx,
 } // spreadForce
 
 void
-IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                    Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
+IMPMethod::initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                    SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg,
                                     int /*u_data_idx*/,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
-                                    const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
+                                    const std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>>& /*u_synch_scheds*/,
+                                    const std::vector<SAMRAIPointer<SAMRAIRefineSchedule>>& /*u_ghost_fill_scheds*/,
                                     int /*integrator_step*/,
                                     double /*init_data_time*/,
                                     bool initial_time)
@@ -949,7 +951,7 @@ IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void*
 } // registerPK1StressTensorFunction
 
 void
-IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer, int workload_data_idx)
+IMPMethod::registerLoadBalancer(SAMRAIPointer<SAMRAILoadBalancer> load_balancer, int workload_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -965,35 +967,35 @@ IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer, int w
 } // registerLoadBalancer
 
 void
-IMPMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
+IMPMethod::addWorkloadEstimate(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy, const int workload_data_idx)
 {
     d_l_data_manager->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
 } // addWorkloadEstimate
 
 void
-IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
-                                   Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
+IMPMethod::beginDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                   SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
 void
-IMPMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
-                                 Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
+IMPMethod::endDataRedistribution(SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+                                 SAMRAIPointer<SAMRAIGriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 } // endDataRedistribution
 
 void
-IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+IMPMethod::initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
                                bool initial_time,
-                               Pointer<BasePatchLevel<NDIM>> old_level,
+                               SAMRAIPointer<SAMRAIBasePatchLevel> old_level,
                                bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1004,11 +1006,12 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
-        Pointer<LData> F_data = d_l_data_manager->createLData("F",
-                                                              level_number,
-                                                              NDIM * NDIM,
-                                                              /*manage_data*/ true);
-        Pointer<LData> tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
+        SAMRAIPointer<LData> F_data = d_l_data_manager->createLData("F",
+                                                                    level_number,
+                                                                    NDIM * NDIM,
+                                                                    /*manage_data*/ true);
+        SAMRAIPointer<LData> tau_data =
+            d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
         if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("F0", F_data, 0 * NDIM, NDIM, level_number);
@@ -1024,7 +1027,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
         }
 
         // Initialize the deformation gradient and Kirchhoff stress.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_array = *F_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *tau_data->getLocalFormVecArray();
@@ -1045,7 +1048,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
 } // initializeLevelData
 
 void
-IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+IMPMethod::resetHierarchyConfiguration(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                        int coarsest_level,
                                        int finest_level)
 {
@@ -1057,14 +1060,14 @@ IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarc
 } // resetHierarchyConfiguration
 
 void
-IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+IMPMethod::applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> base_hierarchy,
                                  int level_number,
                                  double error_data_time,
                                  int tag_index,
                                  bool initial_time,
                                  bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1077,7 +1080,7 @@ IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarch
 } // applyGradientDetector
 
 void
-IMPMethod::putToDatabase(Pointer<Database> db)
+IMPMethod::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
     db->putInteger("IMP_METHOD_VERSION", IMP_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
@@ -1087,7 +1090,7 @@ IMPMethod::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IMPMethod::getPositionData(std::vector<Pointer<LData>>** X_data, bool** X_needs_ghost_fill, double data_time)
+IMPMethod::getPositionData(std::vector<SAMRAIPointer<LData>>** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1125,8 +1128,8 @@ IMPMethod::getPositionData(std::vector<Pointer<LData>>** X_data, bool** X_needs_
 } // getPositionData
 
 void
-IMPMethod::getVelocityData(std::vector<Pointer<LData>>** U_data,
-                           std::vector<Pointer<LData>>** Grad_U_data,
+IMPMethod::getVelocityData(std::vector<SAMRAIPointer<LData>>** U_data,
+                           std::vector<SAMRAIPointer<LData>>** Grad_U_data,
                            double data_time)
 {
     const int coarsest_ln = 0;
@@ -1166,7 +1169,7 @@ IMPMethod::getVelocityData(std::vector<Pointer<LData>>** U_data,
 } // getVelocityData
 
 void
-IMPMethod::getDeformationGradientData(std::vector<Pointer<LData>>** F_data, double data_time)
+IMPMethod::getDeformationGradientData(std::vector<SAMRAIPointer<LData>>** F_data, double data_time)
 {
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -1184,9 +1187,9 @@ IMPMethod::getDeformationGradientData(std::vector<Pointer<LData>>** F_data, doub
 } // getDeformationGradientData
 
 void
-IMPMethod::reinitMidpointData(const std::vector<Pointer<LData>>& current_data,
-                              const std::vector<Pointer<LData>>& new_data,
-                              const std::vector<Pointer<LData>>& half_data)
+IMPMethod::reinitMidpointData(const std::vector<SAMRAIPointer<LData>>& current_data,
+                              const std::vector<SAMRAIPointer<LData>>& new_data,
+                              const std::vector<SAMRAIPointer<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1203,7 +1206,7 @@ IMPMethod::reinitMidpointData(const std::vector<Pointer<LData>>& current_data,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+IMPMethod::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -1228,8 +1231,8 @@ IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 void
 IMPMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

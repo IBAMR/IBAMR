@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
-
-#include <tbox/Utilities.h>
 
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_fe_family.h>
@@ -36,6 +36,8 @@
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
 #include <libmesh/type_vector.h>
+
+#include <SAMRAIUtilities.h>
 
 #include <map>
 #include <vector>

@@ -22,10 +22,12 @@
 
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <PoissonSpecifications.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <string>
 #include <vector>
@@ -65,8 +67,8 @@ public:
      * Constructor.
      */
     PoissonFACPreconditioner(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                             SAMRAIPointer<SAMRAIDatabase> input_db,
                              std::string default_options_prefix);
 
     /*!
@@ -78,7 +80,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
+    void setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -90,7 +92,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef) override;
+    void setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -103,7 +105,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs) override;
 
 private:
     /*!

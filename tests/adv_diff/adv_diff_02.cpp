@@ -19,10 +19,27 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -38,10 +55,10 @@
 #include <ibamr/app_namespaces.h>
 
 // Dummy refine and coarsen operators
-class DummyCoarsen : public CoarsenOperator<NDIM>
+class DummyCoarsen : public SAMRAICoarsenOperator
 {
 public:
-    bool findCoarsenOperator(const Pointer<Variable<NDIM>>&, const std::string& op_name) const
+    bool findCoarsenOperator(const Pointer<SAMRAIVariable>&, const std::string& op_name) const
     {
         return op_name == s_op_name;
     }
@@ -56,16 +73,16 @@ public:
         return 0;
     }
 
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const
+    SAMRAIIntVector getStencilWidth() const
     {
         return 0;
     }
 
     void
-    coarsen(Patch<NDIM>& coarse, const Patch<NDIM>&, int dst_idx, int, const Box<NDIM>&, const IntVector<NDIM>&) const
+    coarsen(SAMRAIPatch& coarse, const SAMRAIPatch&, int dst_idx, int, const SAMRAIBox&, const SAMRAIIntVector&) const
     {
         pout << "Coarsening\n";
-        Pointer<CellData<NDIM, double>> data = coarse.getPatchData(dst_idx);
+        Pointer<SAMRAICellData<double>> data = coarse.getPatchData(dst_idx);
         data->fillAll(0.0);
         return;
     }
@@ -75,10 +92,10 @@ private:
 };
 const std::string DummyCoarsen::s_op_name = "DUMMY_COARSEN";
 
-class DummyRefine : public RefineOperator<NDIM>
+class DummyRefine : public SAMRAIRefineOperator
 {
 public:
-    bool findRefineOperator(const Pointer<Variable<NDIM>>&, const std::string& op_name) const
+    bool findRefineOperator(const Pointer<SAMRAIVariable>&, const std::string& op_name) const
     {
         return op_name == s_op_name;
     }
@@ -93,15 +110,15 @@ public:
         return 0;
     }
 
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const
+    SAMRAIIntVector getStencilWidth() const
     {
         return 0;
     }
 
-    void refine(Patch<NDIM>& fine, const Patch<NDIM>&, int dst_idx, int, const Box<NDIM>&, const IntVector<NDIM>&) const
+    void refine(SAMRAIPatch& fine, const SAMRAIPatch&, int dst_idx, int, const SAMRAIBox&, const SAMRAIIntVector&) const
     {
         pout << "Refining\n";
-        Pointer<CellData<NDIM, double>> data = fine.getPatchData(dst_idx);
+        Pointer<SAMRAICellData<double>> data = fine.getPatchData(dst_idx);
         data->fillAll(0.0);
         return;
     }
@@ -165,18 +182,18 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -194,8 +211,8 @@ main(int argc, char* argv[])
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -215,7 +232,7 @@ main(int argc, char* argv[])
         }
 
         // Set up the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double>> U_var = new CellVariable<NDIM, double>("U", NDIM);
+        Pointer<SAMRAICellVariable<double>> U_var = new SAMRAICellVariable<double>("U", NDIM);
         time_integrator->registerTransportedQuantity(U_var);
         time_integrator->setDiffusionCoefficient(U_var, input_db->getDouble("MU") / input_db->getDouble("RHO"));
         time_integrator->setInitialConditions(U_var, u_init);
@@ -223,14 +240,14 @@ main(int argc, char* argv[])
         if (test_refine_and_coarsen)
             time_integrator->setRefineAndCoarsenOperators(U_var, "DUMMY_REFINE", "DUMMY_COARSEN");
 
-        Pointer<FaceVariable<NDIM, double>> u_adv_var = new FaceVariable<NDIM, double>("u_adv");
+        Pointer<SAMRAIFaceVariable<double>> u_adv_var = new SAMRAIFaceVariable<double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         time_integrator->setAdvectionVelocity(U_var, u_adv_var);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CellVariable<NDIM, double>> F_var = new CellVariable<NDIM, double>("F", NDIM);
+            Pointer<SAMRAICellVariable<double>> F_var = new SAMRAICellVariable<double>("F", NDIM);
             Pointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
                 "F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
@@ -239,7 +256,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -319,7 +336,7 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
 
         const Pointer<VariableContext> U_ctx = time_integrator->getCurrentContext();
         const int U_idx = var_db->mapVariableAndContextToIndex(U_var, U_ctx);
@@ -339,7 +356,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(U_idx, U_idx, U_cloned_idx);
 
         const double l1_norm = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);

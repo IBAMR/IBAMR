@@ -25,11 +25,12 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <CellVariable.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 
@@ -67,7 +68,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesProjectionPreconditioner(const std::string& object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            SAMRAIPointer<SAMRAIDatabase> input_db,
                                             const std::string& default_options_prefix);
 
     /*!
@@ -79,10 +80,9 @@ public:
      * \brief Static function to construct a
      * StaggeredStokesProjectionPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAIPointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                                const std::string& default_options_prefix)
     {
         return new StaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -95,8 +95,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -115,8 +114,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                               const SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -179,10 +178,10 @@ private:
     StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Phi_var, d_F_Phi_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx = IBTK::invalid_index, d_F_Phi_idx = IBTK::invalid_index;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost

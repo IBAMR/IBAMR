@@ -16,10 +16,15 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/MergingLoadBalancer.h>
 #include <ibtk/box_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <Box.h>
-#include <PatchHierarchy.h>
-#include <ProcessorMapping.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIProcessorMapping.h>
 
 #include <memory>
 #include <string>
@@ -37,43 +42,43 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 void
 MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
-                                      hier::ProcessorMapping& mapping,
-                                      const hier::BoxList<NDIM>& in_boxes,
-                                      const tbox::Pointer<hier::PatchHierarchy<NDIM>> hierarchy,
+                                      SAMRAIProcessorMapping& mapping,
+                                      const SAMRAIBoxList& in_boxes,
+                                      const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                       int level_number,
                                       const hier::BoxArray<NDIM>& physical_domain,
-                                      const hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
-                                      const hier::IntVector<NDIM>& min_size,
-                                      const hier::IntVector<NDIM>& max_size,
-                                      const hier::IntVector<NDIM>& cut_factor,
-                                      const hier::IntVector<NDIM>& bad_interval) const
+                                      const SAMRAIIntVector& ratio_to_hierarchy_level_zero,
+                                      const SAMRAIIntVector& min_size,
+                                      const SAMRAIIntVector& max_size,
+                                      const SAMRAIIntVector& cut_factor,
+                                      const SAMRAIIntVector& bad_interval) const
 {
-    mesh::LoadBalancer<NDIM>::loadBalanceBoxes(out_boxes,
-                                               mapping,
-                                               in_boxes,
-                                               hierarchy,
-                                               level_number,
-                                               physical_domain,
-                                               ratio_to_hierarchy_level_zero,
-                                               min_size,
-                                               max_size,
-                                               cut_factor,
-                                               bad_interval);
+    SAMRAILoadBalancer::loadBalanceBoxes(out_boxes,
+                                         mapping,
+                                         in_boxes,
+                                         hierarchy,
+                                         level_number,
+                                         physical_domain,
+                                         ratio_to_hierarchy_level_zero,
+                                         min_size,
+                                         max_size,
+                                         cut_factor,
+                                         bad_interval);
 
     // pairs of processors and boxes
-    std::vector<std::pair<int, hier::Box<NDIM>>> new_boxes;
+    std::vector<std::pair<int, SAMRAIBox>> new_boxes;
 
     const int n_nodes = IBTK_MPI::getNodes();
     for (int r = 0; r < n_nodes; ++r)
     {
         // get all boxes on processor r.
-        std::vector<hier::Box<NDIM>> boxes;
+        std::vector<SAMRAIBox> boxes;
         for (int i = 0; i < out_boxes.size(); ++i)
             if (mapping.getProcessorAssignment(i) == r) boxes.push_back(out_boxes[i]);
 
         // populate new_boxes with merged boxes.
         const auto merged_boxes = IBTK::merge_boxes_by_longest_edge(boxes);
-        for (const hier::Box<NDIM>& box : merged_boxes) new_boxes.emplace_back(r, box);
+        for (const SAMRAIBox& box : merged_boxes) new_boxes.emplace_back(r, box);
     }
 
     // Overwrite what the parent class did with the merged boxes.

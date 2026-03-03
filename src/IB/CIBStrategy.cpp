@@ -17,8 +17,7 @@
 
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/MathUtilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscis.h>
 #include <petscistypes.h>
@@ -26,6 +25,8 @@
 #include <petscsys.h>
 
 #include <Eigen/Core>
+
+#include <SAMRAIMathUtilities.h>
 
 #include <algorithm>
 #include <memory>

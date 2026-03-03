@@ -1,0 +1,3 @@
+Completed SAMRAI compatibility-layer adoption across IBTK/IBAMR sources, examples, and tests, including compatibility header infrastructure, conversion tooling, build-system integration, CMake rewrite targets for alias adoption, and finalized migration workflow documentation.
+<br>
+(Boyce Griffith and Codex, 2026/02/26)

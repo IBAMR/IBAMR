@@ -21,6 +21,9 @@
 #include <ibtk/config.h>
 
 #include <ibtk/LSetDataIterator.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIIndex.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -130,7 +133,7 @@ LSetDataIterator<T>::getDataItem() const
 } // getDataItem
 
 template <class T>
-inline const SAMRAI::hier::Index<NDIM>&
+inline const SAMRAIIndex&
 LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();

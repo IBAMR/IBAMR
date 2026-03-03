@@ -18,14 +18,14 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScSNESFunctionGOWrapper.h>
-
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscvec.h>
 
-#include <Box.h>
 #include <MultiblockDataTranslator.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 #include <mpi.h>
 
 #include <string>
@@ -79,13 +79,13 @@ PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
 } // getPETScSNESFunctionContext
 
 void
-PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+PETScSNESFunctionGOWrapper::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double>>(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&y, false));
 
     // Apply the operator.
     int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
@@ -94,8 +94,8 @@ PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVecto
 } // apply
 
 void
-PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                    const SAMRAIVectorReal<NDIM, double>& out)
+PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                                    const SAMRAISAMRAIVectorReal<double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");

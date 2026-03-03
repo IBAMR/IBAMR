@@ -19,11 +19,34 @@
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAINodeData.h>
+#include <SAMRAINodeIndex.h>
+#include <SAMRAINodeIterator.h>
+#include <SAMRAINodeVariable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -32,11 +55,6 @@
 #include <ibtk/muParserCartGridFunction.h>
 
 #include "TotalAmountRefineAndCoarsen.h"
-
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
@@ -63,16 +81,16 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector = new SAMRAIStandardTagAndInitialize(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -92,20 +110,20 @@ main(int argc, char* argv[])
 
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        Pointer<CellVariable<NDIM, double>> Q_var = new CellVariable<NDIM, double>("Q");
-        Pointer<NodeVariable<NDIM, double>> N_var = new NodeVariable<NDIM, double>("Q Node");
+        Pointer<SAMRAICellVariable<double>> Q_var = new SAMRAICellVariable<double>("Q");
+        Pointer<SAMRAINodeVariable<double>> N_var = new SAMRAINodeVariable<double>("Q Node");
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = SAMRAIVariableDatabase::getDatabase();
         // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
         const int Q_tot_idx =
-            var_db->registerVariableAndContext(Q_var, var_db->getContext("Total Amount"), IntVector<NDIM>(1));
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("Total Amount"), SAMRAIIntVector(1));
         const int N_1_idx = var_db->registerVariableAndContext(N_var, var_db->getContext("Method 1"));
         const int N_2_idx = var_db->registerVariableAndContext(N_var, var_db->getContext("Method 2"));
         // Average amount patch index. Note we need a single ghost cell width.
         const int Q_avg_idx =
-            var_db->registerVariableAndContext(Q_var, var_db->getContext("Average Amount"), IntVector<NDIM>(1));
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("Average Amount"), SAMRAIIntVector(1));
         // Output some components
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = new VisItDataWriter<NDIM>(
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = new SAMRAIVisItDataWriter(
             "data writer", app_initializer->getComponentDatabase("Main")->getString("viz_dump_dirname"));
         visit_data_writer->registerPlotQuantity("Q_total", "SCALAR", Q_tot_idx);
         visit_data_writer->registerPlotQuantity("Q_avg", "SCALAR", Q_avg_idx);
@@ -116,7 +134,7 @@ main(int argc, char* argv[])
         int coarsest_ln = 0, finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_tot_idx);
             level->allocatePatchData(N_1_idx);
             level->allocatePatchData(N_2_idx);
@@ -130,17 +148,17 @@ main(int argc, char* argv[])
         // Note that CartGridFunction will fill in cell concentrations, we must manually convert this to cell amounts
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 double cell_volume = 1.0;
                 for (int d = 0; d < NDIM; ++d) cell_volume *= dx[d];
-                Pointer<CellData<NDIM, double>> Q_avg_data = patch->getPatchData(Q_avg_idx);
-                Pointer<CellData<NDIM, double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
-                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                Pointer<SAMRAICellData<double>> Q_avg_data = patch->getPatchData(Q_avg_idx);
+                Pointer<SAMRAICellData<double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
+                for (SAMRAICellIterator ci(patch->getBox()); ci; ci++)
                 {
                     (*Q_tot_data)(ci()) = (*Q_avg_data)(ci()) * cell_volume;
                 }
@@ -166,37 +184,37 @@ main(int argc, char* argv[])
         // We have ghost cells filled in. We need to convert back to cell totals. We then interpoate to the nodes
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 double cell_volume = 1.0;
                 for (int d = 0; d < NDIM; ++d) cell_volume *= dx[d];
-                Pointer<CellData<NDIM, double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
-                Pointer<CellData<NDIM, double>> Q_avg_data = patch->getPatchData(Q_avg_idx);
+                Pointer<SAMRAICellData<double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
+                Pointer<SAMRAICellData<double>> Q_avg_data = patch->getPatchData(Q_avg_idx);
                 // Note we loop over the ghost box to convert the ghost cells as well.
-                for (CellIterator<NDIM> ci(Q_tot_data->getGhostBox()); ci; ci++)
+                for (SAMRAICellIterator ci(Q_tot_data->getGhostBox()); ci; ci++)
                 {
-                    const CellIndex<NDIM>& idx = ci();
+                    const SAMRAICellIndex& idx = ci();
                     (*Q_tot_data)(idx) = (*Q_avg_data)(idx)*cell_volume;
                 }
 
                 // Now interpolate to the nodes
-                Pointer<NodeData<NDIM, double>> Q_node_data = patch->getPatchData(N_1_idx);
-                for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                Pointer<SAMRAINodeData<double>> Q_node_data = patch->getPatchData(N_1_idx);
+                for (SAMRAINodeIterator ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM>& idx = ni();
+                    const SAMRAINodeIndex& idx = ni();
                     (*Q_node_data)(idx) = 0.0;
-                    const CellIndex<NDIM> c_idx(idx);
+                    const SAMRAICellIndex c_idx(idx);
                     // We need neighboring cell indices
                     for (int i = 0; i < 2; ++i)
                         for (int j = 0; j < 2; ++j)
 #if (NDIM == 3)
                             for (int k = 0; k < 2; ++k)
 #endif
-                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVector<NDIM>(i,
+                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - SAMRAIIntVector(i,
                                                                                                     j
 #if (NDIM == 3)
                                                                                                     ,
@@ -218,15 +236,15 @@ main(int argc, char* argv[])
          * 3) Fill a coarsen schedule with the coarsen algorithm
          * 4) To actually coarsen data, use coarsen schedule -> coarsen data()
          */
-        Pointer<CoarsenOperator<NDIM>> coarsen_op =
+        Pointer<SAMRAICoarsenOperator> coarsen_op =
             grid_geometry->lookupCoarsenOperator(Q_var, "AMOUNT_CONSTANT_COARSEN");
-        Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        Pointer<SAMRAICoarsenAlgorithm> coarsen_alg = new SAMRAICoarsenAlgorithm();
         coarsen_alg->registerCoarsen(Q_tot_idx, Q_tot_idx, coarsen_op);
-        std::vector<Pointer<CoarsenSchedule<NDIM>>> coarsen_scheds(finest_ln + 1);
+        std::vector<Pointer<SAMRAICoarsenSchedule>> coarsen_scheds(finest_ln + 1);
         for (int ln = coarsest_ln + 1; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM>> coarser_level = patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> coarser_level = patch_hierarchy->getPatchLevel(ln - 1);
             coarsen_scheds[ln] = coarsen_alg->createSchedule(coarser_level, level);
         }
         /* Set Refine Algorithms. This interpolates data onto finer grid
@@ -236,13 +254,13 @@ main(int argc, char* argv[])
          * 3) Fill a refine schedule with the refine algorithm
          * 4) Invoke fill data() inside refine schedule
          */
-        Pointer<RefineOperator<NDIM>> refine_op = grid_geometry->lookupRefineOperator(Q_var, "AMOUNT_CONSTANT_REFINE");
-        Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
+        Pointer<SAMRAIRefineOperator> refine_op = grid_geometry->lookupRefineOperator(Q_var, "AMOUNT_CONSTANT_REFINE");
+        Pointer<SAMRAIRefineAlgorithm> refine_alg = new SAMRAIRefineAlgorithm();
         refine_alg->registerRefine(Q_tot_idx, Q_tot_idx, Q_tot_idx, refine_op);
-        std::vector<Pointer<RefineSchedule<NDIM>>> refine_scheds(finest_ln + 1);
+        std::vector<Pointer<SAMRAIRefineSchedule>> refine_scheds(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             refine_scheds[ln] = refine_alg->createSchedule(level, ln - 1, patch_hierarchy, nullptr);
         }
         // We refine data first, then coarsen
@@ -253,17 +271,17 @@ main(int argc, char* argv[])
         // We have ghost cells filled in. We need to convert back to cell totals. We then interpoate to the nodes
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+            for (SAMRAIPatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
+                Pointer<SAMRAIPatch> patch = level->getPatch(p());
+                Pointer<SAMRAICellData<double>> Q_tot_data = patch->getPatchData(Q_tot_idx);
                 // Now interpolate to the nodes
-                Pointer<NodeData<NDIM, double>> Q_node_data = patch->getPatchData(N_2_idx);
-                for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                Pointer<SAMRAINodeData<double>> Q_node_data = patch->getPatchData(N_2_idx);
+                for (SAMRAINodeIterator ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM>& idx = ni();
-                    const CellIndex<NDIM> c_idx(idx);
+                    const SAMRAINodeIndex& idx = ni();
+                    const SAMRAICellIndex c_idx(idx);
                     (*Q_node_data)(idx) = 0.0;
                     // We need neighboring cell indices
                     for (int i = 0; i < 2; ++i)
@@ -271,7 +289,7 @@ main(int argc, char* argv[])
 #if (NDIM == 3)
                             for (int k = 0; k < 2; ++k)
 #endif
-                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVector<NDIM>(i,
+                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - SAMRAIIntVector(i,
                                                                                                     j
 #if (NDIM == 3)
                                                                                                     ,
@@ -287,7 +305,7 @@ main(int argc, char* argv[])
         // Deallocate patch data
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_tot_idx);
             level->deallocatePatchData(N_1_idx);
             level->deallocatePatchData(N_2_idx);

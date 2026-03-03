@@ -13,8 +13,13 @@
 
 // Config files
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideOverlap.h>
 #include <SAMRAI_config.h>
-#include <SideGeometry.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -37,13 +42,13 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "side_no_corners_pattern.log");
 
     const int N = 10;
-    Box<NDIM> dst_box, src_box;
+    SAMRAIBox dst_box, src_box;
     for (int d = 0; d < NDIM; ++d)
     {
         dst_box.lower(d) = 0;
         dst_box.upper(d) = N - 1;
     }
-    const IntVector<NDIM> axes = 1;
+    const SAMRAIIntVector axes = 1;
     const int gcw = 1;
     SideNoCornersFillPattern no_corners_pattern(/*stencil_width*/ gcw, /*overwrite_interior*/ false);
     SideNoCornersFillPattern no_corners_pattern_interior(/*stencil_width*/ gcw, /*overwrite_interior*/ true);
@@ -70,18 +75,18 @@ main(int argc, char* argv[])
                 tbox::plog << "dst_box: " << dst_box << "\n";
                 tbox::plog << "src_box: " << src_box << "\n";
 
-                SideGeometry<NDIM> dst_geometry(dst_box, gcw, axes);
-                SideGeometry<NDIM> src_geometry(src_box, gcw, axes);
-                Box<NDIM> src_mask = src_box;
+                SAMRAISideGeometry dst_geometry(dst_box, gcw, axes);
+                SAMRAISideGeometry src_geometry(src_box, gcw, axes);
+                SAMRAIBox src_mask = src_box;
 
-                Pointer<SideOverlap<NDIM>> overlap;
+                Pointer<SAMRAISideOverlap> overlap;
 
                 tbox::plog << "default overlap, overwrite_interior == false:\n";
                 overlap = dst_geometry.calculateOverlap(dst_geometry,
                                                         src_geometry,
                                                         src_mask,
                                                         /*overwrite_interior*/ false,
-                                                        /*src_offset*/ IntVector<NDIM>(0),
+                                                        /*src_offset*/ SAMRAIIntVector(0),
                                                         /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -94,7 +99,7 @@ main(int argc, char* argv[])
                                                         src_geometry,
                                                         src_mask,
                                                         /*overwrite_interior*/ true,
-                                                        /*src_offset*/ IntVector<NDIM>(0),
+                                                        /*src_offset*/ SAMRAIIntVector(0),
                                                         /*retry*/ false);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -110,7 +115,7 @@ main(int argc, char* argv[])
                                                                      dst_box,
                                                                      src_mask,
                                                                      /*overwrite_interior*/ false,
-                                                                     /*src_offset*/ IntVector<NDIM>(0),
+                                                                     /*src_offset*/ SAMRAIIntVector(0),
                                                                      dst_level_num,
                                                                      src_level_num);
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -125,7 +130,7 @@ main(int argc, char* argv[])
                                                                               dst_box,
                                                                               src_mask,
                                                                               /*overwrite_interior*/ true,
-                                                                              /*src_offset*/ IntVector<NDIM>(0),
+                                                                              /*src_offset*/ SAMRAIIntVector(0),
                                                                               dst_level_num,
                                                                               src_level_num);
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -142,7 +147,7 @@ main(int argc, char* argv[])
                                                                      dst_box,
                                                                      src_mask,
                                                                      /*overwrite_interior*/ false,
-                                                                     /*src_offset*/ IntVector<NDIM>(0),
+                                                                     /*src_offset*/ SAMRAIIntVector(0),
                                                                      dst_level_num - 1,
                                                                      src_level_num - 1);
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -157,7 +162,7 @@ main(int argc, char* argv[])
                                                                               dst_box,
                                                                               src_mask,
                                                                               /*overwrite_interior*/ true,
-                                                                              /*src_offset*/ IntVector<NDIM>(0),
+                                                                              /*src_offset*/ SAMRAIIntVector(0),
                                                                               dst_level_num - 1,
                                                                               src_level_num - 1);
                 for (int axis = 0; axis < NDIM; ++axis)

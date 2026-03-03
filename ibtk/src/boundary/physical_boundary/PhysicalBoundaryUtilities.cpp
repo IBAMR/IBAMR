@@ -14,15 +14,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <Patch.h>
-#include <PatchGeometry.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBoundaryLookupTable.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <algorithm>
 
@@ -99,7 +100,7 @@ namespace IBTK
 bool
 PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable<NDIM>* const bdry_lookup_table = BoundaryLookupTable<NDIM>::getLookupTable();
+    const SAMRAIBoundaryLookupTable* const bdry_lookup_table = SAMRAIBoundaryLookupTable::getLookupTable();
 
     if (codim == NDIM) return bdry_lookup_table->isLower(loc, codim, direction);
 
@@ -138,7 +139,7 @@ PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 bool
 PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable<NDIM>* const bdry_lookup_table = BoundaryLookupTable<NDIM>::getLookupTable();
+    const SAMRAIBoundaryLookupTable* const bdry_lookup_table = SAMRAIBoundaryLookupTable::getLookupTable();
 
     if (codim == NDIM) return bdry_lookup_table->isUpper(loc, codim, direction);
 
@@ -174,36 +175,36 @@ PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     return false;
 } // isUpper
 
-Array<BoundaryBox<NDIM>>
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch<NDIM>& patch)
+SAMRAIArray<SAMRAIBoundaryBox>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const SAMRAIPatch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
-Array<BoundaryBox<NDIM>>
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch<NDIM>& patch)
+SAMRAIArray<SAMRAIBoundaryBox>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const SAMRAIPatch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
 } // getPhysicalBoundaryCodim2Boxes
 
-Array<BoundaryBox<NDIM>>
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch<NDIM>& patch)
+SAMRAIArray<SAMRAIBoundaryBox>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const SAMRAIPatch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);
 } // getPhysicalBoundaryCodim3Boxes
 
-BoundaryBox<NDIM>
-PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_box, const Patch<NDIM>& patch)
+SAMRAIBoundaryBox
+PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const SAMRAIBoundaryBox& bdry_box, const SAMRAIPatch& patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Trim a boundary box so it does not stick out past the corners of a patch.
-    const Box<NDIM>& b_box = bdry_box.getBox();
-    const Box<NDIM>& patch_box = patch.getBox();
+    const SAMRAIBox& b_box = bdry_box.getBox();
+    const SAMRAIBox& patch_box = patch.getBox();
     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
 
-    Box<NDIM> trimmed_b_box = b_box;
+    SAMRAIBox trimmed_b_box = b_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
@@ -212,18 +213,18 @@ PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_b
             trimmed_b_box.upper()[d] = std::min(b_box.upper()[d], patch_box.upper()[d]);
         }
     }
-    const BoundaryBox<NDIM> trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+    const SAMRAIBoundaryBox trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
     return trimmed_bdry_box;
 } // trimBoundaryCodim1Box
 
-Box<NDIM>
-PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_box)
+SAMRAIBox
+PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const SAMRAIBoundaryBox& bdry_box)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Make surface box on boundary.
-    Box<NDIM> side_bdry_box = bdry_box.getBox();
+    SAMRAIBox side_bdry_box = bdry_box.getBox();
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool bdry_lower_side = (location_index % 2) == 0;

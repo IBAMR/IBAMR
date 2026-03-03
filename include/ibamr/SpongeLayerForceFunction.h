@@ -21,13 +21,18 @@
 #include <ibamr/config.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Array.h>
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
-#include <PatchLevel.h>
+#include <SAMRAIArray.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAIVariable.h>
 
 #include <array>
 #include <string>
@@ -73,9 +78,9 @@ public:
      * \brief Constructor.
      */
     SpongeLayerForceFunction(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAIPointer<SAMRAIDatabase> input_db,
                              const INSHierarchyIntegrator* fluid_solver,
-                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry);
+                             SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -96,12 +101,11 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                        SAMRAIPointer<SAMRAIVariable> var,
+                        SAMRAIPointer<SAMRAIPatch> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
+                        SAMRAIPointer<SAMRAIPatchLevel> level = SAMRAIPointer<SAMRAIPatchLevel>(nullptr)) override;
 
     //\}
 
@@ -136,25 +140,25 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> U_current_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> U_new_data,
+    void setDataOnPatchCell(SAMRAIPointer<SAMRAICellData<double>> F_data,
+                            SAMRAIPointer<SAMRAICellData<double>> U_current_data,
+                            SAMRAIPointer<SAMRAICellData<double>> U_new_data,
                             double kappa,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch);
+                            SAMRAIPointer<SAMRAIPatch> patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> U_current_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> U_new_data,
+    void setDataOnPatchSide(SAMRAIPointer<SAMRAISideData<double>> F_data,
+                            SAMRAIPointer<SAMRAISideData<double>> U_current_data,
+                            SAMRAIPointer<SAMRAISideData<double>> U_new_data,
                             double kappa,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch);
+                            SAMRAIPointer<SAMRAIPatch> patch);
 
-    std::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
+    std::array<SAMRAIArray<bool>, 2 * NDIM> d_forcing_enabled;
     std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geometry;
 };
 } // namespace IBAMR
 

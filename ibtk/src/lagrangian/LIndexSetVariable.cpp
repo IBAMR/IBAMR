@@ -17,8 +17,10 @@
 #include <ibtk/LIndexSetVariable.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LNodeIndex.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <Variable.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 #include <utility>
@@ -35,7 +37,7 @@ namespace IBTK
 
 template <class T>
 LIndexSetVariable<T>::LIndexSetVariable(std::string name)
-    : Variable<NDIM>(std::move(name), new LIndexSetDataFactory<T>(IntVector<NDIM>(0)))
+    : SAMRAIVariable(std::move(name), new LIndexSetDataFactory<T>(SAMRAIIntVector(0)))
 {
     // intentionally blank
     return;

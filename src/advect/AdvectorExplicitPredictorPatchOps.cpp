@@ -16,19 +16,20 @@
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
 #include <ibamr/ibamr_enums.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <ArrayData.h>
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <FaceData.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <Patch.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <limits>
 #include <ostream>
@@ -501,7 +502,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                                                     Pointer<Database> input_db,
+                                                                     SAMRAIPointer<SAMRAIDatabase> input_db,
                                                                      const bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
@@ -512,11 +513,11 @@ AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::
 
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     // Initialize object with data read from given input/restart databases.
-    bool is_from_restart = RestartManager::getManager()->isFromRestart();
+    bool is_from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
     return;
@@ -526,7 +527,7 @@ AdvectorExplicitPredictorPatchOps::~AdvectorExplicitPredictorPatchOps()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
 } // ~AdvectorExplicitPredictorPatchOps
@@ -538,20 +539,20 @@ AdvectorExplicitPredictorPatchOps::getName() const
 } // getName
 
 double
-AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, double>& u_ADV,
-                                                          const Patch<NDIM>& patch) const
+AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const SAMRAIFaceData<double>& u_ADV,
+                                                          const SAMRAIPatch& patch) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAIIntVector& u_ghost_cells = u_ADV.getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
 
@@ -587,10 +588,10 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
 } // computeStableDtOnPatch
 
 void
-AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, double>& N,
-                                                              const FaceData<NDIM, double>& u_ADV,
-                                                              const FaceData<NDIM, double>& q_half,
-                                                              const Patch<NDIM>& patch) const
+AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(SAMRAICellData<double>& N,
+                                                              const SAMRAIFaceData<double>& u_ADV,
+                                                              const SAMRAIFaceData<double>& q_half,
+                                                              const SAMRAIPatch& patch) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
@@ -601,15 +602,15 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, dou
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
-    const IntVector<NDIM>& N_ghost_cells = N.getGhostCellWidth();
+    const SAMRAIIntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAIIntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAIIntVector& N_ghost_cells = N.getGhostCellWidth();
 
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
@@ -661,10 +662,10 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, dou
 } // computeAdvectiveDerivative
 
 void
-AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
-                                               const FaceData<NDIM, double>& u_ADV,
-                                               const FaceData<NDIM, double>& q_half,
-                                               const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::computeFlux(SAMRAIFaceData<double>& flux,
+                                               const SAMRAIFaceData<double>& u_ADV,
+                                               const SAMRAIFaceData<double>& q_half,
+                                               const SAMRAIPatch& patch,
                                                const double dt) const
 {
 #if !defined(NDEBUG)
@@ -676,12 +677,12 @@ AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& flux_ghost_cells = flux.getGhostCellWidth();
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAIIntVector& flux_ghost_cells = flux.getGhostCellWidth();
+    const SAMRAIIntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAIIntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
@@ -736,10 +737,10 @@ AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
 } // computeFlux
 
 void
-AdvectorExplicitPredictorPatchOps::predictValue(FaceData<NDIM, double>& q_half,
-                                                const FaceData<NDIM, double>& u_ADV,
-                                                const CellData<NDIM, double>& Q,
-                                                const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predictValue(SAMRAIFaceData<double>& q_half,
+                                                const SAMRAIFaceData<double>& u_ADV,
+                                                const SAMRAICellData<double>& Q,
+                                                const SAMRAIPatch& patch,
                                                 const double dt) const
 {
     predict(q_half, u_ADV, Q, patch, dt);
@@ -747,11 +748,11 @@ AdvectorExplicitPredictorPatchOps::predictValue(FaceData<NDIM, double>& q_half,
 } // predictValue
 
 void
-AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                              const FaceData<NDIM, double>& u_ADV,
-                                                              const CellData<NDIM, double>& Q,
-                                                              const CellData<NDIM, double>& F,
-                                                              const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(SAMRAIFaceData<double>& q_half,
+                                                              const SAMRAIFaceData<double>& u_ADV,
+                                                              const SAMRAICellData<double>& Q,
+                                                              const SAMRAICellData<double>& F,
+                                                              const SAMRAIPatch& patch,
                                                               const double dt) const
 {
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
@@ -759,53 +760,53 @@ AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<NDIM, dou
 } // predictValueWithSourceTerm
 
 void
-AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>& v_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& V,
-                                                         const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predictNormalVelocity(SAMRAIFaceData<double>& v_half,
+                                                         const SAMRAIFaceData<double>& u_ADV,
+                                                         const SAMRAICellData<double>& V,
+                                                         const SAMRAIPatch& patch,
                                                          const double dt) const
 {
-    FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
+    SAMRAIFaceData<double> v_half_tmp(v_half.getBox(), NDIM, SAMRAIIntVector(FACEG));
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        ArrayData<NDIM, double>& v_half_arr = v_half.getArrayData(axis);
-        const ArrayData<NDIM, double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
-        const Box<NDIM> box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
+        SAMRAIArrayData<double>& v_half_arr = v_half.getArrayData(axis);
+        const SAMRAIArrayData<double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
+        const SAMRAIBox box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
 } // predictNormalVelocity
 
 void
-AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(FaceData<NDIM, double>& v_half,
-                                                                       const FaceData<NDIM, double>& u_ADV,
-                                                                       const CellData<NDIM, double>& V,
-                                                                       const CellData<NDIM, double>& F,
-                                                                       const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(SAMRAIFaceData<double>& v_half,
+                                                                       const SAMRAIFaceData<double>& u_ADV,
+                                                                       const SAMRAICellData<double>& V,
+                                                                       const SAMRAICellData<double>& F,
+                                                                       const SAMRAIPatch& patch,
                                                                        const double dt) const
 {
-    FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
+    SAMRAIFaceData<double> v_half_tmp(v_half.getBox(), NDIM, SAMRAIIntVector(FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        ArrayData<NDIM, double>& v_half_arr = v_half.getArrayData(axis);
-        const ArrayData<NDIM, double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
-        const Box<NDIM> box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
+        SAMRAIArrayData<double>& v_half_arr = v_half.getArrayData(axis);
+        const SAMRAIArrayData<double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
+        const SAMRAIBox box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
 } // predictNormalVelocityWithSourceTerm
 
 void
-AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, double>& v_half,
-                                                            const FaceData<NDIM, double>& u_ADV,
-                                                            const FaceData<NDIM, double>& grad_phi,
-                                                            const Patch<NDIM>& patch) const
+AdvectorExplicitPredictorPatchOps::enforceIncompressibility(SAMRAIFaceData<double>& v_half,
+                                                            const SAMRAIFaceData<double>& u_ADV,
+                                                            const SAMRAIFaceData<double>& grad_phi,
+                                                            const SAMRAIPatch& patch) const
 {
 #if (NDIM != 1)
 
@@ -821,11 +822,11 @@ AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, doubl
 #else
     NULL_USE(u_ADV);
 #endif
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
-    const IntVector<NDIM>& v_half_ghost_cells = v_half.getGhostCellWidth();
+    const SAMRAIIntVector& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
+    const SAMRAIIntVector& v_half_ghost_cells = v_half.getGhostCellWidth();
 
     for (unsigned int depth = 0; depth < NDIM; ++depth)
     {
@@ -909,7 +910,7 @@ AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
 } // getNumberFluxGhosts
 
 void
-AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
+AdvectorExplicitPredictorPatchOps::putToDatabase(SAMRAIPointer<SAMRAIDatabase> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -925,10 +926,10 @@ AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
-                                           const FaceData<NDIM, double>& u_ADV,
-                                           const CellData<NDIM, double>& Q,
-                                           const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predict(SAMRAIFaceData<double>& q_half,
+                                           const SAMRAIFaceData<double>& u_ADV,
+                                           const SAMRAICellData<double>& Q,
+                                           const SAMRAIPatch& patch,
                                            const double dt) const
 {
 #if !defined(NDEBUG)
@@ -940,23 +941,23 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAIIntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAIIntVector& Q_ghost_cells = Q.getGhostCellWidth();
+    const SAMRAIIntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-    CellData<NDIM, double> dQ(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_L(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_R(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
-    FaceData<NDIM, double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
+    SAMRAICellData<double> dQ(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_L(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_R(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAIFaceData<double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
 #if (NDIM > 2)
-    CellData<NDIM, double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
 #endif
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
@@ -1103,11 +1104,11 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
 } // predict
 
 void
-AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& Q,
-                                                         const CellData<NDIM, double>& F,
-                                                         const Patch<NDIM>& patch,
+AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(SAMRAIFaceData<double>& q_half,
+                                                         const SAMRAIFaceData<double>& u_ADV,
+                                                         const SAMRAICellData<double>& Q,
+                                                         const SAMRAICellData<double>& F,
+                                                         const SAMRAIPatch& patch,
                                                          const double dt) const
 {
 #if !defined(NDEBUG)
@@ -1122,26 +1123,26 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const SAMRAIIndex& ilower = patch.getBox().lower();
+    const SAMRAIIndex& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
-    const IntVector<NDIM>& F_ghost_cells = F.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const SAMRAIIntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const SAMRAIIntVector& Q_ghost_cells = Q.getGhostCellWidth();
+    const SAMRAIIntVector& F_ghost_cells = F.getGhostCellWidth();
+    const SAMRAIIntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-    CellData<NDIM, double> dQ(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_L(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_R(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> F_temp1(patch.getBox(), 1, F_ghost_cells);
-    FaceData<NDIM, double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
+    SAMRAICellData<double> dQ(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_L(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_R(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> F_temp1(patch.getBox(), 1, F_ghost_cells);
+    SAMRAIFaceData<double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
 #if (NDIM > 2)
-    CellData<NDIM, double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> F_temp2(patch.getBox(), 1, F_ghost_cells);
+    SAMRAICellData<double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
+    SAMRAICellData<double> F_temp2(patch.getBox(), 1, F_ghost_cells);
 #endif
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
@@ -1308,7 +1309,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
 } // predictWithSourceTerm
 
 void
-AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+AdvectorExplicitPredictorPatchOps::getFromInput(SAMRAIPointer<SAMRAIDatabase> db, bool /*is_from_restart*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1327,9 +1328,9 @@ AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_
 void
 AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
-    Pointer<Database> root_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<SAMRAIDatabase> root_db = SAMRAIRestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    SAMRAIPointer<SAMRAIDatabase> db;
 
     if (root_db->isDatabase(d_object_name))
     {

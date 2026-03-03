@@ -20,10 +20,14 @@
 
 #include <ibamr/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
 #include <petscmat.h>
+
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -86,7 +90,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    virtual void initializeLevelData(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool initial_time,
@@ -102,10 +106,10 @@ public:
      * \note A default implementation is provided that results in an assertion
      * failure.
      */
-    virtual void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    virtual void computeLagrangianForce(SAMRAIPointer<IBTK::LData> F_data,
+                                        SAMRAIPointer<IBTK::LData> X_data,
+                                        SAMRAIPointer<IBTK::LData> U_data,
+                                        SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager);
@@ -118,12 +122,11 @@ public:
      * \note A default implementation is provided that results in an assertion
      * failure.
      */
-    virtual void
-    computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
-                                                   std::vector<int>& o_nnz,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                                                   int level_number,
-                                                   IBTK::LDataManager* l_data_manager);
+    virtual void computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
+                                                                std::vector<int>& o_nnz,
+                                                                SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                                                int level_number,
+                                                                IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -138,10 +141,10 @@ public:
     virtual void computeLagrangianForceJacobian(Mat& J_mat,
                                                 MatAssemblyType assembly_type,
                                                 double X_coef,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                                SAMRAIPointer<IBTK::LData> X_data,
                                                 double U_coef,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                                SAMRAIPointer<IBTK::LData> U_data,
+                                                SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                 int level_number,
                                                 double data_time,
                                                 IBTK::LDataManager* l_data_manager);
@@ -153,9 +156,9 @@ public:
      * \note A default implementation is provided that results in an assertion
      * failure.
      */
-    virtual double computeLagrangianEnergy(SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                           SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    virtual double computeLagrangianEnergy(SAMRAIPointer<IBTK::LData> X_data,
+                                           SAMRAIPointer<IBTK::LData> U_data,
+                                           SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                            int level_number,
                                            double data_time,
                                            IBTK::LDataManager* l_data_manager);

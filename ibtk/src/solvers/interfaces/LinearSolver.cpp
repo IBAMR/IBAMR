@@ -14,11 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/LinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <ostream>
 #include <vector>
@@ -49,7 +49,7 @@ LinearSolver::~LinearSolver()
 
 void
 LinearSolver::setNullSpace(const bool nullspace_containsconstant_vec,
-                           const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
+                           const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>& nullspace_basis_vecs)
 {
     d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
     d_nullspace_basis_vecs = nullspace_basis_vecs;
@@ -69,7 +69,7 @@ LinearSolver::getNullSpaceContainsConstantVector() const
     return d_nullspace_contains_constant_vec;
 } // getNullSpaceContainsConstantVector
 
-const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>&
+const std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>>&
 LinearSolver::getNullSpaceBasisVectors() const
 {
     return d_nullspace_basis_vecs;

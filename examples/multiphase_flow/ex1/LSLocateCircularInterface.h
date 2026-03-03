@@ -20,8 +20,10 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPointer.h>
 
 namespace IBTK
 {
@@ -33,7 +35,7 @@ class HierarchyMathOps;
  */
 
 void callLSLocateCircularInterfaceCallbackFunction(int D_idx,
-                                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                   SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                    double time,
                                                    bool initial_time,
                                                    void* ctx);
@@ -56,8 +58,8 @@ public:
      * The only constructor of this class.
      */
     LSLocateCircularInterface(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
+                              SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                              SAMRAIPointer<SAMRAICellVariable<double>> ls_var,
                               CircularInterface* init_circle);
 
     /*!
@@ -69,7 +71,7 @@ public:
      * Reinitialize the level set information
      */
     void setLevelSetPatchData(int D_idx,
-                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                              SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                               const double time,
                               const bool initial_time);
 
@@ -97,12 +99,12 @@ private:
     /*!
      * Pointer to the advection-diffusion solver
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_ls_var;
 
     /*!
      * Initial level set information.

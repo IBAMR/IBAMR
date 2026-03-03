@@ -26,11 +26,13 @@
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeSetData.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <vector>
 
@@ -60,20 +62,20 @@ class WallForceEvaluator : public IBLagrangianForceStrategy
 {
 public:
     // Constructor.
-    WallForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry);
+    WallForceEvaluator(SAMRAIPointer<SAMRAIDatabase> input_db,
+                       SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry);
 
     // Register a WallForceFcnPtr to be used by all walls.
     void registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn);
 
     // add a wall to the WallForceEvaluator
-    void addWall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db, double wall_ghost_dist);
+    void addWall(SAMRAIPointer<SAMRAIDatabase> wall_db, double wall_ghost_dist);
 
     // compute forces from all walls
-    void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    void computeLagrangianForce(SAMRAIPointer<IBTK::LData> F_data,
+                                SAMRAIPointer<IBTK::LData> X_data,
+                                SAMRAIPointer<IBTK::LData> U_data,
+                                const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -92,7 +94,7 @@ private:
     std::vector<Wall> d_walls_vec;
 
     // grid geometry, used when making walls:
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geometry;
 };
 } // namespace IBAMR
 

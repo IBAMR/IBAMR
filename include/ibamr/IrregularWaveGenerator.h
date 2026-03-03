@@ -22,7 +22,10 @@
 
 #include <ibamr/StokesWaveGeneratorStrategy.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <fstream>
 #include <limits>
@@ -45,7 +48,7 @@ namespace IBAMR
 class IrregularWaveGenerator : public StokesWaveGeneratorStrategy
 {
 public:
-    IrregularWaveGenerator(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IrregularWaveGenerator(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * Get surface elevation at a specified horizontal position and time.
@@ -66,7 +69,7 @@ private:
     /*!
      * Get wave parameters from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> db);
 
     ///
     /// Number of component waves with random phases to be generated (default = 50).

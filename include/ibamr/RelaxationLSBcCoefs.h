@@ -21,12 +21,16 @@
 #include <ibamr/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
-#include <RobinBcCoefStrategy.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 
@@ -63,7 +67,7 @@ namespace IBAMR
  * RobinBcCoefStrategy that is used to specify fixed Dirichlet boundary conditions
  * for the level set function during reinitialization step.
  */
-class RelaxationLSBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class RelaxationLSBcCoefs : public SAMRAIRobinBcCoefStrategy
 {
 public:
     /*!
@@ -119,12 +123,12 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& variable,
-                    const SAMRAI::hier::Patch<NDIM>& patch,
-                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(SAMRAIPointer<SAMRAIArrayData<double>>& acoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& bcoef_data,
+                    SAMRAIPointer<SAMRAIArrayData<double>>& gcoef_data,
+                    const SAMRAIPointer<SAMRAIVariable>& variable,
+                    const SAMRAIPatch& patch,
+                    const SAMRAIBoundaryBox& bdry_box,
                     double fill_time = 0.0) const override;
 
     /*
@@ -142,7 +146,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
+    SAMRAIIntVector numberOfExtensionsFillable() const override;
 
     //\}
 

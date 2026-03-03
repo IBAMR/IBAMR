@@ -23,22 +23,23 @@
 #include <ibamr/CFStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIndex.h>
-#include <CellVariable.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchGeometry.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <Variable.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 
@@ -63,19 +64,19 @@ public:
     /*!
      * \brief This constructor reads in the parameters for the model from the input database.
      */
-    CFGiesekusStrategy(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    CFGiesekusStrategy(std::string object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     void computeRelaxation(int R_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> R_var,
+                           SAMRAIPointer<SAMRAICellVariable<double>> R_var,
                            int C_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> C_var,
+                           SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                            TensorEvolutionType evolve_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                           SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                            double data_time) override;
 
     void computeStress(int sig_idx,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> sig_var,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                       SAMRAIPointer<SAMRAICellVariable<double>> sig_var,
+                       SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                        double data_time) override;
 
 private:

@@ -24,8 +24,12 @@
 
 #include <ibtk/MarkerPatchHierarchy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 
@@ -76,9 +80,9 @@ public:
      * when requested.
      */
     IBExplicitHierarchyIntegrator(std::string object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                  SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-                                  SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                  SAMRAIPointer<SAMRAIDatabase> input_db,
+                                  SAMRAIPointer<IBStrategy> ib_method_ops,
+                                  SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                   bool register_for_restart = true);
 
     /*!
@@ -110,9 +114,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                       SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) override;
 
     /*!
      * Initialize the PatchHierarchy and initialize any markers from restart.
@@ -122,8 +125,8 @@ public:
      * patch hierarchy. Hence, this is the earliest the restart marker data can
      * be used to create the marker points.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
+    void initializePatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
+                                  SAMRAIPointer<SAMRAIGriddingAlgorithm> gridding_alg) override;
     /*!
      * Get the global number of markers.
      */
@@ -169,7 +172,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(SAMRAIPointer<SAMRAIDatabase> db) override;
 
     /*!
      * Velocity patch index at the halfway point with IB ghosting. Used only for
@@ -180,7 +183,7 @@ protected:
     /*!
      * Implementation of marker points.
      */
-    SAMRAI::tbox::Pointer<IBTK::MarkerPatchHierarchy> d_markers;
+    SAMRAIPointer<IBTK::MarkerPatchHierarchy> d_markers;
 
     /*!
      * Boolean indicating whether or not we have set marker point velocities.
@@ -247,7 +250,7 @@ private:
     /*!
      * Pointer to data only stored during regrids.
      */
-    SAMRAI::tbox::Pointer<RegridData> d_regrid_temporary_data;
+    SAMRAIPointer<RegridData> d_regrid_temporary_data;
 };
 } // namespace IBAMR
 

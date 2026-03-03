@@ -24,17 +24,18 @@
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscvec.h>
 
-#include <CellVariable.h>
-#include <IntVector.h>
-#include <RefineSchedule.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariableContext.h>
 
 #include <set>
 #include <string>
@@ -72,7 +73,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                    SAMRAIPointer<SAMRAIDatabase> input_db,
                                     const std::string& default_options_prefix);
 
     /*!
@@ -83,10 +84,9 @@ public:
     /*!
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAIPointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                                const std::string& default_options_prefix)
     {
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -107,8 +107,8 @@ protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverStateSpecialized(const SAMRAISAMRAIVectorReal<double>& x,
+                                          const SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -119,12 +119,12 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
+    void copyToPETScVec(Vec& petsc_x, SAMRAISAMRAIVectorReal<double>& x) override;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
+    void copyFromPETScVec(Vec& petsc_x, SAMRAISAMRAIVectorReal<double>& x) override;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -133,8 +133,8 @@ protected:
      */
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+                      SAMRAISAMRAIVectorReal<double>& x,
+                      SAMRAISAMRAIVectorReal<double>& b) override;
 
 private:
     /*!
@@ -169,15 +169,15 @@ private:
      */
     //\{
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAIPointer<SAMRAIVariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAIPointer<SAMRAISideVariable<int>> d_u_dof_index_var;
+    SAMRAIPointer<SAMRAISideVariable<double>> d_u_nullspace_var;
+    SAMRAIPointer<SAMRAICellVariable<int>> d_p_dof_index_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_p_nullspace_var;
+    SAMRAIPointer<SAMRAIRefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
 };

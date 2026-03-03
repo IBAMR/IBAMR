@@ -17,15 +17,16 @@
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Timer.h>
-
-#include <CellVariable.h>
 #include <MultiblockDataTranslator.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <SAMRAIVectorReal.h>
-#include <VariableFillPattern.h>
+#include <SAMRAICellDataFactory.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAITimer.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <algorithm>
 #include <string>
@@ -46,9 +47,9 @@ namespace
 static const int CELLG = 1;
 
 // Timers.
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static SAMRAITimer* t_apply;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -86,7 +87,7 @@ CCLaplaceOperator::~CCLaplaceOperator()
 } // ~CCLaplaceOperator()
 
 void
-CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+CCLaplaceOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -94,15 +95,15 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<NDIM, double>> x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<NDIM, double>> y_cc_var = y.getComponentVariable(comp);
+        Pointer<SAMRAICellVariable<double>> x_cc_var = x.getComponentVariable(comp);
+        Pointer<SAMRAICellVariable<double>> y_cc_var = y.getComponentVariable(comp);
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-cell centered vector components" << std::endl);
         }
-        Pointer<CellDataFactory<NDIM, double>> x_factory = x_cc_var->getPatchDataFactory();
-        Pointer<CellDataFactory<NDIM, double>> y_factory = y_cc_var->getPatchDataFactory();
+        Pointer<SAMRAICellDataFactory<double>> x_factory = x_cc_var->getPatchDataFactory();
+        Pointer<SAMRAICellDataFactory<double>> y_factory = y_cc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -140,8 +141,8 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<NDIM, double>> x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<NDIM, double>> y_cc_var = y.getComponentVariable(comp);
+        Pointer<SAMRAICellVariable<double>> x_cc_var = x.getComponentVariable(comp);
+        Pointer<SAMRAICellVariable<double>> y_cc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
@@ -155,7 +156,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
                                      0.0,
                                      0.0,
                                      -1,
-                                     Pointer<CellVariable<NDIM, double>>(nullptr),
+                                     Pointer<SAMRAICellVariable<double>>(nullptr),
                                      l,
                                      l);
         }
@@ -166,8 +167,8 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 } // apply
 
 void
-CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                           const SAMRAIVectorReal<NDIM, double>& out)
+CCLaplaceOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                           const SAMRAISAMRAIVectorReal<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 

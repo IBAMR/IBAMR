@@ -16,12 +16,14 @@
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/NewtonKrylovSolverManager.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
 #include <tbox/ShutdownRegistry.h>
-#include <tbox/Utilities.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <map>
 #include <ostream>
@@ -69,10 +71,10 @@ NewtonKrylovSolverManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<NewtonKrylovSolver>
+SAMRAIPointer<NewtonKrylovSolver>
 NewtonKrylovSolverManager::allocateSolver(const std::string& solver_type,
                                           const std::string& solver_object_name,
-                                          Pointer<Database> solver_input_db,
+                                          SAMRAIPointer<SAMRAIDatabase> solver_input_db,
                                           const std::string& solver_default_options_prefix) const
 {
     auto it = d_solver_maker_map.find(solver_type);

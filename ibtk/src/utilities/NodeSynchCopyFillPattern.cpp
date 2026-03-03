@@ -14,13 +14,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/NodeSynchCopyFillPattern.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <BoxGeometry.h>
-#include <NodeGeometry.h>
-#include <NodeOverlap.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxGeometry.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAIBoxOverlap.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAINodeGeometry.h>
+#include <SAMRAINodeOverlap.h>
+#include <SAMRAIPointer.h>
 
 #include <string>
 
@@ -45,26 +48,26 @@ NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(const unsigned int axis) : d_
     return;
 } // NodeSynchCopyFillPattern
 
-Pointer<BoxOverlap<NDIM>>
-NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
+SAMRAIPointer<SAMRAIBoxOverlap>
+NodeSynchCopyFillPattern::calculateOverlap(const SAMRAIBoxGeometry& dst_geometry,
+                                           const SAMRAIBoxGeometry& src_geometry,
+                                           const SAMRAIBox& /*dst_patch_box*/,
+                                           const SAMRAIBox& src_mask,
                                            const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+                                           const SAMRAIIntVector& src_offset) const
 {
-    Pointer<NodeOverlap<NDIM>> box_geom_overlap =
+    SAMRAIPointer<SAMRAINodeOverlap> box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    auto const t_dst_geometry = dynamic_cast<const NodeGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const SAMRAINodeGeometry*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    BoxList<NDIM> dst_boxes;
+    SAMRAIBoxList dst_boxes;
     bool skip = false;
     for (unsigned int d = 0; d < NDIM && !skip; ++d)
     {
@@ -76,22 +79,22 @@ NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     if (!skip)
     {
         // Determine the stencil box.
-        const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-        Box<NDIM> stencil_box = NodeGeometry<NDIM>::toNodeBox(dst_box);
+        const SAMRAIBox& dst_box = t_dst_geometry->getBox();
+        SAMRAIBox stencil_box = SAMRAINodeGeometry::toNodeBox(dst_box);
         stencil_box.lower(d_axis) = stencil_box.upper(d_axis);
 
         // Intersect the original overlap boxes with the stencil box.
-        const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
-        for (BoxList<NDIM>::Iterator it(box_geom_overlap_boxes); it; it++)
+        const SAMRAIBoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
+        for (SAMRAIBoxList::Iterator it(box_geom_overlap_boxes); it; it++)
         {
-            const Box<NDIM> overlap_box = stencil_box * it();
+            const SAMRAIBox overlap_box = stencil_box * it();
             if (!overlap_box.empty()) dst_boxes.appendItem(overlap_box);
         }
     }
-    return new NodeOverlap<NDIM>(dst_boxes, src_offset);
+    return new SAMRAINodeOverlap(dst_boxes, src_offset);
 } // calculateOverlap
 
-IntVector<NDIM>&
+SAMRAIIntVector&
 NodeSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;

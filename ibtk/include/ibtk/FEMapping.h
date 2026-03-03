@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FECache.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Utilities.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
@@ -33,6 +33,8 @@
 #include <libmesh/enum_quadrature_type.h>
 #include <libmesh/fe.h>
 #include <libmesh/point.h>
+
+#include <SAMRAIUtilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

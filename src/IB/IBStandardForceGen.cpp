@@ -27,18 +27,18 @@
 #include <ibtk/LNode.h>
 #include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petsclog.h>
 #include <petscmat.h>
 #include <petscvec.h>
 
-#include <IntVector.h>
-#include <PatchHierarchy.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -116,7 +116,7 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardForceGen::IBStandardForceGen(Pointer<Database> input_db)
+IBStandardForceGen::IBStandardForceGen(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
@@ -148,7 +148,7 @@ IBStandardForceGen::setUniformBodyForce(IBTK::Vector F, int structure_id, int le
 } // setUniformBodyForce
 
 void
-IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> hierarchy,
+IBStandardForceGen::initializeLevelData(const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                         const int level_number,
                                         const double init_data_time,
                                         const bool initial_time,
@@ -213,7 +213,7 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> hier
 
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (int k = 0; k < num_local_nodes; ++k)
     {
@@ -251,10 +251,10 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> hier
 } // initializeLevelData
 
 void
-IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
-                                           Pointer<LData> X_data,
-                                           Pointer<LData> U_data,
-                                           const Pointer<PatchHierarchy<NDIM>> hierarchy,
+IBStandardForceGen::computeLagrangianForce(SAMRAIPointer<LData> F_data,
+                                           SAMRAIPointer<LData> X_data,
+                                           SAMRAIPointer<LData> U_data,
+                                           const SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                            const int level_number,
                                            const double data_time,
                                            LDataManager* const l_data_manager)
@@ -264,7 +264,7 @@ IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     int ierr;
 
     // Initialize ghost data.
-    Pointer<LData> F_ghost_data = d_F_ghost_data[level_number];
+    SAMRAIPointer<LData> F_ghost_data = d_F_ghost_data[level_number];
     Vec F_ghost_local_form_vec;
     ierr = VecGhostGetLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
@@ -273,8 +273,8 @@ IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
-    Pointer<LData> dX_data = d_dX_data[level_number];
+    SAMRAIPointer<LData> X_ghost_data = d_X_ghost_data[level_number];
+    SAMRAIPointer<LData> dX_data = d_dX_data[level_number];
     ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
@@ -303,11 +303,12 @@ IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
 } // computeLagrangianForce
 
 void
-IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
-                                                                   std::vector<int>& o_nnz,
-                                                                   const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
-                                                                   const int level_number,
-                                                                   LDataManager* const l_data_manager)
+IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
+    const int level_number,
+    LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -489,10 +490,10 @@ void
 IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
                                                    MatAssemblyType assembly_type,
                                                    const double X_coef,
-                                                   Pointer<LData> X_data,
+                                                   SAMRAIPointer<LData> X_data,
                                                    const double U_coef,
-                                                   Pointer<LData> /*U_data*/,
-                                                   const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                                   SAMRAIPointer<LData> /*U_data*/,
+                                                   const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*data_time*/,
                                                    LDataManager* const l_data_manager)
@@ -505,8 +506,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 #endif
 
     int ierr;
-    Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
-    Pointer<LData> dX_data = d_dX_data[level_number];
+    SAMRAIPointer<LData> X_ghost_data = d_X_ghost_data[level_number];
+    SAMRAIPointer<LData> dX_data = d_dX_data[level_number];
     ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
@@ -693,9 +694,9 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 } // computeLagrangianForceJacobian
 
 double
-IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
-                                            Pointer<LData> /*U_data*/,
-                                            const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardForceGen::computeLagrangianEnergy(SAMRAIPointer<LData> /*X_data*/,
+                                            SAMRAIPointer<LData> /*U_data*/,
+                                            const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                             const int level_number,
                                             const double /*data_time*/,
                                             LDataManager* const l_data_manager)
@@ -713,7 +714,7 @@ IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
 
 void
 IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                              const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                              const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                               const int level_number,
                                               const double /*init_data_time*/,
                                               const bool /*initial_time*/,
@@ -730,7 +731,7 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
     std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
@@ -811,9 +812,9 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
 } // initializeSpringLevelData
 
 void
-IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
-                                                 Pointer<LData> X_data,
-                                                 const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardForceGen::computeLagrangianSpringForce(SAMRAIPointer<LData> F_data,
+                                                 SAMRAIPointer<LData> X_data,
+                                                 const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*data_time*/,
                                                  LDataManager* const /*l_data_manager*/)
@@ -931,7 +932,7 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
 
 void
 IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                            const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                            const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                             const int level_number,
                                             const double /*init_data_time*/,
                                             const bool /*initial_time*/,
@@ -948,7 +949,7 @@ IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_se
     std::vector<const Vector*>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
@@ -1035,9 +1036,9 @@ IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_se
 } // initializeBeamLevelData
 
 void
-IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
-                                               Pointer<LData> X_data,
-                                               const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardForceGen::computeLagrangianBeamForce(SAMRAIPointer<LData> F_data,
+                                               SAMRAIPointer<LData> X_data,
+                                               const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                const int level_number,
                                                const double /*data_time*/,
                                                LDataManager* const /*l_data_manager*/)
@@ -1148,7 +1149,7 @@ IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
 
 void
 IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
-                                                   const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                                   const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*initial_time*/,
@@ -1161,7 +1162,7 @@ IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_pet
     std::vector<const Point*>& X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many target points are associated with the present MPI
@@ -1199,10 +1200,10 @@ IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_pet
 } // initializeTargetPointLevelData
 
 void
-IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
-                                                      Pointer<LData> X_data,
-                                                      Pointer<LData> U_data,
-                                                      const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardForceGen::computeLagrangianTargetPointForce(SAMRAIPointer<LData> F_data,
+                                                      SAMRAIPointer<LData> X_data,
+                                                      SAMRAIPointer<LData> U_data,
+                                                      const SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                       const int level_number,
                                                       const double /*data_time*/,
                                                       LDataManager* const /*l_data_manager*/)
@@ -1299,8 +1300,8 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 } // computeLagrangianTargetPointForce
 
 void
-IBStandardForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
-                                               Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+IBStandardForceGen::computeLagrangianBodyForce(SAMRAIPointer<LData> F_data,
+                                               SAMRAIPointer<SAMRAIPatchHierarchy> /*hierarchy*/,
                                                const int level_number,
                                                const double /*data_time*/,
                                                LDataManager* const l_data_manager)
@@ -1308,7 +1309,7 @@ IBStandardForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
     if (d_uniform_body_force_data[level_number].empty()) return;
 
     double* const F_node = F_data->getLocalFormVecArray()->data();
-    SAMRAI::tbox::Pointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
+    SAMRAIPointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
     for (const auto& n : l_mesh->getLocalNodes())
     {
         const auto lag_idx = n->getLagrangianIndex();

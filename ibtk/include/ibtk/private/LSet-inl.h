@@ -22,8 +22,12 @@
 
 #include <ibtk/FixedSizedStream.h>
 #include <ibtk/LSet.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -174,7 +178,7 @@ LSet<T>::setDataSet(const typename LSet<T>::DataSet& set)
 } // setDataSet
 
 template <class T>
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAIIntVector&
 LSet<T>::getPeriodicOffset() const
 {
     return d_offset;
@@ -182,7 +186,7 @@ LSet<T>::getPeriodicOffset() const
 
 template <class T>
 inline void
-LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
+LSet<T>::setPeriodicOffset(const SAMRAIIntVector& offset)
 {
     d_offset = offset;
     return;
@@ -190,9 +194,7 @@ LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
 
 template <class T>
 inline void
-LSet<T>::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                        const LSet<T>& src_item)
+LSet<T>::copySourceItem(const SAMRAIIndex& /*src_index*/, const SAMRAIIntVector& src_offset, const LSet<T>& src_item)
 {
     d_set = src_item.d_set;
     d_offset = src_offset;
@@ -226,7 +228,7 @@ LSet<T>::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 template <class T>
 inline void
-LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAIIntVector& offset)
 {
     d_offset = offset;
     int num_idx;
@@ -242,7 +244,7 @@ LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::
 
 template <class T>
 inline void
-LSet<T>::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
+LSet<T>::putToDatabase(SAMRAIPointer<SAMRAIDatabase> database)
 {
     const int data_sz = static_cast<int>(getDataStreamSize());
     FixedSizedStream stream(data_sz);
@@ -255,7 +257,7 @@ LSet<T>::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
 
 template <class T>
 inline void
-LSet<T>::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
+LSet<T>::getFromDatabase(SAMRAIPointer<SAMRAIDatabase> database)
 {
     database->getIntegerArray("d_offset", d_offset, NDIM);
     const int data_sz = database->getInteger("data_sz");

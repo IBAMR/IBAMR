@@ -13,8 +13,7 @@
 
 #include <ibtk/FEMapping.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/dense_matrix.h>
 #include <libmesh/elem.h>
@@ -28,6 +27,8 @@
 #include <libmesh/type_vector.h>
 
 #include <Eigen/Dense>
+
+#include <SAMRAIUtilities.h>
 
 #include <algorithm>
 #include <cmath>

@@ -20,29 +20,30 @@
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <FaceData.h>
-#include <Index.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <array>
 #include <ostream>
@@ -443,18 +444,18 @@ namespace
 static const int GADVECTG = 4;
 
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static SAMRAITimer* t_apply_convective_operator;
+static SAMRAITimer* t_apply;
+static SAMRAITimer* t_initialize_operator_state;
+static SAMRAITimer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string object_name,
-                                                                     Pointer<Database> input_db,
+                                                                     SAMRAIPointer<SAMRAIDatabase> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
-                                                                     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+                                                                     std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs)
     : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
@@ -472,8 +473,8 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariableContext> context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -483,22 +484,23 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string
     }
     else
     {
-        d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_var = new SAMRAISideVariable<double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, SAMRAIIntVector(GADVECTG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
+    IBAMR_DO_ONCE(t_apply_convective_operator = SAMRAITimerManager::getManager()->getTimer(
                       "IBAMR::INSStaggeredPPMConvectiveOperator::applyConvectiveOperator("
                       ")");
-                  t_apply = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::apply()");
-                  t_initialize_operator_state = TimerManager::getManager()->getTimer(
+                  t_apply =
+                      SAMRAITimerManager::getManager()->getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::apply()");
+                  t_initialize_operator_state = SAMRAITimerManager::getManager()->getTimer(
                       "IBAMR::INSStaggeredPPMConvectiveOperator::initializeOperatorState("
                       ")");
-                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+                  t_deallocate_operator_state = SAMRAITimerManager::getManager()->getTimer(
                       "IBAMR::INSStaggeredPPMConvectiveOperator::deallocateOperatorState("
                       ")"););
     return;
@@ -527,7 +529,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -553,30 +555,30 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAIIntVector& patch_lower = patch_box.lower();
+            const SAMRAIIntVector& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double>> N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SAMRAISideData<double>> N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SAMRAISideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            std::array<Box<NDIM>, NDIM> side_boxes;
-            std::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data;
-            std::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_data;
+            const SAMRAIIntVector ghosts = SAMRAIIntVector(1);
+            std::array<SAMRAIBox, NDIM> side_boxes;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_adv_data;
+            std::array<SAMRAIPointer<SAMRAIFaceData<double>>, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                side_boxes[axis] = SAMRAISideGeometry::toSideBox(patch_box, axis);
+                U_adv_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
+                U_half_data[axis] = new SAMRAIFaceData<double>(side_boxes[axis], 1, ghosts);
             }
 #if (NDIM == 2)
             NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -656,17 +658,17 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<NDIM, double>> dU_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_L_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_R_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_scratch1_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SAMRAISideData<double>> dU_data =
+                    new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SAMRAISideData<double>> U_L_data =
+                    new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SAMRAISideData<double>> U_R_data =
+                    new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SAMRAISideData<double>> U_scratch1_data =
+                    new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                Pointer<SideData<NDIM, double>> U_scratch2_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SAMRAISideData<double>> U_scratch2_data =
+                    new SAMRAISideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -954,7 +956,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 
@@ -963,8 +965,8 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
 } // applyConvectiveOperator
 
 void
-INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                           const SAMRAIVectorReal<NDIM, double>& out)
+INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& in,
+                                                           const SAMRAISAMRAIVectorReal<double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 

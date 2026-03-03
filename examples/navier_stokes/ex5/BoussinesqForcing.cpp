@@ -18,13 +18,26 @@
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(Pointer<Variable<NDIM>> T_var,
+BoussinesqForcing::BoussinesqForcing(Pointer<SAMRAIVariable> T_var,
                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                                      int gamma)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator), d_gamma(gamma)
@@ -47,15 +60,15 @@ BoussinesqForcing::isTimeDependent() const
 
 void
 BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                           Pointer<Variable<NDIM>> var,
-                                           Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                           Pointer<SAMRAIVariable> var,
+                                           Pointer<SAMRAIPatchHierarchy> hierarchy,
                                            const double data_time,
                                            const bool initial_time,
                                            const int coarsest_ln_in,
                                            const int finest_ln_in)
 {
     // Allocate scratch data when needed.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
     const bool T_scratch_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_scratch_idx);
     if (!T_scratch_is_allocated)
@@ -70,8 +83,8 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
             var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getCurrentContext());
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
         const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
+        SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+        Pointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
         if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {
@@ -115,22 +128,22 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                  Pointer<Variable<NDIM>> /*var*/,
-                                  Pointer<Patch<NDIM>> patch,
+                                  Pointer<SAMRAIVariable> /*var*/,
+                                  Pointer<SAMRAIPatch> patch,
                                   const double /*data_time*/,
                                   const bool initial_time,
-                                  Pointer<PatchLevel<NDIM>> /*patch_level*/)
+                                  Pointer<SAMRAIPatchLevel> /*patch_level*/)
 {
-    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(data_idx);
+    Pointer<SAMRAISideData<double>> F_data = patch->getPatchData(data_idx);
     F_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellData<NDIM, double>> T_scratch_data =
+    Pointer<SAMRAICellData<double>> T_scratch_data =
         patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
-    const Box<NDIM>& patch_box = patch->getBox();
+    const SAMRAIBox& patch_box = patch->getBox();
     const int axis = NDIM - 1;
-    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+    for (SAMRAIBox::Iterator it(SAMRAISideGeometry::toSideBox(patch_box, axis)); it; it++)
     {
-        SideIndex<NDIM> s_i(it(), axis, 0);
+        SAMRAISideIndex s_i(it(), axis, 0);
         (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));
     }
     return;

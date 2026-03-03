@@ -21,16 +21,19 @@
 #include <ibamr/config.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
 
 #include <petscksp.h>
 
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <vector>
 
@@ -68,9 +71,9 @@ public:
      * PETSc KSP solver framework.
      */
     KrylovMobilitySolver(std::string object_name,
-                         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                         SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                         SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                         SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
+                         SAMRAIPointer<SAMRAIDatabase> input_db,
                          std::string default_options_prefix,
                          MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -98,20 +101,20 @@ public:
      * \brief Return the Stokes solver used in the preconditioner of the
      * solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
+    SAMRAIPointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& u_problem_coefs);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(SAMRAIPointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -128,8 +131,8 @@ public:
      * \param p_bc_coef Pointer to object that can set the Robin boundary
      * condition coefficients for the pressure.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& u_bc_coefs,
+                            SAMRAIRobinBcCoefStrategy* p_bc_coef);
 
     /*!
      * \brief Solve the linear system of equations \f$ Mx=b \f$ for \f$ x \f$.
@@ -219,13 +222,13 @@ private:
     /*!
      * \brief Get solver settings from the input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Initialize the Stokes solver needed in the mobility matrix.
      */
-    void initializeStokesSolver(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
+    void initializeStokesSolver(const SAMRAISAMRAIVectorReal<double>& sol_vec,
+                                const SAMRAISAMRAIVectorReal<double>& rhs_vec);
 
     /*!
      * \brief Routine to setup KSP object.
@@ -287,11 +290,11 @@ private:
     Mat d_petsc_mat = nullptr;
 
     // Linear operator.
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar>>> d_samrai_temp;
-    SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<PetscScalar>>> d_samrai_temp;
+    SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
+    SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_LInv;
+    SAMRAIPointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
 
     // KSP options and settings.
     int d_max_iterations = 10000, d_current_iterations;
@@ -301,15 +304,15 @@ private:
     bool d_enable_logging = false;
 
     // Velocity BCs and cached communication operators for interpolation operation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_u_bc_coefs;
+    SAMRAIPointer<SAMRAIVariableFillPattern> d_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Null space vectors for LInv
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_nul_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_U_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>> d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

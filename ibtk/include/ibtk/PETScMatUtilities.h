@@ -21,14 +21,18 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_enums.h>
-
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscao.h>
 #include <petscmat.h>
 #include <petscvec.h>
 
-#include <PoissonSpecifications.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <cmath>
 #include <vector>
@@ -74,12 +78,12 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
-                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                               const SAMRAIPoissonSpecifications& poisson_spec,
+                                               SAMRAIRobinBcCoefStrategy* bc_coef,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+                                               SAMRAIPointer<SAMRAIPatchLevel> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -87,12 +91,12 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
-                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               const SAMRAIPoissonSpecifications& poisson_spec,
+                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+                                               SAMRAIPointer<SAMRAIPatchLevel> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -100,12 +104,12 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelSCLaplaceOp(Mat& mat,
-                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               const SAMRAIPoissonSpecifications& poisson_spec,
+                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+                                               SAMRAIPointer<SAMRAIPatchLevel> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -117,14 +121,14 @@ public:
      * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
      */
     static void constructPatchLevelVCSCViscousOp(Mat& mat,
-                                                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                                 const SAMRAIPoissonSpecifications& poisson_spec,
                                                  double alpha,
                                                  double beta,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs,
                                                  double data_time,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                                 SAMRAIPointer<SAMRAIPatchLevel> patch_level,
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
@@ -141,7 +145,7 @@ public:
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+                                              SAMRAIPointer<SAMRAIPatchLevel> patch_level);
     /*!
      * \brief Standard one-dimensional Peskin 4-pt delta function.
      *
@@ -186,8 +190,8 @@ public:
                                         int dof_index_idx,
                                         const std::vector<int>& num_fine_dofs_per_proc,
                                         const std::vector<int>& num_coarse_dofs_per_proc,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
+                                        SAMRAIPointer<SAMRAIPatchLevel> fine_patch_level,
+                                        SAMRAIPointer<SAMRAIPatchLevel> coarse_patch_level,
                                         const AO& coarse_level_ao,
                                         const int coarse_ao_offset = 0);
 
@@ -203,15 +207,14 @@ public:
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method.
      */
-    static void
-    constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
-                                     std::vector<IS>& is_nonoverlap,
-                                     const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                     const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                     const std::vector<int>& num_dofs_per_proc,
-                                     int dof_index_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
+    static void constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                                 std::vector<IS>& is_nonoverlap,
+                                                 const SAMRAIIntVector& box_size,
+                                                 const SAMRAIIntVector& overlap_size,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAIPointer<SAMRAIPatchLevel> patch_level,
+                                                 SAMRAIPointer<SAMRAICoarseFineBoundary> cf_boundary);
 
     //\}
 
@@ -248,69 +251,64 @@ private:
      * \brief Construct a parallel PETSc Mat object corresponding to cc-data
      * and conservative prolongation from a coarser level to a finer level.
      */
-    static void
-    constructConservativeProlongationOp_cell(Mat& mat,
-                                             int dof_index_idx,
-                                             const std::vector<int>& num_fine_dofs_per_proc,
-                                             const std::vector<int>& num_coarse_dofs_per_proc,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
-                                             const AO& coarse_level_ao,
-                                             const int coarse_ao_offset);
+    static void constructConservativeProlongationOp_cell(Mat& mat,
+                                                         int dof_index_idx,
+                                                         const std::vector<int>& num_fine_dofs_per_proc,
+                                                         const std::vector<int>& num_coarse_dofs_per_proc,
+                                                         SAMRAIPointer<SAMRAIPatchLevel> fine_patch_level,
+                                                         SAMRAIPointer<SAMRAIPatchLevel> coarse_patch_level,
+                                                         const AO& coarse_level_ao,
+                                                         const int coarse_ao_offset);
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to sc-data
      * and RT0 prolongation from a coarser level to a finer level.
      */
-    static void
-    constructRT0ProlongationOp_side(Mat& mat,
-                                    int dof_index_idx,
-                                    const std::vector<int>& num_fine_dofs_per_proc,
-                                    const std::vector<int>& num_coarse_dofs_per_proc,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
-                                    const AO& coarse_level_ao,
-                                    const int coarse_ao_offset);
+    static void constructRT0ProlongationOp_side(Mat& mat,
+                                                int dof_index_idx,
+                                                const std::vector<int>& num_fine_dofs_per_proc,
+                                                const std::vector<int>& num_coarse_dofs_per_proc,
+                                                SAMRAIPointer<SAMRAIPatchLevel> fine_patch_level,
+                                                SAMRAIPointer<SAMRAIPatchLevel> coarse_patch_level,
+                                                const AO& coarse_level_ao,
+                                                const int coarse_ao_offset);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to sc-data
      * and linear prolongation from a coarser level to a finer level.
      */
-    static void
-    constructLinearProlongationOp_side(Mat& mat,
-                                       int dof_index_idx,
-                                       const std::vector<int>& num_fine_dofs_per_proc,
-                                       const std::vector<int>& num_coarse_dofs_per_proc,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
-                                       const AO& coarse_level_ao,
-                                       const int coarse_ao_offset);
+    static void constructLinearProlongationOp_side(Mat& mat,
+                                                   int dof_index_idx,
+                                                   const std::vector<int>& num_fine_dofs_per_proc,
+                                                   const std::vector<int>& num_coarse_dofs_per_proc,
+                                                   SAMRAIPointer<SAMRAIPatchLevel> fine_patch_level,
+                                                   SAMRAIPointer<SAMRAIPatchLevel> coarse_patch_level,
+                                                   const AO& coarse_level_ao,
+                                                   const int coarse_ao_offset);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method for a cc-variable.
      */
-    static void
-    constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
-                                          std::vector<IS>& is_nonoverlap,
-                                          const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                          const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                          const std::vector<int>& num_dofs_per_proc,
-                                          int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
+    static void constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
+                                                      std::vector<IS>& is_nonoverlap,
+                                                      const SAMRAIIntVector& box_size,
+                                                      const SAMRAIIntVector& overlap_size,
+                                                      const std::vector<int>& num_dofs_per_proc,
+                                                      int dof_index_idx,
+                                                      SAMRAIPointer<SAMRAIPatchLevel> patch_level,
+                                                      SAMRAIPointer<SAMRAICoarseFineBoundary> cf_boundary);
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method for a sc-variable.
      */
-    static void
-    constructPatchLevelASMSubdomains_side(std::vector<IS>& is_overlap,
-                                          std::vector<IS>& is_nonoverlap,
-                                          const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                          const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                          const std::vector<int>& num_dofs_per_proc,
-                                          int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
+    static void constructPatchLevelASMSubdomains_side(std::vector<IS>& is_overlap,
+                                                      std::vector<IS>& is_nonoverlap,
+                                                      const SAMRAIIntVector& box_size,
+                                                      const SAMRAIIntVector& overlap_size,
+                                                      const std::vector<int>& num_dofs_per_proc,
+                                                      int dof_index_idx,
+                                                      SAMRAIPointer<SAMRAIPatchLevel> patch_level,
+                                                      SAMRAIPointer<SAMRAICoarseFineBoundary> cf_boundary);
 };
 } // namespace IBTK
 

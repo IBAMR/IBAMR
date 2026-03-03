@@ -14,13 +14,17 @@
 #include <ibamr/CFRoliePolyStrategy.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIterator.h>
-#include <Patch.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
 
 #include <cmath>
 
@@ -29,7 +33,7 @@
 // Namespace
 namespace IBAMR
 {
-CFRoliePolyStrategy::CFRoliePolyStrategy(const std::string& object_name, Pointer<Database> input_db)
+CFRoliePolyStrategy::CFRoliePolyStrategy(const std::string& object_name, Pointer<SAMRAIDatabase> input_db)
     : CFStrategy(object_name)
 {
     d_lambda_d = input_db->getDouble("lambda_d");
@@ -42,24 +46,24 @@ CFRoliePolyStrategy::CFRoliePolyStrategy(const std::string& object_name, Pointer
 
 void
 CFRoliePolyStrategy::computeStress(int sig_idx,
-                                   Pointer<CellVariable<NDIM, double>> /*sig_var*/,
-                                   Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                   Pointer<SAMRAICellVariable<double>> /*sig_var*/,
+                                   Pointer<SAMRAIPatchHierarchy> hierarchy,
                                    double /*data_time*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double>> sig_data = patch->getPatchData(sig_idx);
+            Pointer<SAMRAICellData<double>> sig_data = patch->getPatchData(sig_idx);
 
-            for (CellIterator<NDIM> ci(sig_data->getGhostBox()); ci; ci++)
+            for (SAMRAICellIterator ci(sig_data->getGhostBox()); ci; ci++)
             {
-                const CellIndex<NDIM>& idx = ci();
+                const SAMRAICellIndex& idx = ci();
                 (*sig_data)(idx, 0) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0) - 1.0);
                 (*sig_data)(idx, 1) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0) - 1.0);
                 (*sig_data)(idx, 2) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0));
@@ -70,28 +74,28 @@ CFRoliePolyStrategy::computeStress(int sig_idx,
 
 void
 CFRoliePolyStrategy::computeRelaxation(const int R_idx,
-                                       Pointer<CellVariable<NDIM, double>> /*R_var*/,
+                                       Pointer<SAMRAICellVariable<double>> /*R_var*/,
                                        int C_idx,
-                                       Pointer<CellVariable<NDIM, double>> /*C_var*/,
+                                       Pointer<SAMRAICellVariable<double>> /*C_var*/,
                                        TensorEvolutionType evolve_type,
-                                       Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                       Pointer<SAMRAIPatchHierarchy> hierarchy,
                                        double /*data_time*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double>> R_data = patch->getPatchData(R_idx);
-            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(C_idx);
+            Pointer<SAMRAICellData<double>> R_data = patch->getPatchData(R_idx);
+            Pointer<SAMRAICellData<double>> C_data = patch->getPatchData(C_idx);
 
-            for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+            for (SAMRAICellIterator ci(patch->getBox()); ci; ci++)
             {
-                const CellIndex<NDIM>& idx = ci();
+                const SAMRAICellIndex& idx = ci();
                 MatrixNd mat = convert_to_conformation_tensor(*C_data, idx, evolve_type);
                 MatrixNd eye = MatrixNd::Identity();
                 mat = -1.0 / d_lambda_d * (mat - eye) -

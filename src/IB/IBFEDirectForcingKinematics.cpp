@@ -20,11 +20,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/dof_map.h>
 #include <libmesh/equation_systems.h>
@@ -44,6 +40,11 @@
 
 #include <petscsys.h>
 #include <petscvec.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -131,7 +132,7 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(std::string object_name,
-                                                         Pointer<Database> input_db,
+                                                         Pointer<SAMRAIDatabase> input_db,
                                                          Pointer<IBFEMethod> ibfe_method_ops,
                                                          int part,
                                                          bool register_for_restart)
@@ -140,12 +141,12 @@ IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(std::string object_name
     d_registered_for_restart = false;
     if (register_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
 
     // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = SAMRAIRestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
@@ -156,7 +157,7 @@ IBFEDirectForcingKinematics::~IBFEDirectForcingKinematics()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
     return;
@@ -467,7 +468,7 @@ IBFEDirectForcingKinematics::postprocessIntegrateData(double /*current_time*/, d
 } // postprocessIntegrateData
 
 void
-IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
+IBFEDirectForcingKinematics::putToDatabase(Pointer<SAMRAIDatabase> db)
 {
     double Q_coeffs[4] = {
         d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
@@ -485,7 +486,7 @@ IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE ////////////////////////////////////
 
 void
-IBFEDirectForcingKinematics::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+IBFEDirectForcingKinematics::getFromInput(Pointer<SAMRAIDatabase> input_db, bool is_from_restart)
 {
     // Get some input values.
     d_rho = input_db->getDouble("rho_s");
@@ -514,8 +515,8 @@ IBFEDirectForcingKinematics::getFromInput(Pointer<Database> input_db, bool is_fr
 void
 IBFEDirectForcingKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    Pointer<SAMRAIDatabase> restart_db = SAMRAIRestartManager::getManager()->getRootDatabase();
+    Pointer<SAMRAIDatabase> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

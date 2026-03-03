@@ -18,32 +18,32 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscis.h>
 #include <petscistypes.h>
 #include <petsclog.h>
 #include <petscvec.h>
 
-#include <ArrayData.h>
-#include <BasePatchHierarchy.h>
-#include <Box.h>
-#include <CellData.h>
-#include <CellDataFactory.h>
-#include <CellVariable.h>
-#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchData.h>
-#include <PatchLevel.h>
-#include <SideData.h>
-#include <SideDataFactory.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellDataFactory.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideDataFactory.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <algorithm>
 #include <numeric>
@@ -68,8 +68,8 @@ static Timer* t_add_or_get;
 // function for both. Here the last argument is true if we set and false if we
 // get.
 void
-add_or_get(Pointer<PatchLevel<NDIM>>& level,
-           const IntVector<NDIM> gcw,
+add_or_get(SAMRAIPointer<SAMRAIPatchLevel>& level,
+           const SAMRAIIntVector gcw,
            const bool cc_data,
            const int local_dof_idx,
            const int value_idx,
@@ -77,16 +77,16 @@ add_or_get(Pointer<PatchLevel<NDIM>>& level,
            const bool add)
 {
     IBTK_TIMER_START(t_add_or_get);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
         TBOX_ASSERT(gcw == patch->getPatchData(value_idx)->getGhostCellWidth());
-        std::vector<ArrayData<NDIM, double>*> values_ptrs;
-        std::vector<ArrayData<NDIM, int>*> dofs_ptrs;
+        std::vector<SAMRAIArrayData<double>*> values_ptrs;
+        std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
         if (cc_data) // semantics are slightly different for side-centered data
         {
-            Pointer<CellData<NDIM, double>> value_data = patch->getPatchData(value_idx);
-            Pointer<CellData<NDIM, int>> dof_data = patch->getPatchData(local_dof_idx);
+            SAMRAIPointer<SAMRAICellData<double>> value_data = patch->getPatchData(value_idx);
+            SAMRAIPointer<SAMRAICellData<int>> dof_data = patch->getPatchData(local_dof_idx);
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
 
@@ -95,8 +95,8 @@ add_or_get(Pointer<PatchLevel<NDIM>>& level,
         }
         else
         {
-            Pointer<SideData<NDIM, double>> value_data = patch->getPatchData(value_idx);
-            Pointer<SideData<NDIM, int>> dof_data = patch->getPatchData(local_dof_idx);
+            SAMRAIPointer<SAMRAISideData<double>> value_data = patch->getPatchData(value_idx);
+            SAMRAIPointer<SAMRAISideData<int>> dof_data = patch->getPatchData(local_dof_idx);
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
 
@@ -132,9 +132,9 @@ add_or_get(Pointer<PatchLevel<NDIM>>& level,
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarchy<NDIM>> patch_hierarchy,
-                                                       Pointer<Variable<NDIM>> var,
-                                                       const IntVector<NDIM> gcw,
+SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAIBasePatchHierarchy> patch_hierarchy,
+                                                       SAMRAIPointer<SAMRAIVariable> var,
+                                                       const SAMRAIIntVector gcw,
                                                        const int coarsest_ln,
                                                        const int finest_ln)
     : d_hierarchy(patch_hierarchy), d_var(var), d_gcw(gcw), d_coarsest_ln(coarsest_ln), d_finest_ln(finest_ln)
@@ -146,27 +146,27 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
 
     IBTK_TIMER_START(t_constructor);
     // Determine data layout:
-    Pointer<CellVariable<NDIM, double>> cc_var = var;
-    Pointer<SideVariable<NDIM, double>> sc_var = var;
+    SAMRAIPointer<SAMRAICellVariable<double>> cc_var = var;
+    SAMRAIPointer<SAMRAISideVariable<double>> sc_var = var;
     const bool cc_data = cc_var;
     const bool sc_data = sc_var;
     TBOX_ASSERT(cc_data || sc_data);
     d_cc_data = cc_data;
 
     // Create a context into which all indexing variables are grouped for this class:
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("SAMRAIGhostDataAccumulator");
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariableContext> context = var_db->getContext("SAMRAIGhostDataAccumulator");
 
     // Determine depth:
     int depth = 0;
     if (d_cc_data)
     {
-        Pointer<CellDataFactory<NDIM, double>> cc_data_factory = cc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAICellDataFactory<double>> cc_data_factory = cc_var->getPatchDataFactory();
         depth = cc_data_factory->getDefaultDepth();
     }
     else
     {
-        Pointer<SideDataFactory<NDIM, double>> sc_data_factory = sc_var->getPatchDataFactory();
+        SAMRAIPointer<SAMRAISideDataFactory<double>> sc_data_factory = sc_var->getPatchDataFactory();
         depth = sc_data_factory->getDefaultDepth();
     }
     TBOX_ASSERT(depth != 0);
@@ -175,18 +175,18 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
 
     // Create the dof indexing variable and its data:
     d_vecs.resize(d_finest_ln + 1); // be lazy and index this array directly by level number
-    Pointer<Variable<NDIM>> dof_var;
+    SAMRAIPointer<SAMRAIVariable> dof_var;
     if (var_db->checkVariableExists(name))
         dof_var = var_db->getVariable(name);
     else
-        dof_var = d_cc_data ? Pointer<Variable<NDIM>>(new CellVariable<NDIM, int>(name, depth)) :
-                              Pointer<Variable<NDIM>>(new SideVariable<NDIM, int>(name, depth));
+        dof_var = d_cc_data ? SAMRAIPointer<SAMRAIVariable>(new SAMRAICellVariable<int>(name, depth)) :
+                              SAMRAIPointer<SAMRAIVariable>(new SAMRAISideVariable<int>(name, depth));
 
     d_global_dof_idx = var_db->registerVariableAndContext(dof_var, context, d_gcw);
     d_local_dof_idx = var_db->registerClonedPatchDataIndex(dof_var, d_global_dof_idx);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_global_dof_idx);
         level->allocatePatchData(d_local_dof_idx);
 
@@ -200,22 +200,22 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
         const int local_dofs_end = local_dofs_begin + num_dofs_per_proc[mpi_rank];
 
         std::vector<PetscInt> ghosts;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            std::vector<ArrayData<NDIM, int>*> dofs_ptrs;
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
             if (d_cc_data)
             {
-                Pointer<CellData<NDIM, int>> dof_data = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAICellData<int>> dof_data = patch->getPatchData(d_global_dof_idx);
                 dofs_ptrs.push_back(&dof_data->getArrayData());
             }
             else
             {
-                Pointer<SideData<NDIM, int>> dof_data = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> dof_data = patch->getPatchData(d_global_dof_idx);
                 // SideData stores multiple arrays (one for each dimension)
                 for (int d = 0; d < NDIM; ++d) dofs_ptrs.push_back(&dof_data->getArrayData(d));
             }
-            for (ArrayData<NDIM, int>* dofs : dofs_ptrs)
+            for (SAMRAIArrayData<int>* dofs : dofs_ptrs)
             {
                 const int* dofs_ptr = dofs->getPointer();
                 const int size = dofs->getBox().size() * dofs->getDepth();
@@ -243,16 +243,16 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
         ISLocalToGlobalMapping mapping;
         ierr = VecGetLocalToGlobalMapping(d_vecs[ln], &mapping);
         IBTK_CHKERRQ(ierr);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            std::vector<ArrayData<NDIM, int>*> dofs_ptrs;
+            SAMRAIPointer<SAMRAIPatch> patch = level->getPatch(p());
+            std::vector<SAMRAIArrayData<int>*> dofs_ptrs;
             if (d_cc_data)
             {
-                Pointer<CellData<NDIM, int>> global_dofs = patch->getPatchData(d_global_dof_idx);
-                Pointer<CellData<NDIM, int>> local_dofs = patch->getPatchData(d_local_dof_idx);
-                ArrayData<NDIM, int>& global_dof_data = global_dofs->getArrayData();
-                ArrayData<NDIM, int>& local_dof_data = local_dofs->getArrayData();
+                SAMRAIPointer<SAMRAICellData<int>> global_dofs = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAICellData<int>> local_dofs = patch->getPatchData(d_local_dof_idx);
+                SAMRAIArrayData<int>& global_dof_data = global_dofs->getArrayData();
+                SAMRAIArrayData<int>& local_dof_data = local_dofs->getArrayData();
                 const auto size = local_dof_data.getBox().size() * local_dof_data.getDepth();
                 // since these arrays contain ghost cells outside the physical domain they will always contain -1s
                 ierr = ISGlobalToLocalMappingApply(
@@ -261,13 +261,13 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
             }
             else
             {
-                Pointer<SideData<NDIM, int>> global_dofs = patch->getPatchData(d_global_dof_idx);
-                Pointer<SideData<NDIM, int>> local_dofs = patch->getPatchData(d_local_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> global_dofs = patch->getPatchData(d_global_dof_idx);
+                SAMRAIPointer<SAMRAISideData<int>> local_dofs = patch->getPatchData(d_local_dof_idx);
                 // SideData stores multiple arrays (one for each dimension)
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    ArrayData<NDIM, int>& global_dof_data = global_dofs->getArrayData(d);
-                    ArrayData<NDIM, int>& local_dof_data = local_dofs->getArrayData(d);
+                    SAMRAIArrayData<int>& global_dof_data = global_dofs->getArrayData(d);
+                    SAMRAIArrayData<int>& local_dof_data = local_dofs->getArrayData(d);
                     const auto size = local_dof_data.getBox().size() * local_dof_data.getDepth();
                     // since these arrays contain ghost cells outside the physical domain they will always contain -1s
                     ierr = ISGlobalToLocalMappingApply(mapping,
@@ -284,7 +284,7 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_global_dof_idx);
     }
     var_db->removePatchDataIndex(d_global_dof_idx);
@@ -296,8 +296,8 @@ void
 SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx)
 {
     IBTK_TIMER_START(t_accumulate_ghost_data);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM>> var;
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+    SAMRAIPointer<SAMRAIVariable> var;
     var_db->mapIndexToVariable(idx, var);
     TBOX_ASSERT(var == d_var);
 
@@ -317,7 +317,7 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx)
         ierr = VecGhostRestoreLocalForm(d_vecs[ln], &local);
         IBTK_CHKERRQ(ierr);
 
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         add_or_get(level, d_gcw, d_cc_data, d_local_dof_idx, idx, d_vecs[ln], true);
     }
 
@@ -346,7 +346,7 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx)
     // 3. copy back:
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         add_or_get(level, d_gcw, d_cc_data, d_local_dof_idx, idx, d_vecs[ln], false);
     }
     IBTK_TIMER_STOP(t_accumulate_ghost_data);
@@ -359,10 +359,10 @@ SAMRAIGhostDataAccumulator::~SAMRAIGhostDataAccumulator()
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_local_dof_idx);
     }
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     var_db->removePatchDataIndex(d_local_dof_idx);
 }
 /////////////////////////////// PRIVATE //////////////////////////////////////

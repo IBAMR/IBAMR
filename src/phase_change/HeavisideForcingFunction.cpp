@@ -15,6 +15,17 @@
 
 #include <ibamr/HeavisideForcingFunction.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICellVariable.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -23,8 +34,8 @@ namespace IBAMR
 {
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
                                                    const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const Pointer<CellVariable<NDIM, double>> H_var,
-                                                   const Pointer<FaceVariable<NDIM, double>> U_adv_var)
+                                                   const Pointer<SAMRAICellVariable<double>> H_var,
+                                                   const Pointer<SAMRAIFaceVariable<double>> U_adv_var)
     : d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
 {
     // intentionally blank
@@ -39,8 +50,8 @@ HeavisideForcingFunction::isTimeDependent() const
 
 void
 HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable<NDIM>> /*var*/,
-                                                  Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                  Pointer<SAMRAIVariable> /*var*/,
+                                                  Pointer<SAMRAIPatchHierarchy> hierarchy,
                                                   const double data_time,
                                                   const bool initial_time,
                                                   const int coarsest_ln_in,
@@ -51,7 +62,7 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // NOTE: At the initial time we take div u = 0 for the lack of knowledge of the
     // velocity field.
@@ -62,7 +73,7 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
     }
 
     // Compute H*div U which is to be added in Heaviside transport equation.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_var, d_adv_diff_solver->getNewContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
 
@@ -84,11 +95,11 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 HeavisideForcingFunction::setDataOnPatch(const int /*data_idx*/,
-                                         Pointer<Variable<NDIM>> /*var*/,
-                                         Pointer<Patch<NDIM>> /*patch*/,
+                                         Pointer<SAMRAIVariable> /*var*/,
+                                         Pointer<SAMRAIPatch> /*patch*/,
                                          const double /*data_time*/,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevel<NDIM>> /*patch_level*/)
+                                         Pointer<SAMRAIPatchLevel> /*patch_level*/)
 {
     // As we directly compute and set data on the patch hierarchy don't do anything over here.
     return;

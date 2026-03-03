@@ -17,12 +17,12 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <Variable.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <string>
 #include <vector>
@@ -40,9 +40,9 @@ namespace IBTK
  */
 std::vector<double> interpolate(const VectorNd& X,
                                 int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
+                                SAMRAIPointer<SAMRAIVariable> Q_var,
                                 int Q_depth,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
 /*
@@ -56,9 +56,9 @@ std::vector<double> interpolate(const VectorNd& X,
  */
 std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
+                                SAMRAIPointer<SAMRAIVariable> Q_var,
                                 int Q_depth,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
 } // namespace IBTK

@@ -17,8 +17,10 @@
 #include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <PoissonSpecifications.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 
@@ -42,7 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const SAMRAIPoissonSpecifications& poisson_spec)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -57,7 +59,7 @@ KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Poisson
 } // setPoissonSpecifications
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(SAMRAIRobinBcCoefStrategy* bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -72,7 +74,7 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<
 } // setPhysicalBcCoef
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

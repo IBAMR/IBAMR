@@ -19,16 +19,16 @@
 #include <ibtk/PETScPCLSWrapper.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petsclog.h>
 #include <petscpc.h>
 #include <petscpctypes.h>
 
-#include <Box.h>
 #include <MultiblockDataTranslator.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 #include <mpi.h>
 
 #include <ostream>
@@ -64,13 +64,13 @@ PETScPCLSWrapper::getPETScPC() const
 } // getPETScPC
 
 bool
-PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+PETScPCLSWrapper::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b)
 {
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double>>(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double>>(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&b, false));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
@@ -79,8 +79,8 @@ PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
 } // solveSystem
 
 void
-PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                        const SAMRAIVectorReal<NDIM, double>& b)
+PETScPCLSWrapper::initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                                        const SAMRAISAMRAIVectorReal<double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");

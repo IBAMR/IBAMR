@@ -21,6 +21,9 @@
 #include <ibtk/config.h>
 
 #include <ibtk/GeneralOperator.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 
@@ -74,7 +77,7 @@ public:
      *
      * \note A default implementation evaluates y := y - A*0.
      */
-    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& y) override;
 
     //\}
 

@@ -21,9 +21,10 @@
 #include <ibtk/config.h>
 
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
 
 #include <filesystem>
 #include <optional>
@@ -93,7 +94,7 @@ public:
      * \param object_name Name for this object (used in error messages and logging)
      * \param input_db    Database containing configuration parameters
      */
-    explicit RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    explicit RestartCleaner(const std::string& object_name, SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor.

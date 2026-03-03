@@ -21,6 +21,11 @@
 #include <ibtk/config.h>
 
 #include <ibtk/LSetData.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAIIndexIterator.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -30,11 +35,11 @@ namespace IBTK
 
 template <class T>
 inline typename LSetData<T>::DataIterator
-LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
+LSetData<T>::data_begin(const SAMRAIBox& box)
 {
     typename LSetData<T>::DataIterator it;
     it.d_box = box * this->getGhostBox();
-    it.d_index_it = SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM>>(*this);
+    it.d_index_it = SAMRAIIndexIterator<LSet<T>, SAMRAICellGeometry>(*this);
     if (it.d_index_it)
     {
         it.d_node_set = &(*it.d_index_it);

@@ -16,7 +16,11 @@
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
-#include <CartesianPatchGeometry.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIArray.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIIntVector.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/FEDataManager.h>
@@ -29,10 +33,10 @@ main()
 {
     std::ofstream out("output");
 
-    SAMRAI::tbox::Array<SAMRAI::tbox::Array<bool>> bdry_data(NDIM);
+    SAMRAIArray<SAMRAIArray<bool>> bdry_data(NDIM);
     for (int i = 0; i < NDIM; ++i)
     {
-        SAMRAI::tbox::Array<bool>& entry = bdry_data[i];
+        SAMRAIArray<bool>& entry = bdry_data[i];
         entry.resizeArray(2);
         entry[0] = false;
         entry[1] = false;
@@ -43,8 +47,7 @@ main()
     {
         const double x_lo[NDIM] = { 0.0, 1.0 };
         const double x_up[NDIM] = { 1.0, 3.0 };
-        SAMRAI::geom::CartesianPatchGeometry<NDIM> patch_geo(
-            SAMRAI::hier::IntVector<NDIM>(1), bdry_data, bdry_data, dx, x_lo, x_up);
+        SAMRAICartesianPatchGeometry patch_geo(SAMRAIIntVector(1), bdry_data, bdry_data, dx, x_lo, x_up);
 
         std::vector<double> coordinates{
             0.0, 0.0, // outside patch
@@ -69,8 +72,7 @@ main()
         const double x_lo[NDIM] = { 0.0, 1.0, 2.0 };
         const double x_up[NDIM] = { 1.0, 3.0, 6.0 };
 
-        SAMRAI::geom::CartesianPatchGeometry<NDIM> patch_geo(
-            SAMRAI::hier::IntVector<NDIM>(1), bdry_data, bdry_data, dx, x_lo, x_up);
+        SAMRAICartesianPatchGeometry patch_geo(SAMRAIIntVector(1), bdry_data, bdry_data, dx, x_lo, x_up);
 
         std::vector<double> coordinates{
             0.0, 0.0, 0.0, // outside patch

@@ -13,7 +13,12 @@
 
 // Config files
 
-#include <CellGeometry.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBox.h>
+#include <SAMRAICellGeometry.h>
+#include <SAMRAICellOverlap.h>
+#include <SAMRAIIntVector.h>
 #include <SAMRAI_config.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -37,7 +42,7 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cell_no_corners_pattern.log");
 
     const int N = 10;
-    Box<NDIM> dst_box, src_box;
+    SAMRAIBox dst_box, src_box;
     for (int d = 0; d < NDIM; ++d)
     {
         dst_box.lower(d) = 0;
@@ -69,18 +74,18 @@ main(int argc, char* argv[])
                 tbox::plog << "dst_box: " << dst_box << "\n";
                 tbox::plog << "src_box: " << src_box << "\n";
 
-                CellGeometry<NDIM> dst_geometry(dst_box, gcw);
-                CellGeometry<NDIM> src_geometry(src_box, gcw);
-                Box<NDIM> src_mask = src_box;
+                SAMRAICellGeometry dst_geometry(dst_box, gcw);
+                SAMRAICellGeometry src_geometry(src_box, gcw);
+                SAMRAIBox src_mask = src_box;
 
-                Pointer<CellOverlap<NDIM>> overlap;
+                Pointer<SAMRAICellOverlap> overlap;
 
                 tbox::plog << "default overlap, overwrite_interior == false:\n";
                 overlap = dst_geometry.calculateOverlap(dst_geometry,
                                                         src_geometry,
                                                         src_mask,
                                                         /*overwrite_interior*/ false,
-                                                        /*src_offset*/ IntVector<NDIM>(0),
+                                                        /*src_offset*/ SAMRAIIntVector(0),
                                                         /*retry*/ false);
                 overlap->print(tbox::plog);
 
@@ -89,7 +94,7 @@ main(int argc, char* argv[])
                                                         src_geometry,
                                                         src_mask,
                                                         /*overwrite_interior*/ true,
-                                                        /*src_offset*/ IntVector<NDIM>(0),
+                                                        /*src_offset*/ SAMRAIIntVector(0),
                                                         /*retry*/ false);
                 overlap->print(tbox::plog);
 
@@ -101,7 +106,7 @@ main(int argc, char* argv[])
                                                                      dst_box,
                                                                      src_mask,
                                                                      /*overwrite_interior*/ false,
-                                                                     /*src_offset*/ IntVector<NDIM>(0),
+                                                                     /*src_offset*/ SAMRAIIntVector(0),
                                                                      dst_level_num,
                                                                      src_level_num);
                 overlap->print(tbox::plog);
@@ -112,7 +117,7 @@ main(int argc, char* argv[])
                                                                               dst_box,
                                                                               src_mask,
                                                                               /*overwrite_interior*/ true,
-                                                                              /*src_offset*/ IntVector<NDIM>(0),
+                                                                              /*src_offset*/ SAMRAIIntVector(0),
                                                                               dst_level_num,
                                                                               src_level_num);
                 overlap->print(tbox::plog);
@@ -125,7 +130,7 @@ main(int argc, char* argv[])
                                                                      dst_box,
                                                                      src_mask,
                                                                      /*overwrite_interior*/ false,
-                                                                     /*src_offset*/ IntVector<NDIM>(0),
+                                                                     /*src_offset*/ SAMRAIIntVector(0),
                                                                      dst_level_num - 1,
                                                                      src_level_num - 1);
                 overlap->print(tbox::plog);
@@ -136,7 +141,7 @@ main(int argc, char* argv[])
                                                                               dst_box,
                                                                               src_mask,
                                                                               /*overwrite_interior*/ true,
-                                                                              /*src_offset*/ IntVector<NDIM>(0),
+                                                                              /*src_offset*/ SAMRAIIntVector(0),
                                                                               dst_level_num - 1,
                                                                               src_level_num - 1);
                 overlap->print(tbox::plog);

@@ -20,13 +20,15 @@
 
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <PatchHierarchy.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
 
 #include <string>
 
@@ -57,8 +59,8 @@ public:
      */
     ForceProjector(const std::string& object_name,
                    IBTK::LDataManager* lag_data_manager,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                   SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
+                   SAMRAIPointer<SAMRAIDatabase> input_db,
                    const std::string solver_type = "STAGGERED");
 
     /*!
@@ -116,7 +118,7 @@ private:
     /*!
      * \brief Get the values from input_db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * Name of this object.
@@ -131,7 +133,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_patch_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_patch_hierarchy;
 
     /*!
      * Fluid solver type.
@@ -141,13 +143,13 @@ private:
     /*!
      * Pointer to Lagrangian force data.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> d_lag_force;
+    std::vector<SAMRAIPointer<IBTK::LData>> d_lag_force;
 
     /*!
      *  Variables and variable context associated with calculating Eulerian force.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_body_force_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_body_force_context;
+    SAMRAIPointer<SAMRAIVariable> d_body_force_var;
+    SAMRAIPointer<SAMRAIVariableContext> d_body_force_context;
     int d_body_force_idx;
 
     /*!
@@ -168,7 +170,7 @@ private:
     /*!
      * Gravitational force constants.
      */
-    SAMRAI::tbox::Array<double> d_grav_const;
+    SAMRAIArray<double> d_grav_const;
 
 }; // ForceProjector
 

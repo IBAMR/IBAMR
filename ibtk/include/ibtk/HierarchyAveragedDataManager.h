@@ -22,13 +22,17 @@
 
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <CellVariable.h>
-#include <IntVector.h>
-#include <VisItDataWriter.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIGridGeometry.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISerializable.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVisItDataWriter.h>
 
 #include <memory>
 #include <string>
@@ -86,7 +90,7 @@ namespace IBTK
  * \endcode
  *
  */
-class HierarchyAveragedDataManager : public SAMRAI::tbox::Serializable
+class HierarchyAveragedDataManager : public SAMRAISerializable
 {
 public:
     /*!
@@ -108,9 +112,9 @@ public:
      * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
+                                 SAMRAIPointer<SAMRAIVariable> var,
+                                 SAMRAIPointer<SAMRAIDatabase> input_db,
+                                 SAMRAIPointer<SAMRAIGridGeometry> grid_geom,
                                  bool register_for_restart = true);
 
     /*!
@@ -127,13 +131,13 @@ public:
      * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 SAMRAIPointer<SAMRAIVariable> var,
+                                 SAMRAIPointer<SAMRAIDatabase> input_db,
                                  std::set<double> snapshot_time_points,
                                  double period_start_time,
                                  double period_end_time,
                                  double threshold,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
+                                 SAMRAIPointer<SAMRAIGridGeometry> grid_geom,
                                  bool register_for_restart = true);
 
     /*!
@@ -161,7 +165,7 @@ public:
     //\{
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                     const int wgt_idx = IBTK::invalid_index,
                                     double tol = 1.0e-8)
     {
@@ -170,7 +174,7 @@ public:
 
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                    SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                     const std::string& mean_refine_type,
                                     const int wgt_idx = IBTK::invalid_index,
                                     double tol = 1.0e-8);
@@ -224,21 +228,21 @@ public:
     /*!
      * Write the averaged data manager to a database
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db) override;
 
 private:
     void getFromRestart();
     /*!
      * \brief Registers a scratch variable with the variable database. This data is allocated and deallocated as needed.
      */
-    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void commonConstructor(SAMRAIPointer<SAMRAIDatabase> input_db);
 
     std::string d_object_name;
 
     /*
      * Data for tracking mean flow quantities.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_var;
+    SAMRAIPointer<SAMRAIVariable> d_var;
     int d_scratch_idx = IBTK::invalid_index;
     std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
@@ -274,10 +278,10 @@ private:
     SnapshotCache d_snapshot_cache;
 
     // Drawing stuff
-    std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM>> d_visit_data_writer;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_mean_var;
+    std::unique_ptr<SAMRAIVisItDataWriter> d_visit_data_writer;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_mean_var;
     int d_mean_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dev_var;
+    SAMRAIPointer<SAMRAICellVariable<double>> d_dev_var;
     int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
     bool d_output_data = true;

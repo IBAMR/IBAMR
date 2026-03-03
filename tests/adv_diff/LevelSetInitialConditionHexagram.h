@@ -19,7 +19,13 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include <CartesianGridGeometry.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -36,7 +42,7 @@ public:
      * \brief Class constructor.
      */
     LevelSetInitialConditionHexagram(const std::string& object_name,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom,
+                                     const SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom,
                                      const IBTK::VectorNd& origin);
 
     /*!
@@ -54,11 +60,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                        Pointer<Patch<NDIM>> patch,
+                        Pointer<SAMRAIVariable> var,
+                        Pointer<SAMRAIPatch> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM>> patch_level = nullptr) override;
+                        Pointer<SAMRAIPatchLevel> patch_level = nullptr) override;
 
     //\}
 
@@ -87,7 +93,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom;
+    SAMRAIPointer<SAMRAICartesianGridGeometry> d_grid_geom;
 
     /*!
      * Origin of the geometry.

@@ -22,6 +22,16 @@
 
 #include <ibamr/CellConvectiveOperator.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceData.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -52,10 +62,10 @@ public:
      * \brief Class constructor.
      */
     AdvDiffCUIConvectiveOperator(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                 SAMRAIPointer<SAMRAIDatabase> input_db,
                                  ConvectiveDifferencingType difference_form,
-                                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                                 std::vector<SAMRAIRobinBcCoefStrategy*> bc_coefs);
 
     /*!
      * \brief Default destructor.
@@ -65,12 +75,11 @@ public:
     /*!
      * \brief Static function to construct an AdvDiffCUIConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                      ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    static SAMRAIPointer<ConvectiveOperator> allocate_operator(const std::string& object_name,
+                                                               SAMRAIPointer<SAMRAICellVariable<double>> Q_var,
+                                                               SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                               ConvectiveDifferencingType difference_form,
+                                                               const std::vector<SAMRAIRobinBcCoefStrategy*>& bc_coefs)
     {
         return new AdvDiffCUIConvectiveOperator(object_name, Q_var, input_db, difference_form, bc_coefs);
     } // allocate_operator
@@ -78,10 +87,10 @@ public:
     /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q on a single grid patch.
      */
-    void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
-                                  const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                  const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                  const SAMRAI::hier::Patch<NDIM>& patch) override;
+    void interpolateToFaceOnPatch(SAMRAIFaceData<double>& q_interp_data,
+                                  const SAMRAICellData<double>& Q_cell_data,
+                                  const SAMRAIFaceData<double>& u_data,
+                                  const SAMRAIPatch& patch) override;
 
 private:
     /*!

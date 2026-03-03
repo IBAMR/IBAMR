@@ -22,10 +22,10 @@
 
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -33,14 +33,14 @@ namespace IBTK
 {
 template <typename TYPE>
 SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(
-    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>& vector,
+    const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>& vector,
     const std::string& name)
     : SAMRAIScopedVectorDuplicate(checked_dereference(vector), name)
 {
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector,
+SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(const SAMRAISAMRAIVectorReal<TYPE>& vector,
                                                                const std::string& name)
 {
     d_vector = vector.cloneVector(name);
@@ -49,31 +49,30 @@ SAMRAIScopedVectorDuplicate<TYPE>::SAMRAIScopedVectorDuplicate(const SAMRAI::sol
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>&()
+SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAISAMRAIVectorReal<TYPE>&()
 {
     return *d_vector;
 }
 
 template <typename TYPE>
-SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>()
+SAMRAIScopedVectorDuplicate<TYPE>::operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>()
 {
-    return SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>(&*d_vector, false);
+    return SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&*d_vector, false);
 }
 
 template <typename TYPE>
-std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>>
+std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>>
 SAMRAIScopedVectorDuplicate<TYPE>::getComponentVectors() const
 {
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>> comps;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>> comps;
     for (int comp = 0; comp < d_vector->getNumberOfComponents(); ++comp)
     {
-        comps.emplace_back(
-            new SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>(d_vector->getName() + "_component_" + std::to_string(comp),
-                                                           d_vector->getPatchHierarchy(),
-                                                           d_vector->getCoarsestLevelNumber(),
-                                                           d_vector->getFinestLevelNumber()));
+        comps.emplace_back(new SAMRAISAMRAIVectorReal<TYPE>(d_vector->getName() + "_component_" + std::to_string(comp),
+                                                            d_vector->getPatchHierarchy(),
+                                                            d_vector->getCoarsestLevelNumber(),
+                                                            d_vector->getFinestLevelNumber()));
         comps.back()->addComponent(d_vector->getComponentVariable(comp),
                                    d_vector->getComponentDescriptorIndex(comp),
                                    d_vector->getControlVolumeIndex(comp));

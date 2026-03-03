@@ -15,7 +15,9 @@
 
 #include <ibamr/FifthOrderStokesWaveGenerator.h>
 
-#include <tbox/Database.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
 
 #include <cmath>
 #include <limits>
@@ -28,7 +30,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FifthOrderStokesWaveGenerator::FifthOrderStokesWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
+FifthOrderStokesWaveGenerator::FifthOrderStokesWaveGenerator(const std::string& object_name,
+                                                             Pointer<SAMRAIDatabase> input_db)
     : StokesWaveGeneratorStrategy(object_name, input_db)
 {
     initStokesCoefficients();

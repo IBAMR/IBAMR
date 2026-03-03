@@ -28,21 +28,24 @@
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <CoarsenAlgorithm.h>
-#include <CoarsenOperator.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefinePatchStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <VariableContext.h>
-#include <VariableFillPattern.h>
+#include <SAMRAICoarsenAlgorithm.h>
+#include <SAMRAICoarsenOperator.h>
+#include <SAMRAICoarsenSchedule.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRefineAlgorithm.h>
+#include <SAMRAIRefineOperator.h>
+#include <SAMRAIRefinePatchStrategy.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <string>
 #include <utility>
@@ -108,7 +111,7 @@ public:
      */
     StaggeredStokesFACPreconditionerStrategy(const std::string& object_name,
                                              int ghost_cell_width,
-                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                             SAMRAIPointer<SAMRAIDatabase> input_db,
                                              const std::string& default_options_prefix);
 
     /*!
@@ -121,7 +124,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    virtual void setVelocityPoissonSpecifications(const SAMRAIPoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Set if velocity and pressure have nullspace.
@@ -143,14 +146,14 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAIRobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Functions for configuring the solver.
@@ -240,7 +243,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
+    void setToZero(SAMRAISAMRAIVectorReal<double>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -250,8 +253,8 @@ public:
      * \param dst destination residual
      * \param dst_ln destination level number
      */
-    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void restrictResidual(const SAMRAISAMRAIVectorReal<double>& src,
+                          SAMRAISAMRAIVectorReal<double>& dst,
                           int dst_ln) override;
 
     /*!
@@ -262,9 +265,8 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln) override;
+    void
+    prolongError(const SAMRAISAMRAIVectorReal<double>& src, SAMRAISAMRAIVectorReal<double>& dst, int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -274,8 +276,8 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void prolongErrorAndCorrect(const SAMRAISAMRAIVectorReal<double>& src,
+                                SAMRAISAMRAIVectorReal<double>& dst,
                                 int dst_ln) override;
 
     /*!
@@ -286,17 +288,17 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    bool solveCoarsestLevel(SAMRAISAMRAIVectorReal<double>& error,
+                            const SAMRAISAMRAIVectorReal<double>& residual,
                             int coarsest_ln) override;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAISAMRAIVectorReal<double>& residual,
+                         const SAMRAISAMRAIVectorReal<double>& solution,
+                         const SAMRAISAMRAIVectorReal<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -314,8 +316,8 @@ public:
      * \param solution solution vector u
      * \param rhs right hand side vector f
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+    void initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& solution,
+                                 const SAMRAISAMRAIVectorReal<double>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -332,8 +334,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    virtual void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    virtual void initializeOperatorStateSpecialized(const SAMRAISAMRAIVectorReal<double>& solution,
+                                                    const SAMRAISAMRAIVectorReal<double>& rhs,
                                                     int coarsest_reset_ln,
                                                     int finest_reset_ln) = 0;
 
@@ -374,16 +376,16 @@ protected:
     /*
      * Problem specification.
      */
-    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAIPoissonSpecifications d_U_problem_coefs;
+    SAMRAIRobinBcCoefStrategy* d_default_U_bc_coef;
+    std::vector<SAMRAIRobinBcCoefStrategy*> d_U_bc_coefs;
+    SAMRAIRobinBcCoefStrategy* d_default_P_bc_coef;
+    SAMRAIRobinBcCoefStrategy* d_P_bc_coef;
 
     /*
      * Boundary condition helper object.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     /*
      * Ghost cell width.
@@ -398,7 +400,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_solution, d_rhs;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -408,14 +410,14 @@ protected:
      * hierarchy is obtainable through variables in most function argument
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>> d_level_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>> d_level_math_ops;
+    std::vector<SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation>> d_level_bdry_fill_ops;
+    std::vector<SAMRAIPointer<IBTK::HierarchyMathOps>> d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -455,8 +457,8 @@ protected:
     double d_coarse_solver_rel_residual_tol = 1.0e-5;
     double d_coarse_solver_abs_residual_tol = 1.0e-50;
     int d_coarse_solver_max_iterations = 10;
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAIDatabase> d_coarse_solver_db;
 
     /*
      * Null space info.
@@ -473,7 +475,7 @@ protected:
     /*
      * Variable context for internally maintained hierarchy data.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAIPointer<SAMRAIVariableContext> d_context;
 
     /*
      * Patch descriptor indices for scratch data.
@@ -490,19 +492,19 @@ protected:
     /*
      * Physical boundary operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartSideRobinPhysBdryOp> d_U_bc_op;
-    SAMRAI::tbox::Pointer<IBTK::CartCellRobinPhysBdryOp> d_P_bc_op;
+    SAMRAIPointer<IBTK::CartSideRobinPhysBdryOp> d_U_bc_op;
+    SAMRAIPointer<IBTK::CartCellRobinPhysBdryOp> d_P_bc_op;
 
     /*
      * Coarse-fine interface interpolation objects.
      */
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op, d_P_cf_bdry_op;
+    SAMRAIPointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op, d_P_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_U_op_stencil_fill_pattern,
-        d_P_op_stencil_fill_pattern, d_U_synch_fill_pattern;
+    SAMRAIPointer<SAMRAIVariableFillPattern> d_U_op_stencil_fill_pattern, d_P_op_stencil_fill_pattern,
+        d_U_synch_fill_pattern;
 
     //\}
 
@@ -537,36 +539,34 @@ private:
     /*
      * Combined U & P physical boundary operator.
      */
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
+    SAMRAIRefinePatchStrategy* d_U_P_bc_op;
 
     /*
      * Error prolongation (refinement) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_U_prolongation_refine_operator,
-        d_P_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules;
+    SAMRAIPointer<SAMRAIRefineOperator> d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
+    SAMRAIPointer<SAMRAIRefinePatchStrategy> d_prolongation_refine_patch_strategy;
+    SAMRAIPointer<SAMRAIRefineAlgorithm> d_prolongation_refine_algorithm;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_U_restriction_coarsen_operator,
-        d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules;
+    SAMRAIPointer<SAMRAICoarsenOperator> d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
+    SAMRAIPointer<SAMRAICoarsenAlgorithm> d_restriction_coarsen_algorithm;
+    std::vector<SAMRAIPointer<SAMRAICoarsenSchedule>> d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules;
+    SAMRAIPointer<SAMRAIRefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_synch_refine_schedules;
+    SAMRAIPointer<SAMRAIRefineAlgorithm> d_synch_refine_algorithm;
+    std::vector<SAMRAIPointer<SAMRAIRefineSchedule>> d_synch_refine_schedules;
 };
 } // namespace IBAMR
 

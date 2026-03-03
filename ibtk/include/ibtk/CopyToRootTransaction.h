@@ -20,12 +20,13 @@
 
 #include <ibtk/config.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Transaction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <IntVector.h>
-#include <PatchData.h>
-#include <PatchLevel.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAITransaction.h>
 
 #include <iosfwd>
 #include <string>
@@ -49,7 +50,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class CopyToRootTransaction : public SAMRAI::tbox::Transaction
+class CopyToRootTransaction : public SAMRAITransaction
 {
 public:
     /*!
@@ -57,9 +58,9 @@ public:
      */
     CopyToRootTransaction(int src_proc,
                           int dst_proc,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                          SAMRAIPointer<SAMRAIPatchLevel> patch_level,
                           int src_patch_data_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> dst_patch_data);
+                          SAMRAIPointer<SAMRAIPatchData> dst_patch_data);
 
     /*!
      * \brief Destructor
@@ -69,7 +70,7 @@ public:
     /*!
      * Return a pointer to the data on the root process.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> getRootPatchData() const;
+    SAMRAIPointer<SAMRAIPatchData> getRootPatchData() const;
 
     /*!
      * Return a boolean indicating whether this transaction can estimate the
@@ -148,9 +149,9 @@ private:
     CopyToRootTransaction& operator=(const CopyToRootTransaction& that) = delete;
 
     const int d_src_proc, d_dst_proc;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_patch_level;
+    SAMRAIPointer<SAMRAIPatchLevel> d_patch_level;
     const int d_src_patch_data_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> d_dst_patch_data;
+    SAMRAIPointer<SAMRAIPatchData> d_dst_patch_data;
 };
 } // namespace IBTK
 

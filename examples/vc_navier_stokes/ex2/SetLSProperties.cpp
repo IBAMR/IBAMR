@@ -13,10 +13,12 @@
 
 // APPLICATION INCLUDES
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "SetLSProperties.h"
 
-#include <CartesianGridGeometry.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIPointer.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -60,7 +62,7 @@ SetLSProperties::~SetLSProperties()
 
 void
 SetLSProperties::setLSPatchData(int ls_idx,
-                                SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                 const int integrator_step,
                                 const double current_time,
                                 const bool initial_time,

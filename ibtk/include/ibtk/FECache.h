@@ -20,17 +20,19 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/QuadratureCache.h>
-
-#include <tbox/Utilities.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
 #include <libmesh/fe.h>
+
+#include <SAMRAIUtilities.h>
 
 #include <map>
 #include <memory>

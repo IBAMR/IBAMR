@@ -22,14 +22,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petscmat.h>
 #include <petscvec.h>
@@ -40,11 +33,18 @@
 #include <Eigen/Eigenvalues>
 #include <Eigen/LU>
 
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIMathUtilities.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <algorithm>
 #include <cmath>
@@ -63,29 +63,30 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_solve_body_system;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_system;
+static SAMRAITimer* t_solve_body_system;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 } // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
 DirectMobilitySolver::DirectMobilitySolver(std::string object_name,
-                                           Pointer<Database> input_db,
-                                           Pointer<CIBStrategy> cib_strategy)
+                                           SAMRAIPointer<SAMRAIDatabase> input_db,
+                                           SAMRAIPointer<CIBStrategy> cib_strategy)
     : d_object_name(std::move(object_name)), d_cib_strategy(cib_strategy)
 {
     // Get from input
     if (input_db) getFromInput(input_db);
 
-    IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveSystem()");
-                  t_solve_body_system =
-                      TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveBodySystem()");
-                  t_initialize_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::initializeSolverState()");
-                  t_deallocate_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::deallocateSolverState()"););
+    IBAMR_DO_ONCE(
+        t_solve_system = SAMRAITimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveSystem()");
+        t_solve_body_system =
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveBodySystem()");
+        t_initialize_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::initializeSolverState()");
+        t_deallocate_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::deallocateSolverState()"););
 
     return;
 } // DirectMobilitySolver
@@ -391,14 +392,14 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
         // Get grid-info
         Vec* vx;
         VecNestGetSubVecs(x, nullptr, &vx);
-        Pointer<SAMRAIVectorReal<NDIM, double>> vx0;
+        SAMRAIPointer<SAMRAISAMRAIVectorReal<double>> vx0;
         IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = vx0->getPatchHierarchy();
+        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy = vx0->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchLevel<NDIM>> struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
-        const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
-        Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_hierarchy->getGridGeometry();
+        SAMRAIPointer<SAMRAIPatchLevel> struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        const SAMRAIIntVector& ratio = struct_patch_level->getRatio();
+        SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geom = patch_hierarchy->getGridGeometry();
         const double* dx0 = grid_geom->getDx();
         const double* X_upper = grid_geom->getXUpper();
         const double* X_lower = grid_geom->getXLower();
@@ -498,10 +499,11 @@ DirectMobilitySolver::getStructIDs(const std::string& mat_name)
 ///////////////////////////// PRIVATE ////////////////////////////////////////
 
 void
-DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
+DirectMobilitySolver::getFromInput(SAMRAIPointer<SAMRAIDatabase> input_db)
 {
-    Pointer<Database> comp_db;
-    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(nullptr);
+    SAMRAIPointer<SAMRAIDatabase> comp_db;
+    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") :
+                                                   SAMRAIPointer<SAMRAIDatabase>(nullptr);
     if (comp_db)
     {
         d_svd_replace_value = comp_db->getDouble("eigenvalue_replace_value");

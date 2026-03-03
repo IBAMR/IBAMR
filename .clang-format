@@ -48,6 +48,8 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: c++17
+WhitespaceSensitiveMacros:
+  - IBTK_SAMRAI_HAS_INCLUDE
 TabWidth: 8
 UseTab: Never
 

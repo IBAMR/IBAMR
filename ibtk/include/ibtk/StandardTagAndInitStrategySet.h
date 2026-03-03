@@ -20,11 +20,15 @@
 
 #include <ibtk/config.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <BasePatchLevel.h>
-#include <IntVector.h>
-#include <StandardTagAndInitStrategy.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBasePatchLevel.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIStandardTagAndInitStrategy.h>
 
 #include <ostream>
 #include <string>
@@ -66,7 +70,7 @@ namespace IBTK
  * SAMRAI::mesh::StandardTagAndInitStrategy will work properly with class
  * StandardTagAndInitStrategySet.
  */
-class StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class StandardTagAndInitStrategySet : public SAMRAIStandardTagAndInitStrategy
 {
 public:
     /*!
@@ -88,9 +92,7 @@ public:
     /*!
      * Determine time increment to advance data on level.
      */
-    double getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> level,
-                      double dt_time,
-                      bool initial_time) override;
+    double getLevelDt(SAMRAIPointer<SAMRAIBasePatchLevel> level, double dt_time, bool initial_time) override;
 
     /*!
      * Advance data on all patches on specified patch level from current time
@@ -147,8 +149,8 @@ public:
 
 
      */
-    double advanceLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> level,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+    double advanceLevel(SAMRAIPointer<SAMRAIBasePatchLevel> level,
+                        SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                         double current_time,
                         double new_time,
                         bool first_step,
@@ -158,9 +160,8 @@ public:
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    void resetTimeDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> level,
-                                double new_time,
-                                bool can_be_refined) override;
+    void
+    resetTimeDependentData(SAMRAIPointer<SAMRAIBasePatchLevel> level, double new_time, bool can_be_refined) override;
 
     /*!
      * Reset data on the patch level by destroying all patch data other than
@@ -168,7 +169,7 @@ public:
      * words, this is the data needed to begin a time integration step on the
      * level.
      */
-    void resetDataToPreadvanceState(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> level) override;
+    void resetDataToPreadvanceState(SAMRAIPointer<SAMRAIBasePatchLevel> level) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -192,14 +193,14 @@ public:
      * can_be_refined boolean argument indicates whether the level is the finest
      * allowable level in the hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
-                             int level_number,
-                             double init_data_time,
-                             bool can_be_refined,
-                             bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>>(nullptr),
-                             bool allocate_data = true) override;
+    void
+    initializeLevelData(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
+                        int level_number,
+                        double init_data_time,
+                        bool can_be_refined,
+                        bool initial_time,
+                        SAMRAIPointer<SAMRAIBasePatchLevel> old_level = SAMRAIPointer<SAMRAIBasePatchLevel>(nullptr),
+                        bool allocate_data = true) override;
 
     /*!
      * After hierarchy levels have changed and data has been initialized on the
@@ -218,7 +219,7 @@ public:
      * current hierarchy configuration that have changed.  It should be assumed
      * that all intermediate levels have changed as well.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+    void resetHierarchyConfiguration(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -240,7 +241,7 @@ public:
      * detector, and false otherwise.  This argument helps the user to manage
      * multiple regridding criteria.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+    void applyGradientDetector(SAMRAIPointer<SAMRAIBasePatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -272,7 +273,7 @@ public:
      * otherwise.  This argument helps the user to manage multiple regridding
      * criteria.
      */
-    void applyRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level,
+    void applyRichardsonExtrapolation(SAMRAIPointer<SAMRAIPatchLevel> level,
                                       double error_data_time,
                                       int tag_index,
                                       double deltat,
@@ -290,9 +291,9 @@ public:
      * coarsening the "new" solution on the fine level (i.e., after it has been
      * advanced).
      */
-    void coarsenDataForRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+    void coarsenDataForRichardsonExtrapolation(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                                int level_number,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarser_level,
+                                               SAMRAIPointer<SAMRAIPatchLevel> coarser_level,
                                                double coarsen_data_time,
                                                bool before_advance) override;
 
@@ -328,7 +329,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:StandardTagAndInitStrategy objects.
      */
-    std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> d_strategy_set;
+    std::vector<SAMRAIStandardTagAndInitStrategy*> d_strategy_set;
 
     /*!
      * \brief Boolean value that indicates whether this class should provide

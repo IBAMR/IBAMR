@@ -16,9 +16,11 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/StreamableFactory.h>
 #include <ibtk/StreamableManager.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
 #include <tbox/ShutdownRegistry.h>
+
+#include <SAMRAIPointer.h>
 
 #include <map>
 
@@ -68,7 +70,7 @@ StreamableManager::getUnregisteredID()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
+StreamableManager::checkFactoryRegistration(SAMRAIPointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);
@@ -77,7 +79,7 @@ StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
 } // checkFactoryRegistration
 
 int
-StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
+StreamableManager::registerFactory(SAMRAIPointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);

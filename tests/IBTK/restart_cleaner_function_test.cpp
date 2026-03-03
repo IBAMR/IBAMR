@@ -15,11 +15,11 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RestartCleaner.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/MemoryDatabase.h>
-#include <tbox/SAMRAIManager.h>
-
+#include <SAMRAIDatabase.h>
+#include <SAMRAIMemoryDatabase.h>
+#include <SAMRAISAMRAIManager.h>
 #include <mpi.h>
 
 #include <algorithm>
@@ -188,7 +188,7 @@ main(int argc, char** argv)
         try
         {
             // Create database configuration for parsing test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("ParsingTestConfig");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("ParsingTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 20);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -245,7 +245,7 @@ main(int argc, char** argv)
             pout << "Directories before cleanup: " << dirs_before << std::endl;
 
             // Create database configuration for cleanup test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("CleanupTestConfig");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("CleanupTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 3);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -305,7 +305,7 @@ main(int argc, char** argv)
             pout << "Directories before dry run: " << dirs_before << std::endl;
 
             // Create database configuration for dry run test
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DryRunTestConfig");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DryRunTestConfig");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 2);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -347,7 +347,7 @@ main(int argc, char** argv)
         try
         {
             // Create database configuration
-            Pointer<MemoryDatabase> db = new MemoryDatabase("DatabaseTest");
+            Pointer<SAMRAIMemoryDatabase> db = new SAMRAIMemoryDatabase("DatabaseTest");
             db->putString("restart_directory", test_dir);
             db->putInteger("keep_recent_files", 4);
             db->putBool("enable_logging", true);
@@ -392,7 +392,7 @@ main(int argc, char** argv)
             std::filesystem::create_directories(empty_dir);
 
             // Create database configuration for empty directory test
-            Pointer<MemoryDatabase> db1 = new MemoryDatabase("EmptyDirTestConfig");
+            Pointer<SAMRAIMemoryDatabase> db1 = new SAMRAIMemoryDatabase("EmptyDirTestConfig");
             db1->putString("restart_directory", empty_dir);
             db1->putInteger("keep_recent_files", 5);
             db1->putString("cleanup_strategy", "KEEP_RECENT_N");
@@ -418,7 +418,7 @@ main(int argc, char** argv)
             std::filesystem::create_directories(invalid_dir + "/restore_wrong_format");
 
             // Create database configuration for invalid content test
-            Pointer<MemoryDatabase> db2 = new MemoryDatabase("InvalidContentTestConfig");
+            Pointer<SAMRAIMemoryDatabase> db2 = new SAMRAIMemoryDatabase("InvalidContentTestConfig");
             db2->putString("restart_directory", invalid_dir);
             db2->putInteger("keep_recent_files", 5);
             db2->putString("cleanup_strategy", "KEEP_RECENT_N");

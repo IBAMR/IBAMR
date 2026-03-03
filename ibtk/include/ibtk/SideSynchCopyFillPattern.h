@@ -20,11 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <Box.h>
-#include <IntVector.h>
-#include <VariableFillPattern.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxGeometry.h>
+#include <SAMRAIBoxOverlap.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <string>
 
@@ -50,7 +53,7 @@ namespace IBTK
  * side-centered ghost region surrounding a patch appropriate for
  * "synchronizing" side-centered values at patch boundaries.
  */
-class SideSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class SideSynchCopyFillPattern : public SAMRAIVariableFillPattern
 {
 public:
     /*!
@@ -83,18 +86,17 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM>>
-    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                     const SAMRAI::hier::Box<NDIM>& src_mask,
-                     bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
+    SAMRAIPointer<SAMRAIBoxOverlap> calculateOverlap(const SAMRAIBoxGeometry& dst_geometry,
+                                                     const SAMRAIBoxGeometry& src_geometry,
+                                                     const SAMRAIBox& dst_patch_box,
+                                                     const SAMRAIBox& src_mask,
+                                                     bool overwrite_interior,
+                                                     const SAMRAIIntVector& src_offset) const override;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
+    SAMRAIIntVector& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "SIDE_SYNCH_COPY_FILL_PATTERN".
@@ -122,7 +124,7 @@ private:
      */
     SideSynchCopyFillPattern& operator=(const SideSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width = 1;
+    SAMRAIIntVector d_stencil_width = 1;
 };
 } // namespace IBTK
 

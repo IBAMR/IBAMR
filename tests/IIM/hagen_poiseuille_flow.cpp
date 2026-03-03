@@ -22,10 +22,30 @@
 // which is currently on branch iim-1 at https://github.com/drwells/IBAMR
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIBergerRigoutsos.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxList.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAIGriddingAlgorithm.h>
+#include <SAMRAIHierarchyCellDataOpsReal.h>
+#include <SAMRAIHierarchySideDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAILoadBalancer.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIStandardTagAndInitialize.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 // Headers for basic libMesh objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -124,17 +144,17 @@ static double x_loc_min, x_loc_max, z_loc_min, z_loc_max, y_loc_min, y_loc_max;
 using namespace ModelData;
 
 // Function prototypes
-void compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void compute_velocity_profile(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                               const int u_idx,
                               const double data_time,
                               const string& data_dump_dirname);
 
-void compute_pressure_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void compute_pressure_profile(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                               const int p_idx,
                               const double data_time,
                               const string& data_dump_dirname);
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void postprocess_data(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -142,18 +162,18 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                       const double loop_time,
                       const string& data_dump_dirname);
 
-void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void output_data(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                  Pointer<IBHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
-void compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+void compute_velocity_profile(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                               const int u_idx,
                               const double data_time,
                               const string& data_dump_dirname);
 
 void compute_flow_rate(const double dt,
-                       const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                       const Pointer<SAMRAIPatchHierarchy> hierarchy,
                        const int U_idx,
                        const double loop_time,
                        ostream& flow_rate_stream,
@@ -324,18 +344,18 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<SAMRAICartesianGridGeometry> grid_geometry = new SAMRAICartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<SAMRAIPatchHierarchy> patch_hierarchy = new SAMRAIPatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<SAMRAIStandardTagAndInitialize> error_detector =
+            new SAMRAIStandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<SAMRAIBergerRigoutsos> box_generator = new SAMRAIBergerRigoutsos();
+        Pointer<SAMRAILoadBalancer> load_balancer =
+            new SAMRAILoadBalancer("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<SAMRAIGriddingAlgorithm> gridding_algorithm =
+            new SAMRAIGriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -365,7 +385,7 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects.
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
+        vector<SAMRAIRobinBcCoefStrategy*> u_bc_coefs(NDIM, nullptr);
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -389,7 +409,7 @@ main(int argc, char* argv[])
             new hagen_poiseuille_FeedbackForcer(H, D, navier_stokes_integrator, patch_hierarchy));
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<SAMRAIVisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -456,7 +476,7 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
-            Pointer<hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+            Pointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
             Pointer<VariableContext> current_ctx = time_integrator->getCurrentContext();
 
             // At specified intervals, write visualization and restart files,
@@ -490,8 +510,8 @@ main(int argc, char* argv[])
             }
 
             {
-                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-                Pointer<hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+                SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+                Pointer<SAMRAIVariable> u_var = time_integrator->getVelocityVariable();
                 const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
                 const int coarsest_ln = 0;
@@ -521,15 +541,15 @@ main(int argc, char* argv[])
         pout << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<hier::Variable<NDIM>> u_var = navier_stokes_integrator->getVelocityVariable();
+        SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
+        Pointer<SAMRAIVariable> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-        const Pointer<hier::Variable<NDIM>> p_var = time_integrator->getPressureVariable();
+        const Pointer<SAMRAIVariable> p_var = time_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -552,7 +572,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         pout << std::setprecision(16) << "Error in u at time " << loop_time << ":\n"
              << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
@@ -560,7 +580,7 @@ main(int argc, char* argv[])
              << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        SAMRAIHierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
         pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
@@ -600,7 +620,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+compute_velocity_profile(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                          const int u_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -619,55 +639,55 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     vector<double> pos_values;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAICellIndex& patch_lower = patch_box.lower();
+            const SAMRAICellIndex& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            const Pointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
             // Entire box containing the required data.
-            Box<NDIM> box(IndexUtilities::getCellIndex(
+            SAMRAIBox box(IndexUtilities::getCellIndex(
                               &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
                           IndexUtilities::getCellIndex(
                               &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             // Part of the box on this patch
-            Box<NDIM> trim_box = patch_box * box;
-            BoxList<NDIM> iterate_box_list = trim_box;
+            SAMRAIBox trim_box = patch_box * box;
+            SAMRAIBoxList iterate_box_list = trim_box;
 
             // Trim the box covered by the finer region
-            BoxList<NDIM> covered_boxes;
+            SAMRAIBoxList covered_boxes;
             if (ln < finest_ln)
             {
                 BoxArray<NDIM> refined_region_boxes;
-                Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                Pointer<SAMRAIPatchLevel> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    const SAMRAIBox refined_box = refined_region_boxes[i];
+                    const SAMRAIBox covered_box = trim_box * refined_box;
                     covered_boxes.unionBoxes(covered_box);
                 }
             }
             iterate_box_list.removeIntersections(covered_boxes);
 
             // Loop over the boxes and store the location and interpolated value.
-            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
-            const Pointer<CellData<NDIM, double>> wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            Pointer<SAMRAISideData<double>> u_data = patch->getPatchData(u_idx);
+            const Pointer<SAMRAICellData<double>> wgt_cc_data = patch->getPatchData(wgt_cc_idx);
 
-            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            for (SAMRAIBoxList::Iterator lit(iterate_box_list); lit; lit++)
             {
-                const Box<NDIM>& iterate_box = *lit;
-                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                const SAMRAIBox& iterate_box = *lit;
+                for (SAMRAIBox::Iterator bit(iterate_box); bit; bit++)
                 {
-                    const CellIndex<NDIM>& lower_idx = *bit;
+                    const SAMRAICellIndex& lower_idx = *bit;
 
                     const double yu = patch_x_lower[1] + patch_dx[1] * (lower_idx(1) - patch_lower(1) + 0.5);
                     const double zu = patch_x_lower[2] + patch_dx[2] * (lower_idx(2) - patch_lower(2) + 0.5);
@@ -690,9 +710,9 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                         w_ex = 0.0;
                     }
 
-                    const double u0 = (*u_data)(SideIndex<NDIM>(lower_idx, 0, SideIndex<NDIM>::Lower));
-                    const double v0 = (*u_data)(SideIndex<NDIM>(lower_idx, 1, SideIndex<NDIM>::Lower));
-                    const double w0 = (*u_data)(SideIndex<NDIM>(lower_idx, 2, SideIndex<NDIM>::Lower));
+                    const double u0 = (*u_data)(SAMRAISideIndex(lower_idx, 0, SAMRAISideIndex::Lower));
+                    const double v0 = (*u_data)(SAMRAISideIndex(lower_idx, 1, SAMRAISideIndex::Lower));
+                    const double w0 = (*u_data)(SAMRAISideIndex(lower_idx, 2, SAMRAISideIndex::Lower));
 
                     if (xu > 0.4 * L && xu < 0.6 * L)
                     {
@@ -723,7 +743,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 } // compute_velocity_profile
 
 void
-output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+output_data(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             const int iteration_num,
             const double loop_time,
@@ -737,7 +757,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));
@@ -751,7 +771,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 } // output_data
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
+postprocess_data(Pointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -977,7 +997,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
 } // postprocess_data
 
 void
-compute_pressure_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+compute_pressure_profile(Pointer<SAMRAIPatchHierarchy> patch_hierarchy,
                          const int p_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -998,55 +1018,55 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     int qp_tot = 0;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            const SAMRAICellIndex& patch_lower = patch_box.lower();
+            const SAMRAICellIndex& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+            const Pointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
             // Entire box containing the required data.
-            Box<NDIM> box(IndexUtilities::getCellIndex(
+            SAMRAIBox box(IndexUtilities::getCellIndex(
                               &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
                           IndexUtilities::getCellIndex(
                               &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             // Part of the box on this patch
-            Box<NDIM> trim_box = patch_box * box;
-            BoxList<NDIM> iterate_box_list = trim_box;
+            SAMRAIBox trim_box = patch_box * box;
+            SAMRAIBoxList iterate_box_list = trim_box;
 
             // Trim the box covered by the finer region
-            BoxList<NDIM> covered_boxes;
+            SAMRAIBoxList covered_boxes;
             if (ln < finest_ln)
             {
                 BoxArray<NDIM> refined_region_boxes;
-                Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                Pointer<SAMRAIPatchLevel> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    const SAMRAIBox refined_box = refined_region_boxes[i];
+                    const SAMRAIBox covered_box = trim_box * refined_box;
                     covered_boxes.unionBoxes(covered_box);
                 }
             }
             iterate_box_list.removeIntersections(covered_boxes);
 
             // Loop over the boxes and store the location and interpolated value.
-            const Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
-            const Pointer<CellData<NDIM, double>> wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            const Pointer<SAMRAICellData<double>> p_data = patch->getPatchData(p_idx);
+            const Pointer<SAMRAICellData<double>> wgt_cc_data = patch->getPatchData(wgt_cc_idx);
 
-            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            for (SAMRAIBoxList::Iterator lit(iterate_box_list); lit; lit++)
             {
-                const Box<NDIM>& iterate_box = *lit;
-                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                const SAMRAIBox& iterate_box = *lit;
+                for (SAMRAIBox::Iterator bit(iterate_box); bit; bit++)
                 {
-                    const CellIndex<NDIM>& cell_idx = *bit;
+                    const SAMRAICellIndex& cell_idx = *bit;
                     const double p1 = (*p_data)(cell_idx);
                     const double y = patch_x_lower[1] + patch_dx[1] * (cell_idx(1) - patch_lower(1) + 0.5);
                     const double z = patch_x_lower[2] + patch_dx[2] * (cell_idx(2) - patch_lower(2) + 0.5);
@@ -1091,7 +1111,7 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 
 void
 compute_flow_rate(const double /*dt*/,
-                  const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                  const Pointer<SAMRAIPatchHierarchy> hierarchy,
                   const int U_idx,
                   const double loop_time,
                   ostream& flow_rate_stream,
@@ -1105,16 +1125,16 @@ compute_flow_rate(const double /*dt*/,
     const double rsrc[2] = { 0.5 * D, 0.5 * D };
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(U_idx);
-                Pointer<SideData<NDIM, double>> wgt_sc_data = patch->getPatchData(wgt_sc_idx);
-                const Box<NDIM>& patch_box = patch->getBox();
+                Pointer<SAMRAISideData<double>> U_data = patch->getPatchData(U_idx);
+                Pointer<SAMRAISideData<double>> wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                const SAMRAIBox& patch_box = patch->getBox();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();
                 double dV = 1.0;
@@ -1136,7 +1156,7 @@ compute_flow_rate(const double /*dt*/,
                         {
                             n[d] = axis == d ? (is_lower ? -1.0 : +1.0) : 0.0;
                         }
-                        Box<NDIM> side_box = patch_box;
+                        SAMRAIBox side_box = patch_box;
                         if (is_lower)
                         {
                             side_box.lower(axis) = patch_box.lower(axis);
@@ -1147,9 +1167,9 @@ compute_flow_rate(const double /*dt*/,
                             side_box.lower(axis) = patch_box.upper(axis) + 1;
                             side_box.upper(axis) = patch_box.upper(axis) + 1;
                         }
-                        for (Box<NDIM>::Iterator b(side_box); b; b++)
+                        for (SAMRAIBox::Iterator b(side_box); b; b++)
                         {
-                            const hier::Index<NDIM>& i = b();
+                            const SAMRAIIndex& i = b();
                             double r_sq = 0.0;
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -1161,7 +1181,7 @@ compute_flow_rate(const double /*dt*/,
                             const double r = sqrt(r_sq);
                             if (r <= rsrc[side])
                             {
-                                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                                const SAMRAISideIndex i_s(i, axis, SAMRAISideIndex::Lower);
                                 if ((*wgt_sc_data)(i_s) > std::numeric_limits<double>::epsilon())
                                 {
                                     double dA = n[axis] * dV / dx[axis];

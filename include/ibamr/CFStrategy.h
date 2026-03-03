@@ -23,16 +23,18 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <CellVariable.h>
-#include <HierarchyDataOpsManager.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <unsupported/Eigen/MatrixFunctions>
@@ -73,11 +75,11 @@ public:
      * The symmetric tensor in patch data index <code>C_idx</code> is stored using Voigt notation.
      */
     virtual void computeRelaxation(int R_idx,
-                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> R_var,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> R_var,
                                    int C_idx,
-                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> C_var,
+                                   SAMRAIPointer<SAMRAICellVariable<double>> C_var,
                                    TensorEvolutionType evolve_type,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                   SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                    double data_time) = 0;
 
     /*!
@@ -88,8 +90,8 @@ public:
      * information in <code>sig_idx</code>.
      */
     virtual void computeStress(int sig_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> sig_var,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                               SAMRAIPointer<SAMRAICellVariable<double>> sig_var,
+                               SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy,
                                double data_time) = 0;
 
 private:
@@ -121,8 +123,8 @@ convert_to_conformation_tensor(IBTK::MatrixNd& mat, TensorEvolutionType evolve_t
  * Return the conformation tensor, given the evolved data and the evolved type.
  */
 inline IBTK::MatrixNd
-convert_to_conformation_tensor(const SAMRAI::pdat::CellData<NDIM, double>& C_data,
-                               const SAMRAI::pdat::CellIndex<NDIM>& idx,
+convert_to_conformation_tensor(const SAMRAICellData<double>& C_data,
+                               const SAMRAICellIndex& idx,
                                TensorEvolutionType evolve_type)
 {
     IBTK::MatrixNd mat;

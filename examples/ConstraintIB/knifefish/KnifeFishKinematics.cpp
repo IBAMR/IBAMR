@@ -15,9 +15,13 @@
 
 // SAMRAI INCLUDES
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
@@ -63,9 +67,9 @@ discard_comments(const std::string& input_string)
 } // namespace
 
 KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
-                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                         SAMRAIPointer<SAMRAIDatabase> input_db,
                                          IBTK::LDataManager* l_data_manager,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> /*patch_hierarchy*/,
+                                         SAMRAIPointer<SAMRAIPatchHierarchy> /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_vel(NDIM),

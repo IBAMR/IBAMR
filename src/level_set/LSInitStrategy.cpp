@@ -15,8 +15,11 @@
 
 #include <ibamr/LSInitStrategy.h>
 
-#include <tbox/Database.h>
-#include <tbox/RestartManager.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIRestartManager.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <utility>
 
@@ -35,7 +38,7 @@ LSInitStrategy::LSInitStrategy(std::string object_name, bool register_for_restar
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+        SAMRAIRestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     return;
@@ -45,14 +48,14 @@ LSInitStrategy::~LSInitStrategy()
 {
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        SAMRAIRestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     d_registered_for_restart = false;
 
 } // ~LSInitStrategy
 
 void
-LSInitStrategy::registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef)
+LSInitStrategy::registerPhysicalBoundaryCondition(SAMRAIRobinBcCoefStrategy* robin_bc_coef)
 {
     d_bc_coef = robin_bc_coef;
     return;
@@ -75,7 +78,7 @@ LSInitStrategy::setReinitializeLSData(bool reinit_ls_data)
 } // setReinitializeLSData
 
 void
-LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
+LSInitStrategy::putToDatabase(Pointer<SAMRAIDatabase> /*db*/)
 {
     // intentionally blank
     return;

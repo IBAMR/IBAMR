@@ -21,15 +21,17 @@
 #include <ibtk/config.h>
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <CartesianCellDoubleLinearRefine.h>
-#include <ComponentSelector.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <RefineOperator.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianCellDoubleLinearRefine.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIComponentSelector.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIRefineOperator.h>
 
 #include <set>
 #include <vector>
@@ -90,16 +92,16 @@ public:
      *all
      *registered scratch components.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    void setPhysicalBoundaryConditions(SAMRAIPatch& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                       const SAMRAIIntVector& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+    SAMRAIIntVector getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -120,10 +122,10 @@ public:
      *fine
      *patches.
      */
-    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                          const SAMRAI::hier::Patch<NDIM>& coarse,
-                          const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void preprocessRefine(SAMRAIPatch& fine,
+                          const SAMRAIPatch& coarse,
+                          const SAMRAIBox& fine_box,
+                          const SAMRAIIntVector& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -142,10 +144,10 @@ public:
      *fine
      *patches.
      */
-    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void postprocessRefine(SAMRAIPatch& fine,
+                           const SAMRAIPatch& coarse,
+                           const SAMRAIBox& fine_box,
+                           const SAMRAIIntVector& ratio) override;
 
     //\}
 
@@ -174,13 +176,13 @@ public:
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices) override;
+    void setPatchDataIndices(const SAMRAIComponentSelector& patch_data_indices) override;
 
     /*!
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy) override;
+    void setPatchHierarchy(SAMRAIPointer<SAMRAIPatchHierarchy> hierarchy) override;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -191,9 +193,9 @@ public:
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
-    void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
-                                const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+    void computeNormalExtension(SAMRAIPatch& patch,
+                                const SAMRAIIntVector& ratio,
+                                const SAMRAIIntVector& ghost_width_to_fill) override;
 
     //\}
 
@@ -234,16 +236,15 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_refine_op =
-        new SAMRAI::geom::CartesianCellDoubleLinearRefine<NDIM>();
+    SAMRAIPointer<SAMRAIRefineOperator> d_refine_op = new SAMRAICartesianCellDoubleLinearRefine();
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
+    std::vector<SAMRAICoarseFineBoundary> d_cf_boundary;
     std::vector<SAMRAI::hier::BoxArray<NDIM>> d_domain_boxes;
-    std::vector<SAMRAI::hier::IntVector<NDIM>> d_periodic_shift;
+    std::vector<SAMRAIIntVector> d_periodic_shift;
 };
 } // namespace IBTK
 

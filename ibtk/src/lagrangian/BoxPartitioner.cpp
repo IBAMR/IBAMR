@@ -16,9 +16,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/id_types.h>
@@ -32,6 +30,8 @@
 #include <libmesh/type_vector.h>
 #include <libmesh/variant_filter_iterator.h>
 
+#include <SAMRAIPIO.h>
+#include <SAMRAIUtilities.h>
 #include <mpi.h>
 
 #include <algorithm>

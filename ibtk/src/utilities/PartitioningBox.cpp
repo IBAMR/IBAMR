@@ -14,15 +14,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-#include <CartesianPatchGeometry.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIUtilities.h>
 
 #include <algorithm>
 #include <limits>
@@ -54,7 +54,7 @@ PartitioningBox::PartitioningBox(const Point& bottom_point, const Point& top_poi
     }
 } // PartitioningBox
 
-PartitioningBox::PartitioningBox(const CartesianPatchGeometry<NDIM>& patch)
+PartitioningBox::PartitioningBox(const SAMRAICartesianPatchGeometry& patch)
 {
     std::copy(patch.getXLower(), patch.getXLower() + NDIM, d_bounding_points.first.data());
     std::copy(patch.getXUpper(), patch.getXUpper() + NDIM, d_bounding_points.second.data());
@@ -82,15 +82,15 @@ PartitioningBox::volume() const
     return vol;
 } // volume
 
-PartitioningBoxes::PartitioningBoxes(const PatchHierarchy<NDIM>& hierarchy)
+PartitioningBoxes::PartitioningBoxes(const SAMRAIPatchHierarchy& hierarchy)
 {
     std::vector<IBTK::PartitioningBox> boxes;
     const int finest_level = hierarchy.getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM>> level = hierarchy.getPatchLevel(finest_level);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    SAMRAIPointer<SAMRAIPatchLevel> level = hierarchy.getPatchLevel(finest_level);
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        const Patch<NDIM>& patch = *level->getPatch(p());
-        Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = patch.getPatchGeometry();
+        const SAMRAIPatch& patch = *level->getPatch(p());
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> patch_geometry = patch.getPatchGeometry();
         boxes.emplace_back(*patch_geometry);
     }
 

@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #ifdef IBTK_HAVE_LIBMESH
 
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FEValues.h>
 #include <ibtk/libmesh_utilities.h>
-
-#include <tbox/Utilities.h>
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/fe_base.h>
@@ -34,6 +34,8 @@
 #include <libmesh/fem_context.h>
 #include <libmesh/libmesh_common.h>
 #include <libmesh/vector_value.h>
+
+#include <SAMRAIUtilities.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

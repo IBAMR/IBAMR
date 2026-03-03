@@ -15,8 +15,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/ibtk_utilities.h>
-
-#include <tbox/PIO.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/id_types.h>
@@ -24,6 +23,8 @@
 #include <libmesh/libmesh_version.h>
 #include <libmesh/mesh_base.h>
 #include <libmesh/point.h>
+
+#include <SAMRAIPIO.h>
 
 #include <algorithm>
 #include <array>

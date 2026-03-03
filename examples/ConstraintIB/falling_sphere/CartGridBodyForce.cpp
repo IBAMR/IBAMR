@@ -11,18 +11,23 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibtk/samrai_compatibility_names.h>
+
 #include "CartGridBodyForce.h"
+
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIVariable.h>
 
 ////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <tbox/Utilities.h>
-
-#include <CellData.h>
-#include <CellVariable.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariableDatabase.h>
 #include <SAMRAI_config.h>
-#include <SideData.h>
-#include <SideVariable.h>
-#include <VariableDatabase.h>
 
 #include <ibamr/namespaces.h>
 
@@ -43,24 +48,24 @@ CartGridBodyForce::isTimeDependent() const
 
 void
 CartGridBodyForce::setDataOnPatch(const int data_idx,
-                                  Pointer<Variable<NDIM>> var,
-                                  Pointer<Patch<NDIM>> patch,
+                                  Pointer<SAMRAIVariable> var,
+                                  Pointer<SAMRAIPatch> patch,
                                   const double /*data_time*/,
                                   const bool /*initial_time*/,
-                                  Pointer<PatchLevel<NDIM>> /*patch_level*/)
+                                  Pointer<SAMRAIPatchLevel> /*patch_level*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!patch.isNull());
     TBOX_ASSERT(!var.isNull());
 #endif
 
-    Pointer<SideVariable<NDIM, double>> copy_to_sc_var = var;
-    Pointer<CellVariable<NDIM, double>> copy_to_cc_var = var;
+    Pointer<SAMRAISideVariable<double>> copy_to_sc_var = var;
+    Pointer<SAMRAICellVariable<double>> copy_to_cc_var = var;
 
     if (!copy_to_sc_var.isNull())
     {
-        Pointer<SideData<NDIM, double>> copy_to_sc_data = patch->getPatchData(data_idx);
-        const Pointer<SideData<NDIM, double>> copy_from_sc_data = patch->getPatchData(d_body_force_idx);
+        Pointer<SAMRAISideData<double>> copy_to_sc_data = patch->getPatchData(data_idx);
+        const Pointer<SAMRAISideData<double>> copy_from_sc_data = patch->getPatchData(d_body_force_idx);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!copy_to_sc_data.isNull());
@@ -71,8 +76,8 @@ CartGridBodyForce::setDataOnPatch(const int data_idx,
     }
     else if (!copy_to_cc_var.isNull())
     {
-        Pointer<CellData<NDIM, double>> copy_to_cc_data = patch->getPatchData(data_idx);
-        const Pointer<CellData<NDIM, double>> copy_from_cc_data = patch->getPatchData(d_body_force_idx);
+        Pointer<SAMRAICellData<double>> copy_to_cc_data = patch->getPatchData(data_idx);
+        const Pointer<SAMRAICellData<double>> copy_from_cc_data = patch->getPatchData(d_body_force_idx);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!copy_to_cc_data.isNull());

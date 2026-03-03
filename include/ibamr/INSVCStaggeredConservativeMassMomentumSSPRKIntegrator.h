@@ -22,6 +22,11 @@
 
 #include <ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPointer.h>
+
 namespace SAMRAI
 {
 namespace solv
@@ -80,7 +85,7 @@ public:
      * \brief Class constructor.
      */
     INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(std::string object_name,
-                                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+                                                          SAMRAIPointer<SAMRAIDatabase> input_db);
 
     /*!
      * \brief Destructor.

@@ -21,8 +21,10 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <CartesianPatchGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
 
 #include <utility>
 #include <vector>
@@ -64,7 +66,7 @@ public:
     PartitioningBox(const Point& bottom_point, const Point& top_point);
 
     /// Constructor, starting from a SAMRAI data type.
-    PartitioningBox(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch);
+    PartitioningBox(const SAMRAICartesianPatchGeometry& patch);
 
     /// Get the bottom left corner of the box.
     const Point& bottom() const;
@@ -105,7 +107,7 @@ public:
 
     /// Constructor. Uses the finest level boxes on the provided
     /// PatchHierarchy to create a set of bounding boxes.
-    PartitioningBoxes(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy);
+    PartitioningBoxes(const SAMRAIPatchHierarchy& hierarchy);
 
     /// Get the bottom left corner of the partitioning box bounding all other
     /// partitioning boxes.

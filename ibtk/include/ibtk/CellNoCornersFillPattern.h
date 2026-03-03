@@ -21,12 +21,14 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <IntVector.h>
-#include <VariableFillPattern.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIBoxGeometry.h>
+#include <SAMRAIBoxOverlap.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIVariableFillPattern.h>
 
 namespace SAMRAI
 {
@@ -56,7 +58,7 @@ namespace IBTK
  * SAMRAI::pdat::CellOverlap.
  *
  */
-class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class CellNoCornersFillPattern : public SAMRAIVariableFillPattern
 {
 public:
     /*!
@@ -95,13 +97,12 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM>>
-    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                     const SAMRAI::hier::Box<NDIM>& src_mask,
-                     bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
+    SAMRAIPointer<SAMRAIBoxOverlap> calculateOverlap(const SAMRAIBoxGeometry& dst_geometry,
+                                                     const SAMRAIBoxGeometry& src_geometry,
+                                                     const SAMRAIBox& dst_patch_box,
+                                                     const SAMRAIBox& src_mask,
+                                                     bool overwrite_interior,
+                                                     const SAMRAIIntVector& src_offset) const override;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -127,15 +128,14 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM>>
-    calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                            const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                            const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                            const SAMRAI::hier::Box<NDIM>& src_mask,
-                            bool overwrite_interior,
-                            const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                            int dst_level_num,
-                            int src_level_num) const override;
+    SAMRAIPointer<SAMRAIBoxOverlap> calculateOverlapOnLevel(const SAMRAIBoxGeometry& dst_geometry,
+                                                            const SAMRAIBoxGeometry& src_geometry,
+                                                            const SAMRAIBox& dst_patch_box,
+                                                            const SAMRAIBox& src_mask,
+                                                            bool overwrite_interior,
+                                                            const SAMRAIIntVector& src_offset,
+                                                            int dst_level_num,
+                                                            int src_level_num) const override;
 
     /*!
      * Set the target patch level number for the variable fill pattern.
@@ -145,7 +145,7 @@ public:
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
+    SAMRAIIntVector& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "CELL_NO_CORNERS_FILL_PATTERN".
@@ -180,7 +180,7 @@ private:
      */
     CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAIIntVector d_stencil_width;
     const bool d_overwrite_interior;
     int d_target_level_num = IBTK::invalid_level_number;
 };

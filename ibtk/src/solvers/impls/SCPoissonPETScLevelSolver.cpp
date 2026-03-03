@@ -20,28 +20,28 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonPETScLevelSolver.h>
-
-#include <tbox/Array.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <petsclog.h>
 #include <petscvec.h>
 
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CoarseFineBoundary.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchDescriptor.h>
-#include <PatchGeometry.h>
-#include <PatchLevel.h>
-#include <RefineSchedule.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <SideDataFactory.h>
-#include <SideVariable.h>
-#include <Variable.h>
-#include <VariableContext.h>
-#include <VariableDatabase.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchDescriptor.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRefineSchedule.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideDataFactory.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableContext.h>
+#include <SAMRAIVariableDatabase.h>
 
 #include <algorithm>
 #include <set>
@@ -74,9 +74,9 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
     PETScLevelSolver::init(input_db, std::move(default_options_prefix));
 
     // Construct the DOF index variable/context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = new SideVariable<NDIM, int>(object_name + "::dof_index");
+    d_dof_index_var = new SAMRAISideVariable<int>(object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
@@ -113,15 +113,15 @@ SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*o
 } // generateASMSubdomains
 
 void
-SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                            const SAMRAIVectorReal<NDIM, double>& /*b*/)
+SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAISAMRAIVectorReal<double>& x,
+                                                            const SAMRAISAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    SAMRAIVariableDatabase* var_db = SAMRAIVariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideDataFactory<NDIM, double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<SAMRAISideDataFactory<double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<SideDataFactory<NDIM, int>> dof_index_fac =
+    Pointer<SAMRAISideDataFactory<int>> dof_index_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
@@ -153,7 +153,7 @@ SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 } // deallocateSolverStateSpecialized
 
 void
-SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAISAMRAIVectorReal<double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, d_level);
@@ -161,7 +161,7 @@ SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, d
 } // copyToPETScVec
 
 void
-SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAISAMRAIVectorReal<double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -172,21 +172,21 @@ SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM,
 void
 SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                         Vec& petsc_b,
-                                        SAMRAIVectorReal<NDIM, double>& x,
-                                        SAMRAIVectorReal<NDIM, double>& b)
+                                        SAMRAISAMRAIVectorReal<double>& x,
+                                        SAMRAISAMRAIVectorReal<double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
     const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-        Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
-        Pointer<SideData<NDIM, double>> b_data = patch->getPatchData(b_idx);
-        Pointer<SideData<NDIM, double>> b_adj_data = patch->getPatchData(b_adj_idx);
+        Pointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        Pointer<SAMRAIPatchGeometry> pgeom = patch->getPatchGeometry();
+        Pointer<SAMRAISideData<double>> x_data = patch->getPatchData(x_idx);
+        Pointer<SAMRAISideData<double>> b_data = patch->getPatchData(b_idx);
+        Pointer<SAMRAISideData<double>> b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
@@ -194,8 +194,8 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
         }
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM>>() :
+        const SAMRAIArray<SAMRAIBoundaryBox>& type_1_cf_bdry =
+            level_zero ? SAMRAIArray<SAMRAIBoundaryBox>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)

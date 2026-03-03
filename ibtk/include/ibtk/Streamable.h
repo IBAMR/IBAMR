@@ -21,8 +21,11 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include <tbox/DescribedClass.h>
+
+#include <SAMRAIIntVector.h>
 
 namespace SAMRAI
 {
@@ -94,7 +97,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAIIntVector& offset, const Vector& displacement);
 
 private:
     /*!

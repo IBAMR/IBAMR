@@ -24,8 +24,9 @@
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LSet.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Transaction.h>
+#include <SAMRAITransaction.h>
 
 #include <iosfwd>
 #include <vector>
@@ -51,7 +52,7 @@ namespace IBTK
  * \see SAMRAI::tbox::Transaction
  */
 template <class T>
-class LTransaction : public SAMRAI::tbox::Transaction
+class LTransaction : public SAMRAITransaction
 {
 public:
     /*!

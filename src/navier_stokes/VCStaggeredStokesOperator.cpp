@@ -19,19 +19,19 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-
-#include <CellVariable.h>
-#include <EdgeVariable.h>
-#include <NodeVariable.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <SideVariable.h>
-#include <VariableFillPattern.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIEdgeVariable.h>
+#include <SAMRAINodeVariable.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideVariable.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIVariableFillPattern.h>
 
 #include <string>
 #include <vector>
@@ -47,18 +47,18 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_apply;
+static SAMRAITimer* t_apply;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 VCStaggeredStokesOperator::VCStaggeredStokesOperator(const std::string& object_name,
                                                      bool homogeneous_bc,
-                                                     Pointer<Database> input_db)
+                                                     SAMRAIPointer<Database> input_db)
     : StaggeredStokesOperator(object_name, homogeneous_bc, input_db)
 {
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::VCStaggeredStokesOperator::apply()"););
+    IBAMR_DO_ONCE(t_apply = SAMRAITimerManager::getManager()->getTimer("IBAMR::VCStaggeredStokesOperator::apply()"););
 
     // Set a default interpolation type.
     d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
@@ -77,7 +77,7 @@ VCStaggeredStokesOperator::~VCStaggeredStokesOperator()
 } // ~VCStaggeredStokesOperator
 
 void
-VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+VCStaggeredStokesOperator::apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y)
 {
     IBAMR_TIMER_START(t_apply);
 
@@ -87,10 +87,10 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
 
-    Pointer<SideVariable<NDIM, double>> U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double>> P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double>> A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double>> A_P_cc_var = y.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> U_sc_var = x.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> P_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<SAMRAISideVariable<double>> A_U_sc_var = y.getComponentVariable(0);
+    SAMRAIPointer<SAMRAICellVariable<double>> A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -146,9 +146,9 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double>>(nullptr),
+                                SAMRAIPointer<SAMRAINodeVariable<double>>(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double>>(nullptr),
+                                SAMRAIPointer<SAMRAIEdgeVariable<double>>(nullptr),
 #endif
                                 U_idx,
                                 U_sc_var,
@@ -156,7 +156,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 d_new_time,
                                 d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
-                                Pointer<SideVariable<NDIM, double>>(nullptr),
+                                SAMRAIPointer<SAMRAISideVariable<double>>(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);

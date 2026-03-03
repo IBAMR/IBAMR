@@ -17,26 +17,30 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonHypreLevelSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 #include <ibtk/solver_utilities.h>
 
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CoarseFineBoundary.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <SideData.h>
-#include <SideGeometry.h>
-#include <SideIndex.h>
+#include <SAMRAIArray.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideGeometry.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAITimer.h>
+#include <SAMRAITimerManager.h>
+#include <SAMRAIUtilities.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -63,10 +67,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_solve_system_hypre;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static SAMRAITimer* t_solve_system;
+static SAMRAITimer* t_solve_system_hypre;
+static SAMRAITimer* t_initialize_solver_state;
+static SAMRAITimer* t_deallocate_solver_state;
 
 // hypre solver options.
 enum HypreSStructRelaxType
@@ -81,7 +85,7 @@ enum HypreSStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     SAMRAIPointer<SAMRAIDatabase> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
@@ -134,14 +138,14 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
     }
 
     // Setup Timers.
-    IBTK_DO_ONCE(t_solve_system =
-                     TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()");
-                 t_solve_system_hypre =
-                     TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()[hypre]");
-                 t_initialize_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::initializeSolverState()");
-                 t_deallocate_solver_state =
-                     TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::deallocateSolverState()"););
+    IBTK_DO_ONCE(
+        t_solve_system = SAMRAITimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()");
+        t_solve_system_hypre =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()[hypre]");
+        t_initialize_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::initializeSolverState()");
+        t_deallocate_solver_state =
+            SAMRAITimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::deallocateSolverState()"););
     return;
 } // SCPoissonHypreLevelSolver
 
@@ -152,7 +156,7 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
 } // ~SCPoissonHypreLevelSolver
 
 bool
-SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+SCPoissonHypreLevelSolver::solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -188,8 +192,8 @@ SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
 } // solveSystem
 
 void
-SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                 const SAMRAIVectorReal<NDIM, double>& b)
+SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                                                 const SAMRAISAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -201,7 +205,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<SAMRAIPatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -259,7 +263,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary = new SAMRAICoarseFineBoundary(*d_hierarchy, d_level_num, SAMRAIIntVector(1));
     }
 
     // Allocate and initialize the hypre data structures.
@@ -303,14 +307,14 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
+    SAMRAIPointer<SAMRAICartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    const SAMRAIIntVector& ratio = d_level->getRatio();
+    const SAMRAIIntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
+        const SAMRAIBox& patch_box = d_level->getPatch(p())->getBox();
         auto lower = hypre_array(patch_box.lower());
         auto upper = hypre_array(patch_box.upper());
         HYPRE_SStructGridSetExtents(d_grid, PART, lower.data(), upper.data());
@@ -342,7 +346,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     // Allocate stencil data and set stencil offsets.
     static const int stencil_sz = 2 * NDIM + 1;
     d_stencil_offsets.resize(stencil_sz);
-    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
+    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), SAMRAIIndex(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -385,12 +389,12 @@ SCPoissonHypreLevelSolver::allocateHypreData()
 void
 SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
         const auto stencil_size = d_stencil_offsets.size();
-        SideData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
+        SAMRAISideData<double> matrix_coefs(patch_box, stencil_size, SAMRAIIntVector(0));
         PoissonUtilities::computeMatrixCoefficients(
             matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
 
@@ -400,10 +404,10 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         std::vector<double> mat_vals(stencil_size, 0.0);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-            for (Box<NDIM>::Iterator b(side_box); b; b++)
+            SAMRAIBox side_box = SAMRAISideGeometry::toSideBox(patch_box, axis);
+            for (SAMRAIBox::Iterator b(side_box); b; b++)
             {
-                SideIndex<NDIM> i(b(), axis, SideIndex<NDIM>::Lower);
+                SAMRAISideIndex i(b(), axis, SAMRAISideIndex::Lower);
                 for (unsigned int k = 0; k < stencil_size; ++k)
                 {
                     mat_vals[k] = matrix_coefs(i, k);
@@ -665,29 +669,29 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAICartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
-        const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
-        Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+        const SAMRAIBox x_ghost_box = SAMRAIBox::grow(patch_box, 1);
+        SAMRAIPointer<SAMRAISideData<double>> x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vec, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
-        Pointer<SideData<NDIM, double>> b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM>>() :
+        SAMRAIPointer<SAMRAISideData<double>> b_data = patch->getPatchData(b_idx);
+        const SAMRAIArray<SAMRAIBoundaryBox>& type_1_cf_bdry =
+            level_zero ? SAMRAIArray<SAMRAIBoundaryBox>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_physical_bdry || at_cf_bdry)
         {
-            SideData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            SAMRAISideData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             if (at_physical_bdry)
             {
@@ -802,11 +806,11 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Pull the solution vector out of the hypre structures.
     HYPRE_SStructVectorGather(d_sol_vec);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SAMRAIPatch> patch = d_level->getPatch(p());
+        const SAMRAIBox& patch_box = patch->getBox();
+        SAMRAIPointer<SAMRAISideData<double>> x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vec, patch_box);
     }
 

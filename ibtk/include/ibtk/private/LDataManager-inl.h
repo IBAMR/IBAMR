@@ -24,6 +24,10 @@
 #include <ibtk/LDataManager.h>
 #include <ibtk/LMesh.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -31,7 +35,7 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAIIntVector&
 LDataManager::getGhostCellWidth() const
 {
     return d_ghost_width;
@@ -105,7 +109,7 @@ LDataManager::getGlobalNodeOffset(const int level_number) const
     return d_node_offset[level_number];
 } // getGlobalNodeOffset
 
-inline SAMRAI::tbox::Pointer<LMesh>
+inline SAMRAIPointer<LMesh>
 LDataManager::getLMesh(const int level_number) const
 {
 #if !defined(NDEBUG)
@@ -115,7 +119,7 @@ LDataManager::getLMesh(const int level_number) const
     return d_lag_mesh[level_number];
 } // getLMesh
 
-inline SAMRAI::tbox::Pointer<LData>
+inline SAMRAIPointer<LData>
 LDataManager::getLData(const std::string& quantity_name, const int level_number) const
 {
 #if !defined(NDEBUG)

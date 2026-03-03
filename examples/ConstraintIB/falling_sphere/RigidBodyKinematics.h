@@ -18,6 +18,12 @@
 
 #include <ibamr/ConstraintIBKinematics.h>
 
+#include <ibtk/samrai_compatibility_names.h>
+
+#include <SAMRAIDatabase.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPointer.h>
+
 #include <vector>
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
@@ -39,9 +45,9 @@ public:
      * \brief Constructor.
      */
     RigidBodyKinematics(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        SAMRAIPointer<SAMRAIDatabase> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                        SAMRAIPointer<SAMRAIPatchHierarchy> patch_hierarchy,
                         bool register_for_restart = true);
 
     /*!
@@ -75,7 +81,7 @@ public:
     /*!
      * \brief Override the base Serializable method.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAIPointer<SAMRAIDatabase> db);
 
 private:
     /*!

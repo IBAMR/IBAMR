@@ -19,10 +19,16 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "BcData.h"
 
-#include <RobinBcCoefStrategy.h>
+#include <SAMRAIArrayData.h>
+#include <SAMRAIBoundaryBox.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAIVariable.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -33,7 +39,7 @@
  * RobinBcCoefStrategy that is used to specify velocity boundary conditions that
  * are determined by a circulation model.
  */
-class VelocityBcCoefs : public RobinBcCoefStrategy<NDIM>
+class VelocityBcCoefs : public SAMRAIRobinBcCoefStrategy
 {
 public:
     /*!
@@ -56,19 +62,19 @@ public:
      * \brief Function to fill arrays of Robin boundary condition coefficients
      * at a patch boundary.
      */
-    void setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
-                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
-                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
-                    const Pointer<hier::Variable<NDIM>>& variable,
-                    const Patch<NDIM>& patch,
-                    const BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(Pointer<SAMRAIArrayData<double>>& acoef_data,
+                    Pointer<SAMRAIArrayData<double>>& bcoef_data,
+                    Pointer<SAMRAIArrayData<double>>& gcoef_data,
+                    const Pointer<SAMRAIVariable>& variable,
+                    const SAMRAIPatch& patch,
+                    const SAMRAIBoundaryBox& bdry_box,
                     double fill_time) const;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
      * object can fill.
      */
-    IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAIIntVector numberOfExtensionsFillable() const;
 
     //\}
 

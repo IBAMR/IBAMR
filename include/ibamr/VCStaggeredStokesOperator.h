@@ -24,11 +24,12 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_enums.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <IntVector.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <string>
 #include <vector>
@@ -66,7 +67,7 @@ public:
      */
     VCStaggeredStokesOperator(const std::string& object_name,
                               bool homogeneous_bc = true,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                              SAMRAIPointer<SAMRAIDatabase> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -104,8 +105,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& y) override;
 
     //\}
 

@@ -19,10 +19,11 @@
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <PoissonSpecifications.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAIPoissonSpecifications.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
 
 #include <vector>
 
@@ -47,16 +48,16 @@ namespace IBAMR
 
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
-    const PoissonSpecifications& U_problem_coefs)
+    const SAMRAIPoissonSpecifications& U_problem_coefs)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
@@ -70,7 +71,7 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullSpace(con
     TBOX_ASSERT(p_this);
 #endif
     StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
 
     return;
@@ -78,33 +79,33 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullSpace(con
 
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+    const std::vector<SAMRAIRobinBcCoefStrategy*>& U_bc_coefs,
+    SAMRAIRobinBcCoefStrategy* P_bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
 } // setPhysicalBcCoefs
 
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    SAMRAIPointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    SAMRAIPointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 } // setPhysicalBoundaryHelper

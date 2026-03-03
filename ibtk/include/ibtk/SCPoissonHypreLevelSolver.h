@@ -23,15 +23,17 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <CoarseFineBoundary.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <PatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICoarseFineBoundary.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <HYPRE_sstruct_ls.h>
@@ -124,7 +126,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonHypreLevelSolver(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAIPointer<SAMRAIDatabase> input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -135,9 +137,9 @@ public:
     /*!
      * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAIDatabase> input_db,
+                                                        const std::string& default_options_prefix)
     {
         return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -184,8 +186,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAISAMRAIVectorReal<double>& x, SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -224,8 +225,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAISAMRAIVectorReal<double>& x,
+                               const SAMRAISAMRAIVectorReal<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -282,14 +283,14 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+    SAMRAIPointer<SAMRAIPatchHierarchy> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
+    SAMRAIPointer<SAMRAIPatchLevel> d_level;
+    SAMRAIPointer<SAMRAICoarseFineBoundary> d_cf_boundary;
 
     /*!
      * \name hypre objects.
@@ -308,7 +309,7 @@ private:
     HYPRE_SStructMatrix d_matrix = nullptr;
     HYPRE_SStructVector d_rhs_vec = nullptr, d_sol_vec = nullptr;
     HYPRE_SStructSolver d_solver = nullptr, d_precond = nullptr;
-    std::vector<SAMRAI::hier::Index<NDIM>> d_stencil_offsets;
+    std::vector<SAMRAIIndex> d_stencil_offsets;
 
     std::string d_solver_type = "Split", d_precond_type = "none", d_split_solver_type = "PFMG";
     int d_rel_change = 0;

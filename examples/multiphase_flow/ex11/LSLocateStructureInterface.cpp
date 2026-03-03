@@ -13,10 +13,20 @@
 
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/samrai_compatibility_names.h>
 
 #include "LSLocateStructureInterface.h"
 
-#include <CartesianGridGeometry.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
 
 #include <ibamr/app_namespaces.h>
 
@@ -38,7 +48,7 @@ callLSLocateStructureInterfaceCallbackFunction(int D_idx,
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object_name,
                                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                       Pointer<CellVariable<NDIM, double>> ls_var,
+                                                       Pointer<SAMRAICellVariable<double>> ls_var,
                                                        LDataManager* lag_data_manager,
                                                        BargeInterface* barge)
     : d_object_name(object_name),
@@ -75,7 +85,7 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
                                                            double /*time*/,
                                                            bool /*initial_time*/)
 {
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -117,21 +127,21 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
     // Analytical distance away from the rectangle
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = patch_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& patch_box = patch->getBox();
+            Pointer<SAMRAICellData<double>> D_data = patch->getPatchData(D_idx);
+            for (SAMRAIBox::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                SAMRAICellIndex ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector X = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
+                Pointer<SAMRAICartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const SAMRAIIndex& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -184,7 +194,7 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
 
     IBTK::Vector c_xmin, c_xmax, c_ymin, c_ymax;
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<SAMRAIPatchHierarchy> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     std::vector<Pointer<LData>> X_data(finest_ln + 1, Pointer<LData>(nullptr));

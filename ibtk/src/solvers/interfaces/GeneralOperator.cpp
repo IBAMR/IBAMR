@@ -17,11 +17,11 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Pointer.h>
-
-#include <Box.h>
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIBox.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <ostream>
 #include <string>
@@ -108,34 +108,34 @@ GeneralOperator::getDt() const
 } // getDt
 
 void
-GeneralOperator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+GeneralOperator::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 GeneralOperator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
 } // getHierarchyMathOps
 
 void
-GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAIVectorReal<NDIM, double>& y,
-                          SAMRAIVectorReal<NDIM, double>& z)
+GeneralOperator::applyAdd(SAMRAISAMRAIVectorReal<double>& x,
+                          SAMRAISAMRAIVectorReal<double>& y,
+                          SAMRAISAMRAIVectorReal<double>& z)
 {
     // Guard against the case that y == z.
     SAMRAIScopedVectorCopy<double> zz(z);
     apply(x, zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), zz);
+    z.add(SAMRAIPointer<SAMRAISAMRAIVectorReal<double>>(&y, false), zz);
     return;
 } // applyAdd
 
 void
-GeneralOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*in*/,
-                                         const SAMRAIVectorReal<NDIM, double>& /*out*/)
+GeneralOperator::initializeOperatorState(const SAMRAISAMRAIVectorReal<double>& /*in*/,
+                                         const SAMRAISAMRAIVectorReal<double>& /*out*/)
 {
     d_is_initialized = true;
     return;
@@ -149,14 +149,14 @@ GeneralOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-GeneralOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& /*y*/)
+GeneralOperator::modifyRhsForBcs(SAMRAISAMRAIVectorReal<double>& /*y*/)
 {
     // intentionally blank
     return;
 } // modifyRhsForBcs
 
 void
-GeneralOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& /*u*/)
+GeneralOperator::imposeSolBcs(SAMRAISAMRAIVectorReal<double>& /*u*/)
 {
     // intentionally blank
     return;

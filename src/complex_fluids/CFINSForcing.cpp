@@ -23,30 +23,36 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <tbox/Database.h>
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
-
-#include <BasePatchHierarchy.h>
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIndex.h>
-#include <CellIterator.h>
-#include <HierarchyDataOpsManager.h>
-#include <HierarchyDataOpsReal.h>
-#include <Index.h>
 #include <MultiblockDataTranslator.h>
-#include <Patch.h>
-#include <PatchData.h>
-#include <PatchGeometry.h>
-#include <RobinBcCoefStrategy.h>
-#include <SideData.h>
-#include <SideIndex.h>
-#include <VariableDatabase.h>
-#include <VisItDataWriter.h>
+#include <SAMRAIBasePatchHierarchy.h>
+#include <SAMRAIBox.h>
+#include <SAMRAICartesianGridGeometry.h>
+#include <SAMRAICartesianPatchGeometry.h>
+#include <SAMRAICellData.h>
+#include <SAMRAICellIndex.h>
+#include <SAMRAICellIterator.h>
+#include <SAMRAICellVariable.h>
+#include <SAMRAIDatabase.h>
+#include <SAMRAIFaceVariable.h>
+#include <SAMRAIHierarchyDataOpsManager.h>
+#include <SAMRAIHierarchyDataOpsReal.h>
+#include <SAMRAIIndex.h>
+#include <SAMRAIIntVector.h>
+#include <SAMRAIPIO.h>
+#include <SAMRAIPatch.h>
+#include <SAMRAIPatchData.h>
+#include <SAMRAIPatchGeometry.h>
+#include <SAMRAIPatchHierarchy.h>
+#include <SAMRAIPatchLevel.h>
+#include <SAMRAIRobinBcCoefStrategy.h>
+#include <SAMRAISideData.h>
+#include <SAMRAISideIndex.h>
+#include <SAMRAIUtilities.h>
+#include <SAMRAIVariable.h>
+#include <SAMRAIVariableDatabase.h>
+#include <SAMRAIVisItDataWriter.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Cholesky>
@@ -116,19 +122,19 @@ extern "C"
 namespace IBAMR
 {
 CFINSForcing::CFINSForcing(const std::string& object_name,
-                           Pointer<Database> input_db,
+                           Pointer<SAMRAIDatabase> input_db,
                            Pointer<CartGridFunction> u_fcn,
-                           Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
+                           Pointer<SAMRAICartesianGridGeometry> grid_geometry,
                            Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                           Pointer<VisItDataWriter<NDIM>> visit_data_writer)
+                           Pointer<SAMRAIVisItDataWriter> visit_data_writer)
     : CartGridFunction(object_name),
-      d_C_cc_var(new CellVariable<NDIM, double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
+      d_C_cc_var(new SAMRAICellVariable<double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
       d_adv_diff_integrator(adv_diff_integrator),
       d_u_fcn(u_fcn),
-      d_u_var(new FaceVariable<NDIM, double>("Complex Fluid Velocity"))
+      d_u_var(new SAMRAIFaceVariable<double>("Complex Fluid Velocity"))
 {
     // Set up common values
-    commonConstructor(input_db, visit_data_writer, grid_geometry, std::vector<RobinBcCoefStrategy<NDIM>*>());
+    commonConstructor(input_db, visit_data_writer, grid_geometry, std::vector<SAMRAIRobinBcCoefStrategy*>());
     // Set up velocity
     d_adv_diff_integrator->registerAdvectionVelocity(d_u_var);
     d_adv_diff_integrator->setAdvectionVelocityFunction(d_u_var, d_u_fcn);
@@ -137,13 +143,13 @@ CFINSForcing::CFINSForcing(const std::string& object_name,
 } // Constructor
 
 CFINSForcing::CFINSForcing(const std::string& object_name,
-                           Pointer<Database> input_db,
+                           Pointer<SAMRAIDatabase> input_db,
                            const Pointer<INSHierarchyIntegrator> fluid_solver,
-                           Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
+                           Pointer<SAMRAICartesianGridGeometry> grid_geometry,
                            Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                           Pointer<VisItDataWriter<NDIM>> visit_data_writer)
+                           Pointer<SAMRAIVisItDataWriter> visit_data_writer)
     : CartGridFunction(object_name),
-      d_C_cc_var(new CellVariable<NDIM, double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
+      d_C_cc_var(new SAMRAICellVariable<double>(d_object_name + "::C_cc", NDIM * (NDIM + 1) / 2)),
       d_adv_diff_integrator(adv_diff_integrator),
       d_u_var(fluid_solver->getAdvectionVelocityVariable())
 {
@@ -160,7 +166,7 @@ CFINSForcing::~CFINSForcing()
     int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (d_conform_draw && level->checkAllocated(d_conform_idx_draw)) level->deallocatePatchData(d_conform_idx_draw);
         if (d_stress_draw && level->checkAllocated(d_stress_idx_draw)) level->deallocatePatchData(d_stress_idx_draw);
         if ((d_div_sig_idx_draw != IBTK::invalid_index) && level->checkAllocated(d_div_sig_idx_draw))
@@ -170,18 +176,18 @@ CFINSForcing::~CFINSForcing()
 } // Destructor
 
 void
-CFINSForcing::commonConstructor(const Pointer<Database> input_db,
-                                Pointer<VisItDataWriter<NDIM>> visit_data_writer,
-                                Pointer<CartesianGridGeometry<NDIM>> grid_geom,
-                                const std::vector<RobinBcCoefStrategy<NDIM>*> vel_bcs)
+CFINSForcing::commonConstructor(const Pointer<SAMRAIDatabase> input_db,
+                                Pointer<SAMRAIVisItDataWriter> visit_data_writer,
+                                Pointer<SAMRAICartesianGridGeometry> grid_geom,
+                                const std::vector<SAMRAIRobinBcCoefStrategy*> vel_bcs)
 {
     // Set up initial conditions
     d_init_conds = new muParserCartGridFunction(d_object_name, input_db->getDatabase("InitialConditions"), grid_geom);
     d_interp_type = input_db->getStringWithDefault("interp_type", d_interp_type);
     // Register Variables and variable context objects.
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    const IntVector<NDIM> ghosts_cc = 3;
+    const SAMRAIIntVector ghosts_cc = 3;
     // Set up Advection Diffusion Integrator
     d_adv_diff_integrator->registerTransportedQuantity(d_C_cc_var);
     d_adv_diff_integrator->setInitialConditions(d_C_cc_var, d_init_conds);
@@ -208,15 +214,15 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     d_conform_draw = input_db->getBoolWithDefault("output_conformation_tensor", d_conform_draw);
     if (d_conform_draw)
     {
-        d_conform_var_draw = new CellVariable<NDIM, double>(d_object_name + "::conform_draw", NDIM * NDIM);
-        d_conform_idx_draw = var_db->registerVariableAndContext(d_conform_var_draw, d_context, IntVector<NDIM>(0));
+        d_conform_var_draw = new SAMRAICellVariable<double>(d_object_name + "::conform_draw", NDIM * NDIM);
+        d_conform_idx_draw = var_db->registerVariableAndContext(d_conform_var_draw, d_context, SAMRAIIntVector(0));
         visit_data_writer->registerPlotQuantity("Conformation_Tensor", "TENSOR", d_conform_idx_draw);
     }
     d_stress_draw = input_db->getBoolWithDefault("output_stress_tensor", d_stress_draw);
     if (d_stress_draw)
     {
-        d_stress_var_draw = new CellVariable<NDIM, double>(d_object_name + "::stress_draw", NDIM * NDIM);
-        d_stress_idx_draw = var_db->registerVariableAndContext(d_stress_var_draw, d_context, IntVector<NDIM>(0));
+        d_stress_var_draw = new SAMRAICellVariable<double>(d_object_name + "::stress_draw", NDIM * NDIM);
+        d_stress_idx_draw = var_db->registerVariableAndContext(d_stress_var_draw, d_context, SAMRAIIntVector(0));
         visit_data_writer->registerPlotQuantity("Stress_Tensor", "TENSOR", d_stress_idx_draw);
     }
 
@@ -226,8 +232,8 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     d_div_sig_abs_tag = input_db->getBoolWithDefault("divergence_abs_tagging", d_div_sig_abs_tag);
     if (d_log_div_sig || d_div_sig_draw || d_div_sig_abs_tag || d_div_sig_rel_tag)
     {
-        d_div_sig_var_draw = new CellVariable<NDIM, double>(d_object_name + "::divW_draw", NDIM);
-        d_div_sig_idx_draw = var_db->registerVariableAndContext(d_div_sig_var_draw, d_context, IntVector<NDIM>(0));
+        d_div_sig_var_draw = new SAMRAICellVariable<double>(d_object_name + "::divW_draw", NDIM);
+        d_div_sig_idx_draw = var_db->registerVariableAndContext(d_div_sig_var_draw, d_context, SAMRAIIntVector(0));
         if (d_div_sig_draw) visit_data_writer->registerPlotQuantity("Stress_Divergence", "VECTOR", d_div_sig_idx_draw);
     }
     if (d_div_sig_rel_tag) d_div_sig_rel_thresh = input_db->getDoubleArray("divergence_rel_thresh");
@@ -238,7 +244,7 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     }
 
     // Create boundary conditions for advected materials if not periodic
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const SAMRAIIntVector& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() <= 0)
     {
         d_conc_bc_coefs.resize(NDIM * (NDIM + 1) / 2);
@@ -294,8 +300,8 @@ CFINSForcing::isTimeDependent() const
 
 void
 CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
-                                      Pointer<Variable<NDIM>> var,
-                                      Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                      Pointer<SAMRAIVariable> var,
+                                      Pointer<SAMRAIPatchHierarchy> hierarchy,
                                       const double data_time,
                                       const bool initial_time,
                                       const int coarsest_ln_in,
@@ -305,12 +311,12 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln =
         (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
 
     // Allocate Data to store components of the Complex stress tensor
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_num);
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_num);
         if (!level->checkAllocated(d_C_scratch_idx)) level->allocatePatchData(d_C_scratch_idx);
         if (d_stress_draw && !level->checkAllocated(d_stress_idx_draw)) level->allocatePatchData(d_stress_idx_draw);
         if (d_conform_draw && !level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
@@ -329,8 +335,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
             var_db->mapVariableAndContextToIndex(d_C_cc_var, d_adv_diff_integrator->getCurrentContext());
         const int W_new_idx = var_db->mapVariableAndContextToIndex(d_C_cc_var, d_adv_diff_integrator->getNewContext());
         const bool W_new_is_allocated = d_adv_diff_integrator->isAllocatedPatchData(W_new_idx);
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
+        SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+        Pointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
         if (d_adv_diff_integrator->getCurrentCycleNumber() == 0 || !W_new_is_allocated)
         {
@@ -344,8 +350,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         }
     }
 
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double>> hier_cc_data_ops =
+    SAMRAIHierarchyDataOpsManager* hier_data_ops_manager = SAMRAIHierarchyDataOpsManager::getManager();
+    Pointer<SAMRAIHierarchyDataOpsReal<double>> hier_cc_data_ops =
         hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
 
     // Fill in boundary conditions for evolved quantity.
@@ -446,7 +452,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     // Deallocate data as needed.
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_num);
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_num);
         if (level->checkAllocated(d_C_scratch_idx)) level->deallocatePatchData(d_C_scratch_idx);
     }
     return;
@@ -454,8 +460,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CFINSForcing::setDataOnPatchLevel(const int data_idx,
-                                  Pointer<Variable<NDIM>> var,
-                                  Pointer<PatchLevel<NDIM>> level,
+                                  Pointer<SAMRAIVariable> var,
+                                  Pointer<SAMRAIPatchLevel> level,
                                   const double data_time,
                                   const bool initial_time)
 {
@@ -471,9 +477,9 @@ CFINSForcing::setDataOnPatchLevel(const int data_idx,
             level->allocatePatchData(d_div_sig_idx_draw);
         d_init_conds->setDataOnPatchLevel(d_C_scratch_idx, d_C_cc_var, level, data_time, initial_time);
     }
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (SAMRAIPatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SAMRAIPatch> patch = level->getPatch(p());
         setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
     }
     return;
@@ -481,29 +487,29 @@ CFINSForcing::setDataOnPatchLevel(const int data_idx,
 
 void
 CFINSForcing::setDataOnPatch(const int data_idx,
-                             Pointer<Variable<NDIM>> /*var*/,
-                             Pointer<Patch<NDIM>> patch,
+                             Pointer<SAMRAIVariable> /*var*/,
+                             Pointer<SAMRAIPatch> patch,
                              const double /*data_time*/,
                              const bool initial_time,
-                             Pointer<PatchLevel<NDIM>> /*patch_level*/)
+                             Pointer<SAMRAIPatchLevel> /*patch_level*/)
 {
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
+    const SAMRAIBox& patch_box = patch->getBox();
+    const Pointer<SAMRAICartesianPatchGeometry> p_geom = patch->getPatchGeometry();
     const double* dx = p_geom->getDx();
     // NOTE: We precomputed the stress, which is stored in d_C_scratch_idx.
-    Pointer<CellData<NDIM, double>> sig_data = patch->getPatchData(d_C_scratch_idx);
-    Pointer<CellData<NDIM, double>> div_sig_draw_data =
+    Pointer<SAMRAICellData<double>> sig_data = patch->getPatchData(d_C_scratch_idx);
+    Pointer<SAMRAICellData<double>> div_sig_draw_data =
         d_div_sig_idx_draw != IBTK::invalid_index ? patch->getPatchData(d_div_sig_idx_draw) : nullptr;
     if (d_log_div_sig || d_div_sig_draw || d_div_sig_abs_tag || d_div_sig_rel_tag) div_sig_draw_data->fillAll(0.0);
-    Pointer<SideData<NDIM, double>> div_sig_sc_data = patch->getPatchData(data_idx);
-    Pointer<CellData<NDIM, double>> div_sig_cc_data = patch->getPatchData(data_idx);
+    Pointer<SAMRAISideData<double>> div_sig_sc_data = patch->getPatchData(data_idx);
+    Pointer<SAMRAICellData<double>> div_sig_cc_data = patch->getPatchData(data_idx);
     // If we are drawing the stress tensor, print it out.
     if (d_stress_draw)
     {
-        Pointer<CellData<NDIM, double>> stress_data_draw = patch->getPatchData(d_stress_idx_draw);
-        for (CellIterator<NDIM> ci(patch_box); ci; ci++)
+        Pointer<SAMRAICellData<double>> stress_data_draw = patch->getPatchData(d_stress_idx_draw);
+        for (SAMRAICellIterator ci(patch_box); ci; ci++)
         {
-            CellIndex<NDIM> idx = *ci;
+            SAMRAICellIndex idx = *ci;
 #if (NDIM == 2)
             (*stress_data_draw)(idx, 0) = (*sig_data)(idx, 0);
             (*stress_data_draw)(idx, 1) = (*sig_data)(idx, 2);
@@ -527,10 +533,10 @@ CFINSForcing::setDataOnPatch(const int data_idx,
     {
         div_sig_sc_data->fillAll(0.0);
         if (initial_time) return;
-        const IntVector<NDIM> sig_ghosts = sig_data->getGhostCellWidth();
-        const IntVector<NDIM> div_sig_sc_ghosts = div_sig_sc_data->getGhostCellWidth();
-        const IntVector<NDIM>& patch_lower = patch_box.lower();
-        const IntVector<NDIM>& patch_upper = patch_box.upper();
+        const SAMRAIIntVector sig_ghosts = sig_data->getGhostCellWidth();
+        const SAMRAIIntVector div_sig_sc_ghosts = div_sig_sc_data->getGhostCellWidth();
+        const SAMRAIIntVector& patch_lower = patch_box.lower();
+        const SAMRAIIntVector& patch_upper = patch_box.upper();
 #if (NDIM == 2)
         div_tensor_c_to_s_2d_(dx,
                               div_sig_sc_data->getPointer(0),
@@ -560,13 +566,13 @@ CFINSForcing::setDataOnPatch(const int data_idx,
 #endif
         if (d_log_div_sig || d_div_sig_draw || d_div_sig_abs_tag || d_div_sig_rel_tag)
         {
-            for (CellIterator<NDIM> ci(patch_box); ci; ci++)
+            for (SAMRAICellIterator ci(patch_box); ci; ci++)
             {
-                CellIndex<NDIM> idx = *ci;
-                SideIndex<NDIM> f_x_n = SideIndex<NDIM>(idx, 0, 0);
-                SideIndex<NDIM> f_x_p = SideIndex<NDIM>(idx, 0, 1);
-                SideIndex<NDIM> f_y_n = SideIndex<NDIM>(idx, 1, 0);
-                SideIndex<NDIM> f_y_p = SideIndex<NDIM>(idx, 1, 1);
+                SAMRAICellIndex idx = *ci;
+                SAMRAISideIndex f_x_n = SAMRAISideIndex(idx, 0, 0);
+                SAMRAISideIndex f_x_p = SAMRAISideIndex(idx, 0, 1);
+                SAMRAISideIndex f_y_n = SAMRAISideIndex(idx, 1, 0);
+                SAMRAISideIndex f_y_p = SAMRAISideIndex(idx, 1, 1);
                 double max_norm;
 #if (NDIM == 2)
                 max_norm = std::max<double>(std::fabs(0.5 * ((*div_sig_sc_data)(f_x_n) + (*div_sig_sc_data)(f_x_p))),
@@ -575,8 +581,8 @@ CFINSForcing::setDataOnPatch(const int data_idx,
                 (*div_sig_draw_data)(idx, 1) = 0.5 * ((*div_sig_sc_data)(f_y_n) + (*div_sig_sc_data)(f_y_p));
 #endif
 #if (NDIM == 3)
-                SideIndex<NDIM> f_z_n = SideIndex<NDIM>(idx, 2, 0);
-                SideIndex<NDIM> f_z_p = SideIndex<NDIM>(idx, 2, 1);
+                SAMRAISideIndex f_z_n = SAMRAISideIndex(idx, 2, 0);
+                SAMRAISideIndex f_z_p = SAMRAISideIndex(idx, 2, 1);
                 max_norm = std::max<double>(
                     std::fabs(0.5 * ((*div_sig_sc_data)(f_x_n) + (*div_sig_sc_data)(f_x_p))),
                     std::max<double>(std::fabs(0.5 * ((*div_sig_sc_data)(f_y_n) + (*div_sig_sc_data)(f_y_p))),
@@ -597,10 +603,10 @@ CFINSForcing::setDataOnPatch(const int data_idx,
     {
         div_sig_cc_data->fillAll(0.0);
         if (initial_time) return;
-        const IntVector<NDIM> sig_ghosts = sig_data->getGhostCellWidth();
-        const IntVector<NDIM> div_sig_ghosts = div_sig_cc_data->getGhostCellWidth();
-        const IntVector<NDIM>& patch_lower = patch_box.lower();
-        const IntVector<NDIM>& patch_upper = patch_box.upper();
+        const SAMRAIIntVector sig_ghosts = sig_data->getGhostCellWidth();
+        const SAMRAIIntVector div_sig_ghosts = div_sig_cc_data->getGhostCellWidth();
+        const SAMRAIIntVector& patch_lower = patch_box.lower();
+        const SAMRAIIntVector& patch_upper = patch_box.upper();
 #if (NDIM == 2)
         div_tensor_c_to_c_2d_(dx,
                               div_sig_cc_data->getPointer(0),
@@ -627,9 +633,9 @@ CFINSForcing::setDataOnPatch(const int data_idx,
 #endif
         if (d_log_div_sig || d_div_sig_rel_tag)
         {
-            for (CellIterator<NDIM> ci(patch_box); ci; ci++)
+            for (SAMRAICellIterator ci(patch_box); ci; ci++)
             {
-                CellIndex<NDIM> idx = *ci;
+                SAMRAICellIndex idx = *ci;
                 double max_norm;
 #if (NDIM == 2)
                 max_norm =
@@ -658,23 +664,23 @@ CFINSForcing::registerCFStrategy(Pointer<CFStrategy> strategy)
 
 void
 CFINSForcing::checkPositiveDefinite(const int data_idx,
-                                    const Pointer<Variable<NDIM>> /*var*/,
+                                    const Pointer<SAMRAIVariable> /*var*/,
                                     const double /*data_time*/,
                                     const bool initial_time)
 {
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
-            const Pointer<PatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            const SAMRAIBox& box = patch->getBox();
+            const Pointer<SAMRAIPatchGeometry> p_geom = patch->getPatchGeometry();
             if (initial_time) return;
-            Pointer<CellData<NDIM, double>> s_data = patch->getPatchData(data_idx);
-            for (CellIterator<NDIM> it(box); it; it++)
+            Pointer<SAMRAICellData<double>> s_data = patch->getPatchData(data_idx);
+            for (SAMRAICellIterator it(box); it; it++)
             {
-                const CellIndex<NDIM>& ci = *it;
+                const SAMRAICellIndex& ci = *it;
                 MatrixNd tens;
                 for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
                 {
@@ -692,8 +698,8 @@ CFINSForcing::checkPositiveDefinite(const int data_idx,
 
 void
 CFINSForcing::squareMatrix(const int data_idx,
-                           const Pointer<Variable<NDIM>> /*var*/,
-                           const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                           const Pointer<SAMRAIVariable> /*var*/,
+                           const Pointer<SAMRAIPatchHierarchy> hierarchy,
                            const double /*data_time*/,
                            const bool initial_time,
                            const int coarsest_ln,
@@ -702,18 +708,18 @@ CFINSForcing::squareMatrix(const int data_idx,
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
             if (initial_time) return;
-            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
-            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
-            const Pointer<PatchGeometry<NDIM>> p_geom = patch->getPatchGeometry();
+            Pointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
+            const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
+            const Pointer<SAMRAIPatchGeometry> p_geom = patch->getPatchGeometry();
 
-            for (CellIterator<NDIM> it(box); it; it++)
+            for (SAMRAICellIterator it(box); it; it++)
             {
-                CellIndex<NDIM> i = *it;
+                SAMRAICellIndex i = *it;
                 MatrixNd tens;
                 for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
                 {
@@ -734,22 +740,22 @@ CFINSForcing::squareMatrix(const int data_idx,
 
 void
 CFINSForcing::findDeterminant(const int data_idx,
-                              const Pointer<Variable<NDIM>> /*var*/,
+                              const Pointer<SAMRAIVariable> /*var*/,
                               const double /*data_time*/,
                               const bool /*initial_time*/)
 {
     double det;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator i(level); i; i++)
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator i(level); i; i++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(i());
-            const Box<NDIM>& box = patch->getBox();
-            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
-            for (CellIterator<NDIM> it(box); it; it++)
+            Pointer<SAMRAIPatch> patch = level->getPatch(i());
+            const SAMRAIBox& box = patch->getBox();
+            Pointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
+            for (SAMRAICellIterator it(box); it; it++)
             {
-                CellIndex<NDIM> i = *it;
+                SAMRAICellIndex i = *it;
 #if (NDIM == 2)
                 det = (*data)(i, 0) * (*data)(i, 1) - (*data)(i, 2) * (*data)(i, 2);
 #endif
@@ -769,8 +775,8 @@ CFINSForcing::findDeterminant(const int data_idx,
 
 void
 CFINSForcing::exponentiateMatrix(const int data_idx,
-                                 const Pointer<Variable<NDIM>> /*var*/,
-                                 const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const Pointer<SAMRAIVariable> /*var*/,
+                                 const Pointer<SAMRAIPatchHierarchy> hierarchy,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
                                  const int coarsest_ln,
@@ -779,15 +785,15 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ln++)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
-            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
-            for (CellIterator<NDIM> it(box); it; it++)
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
+            const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
+            for (SAMRAICellIterator it(box); it; it++)
             {
-                CellIndex<NDIM> i = *it;
+                SAMRAICellIndex i = *it;
                 MatrixNd tens;
                 for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
                 {
@@ -812,13 +818,13 @@ CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
     if (!d_conform_draw) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<SAMRAIPatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(C_cc_idx);
-            Pointer<CellData<NDIM, double>> conform_data_draw = patch->getPatchData(d_conform_idx_draw);
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAICellData<double>> C_data = patch->getPatchData(C_cc_idx);
+            Pointer<SAMRAICellData<double>> conform_data_draw = patch->getPatchData(d_conform_idx_draw);
 #if (NDIM == 2)
             conform_data_draw->copyDepth(0, *C_data, 0);
             conform_data_draw->copyDepth(1, *C_data, 2);
@@ -842,24 +848,24 @@ CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
 
 void
 CFINSForcing::projectTensor(const int data_idx,
-                            const Pointer<Variable<NDIM>> /*var*/,
+                            const Pointer<SAMRAIVariable> /*var*/,
                             const double /*data_time*/,
                             const bool initial_time,
                             const bool extended_box)
 {
-    Pointer<PatchHierarchy<NDIM>> hierarchy = d_adv_diff_integrator->getPatchHierarchy();
+    Pointer<SAMRAIPatchHierarchy> hierarchy = d_adv_diff_integrator->getPatchHierarchy();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
             if (initial_time) return;
-            Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
-            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
-            for (CellIterator<NDIM> it(box); it; it++)
+            Pointer<SAMRAICellData<double>> data = patch->getPatchData(data_idx);
+            const SAMRAIBox& box = extended_box ? data->getGhostBox() : patch->getBox();
+            for (SAMRAICellIterator it(box); it; it++)
             {
-                CellIndex<NDIM> i = *it;
+                SAMRAICellIndex i = *it;
                 MatrixNd tens;
                 Eigen::SelfAdjointEigenSolver<MatrixNd> eigs;
                 for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
@@ -887,7 +893,7 @@ CFINSForcing::projectTensor(const int data_idx,
 } // projectTensor
 
 void
-CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+CFINSForcing::applyGradientDetector(Pointer<SAMRAIBasePatchHierarchy> hierarchy,
                                     int level_number,
                                     double /*error_data_time*/,
                                     int tag_index,
@@ -895,7 +901,7 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                     bool /*richardson_extrapolation_too*/)
 {
     if (initial_time) return;
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
+    Pointer<SAMRAIPatchLevel> level = hierarchy->getPatchLevel(level_number);
     double divC_rel_thresh = 0.0;
     if (d_div_sig_rel_thresh.size() > 0)
         divC_rel_thresh = d_div_sig_rel_thresh[std::max(std::min(level_number, d_div_sig_rel_thresh.size() - 1), 0)];
@@ -908,16 +914,16 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
         if (divC_abs_thresh > 0.0) thresh = std::min(thresh, divC_abs_thresh);
         if (divC_rel_thresh > 0.0) thresh = std::min(thresh, divC_rel_thresh * d_max_norm);
         thresh += sqrt(std::numeric_limits<double>::epsilon());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (SAMRAIPatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(d_div_sig_idx_draw);
+            Pointer<SAMRAIPatch> patch = level->getPatch(p());
+            Pointer<SAMRAICellData<double>> C_data = patch->getPatchData(d_div_sig_idx_draw);
             if (!C_data) continue;
-            Pointer<CellData<NDIM, int>> tag_data = patch->getPatchData(tag_index);
-            const Box<NDIM>& box = patch->getBox();
-            for (CellIterator<NDIM> ic(box); ic; ic++)
+            Pointer<SAMRAICellData<int>> tag_data = patch->getPatchData(tag_index);
+            const SAMRAIBox& box = patch->getBox();
+            for (SAMRAICellIterator ic(box); ic; ic++)
             {
-                const CellIndex<NDIM>& i = ic();
+                const SAMRAICellIndex& i = ic();
                 double norm = 0.0;
                 for (int d = 0; d < NDIM; ++d) norm += (*C_data)(i, d) * (*C_data)(i, d);
                 norm = sqrt(norm);
@@ -929,7 +935,7 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
 } // applyGradientDetector
 
 void
-CFINSForcing::apply_gradient_detector_callback(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+CFINSForcing::apply_gradient_detector_callback(Pointer<SAMRAIBasePatchHierarchy> hierarchy,
                                                int level_number,
                                                double error_data_time,
                                                int tag_index,
@@ -950,7 +956,7 @@ CFINSForcing::apply_project_tensor_callback(const double current_time,
                                             void* ctx)
 {
     auto object = static_cast<CFINSForcing*>(ctx);
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = SAMRAIVariableDatabase::getDatabase();
     const int C_idx = var_db->mapVariableAndContextToIndex(object->getVariable(),
                                                            object->getAdvDiffHierarchyIntegrator()->getNewContext());
     object->projectTensor(C_idx, object->getVariable(), current_time, false /*initial_time*/, false /*extended_box*/);

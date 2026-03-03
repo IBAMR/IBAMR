@@ -20,9 +20,10 @@
 
 #include <ibtk/config.h>
 
-#include <tbox/Pointer.h>
+#include <ibtk/samrai_compatibility_names.h>
 
-#include <SAMRAIVectorReal.h>
+#include <SAMRAIPointer.h>
+#include <SAMRAISAMRAIVectorReal.h>
 
 #include <vector>
 
@@ -45,18 +46,18 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector but does not copy values.
      */
-    SAMRAIScopedVectorDuplicate(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>& vector,
+    SAMRAIScopedVectorDuplicate(const SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>& vector,
                                 const std::string& name = "");
 
     /*!
      * Constructor. Sets up a vector equivalent to @p vector but does not copy values.
      */
-    SAMRAIScopedVectorDuplicate(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector, const std::string& name = "");
+    SAMRAIScopedVectorDuplicate(const SAMRAISAMRAIVectorReal<TYPE>& vector, const std::string& name = "");
 
     /*!
      * Conversion operator to a SAMRAI vector.
      */
-    operator SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>&();
+    operator SAMRAISAMRAIVectorReal<TYPE>&();
 
     /*!
      * Conversion operator to non-owning pointer to a SAMRAI vector.
@@ -65,12 +66,12 @@ public:
      * to a vector. Since this pointer is non-owning it is not an implementation
      * of reference-counting to this object.
      */
-    operator SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>();
+    operator SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>();
 
     /*!
      * Get the components of the vectors.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>>> getComponentVectors() const;
+    std::vector<SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>>> getComponentVectors() const;
 
     /*!
      * Destructor. Removes the cloned patch index and deallocates data.
@@ -78,7 +79,7 @@ public:
     ~SAMRAIScopedVectorDuplicate();
 
 protected:
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>> d_vector;
+    SAMRAIPointer<SAMRAISAMRAIVectorReal<TYPE>> d_vector;
 };
 } // namespace IBTK
 
