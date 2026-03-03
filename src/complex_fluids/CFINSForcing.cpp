@@ -211,14 +211,14 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     {
         d_conform_var_draw = new CellVariable<NDIM, double>(d_object_name + "::conform_draw", NDIM * NDIM);
         d_conform_idx_draw = var_db->registerVariableAndContext(d_conform_var_draw, d_context, IntVector<NDIM>(0));
-        visit_data_writer->registerPlotQuantity("Conformation_Tensor", "TENSOR", d_conform_idx_draw);
+        visit_data_writer->registerPlotQuantity(d_object_name + "_Conformation_Tensor", "TENSOR", d_conform_idx_draw);
     }
     d_stress_draw = input_db->getBoolWithDefault("output_stress_tensor", d_stress_draw);
     if (d_stress_draw)
     {
         d_stress_var_draw = new CellVariable<NDIM, double>(d_object_name + "::stress_draw", NDIM * NDIM);
         d_stress_idx_draw = var_db->registerVariableAndContext(d_stress_var_draw, d_context, IntVector<NDIM>(0));
-        visit_data_writer->registerPlotQuantity("Stress_Tensor", "TENSOR", d_stress_idx_draw);
+        visit_data_writer->registerPlotQuantity(d_object_name + "_Stress_Tensor", "TENSOR", d_stress_idx_draw);
     }
 
     // Set up AMR tagging if necessary
@@ -229,7 +229,8 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     {
         d_div_sig_var_draw = new CellVariable<NDIM, double>(d_object_name + "::divW_draw", NDIM);
         d_div_sig_idx_draw = var_db->registerVariableAndContext(d_div_sig_var_draw, d_context, IntVector<NDIM>(0));
-        if (d_div_sig_draw) visit_data_writer->registerPlotQuantity("Stress_Divergence", "VECTOR", d_div_sig_idx_draw);
+        if (d_div_sig_draw)
+            visit_data_writer->registerPlotQuantity(d_object_name + "_Stress_Divergence", "VECTOR", d_div_sig_idx_draw);
     }
     if (d_div_sig_rel_tag) d_div_sig_rel_thresh = input_db->getDoubleArray("divergence_rel_thresh");
     if (d_div_sig_abs_tag) d_div_sig_abs_thresh = input_db->getDoubleArray("divergence_abs_thresh");
@@ -258,7 +259,7 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     std::string convec_oper_type = input_db->getStringWithDefault("convective_operator_type", "CENTERED");
     auto difference_form =
         string_to_enum<ConvectiveDifferencingType>(input_db->getStringWithDefault("difference_form", "ADVECTIVE"));
-    d_convec_oper = new CFUpperConvectiveOperator("ComplexFluidConvectiveOperator",
+    d_convec_oper = new CFUpperConvectiveOperator(d_object_name + "::ComplexFluidConvectiveOperator",
                                                   d_C_cc_var,
                                                   input_db,
                                                   convec_oper_type,
@@ -403,7 +404,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     checkPositiveDefinite(d_C_scratch_idx, d_C_cc_var, data_time, initial_time);
     int temp = d_positive_def ? 1 : 0;
     d_positive_def = IBTK_MPI::maxReduction(temp) == 1 ? true : false;
-    plog << "Conformation tensor is " << (d_positive_def ? "SPD" : "NOT SPD") << "\n";
+    plog << d_object_name << ": Conformation tensor is " << (d_positive_def ? "SPD" : "NOT SPD") << "\n";
     if (d_error_on_spd && !d_positive_def)
     {
         TBOX_ERROR("ERROR: \n "
@@ -418,8 +419,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         findDeterminant(d_C_scratch_idx, d_C_cc_var, data_time, initial_time);
         d_max_det = IBTK_MPI::maxReduction(d_max_det);
         d_min_det = IBTK_MPI::minReduction(d_min_det);
-        plog << "Largest det:  " << d_max_det << "\n";
-        plog << "Smallest det: " << d_min_det << "\n";
+        plog << d_object_name << ": Largest det:  " << d_max_det << "\n";
+        plog << d_object_name << ": Smallest det: " << d_min_det << "\n";
     }
 
     // If necessary, output the conformation tensor.
@@ -440,8 +441,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     {
         IBTK_MPI::maxReduction(d_max_norm);
         IBTK_MPI::minReduction(d_min_norm);
-        plog << "Largest max norm of Div W:  " << d_max_norm << "\n";
-        plog << "Smallest max norm of Div W: " << d_min_norm << "\n";
+        plog << d_object_name << ": Largest max norm of Div W:  " << d_max_norm << "\n";
+        plog << d_object_name << ": Smallest max norm of Div W: " << d_min_norm << "\n";
     }
 
     // Deallocate data as needed.
