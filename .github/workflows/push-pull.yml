@@ -32,12 +32,12 @@ jobs:
         include:
           - name: "Arch Linux 2025, with libMesh"
             key: "arch-cmake-libmesh"
-            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel -DSILO_ROOT=/petsc"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Arch Linux 2025, without libMesh"
             key: "arch-cmake-no-libmesh"
-            cmake_flags: ""
+            cmake_flags: "-DSILO_ROOT=/petsc"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Ubuntu 20.04, with libMesh"
@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc -DPETSC_ROOT=/petsc -DSAMRAI_ROOT=/samrai"
           # add a subshell to ensure flags are passed as separate arguments
           cmake $(echo "$FLAGS") -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
