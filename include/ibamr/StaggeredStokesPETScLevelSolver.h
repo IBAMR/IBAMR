@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
@@ -178,6 +179,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    ASMSubdomainConstructionMode d_asm_subdomain_construction_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    int d_coupling_aware_asm_seed_axis = 0;
+    int d_coupling_aware_asm_seed_stride = 1;
+    CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    bool d_log_asm_subdomains = false;
 
     //\}
 };
