@@ -114,6 +114,18 @@ GeneralSolver::getHierarchyMathOps() const
 } // getHierarchyMathOps
 
 void
+GeneralSolver::setProblemSpecification(const ProblemSpecification* problem_spec)
+{
+    d_problem_spec = problem_spec;
+} //  setProblemSpecification
+
+const ProblemSpecification*
+GeneralSolver::getProblemSpecification() const
+{
+    return d_problem_spec;
+} // getProblemSpecification
+
+void
 GeneralSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& /*u*/,
                                      const SAMRAIVectorReal<NDIM, double>& /*r*/)
 {
