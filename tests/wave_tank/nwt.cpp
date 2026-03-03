@@ -54,7 +54,6 @@
 
 // Application
 #include "LSLocateGasInterface.cpp"
-#include "LSLocateGasInterface.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,

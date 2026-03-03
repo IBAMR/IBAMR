@@ -42,7 +42,6 @@
 
 // Application
 #include "OscillatingCylinderKinematics.cpp"
-#include "OscillatingCylinderKinematics.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,

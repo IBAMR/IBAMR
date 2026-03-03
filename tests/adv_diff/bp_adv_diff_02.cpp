@@ -51,7 +51,6 @@
 
 // Application specific includes
 #include "LevelSetInitialConditionHexagram.cpp"
-#include "LevelSetInitialConditionHexagram.h"
 
 // Struct to specify the variables required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx

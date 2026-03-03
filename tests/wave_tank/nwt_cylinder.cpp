@@ -68,7 +68,6 @@
 
 // Application specific includes.
 #include "LSLocateGasInterface.cpp"
-#include "LSLocateGasInterface.h"
 
 int coarsest_ln, max_finest_ln;
 double dx, ds;

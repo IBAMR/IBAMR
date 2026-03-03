@@ -41,7 +41,6 @@
 
 // Application specific includes
 #include "LevelSetInitialCondition.cpp"
-#include "LevelSetInitialCondition.h"
 
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx,

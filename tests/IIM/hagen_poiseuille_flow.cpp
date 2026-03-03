@@ -57,7 +57,6 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include "hagen_poiseuille_FeedbackForcer.cpp"
-#include "hagen_poiseuille_FeedbackForcer.h"
 
 namespace ModelData
 {
