@@ -579,8 +579,6 @@ ENDIF()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up PETSc")
-# Use petscvariables to set up the include directories so that we correctly
-# support in-place builds
 FIND_FILE(PETSC_VARIABLES_FILE petscvariables HINTS ${PETSC_ROOT}
   PATH_SUFFIXES conf lib/petsc/conf)
 IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_VARIABLES_FILE-NOTFOUND")
@@ -599,7 +597,7 @@ PETSc installation).")
   # TODO - we can use REQUIRED in FIND_FILE in CMake 3.18 and newer
   FIND_FILE(PETSC_CONF_FILE petscconf.h HINTS ${PETSC_ROOT}
     PATH_SUFFIXES petsc include include/petsc)
-  IF(${PETSC_CONF_FILE} STREQUAL "PETSC_CONF_FILE-NOTFOUND")
+  IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_CONF_FILE-NOTFOUND")
     MESSAGE(FATAL_ERROR "unable to find the petscconf.h configuration file")
   ENDIF()
   # We do not yet support PETSc with 64-bit integers
@@ -609,6 +607,19 @@ PETSc installation).")
     MESSAGE(FATAL_ERROR "IBAMR does not support using 64 bit indices with \
 PETSc at this time. Please recompile PETSc (and any dependencies, such as   \
 libMesh, it may have) to NOT use 64 bit indices.")
+  ENDIF()
+  # Work around a (likely) CMake bug: on macOS with new versions of CMake
+  # (confirmed with 3.20 and 3.22) the generated cmake_install.cmake scripts add
+  # and remove rpaths for HYPRE when it is installed in the same place as PETSc,
+  # which causes install_name_tool to fail. Work around it by linking against
+  # hypre implicitly in that case.
+  FILE(STRINGS ${PETSC_CONF_FILE} _petsc_have_hypre_string REGEX
+    "^ *# *define.*PETSC_HAVE_HYPRE *1")
+  IF(NOT ${_petsc_have_hypre_string} STREQUAL "")
+    MESSAGE(STATUS "Detected PETSc with HYPRE")
+    SET(PETSC_HAVE_HYPRE TRUE)
+  ELSE()
+    SET(PETSC_HAVE_HYPRE FALSE)
   ENDIF()
 
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
@@ -631,28 +642,13 @@ something is wrong with the PETSc installation.")
   ENDFOREACH()
   MESSAGE(STATUS "PETSC_INCLUDE_DIRS: ${PETSC_INCLUDE_DIRS}")
 
-  FILE(STRINGS ${PETSC_VARIABLES_FILE} _petsc_raw_linker_slflag REGEX "^CC_LINKER_SLFLAG")
-  IF ("${_petsc_raw_linker_slflag}" STREQUAL "")
-    MESSAGE(FATAL_ERROR
-      "The configuration script was unable to find the linker \
-rpath prefix flag in the file ${PETSC_VARIABLES_FILE}.")
-  ENDIF()
-  STRING(REGEX REPLACE "^CC_LINKER_SLFLAG = *(.*)" "\\1" _petsc_linker_slflag ${_petsc_raw_linker_slflag})
-  SET(PETSC_LIBRARIES "${_petsc_linker_slflag}${PETSC_ROOT}/lib;-L${PETSC_ROOT}/lib/;-lpetsc")
-
-  # We need to use DYSEV() in some Fortran code, so link in whatever PETSc uses
-  # for BLAS and LAPACK. Don't use the full link line to prevent some problems
-  # with Homebrew (e.g., updating compilers without updating petscvariables)
-  FILE(STRINGS ${PETSC_VARIABLES_FILE} _petsc_raw_blaslapack_libs REGEX "^BLASLAPACK_LIB =.*")
-  IF ("${_petsc_raw_blaslapack_libs}" STREQUAL "")
-    MESSAGE(FATAL_ERROR
-      "The configuration script was unable to find the list of                 \
-PETSc BLAS+LAPACK libraries in the file ${PETSC_VARIABLES_FILE}.")
-  ENDIF()
-  STRING(REGEX REPLACE "^BLASLAPACK_LIB = *(.*)" "\\1" _petsc_blaslapack_libs ${_petsc_raw_blaslapack_libs})
-  SEPARATE_ARGUMENTS(_petsc_blaslapack_libs)
-  LIST(APPEND PETSC_LIBRARIES "${_petsc_blaslapack_libs}")
-
+  FILE(STRINGS ${PETSC_VARIABLES_FILE} PETSC_LIBRARIES REGEX "^PETSC_WITH_EXTERNAL_LIB =.*")
+  STRING(REGEX REPLACE "^PETSC_WITH_EXTERNAL_LIB =(.*)" "\\1" PETSC_LIBRARIES ${PETSC_LIBRARIES})
+  # If PETSC is not installed then ${PETSC_DIR}/${PETSC_ARCH} may appear in the list
+  STRING(REGEX REPLACE "\\$.PETSC_DIR./\\$.PETSC_ARCH." "${PETSC_ROOT}" PETSC_LIBRARIES ${PETSC_LIBRARIES})
+  SEPARATE_ARGUMENTS(PETSC_LIBRARIES)
+  FIND_LIBRARY(PETSC_LIBRARY REQUIRED NAMES "petsc" HINTS ${PETSC_ROOT}/lib)
+  LIST(PREPEND PETSC_LIBRARIES ${PETSC_LIBRARY})
   MESSAGE(STATUS "PETSC LIBRARIES: ${PETSC_LIBRARIES}")
 
   # extract the version numbers:
@@ -1320,9 +1316,13 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   ENDIF()
 
   # Hypre:
+  # See the note under PETSc for why we do this
+  #
   # This must be last since, if HYPRE is staticly linked, its symbols may end up
   # in libMesh or PETSc libraries
-  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
+  IF (NOT ${PETSC_HAVE_HYPRE})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
+  ENDIF()
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HYPRE_INCLUDE_DIRS}")
 ENDFUNCTION()
 
