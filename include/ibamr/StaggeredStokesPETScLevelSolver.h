@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/ibamr_enums.h>
 
