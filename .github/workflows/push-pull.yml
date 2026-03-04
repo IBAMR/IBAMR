@@ -211,6 +211,8 @@ jobs:
         id: format
         run: |
           git config --global --add safe.directory '*'
+          ./scripts/formatting/download-clang-format
+          ./scripts/formatting/check-indentation
       - name: Populate ccache
         uses: actions/cache@v4
         env:
