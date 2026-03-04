@@ -1,0 +1,15 @@
+n_fine_dofs = 768
+n_coarse_dofs = 192
+n_fine_velocity_dofs = 512
+n_fine_pressure_dofs = 256
+n_coarse_velocity_dofs = 128
+n_coarse_pressure_dofs = 64
+row_bad_velocity_count = 0
+row_bad_pressure_count = 0
+col_bad_velocity_count = 0
+col_bad_pressure_count = 0
+row_velocity_max_error = 0
+row_pressure_max_error = 0
+col_velocity_max_error = 0
+col_pressure_max_error = 0
+test_failures = 0
