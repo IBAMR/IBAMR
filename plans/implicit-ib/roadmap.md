@@ -15,19 +15,23 @@ Use deterministic CMake tests as the main confidence signal, but treat milestone
 ---
 
 ## Current State (2026-03-04)
-1. Development is on branch `codex/implicit-ib-milestone-1`.
-2. Milestone 1 work is complete on branch and under review in PR `#1887`.
-3. Reference implicit stabilization changes are applied in:
+1. Development is on branch `codex/implicit-ib-milestone-2`.
+2. Milestone 1 remains under review in PR `#1887`.
+3. Milestone 2 implementation work is complete on this branch:
+   - PR-A utility and deterministic test work is complete.
+   - PR-B solver wiring and integration test/smoke coverage is complete.
+4. Reference implicit stabilization changes are applied in:
    - `src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp`
-4. A promoted finished reference implicit test is added in:
+5. A promoted finished reference implicit test is added in:
    - `tests/IB/implicit_stokes_ib_01.cpp`
    - `tests/IB/implicit_stokes_ib_01.baseline.input`
    - `tests/IB/implicit_stokes_ib_01.baseline.output`
    - `tests/CMakeLists.txt` (test registration)
-5. Focused validation passing:
+6. Focused validation passing:
    - `attest -R 'IB/implicit_stokes_ib_01.baseline.input'`
-6. Expanded validation on the milestone-1 branch is passing:
+7. Expanded validation on the milestone-1 branch is passing:
    - `attest -R '^IB/'` (all `IB` tests in current CMake build subset).
+8. M2 solver-mode tests and transfer-invariant tests are passing in CMake and autotools builds.
 
 ---
 
@@ -42,8 +46,8 @@ Clean up implicit IB implementation and land a focused stabilization PR that res
 4. Keep this milestone strictly reference-oriented (no new smoother feature development).
 
 ### Status
-- Complete on this branch (PR open: `#1887`).
-- Completed:
+- In progress (PR open: `#1887`).
+- Completed so far:
 1. Reference stabilization edits applied for `IBImplicitStaggeredHierarchyIntegrator`.
 2. Reference finished implicit attest test added and passing in focused runs.
 3. Roadmap file moved to top-level `plans/implicit-ib/`.
@@ -68,7 +72,7 @@ Implement coupling-aware Vanka smoother construction for implicit Stokes-IB solv
 5. Keep implementation general enough for later parallel extension.
 
 ### Status
-- Not started on this branch.
+- Complete on this branch.
 
 ### Delivery Plan (Stacked PRs)
 1. PR-A (base: M1):
@@ -78,7 +82,7 @@ Implement coupling-aware Vanka smoother construction for implicit Stokes-IB solv
 2. PR-B (stacked on PR-A):
    - Solver wiring and input-driven mode selection for geometrical vs CAV construction.
    - Serial integration/smoke checks and logging consistency updates.
-   - Status: in progress.
+   - Status: complete on branch.
 
 ---
 
