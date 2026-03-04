@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/ibamr_enums.h>
 
@@ -183,6 +184,8 @@ private:
     int d_coupling_aware_asm_seed_axis = 0;
     int d_coupling_aware_asm_seed_stride = 1;
     CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
+    bool d_coupling_aware_asm_map_data_is_initialized = false;
     bool d_log_asm_subdomains = false;
 
     //\}
