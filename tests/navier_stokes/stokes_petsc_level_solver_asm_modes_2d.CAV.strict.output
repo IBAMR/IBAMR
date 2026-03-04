@@ -2,11 +2,18 @@ Input database:
 input_db {
    N = 8                                                    // input used
    test {
-      f_data_type                       = "CELL"            // input used
-      n_components                      = 1                 // input used
-      ghost_width                       = 1                 // input used
-      asm_subdomain_construction_mode   = "COUPLING_AWARE"  // input used
-      coupling_aware_asm_closure_policy = "STRICT"          // input used
+      f_data_type                               = "CELL"    // input used
+      n_components                              = 1         // input used
+      ghost_width                               = 1         // input used
+      asm_subdomain_construction_mode           = "COUPLING_AWARE" // input used
+      coupling_aware_asm_closure_policy         = "STRICT"  // input used
+      coupling_aware_asm_seed_axis              = 0         // from default
+      coupling_aware_asm_seed_stride            = 1         // from default
+      compare_against_mode                      = FALSE     // from default
+      compare_asm_subdomain_construction_mode   = "GEOMETRICAL" // from default
+      compare_coupling_aware_asm_closure_policy = "RELAXED" // from default
+      compare_coupling_aware_asm_seed_axis      = 0         // from default
+      compare_coupling_aware_asm_seed_stride    = 1         // from default
    }
    Main {
       log_file_name               = "output"                // input used
@@ -50,10 +57,15 @@ input_db {
 }
 asm_subdomain_construction_mode = COUPLING_AWARE
 coupling_aware_asm_closure_policy = STRICT
+subdomain_box_size = (2,2)
+subdomain_overlap_size = (1,1)
+coupling_aware_asm_seed_axis = 0
+coupling_aware_asm_seed_stride = 1
 n_local_dofs = 192
 n_subdomains = 64
 overlap_sizes = 5 5 5
 nonoverlap_sizes = 1 5 3
 overlap_hash = -4733870768587749120
 nonoverlap_hash = -4348850462453932552
+compare_against_mode = 0
 test_failures = 0
