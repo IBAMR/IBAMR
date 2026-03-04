@@ -202,6 +202,7 @@ SETUP_2D(navier_stokes stokes_ib_cav_matlab_strict_parity.cpp)
 SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ops.cpp)
 SETUP_2D(navier_stokes stokes_petsc_mat_utilities_prolongation.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
+SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
 # physical_boundary:
