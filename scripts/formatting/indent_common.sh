@@ -281,24 +281,29 @@ ensure_bracket_includes()
 {
   file="${1}"
   tmpfile1="$(mktemp "${TMPDIR}/$(basename "$1").tmp.XXXXXXXX")"
-  tmpfile2="$(mktemp "${TMPDIR}/$(basename "$1").tmp.XXXXXXXX")"
-
-  # sed doesn't support negative lookahead: work around it by collecting local
-  # files first
-  local_files=""
-  for local_file in $(find "$(dirname "$1")" -type f)
-  do
-    local_files="$local_files$(echo $(basename $local_file) | sed 's/\./\\./')|"
-  done
-  local_files=$(echo "$local_files" | sed 's/|$//')
 
   # assume that if we start with a '.' then we really have a relative path
   sed -E 's/^#( *)include( *)"([^.].*)"/#\1include\2<\3>/' "${file}" > "${tmpfile1}"
-  # fixup local includes
-  sed -E "s/^#( *)include( *)<($local_files)>/#\1include\2\"\3\"/" "${tmpfile1}" > "${tmpfile2}"
 
+  # for examples and tests we permit local includes: we may need to fix those to
+  # really be double quotes
+  if echo "$file" | grep -E -q 'example|test'
+  then
+    tmpfile2="$(mktemp "${TMPDIR}/$(basename "$1").tmp.XXXXXXXX")"
+
+    local_files=""
+    for local_file in $(find "$(dirname "$1")" -maxdepth 1 -type f \( -iname '*.h' -o -iname '*.cpp' \) )
+    do
+      local_files="$local_files$(echo $(basename $local_file) | sed 's/\./\\./')|"
+    done
+    local_files=$(echo "$local_files" | sed 's/|$//')
+
+    # fixup local includes
+    sed -E "s/^#( *)include( *)<($local_files)>/#\1include\2\"\3\"/" "${tmpfile1}" > "${tmpfile2}"
+    mv "${tmpfile2}" "${tmpfile1}"
+  fi
+
+  fix_or_report "${file}" "${tmpfile1}" "file does not use <> for includes"
   rm -f "${tmpfile1}"
-  fix_or_report "${file}" "${tmpfile2}" "file does not use <> for includes"
-  rm -f "${tmpfile2}"
 }
 export -f ensure_bracket_includes
