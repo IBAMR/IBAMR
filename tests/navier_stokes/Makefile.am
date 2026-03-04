@@ -15,6 +15,7 @@ include $(top_srcdir)/config/Make-rules
 
 EXTRA_PROGRAMS = navier_stokes_01_2d navier_stokes_01_3d poiseuille_flow_2d stokes_operator_2d stokes_operator_3d \
                  stokes_petsc_mat_utilities_ops_2d stokes_petsc_mat_utilities_prolongation_2d \
+                 stokes_petsc_mat_utilities_prolongation_3d \
                  stokes_petsc_mat_utilities_ridp_sums_2d stokes_petsc_mat_utilities_ridp_sums_3d \
                  stokes_ib_cav_sparse_map_closure_2d stokes_ib_cav_patch_level_maps_2d \
                  stokes_ib_cav_matlab_relaxed_parity_2d stokes_ib_cav_matlab_strict_parity_2d \
@@ -47,6 +48,9 @@ stokes_petsc_mat_utilities_ops_2d_SOURCES = stokes_petsc_mat_utilities_ops.cpp
 stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_petsc_mat_utilities_prolongation_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 stokes_petsc_mat_utilities_prolongation_2d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
+stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_prolongation_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_3d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
 
 stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_petsc_mat_utilities_ridp_sums_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
