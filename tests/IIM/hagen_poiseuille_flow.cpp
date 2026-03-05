@@ -93,10 +93,8 @@ tether_body_force_function_thin(VectorValue<double>& F,
     const std::vector<double>& U = *var_data[0];
 
     double u_bndry_n = 0.0;
-    double x_kappa_n = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        x_kappa_n += n(d) * kappa_s_thin * (X(d) - x(d));
         u_bndry_n += n(d) * U[d];
     }
 
