@@ -20,7 +20,8 @@ EXTRA_PROGRAMS = navier_stokes_01_2d navier_stokes_01_3d poiseuille_flow_2d stok
                  stokes_petsc_mat_utilities_pressure_transfer_2d stokes_petsc_mat_utilities_pressure_transfer_3d \
                  stokes_petsc_mat_utilities_ridp_sums_2d stokes_petsc_mat_utilities_ridp_sums_3d \
                  stokes_ib_cav_sparse_map_closure_2d stokes_ib_cav_patch_level_maps_2d \
-                 stokes_ib_cav_matlab_relaxed_parity_2d stokes_ib_cav_matlab_strict_parity_2d \
+                 stokes_ib_cav_relaxed_semantics_parity_2d stokes_ib_cav_relaxed_semantics_parity_3d \
+                 stokes_ib_cav_strict_semantics_parity_2d stokes_ib_cav_strict_semantics_parity_3d \
                  stokes_petsc_level_solver_asm_modes_2d stokes_petsc_level_solver_asm_modes_3d
 
 navier_stokes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -81,13 +82,21 @@ stokes_ib_cav_patch_level_maps_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_ib_cav_patch_level_maps_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 stokes_ib_cav_patch_level_maps_2d_SOURCES = stokes_ib_cav_patch_level_maps.cpp
 
-stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stokes_ib_cav_matlab_relaxed_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES = stokes_ib_cav_matlab_relaxed_parity.cpp
+stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_relaxed_semantics_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_2d_SOURCES = stokes_ib_cav_relaxed_semantics_parity.cpp
 
-stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stokes_ib_cav_matlab_strict_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stokes_ib_cav_matlab_strict_parity_2d_SOURCES = stokes_ib_cav_matlab_strict_parity.cpp
+stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_ib_cav_relaxed_semantics_parity_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_3d_SOURCES = stokes_ib_cav_relaxed_semantics_parity.cpp
+
+stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_strict_semantics_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_2d_SOURCES = stokes_ib_cav_strict_semantics_parity.cpp
+
+stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_ib_cav_strict_semantics_parity_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_3d_SOURCES = stokes_ib_cav_strict_semantics_parity.cpp
 
 stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_petsc_level_solver_asm_modes_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
