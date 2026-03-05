@@ -27,8 +27,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBImplicitStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
+#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
-#include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -40,15 +40,70 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <cmath>
+
 #include <ibamr/app_namespaces.h>
 
-// Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 LDataManager* l_data_manager,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname);
+namespace
+{
+constexpr int NUM_CURVE_POINTS = 304;
+constexpr double X_CENTER = 0.5;
+constexpr double Y_CENTER = 0.5;
+constexpr double X_RADIUS = 0.1785714285714286;
+constexpr double Y_RADIUS = 0.35;
+constexpr double SPRING_STIFFNESS = 1.9353241079974475e+02;
+int s_finest_ln = 0;
+} // namespace
+
+void
+generate_structure(const unsigned int& strct_num,
+                   const int& ln,
+                   int& num_vertices,
+                   std::vector<IBTK::Point>& vertex_posn,
+                   void* /*ctx*/)
+{
+    if (ln != s_finest_ln || strct_num != 0)
+    {
+        num_vertices = 0;
+        vertex_posn.resize(0);
+        return;
+    }
+
+    num_vertices = NUM_CURVE_POINTS;
+    vertex_posn.resize(num_vertices);
+    for (int k = 0; k < num_vertices; ++k)
+    {
+        const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_vertices);
+        vertex_posn[k](0) = X_CENTER + X_RADIUS * std::cos(theta);
+        vertex_posn[k](1) = Y_CENTER + Y_RADIUS * std::sin(theta);
+    }
+}
+
+void
+generate_springs(
+    const unsigned int& strct_num,
+    const int& ln,
+    std::multimap<int, IBRedundantInitializer::Edge>& spring_map,
+    std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>&
+        spring_spec,
+    void* /*ctx*/)
+{
+    if (ln != s_finest_ln || strct_num != 0) return;
+
+    for (int k = 0; k < NUM_CURVE_POINTS; ++k)
+    {
+        IBRedundantInitializer::Edge edge = { k, (k + 1) % NUM_CURVE_POINTS };
+        if (edge.first > edge.second) std::swap(edge.first, edge.second);
+        spring_map.insert(std::make_pair(edge.first, edge));
+
+        IBRedundantInitializer::SpringSpec spec_data;
+        spec_data.force_fcn_idx = 0;
+        spec_data.parameters.resize(2);
+        spec_data.parameters[0] = SPRING_STIFFNESS;
+        spec_data.parameters[1] = 0.0;
+        spring_spec.insert(std::make_pair(edge, spec_data));
+    }
+}
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -67,6 +122,11 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
+#ifndef IBTK_HAVE_SILO
+    // Suppress warnings caused by running without silo.
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+#endif
+
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
@@ -81,26 +141,6 @@ main(int argc, char* argv[])
             std::string petsc_options_file = input_db->getString("petsc_options_file");
             PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
-
-        // Get various standard options set in the input file.
-        const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
-        {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
-
-        const bool dump_timer_data = app_initializer->dumpTimerData();
-        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -132,8 +172,12 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
+        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+            "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
+        s_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
+        ib_initializer->setStructureNamesOnLevel(s_finest_ln, { "curve2d_64" });
+        ib_initializer->registerInitStructureFunction(generate_structure);
+        ib_initializer->registerInitSpringDataFunction(generate_springs);
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
@@ -185,16 +229,6 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
-        if (uses_visit)
-        {
-            ib_initializer->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-        }
-
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -207,18 +241,9 @@ main(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
-        // Write out initial visualization data.
+        // Main time step loop.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
-        {
-            pout << "\n\nWriting visualization files...\n\n";
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
-        }
-
-        // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
@@ -242,37 +267,7 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // At specified intervals, write visualization and restart files,
-            // print out timer data, and store hierarchy data for post
-            // processing.
             iteration_num += 1;
-            const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting visualization files...\n\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(iteration_num, loop_time);
-            }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\n";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
-            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
-            }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
-            }
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -283,50 +278,3 @@ main(int argc, char* argv[])
 
     return 0;
 } // main
-
-void
-output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
-            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-            LDataManager* l_data_manager,
-            const int iteration_num,
-            const double loop_time,
-            const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getVec();
-    Vec X_lag_vec;
-    VecDuplicate(X_petsc_vec, &X_lag_vec);
-    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-    file_name = data_dump_dirname + "/" + "X.";
-    std::snprintf(temp_buf, sizeof(temp_buf), "%05d", iteration_num);
-    file_name += temp_buf;
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-    VecView(X_lag_vec, viewer);
-    PetscViewerDestroy(&viewer);
-    VecDestroy(&X_lag_vec);
-    return;
-} // output_data

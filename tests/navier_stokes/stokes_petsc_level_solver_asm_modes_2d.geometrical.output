@@ -1,0 +1,9 @@
+asm_subdomain_construction_mode = GEOMETRICAL
+coupling_aware_asm_closure_policy = RELAXED
+n_local_dofs = 192
+n_subdomains = 16
+overlap_sizes = 56 56 56
+nonoverlap_sizes = 0 56 12
+overlap_hash = 2860435156035386008
+nonoverlap_hash = -5869616633812516616
+test_failures = 0
