@@ -79,25 +79,18 @@ static double L = 0.0;
 
 void
 tether_force_function_inner(VectorValue<double>& F,
-                            const VectorValue<double>& n,
+                            const VectorValue<double>& /*n*/,
                             const VectorValue<double>& /*N*/,
                             const TensorValue<double>& /*FF*/,
                             const libMesh::Point& x,
                             const libMesh::Point& X,
                             Elem* const /*elem*/,
                             const unsigned short /*side*/,
-                            const vector<const vector<double>*>& var_data,
+                            const vector<const vector<double>*>& /*var_data*/,
                             const vector<const vector<VectorValue<double>>*>& /*grad_var_data*/,
                             double time,
                             void* /*ctx*/)
 {
-    const std::vector<double>& U = *var_data[0];
-
-    double u_bndry_n = 0.0;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        u_bndry_n += n(d) * U[d];
-    }
     F(0) = kappa_s * (X(0) * cos(OMEGA1 * time) - X(1) * sin(OMEGA1 * time) - x(0));
     F(1) = kappa_s * (X(0) * sin(OMEGA1 * time) + X(1) * cos(OMEGA1 * time) - x(1));
     F(2) = 0.0;
