@@ -27,6 +27,9 @@ FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_DEPENDENCIES(tests "tests-${_dir}")
 ENDFOREACH()
 
+ADD_CUSTOM_TARGET(tests-unfinished-stokes-ib)
+ADD_CUSTOM_TARGET(tests-external-reference-cav-stokes-ib)
+
 # TODO - we should clean up these macros so we don't have 3 macros that do
 # basically the same thing
 
@@ -48,6 +51,69 @@ MACRO(SETUP _dir _src _target_link)
   TARGET_LINK_LIBRARIES(${_target} PRIVATE "${_target_link}")
   ADD_DEPENDENCIES("tests-${_dir}" ${_target})
 ENDMACRO()
+
+# Unfinished Stokes-IB developer smoke tests (manual targets; not part of
+# default attest/ctest flow).
+SET(_unfinished_stokes_ib_tests test0 test1 test2)
+FOREACH(_name ${_unfinished_stokes_ib_tests})
+  SET(_dir "unfinished-tests/Stokes-IB/${_name}")
+  SET(_target "tests-unfinished_stokes_ib_${_name}_2d")
+  ADD_EXECUTABLE(${_target} EXCLUDE_FROM_ALL "${_dir}/main.cpp")
+  SET_TARGET_PROPERTIES(${_target}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/tests/${_dir}"
+    OUTPUT_NAME
+    "main2d"
+    )
+  TARGET_COMPILE_OPTIONS(${_target} PUBLIC -DSOURCE_DIR="${CMAKE_SOURCE_DIR}/tests/${_dir}/")
+  TARGET_LINK_LIBRARIES(${_target} PRIVATE IBAMR2d)
+  ADD_DEPENDENCIES(tests-unfinished-stokes-ib ${_target})
+  ADD_CUSTOM_COMMAND(TARGET ${_target}
+    POST_BUILD
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
+    ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
+    VERBATIM)
+ENDFOREACH()
+
+ADD_CUSTOM_TARGET(run-unfinished-stokes-ib-smoke
+  DEPENDS tests-unfinished-stokes-ib
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test0
+  ./main2d input2d
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test1
+  ./main2d input2d.shell
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test2
+  ./main2d input2d.cylinder
+  USES_TERMINAL)
+
+ADD_CUSTOM_TARGET(run-external-reference-cav-stokes-ib
+  DEPENDS tests-external-reference-cav-stokes-ib
+  COMMAND bash
+  ${CMAKE_SOURCE_DIR}/tests/external-reference/cav-stokes-ib/run_external_reference_single_level.sh
+  ${CMAKE_BINARY_DIR}
+  USES_TERMINAL)
+
+ADD_CUSTOM_TARGET(run-external-reference-cav-stokes-ib-attest
+  DEPENDS tests-external-reference-cav-stokes-ib
+  COMMAND ${CMAKE_SOURCE_DIR}/attest
+  --mpi-executable /opt/homebrew/bin/mpiexec
+  --numdiff-executable /opt/homebrew/bin/numdiff
+  --verbose
+  -R external-reference/cav-stokes-ib/implicit_stokes_ib_reference_single_level_01
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  USES_TERMINAL)
+
+ADD_CUSTOM_TARGET(generate-external-reference-cav-stokes-ib
+  DEPENDS tests-external-reference-cav-stokes-ib
+  COMMAND bash
+  ${CMAKE_SOURCE_DIR}/tests/external-reference/cav-stokes-ib/reference-tools/generate_all_cases.sh
+  ${CMAKE_BINARY_DIR}
+  $ENV{IBAMR_EXTERNAL_VANKA_REPO}
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  USES_TERMINAL)
 
 # Like the last one, but for 2d targets. For example, if the inputs are Foo and
 # bar.cpp then we create a target Foo_bar_2d in directory Foo which depends on
@@ -156,6 +222,23 @@ SETUP_2D(navier_stokes navier_stokes_01.cpp)
 SETUP_3D(navier_stokes navier_stokes_01.cpp)
 SETUP_2D(navier_stokes poiseuille_flow_2d.cpp)
 SETUP_2D(navier_stokes stokes_operator.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_sparse_map_closure.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_patch_level_maps.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_relaxed_semantics_parity.cpp)
+SETUP_3D(navier_stokes stokes_ib_cav_relaxed_semantics_parity.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_strict_semantics_parity.cpp)
+SETUP_3D(navier_stokes stokes_ib_cav_strict_semantics_parity.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ops.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_prolongation.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_prolongation.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_restriction.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_restriction.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
+SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
 # physical_boundary:
@@ -203,6 +286,9 @@ SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
 # IB:
 SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_operator_chain_parity_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_cav_subdomain_construction_parity_01.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 
@@ -333,6 +419,30 @@ FOREACH(_dir ${TEST_DIRECTORIES})
     ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
     VERBATIM)
 ENDFOREACH()
+
+ADD_DEPENDENCIES(tests-external-reference-cav-stokes-ib tests-IB_implicit_stokes_ib_operator_chain_parity_01)
+ADD_EXECUTABLE(tests-external-reference_cav_stokes_ib_implicit_stokes_ib_reference_single_level_01
+  EXCLUDE_FROM_ALL
+  IB/implicit_stokes_ib_operator_chain_parity_01.cpp)
+SET_TARGET_PROPERTIES(tests-external-reference_cav_stokes_ib_implicit_stokes_ib_reference_single_level_01
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY
+  "${CMAKE_BINARY_DIR}/tests/external-reference/cav-stokes-ib"
+  OUTPUT_NAME
+  "implicit_stokes_ib_reference_single_level_01")
+TARGET_COMPILE_OPTIONS(tests-external-reference_cav_stokes_ib_implicit_stokes_ib_reference_single_level_01
+  PUBLIC -DSOURCE_DIR="${CMAKE_BINARY_DIR}/tests/external-reference/cav-stokes-ib/")
+TARGET_LINK_LIBRARIES(tests-external-reference_cav_stokes_ib_implicit_stokes_ib_reference_single_level_01 PRIVATE IBAMR2d)
+ADD_DEPENDENCIES(tests-external-reference-cav-stokes-ib
+  tests-external-reference_cav_stokes_ib_implicit_stokes_ib_reference_single_level_01)
+ADD_CUSTOM_COMMAND(TARGET tests-external-reference-cav-stokes-ib
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+  ${CMAKE_BINARY_DIR}/tests/external-reference/cav-stokes-ib
+  COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
+  ${CMAKE_SOURCE_DIR}/tests/external-reference/cav-stokes-ib
+  ${CMAKE_BINARY_DIR}/tests/external-reference/cav-stokes-ib
+  VERBATIM)
 
 # Find numdiff, if possible (we only need it for tests so its not essential that
 # we find it now)

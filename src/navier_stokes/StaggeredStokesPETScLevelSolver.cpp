@@ -78,6 +78,54 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
+    if (input_db && input_db->keyExists("asm_subdomain_construction_mode"))
+    {
+        const std::string mode = input_db->getString("asm_subdomain_construction_mode");
+        d_asm_subdomain_construction_mode = string_to_enum<ASMSubdomainConstructionMode>(mode);
+        if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::UNKNOWN)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid asm_subdomain_construction_mode = " << mode << "\n"
+                       << "  expected values are " << enum_to_string(ASMSubdomainConstructionMode::GEOMETRICAL)
+                       << " and " << enum_to_string(ASMSubdomainConstructionMode::COUPLING_AWARE) << ".\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_seed_axis"))
+    {
+        d_coupling_aware_asm_seed_axis = input_db->getInteger("coupling_aware_asm_seed_axis");
+        if (d_coupling_aware_asm_seed_axis < 0 || d_coupling_aware_asm_seed_axis >= NDIM)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_seed_axis = " << d_coupling_aware_asm_seed_axis << "\n"
+                       << "  expected value in [0, " << NDIM - 1 << "].\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_seed_stride"))
+    {
+        d_coupling_aware_asm_seed_stride = input_db->getInteger("coupling_aware_asm_seed_stride");
+        if (d_coupling_aware_asm_seed_stride < 1)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_seed_stride = " << d_coupling_aware_asm_seed_stride << "\n"
+                       << "  expected value >= 1.\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_closure_policy"))
+    {
+        const std::string closure_policy = input_db->getString("coupling_aware_asm_closure_policy");
+        d_coupling_aware_asm_closure_policy = string_to_enum<CouplingAwareASMClosurePolicy>(closure_policy);
+        if (d_coupling_aware_asm_closure_policy == CouplingAwareASMClosurePolicy::UNKNOWN)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_closure_policy = " << closure_policy << "\n"
+                       << "  expected values are " << enum_to_string(CouplingAwareASMClosurePolicy::RELAXED) << " and "
+                       << enum_to_string(CouplingAwareASMClosurePolicy::STRICT) << ".\n");
+        }
+    }
+    if (input_db && input_db->keyExists("log_ASM_subdomains"))
+    {
+        d_log_asm_subdomains = input_db->getBool("log_ASM_subdomains");
+    }
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -134,16 +182,77 @@ void
 StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                                        std::vector<std::set<int>>& nonoverlap_is)
 {
-    // Construct subdomains for ASM and MSM preconditioner.
-    StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(overlap_is,
-                                                                       nonoverlap_is,
-                                                                       d_box_size,
-                                                                       d_overlap_size,
-                                                                       d_num_dofs_per_proc,
-                                                                       d_u_dof_index_idx,
-                                                                       d_p_dof_index_idx,
-                                                                       d_level,
-                                                                       d_cf_boundary);
+    switch (d_asm_subdomain_construction_mode)
+    {
+    case ASMSubdomainConstructionMode::GEOMETRICAL:
+        StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(overlap_is,
+                                                                                      nonoverlap_is,
+                                                                                      d_box_size,
+                                                                                      d_overlap_size,
+                                                                                      d_num_dofs_per_proc,
+                                                                                      d_u_dof_index_idx,
+                                                                                      d_p_dof_index_idx,
+                                                                                      d_level,
+                                                                                      d_cf_boundary);
+        break;
+    case ASMSubdomainConstructionMode::COUPLING_AWARE:
+    {
+        if (!d_petsc_mat)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
+                       << "  level matrix is not initialized for coupling-aware ASM subdomains.\n");
+        }
+        if (!d_coupling_aware_asm_map_data_is_initialized)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
+                       << "  coupling-aware ASM map data is not initialized.\n");
+        }
+        Mat A00_velocity_mat = nullptr;
+        StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(
+            A00_velocity_mat, d_petsc_mat, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
+            overlap_is,
+            nonoverlap_is,
+            d_box_size,
+            d_overlap_size,
+            d_num_dofs_per_proc,
+            d_u_dof_index_idx,
+            d_level,
+            d_cf_boundary,
+            A00_velocity_mat,
+            d_coupling_aware_asm_map_data,
+            d_coupling_aware_asm_seed_axis,
+            d_coupling_aware_asm_seed_stride,
+            d_coupling_aware_asm_closure_policy);
+        int ierr = MatDestroy(&A00_velocity_mat);
+        IBTK_CHKERRQ(ierr);
+        break;
+    }
+    case ASMSubdomainConstructionMode::UNKNOWN:
+    default:
+        TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
+                   << "  unsupported asm_subdomain_construction_mode = "
+                   << enum_to_string(d_asm_subdomain_construction_mode) << ".\n");
+    }
+
+    if (d_log_asm_subdomains)
+    {
+        plog << d_object_name
+             << "::generateASMSubdomains(): mode = " << enum_to_string(d_asm_subdomain_construction_mode) << "\n";
+        std::size_t nonoverlap_sum = 0;
+        std::size_t overlap_sum = 0;
+        for (std::size_t k = 0; k < overlap_is.size(); ++k)
+        {
+            const std::size_t n_nonoverlap = k < nonoverlap_is.size() ? nonoverlap_is[k].size() : 0;
+            const std::size_t n_overlap = overlap_is[k].size();
+            nonoverlap_sum += n_nonoverlap;
+            overlap_sum += n_overlap;
+            plog << "  subdomain " << k << ": nonoverlap = " << n_nonoverlap << ", overlap = " << n_overlap
+                 << ", delta = " << static_cast<long long>(n_overlap) - static_cast<long long>(n_nonoverlap) << "\n";
+        }
+        plog << "  totals: nonoverlap = " << nonoverlap_sum << ", overlap = " << overlap_sum
+             << ", delta = " << static_cast<long long>(overlap_sum) - static_cast<long long>(nonoverlap_sum) << "\n";
+    }
 
     return;
 } // generateASMSubdomains
@@ -185,6 +294,14 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_p_dof_index_idx,
                                                                      d_level);
     d_petsc_pc = d_petsc_mat;
+    d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
+    d_coupling_aware_asm_map_data_is_initialized = false;
+    if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
+            d_coupling_aware_asm_map_data, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        d_coupling_aware_asm_map_data_is_initialized = true;
+    }
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
@@ -240,6 +357,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
+    d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
+    d_coupling_aware_asm_map_data_is_initialized = false;
     return;
 } // deallocateSolverStateSpecialized
 

@@ -1,0 +1,43 @@
+test {
+   f_data_type  = "CELL"
+   n_components = 1
+   ghost_width  = 1
+}
+
+Main {
+   log_file_name               = "stokes_petsc_mat_utilities_ridp_sums.log"
+   log_all_nodes               = FALSE
+   viz_writer                  = "VisIt"
+   viz_dump_dirname            = "viz2d"
+   visit_number_procs_per_file = 1
+}
+
+N = 8
+RR = 2
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = 0.0, 0.0
+   x_up               = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser { level_1 = RR, RR }
+   largest_patch_size { level_0 = N, N }
+   smallest_patch_size { level_0 = N, N }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N - 1)]
+      level_1 = [(0, 0), (RR*N - 1, RR*N - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

@@ -42,6 +42,7 @@
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/PETScMatUtilities.h>
@@ -343,6 +344,7 @@ private:
 
     static PetscErrorCode matApply(Mat A, Vec x, Vec y)
     {
+        PetscFunctionBeginUser;
         void* p_ctx;
         MatShellGetContext(A, &p_ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
@@ -385,6 +387,7 @@ private:
 
     static PetscErrorCode matApply2(Mat A, Vec x, Vec y)
     {
+        PetscFunctionBeginUser;
         void* p_ctx;
         MatShellGetContext(A, &p_ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
@@ -436,6 +439,7 @@ private:
 
     static PetscErrorCode pcApply(PC pc, Vec x, Vec y)
     {
+        PetscFunctionBeginUser;
         // Here we are solving the equation of the type : Py = x
         // in which P is the preconditioner.
         void* ctx;
@@ -918,7 +922,7 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     Pointer<RefineAlgorithm<NDIM>> prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
     Pointer<CoarsenAlgorithm<NDIM>> restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
     prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, nullptr);
-    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, nullptr);
+    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, IntVector<NDIM>(0));
     Pointer<RefineSchedule<NDIM>> prolongation_schedule = prolongation_refine_algorithm->createSchedule(
         finest_level, Pointer<PatchLevel<NDIM>>(), coarsest_ln, patch_hierarchy, nullptr);
     Pointer<CoarsenSchedule<NDIM>> restriction_schedule =
