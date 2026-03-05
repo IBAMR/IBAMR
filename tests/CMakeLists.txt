@@ -27,6 +27,8 @@ FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_DEPENDENCIES(tests "tests-${_dir}")
 ENDFOREACH()
 
+ADD_CUSTOM_TARGET(tests-unfinished-stokes-ib)
+
 # TODO - we should clean up these macros so we don't have 3 macros that do
 # basically the same thing
 
@@ -48,6 +50,43 @@ MACRO(SETUP _dir _src _target_link)
   TARGET_LINK_LIBRARIES(${_target} PRIVATE "${_target_link}")
   ADD_DEPENDENCIES("tests-${_dir}" ${_target})
 ENDMACRO()
+
+# Unfinished Stokes-IB developer smoke tests (manual targets; not part of
+# default attest/ctest flow).
+SET(_unfinished_stokes_ib_tests test0 test1 test2)
+FOREACH(_name ${_unfinished_stokes_ib_tests})
+  SET(_dir "unfinished-tests/Stokes-IB/${_name}")
+  SET(_target "tests-unfinished_stokes_ib_${_name}_2d")
+  ADD_EXECUTABLE(${_target} EXCLUDE_FROM_ALL "${_dir}/main.cpp")
+  SET_TARGET_PROPERTIES(${_target}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/tests/${_dir}"
+    OUTPUT_NAME
+    "main2d"
+    )
+  TARGET_COMPILE_OPTIONS(${_target} PUBLIC -DSOURCE_DIR="${CMAKE_SOURCE_DIR}/tests/${_dir}/")
+  TARGET_LINK_LIBRARIES(${_target} PRIVATE IBAMR2d)
+  ADD_DEPENDENCIES(tests-unfinished-stokes-ib ${_target})
+  ADD_CUSTOM_COMMAND(TARGET ${_target}
+    POST_BUILD
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
+    ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
+    VERBATIM)
+ENDFOREACH()
+
+ADD_CUSTOM_TARGET(run-unfinished-stokes-ib-smoke
+  DEPENDS tests-unfinished-stokes-ib
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test0
+  ./main2d input2d
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test1
+  ./main2d input2d.shell
+  COMMAND ${CMAKE_COMMAND} -E chdir
+  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test2
+  ./main2d input2d.cylinder
+  USES_TERMINAL)
 
 # Like the last one, but for 2d targets. For example, if the inputs are Foo and
 # bar.cpp then we create a target Foo_bar_2d in directory Foo which depends on
@@ -156,6 +195,21 @@ SETUP_2D(navier_stokes navier_stokes_01.cpp)
 SETUP_3D(navier_stokes navier_stokes_01.cpp)
 SETUP_2D(navier_stokes poiseuille_flow_2d.cpp)
 SETUP_2D(navier_stokes stokes_operator.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_sparse_map_closure.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_patch_level_maps.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_matlab_relaxed_parity.cpp)
+SETUP_2D(navier_stokes stokes_ib_cav_matlab_strict_parity.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ops.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_prolongation.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_prolongation.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_restriction.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_restriction.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
+SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
+SETUP_3D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
+SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
 # physical_boundary:
@@ -203,6 +257,7 @@ SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
 # IB:
 SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 

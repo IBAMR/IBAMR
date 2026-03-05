@@ -89,7 +89,22 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = navier_stokes_01_2d$(EXEEXT) \
 	navier_stokes_01_3d$(EXEEXT) poiseuille_flow_2d$(EXEEXT) \
-	stokes_operator_2d$(EXEEXT) stokes_operator_3d$(EXEEXT)
+	stokes_operator_2d$(EXEEXT) stokes_operator_3d$(EXEEXT) \
+	stokes_petsc_mat_utilities_ops_2d$(EXEEXT) \
+	stokes_petsc_mat_utilities_prolongation_2d$(EXEEXT) \
+	stokes_petsc_mat_utilities_prolongation_3d$(EXEEXT) \
+	stokes_petsc_mat_utilities_restriction_2d$(EXEEXT) \
+	stokes_petsc_mat_utilities_restriction_3d$(EXEEXT) \
+	stokes_petsc_mat_utilities_pressure_transfer_2d$(EXEEXT) \
+	stokes_petsc_mat_utilities_pressure_transfer_3d$(EXEEXT) \
+	stokes_petsc_mat_utilities_ridp_sums_2d$(EXEEXT) \
+	stokes_petsc_mat_utilities_ridp_sums_3d$(EXEEXT) \
+	stokes_ib_cav_sparse_map_closure_2d$(EXEEXT) \
+	stokes_ib_cav_patch_level_maps_2d$(EXEEXT) \
+	stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT) \
+	stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT) \
+	stokes_petsc_level_solver_asm_modes_2d$(EXEEXT) \
+	stokes_petsc_level_solver_asm_modes_3d$(EXEEXT)
 subdir = tests/navier_stokes
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -149,6 +164,42 @@ poiseuille_flow_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS = stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.$(OBJEXT)
+stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS)
+stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_ib_cav_matlab_relaxed_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_matlab_strict_parity_2d_OBJECTS = stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.$(OBJEXT)
+stokes_ib_cav_matlab_strict_parity_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_matlab_strict_parity_2d_OBJECTS)
+stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_ib_cav_matlab_strict_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_patch_level_maps_2d_OBJECTS = stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.$(OBJEXT)
+stokes_ib_cav_patch_level_maps_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_patch_level_maps_2d_OBJECTS)
+stokes_ib_cav_patch_level_maps_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_ib_cav_patch_level_maps_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_sparse_map_closure_2d_OBJECTS = stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.$(OBJEXT)
+stokes_ib_cav_sparse_map_closure_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_sparse_map_closure_2d_OBJECTS)
+stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_ib_cav_sparse_map_closure_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_stokes_operator_2d_OBJECTS =  \
 	stokes_operator_2d-stokes_operator.$(OBJEXT)
 stokes_operator_2d_OBJECTS = $(am_stokes_operator_2d_OBJECTS)
@@ -165,6 +216,109 @@ stokes_operator_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(stokes_operator_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_stokes_petsc_level_solver_asm_modes_2d_OBJECTS = stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.$(OBJEXT)
+stokes_petsc_level_solver_asm_modes_2d_OBJECTS =  \
+	$(am_stokes_petsc_level_solver_asm_modes_2d_OBJECTS)
+stokes_petsc_level_solver_asm_modes_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_level_solver_asm_modes_3d_OBJECTS = stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.$(OBJEXT)
+stokes_petsc_level_solver_asm_modes_3d_OBJECTS =  \
+	$(am_stokes_petsc_level_solver_asm_modes_3d_OBJECTS)
+stokes_petsc_level_solver_asm_modes_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_3d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_ops_2d_OBJECTS = stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.$(OBJEXT)
+stokes_petsc_mat_utilities_ops_2d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_ops_2d_OBJECTS)
+stokes_petsc_mat_utilities_ops_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ops_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_mat_utilities_ops_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_pressure_transfer_2d_OBJECTS = stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.$(OBJEXT)
+stokes_petsc_mat_utilities_pressure_transfer_2d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_pressure_transfer_2d_OBJECTS)
+stokes_petsc_mat_utilities_pressure_transfer_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_2d_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_pressure_transfer_3d_OBJECTS = stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.$(OBJEXT)
+stokes_petsc_mat_utilities_pressure_transfer_3d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_pressure_transfer_3d_OBJECTS)
+stokes_petsc_mat_utilities_pressure_transfer_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_3d_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_prolongation_2d_OBJECTS = stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.$(OBJEXT)
+stokes_petsc_mat_utilities_prolongation_2d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_prolongation_2d_OBJECTS)
+stokes_petsc_mat_utilities_prolongation_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_2d_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) \
+	$(stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_prolongation_3d_OBJECTS = stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.$(OBJEXT)
+stokes_petsc_mat_utilities_prolongation_3d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_prolongation_3d_OBJECTS)
+stokes_petsc_mat_utilities_prolongation_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_3d_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) \
+	$(stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_restriction_2d_OBJECTS = stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.$(OBJEXT)
+stokes_petsc_mat_utilities_restriction_2d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_restriction_2d_OBJECTS)
+stokes_petsc_mat_utilities_restriction_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_restriction_3d_OBJECTS = stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.$(OBJEXT)
+stokes_petsc_mat_utilities_restriction_3d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_restriction_3d_OBJECTS)
+stokes_petsc_mat_utilities_restriction_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_3d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_ridp_sums_2d_OBJECTS = stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.$(OBJEXT)
+stokes_petsc_mat_utilities_ridp_sums_2d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_ridp_sums_2d_OBJECTS)
+stokes_petsc_mat_utilities_ridp_sums_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_petsc_mat_utilities_ridp_sums_3d_OBJECTS = stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.$(OBJEXT)
+stokes_petsc_mat_utilities_ridp_sums_3d_OBJECTS =  \
+	$(am_stokes_petsc_mat_utilities_ridp_sums_3d_OBJECTS)
+stokes_petsc_mat_utilities_ridp_sums_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_3d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -184,8 +338,23 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po \
 	./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po \
 	./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po \
+	./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po \
+	./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po \
+	./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po \
+	./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po \
 	./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po \
-	./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
+	./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po \
+	./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po \
+	./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po \
+	./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -207,10 +376,40 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(navier_stokes_01_2d_SOURCES) \
 	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
-	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES)
+	$(stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES) \
+	$(stokes_ib_cav_matlab_strict_parity_2d_SOURCES) \
+	$(stokes_ib_cav_patch_level_maps_2d_SOURCES) \
+	$(stokes_ib_cav_sparse_map_closure_2d_SOURCES) \
+	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES) \
+	$(stokes_petsc_level_solver_asm_modes_2d_SOURCES) \
+	$(stokes_petsc_level_solver_asm_modes_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ops_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_prolongation_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_prolongation_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_restriction_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_restriction_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ridp_sums_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ridp_sums_3d_SOURCES)
 DIST_SOURCES = $(navier_stokes_01_2d_SOURCES) \
 	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
-	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES)
+	$(stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES) \
+	$(stokes_ib_cav_matlab_strict_parity_2d_SOURCES) \
+	$(stokes_ib_cav_patch_level_maps_2d_SOURCES) \
+	$(stokes_ib_cav_sparse_map_closure_2d_SOURCES) \
+	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES) \
+	$(stokes_petsc_level_solver_asm_modes_2d_SOURCES) \
+	$(stokes_petsc_level_solver_asm_modes_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ops_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_pressure_transfer_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_prolongation_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_prolongation_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_restriction_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_restriction_3d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ridp_sums_2d_SOURCES) \
+	$(stokes_petsc_mat_utilities_ridp_sums_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -511,6 +710,51 @@ stokes_operator_2d_SOURCES = stokes_operator.cpp
 stokes_operator_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 stokes_operator_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 stokes_operator_3d_SOURCES = stokes_operator.cpp
+stokes_petsc_mat_utilities_ops_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_ops_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ops_2d_SOURCES = stokes_petsc_mat_utilities_ops.cpp
+stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_prolongation_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_2d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
+stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_prolongation_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_3d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
+stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_restriction_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_2d_SOURCES = stokes_petsc_mat_utilities_restriction.cpp
+stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_restriction_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_3d_SOURCES = stokes_petsc_mat_utilities_restriction.cpp
+stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_pressure_transfer_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_2d_SOURCES = stokes_petsc_mat_utilities_pressure_transfer.cpp
+stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_pressure_transfer_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_3d_SOURCES = stokes_petsc_mat_utilities_pressure_transfer.cpp
+stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_ridp_sums_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_2d_SOURCES = stokes_petsc_mat_utilities_ridp_sums.cpp
+stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_ridp_sums_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_3d_SOURCES = stokes_petsc_mat_utilities_ridp_sums.cpp
+stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_sparse_map_closure_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_sparse_map_closure_2d_SOURCES = stokes_ib_cav_sparse_map_closure.cpp
+stokes_ib_cav_patch_level_maps_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_patch_level_maps_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_patch_level_maps_2d_SOURCES = stokes_ib_cav_patch_level_maps.cpp
+stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_matlab_relaxed_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES = stokes_ib_cav_matlab_relaxed_parity.cpp
+stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_matlab_strict_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_matlab_strict_parity_2d_SOURCES = stokes_ib_cav_matlab_strict_parity.cpp
+stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_level_solver_asm_modes_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_2d_SOURCES = stokes_petsc_level_solver_asm_modes.cpp
+stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_level_solver_asm_modes_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_3d_SOURCES = stokes_petsc_level_solver_asm_modes.cpp
 all: all-am
 
 .SUFFIXES:
@@ -558,6 +802,22 @@ poiseuille_flow_2d$(EXEEXT): $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_
 	@rm -f poiseuille_flow_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(poiseuille_flow_2d_LINK) $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_LDADD) $(LIBS)
 
+stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT): $(stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_matlab_relaxed_parity_2d_LINK) $(stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_relaxed_parity_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT): $(stokes_ib_cav_matlab_strict_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_matlab_strict_parity_2d_LINK) $(stokes_ib_cav_matlab_strict_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_strict_parity_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_patch_level_maps_2d$(EXEEXT): $(stokes_ib_cav_patch_level_maps_2d_OBJECTS) $(stokes_ib_cav_patch_level_maps_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_patch_level_maps_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_patch_level_maps_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_patch_level_maps_2d_LINK) $(stokes_ib_cav_patch_level_maps_2d_OBJECTS) $(stokes_ib_cav_patch_level_maps_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_sparse_map_closure_2d$(EXEEXT): $(stokes_ib_cav_sparse_map_closure_2d_OBJECTS) $(stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_sparse_map_closure_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_sparse_map_closure_2d_LINK) $(stokes_ib_cav_sparse_map_closure_2d_OBJECTS) $(stokes_ib_cav_sparse_map_closure_2d_LDADD) $(LIBS)
+
 stokes_operator_2d$(EXEEXT): $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_DEPENDENCIES) $(EXTRA_stokes_operator_2d_DEPENDENCIES) 
 	@rm -f stokes_operator_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(stokes_operator_2d_LINK) $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_LDADD) $(LIBS)
@@ -565,6 +825,50 @@ stokes_operator_2d$(EXEEXT): $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_
 stokes_operator_3d$(EXEEXT): $(stokes_operator_3d_OBJECTS) $(stokes_operator_3d_DEPENDENCIES) $(EXTRA_stokes_operator_3d_DEPENDENCIES) 
 	@rm -f stokes_operator_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(stokes_operator_3d_LINK) $(stokes_operator_3d_OBJECTS) $(stokes_operator_3d_LDADD) $(LIBS)
+
+stokes_petsc_level_solver_asm_modes_2d$(EXEEXT): $(stokes_petsc_level_solver_asm_modes_2d_OBJECTS) $(stokes_petsc_level_solver_asm_modes_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_level_solver_asm_modes_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_level_solver_asm_modes_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_level_solver_asm_modes_2d_LINK) $(stokes_petsc_level_solver_asm_modes_2d_OBJECTS) $(stokes_petsc_level_solver_asm_modes_2d_LDADD) $(LIBS)
+
+stokes_petsc_level_solver_asm_modes_3d$(EXEEXT): $(stokes_petsc_level_solver_asm_modes_3d_OBJECTS) $(stokes_petsc_level_solver_asm_modes_3d_DEPENDENCIES) $(EXTRA_stokes_petsc_level_solver_asm_modes_3d_DEPENDENCIES) 
+	@rm -f stokes_petsc_level_solver_asm_modes_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_level_solver_asm_modes_3d_LINK) $(stokes_petsc_level_solver_asm_modes_3d_OBJECTS) $(stokes_petsc_level_solver_asm_modes_3d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_ops_2d$(EXEEXT): $(stokes_petsc_mat_utilities_ops_2d_OBJECTS) $(stokes_petsc_mat_utilities_ops_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_ops_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_ops_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_ops_2d_LINK) $(stokes_petsc_mat_utilities_ops_2d_OBJECTS) $(stokes_petsc_mat_utilities_ops_2d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_pressure_transfer_2d$(EXEEXT): $(stokes_petsc_mat_utilities_pressure_transfer_2d_OBJECTS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_pressure_transfer_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_pressure_transfer_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_pressure_transfer_2d_LINK) $(stokes_petsc_mat_utilities_pressure_transfer_2d_OBJECTS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_pressure_transfer_3d$(EXEEXT): $(stokes_petsc_mat_utilities_pressure_transfer_3d_OBJECTS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_pressure_transfer_3d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_pressure_transfer_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_pressure_transfer_3d_LINK) $(stokes_petsc_mat_utilities_pressure_transfer_3d_OBJECTS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_prolongation_2d$(EXEEXT): $(stokes_petsc_mat_utilities_prolongation_2d_OBJECTS) $(stokes_petsc_mat_utilities_prolongation_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_prolongation_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_prolongation_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_prolongation_2d_LINK) $(stokes_petsc_mat_utilities_prolongation_2d_OBJECTS) $(stokes_petsc_mat_utilities_prolongation_2d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_prolongation_3d$(EXEEXT): $(stokes_petsc_mat_utilities_prolongation_3d_OBJECTS) $(stokes_petsc_mat_utilities_prolongation_3d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_prolongation_3d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_prolongation_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_prolongation_3d_LINK) $(stokes_petsc_mat_utilities_prolongation_3d_OBJECTS) $(stokes_petsc_mat_utilities_prolongation_3d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_restriction_2d$(EXEEXT): $(stokes_petsc_mat_utilities_restriction_2d_OBJECTS) $(stokes_petsc_mat_utilities_restriction_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_restriction_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_restriction_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_restriction_2d_LINK) $(stokes_petsc_mat_utilities_restriction_2d_OBJECTS) $(stokes_petsc_mat_utilities_restriction_2d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_restriction_3d$(EXEEXT): $(stokes_petsc_mat_utilities_restriction_3d_OBJECTS) $(stokes_petsc_mat_utilities_restriction_3d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_restriction_3d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_restriction_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_restriction_3d_LINK) $(stokes_petsc_mat_utilities_restriction_3d_OBJECTS) $(stokes_petsc_mat_utilities_restriction_3d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_ridp_sums_2d$(EXEEXT): $(stokes_petsc_mat_utilities_ridp_sums_2d_OBJECTS) $(stokes_petsc_mat_utilities_ridp_sums_2d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_ridp_sums_2d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_ridp_sums_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_ridp_sums_2d_LINK) $(stokes_petsc_mat_utilities_ridp_sums_2d_OBJECTS) $(stokes_petsc_mat_utilities_ridp_sums_2d_LDADD) $(LIBS)
+
+stokes_petsc_mat_utilities_ridp_sums_3d$(EXEEXT): $(stokes_petsc_mat_utilities_ridp_sums_3d_OBJECTS) $(stokes_petsc_mat_utilities_ridp_sums_3d_DEPENDENCIES) $(EXTRA_stokes_petsc_mat_utilities_ridp_sums_3d_DEPENDENCIES) 
+	@rm -f stokes_petsc_mat_utilities_ridp_sums_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_petsc_mat_utilities_ridp_sums_3d_LINK) $(stokes_petsc_mat_utilities_ridp_sums_3d_OBJECTS) $(stokes_petsc_mat_utilities_ridp_sums_3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -575,8 +879,23 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -650,6 +969,62 @@ poiseuille_flow_2d-poiseuille_flow_2d.obj: poiseuille_flow_2d.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow_2d-poiseuille_flow_2d.obj `if test -f 'poiseuille_flow_2d.cpp'; then $(CYGPATH_W) 'poiseuille_flow_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow_2d.cpp'; fi`
 
+stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o: stokes_ib_cav_matlab_relaxed_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o `test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_relaxed_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_relaxed_parity.cpp' object='stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o `test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_relaxed_parity.cpp
+
+stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj: stokes_ib_cav_matlab_relaxed_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj `if test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_relaxed_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_relaxed_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_relaxed_parity.cpp' object='stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj `if test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_relaxed_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_relaxed_parity.cpp'; fi`
+
+stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o: stokes_ib_cav_matlab_strict_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o `test -f 'stokes_ib_cav_matlab_strict_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_strict_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_strict_parity.cpp' object='stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o `test -f 'stokes_ib_cav_matlab_strict_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_strict_parity.cpp
+
+stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj: stokes_ib_cav_matlab_strict_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj `if test -f 'stokes_ib_cav_matlab_strict_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_strict_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_strict_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_strict_parity.cpp' object='stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj `if test -f 'stokes_ib_cav_matlab_strict_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_strict_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_strict_parity.cpp'; fi`
+
+stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o: stokes_ib_cav_patch_level_maps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o `test -f 'stokes_ib_cav_patch_level_maps.cpp' || echo '$(srcdir)/'`stokes_ib_cav_patch_level_maps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_patch_level_maps.cpp' object='stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o `test -f 'stokes_ib_cav_patch_level_maps.cpp' || echo '$(srcdir)/'`stokes_ib_cav_patch_level_maps.cpp
+
+stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj: stokes_ib_cav_patch_level_maps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj `if test -f 'stokes_ib_cav_patch_level_maps.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_patch_level_maps.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_patch_level_maps.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_patch_level_maps.cpp' object='stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj `if test -f 'stokes_ib_cav_patch_level_maps.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_patch_level_maps.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_patch_level_maps.cpp'; fi`
+
+stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o: stokes_ib_cav_sparse_map_closure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o `test -f 'stokes_ib_cav_sparse_map_closure.cpp' || echo '$(srcdir)/'`stokes_ib_cav_sparse_map_closure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_sparse_map_closure.cpp' object='stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o `test -f 'stokes_ib_cav_sparse_map_closure.cpp' || echo '$(srcdir)/'`stokes_ib_cav_sparse_map_closure.cpp
+
+stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj: stokes_ib_cav_sparse_map_closure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj `if test -f 'stokes_ib_cav_sparse_map_closure.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_sparse_map_closure.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_sparse_map_closure.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_sparse_map_closure.cpp' object='stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj `if test -f 'stokes_ib_cav_sparse_map_closure.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_sparse_map_closure.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_sparse_map_closure.cpp'; fi`
+
 stokes_operator_2d-stokes_operator.o: stokes_operator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_operator_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_operator_2d-stokes_operator.o -MD -MP -MF $(DEPDIR)/stokes_operator_2d-stokes_operator.Tpo -c -o stokes_operator_2d-stokes_operator.o `test -f 'stokes_operator.cpp' || echo '$(srcdir)/'`stokes_operator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_operator_2d-stokes_operator.Tpo $(DEPDIR)/stokes_operator_2d-stokes_operator.Po
@@ -677,6 +1052,160 @@ stokes_operator_3d-stokes_operator.obj: stokes_operator.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_operator.cpp' object='stokes_operator_3d-stokes_operator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_operator_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_operator_3d-stokes_operator.obj `if test -f 'stokes_operator.cpp'; then $(CYGPATH_W) 'stokes_operator.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_operator.cpp'; fi`
+
+stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.o: stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.o -MD -MP -MF $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Tpo -c -o stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.o `test -f 'stokes_petsc_level_solver_asm_modes.cpp' || echo '$(srcdir)/'`stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Tpo $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_level_solver_asm_modes.cpp' object='stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.o `test -f 'stokes_petsc_level_solver_asm_modes.cpp' || echo '$(srcdir)/'`stokes_petsc_level_solver_asm_modes.cpp
+
+stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.obj: stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Tpo -c -o stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.obj `if test -f 'stokes_petsc_level_solver_asm_modes.cpp'; then $(CYGPATH_W) 'stokes_petsc_level_solver_asm_modes.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_level_solver_asm_modes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Tpo $(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_level_solver_asm_modes.cpp' object='stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.obj `if test -f 'stokes_petsc_level_solver_asm_modes.cpp'; then $(CYGPATH_W) 'stokes_petsc_level_solver_asm_modes.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_level_solver_asm_modes.cpp'; fi`
+
+stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.o: stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.o -MD -MP -MF $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Tpo -c -o stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.o `test -f 'stokes_petsc_level_solver_asm_modes.cpp' || echo '$(srcdir)/'`stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Tpo $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_level_solver_asm_modes.cpp' object='stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.o `test -f 'stokes_petsc_level_solver_asm_modes.cpp' || echo '$(srcdir)/'`stokes_petsc_level_solver_asm_modes.cpp
+
+stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.obj: stokes_petsc_level_solver_asm_modes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Tpo -c -o stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.obj `if test -f 'stokes_petsc_level_solver_asm_modes.cpp'; then $(CYGPATH_W) 'stokes_petsc_level_solver_asm_modes.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_level_solver_asm_modes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Tpo $(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_level_solver_asm_modes.cpp' object='stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.obj `if test -f 'stokes_petsc_level_solver_asm_modes.cpp'; then $(CYGPATH_W) 'stokes_petsc_level_solver_asm_modes.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_level_solver_asm_modes.cpp'; fi`
+
+stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.o: stokes_petsc_mat_utilities_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ops_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Tpo -c -o stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.o `test -f 'stokes_petsc_mat_utilities_ops.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ops.cpp' object='stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ops_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.o `test -f 'stokes_petsc_mat_utilities_ops.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ops.cpp
+
+stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.obj: stokes_petsc_mat_utilities_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ops_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Tpo -c -o stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.obj `if test -f 'stokes_petsc_mat_utilities_ops.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ops.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ops.cpp' object='stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ops_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.obj `if test -f 'stokes_petsc_mat_utilities_ops.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ops.cpp'; fi`
+
+stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.o: stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Tpo -c -o stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.o `test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_pressure_transfer.cpp' object='stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.o `test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_pressure_transfer.cpp
+
+stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.obj: stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Tpo -c -o stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.obj `if test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_pressure_transfer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_pressure_transfer.cpp' object='stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.obj `if test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_pressure_transfer.cpp'; fi`
+
+stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.o: stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Tpo -c -o stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.o `test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_pressure_transfer.cpp' object='stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.o `test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_pressure_transfer.cpp
+
+stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.obj: stokes_petsc_mat_utilities_pressure_transfer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Tpo -c -o stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.obj `if test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_pressure_transfer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_pressure_transfer.cpp' object='stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.obj `if test -f 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_pressure_transfer.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_pressure_transfer.cpp'; fi`
+
+stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.o: stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Tpo -c -o stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.o `test -f 'stokes_petsc_mat_utilities_prolongation.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_prolongation.cpp' object='stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.o `test -f 'stokes_petsc_mat_utilities_prolongation.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_prolongation.cpp
+
+stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.obj: stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Tpo -c -o stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.obj `if test -f 'stokes_petsc_mat_utilities_prolongation.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_prolongation.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_prolongation.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_prolongation.cpp' object='stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.obj `if test -f 'stokes_petsc_mat_utilities_prolongation.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_prolongation.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_prolongation.cpp'; fi`
+
+stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.o: stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Tpo -c -o stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.o `test -f 'stokes_petsc_mat_utilities_prolongation.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_prolongation.cpp' object='stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.o `test -f 'stokes_petsc_mat_utilities_prolongation.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_prolongation.cpp
+
+stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.obj: stokes_petsc_mat_utilities_prolongation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Tpo -c -o stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.obj `if test -f 'stokes_petsc_mat_utilities_prolongation.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_prolongation.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_prolongation.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_prolongation.cpp' object='stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.obj `if test -f 'stokes_petsc_mat_utilities_prolongation.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_prolongation.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_prolongation.cpp'; fi`
+
+stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.o: stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Tpo -c -o stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.o `test -f 'stokes_petsc_mat_utilities_restriction.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_restriction.cpp' object='stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.o `test -f 'stokes_petsc_mat_utilities_restriction.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_restriction.cpp
+
+stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.obj: stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Tpo -c -o stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.obj `if test -f 'stokes_petsc_mat_utilities_restriction.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_restriction.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_restriction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_restriction.cpp' object='stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.obj `if test -f 'stokes_petsc_mat_utilities_restriction.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_restriction.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_restriction.cpp'; fi`
+
+stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.o: stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Tpo -c -o stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.o `test -f 'stokes_petsc_mat_utilities_restriction.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_restriction.cpp' object='stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.o `test -f 'stokes_petsc_mat_utilities_restriction.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_restriction.cpp
+
+stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.obj: stokes_petsc_mat_utilities_restriction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Tpo -c -o stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.obj `if test -f 'stokes_petsc_mat_utilities_restriction.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_restriction.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_restriction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_restriction.cpp' object='stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.obj `if test -f 'stokes_petsc_mat_utilities_restriction.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_restriction.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_restriction.cpp'; fi`
+
+stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.o: stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Tpo -c -o stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.o `test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ridp_sums.cpp' object='stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.o `test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ridp_sums.cpp
+
+stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.obj: stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Tpo -c -o stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.obj `if test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ridp_sums.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ridp_sums.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ridp_sums.cpp' object='stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.obj `if test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ridp_sums.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ridp_sums.cpp'; fi`
+
+stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.o: stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.o -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Tpo -c -o stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.o `test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ridp_sums.cpp' object='stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.o `test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp' || echo '$(srcdir)/'`stokes_petsc_mat_utilities_ridp_sums.cpp
+
+stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.obj: stokes_petsc_mat_utilities_ridp_sums.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.obj -MD -MP -MF $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Tpo -c -o stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.obj `if test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ridp_sums.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ridp_sums.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Tpo $(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_petsc_mat_utilities_ridp_sums.cpp' object='stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.obj `if test -f 'stokes_petsc_mat_utilities_ridp_sums.cpp'; then $(CYGPATH_W) 'stokes_petsc_mat_utilities_ridp_sums.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_petsc_mat_utilities_ridp_sums.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -812,8 +1341,23 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -862,8 +1406,23 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_3d-stokes_petsc_level_solver_asm_modes.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ops_2d-stokes_petsc_mat_utilities_ops.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_2d-stokes_petsc_mat_utilities_pressure_transfer.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_pressure_transfer_3d-stokes_petsc_mat_utilities_pressure_transfer.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_2d-stokes_petsc_mat_utilities_prolongation.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_prolongation_3d-stokes_petsc_mat_utilities_prolongation.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_2d-stokes_petsc_mat_utilities_restriction.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_restriction_3d-stokes_petsc_mat_utilities_restriction.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_2d-stokes_petsc_mat_utilities_ridp_sums.Po
+	-rm -f ./$(DEPDIR)/stokes_petsc_mat_utilities_ridp_sums_3d-stokes_petsc_mat_utilities_ridp_sums.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

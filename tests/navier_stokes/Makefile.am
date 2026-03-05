@@ -13,7 +13,15 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = navier_stokes_01_2d navier_stokes_01_3d poiseuille_flow_2d stokes_operator_2d stokes_operator_3d
+EXTRA_PROGRAMS = navier_stokes_01_2d navier_stokes_01_3d poiseuille_flow_2d stokes_operator_2d stokes_operator_3d \
+                 stokes_petsc_mat_utilities_ops_2d stokes_petsc_mat_utilities_prolongation_2d \
+                 stokes_petsc_mat_utilities_prolongation_3d \
+                 stokes_petsc_mat_utilities_restriction_2d stokes_petsc_mat_utilities_restriction_3d \
+                 stokes_petsc_mat_utilities_pressure_transfer_2d stokes_petsc_mat_utilities_pressure_transfer_3d \
+                 stokes_petsc_mat_utilities_ridp_sums_2d stokes_petsc_mat_utilities_ridp_sums_3d \
+                 stokes_ib_cav_sparse_map_closure_2d stokes_ib_cav_patch_level_maps_2d \
+                 stokes_ib_cav_matlab_relaxed_parity_2d stokes_ib_cav_matlab_strict_parity_2d \
+                 stokes_petsc_level_solver_asm_modes_2d stokes_petsc_level_solver_asm_modes_3d
 
 navier_stokes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 navier_stokes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -34,6 +42,60 @@ stokes_operator_2d_SOURCES = stokes_operator.cpp
 stokes_operator_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 stokes_operator_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 stokes_operator_3d_SOURCES = stokes_operator.cpp
+
+stokes_petsc_mat_utilities_ops_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_ops_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ops_2d_SOURCES = stokes_petsc_mat_utilities_ops.cpp
+
+stokes_petsc_mat_utilities_prolongation_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_prolongation_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_2d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
+stokes_petsc_mat_utilities_prolongation_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_prolongation_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_prolongation_3d_SOURCES = stokes_petsc_mat_utilities_prolongation.cpp
+stokes_petsc_mat_utilities_restriction_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_restriction_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_2d_SOURCES = stokes_petsc_mat_utilities_restriction.cpp
+stokes_petsc_mat_utilities_restriction_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_restriction_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_restriction_3d_SOURCES = stokes_petsc_mat_utilities_restriction.cpp
+stokes_petsc_mat_utilities_pressure_transfer_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_pressure_transfer_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_2d_SOURCES = stokes_petsc_mat_utilities_pressure_transfer.cpp
+stokes_petsc_mat_utilities_pressure_transfer_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_pressure_transfer_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_pressure_transfer_3d_SOURCES = stokes_petsc_mat_utilities_pressure_transfer.cpp
+
+stokes_petsc_mat_utilities_ridp_sums_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_mat_utilities_ridp_sums_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_2d_SOURCES = stokes_petsc_mat_utilities_ridp_sums.cpp
+stokes_petsc_mat_utilities_ridp_sums_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_mat_utilities_ridp_sums_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_mat_utilities_ridp_sums_3d_SOURCES = stokes_petsc_mat_utilities_ridp_sums.cpp
+
+stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_sparse_map_closure_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_sparse_map_closure_2d_SOURCES = stokes_ib_cav_sparse_map_closure.cpp
+
+stokes_ib_cav_patch_level_maps_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_patch_level_maps_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_patch_level_maps_2d_SOURCES = stokes_ib_cav_patch_level_maps.cpp
+
+stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_matlab_relaxed_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES = stokes_ib_cav_matlab_relaxed_parity.cpp
+
+stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_matlab_strict_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_matlab_strict_parity_2d_SOURCES = stokes_ib_cav_matlab_strict_parity.cpp
+
+stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_petsc_level_solver_asm_modes_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_2d_SOURCES = stokes_petsc_level_solver_asm_modes.cpp
+
+stokes_petsc_level_solver_asm_modes_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_petsc_level_solver_asm_modes_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_petsc_level_solver_asm_modes_3d_SOURCES = stokes_petsc_level_solver_asm_modes.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
