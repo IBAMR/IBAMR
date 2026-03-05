@@ -15,25 +15,21 @@ Use deterministic CMake tests as the main confidence signal, but treat milestone
 ---
 
 ## Current State (2026-03-04)
-1. Development is on branch `codex/implicit-ib-milestone-3`.
+1. Development is on branch `codex/implicit-ib-milestone-4`.
 2. Milestone 1 remains under review in PR `#1887`.
-3. Milestone 2 implementation work is complete on this branch:
-   - PR-A utility and deterministic test work is complete.
-   - PR-B solver wiring and integration test/smoke coverage is complete.
-4. Reference implicit stabilization changes are applied in:
-   - `src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp`
-5. A promoted finished reference implicit test is added in:
-   - `tests/IB/implicit_stokes_ib_01.cpp`
-   - `tests/IB/implicit_stokes_ib_01.baseline.input`
-   - `tests/IB/implicit_stokes_ib_01.baseline.output`
-   - `tests/CMakeLists.txt` (test registration)
-6. Focused validation passing:
-   - `attest -R 'IB/implicit_stokes_ib_01.baseline.input'`
-7. Expanded validation on the milestone-1 branch is passing:
-   - `attest -R '^IB/'` (all `IB` tests in current CMake build subset).
-8. M2 solver-mode tests and transfer-invariant tests are passing in CMake and autotools builds.
-9. M3 test work is complete for strict-CAV/classical-Vanka equivalence, RIDP sum-invariant checks, RT0 velocity transfer parity, and pressure transfer parity in 2D/3D.
-10. End-to-end FAC runtime transfer-configuration validation is tracked in Milestone 4.
+3. Milestone 2 implementation work is complete on the stacked branch history.
+4. Milestone 3 implementation work is complete on `codex/implicit-ib-milestone-3`.
+5. Milestone 4 implementation work is complete on `codex/implicit-ib-milestone-4`.
+6. Milestone 4 has passing operator-parity coverage for single-level and multilevel (2-level and 3-level) reference cases:
+   - `tests/IB/implicit_stokes_ib_m4_single_level_parity_01.cpp`
+   - external-reference workflows are located under `tests/external-reference/cav-stokes-ib/`
+   - committed `.ref` artifacts are intentionally excluded
+7. Focused M4 CMake validation passing:
+   - `attest -R 'IB/implicit_stokes_ib_m4_single_level_parity_01.multilevel_l2.input'`
+   - `attest -R 'IB/implicit_stokes_ib_m4_single_level_parity_01.multilevel_l3.input'`
+8. Focused M4 single-level matched-case CAV subdomain parity validation passing:
+   - `attest -R 'IB/implicit_stokes_ib_m4_cav_subdomain_parity_01.input'`
+9. Detailed phase notes are tracked in `plans/implicit-ib/m4-single-level-parity.md`.
 
 ---
 
@@ -124,7 +120,33 @@ Build exact-comparison cases between IBAMR and MATLAB for Stokes+IB using progra
 4. Add an end-to-end FAC runtime transfer-configuration validation case that complements Milestone 3 operator-level parity tests.
 
 ### Status
-- Not started.
+- Complete on this branch.
+- Completed:
+1. Added deterministic single-level parity test `tests/IB/implicit_stokes_ib_m4_single_level_parity_01.cpp`.
+2. Added external-reference verification assets under `tests/external-reference/cav-stokes-ib/`.
+3. Kept CI coverage self-contained and excluded committed `.ref` datasets.
+4. Added deterministic multilevel parity input/output pairs for 2-level and 3-level checks.
+5. Added deterministic matched-case CAV subdomain parity input/output for single-level checks.
+6. Added phase notes in `plans/implicit-ib/m4-single-level-parity.md`.
+7. Reclassified standalone parity tests in `tests/navier_stokes` to avoid `matlab` naming for self-contained checks:
+   - `stokes_ib_cav_relaxed_semantics_parity` (2D/3D)
+   - `stokes_ib_cav_strict_semantics_parity` (2D/3D)
+8. Added developer-only CMake targets for external-reference runs:
+   - `tests-external-reference-cav-stokes-ib`
+   - `run-external-reference-cav-stokes-ib`
+
+### Milestone 4 Audit (2026-03-04)
+1. CI/self-contained M4 coverage currently includes:
+   - `IB/implicit_stokes_ib_m4_single_level_parity_01.multilevel_l2.input`
+   - `IB/implicit_stokes_ib_m4_single_level_parity_01.multilevel_l3.input`
+   - `IB/implicit_stokes_ib_m4_cav_subdomain_parity_01.input`
+   - `navier_stokes/stokes_ib_cav_relaxed_semantics_parity_2d.input`
+   - `navier_stokes/stokes_ib_cav_relaxed_semantics_parity_3d.input`
+   - `navier_stokes/stokes_ib_cav_strict_semantics_parity_2d.input`
+   - `navier_stokes/stokes_ib_cav_strict_semantics_parity_3d.input`
+2. External-reference execution is intentionally outside default attest discovery and is run manually through `run-external-reference-cav-stokes-ib`.
+3. No committed M4 `.ref` artifacts are required by CI paths; references are generated locally in build-tree external-reference directories.
+4. Iteration-trace/performance correspondence is intentionally deferred to Milestone 5 smoother-application semantics work.
 
 ---
 
