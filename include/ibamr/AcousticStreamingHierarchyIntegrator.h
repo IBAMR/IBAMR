@@ -1088,6 +1088,11 @@ private:
     void computeAcousticRadiationForce(double time);
 
     /*!
+     * Compute acoustic radiation force via Brinkman penalization.
+     */
+    void computeAcousticRadiationForceBP(double time);
+
+    /*!
      * Compute the first-order hydrodynamic force.
      */
     void computeFOHydrodynamicForce(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,

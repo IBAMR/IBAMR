@@ -4000,6 +4000,94 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 } // computeAcousticRadiationForce
 
 void
+AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForceBP(double time)
+{
+    int num_bodies = d_so_brinkman_force.size();
+    std::vector<IBTK::Vector3d> radiation_forces(num_bodies, IBTK::Vector3d::Zero());
+    int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+
+    // Compute the contribution to the radiation force from chi/kappa *U_b term of the Brinkman penalization force.
+    for (int k = 0; k < num_bodies; ++k)
+    {
+        auto& so_brinkman_force = d_so_brinkman_force[k];
+        so_brinkman_force->setRigidVelocity(
+            d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+        so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, time, /*cycle_num*/ 0);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+        {
+            // Assumes that the contour is placed on the finest level
+            if (ln < finest_ln) continue;
+
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+                Pointer<SideData<NDIM, double> > L_data = patch->getPatchData(d_velocity_L_idx);
+                Pointer<SideData<NDIM, double> > W_data = patch->getPatchData(wgt_sc_idx);
+
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); it; it++)
+                    {
+                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                        radiation_forces[k](axis) -= (*L_data)(s_i) * (*W_data)(s_i);
+                    }
+                }
+            }
+        }
+    }
+
+    // Compute the contribution to the radiation force from chi/kappa *U2 term of the Brinkman penalization force.
+    for (int k = 0; k < num_bodies; ++k)
+    {
+        auto& so_brinkman_force = d_so_brinkman_force[k];
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+        so_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, time, /*cycle_num*/ 0);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+        {
+            // Assumes that the contour is placed on the finest level
+            if (ln < finest_ln) continue;
+
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+                Pointer<SideData<NDIM, double> > L_data = patch->getPatchData(d_velocity_L_idx);
+                Pointer<SideData<NDIM, double> > W_data = patch->getPatchData(wgt_sc_idx);
+                Pointer<SideData<NDIM, double> > U2_data = patch->getPatchData(d_U2_scratch_idx);
+
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); it; it++)
+                    {
+                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                        radiation_forces[k](axis) += (*L_data)(s_i) * (*W_data)(s_i) * (*U2_data)(s_i);
+                    }
+                }
+            }
+        }
+    }
+
+    for (int k = 0; k < num_bodies; ++k)
+    {
+        IBTK_MPI::sumReduction(radiation_forces[k].data(), radiation_forces[k].size());
+        std::copy(radiation_forces[k].data(), radiation_forces[k].data() + NDIM, d_acoustic_radiation_force[k].begin());
+    }
+
+    return;
+} // computeAcousticRadiationForceBP
+
+void
 AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
                                                                  double time)
 {
