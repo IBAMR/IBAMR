@@ -100,7 +100,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/KrylovMobilitySolver.cpp \
 ../src/IB/MobilityFunctions.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
+../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp \
+../src/IB/StaggeredStokesIBJacobianOperator.cpp \
 ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
+../src/IB/StaggeredStokesIBOperator.cpp \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
@@ -336,7 +339,10 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+../include/ibamr/StaggeredStokesIBJacobianFACPreconditioner.h \
+../include/ibamr/StaggeredStokesIBJacobianOperator.h \
 ../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesIBOperator.h \
 ../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 ../include/ibamr/StaggeredStokesOperator.h \
