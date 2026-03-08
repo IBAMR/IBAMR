@@ -76,19 +76,6 @@ FOREACH(_name ${_unfinished_stokes_ib_tests})
     VERBATIM)
 ENDFOREACH()
 
-ADD_CUSTOM_TARGET(run-unfinished-stokes-ib-smoke
-  DEPENDS tests-unfinished-stokes-ib
-  COMMAND ${CMAKE_COMMAND} -E chdir
-  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test0
-  ./main2d input2d
-  COMMAND ${CMAKE_COMMAND} -E chdir
-  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test1
-  ./main2d input2d.shell
-  COMMAND ${CMAKE_COMMAND} -E chdir
-  ${CMAKE_BINARY_DIR}/tests/unfinished-tests/Stokes-IB/test2
-  ./main2d input2d.cylinder
-  USES_TERMINAL)
-
 ADD_CUSTOM_TARGET(run-external-reference-cav-stokes-ib
   DEPENDS tests-external-reference-cav-stokes-ib
   COMMAND bash
@@ -239,6 +226,7 @@ SETUP_2D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
 SETUP_3D(navier_stokes stokes_petsc_mat_utilities_ridp_sums.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_cav_shell_semantics.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
 # physical_boundary:
@@ -287,6 +275,8 @@ SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
 SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_coarse_saj_transfer_parity_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_operator_chain_parity_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_cav_subdomain_construction_parity_01.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)

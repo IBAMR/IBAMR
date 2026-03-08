@@ -13,7 +13,7 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = explicit_ex0 explicit_ex1 implicit_stokes_ib_01 ib_body_force ib_body_force_kirchhoff
+EXTRA_PROGRAMS = explicit_ex0 explicit_ex1 implicit_stokes_ib_01 implicit_stokes_ib_coarse_saj_transfer_parity_01 implicit_stokes_ib_solver_components_01 ib_body_force ib_body_force_kirchhoff
 
 explicit_ex0_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 explicit_ex0_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -26,6 +26,14 @@ explicit_ex1_SOURCES = explicit_ex1.cpp
 implicit_stokes_ib_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 implicit_stokes_ib_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 implicit_stokes_ib_01_SOURCES = implicit_stokes_ib_01.cpp
+
+implicit_stokes_ib_coarse_saj_transfer_parity_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+implicit_stokes_ib_coarse_saj_transfer_parity_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+implicit_stokes_ib_coarse_saj_transfer_parity_01_SOURCES = implicit_stokes_ib_coarse_saj_transfer_parity_01.cpp
+
+implicit_stokes_ib_solver_components_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+implicit_stokes_ib_solver_components_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+implicit_stokes_ib_solver_components_01_SOURCES = implicit_stokes_ib_solver_components_01.cpp
 
 ib_body_force_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ib_body_force_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
