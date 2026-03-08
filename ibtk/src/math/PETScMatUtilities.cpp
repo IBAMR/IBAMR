@@ -216,16 +216,8 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        n_local ? &d_nnz[0] : nullptr,
-                        0,
-                        n_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set block size.
@@ -269,7 +261,8 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                             mat_cols[stencil_index] = (*dof_index_data)(i + stencil[stencil_index], d);
                         }
                     }
-                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                    ierr =
+                        MatSetValues(mat, 1, &dof_index, stencil_sz, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -366,16 +359,8 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        n_local ? &d_nnz[0] : nullptr,
-                        0,
-                        n_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients to correspond to the standard finite
@@ -414,7 +399,8 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                             mat_cols[stencil_index] = (*dof_index_data)(i + stencil[stencil_index]);
                         }
                     }
-                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                    ierr =
+                        MatSetValues(mat, 1, &dof_index, stencil_sz, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -587,16 +573,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        n_local ? &d_nnz[0] : nullptr,
-                        0,
-                        n_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
@@ -764,7 +742,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 #if !defined(NDEBUG)
                     TBOX_ASSERT(idx == (stencil_sz - 1));
 #endif
-                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                    ierr =
+                        MatSetValues(mat, 1, &dof_index, stencil_sz, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -940,16 +919,8 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        m_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        m_local ? &d_nnz[0] : nullptr,
-                        0,
-                        m_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients.
@@ -1002,8 +973,13 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             }
 
             // Set the values for this IB point.
-            ierr = MatSetValues(
-                mat, 1, &stencil_box_row, stencil_box_nvals, &stencil_box_cols[0], &stencil_box_vals[0], INSERT_VALUES);
+            ierr = MatSetValues(mat,
+                                1,
+                                &stencil_box_row,
+                                stencil_box_nvals,
+                                stencil_box_cols.data(),
+                                stencil_box_vals.data(),
+                                INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -1110,7 +1086,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
     ierr = MatGetSize(P, &M, &N);
     IBTK_CHKERRQ(ierr);
     std::vector<double> column_sum_inv(N);
-    ierr = MatGetColumnNorms(P, NORM_1, &column_sum_inv[0]);
+    ierr = MatGetColumnNorms(P, NORM_1, column_sum_inv.data());
     IBTK_CHKERRQ(ierr);
 
     for (int k = 0; k < N; ++k)
@@ -1147,7 +1123,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
             L_idxs[k - ilower] = k;
             L_vals[k - ilower] = column_sum_inv[k];
         }
-        ierr = VecSetValues(L, num_elems, &L_idxs[0], &L_vals[0], INSERT_VALUES);
+        ierr = VecSetValues(L, num_elems, L_idxs.data(), L_vals.data(), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -1296,7 +1272,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                 samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
                     i_coarse, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
             }
-            AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
+            AOApplicationToPetsc(coarse_level_ao, depth, samrai_petsc_map.data());
 
             for (unsigned d = 0; d < depth; ++d)
             {
@@ -1313,16 +1289,8 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        m_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        m_local ? &d_nnz[0] : nullptr,
-                        0,
-                        m_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Determine matrix-coefficients
@@ -1344,7 +1312,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                 samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
                     i_coarse, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
             }
-            AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
+            AOApplicationToPetsc(coarse_level_ao, depth, samrai_petsc_map.data());
             for (unsigned d = 0; d < depth; ++d)
             {
                 int row = (*dof_fine_data)(i_fine, d);
@@ -1480,7 +1448,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                                                           coarse_ao_offset + data_offset,
                                                           coarse_periodic_shift);
                 }
-                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, samrai_petsc_map.data());
 #if !defined(NDEBUG)
                 for (unsigned d = 0; d < depth; ++d)
                 {
@@ -1530,16 +1498,8 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        m_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        m_local ? &d_nnz[0] : nullptr,
-                        0,
-                        m_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Determine the matrix-coefficients
@@ -1600,7 +1560,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                                                           coarse_ao_offset + data_offset,
                                                           coarse_periodic_shift);
                 }
-                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, samrai_petsc_map.data());
 
                 for (unsigned d = 0; d < depth; ++d)
                 {
@@ -1627,7 +1587,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         col_val[0] += col_val[1];
                     }
 
-                    ierr = MatSetValues(mat, 1, &row, col_size, &col[0], &col_val[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat, 1, &row, col_size, col.data(), col_val.data(), INSERT_VALUES);
                 }
             }
         }
@@ -1856,7 +1816,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                                                               coarse_periodic_shift);
                     }
                 }
-                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, samrai_petsc_map.data());
 #if !defined(NDEBUG)
                 for (unsigned d = 0; d < depth; ++d)
                 {
@@ -1896,16 +1856,8 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        m_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        m_local ? &d_nnz[0] : nullptr,
-                        0,
-                        m_local ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
     // Determine the matrix-coefficients
@@ -2064,7 +2016,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                                                               coarse_periodic_shift);
                     }
                 }
-                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, samrai_petsc_map.data());
 
                 for (unsigned d = 0; d < depth; ++d)
                 {
@@ -2324,7 +2276,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         TBOX_ASSERT(k == n_cols);
                     }
 #endif
-                    ierr = MatSetValues(mat, 1, &row, n_cols, &col[0], &col_val[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat, 1, &row, n_cols, col.data(), col_val.data(), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }

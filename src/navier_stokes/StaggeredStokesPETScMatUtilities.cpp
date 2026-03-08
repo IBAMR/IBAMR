@@ -632,16 +632,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        nlocal,
-                        nlocal,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        nlocal ? &d_nnz[0] : nullptr,
-                        0,
-                        nlocal ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -966,7 +958,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     u_mat_cols[uu_stencil_sz + side] = (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                 }
 
-                ierr = MatSetValues(mat, 1, &u_dof_index, u_stencil_sz, &u_mat_cols[0], &u_mat_vals[0], INSERT_VALUES);
+                ierr = MatSetValues(
+                    mat, 1, &u_dof_index, u_stencil_sz, u_mat_cols.data(), u_mat_vals.data(), INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -993,7 +986,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             p_mat_vals[pu_stencil_sz] = 0.0;
             p_mat_cols[pu_stencil_sz] = p_dof_index;
 
-            ierr = MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, &p_mat_cols[0], &p_mat_vals[0], INSERT_VALUES);
+            ierr =
+                MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, p_mat_cols.data(), p_mat_vals.data(), INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
