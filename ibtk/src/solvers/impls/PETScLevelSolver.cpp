@@ -125,8 +125,6 @@ PETScLevelSolver::PETScLevelSolver()
     d_rel_residual_tol = 1.0e-5;
     d_initial_guess_nonzero = true;
     d_enable_logging = false;
-    d_box_size = 2;
-    d_overlap_size = 1;
 
     // Setup Timers.
     IBTK_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::solveSystem()");
@@ -391,7 +389,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
         else
         {
-            ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, &d_overlap_is[0], &d_nonoverlap_is[0]);
+            ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, d_overlap_is.data(), d_nonoverlap_is.data());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -449,11 +447,19 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 
         // Get the local submatrices.
 #if PETSC_VERSION_GE(3, 8, 0)
-        ierr = MatCreateSubMatrices(
-            d_petsc_mat, d_n_local_subdomains, &d_overlap_is[0], &d_overlap_is[0], MAT_INITIAL_MATRIX, &d_sub_mat);
+        ierr = MatCreateSubMatrices(d_petsc_mat,
+                                    d_n_local_subdomains,
+                                    d_overlap_is.data(),
+                                    d_overlap_is.data(),
+                                    MAT_INITIAL_MATRIX,
+                                    &d_sub_mat);
 #else
-        ierr = MatGetSubMatrices(
-            d_petsc_mat, d_n_local_subdomains, &d_overlap_is[0], &d_overlap_is[0], MAT_INITIAL_MATRIX, &d_sub_mat);
+        ierr = MatGetSubMatrices(d_petsc_mat,
+                                 d_n_local_subdomains,
+                                 d_overlap_is.data(),
+                                 d_overlap_is.data(),
+                                 MAT_INITIAL_MATRIX,
+                                 &d_sub_mat);
 #endif
         IBTK_CHKERRQ(ierr);
 
@@ -551,15 +557,15 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 #if PETSC_VERSION_GE(3, 8, 0)
             ierr = MatCreateSubMatrices(d_petsc_mat,
                                         d_n_local_subdomains,
-                                        d_n_local_subdomains ? &d_overlap_is[0] : nullptr,
-                                        d_n_local_subdomains ? &local_idxs[0] : nullptr,
+                                        d_overlap_is.data(),
+                                        local_idxs.data(),
                                         MAT_INITIAL_MATRIX,
                                         &d_sub_bc_mat);
 #else
             ierr = MatGetSubMatrices(d_petsc_mat,
                                      d_n_local_subdomains,
-                                     d_n_local_subdomains ? &d_overlap_is[0] : nullptr,
-                                     d_n_local_subdomains ? &local_idxs[0] : nullptr,
+                                     d_overlap_is.data(),
+                                     local_idxs.data(),
                                      MAT_INITIAL_MATRIX,
                                      &d_sub_bc_mat);
 #endif
@@ -717,7 +723,7 @@ PETScLevelSolver::deallocateSolverState()
         d_prolongation.clear();
         d_sub_ksp.clear();
         d_sub_x.clear();
-        d_sub_x.clear();
+        d_sub_y.clear();
     }
 
     d_petsc_ksp = nullptr;
@@ -750,10 +756,6 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("shell_pc_type")) d_shell_pc_type = input_db->getString("shell_pc_type");
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("subdomain_box_size"))
-            input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
-        if (input_db->keyExists("subdomain_overlap_size"))
-            input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
     return;
 } // init
@@ -797,7 +799,7 @@ PETScLevelSolver::setupNullSpace()
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
                               d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
-                              (petsc_nullspace_basis_vecs.empty() ? nullptr : &petsc_nullspace_basis_vecs[0]),
+                              petsc_nullspace_basis_vecs.data(),
                               &d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);
     ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
