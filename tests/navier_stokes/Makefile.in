@@ -101,8 +101,10 @@ EXTRA_PROGRAMS = navier_stokes_01_2d$(EXEEXT) \
 	stokes_petsc_mat_utilities_ridp_sums_3d$(EXEEXT) \
 	stokes_ib_cav_sparse_map_closure_2d$(EXEEXT) \
 	stokes_ib_cav_patch_level_maps_2d$(EXEEXT) \
-	stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT) \
-	stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT) \
+	stokes_ib_cav_relaxed_semantics_parity_2d$(EXEEXT) \
+	stokes_ib_cav_relaxed_semantics_parity_3d$(EXEEXT) \
+	stokes_ib_cav_strict_semantics_parity_2d$(EXEEXT) \
+	stokes_ib_cav_strict_semantics_parity_3d$(EXEEXT) \
 	stokes_petsc_level_solver_asm_modes_2d$(EXEEXT) \
 	stokes_petsc_level_solver_asm_modes_3d$(EXEEXT)
 subdir = tests/navier_stokes
@@ -164,24 +166,6 @@ poiseuille_flow_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS = stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.$(OBJEXT)
-stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS =  \
-	$(am_stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS)
-stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
-stokes_ib_cav_matlab_relaxed_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
-	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
-	$(CXXLD) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_stokes_ib_cav_matlab_strict_parity_2d_OBJECTS = stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.$(OBJEXT)
-stokes_ib_cav_matlab_strict_parity_2d_OBJECTS =  \
-	$(am_stokes_ib_cav_matlab_strict_parity_2d_OBJECTS)
-stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
-stokes_ib_cav_matlab_strict_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
-	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
-	$(CXXLD) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_stokes_ib_cav_patch_level_maps_2d_OBJECTS = stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.$(OBJEXT)
 stokes_ib_cav_patch_level_maps_2d_OBJECTS =  \
 	$(am_stokes_ib_cav_patch_level_maps_2d_OBJECTS)
@@ -191,6 +175,24 @@ stokes_ib_cav_patch_level_maps_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_relaxed_semantics_parity_2d_OBJECTS = stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.$(OBJEXT)
+stokes_ib_cav_relaxed_semantics_parity_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_relaxed_semantics_parity_2d_OBJECTS)
+stokes_ib_cav_relaxed_semantics_parity_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_relaxed_semantics_parity_3d_OBJECTS = stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.$(OBJEXT)
+stokes_ib_cav_relaxed_semantics_parity_3d_OBJECTS =  \
+	$(am_stokes_ib_cav_relaxed_semantics_parity_3d_OBJECTS)
+stokes_ib_cav_relaxed_semantics_parity_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_3d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_stokes_ib_cav_sparse_map_closure_2d_OBJECTS = stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.$(OBJEXT)
 stokes_ib_cav_sparse_map_closure_2d_OBJECTS =  \
 	$(am_stokes_ib_cav_sparse_map_closure_2d_OBJECTS)
@@ -199,6 +201,24 @@ stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
 stokes_ib_cav_sparse_map_closure_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_strict_semantics_parity_2d_OBJECTS = stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.$(OBJEXT)
+stokes_ib_cav_strict_semantics_parity_2d_OBJECTS =  \
+	$(am_stokes_ib_cav_strict_semantics_parity_2d_OBJECTS)
+stokes_ib_cav_strict_semantics_parity_2d_DEPENDENCIES =  \
+	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_stokes_ib_cav_strict_semantics_parity_3d_OBJECTS = stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.$(OBJEXT)
+stokes_ib_cav_strict_semantics_parity_3d_OBJECTS =  \
+	$(am_stokes_ib_cav_strict_semantics_parity_3d_OBJECTS)
+stokes_ib_cav_strict_semantics_parity_3d_DEPENDENCIES =  \
+	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_3d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_stokes_operator_2d_OBJECTS =  \
 	stokes_operator_2d-stokes_operator.$(OBJEXT)
@@ -338,10 +358,12 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po \
 	./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po \
 	./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po \
-	./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po \
-	./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po \
 	./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po \
+	./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po \
+	./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po \
 	./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po \
+	./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po \
+	./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po \
 	./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po \
 	./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po \
 	./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po \
@@ -376,10 +398,12 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(navier_stokes_01_2d_SOURCES) \
 	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
-	$(stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES) \
-	$(stokes_ib_cav_matlab_strict_parity_2d_SOURCES) \
 	$(stokes_ib_cav_patch_level_maps_2d_SOURCES) \
+	$(stokes_ib_cav_relaxed_semantics_parity_2d_SOURCES) \
+	$(stokes_ib_cav_relaxed_semantics_parity_3d_SOURCES) \
 	$(stokes_ib_cav_sparse_map_closure_2d_SOURCES) \
+	$(stokes_ib_cav_strict_semantics_parity_2d_SOURCES) \
+	$(stokes_ib_cav_strict_semantics_parity_3d_SOURCES) \
 	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES) \
 	$(stokes_petsc_level_solver_asm_modes_2d_SOURCES) \
 	$(stokes_petsc_level_solver_asm_modes_3d_SOURCES) \
@@ -394,10 +418,12 @@ SOURCES = $(navier_stokes_01_2d_SOURCES) \
 	$(stokes_petsc_mat_utilities_ridp_sums_3d_SOURCES)
 DIST_SOURCES = $(navier_stokes_01_2d_SOURCES) \
 	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
-	$(stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES) \
-	$(stokes_ib_cav_matlab_strict_parity_2d_SOURCES) \
 	$(stokes_ib_cav_patch_level_maps_2d_SOURCES) \
+	$(stokes_ib_cav_relaxed_semantics_parity_2d_SOURCES) \
+	$(stokes_ib_cav_relaxed_semantics_parity_3d_SOURCES) \
 	$(stokes_ib_cav_sparse_map_closure_2d_SOURCES) \
+	$(stokes_ib_cav_strict_semantics_parity_2d_SOURCES) \
+	$(stokes_ib_cav_strict_semantics_parity_3d_SOURCES) \
 	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES) \
 	$(stokes_petsc_level_solver_asm_modes_2d_SOURCES) \
 	$(stokes_petsc_level_solver_asm_modes_3d_SOURCES) \
@@ -743,12 +769,18 @@ stokes_ib_cav_sparse_map_closure_2d_SOURCES = stokes_ib_cav_sparse_map_closure.c
 stokes_ib_cav_patch_level_maps_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_ib_cav_patch_level_maps_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 stokes_ib_cav_patch_level_maps_2d_SOURCES = stokes_ib_cav_patch_level_maps.cpp
-stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stokes_ib_cav_matlab_relaxed_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stokes_ib_cav_matlab_relaxed_parity_2d_SOURCES = stokes_ib_cav_matlab_relaxed_parity.cpp
-stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stokes_ib_cav_matlab_strict_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stokes_ib_cav_matlab_strict_parity_2d_SOURCES = stokes_ib_cav_matlab_strict_parity.cpp
+stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_relaxed_semantics_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_2d_SOURCES = stokes_ib_cav_relaxed_semantics_parity.cpp
+stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_ib_cav_relaxed_semantics_parity_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_relaxed_semantics_parity_3d_SOURCES = stokes_ib_cav_relaxed_semantics_parity.cpp
+stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stokes_ib_cav_strict_semantics_parity_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_2d_SOURCES = stokes_ib_cav_strict_semantics_parity.cpp
+stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+stokes_ib_cav_strict_semantics_parity_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+stokes_ib_cav_strict_semantics_parity_3d_SOURCES = stokes_ib_cav_strict_semantics_parity.cpp
 stokes_petsc_level_solver_asm_modes_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_petsc_level_solver_asm_modes_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 stokes_petsc_level_solver_asm_modes_2d_SOURCES = stokes_petsc_level_solver_asm_modes.cpp
@@ -802,21 +834,29 @@ poiseuille_flow_2d$(EXEEXT): $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_
 	@rm -f poiseuille_flow_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(poiseuille_flow_2d_LINK) $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_LDADD) $(LIBS)
 
-stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT): $(stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_matlab_relaxed_parity_2d_DEPENDENCIES) 
-	@rm -f stokes_ib_cav_matlab_relaxed_parity_2d$(EXEEXT)
-	$(AM_V_CXXLD)$(stokes_ib_cav_matlab_relaxed_parity_2d_LINK) $(stokes_ib_cav_matlab_relaxed_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_relaxed_parity_2d_LDADD) $(LIBS)
-
-stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT): $(stokes_ib_cav_matlab_strict_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_matlab_strict_parity_2d_DEPENDENCIES) 
-	@rm -f stokes_ib_cav_matlab_strict_parity_2d$(EXEEXT)
-	$(AM_V_CXXLD)$(stokes_ib_cav_matlab_strict_parity_2d_LINK) $(stokes_ib_cav_matlab_strict_parity_2d_OBJECTS) $(stokes_ib_cav_matlab_strict_parity_2d_LDADD) $(LIBS)
-
 stokes_ib_cav_patch_level_maps_2d$(EXEEXT): $(stokes_ib_cav_patch_level_maps_2d_OBJECTS) $(stokes_ib_cav_patch_level_maps_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_patch_level_maps_2d_DEPENDENCIES) 
 	@rm -f stokes_ib_cav_patch_level_maps_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(stokes_ib_cav_patch_level_maps_2d_LINK) $(stokes_ib_cav_patch_level_maps_2d_OBJECTS) $(stokes_ib_cav_patch_level_maps_2d_LDADD) $(LIBS)
 
+stokes_ib_cav_relaxed_semantics_parity_2d$(EXEEXT): $(stokes_ib_cav_relaxed_semantics_parity_2d_OBJECTS) $(stokes_ib_cav_relaxed_semantics_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_relaxed_semantics_parity_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_relaxed_semantics_parity_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_relaxed_semantics_parity_2d_LINK) $(stokes_ib_cav_relaxed_semantics_parity_2d_OBJECTS) $(stokes_ib_cav_relaxed_semantics_parity_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_relaxed_semantics_parity_3d$(EXEEXT): $(stokes_ib_cav_relaxed_semantics_parity_3d_OBJECTS) $(stokes_ib_cav_relaxed_semantics_parity_3d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_relaxed_semantics_parity_3d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_relaxed_semantics_parity_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_relaxed_semantics_parity_3d_LINK) $(stokes_ib_cav_relaxed_semantics_parity_3d_OBJECTS) $(stokes_ib_cav_relaxed_semantics_parity_3d_LDADD) $(LIBS)
+
 stokes_ib_cav_sparse_map_closure_2d$(EXEEXT): $(stokes_ib_cav_sparse_map_closure_2d_OBJECTS) $(stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_sparse_map_closure_2d_DEPENDENCIES) 
 	@rm -f stokes_ib_cav_sparse_map_closure_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(stokes_ib_cav_sparse_map_closure_2d_LINK) $(stokes_ib_cav_sparse_map_closure_2d_OBJECTS) $(stokes_ib_cav_sparse_map_closure_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_strict_semantics_parity_2d$(EXEEXT): $(stokes_ib_cav_strict_semantics_parity_2d_OBJECTS) $(stokes_ib_cav_strict_semantics_parity_2d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_strict_semantics_parity_2d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_strict_semantics_parity_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_strict_semantics_parity_2d_LINK) $(stokes_ib_cav_strict_semantics_parity_2d_OBJECTS) $(stokes_ib_cav_strict_semantics_parity_2d_LDADD) $(LIBS)
+
+stokes_ib_cav_strict_semantics_parity_3d$(EXEEXT): $(stokes_ib_cav_strict_semantics_parity_3d_OBJECTS) $(stokes_ib_cav_strict_semantics_parity_3d_DEPENDENCIES) $(EXTRA_stokes_ib_cav_strict_semantics_parity_3d_DEPENDENCIES) 
+	@rm -f stokes_ib_cav_strict_semantics_parity_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(stokes_ib_cav_strict_semantics_parity_3d_LINK) $(stokes_ib_cav_strict_semantics_parity_3d_OBJECTS) $(stokes_ib_cav_strict_semantics_parity_3d_LDADD) $(LIBS)
 
 stokes_operator_2d$(EXEEXT): $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_DEPENDENCIES) $(EXTRA_stokes_operator_2d_DEPENDENCIES) 
 	@rm -f stokes_operator_2d$(EXEEXT)
@@ -879,10 +919,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po@am__quote@ # am--include-marker
@@ -969,34 +1011,6 @@ poiseuille_flow_2d-poiseuille_flow_2d.obj: poiseuille_flow_2d.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow_2d-poiseuille_flow_2d.obj `if test -f 'poiseuille_flow_2d.cpp'; then $(CYGPATH_W) 'poiseuille_flow_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow_2d.cpp'; fi`
 
-stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o: stokes_ib_cav_matlab_relaxed_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o `test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_relaxed_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_relaxed_parity.cpp' object='stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.o `test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_relaxed_parity.cpp
-
-stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj: stokes_ib_cav_matlab_relaxed_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj `if test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_relaxed_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_relaxed_parity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_relaxed_parity.cpp' object='stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_relaxed_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.obj `if test -f 'stokes_ib_cav_matlab_relaxed_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_relaxed_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_relaxed_parity.cpp'; fi`
-
-stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o: stokes_ib_cav_matlab_strict_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o `test -f 'stokes_ib_cav_matlab_strict_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_strict_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_strict_parity.cpp' object='stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.o `test -f 'stokes_ib_cav_matlab_strict_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_matlab_strict_parity.cpp
-
-stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj: stokes_ib_cav_matlab_strict_parity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj `if test -f 'stokes_ib_cav_matlab_strict_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_strict_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_strict_parity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Tpo $(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_matlab_strict_parity.cpp' object='stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_matlab_strict_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.obj `if test -f 'stokes_ib_cav_matlab_strict_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_matlab_strict_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_matlab_strict_parity.cpp'; fi`
-
 stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o: stokes_ib_cav_patch_level_maps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.o `test -f 'stokes_ib_cav_patch_level_maps.cpp' || echo '$(srcdir)/'`stokes_ib_cav_patch_level_maps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Tpo $(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
@@ -1011,6 +1025,34 @@ stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj: stokes_ib_
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_patch_level_maps_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.obj `if test -f 'stokes_ib_cav_patch_level_maps.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_patch_level_maps.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_patch_level_maps.cpp'; fi`
 
+stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.o: stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Tpo -c -o stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.o `test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_relaxed_semantics_parity.cpp' object='stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.o `test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_relaxed_semantics_parity.cpp
+
+stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.obj: stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Tpo -c -o stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.obj `if test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_relaxed_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_relaxed_semantics_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_relaxed_semantics_parity.cpp' object='stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.obj `if test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_relaxed_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_relaxed_semantics_parity.cpp'; fi`
+
+stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.o: stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Tpo -c -o stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.o `test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_relaxed_semantics_parity.cpp' object='stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.o `test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_relaxed_semantics_parity.cpp
+
+stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.obj: stokes_ib_cav_relaxed_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Tpo -c -o stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.obj `if test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_relaxed_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_relaxed_semantics_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_relaxed_semantics_parity.cpp' object='stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_relaxed_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.obj `if test -f 'stokes_ib_cav_relaxed_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_relaxed_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_relaxed_semantics_parity.cpp'; fi`
+
 stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o: stokes_ib_cav_sparse_map_closure.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.o `test -f 'stokes_ib_cav_sparse_map_closure.cpp' || echo '$(srcdir)/'`stokes_ib_cav_sparse_map_closure.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Tpo $(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
@@ -1024,6 +1066,34 @@ stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj: stokes
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_sparse_map_closure.cpp' object='stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_sparse_map_closure_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.obj `if test -f 'stokes_ib_cav_sparse_map_closure.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_sparse_map_closure.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_sparse_map_closure.cpp'; fi`
+
+stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.o: stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Tpo -c -o stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.o `test -f 'stokes_ib_cav_strict_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_strict_semantics_parity.cpp' object='stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.o `test -f 'stokes_ib_cav_strict_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_strict_semantics_parity.cpp
+
+stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.obj: stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Tpo -c -o stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.obj `if test -f 'stokes_ib_cav_strict_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_strict_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_strict_semantics_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_strict_semantics_parity.cpp' object='stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_2d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.obj `if test -f 'stokes_ib_cav_strict_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_strict_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_strict_semantics_parity.cpp'; fi`
+
+stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.o: stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.o -MD -MP -MF $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Tpo -c -o stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.o `test -f 'stokes_ib_cav_strict_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_strict_semantics_parity.cpp' object='stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.o `test -f 'stokes_ib_cav_strict_semantics_parity.cpp' || echo '$(srcdir)/'`stokes_ib_cav_strict_semantics_parity.cpp
+
+stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.obj: stokes_ib_cav_strict_semantics_parity.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -MT stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.obj -MD -MP -MF $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Tpo -c -o stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.obj `if test -f 'stokes_ib_cav_strict_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_strict_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_strict_semantics_parity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Tpo $(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stokes_ib_cav_strict_semantics_parity.cpp' object='stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_ib_cav_strict_semantics_parity_3d_CXXFLAGS) $(CXXFLAGS) -c -o stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.obj `if test -f 'stokes_ib_cav_strict_semantics_parity.cpp'; then $(CYGPATH_W) 'stokes_ib_cav_strict_semantics_parity.cpp'; else $(CYGPATH_W) '$(srcdir)/stokes_ib_cav_strict_semantics_parity.cpp'; fi`
 
 stokes_operator_2d-stokes_operator.o: stokes_operator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_operator_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_operator_2d-stokes_operator.o -MD -MP -MF $(DEPDIR)/stokes_operator_2d-stokes_operator.Tpo -c -o stokes_operator_2d-stokes_operator.o `test -f 'stokes_operator.cpp' || echo '$(srcdir)/'`stokes_operator.cpp
@@ -1341,10 +1411,12 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
-	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
-	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
@@ -1406,10 +1478,12 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
-	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_relaxed_parity_2d-stokes_ib_cav_matlab_relaxed_parity.Po
-	-rm -f ./$(DEPDIR)/stokes_ib_cav_matlab_strict_parity_2d-stokes_ib_cav_matlab_strict_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_ib_cav_patch_level_maps_2d-stokes_ib_cav_patch_level_maps.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_2d-stokes_ib_cav_relaxed_semantics_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_relaxed_semantics_parity_3d-stokes_ib_cav_relaxed_semantics_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_ib_cav_sparse_map_closure_2d-stokes_ib_cav_sparse_map_closure.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_2d-stokes_ib_cav_strict_semantics_parity.Po
+	-rm -f ./$(DEPDIR)/stokes_ib_cav_strict_semantics_parity_3d-stokes_ib_cav_strict_semantics_parity.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_petsc_level_solver_asm_modes_2d-stokes_petsc_level_solver_asm_modes.Po
