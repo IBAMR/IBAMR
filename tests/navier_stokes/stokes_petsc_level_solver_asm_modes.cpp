@@ -37,6 +37,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "../tests.h"
@@ -158,6 +159,32 @@ collect_is_sets(const std::vector<IS>& is_vec)
     for (std::size_t k = 0; k < is_vec.size(); ++k) out[k] = is_to_set(is_vec[k]);
     return out;
 }
+
+IntVector<NDIM>
+read_int_vector_with_default(Pointer<Database> db, const std::string& key, const IntVector<NDIM>& default_value)
+{
+    IntVector<NDIM> value = default_value;
+    if (db->keyExists(key))
+    {
+        int vals[NDIM];
+        db->getIntegerArray(key, vals, NDIM);
+        for (int d = 0; d < NDIM; ++d) value(d) = vals[d];
+    }
+    return value;
+}
+
+std::vector<std::vector<int>>
+canonicalize_subdomain_sets(const std::vector<std::set<int>>& subdomains)
+{
+    std::vector<std::vector<int>> canonical;
+    canonical.reserve(subdomains.size());
+    for (const auto& subdomain : subdomains)
+    {
+        canonical.emplace_back(subdomain.begin(), subdomain.end());
+    }
+    std::sort(canonical.begin(), canonical.end());
+    return canonical;
+}
 } // namespace
 
 int
@@ -169,6 +196,23 @@ main(int argc, char* argv[])
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
     const std::string asm_mode = test_db->getStringWithDefault("asm_subdomain_construction_mode", "GEOMETRICAL");
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
+    const IntVector<NDIM> box_size = read_int_vector_with_default(test_db, "subdomain_box_size", IntVector<NDIM>(2));
+    const IntVector<NDIM> overlap_size =
+        read_int_vector_with_default(test_db, "subdomain_overlap_size", IntVector<NDIM>(1));
+    const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
+    const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
+    const bool run_comparison = test_db->getBoolWithDefault("compare_against_mode", false);
+    const std::string compare_asm_mode =
+        test_db->getStringWithDefault("compare_asm_subdomain_construction_mode", "GEOMETRICAL");
+    const std::string compare_closure_policy =
+        test_db->getStringWithDefault("compare_coupling_aware_asm_closure_policy", "RELAXED");
+    const IntVector<NDIM> compare_box_size =
+        read_int_vector_with_default(test_db, "compare_subdomain_box_size", box_size);
+    const IntVector<NDIM> compare_overlap_size =
+        read_int_vector_with_default(test_db, "compare_subdomain_overlap_size", overlap_size);
+    const int compare_seed_axis = test_db->getIntegerWithDefault("compare_coupling_aware_asm_seed_axis", seed_axis);
+    const int compare_seed_stride =
+        test_db->getIntegerWithDefault("compare_coupling_aware_asm_seed_stride", seed_stride);
 
     int test_failures = 0;
     const auto hierarchy_tuple = setup_hierarchy<NDIM>(app_initializer);
@@ -212,19 +256,28 @@ main(int argc, char* argv[])
     level->deallocatePatchData(p_dof_index_idx);
 
     auto run_mode = [&](const std::string& mode,
-                        const std::string& policy) -> std::pair<std::vector<std::set<int>>, std::vector<std::set<int>>>
+                        const std::string& policy,
+                        const IntVector<NDIM>& mode_box_size,
+                        const IntVector<NDIM>& mode_overlap_size,
+                        const int mode_seed_axis,
+                        const int mode_seed_stride) -> std::pair<std::vector<std::set<int>>, std::vector<std::set<int>>>
     {
         Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
         solver_db->putString("pc_type", "asm");
         solver_db->putString("ksp_type", "richardson");
         solver_db->putInteger("max_iterations", 1);
-        const int box_arr[NDIM] = { 2, 2 };
-        const int overlap_arr[NDIM] = { 1, 1 };
+        int box_arr[NDIM];
+        int overlap_arr[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            box_arr[d] = mode_box_size(d);
+            overlap_arr[d] = mode_overlap_size(d);
+        }
         solver_db->putIntegerArray("subdomain_box_size", box_arr, NDIM);
         solver_db->putIntegerArray("subdomain_overlap_size", overlap_arr, NDIM);
         solver_db->putString("asm_subdomain_construction_mode", mode);
-        solver_db->putInteger("coupling_aware_asm_seed_axis", 0);
-        solver_db->putInteger("coupling_aware_asm_seed_stride", 1);
+        solver_db->putInteger("coupling_aware_asm_seed_axis", mode_seed_axis);
+        solver_db->putInteger("coupling_aware_asm_seed_stride", mode_seed_stride);
         solver_db->putString("coupling_aware_asm_closure_policy", policy);
 
         Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
@@ -245,9 +298,28 @@ main(int argc, char* argv[])
         return std::make_pair(overlap_sets, nonoverlap_sets);
     };
 
-    const auto run = run_mode(asm_mode, closure_policy);
+    const auto run = run_mode(asm_mode, closure_policy, box_size, overlap_size, seed_axis, seed_stride);
     check_partition_invariants(test_failures, run.first, run.second, n_local_dofs);
     const SubdomainStats stats = compute_stats(run.first, run.second);
+    bool compare_overlap_equal = false;
+    bool compare_nonoverlap_equal = false;
+    SubdomainStats compare_stats;
+    if (run_comparison)
+    {
+        const auto compare_run = run_mode(compare_asm_mode,
+                                          compare_closure_policy,
+                                          compare_box_size,
+                                          compare_overlap_size,
+                                          compare_seed_axis,
+                                          compare_seed_stride);
+        check_partition_invariants(test_failures, compare_run.first, compare_run.second, n_local_dofs);
+        compare_stats = compute_stats(compare_run.first, compare_run.second);
+        compare_overlap_equal =
+            (canonicalize_subdomain_sets(run.first) == canonicalize_subdomain_sets(compare_run.first));
+        compare_nonoverlap_equal =
+            (canonicalize_subdomain_sets(run.second) == canonicalize_subdomain_sets(compare_run.second));
+        if (!compare_overlap_equal || !compare_nonoverlap_equal) ++test_failures;
+    }
 
     level->deallocatePatchData(u_idx);
     level->deallocatePatchData(p_idx);
@@ -258,6 +330,10 @@ main(int argc, char* argv[])
     input_db->printClassData(plog);
     pout << "asm_subdomain_construction_mode = " << asm_mode << "\n";
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
+    pout << "subdomain_box_size = " << box_size << "\n";
+    pout << "subdomain_overlap_size = " << overlap_size << "\n";
+    pout << "coupling_aware_asm_seed_axis = " << seed_axis << "\n";
+    pout << "coupling_aware_asm_seed_stride = " << seed_stride << "\n";
     pout << "n_local_dofs = " << n_local_dofs << "\n";
     pout << "n_subdomains = " << stats.n_subdomains << "\n";
     pout << "overlap_sizes = " << stats.overlap_min << " " << stats.overlap_max << " " << stats.overlap_avg << "\n";
@@ -265,6 +341,25 @@ main(int argc, char* argv[])
          << "\n";
     pout << "overlap_hash = " << stats.overlap_hash << "\n";
     pout << "nonoverlap_hash = " << stats.nonoverlap_hash << "\n";
+    pout << "compare_against_mode = " << (run_comparison ? 1 : 0) << "\n";
+    if (run_comparison)
+    {
+        pout << "compare_asm_subdomain_construction_mode = " << compare_asm_mode << "\n";
+        pout << "compare_coupling_aware_asm_closure_policy = " << compare_closure_policy << "\n";
+        pout << "compare_subdomain_box_size = " << compare_box_size << "\n";
+        pout << "compare_subdomain_overlap_size = " << compare_overlap_size << "\n";
+        pout << "compare_coupling_aware_asm_seed_axis = " << compare_seed_axis << "\n";
+        pout << "compare_coupling_aware_asm_seed_stride = " << compare_seed_stride << "\n";
+        pout << "compare_n_subdomains = " << compare_stats.n_subdomains << "\n";
+        pout << "compare_overlap_sizes = " << compare_stats.overlap_min << " " << compare_stats.overlap_max << " "
+             << compare_stats.overlap_avg << "\n";
+        pout << "compare_nonoverlap_sizes = " << compare_stats.nonoverlap_min << " " << compare_stats.nonoverlap_max
+             << " " << compare_stats.nonoverlap_avg << "\n";
+        pout << "compare_overlap_hash = " << compare_stats.overlap_hash << "\n";
+        pout << "compare_nonoverlap_hash = " << compare_stats.nonoverlap_hash << "\n";
+        pout << "compare_overlap_equal = " << (compare_overlap_equal ? 1 : 0) << "\n";
+        pout << "compare_nonoverlap_equal = " << (compare_nonoverlap_equal ? 1 : 0) << "\n";
+    }
     pout << "test_failures = " << test_failures << "\n";
     return test_failures > 0 ? 1 : 0;
 }
