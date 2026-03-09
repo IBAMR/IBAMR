@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2020 by the IBAMR developers
+## Copyright (c) 2026 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,5 +11,4 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_SUBDIRECTORY(explicit)
-ADD_SUBDIRECTORY(implicit)
+ADD_SUBDIRECTORY(ex0)
