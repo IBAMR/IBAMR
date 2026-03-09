@@ -86,7 +86,7 @@ IBHierarchyIntegrator {
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
-   max_integrator_steps = 20
+   max_integrator_steps = 2
 
    // Setting for implicit integrator
    eliminate_eulerian_vars    = FALSE
@@ -184,7 +184,7 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "output"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
