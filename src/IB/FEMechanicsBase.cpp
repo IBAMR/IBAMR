@@ -897,7 +897,6 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     // During assembly we sum into ghost regions - this only makes sense if we
     // have a ghosted vector.
     int ierr;
-    TBOX_ASSERT(F_rhs_vec.type() == GHOSTED);
     Vec F_rhs_vec_local;
     ierr = VecGhostGetLocalForm(F_rhs_vec.vec(), &F_rhs_vec_local);
     IBTK_CHKERRQ(ierr);
