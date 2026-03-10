@@ -47,6 +47,7 @@
 #include <StandardTagAndInitialize.h>
 #include <mpi.h>
 
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -263,18 +264,29 @@ main(int argc, char** argv)
                     int ierr = VecGetOwnershipRange(petsc_vec, &bounds[0], &bounds[1]);
                     TBOX_ASSERT(ierr == 0);
 
-                    ISLocalToGlobalMapping mapping;
+                    ISLocalToGlobalMapping mapping = nullptr;
                     ierr = VecGetLocalToGlobalMapping(petsc_vec, &mapping);
                     TBOX_ASSERT(ierr == 0);
-                    TBOX_ASSERT(mapping);
-                    PetscInt n;
-                    ierr = ISLocalToGlobalMappingGetSize(mapping, &n);
-                    TBOX_ASSERT(ierr == 0);
-                    const PetscInt* petsc_indices;
-                    ierr = ISLocalToGlobalMappingGetIndices(mapping, &petsc_indices);
-                    TBOX_ASSERT(ierr == 0);
+                    // Work around a PETSc bug where serial Vecs return nullptr
+                    if (mapping)
+                    {
+                        TBOX_ASSERT(mapping);
+                        PetscInt n;
+                        ierr = ISLocalToGlobalMappingGetSize(mapping, &n);
+                        TBOX_ASSERT(ierr == 0);
+                        const PetscInt* petsc_indices;
+                        ierr = ISLocalToGlobalMappingGetIndices(mapping, &petsc_indices);
+                        TBOX_ASSERT(ierr == 0);
 
-                    indices.insert(indices.begin(), petsc_indices, petsc_indices + n);
+                        indices.insert(indices.begin(), petsc_indices, petsc_indices + n);
+                    }
+                    else
+                    {
+                        TBOX_ASSERT(n_nodes == 1);
+                        TBOX_ASSERT(ib_vector->type() == libMesh::SERIAL);
+                        indices.resize(ib_vector->size());
+                        std::iota(indices.begin(), indices.end(), 0);
+                    }
                 }
                 else
                 {
