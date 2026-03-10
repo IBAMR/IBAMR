@@ -17,6 +17,7 @@
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include <string>
@@ -37,6 +38,30 @@ get_shift(int dir, int shift)
     iv(dir) = shift;
     return iv;
 } // get_shift
+
+void
+rdv_to_eigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vector3d& W)
+{
+    U.setZero();
+    W.setZero();
+
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        U[d] = UW[d];
+    }
+
+#if (NDIM == 2)
+    W[2] = UW[2];
+#elif (NDIM == 3)
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        W[d] = UW[3 + d];
+    }
+#endif
+
+    return;
+} // rdv_to_eigen
+
 } // namespace
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
@@ -70,7 +95,7 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
 {
     // If there are no free dofs then we have the case of a complex stationary geometry. Impose Stokes drift velocity in
     // that case. Otherwise impose the rigid body velocity as done in the base class BrinkmanPenalizationMethod.
-    if (d_is_freely_moving)
+    if (0 /*d_is_freely_moving*/)
     {
         BrinkmanPenalizationMethod::computeBrinkmanVelocity(b_idx, time, cycle_num);
     }
@@ -110,6 +135,7 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
             Pointer<SideData<NDIM, double> > Ur = patch->getPatchData(d_U1_real_idx);
             Pointer<SideData<NDIM, double> > Ui = patch->getPatchData(d_U1_imag_idx);
 
+            IBTK::Vector3d U, W, X_com;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
@@ -123,6 +149,7 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
 
                     if (phi <= alpha)
                     {
+                        // Compute the Stokes drift velocity at the side center based on the first-order velocity field.
                         const SideIndex<NDIM> is_e(it(), axis, SideIndex<NDIM>::Upper);
                         const SideIndex<NDIM> is_w(it() + get_shift(axis, -1), axis, SideIndex<NDIM>::Lower);
                         const double g_normal =
@@ -147,9 +174,18 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
                             g_tangential -= 0.25 * ((*Ur)(is_e) + (*Ur)(is_ne) + (*Ur)(is_w) + (*Ur)(is_nw)) *
                                             ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
                         }
-
                         const double stokes_drift = -(g_normal + g_tangential) / (2.0 * d_acoustic_freq);
-                        (*b_data)(is) = stokes_drift * d_penalty_factor * (1.0 - Hphi);
+
+                        // Compute the rigid body velocity at the side center
+                        // V = U + WxR
+                        rdv_to_eigen(d_rigid_vel, U, W);
+                        X_com.setZero();
+                        std::copy(d_X_com.data(), d_X_com.data() + NDIM, X_com.data());
+                        const IBTK::Vector3d R =
+                            IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, is) - X_com;
+                        IBTK::Vector3d solid_velocity = U + W.cross(R);
+
+                        (*b_data)(is) = (stokes_drift + solid_velocity[axis]) * d_penalty_factor * (1.0 - Hphi);
                     }
                 }
             }
