@@ -88,7 +88,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = explicit_ex0$(EXEEXT) explicit_ex1$(EXEEXT) \
-	ib_body_force$(EXEEXT) ib_body_force_kirchhoff$(EXEEXT)
+	implicit_stokes_ib_01$(EXEEXT) ib_body_force$(EXEEXT) \
+	ib_body_force_kirchhoff$(EXEEXT)
 subdir = tests/IB
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -152,6 +153,14 @@ ib_body_force_kirchhoff_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_body_force_kirchhoff_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_implicit_stokes_ib_01_OBJECTS =  \
+	implicit_stokes_ib_01-implicit_stokes_ib_01.$(OBJEXT)
+implicit_stokes_ib_01_OBJECTS = $(am_implicit_stokes_ib_01_OBJECTS)
+implicit_stokes_ib_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+implicit_stokes_ib_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(implicit_stokes_ib_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -170,7 +179,8 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/explicit_ex0-explicit_ex0.Po \
 	./$(DEPDIR)/explicit_ex1-explicit_ex1.Po \
 	./$(DEPDIR)/ib_body_force-ib_body_force.Po \
-	./$(DEPDIR)/ib_body_force_kirchhoff-ib_body_force_kirchhoff.Po
+	./$(DEPDIR)/ib_body_force_kirchhoff-ib_body_force_kirchhoff.Po \
+	./$(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -191,9 +201,11 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(explicit_ex0_SOURCES) $(explicit_ex1_SOURCES) \
-	$(ib_body_force_SOURCES) $(ib_body_force_kirchhoff_SOURCES)
+	$(ib_body_force_SOURCES) $(ib_body_force_kirchhoff_SOURCES) \
+	$(implicit_stokes_ib_01_SOURCES)
 DIST_SOURCES = $(explicit_ex0_SOURCES) $(explicit_ex1_SOURCES) \
-	$(ib_body_force_SOURCES) $(ib_body_force_kirchhoff_SOURCES)
+	$(ib_body_force_SOURCES) $(ib_body_force_kirchhoff_SOURCES) \
+	$(implicit_stokes_ib_01_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -485,6 +497,9 @@ explicit_ex0_SOURCES = explicit_ex0.cpp
 explicit_ex1_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 explicit_ex1_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 explicit_ex1_SOURCES = explicit_ex1.cpp
+implicit_stokes_ib_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+implicit_stokes_ib_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+implicit_stokes_ib_01_SOURCES = implicit_stokes_ib_01.cpp
 ib_body_force_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ib_body_force_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ib_body_force_SOURCES = ib_body_force.cpp
@@ -542,6 +557,10 @@ ib_body_force_kirchhoff$(EXEEXT): $(ib_body_force_kirchhoff_OBJECTS) $(ib_body_f
 	@rm -f ib_body_force_kirchhoff$(EXEEXT)
 	$(AM_V_CXXLD)$(ib_body_force_kirchhoff_LINK) $(ib_body_force_kirchhoff_OBJECTS) $(ib_body_force_kirchhoff_LDADD) $(LIBS)
 
+implicit_stokes_ib_01$(EXEEXT): $(implicit_stokes_ib_01_OBJECTS) $(implicit_stokes_ib_01_DEPENDENCIES) $(EXTRA_implicit_stokes_ib_01_DEPENDENCIES) 
+	@rm -f implicit_stokes_ib_01$(EXEEXT)
+	$(AM_V_CXXLD)$(implicit_stokes_ib_01_LINK) $(implicit_stokes_ib_01_OBJECTS) $(implicit_stokes_ib_01_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -552,6 +571,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex1-explicit_ex1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_body_force-ib_body_force.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_body_force_kirchhoff-ib_body_force_kirchhoff.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -638,6 +658,20 @@ ib_body_force_kirchhoff-ib_body_force_kirchhoff.obj: ib_body_force_kirchhoff.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_body_force_kirchhoff.cpp' object='ib_body_force_kirchhoff-ib_body_force_kirchhoff.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_body_force_kirchhoff_CXXFLAGS) $(CXXFLAGS) -c -o ib_body_force_kirchhoff-ib_body_force_kirchhoff.obj `if test -f 'ib_body_force_kirchhoff.cpp'; then $(CYGPATH_W) 'ib_body_force_kirchhoff.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_body_force_kirchhoff.cpp'; fi`
+
+implicit_stokes_ib_01-implicit_stokes_ib_01.o: implicit_stokes_ib_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(implicit_stokes_ib_01_CXXFLAGS) $(CXXFLAGS) -MT implicit_stokes_ib_01-implicit_stokes_ib_01.o -MD -MP -MF $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Tpo -c -o implicit_stokes_ib_01-implicit_stokes_ib_01.o `test -f 'implicit_stokes_ib_01.cpp' || echo '$(srcdir)/'`implicit_stokes_ib_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Tpo $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='implicit_stokes_ib_01.cpp' object='implicit_stokes_ib_01-implicit_stokes_ib_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(implicit_stokes_ib_01_CXXFLAGS) $(CXXFLAGS) -c -o implicit_stokes_ib_01-implicit_stokes_ib_01.o `test -f 'implicit_stokes_ib_01.cpp' || echo '$(srcdir)/'`implicit_stokes_ib_01.cpp
+
+implicit_stokes_ib_01-implicit_stokes_ib_01.obj: implicit_stokes_ib_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(implicit_stokes_ib_01_CXXFLAGS) $(CXXFLAGS) -MT implicit_stokes_ib_01-implicit_stokes_ib_01.obj -MD -MP -MF $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Tpo -c -o implicit_stokes_ib_01-implicit_stokes_ib_01.obj `if test -f 'implicit_stokes_ib_01.cpp'; then $(CYGPATH_W) 'implicit_stokes_ib_01.cpp'; else $(CYGPATH_W) '$(srcdir)/implicit_stokes_ib_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Tpo $(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='implicit_stokes_ib_01.cpp' object='implicit_stokes_ib_01-implicit_stokes_ib_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(implicit_stokes_ib_01_CXXFLAGS) $(CXXFLAGS) -c -o implicit_stokes_ib_01-implicit_stokes_ib_01.obj `if test -f 'implicit_stokes_ib_01.cpp'; then $(CYGPATH_W) 'implicit_stokes_ib_01.cpp'; else $(CYGPATH_W) '$(srcdir)/implicit_stokes_ib_01.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -774,6 +808,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/explicit_ex1-explicit_ex1.Po
 	-rm -f ./$(DEPDIR)/ib_body_force-ib_body_force.Po
 	-rm -f ./$(DEPDIR)/ib_body_force_kirchhoff-ib_body_force_kirchhoff.Po
+	-rm -f ./$(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -823,6 +858,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/explicit_ex1-explicit_ex1.Po
 	-rm -f ./$(DEPDIR)/ib_body_force-ib_body_force.Po
 	-rm -f ./$(DEPDIR)/ib_body_force_kirchhoff-ib_body_force_kirchhoff.Po
+	-rm -f ./$(DEPDIR)/implicit_stokes_ib_01-implicit_stokes_ib_01.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
