@@ -32,6 +32,19 @@
      (major)*10000 + (minor)*100 + (subminor))
 
 //
+// Some constants
+//
+
+/**
+ * @brief Maximum stack array size.
+ *
+ * In some places the library will attempt to avoid heap allocation in favor of
+ * stack allocation. This constant is the maximum length (independent of type)
+ * of such a stack array.
+ */
+#define IBTK_MAX_STACK_ARRAY_SIZE 32
+
+//
 // Dependency information
 //
 
