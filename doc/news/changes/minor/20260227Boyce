@@ -1,3 +1,0 @@
-Fixed: autotools no-libMesh builds now skip libMesh-only `examples/complex_fluids/ex2` and `examples/complex_fluids/ex4` in `make examples`, avoiding missing libMesh header compile failures while preserving existing behavior when libMesh is enabled.
-<br>
-(Boyce, 2026/02/27)
