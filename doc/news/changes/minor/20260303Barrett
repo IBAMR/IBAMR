@@ -1,4 +1,0 @@
-Fixed: Updated CFINSForcing to allow for mutiple stress tensors to be evolved.
-Updated the logging to prefix the object name to all logged messages.
-<br>
-(Aaron Barrett, 2026/03/03)
