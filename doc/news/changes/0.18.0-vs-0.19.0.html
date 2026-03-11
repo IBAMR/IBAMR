@@ -1,0 +1,54 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: IBAMR no longer stores redundant component output: e.g., for
+INSStaggeredHierarchyIntegrator, the output velocity is stored by just U and not
+also U_x, U_y, and U_z. If you needed to access these values outside of VisIt
+or ParaView for data-processing purposes, then use, e.g., the path
+<tt>/processor.00000/level.00001/patch.00016/U.01</tt>
+instead of
+<tt>/processor.00000/level.00001/patch.00016/U_x</tt>
+to retrieve component output.
+For more information see
+<a href="https://ibamr.github.io/IBAMR-docs/ibamr/group__visualization.html">The
+new visualization module in the manual</a>.
+<br>
+(David Wells, 2026/02/06)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Added RestartCleaner, a utility class that automatically manages
+restart directories to prevent disk space exhaustion in long-running
+simulations. It supports a "keep most recent N" cleanup strategy.
+<br>
+(Meihan Chen, David Wells, 2026/02/20)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Fixed: autotools no-libMesh builds now skip libMesh-only `examples/complex_fluids/ex2` and `examples/complex_fluids/ex4` in `make examples`, avoiding missing libMesh header compile failures while preserving existing behavior when libMesh is enabled.
+<br>
+(Boyce, 2026/02/27)
+</li>
+<li>
+Adopted C++17 clang-format baseline formatting for repository-wide style normalization prior to SAMRAI compatibility migration.
+<br>
+(Boyce Griffith and Codex, 2026/02/27)
+</li>
+<li>
+Adopted angle-bracket include formatting across IBAMR and IBTK sources, headers, examples, and tests, while preserving quoted includes for tests.h and same-directory local headers.
+<br>
+(Boyce Griffith and Codex, 2026/03/02)
+</li>
+<li>
+Fixed: Updated CFINSForcing to allow for mutiple stress tensors to be evolved.
+Updated the logging to prefix the object name to all logged messages.
+<br>
+(Aaron Barrett, 2026/03/03)
+</li>
+</ol>

@@ -1,3 +1,0 @@
-Adopted angle-bracket include formatting across IBAMR and IBTK sources, headers, examples, and tests, while preserving quoted includes for tests.h and same-directory local headers.
-<br>
-(Boyce Griffith and Codex, 2026/03/02)
