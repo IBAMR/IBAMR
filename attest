@@ -12,7 +12,9 @@
 #
 # ---------------------------------------------------------------------
 
-"""Test runner for autotools-based tests.
+"""Test runner which supports special things needed by IBAMR tests (mpi, restart
+files, numdiff).
+
 """
 import argparse
 import ast

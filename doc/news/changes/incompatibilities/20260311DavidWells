@@ -1,0 +1,3 @@
+Removed: IBAMR's autotools-based buildsystem has been removed in favor of cmake.
+<br>
+(David Wells, 2026/03/11)
