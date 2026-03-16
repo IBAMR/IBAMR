@@ -1249,7 +1249,7 @@ private:
     struct IndicesAndShifts
     {
     private:
-        static constexpr std::size_t s_stack_size = 64u;
+        static constexpr std::size_t s_n_nodes = IBTK_MAX_STACK_ARRAY_SIZE;
 
         bool d_use_stack;
 
@@ -1257,9 +1257,19 @@ private:
         SAMRAI::tbox::Array<double> d_dynamic_periodic_shifts;
         SAMRAI::tbox::Array<double> d_dynamic_buffer;
 
-        std::array<int, s_stack_size> d_stack_local_indices;
-        std::array<double, s_stack_size * NDIM> d_stack_periodic_shifts;
-        std::array<double, s_stack_size> d_stack_buffer;
+        std::array<int, s_n_nodes> d_stack_local_indices;
+        std::array<double, s_n_nodes> d_stack_buffer;
+
+        /**
+         * Presently, the periodic shifts are always zero: avoid creating extra
+         * buffers by simply referring to this one in the stack-allocated case
+         * (which contains all zeros). This buffer cannot be const since
+         * d_periodic_shifts is not const (but we assert that it is filled with
+         * zeros).
+         *
+         * @note Since this array is static it is initialized to all zeros.
+         */
+        static std::array<double, s_n_nodes * NDIM> s_stack_periodic_shifts_0;
 
     public:
         /**

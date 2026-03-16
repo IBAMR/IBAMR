@@ -2722,25 +2722,32 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                 interp_fcn);
 }
 
+std::array<double, LEInteractor::IndicesAndShifts::s_n_nodes * NDIM>
+    LEInteractor::IndicesAndShifts::s_stack_periodic_shifts_0;
+
 LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
                                                  const Patch<NDIM>& patch,
                                                  const double* const X_data,
                                                  const int X_size,
                                                  const bool setup_extra_buffer)
-    : d_use_stack(X_size / NDIM < int(s_stack_size)),
+    : d_use_stack(X_size / NDIM <= int(s_n_nodes)),
       d_dynamic_local_indices(d_use_stack ? 0 : X_size / NDIM),
       d_dynamic_periodic_shifts(d_use_stack ? 0 : X_size),
       d_dynamic_buffer(d_use_stack ? 0 : (setup_extra_buffer ? X_size / NDIM : 0)),
       d_local_indices(d_use_stack ? d_stack_local_indices.data() : d_dynamic_local_indices.getPointer(), X_size / NDIM),
-      d_periodic_shifts(d_use_stack ? d_stack_periodic_shifts.data() : d_dynamic_periodic_shifts.getPointer(), X_size),
+      d_periodic_shifts(d_use_stack ? s_stack_periodic_shifts_0.data() : d_dynamic_periodic_shifts.getPointer(),
+                        X_size),
       d_buffer(nullptr, 0)
 {
     if (d_use_stack)
     {
-        d_stack_local_indices.fill(0);
-        d_stack_periodic_shifts.fill(0.0);
-
 #ifndef NDEBUG
+        d_stack_local_indices.fill(std::numeric_limits<int>::max());
+        // Since we use the internal all-zero buffer we don't need to modify the periodic shifts
+        TBOX_ASSERT(std::all_of(s_stack_periodic_shifts_0.begin(),
+                                s_stack_periodic_shifts_0.end(),
+                                [&](const auto& a) { return a == 0.0; }));
+
         if (d_dynamic_buffer.size() == 0)
         {
             d_stack_buffer.fill(std::numeric_limits<double>::signaling_NaN());
@@ -2777,7 +2784,7 @@ LEInteractor::IndicesAndShifts::IndicesAndShifts(const Box<NDIM>& ib_box,
     new (&d_local_indices) Eigen::Map<Eigen::VectorXi>(
         d_use_stack ? d_stack_local_indices.data() : d_dynamic_local_indices.getPointer(), num_local_indices);
     d_periodic_shifts.~Map();
-    new (&d_periodic_shifts) Eigen::Map<Eigen::VectorXd>(d_use_stack ? d_stack_periodic_shifts.data() :
+    new (&d_periodic_shifts) Eigen::Map<Eigen::VectorXd>(d_use_stack ? s_stack_periodic_shifts_0.data() :
                                                                        d_dynamic_periodic_shifts.getPointer(),
                                                          num_local_indices * NDIM);
 
