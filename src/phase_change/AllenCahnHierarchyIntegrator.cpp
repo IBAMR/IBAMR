@@ -93,8 +93,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-// Version of INSHierarchyIntegrator restart file data.
-static const int IEP_HIERARCHY_INTEGRATOR_VERSION = 4;
+// Version of AllenCahnHierarchyIntegrator restart file data.
+static const int AC_PC_HIERARCHY_INTEGRATOR_VERSION = 5;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -1236,7 +1236,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
 void
 AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
-    db->putInteger("IEP_HIERARCHY_INTEGRATOR_VERSION", IEP_HIERARCHY_INTEGRATOR_VERSION);
+    db->putInteger("AC_PC_HIERARCHY_INTEGRATOR_VERSION", AC_PC_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("lf_diffusion_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_lf_diffusion_time_stepping_type));
     db->putString("lf_convective_time_stepping_type",
@@ -1246,7 +1246,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putString("lf_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_lf_convective_difference_form));
     db->putString("lf_convective_op_type", d_lf_convective_op_type);
-    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_input_db");
+    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_db");
 
     db->putDouble("mobility_lf", d_mobility_lf);
     db->putDouble("mixing_energy_density_lf", d_mixing_energy_density_lf);
@@ -1255,7 +1255,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("numerical_diffusion", d_numerical_diffusion);
     db->putString("interpolation_function_profile", d_interpolation_function_profile);
 
-    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
 
@@ -1381,24 +1381,13 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-AllenCahnHierarchyIntegrator::regridHierarchyBeginSpecialized()
+AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
 {
-    PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
-    d_lf_rhs_op->deallocateOperatorState();
-    d_lf_solver->deallocateSolverState();
-
-    d_lf_solver_needs_init = true;
-    d_lf_rhs_op_needs_init = true;
-    d_lf_convective_op_needs_init = true;
-
-    return;
-} // regridHierarchyBeginSpecialized
-
-void
-AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
-{
-    PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
+    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
 
     std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
 
@@ -1420,7 +1409,7 @@ AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_lf_rhs_op_needs_init = true;
     d_lf_convective_op_needs_init = true;
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1509,9 +1498,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 {
                     // Hybrid profile
                     // 3lf and 3-3lf
-                    if (lf <= 0.133048682404023)
+                    const double x_transition1 = 0.133048682404023;
+                    const double x_transition2 = 0.866951317595975;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 3.0 * lf;
-                    else if (lf > 0.133048682404023 && lf <= 0.866951317595975)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 3.0 - 3.0 * lf;
@@ -1519,9 +1510,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_4")
                 {
                     // 4lf and 4-4lf
-                    if (lf <= 0.218078018145755)
+                    const double x_transition1 = 0.218078018145755;
+                    const double x_transition2 = 0.781921981854249;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 4.0 * lf;
-                    else if (lf > 0.218078018145755 && lf <= 0.781921981854249)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 4.0 - 4.0 * lf;
@@ -1529,9 +1522,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_2")
                 {
                     // 2lf and 2-2lf
-                    if (lf <= 0.0785105470229893)
+                    const double x_transition1 = 0.0785105470229893;
+                    const double x_transition2 = 0.921489452977004;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 2.0 * lf;
-                    else if (lf > 0.0785105470229893 && lf <= 0.921489452977004)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 2.0 - 2.0 * lf;
@@ -1539,9 +1534,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_1")
                 {
                     // lf and 1-lf
-                    if (lf <= 0.0358589525337265)
+                    const double x_transition1 = 0.035858952533726;
+                    const double x_transition2 = 0.964141047466262;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = lf;
-                    else if (lf > 0.0358589525337265 && lf <= 0.964141047466262)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 1.0 - lf;
@@ -1549,9 +1546,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_0.5")
                 {
                     // 0.5*lf and 0.5-0.5*lf
-                    if (lf <= 0.017257145471902)
+                    const double x_transition1 = 0.017257145471902;
+                    const double x_transition2 = 0.982742854528096;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 0.5 * lf;
-                    else if (lf > 0.017257145471902 && lf <= 0.982742854528096)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 0.5 - 0.5 * lf;
@@ -1688,8 +1687,8 @@ AllenCahnHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
                                  << " not found in restart file." << std::endl);
     }
-    int ver = db->getInteger("IEP_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != IEP_HIERARCHY_INTEGRATOR_VERSION)
+    int ver = db->getInteger("AC_PC_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != AC_PC_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }

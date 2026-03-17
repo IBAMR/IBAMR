@@ -761,7 +761,7 @@ PhaseChangeHierarchyIntegrator::getVelocityDivergencePatchDataIndex()
 } // getVelocityDivergencePatchDataIndex
 
 void
-PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
+PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>* rho_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -791,8 +791,7 @@ PhaseChangeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFu
 } // registerMassDensitySourceTerm
 
 void
-PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coef)
+PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(RobinBcCoefStrategy<NDIM>* specific_heat_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -802,7 +801,7 @@ PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(
 } // registerSpecificHeatBoundaryConditions
 
 void
-PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& k_bc_coef)
+PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(RobinBcCoefStrategy<NDIM>* k_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -846,26 +845,14 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
 void
-PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
+PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
 {
-    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
-    d_T_rhs_op->deallocateOperatorState();
-    d_T_solver->deallocateSolverState();
-
-    d_T_solver_needs_init = true;
-    d_T_rhs_op_needs_init = true;
-    d_T_convective_op_needs_init = true;
-
-    return;
-} // regridHierarchyBeginSpecialized
-
-void
-PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
-{
-    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized();
+    AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     const int coarsest_hier_level = 0;
@@ -918,7 +905,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
         d_rho_p_integrator->initializeSTSIntegrator(d_hierarchy);
     }
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
