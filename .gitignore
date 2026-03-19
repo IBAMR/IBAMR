@@ -190,3 +190,6 @@ objs-*
 !tests/external-reference/cav-stokes-ib/run_external_reference_single_level.sh
 !tests/external-reference/cav-stokes-ib/reference-tools/generate_single_level_case_01.sh
 !tests/external-reference/cav-stokes-ib/reference-tools/generate_all_cases.sh
+IB.log
+octave-workspace
+output

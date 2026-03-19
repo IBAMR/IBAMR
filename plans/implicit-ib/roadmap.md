@@ -160,7 +160,26 @@ Improve performance of the custom GS-like smoother while preserving intended sol
 3. Re-check behavior against Stokes-only and Stokes+IB reference cases.
 
 ### Status
-- Not started.
+- Reference audit in progress; initial MATLAB reference-code alignment edits applied.
+- Canonical MATLAB reference docs now live in the reference solver repo:
+  - [matlab-reference-audit.md](/Users/boyceg/code/implicit_ib_coupling_aware_vanka/docs/matlab-reference-audit.md)
+  - [matlab-reference-algorithm-contract.md](/Users/boyceg/code/implicit_ib_coupling_aware_vanka/docs/matlab-reference-algorithm-contract.md)
+- Recent low-risk subdomain cache cleanups applied in IBAMR:
+  - local-owner bookkeeping now uses dense vectors over the locally owned DOF range
+  - several build-only ordered sets now use `vector + sort/unique`
+  - closure-cache payloads now use sorted unique `vector<int>` values
+  - sparse-key closure-cache lookup currently uses lazy `unordered_map`
+
+### Deferred follow-up
+1. Evaluate whether coupling-aware subdomain closure caches should move from sparse-key
+   `unordered_map` lookup to a cache-local indexing design with dense vector-backed
+   adjacency/closure storage.
+2. Do not make that redesign yet: first collect profiling or diagnostic evidence that
+   the remaining sparse-key lookup cost is material.
+3. If data supports the redesign, prefer:
+   - explicit cache-local indexing for locally relevant velocity and cell DOFs
+   - dense vector-backed adjacency/closure storage
+   - preserving the existing global-DOF-facing subdomain outputs at the API boundary
 
 ---
 
