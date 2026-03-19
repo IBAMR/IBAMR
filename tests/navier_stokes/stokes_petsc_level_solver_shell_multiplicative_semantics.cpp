@@ -77,7 +77,12 @@ fill_nontrivial_rhs(const Pointer<PatchLevel<NDIM>>& level, const int f_u_idx, c
 }
 
 void
-apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, const double alpha, IS pressure_is)
+apply_matlab_cav_sweep(Vec y,
+                       Vec b,
+                       Mat A,
+                       const std::vector<std::vector<int>>& subdomain_dofs,
+                       const double alpha,
+                       IS pressure_is)
 {
     int ierr = VecZeroEntries(y);
     IBTK_CHKERRQ(ierr);
@@ -85,8 +90,15 @@ apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, c
     ierr = VecDuplicate(y, &r);
     IBTK_CHKERRQ(ierr);
 
-    for (const IS overlap_subdomain : overlap_is)
+    for (const auto& subdomain_dof_list : subdomain_dofs)
     {
+        IS overlap_subdomain = nullptr;
+        ierr = ISCreateGeneral(PETSC_COMM_SELF,
+                               static_cast<PetscInt>(subdomain_dof_list.size()),
+                               subdomain_dof_list.data(),
+                               PETSC_COPY_VALUES,
+                               &overlap_subdomain);
+        IBTK_CHKERRQ(ierr);
         ierr = MatMult(A, y, r);
         IBTK_CHKERRQ(ierr);
         ierr = VecAYPX(r, -1.0, b);
@@ -150,6 +162,8 @@ apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, c
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&r_sub);
         IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&overlap_subdomain);
+        IBTK_CHKERRQ(ierr);
     }
 
     Vec p_sub = nullptr;
@@ -195,7 +209,6 @@ main(int argc, char* argv[])
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
-    const double alpha = test_db->getDoubleWithDefault("shell_pc_relaxation_factor", 1.0);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
 
     int test_failures = 0;
@@ -205,7 +218,7 @@ main(int argc, char* argv[])
     Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(0);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> ctx = var_db->getContext("stokes_petsc_level_solver_cav_shell_semantics_ctx");
+    Pointer<VariableContext> ctx = var_db->getContext("stokes_petsc_level_solver_shell_multiplicative_semantics_ctx");
     Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("semantics_u");
     Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("semantics_p");
     Pointer<SideVariable<NDIM, double>> f_u_var = new SideVariable<NDIM, double>("semantics_f_u");
@@ -254,7 +267,7 @@ main(int argc, char* argv[])
     const auto pressure_name_it = std::find(field_names.begin(), field_names.end(), "pressure");
     if (pressure_name_it == field_names.end())
     {
-        TBOX_ERROR("stokes_petsc_level_solver_cav_shell_semantics: pressure field not found.\n");
+        TBOX_ERROR("stokes_petsc_level_solver_shell_multiplicative_semantics: pressure field not found.\n");
     }
     const std::size_t pressure_idx = static_cast<std::size_t>(std::distance(field_names.begin(), pressure_name_it));
     std::vector<PetscInt> pressure_dofs(field_is[pressure_idx].begin(), field_is[pressure_idx].end());
@@ -269,8 +282,7 @@ main(int argc, char* argv[])
     Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
     solver_db->putString("ksp_type", "preonly");
     solver_db->putString("pc_type", "shell");
-    solver_db->putString("shell_pc_type", "coupling_aware_vanka");
-    solver_db->putDouble("shell_pc_relaxation_factor", alpha);
+    solver_db->putString("shell_pc_type", "multiplicative");
     solver_db->putInteger("max_iterations", 1);
     solver_db->putBool("initial_guess_nonzero", false);
     solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
@@ -279,15 +291,17 @@ main(int argc, char* argv[])
     solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
 
     Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
-        new IBAMR::StaggeredStokesPETScLevelSolver("solver_cav_shell_semantics", solver_db, "stokes_shell_sem_");
+        new IBAMR::StaggeredStokesPETScLevelSolver("solver_shell_multiplicative_semantics",
+                                                   solver_db,
+                                                   "stokes_shell_sem_");
     PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
     problem_coefs.setCConstant(1.0);
     problem_coefs.setDConstant(-1.0);
     solver->setVelocityPoissonSpecifications(problem_coefs);
     solver->initializeSolverState(x_vec, b_vec);
 
-    std::vector<IS>* overlap_is = nullptr;
-    std::vector<IS>* nonoverlap_is = nullptr;
+    std::vector<std::vector<int>>* overlap_is = nullptr;
+    std::vector<std::vector<int>>* nonoverlap_is = nullptr;
     solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
 
     const KSP& petsc_ksp = solver->getPETScKSP();
@@ -312,7 +326,7 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         b_petsc, f_u_idx, u_dof_index_idx, f_p_idx, p_dof_index_idx, level);
 
-    apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, alpha, pressure_is);
+    apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, 1.0, pressure_is);
     const double expected_inf_norm = vec_norm_inf(x_expected);
     if (!(expected_inf_norm > 0.0)) ++test_failures;
 
@@ -351,7 +365,6 @@ main(int argc, char* argv[])
     plog << "Input database:\n";
     input_db->printClassData(plog);
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
-    pout << "shell_pc_relaxation_factor = " << alpha << "\n";
     pout << "expected_inf_norm = " << expected_inf_norm << "\n";
     pout << "actual_inf_norm = " << actual_inf_norm << "\n";
     pout << "error_inf_norm = " << error_inf_norm << "\n";

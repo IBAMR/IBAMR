@@ -5,7 +5,6 @@ test {
    coupling_aware_asm_closure_policy = "STRICT"
    coupling_aware_asm_seed_axis = 0
    coupling_aware_asm_seed_stride = 1
-   shell_pc_relaxation_factor = 1.0
    parity_tol = 1.0e-10
 }
 Main {
