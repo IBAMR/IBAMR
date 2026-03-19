@@ -70,6 +70,7 @@ struct StructureSpec
     double y_radius = 0.2;
     double spring_stiffness = 2.0e2;
     int finest_ln = 0;
+    bool use_theta_spacing = false;
 };
 
 void
@@ -197,6 +198,7 @@ main(int argc, char* argv[])
         structure_spec.x_radius = input_db->getDoubleWithDefault("X_RADIUS", 0.2);
         structure_spec.y_radius = input_db->getDoubleWithDefault("Y_RADIUS", 0.2);
         structure_spec.spring_stiffness = input_db->getDoubleWithDefault("SPRING_STIFFNESS", 2.0e2);
+        structure_spec.use_theta_spacing = input_db->getBoolWithDefault("USE_THETA_SPACING_FOR_STRUCTURE", false);
         if (!(structure_spec.ds > 0.0)) TBOX_ERROR("DS must be positive\n");
         if (!(structure_spec.x_radius > 0.0) || !(structure_spec.y_radius > 0.0))
         {
@@ -208,7 +210,15 @@ main(int argc, char* argv[])
         const double h = std::pow((a - b) / (a + b), 2.0);
         const double circumference =
             M_PI * (a + b) * (1.0 + 3.0 * h / (10.0 + std::sqrt(std::max(0.0, 4.0 - 3.0 * h))));
-        structure_spec.num_curve_points = std::max(3, static_cast<int>(circumference / structure_spec.ds));
+        if (structure_spec.use_theta_spacing)
+        {
+            structure_spec.num_curve_points =
+                std::max(3, static_cast<int>(std::llround((2.0 * M_PI) / structure_spec.ds)));
+        }
+        else
+        {
+            structure_spec.num_curve_points = std::max(3, static_cast<int>(circumference / structure_spec.ds));
+        }
 
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         ib_method_ops->setUseFixedLEOperators(true);
@@ -277,7 +287,7 @@ main(int argc, char* argv[])
         const int u_scratch_idx = var_db->registerVariableAndContext(u_var, scratch_ctx, ib_ghosts);
         const int f_scratch_idx = var_db->registerVariableAndContext(f_var, scratch_ctx, ib_ghosts);
         const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, scratch_ctx, ib_ghosts);
-        const int p_dof_index_idx = var_db->registerVariableAndContext(p_dof_index_var, scratch_ctx, no_ghosts);
+        const int p_dof_index_idx = var_db->registerVariableAndContext(p_dof_index_var, scratch_ctx, one_ghost);
 
         const std::vector<int> allocated_patch_data_indices = {
             u_current_idx, u_scratch_idx, f_scratch_idx, u_dof_index_idx, p_dof_index_idx
@@ -324,6 +334,7 @@ main(int argc, char* argv[])
 
         ib_method_ops->preprocessIntegrateData(current_time, new_time, 1);
         ib_method_ops->updateFixedLEOperators();
+        ib_method_ops->computeLagrangianForce(new_time);
 
         std::vector<std::vector<int>> num_dofs_per_proc(finest_ln + 1);
         for (int ln = 0; ln <= finest_ln; ++ln)

@@ -74,15 +74,12 @@ StaggeredStokesIBJacobianOperator::setOperatorContext(const StaggeredStokesIBOpe
 void
 StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat& SAJ_mat)
 {
-    if (d_SAJ_mat)
-    {
-        PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
-        IBTK_CHKERRQ(ierr);
-    }
+    PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
+    IBTK_CHKERRQ(ierr);
     d_SAJ_mat = SAJ_mat;
     if (d_SAJ_mat)
     {
-        PetscErrorCode ierr = PetscObjectReference(reinterpret_cast<PetscObject>(d_SAJ_mat));
+        ierr = PetscObjectReference(reinterpret_cast<PetscObject>(d_SAJ_mat));
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -339,21 +336,12 @@ StaggeredStokesIBJacobianOperator::deallocateOperatorState()
         d_base_vector.setNull();
     }
     if (d_ctx.stokes_op) d_ctx.stokes_op->deallocateOperatorState();
-    if (d_input_vec)
-    {
-        PetscErrorCode ierr = VecDestroy(&d_input_vec);
-        IBTK_CHKERRQ(ierr);
-    }
-    if (d_output_vec)
-    {
-        PetscErrorCode ierr = VecDestroy(&d_output_vec);
-        IBTK_CHKERRQ(ierr);
-    }
-    if (d_SAJ_mat)
-    {
-        PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
-        IBTK_CHKERRQ(ierr);
-    }
+    PetscErrorCode ierr = VecDestroy(&d_input_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&d_output_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_SAJ_mat);
+    IBTK_CHKERRQ(ierr);
     JacobianOperator::deallocateOperatorState();
     return;
 } // deallocateOperatorState
