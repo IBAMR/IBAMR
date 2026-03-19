@@ -1,0 +1,70 @@
+MAX_LEVELS = 2
+REF_RATIO = 2
+N = 16
+L = 1.0
+START_TIME = 0.0
+DT = 0.03125
+NUM_CYCLES = 1
+TAG_BUFFER = 2
+PARITY_TOL = 1.0e-12
+DS = 0.125
+X_CENTER = 0.5
+Y_CENTER = 0.5
+X_RADIUS = 0.23
+Y_RADIUS = 0.2717391304347826
+SPRING_STIFFNESS = 1.0e2
+IBMethod {
+   delta_fcn = "IB_4"
+}
+IBRedundantInitializer {
+   max_levels = MAX_LEVELS
+   base_filenames_0 = "x"
+   base_filenames_1 = "x"
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_dump_interval = 0
+   viz_dump_dirname = "viz"
+   restart_dump_interval = 0
+   restart_dump_dirname = "restart"
+   data_dump_interval = 0
+   data_dump_dirname = "hier_data"
+   timer_dump_interval = 0
+}
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1, N - 1) ]
+   x_lo = 0.0, 0.0
+   x_up = L, L
+   periodic_dimension = 1, 1
+}
+RR = REF_RATIO
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = RR, RR
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+      level_1 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 8, 8
+      level_1 = 8, 8
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency = 0.85
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N - 1)]
+   }
+}
+LoadBalancer {
+   processor_mapping = "SFC"
+   max_workload_factor = 1.0
+   workload_patch_data_index = -1
+   workload_tolerance = 0.0
+   bin_pack_method = "SPATIAL"
+}

@@ -13,7 +13,7 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = explicit
+SUBDIRS = explicit implicit
 
 COMPLETE_EXAMPLES = $(SUBDIRS)
 INCOMPLETE_EXAMPLES =
@@ -22,6 +22,5 @@ examples: $(COMPLETE_EXAMPLES)
 
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
-
 
 

@@ -30,9 +30,9 @@
 #include <IntVector.h>
 #include <PoissonSpecifications.h>
 
-#include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace SAMRAI
@@ -67,10 +67,24 @@ public:
      */
     struct PatchLevelCellClosureMapData
     {
-        std::map<int, std::set<int>> velocity_dof_to_adjacent_cell_dofs;
-        std::map<int, std::set<int>> cell_dof_to_closure_dofs;
-        std::map<int, int> velocity_dof_to_component_axis;
-        std::map<int, std::set<int>> velocity_dof_to_paired_seed_velocity_dofs;
+        std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs;
+        std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs;
+        std::unordered_map<int, int> velocity_dof_to_component_axis;
+        std::unordered_map<int, std::vector<int>> velocity_dof_to_paired_seed_velocity_dofs;
+        bool velocity_maps_are_built = false;
+        bool cell_closure_map_is_built = false;
+        bool velocity_seed_pair_map_is_built = false;
+
+        void clear()
+        {
+            velocity_dof_to_adjacent_cell_dofs.clear();
+            cell_dof_to_closure_dofs.clear();
+            velocity_dof_to_component_axis.clear();
+            velocity_dof_to_paired_seed_velocity_dofs.clear();
+            velocity_maps_are_built = false;
+            cell_closure_map_is_built = false;
+            velocity_seed_pair_map_is_built = false;
+        }
     };
 
     /*!
@@ -118,14 +132,54 @@ public:
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
+     * \brief Ensure the cached velocity adjacency and component-axis maps are built.
+     */
+    static void
+    ensurePatchLevelVelocityMapDataIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                           int u_dof_index_idx,
+                                           int p_dof_index_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Ensure the cached cell-closure map is built.
+     */
+    static void
+    ensurePatchLevelCellClosureMapIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                          int u_dof_index_idx,
+                                          int p_dof_index_idx,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Ensure the cached STRICT seed-pair map is built.
+     */
+    static void
+    ensurePatchLevelVelocitySeedPairMapIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                               int u_dof_index_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Compute the ordered seed velocity DOFs used by coupling-aware ASM.
+     */
+    static void
+    computePatchLevelCouplingAwareASMSeedVelocityDofs(
+        std::vector<int>& seed_velocity_dofs,
+        int u_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        const PatchLevelCellClosureMapData& map_data,
+        int seed_velocity_axis = 0,
+        int seed_velocity_stride = 1);
+
+    /*!
      * \brief Determine involved cells from A00 row sparsity and seed velocity
      * DOFs.
      */
-    static void findCoupledCellDofsFromA00(std::set<int>& involved_cell_dofs,
-                                           Mat A00_mat,
-                                           const std::set<int>& seed_velocity_dofs,
-                                           const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                           const std::map<int, std::set<int>>& cell_dof_to_closure_dofs);
+    static void
+    findCoupledCellDofsFromA00(std::set<int>& involved_cell_dofs,
+                               Mat A00_mat,
+                               const std::set<int>& seed_velocity_dofs,
+                               const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                               const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+                               double relative_numerical_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL);
 
     /*!
      * \brief Construct coupling-aware ASM subdomains from A00 sparsity.
@@ -146,7 +200,8 @@ public:
         const PatchLevelCellClosureMapData& map_data,
         int seed_velocity_axis = 0,
         int seed_velocity_stride = 1,
-        CouplingAwareASMClosurePolicy closure_policy = CouplingAwareASMClosurePolicy::RELAXED);
+        CouplingAwareASMClosurePolicy closure_policy = CouplingAwareASMClosurePolicy::RELAXED,
+        double relative_numerical_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL);
 
     /*!
      * \brief Extract the velocity-velocity block from a full A00 matrix using

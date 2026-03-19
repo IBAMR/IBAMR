@@ -351,8 +351,8 @@ StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(co
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         if (d_level_solvers[ln]) d_level_solvers[ln]->deallocateSolverState();
-        d_patch_side_bc_box_overlap[ln].resize(0);
-        d_patch_cell_bc_box_overlap[ln].resize(0);
+        d_patch_side_bc_box_overlap[ln].clear();
+        d_patch_cell_bc_box_overlap[ln].clear();
     }
     return;
 } // deallocateOperatorStateSpecialized

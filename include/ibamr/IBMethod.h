@@ -584,6 +584,7 @@ protected:
     double d_current_time = std::numeric_limits<double>::quiet_NaN(),
            d_new_time = std::numeric_limits<double>::quiet_NaN(),
            d_half_time = std::numeric_limits<double>::quiet_NaN();
+    double d_solverless_start_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Boolean values tracking whether certain quantities need to be

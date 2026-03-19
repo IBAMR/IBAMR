@@ -29,11 +29,17 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#include <Eigen/Sparse>
+
 #include <CoarseFineBoundary.h>
 #include <IntVector.h>
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -104,9 +110,15 @@ public:
     const KSP& getPETScKSP() const;
 
     /*!
-     * \brief Get ASM subdomains.
+     * \brief Get the stored ASM-like subdomain description.
+     *
+     * The returned \p subdomain_dofs define the overlapping subdomains used by
+     * ASM-like methods. The returned \p nonoverlap_subdomain_dofs define
+     * nonoverlapping subsets of those subdomains whose union covers the local
+     * domain.
      */
-    void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
+    void getASMSubdomains(std::vector<std::vector<int>>** nonoverlap_subdomain_dofs,
+                          std::vector<std::vector<int>>** subdomain_dofs);
 
     /*!
      * \name Linear solver functionality.
@@ -229,10 +241,17 @@ protected:
     void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomains and nonoverlapping partition subsets
+     * for ASM-like preconditioners.
+     *
+     * The \p subdomain_dofs argument stores the actual overlapping subdomains.
+     * The \p nonoverlap_subdomain_dofs argument stores nonoverlapping subsets
+     * of those subdomains whose union covers the local domain. Set-like input
+     * containers keep construction simple for callers; this class normalizes
+     * them into sorted vectors before storing or materializing PETSc objects.
      */
-    virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
-                                       std::vector<std::set<int>>& nonoverlap_is);
+    virtual void generateASMSubdomains(std::vector<std::set<int>>& subdomain_dofs,
+                                       std::vector<std::set<int>>& nonoverlap_subdomain_dofs);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -273,6 +292,22 @@ protected:
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
+     * \brief Optional postprocess hook for shell smoothers.
+     *
+     * Subclasses may override this method to apply problem-specific postprocess
+     * operations after shell preconditioner application.
+     */
+    virtual void postprocessShellResult(Vec& /*y*/);
+
+    /*!
+     * \brief Copy a PETSc matrix into an Eigen sparse matrix.
+     *
+     * Subclasses can use this helper when experimenting with alternative
+     * Eigen-based local solvers built from PETSc-owned operators.
+     */
+    static Eigen::SparseMatrix<double, Eigen::RowMajor> copyPETScMatToEigenSparse(Mat mat);
+
+    /*!
      * \brief Setup the solver nullspace (if any).
      */
     virtual void setupNullSpace();
@@ -302,22 +337,8 @@ protected:
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
-    MatNullSpace d_petsc_nullsp;
+    MatNullSpace d_petsc_nullsp = nullptr;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
-    //\}
-
-    /*!
-     * \name Support for additive and multiplicative Schwarz preconditioners.
-     */
-    //\{
-    Vec d_local_x, d_local_y;
-    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    int d_n_local_subdomains, d_n_subdomains_max;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
-    std::vector<VecScatter> d_restriction, d_prolongation;
-    std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
-    std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
     /*!
@@ -328,7 +349,206 @@ protected:
     std::vector<IS> d_field_is;
     //\}
 
+    /*!
+     * \brief Overlapping subdomains and nonoverlapping partition subsets used
+     * by ASM-like preconditioners.
+     *
+     * The overlapping subdomains define the subdomain solves. The partition
+     * subsets define nonoverlapping subsets of those subdomains whose union
+     * covers the local domain.
+     */
+    std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
+
+    /*!
+     * \brief PETSc index-set caches derived from \ref d_subdomain_dofs and
+     * \ref d_nonoverlap_subdomain_dofs when PETSc needs explicit IS objects.
+     */
+    std::vector<IS> d_petsc_subdomain_is, d_petsc_nonoverlap_subdomain_is;
+
 private:
+    enum class PreconditionerType
+    {
+        OTHER,
+        ASM,
+        FIELDSPLIT,
+        SHELL
+    };
+
+    enum class ShellSmootherComposition
+    {
+        ADDITIVE,
+        MULTIPLICATIVE
+    };
+
+    enum class ShellSmootherBackend
+    {
+        PETSC,
+        EIGEN
+    };
+
+    enum class ShellSmootherPartition
+    {
+        BASIC,
+        RESTRICT
+    };
+
+    struct PetscShellSmootherData
+    {
+        Vec shell_r = nullptr;
+        InsertMode prolongation_insert_mode = INSERT_VALUES;
+        IS owned_residual_update_rows_is = nullptr;
+        std::vector<IS> local_overlap_is, local_nonoverlap_is;
+        std::vector<VecScatter> restriction, prolongation;
+        std::vector<KSP> sub_ksp;
+        Mat *sub_mat = nullptr, *active_residual_update_mat = nullptr;
+        std::vector<Vec> sub_x, sub_y, active_residual_update_x, active_residual_update_y;
+        std::vector<std::vector<int>> active_update_local_positions;
+    };
+
+    struct EigenSubdomainSolverCache
+    {
+        std::vector<int> overlap_dofs;
+        std::vector<int> nonoverlap_dofs;
+        std::vector<int> nonoverlap_local_positions;
+        std::vector<int> update_dofs;
+        std::vector<int> update_local_positions;
+        std::vector<int> active_residual_update_rows;
+        Eigen::SparseMatrix<double, Eigen::RowMajor> active_residual_update_mat;
+        std::unique_ptr<Eigen::JacobiSVD<Eigen::MatrixXd>> svd;
+    };
+
+    struct EigenShellSmootherData
+    {
+        Eigen::SparseMatrix<double, Eigen::RowMajor> eigen_level_mat;
+        std::vector<EigenSubdomainSolverCache> eigen_subdomains;
+    };
+
+    struct ShellSmootherData
+    {
+        int n_local_subdomains = 0;
+        std::unique_ptr<PetscShellSmootherData> petsc_data;
+        std::unique_ptr<EigenShellSmootherData> eigen_data;
+    };
+
+    /*!
+     * \brief Parse the configured shell smoother string into backend,
+     * composition, and partition settings.
+     */
+    void configureShellSmootherType();
+
+    std::string normalizeShellSmootherType(const std::string& type) const;
+    PreconditionerType parsePreconditionerType(const std::string& type) const;
+    ShellSmootherBackend parseShellSmootherBackend(const std::string& type) const;
+    ShellSmootherComposition parseShellSmootherComposition(const std::string& type) const;
+    ShellSmootherPartition parseShellSmootherPartition(const std::string& type,
+                                                       ShellSmootherComposition composition) const;
+
+    /*!
+     * \brief Cache set-like subdomain descriptions in the stored vector form.
+     */
+    void cacheASMSubdomains(const std::vector<std::set<int>>& subdomain_dofs,
+                            const std::vector<std::set<int>>& nonoverlap_subdomain_dofs);
+
+    /*!
+     * \brief Generate and cache the stored ASM-like subdomain description.
+     */
+    void cacheGeneratedASMSubdomains();
+
+    /*!
+     * \brief Configure a PETSc ASM preconditioner from the cached subdomain
+     * description.
+     */
+    void configureASMPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Configure a PETSc fieldsplit preconditioner.
+     */
+    void configureFieldSplitPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Configure a shell preconditioner from the cached subdomain
+     * description.
+     */
+    void configureShellPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Initialize PETSc data shared by additive and multiplicative shell
+     * smoothers.
+     */
+    void initializePetscShellData();
+
+    /*!
+     * \brief Deallocate PETSc data shared by additive and multiplicative shell
+     * smoothers.
+     */
+    void deallocatePetscShellData();
+
+    /*!
+     * \brief Initialize Eigen data shared by additive and multiplicative shell
+     * smoothers.
+     */
+    void initializeEigenShellData();
+
+    /*!
+     * \brief Deallocate Eigen data shared by additive and multiplicative shell
+     * smoothers.
+     */
+    void deallocateEigenShellData();
+
+    /*!
+     * \brief Deallocate shell smoother data.
+     */
+    void deallocateShellData();
+
+    /*!
+     * \brief Configure the shell apply callback.
+     */
+    void configureShellApply(PC ksp_pc);
+
+    /*!
+     * \brief Begin accumulating a PETSc subdomain correction using the
+     * configured partition mode.
+     */
+    void beginAccumulateCorrectionPetsc(int subdomain_num, Vec sub_y, Vec y);
+
+    /*!
+     * \brief Finish accumulating a PETSc subdomain correction using the
+     * configured partition mode.
+     */
+    void endAccumulateCorrectionPetsc(int subdomain_num, Vec sub_y, Vec y);
+
+    /*!
+     * \brief Accumulate a PETSc subdomain correction using the configured
+     * partition mode.
+     */
+    void accumulateCorrectionPetsc(int subdomain_num, Vec sub_y, Vec y);
+
+    /*!
+     * \brief Apply the PETSc-based additive shell preconditioner.
+     */
+    void applyAdditivePetsc(Vec x, Vec y);
+
+    /*!
+     * \brief Apply the PETSc-based multiplicative shell preconditioner.
+     */
+    void applyMultiplicativePetsc(Vec x, Vec y);
+
+    /*!
+     * \brief Update the cached PETSc shell residual after one multiplicative
+     * subdomain correction.
+     */
+    void updateResidualPetsc(int subdomain_num, Vec sub_y, Vec residual);
+
+    /*!
+     * \brief Apply the Eigen-based additive shell preconditioner.
+     */
+    void applyAdditiveEigen(Vec x, Vec y);
+
+    /*!
+     * \brief Apply the Eigen-based multiplicative shell preconditioner.
+     */
+    void applyMultiplicativeEigen(Vec x, Vec y);
+
     /*!
      * \brief Copy constructor.
      *
@@ -352,17 +572,28 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_AdditivePetsc(PC pc, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_MultiplicativePetsc(PC pc, Vec x, Vec y);
 
     /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     * \brief Apply the Eigen-based additive shell preconditioner.
      */
-    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_AdditiveEigen(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the Eigen-based multiplicative shell preconditioner.
+     */
+    static PetscErrorCode PCApply_MultiplicativeEigen(PC pc, Vec x, Vec y);
+
+    PreconditionerType d_preconditioner_type = PreconditionerType::OTHER;
+    ShellSmootherComposition d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+    ShellSmootherBackend d_shell_smoother_backend = ShellSmootherBackend::PETSC;
+    ShellSmootherPartition d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+    ShellSmootherData d_shell_data;
 };
 } // namespace IBTK
 

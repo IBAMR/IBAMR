@@ -31,6 +31,10 @@
     ((IBTK_VERSION_MAJOR * 10000 + IBTK_VERSION_MINOR * 100 + IBTK_VERSION_SUBMINOR) >= \
      (major)*10000 + (minor)*100 + (subminor))
 
+// Relative tolerance used when dropping matrix entries that are numerically
+// zero compared to the largest entry in a row.
+#define IBTK_RELATIVE_NUMERICAL_ZERO_TOL 1.0e-14
+
 //
 // Dependency information
 //

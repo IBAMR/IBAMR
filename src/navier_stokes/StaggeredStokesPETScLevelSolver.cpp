@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
-#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
@@ -22,14 +21,12 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
-#include <ibtk/PETScLevelSolver.h>
 #include <ibtk/PoissonUtilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
-#include <petsclog.h>
 #include <petscvec.h>
 
 #include <BoundaryBox.h>
@@ -37,16 +34,12 @@
 #include <CellVariable.h>
 #include <CoarseFineBoundary.h>
 #include <IntVector.h>
-#include <MultiblockDataTranslator.h>
 #include <Patch.h>
 #include <PatchGeometry.h>
-#include <PatchHierarchy.h>
 #include <PatchLevel.h>
-#include <RefineSchedule.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
 #include <SideVariable.h>
-#include <Variable.h>
 #include <VariableContext.h>
 #include <VariableDatabase.h>
 
@@ -78,6 +71,14 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
+    if (input_db && input_db->keyExists("subdomain_box_size"))
+    {
+        input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
+    }
+    if (input_db && input_db->keyExists("subdomain_overlap_size"))
+    {
+        input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
+    }
     if (input_db && input_db->keyExists("asm_subdomain_construction_mode"))
     {
         const std::string mode = input_db->getString("asm_subdomain_construction_mode");
@@ -122,11 +123,14 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                        << enum_to_string(CouplingAwareASMClosurePolicy::STRICT) << ".\n");
         }
     }
+    if (input_db && input_db->keyExists("coupling_aware_asm_relative_zero_tol"))
+    {
+        d_coupling_aware_asm_relative_zero_tol = input_db->getDouble("coupling_aware_asm_relative_zero_tol");
+    }
     if (input_db && input_db->keyExists("log_ASM_subdomains"))
     {
         d_log_asm_subdomains = input_db->getBool("log_ASM_subdomains");
     }
-
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -176,12 +180,37 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
     return;
 } // ~StaggeredStokesPETScLevelSolver
 
+const std::vector<PetscInt>&
+StaggeredStokesPETScLevelSolver::getCachedVelocityDOFs() const
+{
+    return d_velocity_dofs;
+}
+
+const std::vector<PetscInt>&
+StaggeredStokesPETScLevelSolver::getCachedPressureDOFs() const
+{
+    return d_pressure_dofs;
+}
+
+const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData&
+StaggeredStokesPETScLevelSolver::getCouplingAwareASMMapData() const
+{
+    return d_coupling_aware_asm_map_data;
+}
+
+const std::vector<int>&
+StaggeredStokesPETScLevelSolver::getCouplingAwareASMSeedVelocityDOFs() const
+{
+    return d_coupling_aware_asm_seed_velocity_dofs;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                                        std::vector<std::set<int>>& nonoverlap_is)
 {
+    d_coupling_aware_asm_seed_velocity_dofs.clear();
     switch (d_asm_subdomain_construction_mode)
     {
     case ASMSubdomainConstructionMode::GEOMETRICAL:
@@ -202,10 +231,19 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
             TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
                        << "  level matrix is not initialized for coupling-aware ASM subdomains.\n");
         }
-        if (!d_coupling_aware_asm_map_data_is_initialized)
+        StaggeredStokesPETScMatUtilities::ensurePatchLevelCellClosureMapIsBuilt(
+            d_coupling_aware_asm_map_data, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs(
+            d_coupling_aware_asm_seed_velocity_dofs,
+            d_u_dof_index_idx,
+            d_level,
+            d_coupling_aware_asm_map_data,
+            d_coupling_aware_asm_seed_axis,
+            d_coupling_aware_asm_seed_stride);
+        if (d_coupling_aware_asm_closure_policy == CouplingAwareASMClosurePolicy::STRICT)
         {
-            TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
-                       << "  coupling-aware ASM map data is not initialized.\n");
+            StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt(
+                d_coupling_aware_asm_map_data, d_u_dof_index_idx, d_level);
         }
         Mat A00_velocity_mat = nullptr;
         StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(
@@ -221,7 +259,8 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
             d_coupling_aware_asm_map_data,
             d_coupling_aware_asm_seed_axis,
             d_coupling_aware_asm_seed_stride,
-            d_coupling_aware_asm_closure_policy);
+            d_coupling_aware_asm_closure_policy,
+            d_coupling_aware_asm_relative_zero_tol);
         int ierr = MatDestroy(&A00_velocity_mat);
         IBTK_CHKERRQ(ierr);
         break;
@@ -283,24 +322,142 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
-                                                                     d_U_problem_coefs,
-                                                                     d_U_bc_coefs,
-                                                                     d_new_time,
-                                                                     d_num_dofs_per_proc,
-                                                                     d_u_dof_index_idx,
-                                                                     d_p_dof_index_idx,
-                                                                     d_level);
-    d_petsc_pc = d_petsc_mat;
-    d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
-    d_coupling_aware_asm_map_data_is_initialized = false;
-    if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    if (d_operator_mat)
     {
-        StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
-            d_coupling_aware_asm_map_data, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
-        d_coupling_aware_asm_map_data_is_initialized = true;
+        ierr = MatDuplicate(d_operator_mat, MAT_COPY_VALUES, &d_petsc_mat);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                         d_U_problem_coefs,
+                                                                         d_U_bc_coefs,
+                                                                         d_new_time,
+                                                                         d_num_dofs_per_proc,
+                                                                         d_u_dof_index_idx,
+                                                                         d_p_dof_index_idx,
+                                                                         d_level);
     }
 
+    std::vector<std::set<int>> field_is;
+    std::vector<std::string> field_names;
+    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+        field_is, field_names, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+    const auto get_field_dofs = [&field_is, &field_names](const std::string& field_name)
+    {
+        const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
+        if (field_name_it == field_names.end())
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized():\n"
+                       << "  unable to locate " << field_name << " field DOFs.\n");
+        }
+        const std::size_t field_idx = static_cast<std::size_t>(std::distance(field_names.begin(), field_name_it));
+        return std::vector<PetscInt>(field_is[field_idx].begin(), field_is[field_idx].end());
+    };
+    d_velocity_dofs = get_field_dofs("velocity");
+    d_pressure_dofs = get_field_dofs("pressure");
+
+    if (d_augmented_operator_mat)
+    {
+        PetscInt full_m = 0, full_n = 0, aug_m = 0, aug_n = 0;
+        ierr = MatGetSize(d_petsc_mat, &full_m, &full_n);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatGetSize(d_augmented_operator_mat, &aug_m, &aug_n);
+        IBTK_CHKERRQ(ierr);
+
+        if (aug_m == full_m && aug_n == full_n)
+        {
+            ierr = MatAXPY(d_petsc_mat, 1.0, d_augmented_operator_mat, DIFFERENT_NONZERO_PATTERN);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            IS velocity_is = nullptr, velocity_is_all = nullptr;
+            ierr = ISCreateGeneral(PETSC_COMM_WORLD,
+                                   static_cast<PetscInt>(d_velocity_dofs.size()),
+                                   d_velocity_dofs.empty() ? nullptr : d_velocity_dofs.data(),
+                                   PETSC_COPY_VALUES,
+                                   &velocity_is);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISAllGather(velocity_is, &velocity_is_all);
+            IBTK_CHKERRQ(ierr);
+
+            PetscInt n_velocity_global = 0;
+            ierr = ISGetSize(velocity_is_all, &n_velocity_global);
+            IBTK_CHKERRQ(ierr);
+            if (aug_m != n_velocity_global || aug_n != n_velocity_global)
+            {
+                ierr = ISDestroy(&velocity_is_all);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISDestroy(&velocity_is);
+                IBTK_CHKERRQ(ierr);
+                TBOX_ERROR("StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized():\n"
+                           << "  augmented operator has incompatible size: (" << aug_m << " x " << aug_n << ").\n"
+                           << "  expected either full operator size (" << full_m << " x " << full_n
+                           << ") or velocity block size (" << n_velocity_global << " x " << n_velocity_global
+                           << ").\n");
+            }
+
+            const PetscInt* velocity_global_ids = nullptr;
+            ierr = ISGetIndices(velocity_is_all, &velocity_global_ids);
+            IBTK_CHKERRQ(ierr);
+
+            PetscInt row_start = 0, row_end = 0;
+            ierr = MatGetOwnershipRange(d_augmented_operator_mat, &row_start, &row_end);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetOption(d_petsc_mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+            IBTK_CHKERRQ(ierr);
+            std::vector<PetscInt> mapped_cols;
+            for (PetscInt row = row_start; row < row_end; ++row)
+            {
+                PetscInt ncols = 0;
+                const PetscInt* cols = nullptr;
+                const PetscScalar* vals = nullptr;
+                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+                if (row < 0 || row >= n_velocity_global)
+                {
+                    ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                    IBTK_CHKERRQ(ierr);
+                    TBOX_ERROR("StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized():\n"
+                               << "  augmented velocity-block row index " << row << " is outside [0, "
+                               << n_velocity_global - 1 << "].\n");
+                }
+                mapped_cols.resize(static_cast<std::size_t>(ncols));
+                for (PetscInt k = 0; k < ncols; ++k)
+                {
+                    if (cols[k] < 0 || cols[k] >= n_velocity_global)
+                    {
+                        ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                        IBTK_CHKERRQ(ierr);
+                        TBOX_ERROR("StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized():\n"
+                                   << "  augmented velocity-block column index " << cols[k] << " is outside [0, "
+                                   << n_velocity_global - 1 << "] for row " << row << ".\n");
+                    }
+                    mapped_cols[static_cast<std::size_t>(k)] = velocity_global_ids[cols[k]];
+                }
+                const PetscInt full_row = velocity_global_ids[row];
+                ierr = MatSetValues(d_petsc_mat, 1, &full_row, ncols, mapped_cols.data(), vals, ADD_VALUES);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(d_petsc_mat, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(d_petsc_mat, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+
+            ierr = ISRestoreIndices(velocity_is_all, &velocity_global_ids);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&velocity_is_all);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&velocity_is);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    d_petsc_pc = d_petsc_mat;
+    d_coupling_aware_asm_map_data.clear();
+    d_coupling_aware_asm_seed_velocity_dofs.clear();
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
@@ -355,8 +512,10 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
-    d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
-    d_coupling_aware_asm_map_data_is_initialized = false;
+    d_coupling_aware_asm_map_data.clear();
+    d_coupling_aware_asm_seed_velocity_dofs.clear();
+    d_velocity_dofs.clear();
+    d_pressure_dofs.clear();
     return;
 } // deallocateSolverStateSpecialized
 
@@ -434,6 +593,61 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     copyToPETScVec(petsc_b, b);
     return;
 } // setupKSPVecs
+
+void
+StaggeredStokesPETScLevelSolver::postprocessShellResult(Vec& y)
+{
+    if ((d_shell_pc_type != "multiplicative" && d_shell_pc_type != "multiplicative-eigen") || d_pressure_dofs.empty())
+        return;
+
+    int ierr;
+    PetscInt n_lo = 0, n_hi = 0;
+    ierr = VecGetOwnershipRange(y, &n_lo, &n_hi);
+    IBTK_CHKERRQ(ierr);
+
+    PetscScalar* y_arr = nullptr;
+    ierr = VecGetArray(y, &y_arr);
+    IBTK_CHKERRQ(ierr);
+
+    double local_sum = 0.0;
+    int local_count = 0;
+    for (const PetscInt dof : d_pressure_dofs)
+    {
+        if (dof < n_lo || dof >= n_hi) continue;
+        const PetscInt local_idx = dof - n_lo;
+        local_sum += PetscRealPart(y_arr[local_idx]);
+        ++local_count;
+    }
+    const double global_sum = IBTK_MPI::sumReduction(local_sum);
+    const int global_count = IBTK_MPI::sumReduction(local_count);
+    if (global_count > 0)
+    {
+        const double pressure_mean = global_sum / static_cast<double>(global_count);
+        for (const PetscInt dof : d_pressure_dofs)
+        {
+            if (dof < n_lo || dof >= n_hi) continue;
+            const PetscInt local_idx = dof - n_lo;
+            y_arr[local_idx] -= pressure_mean;
+        }
+    }
+    ierr = VecRestoreArray(y, &y_arr);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // postprocessShellResult
+
+void
+StaggeredStokesPETScLevelSolver::setOperatorMat(Mat operator_mat)
+{
+    d_operator_mat = operator_mat;
+    return;
+} // setOperatorMat
+
+void
+StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_mat)
+{
+    d_augmented_operator_mat = augmented_operator_mat;
+    return;
+} // setAugmentedOperatorMat
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

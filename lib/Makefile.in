@@ -244,7 +244,10 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.cpp ../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp \
+	../src/IB/StaggeredStokesIBJacobianOperator.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
+	../src/IB/StaggeredStokesIBOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -443,7 +446,10 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-KrylovMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-MobilityFunctions.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
@@ -617,7 +623,10 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.cpp ../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp \
+	../src/IB/StaggeredStokesIBJacobianOperator.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
+	../src/IB/StaggeredStokesIBOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -816,7 +825,10 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-KrylovMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-MobilityFunctions.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
@@ -1024,7 +1036,10 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-MobilityFunctions.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-NonbondedForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po \
@@ -1094,7 +1109,10 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-MobilityFunctions.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-NonbondedForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
@@ -1477,7 +1495,10 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+	../include/ibamr/StaggeredStokesIBJacobianFACPreconditioner.h \
+	../include/ibamr/StaggeredStokesIBJacobianOperator.h \
 	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
+	../include/ibamr/StaggeredStokesIBOperator.h \
 	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 	../include/ibamr/StaggeredStokesOperator.h \
@@ -1914,7 +1935,10 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+	../include/ibamr/StaggeredStokesIBJacobianFACPreconditioner.h \
+	../include/ibamr/StaggeredStokesIBJacobianOperator.h \
 	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
+	../include/ibamr/StaggeredStokesIBOperator.h \
 	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 	../include/ibamr/StaggeredStokesOperator.h \
@@ -1987,7 +2011,10 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.cpp ../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp \
+	../src/IB/StaggeredStokesIBJacobianOperator.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
+	../src/IB/StaggeredStokesIBOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -2325,7 +2352,13 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2905,7 +2938,13 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -3391,7 +3430,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MobilityFunctions.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-NonbondedForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po@am__quote@ # am--include-marker
@@ -3461,7 +3503,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-MobilityFunctions.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-NonbondedForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -4435,6 +4480,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-PenaltyIBMethod.obj `if test -f '../src/IB/PenaltyIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/PenaltyIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/PenaltyIBMethod.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.o: ../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.o `test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.o `test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.obj: ../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.obj `if test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.obj `if test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.o: ../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.o `test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.o `test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianOperator.cpp
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.obj: ../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.obj `if test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.obj `if test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianOperator.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
@@ -4448,6 +4521,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.o: ../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.o `test -f '../src/IB/StaggeredStokesIBOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.o `test -f '../src/IB/StaggeredStokesIBOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBOperator.cpp
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.obj: ../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.obj `if test -f '../src/IB/StaggeredStokesIBOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBOperator.obj `if test -f '../src/IB/StaggeredStokesIBOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBOperator.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.o: ../src/IB/NonbondedForceEvaluator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-NonbondedForceEvaluator.Tpo -c -o ../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.o `test -f '../src/IB/NonbondedForceEvaluator.cpp' || echo '$(srcdir)/'`../src/IB/NonbondedForceEvaluator.cpp
@@ -6801,6 +6888,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-PenaltyIBMethod.obj `if test -f '../src/IB/PenaltyIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/PenaltyIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/PenaltyIBMethod.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.o: ../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.o `test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.o `test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.obj: ../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.obj `if test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.obj `if test -f '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianFACPreconditioner.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.o: ../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.o `test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.o `test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBJacobianOperator.cpp
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.obj: ../src/IB/StaggeredStokesIBJacobianOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.obj `if test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBJacobianOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.obj `if test -f '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBJacobianOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBJacobianOperator.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
@@ -6814,6 +6929,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.o: ../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.o `test -f '../src/IB/StaggeredStokesIBOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.o `test -f '../src/IB/StaggeredStokesIBOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBOperator.cpp
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.obj: ../src/IB/StaggeredStokesIBOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.obj `if test -f '../src/IB/StaggeredStokesIBOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBOperator.obj `if test -f '../src/IB/StaggeredStokesIBOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBOperator.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.o: ../src/IB/NonbondedForceEvaluator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-NonbondedForceEvaluator.Tpo -c -o ../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.o `test -f '../src/IB/NonbondedForceEvaluator.cpp' || echo '$(srcdir)/'`../src/IB/NonbondedForceEvaluator.cpp
@@ -8688,7 +8817,10 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-MobilityFunctions.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-NonbondedForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
@@ -8758,7 +8890,10 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-MobilityFunctions.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-NonbondedForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
@@ -9072,7 +9207,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-MobilityFunctions.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-NonbondedForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBJacobianOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
@@ -9142,7 +9280,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-MobilityFunctions.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-NonbondedForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianFACPreconditioner.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBJacobianOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
