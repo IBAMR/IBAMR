@@ -105,18 +105,50 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
-                                                 std::vector<std::set<int>>& /*nonoverlap_is*/)
+SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                                                 std::vector<std::set<int>>& nonoverlap_is)
 {
-    // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
-    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
-                                                        d_nonoverlap_is,
+    // Construct overlapping subdomains and nonoverlapping partition subsets
+    // for ASM and MSM preconditioners.
+    std::vector<IS> overlap_subdomains, partition_subsets;
+    PETScMatUtilities::constructPatchLevelASMSubdomains(overlap_subdomains,
+                                                        partition_subsets,
                                                         d_box_size,
                                                         d_overlap_size,
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
                                                         d_level,
                                                         d_cf_boundary);
+    overlap_is.resize(overlap_subdomains.size());
+    for (std::size_t k = 0; k < overlap_subdomains.size(); ++k)
+    {
+        const PetscInt* idxs = nullptr;
+        PetscInt n_idxs = 0;
+        int ierr = ISGetLocalSize(overlap_subdomains[k], &n_idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISGetIndices(overlap_subdomains[k], &idxs);
+        IBTK_CHKERRQ(ierr);
+        overlap_is[k].insert(idxs, idxs + n_idxs);
+        ierr = ISRestoreIndices(overlap_subdomains[k], &idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&overlap_subdomains[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    nonoverlap_is.resize(partition_subsets.size());
+    for (std::size_t k = 0; k < partition_subsets.size(); ++k)
+    {
+        const PetscInt* idxs = nullptr;
+        PetscInt n_idxs = 0;
+        int ierr = ISGetLocalSize(partition_subsets[k], &n_idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISGetIndices(partition_subsets[k], &idxs);
+        IBTK_CHKERRQ(ierr);
+        nonoverlap_is[k].insert(idxs, idxs + n_idxs);
+        ierr = ISRestoreIndices(partition_subsets[k], &idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&partition_subsets[k]);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // generateASMSubdomains
 

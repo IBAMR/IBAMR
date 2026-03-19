@@ -96,6 +96,26 @@ public:
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
+    /*!
+     * \brief Get the cached velocity field DOFs for the current level.
+     */
+    const std::vector<PetscInt>& getCachedVelocityDOFs() const;
+
+    /*!
+     * \brief Get the cached pressure field DOFs for the current level.
+     */
+    const std::vector<PetscInt>& getCachedPressureDOFs() const;
+
+    /*!
+     * \brief Get the cached coupling-aware ASM closure-map data for the current level.
+     */
+    const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& getCouplingAwareASMMapData() const;
+
+    /*!
+     * \brief Get the cached ordered seed velocity DOFs used by coupling-aware ASM.
+     */
+    const std::vector<int>& getCouplingAwareASMSeedVelocityDOFs() const;
+
 protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
@@ -140,6 +160,11 @@ protected:
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+
+    /*!
+     * \brief Apply shell result postprocessing for pressure nullspace control.
+     */
+    void postprocessShellResult(Vec& y) override;
 
 private:
     friend class StaggeredStokesIBLevelRelaxationFACOperator;
@@ -214,10 +239,13 @@ private:
     int d_coupling_aware_asm_seed_stride = 1;
     CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
     StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
-    bool d_coupling_aware_asm_map_data_is_initialized = false;
+    std::vector<int> d_coupling_aware_asm_seed_velocity_dofs;
     bool d_log_asm_subdomains = false;
+    double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
+    std::vector<PetscInt> d_velocity_dofs;
+    std::vector<PetscInt> d_pressure_dofs;
 
     //\}
 };
