@@ -14,12 +14,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
+#include <ibtk/CartCellDoubleLinearCoarsen.h>
+#include <ibtk/CartCellDoubleLinearRefine.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
@@ -32,9 +36,11 @@
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
@@ -75,7 +81,6 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
-#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -95,6 +100,7 @@ namespace
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const int NOGHOST = 0;
 
 // Type of extrapolation to use at physical boundaries; used only to evaluate
 // composite grid residuals.
@@ -104,12 +110,54 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
+std::string
+get_matrix_prolongation_operator_name(const std::string& refine_operator_name)
+{
+    if (refine_operator_name == "RT0_REFINE")
+    {
+        return "RT0";
+    }
+    else if (refine_operator_name == "LINEAR_REFINE")
+    {
+        return "LINEAR";
+    }
+    else if (refine_operator_name == "CONSERVATIVE_LINEAR_REFINE")
+    {
+        return "CONSERVATIVE";
+    }
+    return refine_operator_name;
+}
+
 // Timers.
 static Timer* t_restrict_residual;
 static Timer* t_prolong_error;
 static Timer* t_prolong_error_and_correct;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
+
+template <class VariableType>
+void
+register_dof_index_variable(SAMRAI::tbox::Pointer<VariableType>& var,
+                            int& idx,
+                            const std::string& name,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+                            const SAMRAI::hier::IntVector<NDIM>& ghosts,
+                            SAMRAI::hier::VariableDatabase<NDIM>* var_db)
+{
+    if (!var)
+    {
+        var = new VariableType(name);
+        if (var_db->checkVariableExists(var->getName()))
+        {
+            var = var_db->getVariable(var->getName());
+            idx = var_db->mapVariableAndContextToIndex(var, ctx);
+            var_db->removePatchDataIndex(idx);
+        }
+        idx = var_db->registerVariableAndContext(var, ctx, ghosts);
+    }
+    return;
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -209,6 +257,44 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
     d_default_P_bc_coef = nullptr;
     return;
 } // ~StaggeredStokesFACPreconditionerStrategy
+
+Mat
+StaggeredStokesFACPreconditionerStrategy::getProlongationOp(const int ln, const OperatorComponent component) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
+#endif
+    ensureTransferOperatorIsBuilt(ln, component);
+    switch (component)
+    {
+    case OperatorComponent::FULL:
+        return d_prolongation_mat[ln];
+    case OperatorComponent::VELOCITY:
+        return d_velocity_prolongation_mat[ln];
+    case OperatorComponent::PRESSURE:
+        return d_pressure_prolongation_mat[ln];
+    }
+    TBOX_ERROR("StaggeredStokesFACPreconditionerStrategy::getProlongationOp(): unsupported operator component.\n");
+} // getProlongationOp
+
+Vec
+StaggeredStokesFACPreconditionerStrategy::getCoarseningScalingOp(const int ln, const OperatorComponent component) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
+#endif
+    ensureTransferOperatorIsBuilt(ln, component);
+    switch (component)
+    {
+    case OperatorComponent::FULL:
+        return d_coarsening_scale[ln];
+    case OperatorComponent::VELOCITY:
+        return d_velocity_coarsening_scale[ln];
+    case OperatorComponent::PRESSURE:
+        return d_pressure_coarsening_scale[ln];
+    }
+    TBOX_ERROR("StaggeredStokesFACPreconditionerStrategy::getCoarseningScalingOp(): unsupported operator component.\n");
+} // getCoarseningScalingOp
 
 void
 StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
@@ -670,6 +756,32 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    register_dof_index_variable(
+        d_u_dof_index_var, d_u_dof_index_idx, d_object_name + "::u_dof_index", d_context, NOGHOST, var_db);
+    register_dof_index_variable(
+        d_p_dof_index_var, d_p_dof_index_idx, d_object_name + "::p_dof_index", d_context, NOGHOST, var_db);
+
+    d_num_dofs_per_proc.resize(d_finest_ln + 1);
+    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
+        if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+            d_num_dofs_per_proc[ln], d_u_dof_index_idx, d_p_dof_index_idx, level);
+    }
+
+    d_u_ao_offset.resize(d_finest_ln + 1, 0);
+    d_p_ao_offset.resize(d_finest_ln + 1, 0);
+    d_u_p_app_ordering.resize(d_finest_ln + 1, nullptr);
+    d_velocity_prolongation_mat.resize(d_finest_ln + 1, nullptr);
+    d_pressure_prolongation_mat.resize(d_finest_ln + 1, nullptr);
+    d_prolongation_mat.resize(d_finest_ln + 1, nullptr);
+    d_velocity_coarsening_scale.resize(d_finest_ln + 1, nullptr);
+    d_pressure_coarsening_scale.resize(d_finest_ln + 1, nullptr);
+    d_coarsening_scale.resize(d_finest_ln + 1, nullptr);
+
     // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
     d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef, false);
@@ -732,11 +844,12 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
 
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
-    IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
+    IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
+                  geometry->addSpatialCoarsenOperator(new CartCellDoubleLinearCoarsen());
+                  geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
                   geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
-                  geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
+                  geometry->addSpatialRefineOperator(new CartCellDoubleLinearRefine());
                   geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);
@@ -816,7 +929,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
     bc_op_ptrs[1] = d_P_bc_op;
-    d_U_P_bc_op = new RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end(), false);
+    d_U_P_bc_op = std::make_unique<RefinePatchStrategySet>(bc_op_ptrs.begin(), bc_op_ptrs.end(), false);
 
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
@@ -827,14 +940,14 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
 
-        d_ghostfill_nocoarse_refine_schedules[dst_ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
+        d_ghostfill_nocoarse_refine_schedules[dst_ln] = d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+            d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op.get());
 
         d_synch_refine_schedules[dst_ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln));
     }
 
-    d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
-        d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op);
+    d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] = d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+        d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op.get());
 
     d_synch_refine_schedules[d_coarsest_ln] =
         d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln));
@@ -872,15 +985,53 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
             d_finest_ln;
     deallocateOperatorStateSpecialized(coarsest_reset_ln, finest_reset_ln);
 
-    // Deallocate scratch data.
+    // Deallocate patch data for internally managed scratch and DOF-index data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
         if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
+        if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
+        if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     }
 
-    // Delete the solution and rhs vectors.
+    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln - 1, finest_reset_ln);
+         ++ln)
+    {
+        int ierr = AODestroy(&d_u_p_app_ordering[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_u_p_app_ordering[ln] = nullptr;
+    }
+
+    for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
+         --ln)
+    {
+        int ierr = MatDestroy(&d_velocity_prolongation_mat[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_velocity_prolongation_mat[ln] = nullptr;
+
+        ierr = MatDestroy(&d_pressure_prolongation_mat[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_pressure_prolongation_mat[ln] = nullptr;
+
+        ierr = MatDestroy(&d_prolongation_mat[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_prolongation_mat[ln] = nullptr;
+
+        ierr = VecDestroy(&d_velocity_coarsening_scale[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_velocity_coarsening_scale[ln] = nullptr;
+
+        ierr = VecDestroy(&d_pressure_coarsening_scale[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_pressure_coarsening_scale[ln] = nullptr;
+
+        ierr = VecDestroy(&d_coarsening_scale[ln]);
+        IBTK_CHKERRQ(ierr);
+        d_coarsening_scale[ln] = nullptr;
+    }
+
+    // Deallocate cached solution/rhs vectors and level residual operators.
     d_solution->resetLevels(d_solution->getCoarsestLevelNumber(),
                             std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     free_vector_components(*d_solution);
@@ -891,6 +1042,9 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     free_vector_components(*d_rhs);
     d_rhs.setNull();
 
+    d_level_bdry_fill_ops.clear();
+    d_level_math_ops.clear();
+
     // Only fully deallocate operator data when we are not reinitializing the
     // operator.
     if (!d_in_initialize_operator_state)
@@ -899,30 +1053,46 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_coarsest_ln = IBTK::invalid_level_number;
         d_finest_ln = IBTK::invalid_level_number;
 
-        d_level_bdry_fill_ops.clear();
-        d_level_math_ops.clear();
+        d_num_dofs_per_proc.clear();
+        d_u_p_app_ordering.clear();
+        d_u_ao_offset.clear();
+        d_p_ao_offset.clear();
+        d_velocity_prolongation_mat.clear();
+        d_pressure_prolongation_mat.clear();
+        d_prolongation_mat.clear();
+        d_velocity_coarsening_scale.clear();
+        d_pressure_coarsening_scale.clear();
+        d_coarsening_scale.clear();
 
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
+
+        d_U_bc_op.setNull();
+        d_P_bc_op.setNull();
+        d_U_cf_bdry_op.setNull();
+        d_P_cf_bdry_op.setNull();
+        d_U_op_stencil_fill_pattern.setNull();
+        d_P_op_stencil_fill_pattern.setNull();
+        d_U_synch_fill_pattern.setNull();
+
+        d_U_P_bc_op.reset();
 
         d_U_prolongation_refine_operator.setNull();
         d_P_prolongation_refine_operator.setNull();
         d_prolongation_refine_patch_strategy.setNull();
         d_prolongation_refine_algorithm.setNull();
-        d_prolongation_refine_schedules.resize(0);
+        d_prolongation_refine_schedules.clear();
 
         d_U_restriction_coarsen_operator.setNull();
         d_P_restriction_coarsen_operator.setNull();
         d_restriction_coarsen_algorithm.setNull();
-        d_restriction_coarsen_schedules.resize(0);
+        d_restriction_coarsen_schedules.clear();
 
         d_ghostfill_nocoarse_refine_algorithm.setNull();
-        d_ghostfill_nocoarse_refine_schedules.resize(0);
+        d_ghostfill_nocoarse_refine_schedules.clear();
 
         d_synch_refine_algorithm.setNull();
-        d_synch_refine_schedules.resize(0);
+        d_synch_refine_schedules.clear();
     }
-
-    delete d_U_P_bc_op;
 
     // Clear the "reset level" range.
     d_coarsest_reset_ln = IBTK::invalid_level_number;
@@ -1020,6 +1190,97 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_i
 } // xeqScheduleDataSynch
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesFACPreconditionerStrategy::ensureTransferOperatorIsBuilt(const int ln,
+                                                                        const OperatorComponent component) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
+    TBOX_ASSERT(d_is_initialized);
+#endif
+
+    Mat* prolongation_mat = nullptr;
+    Vec* coarsening_scale = nullptr;
+    switch (component)
+    {
+    case OperatorComponent::FULL:
+        prolongation_mat = &d_prolongation_mat[ln];
+        coarsening_scale = &d_coarsening_scale[ln];
+        break;
+    case OperatorComponent::VELOCITY:
+        prolongation_mat = &d_velocity_prolongation_mat[ln];
+        coarsening_scale = &d_velocity_coarsening_scale[ln];
+        break;
+    case OperatorComponent::PRESSURE:
+        prolongation_mat = &d_pressure_prolongation_mat[ln];
+        coarsening_scale = &d_pressure_coarsening_scale[ln];
+        break;
+    }
+
+    if (!*prolongation_mat)
+    {
+        const std::string u_matrix_prolongation_method =
+            get_matrix_prolongation_operator_name(d_U_prolongation_method);
+        const std::string p_matrix_prolongation_method =
+            get_matrix_prolongation_operator_name(d_P_prolongation_method);
+        if (!d_u_p_app_ordering[ln])
+        {
+            Pointer<PatchLevel<NDIM>> coarse_level = d_hierarchy->getPatchLevel(ln);
+            StaggeredStokesPETScVecUtilities::constructPatchLevelAO(d_u_p_app_ordering[ln],
+                                                                    d_num_dofs_per_proc[ln],
+                                                                    d_u_dof_index_idx,
+                                                                    d_p_dof_index_idx,
+                                                                    coarse_level,
+                                                                    d_u_ao_offset[ln],
+                                                                    d_p_ao_offset[ln]);
+        }
+
+        Pointer<PatchLevel<NDIM>> fine_level = d_hierarchy->getPatchLevel(ln + 1);
+        Pointer<PatchLevel<NDIM>> coarse_level = d_hierarchy->getPatchLevel(ln);
+        switch (component)
+        {
+        case OperatorComponent::FULL:
+            StaggeredStokesPETScMatUtilities::constructProlongationOp(*prolongation_mat,
+                                                                      u_matrix_prolongation_method,
+                                                                      p_matrix_prolongation_method,
+                                                                      d_u_dof_index_idx,
+                                                                      d_p_dof_index_idx,
+                                                                      d_num_dofs_per_proc[ln + 1],
+                                                                      d_num_dofs_per_proc[ln],
+                                                                      fine_level,
+                                                                      coarse_level,
+                                                                      d_u_p_app_ordering[ln],
+                                                                      d_u_ao_offset[ln],
+                                                                      d_p_ao_offset[ln]);
+            break;
+        case OperatorComponent::VELOCITY:
+            PETScMatUtilities::constructProlongationOp(*prolongation_mat,
+                                                       u_matrix_prolongation_method,
+                                                       d_u_dof_index_idx,
+                                                       d_num_dofs_per_proc[ln + 1],
+                                                       d_num_dofs_per_proc[ln],
+                                                       fine_level,
+                                                       coarse_level,
+                                                       d_u_p_app_ordering[ln]);
+            break;
+        case OperatorComponent::PRESSURE:
+            PETScMatUtilities::constructProlongationOp(*prolongation_mat,
+                                                       p_matrix_prolongation_method,
+                                                       d_p_dof_index_idx,
+                                                       d_num_dofs_per_proc[ln + 1],
+                                                       d_num_dofs_per_proc[ln],
+                                                       fine_level,
+                                                       coarse_level,
+                                                       d_u_p_app_ordering[ln],
+                                                       d_p_ao_offset[ln]);
+            break;
+        }
+
+        PETScMatUtilities::constructRestrictionScalingOp(*prolongation_mat, *coarsening_scale);
+    }
+    return;
+} // ensureTransferOperatorIsBuilt
 
 //////////////////////////////////////////////////////////////////////////////
 

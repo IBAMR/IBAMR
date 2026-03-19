@@ -629,6 +629,112 @@ main(int argc, char* argv[])
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         jac_op->setIBCouplingJacobian(SAJ);
 
+        {
+            PetscErrorCode ierr = 0;
+            Mat saj_unscaled = nullptr;
+            ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, 1.0, &saj_unscaled);
+            IBTK_CHKERRQ(ierr);
+            Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+            Pointer<CartesianGridGeometry<NDIM>> finest_grid_geom = patch_hierarchy->getGridGeometry();
+            const double* const dx0 = finest_grid_geom->getDx();
+            const IntVector<NDIM>& ratio = finest_level->getRatio();
+            double cell_volume = 1.0;
+            for (unsigned d = 0; d < NDIM; ++d)
+            {
+                cell_volume *= dx0[d] / static_cast<double>(ratio(d));
+            }
+            const double theta_ds = 2.0 * M_PI / static_cast<double>(structure_spec.num_curve_points);
+
+            Mat saj_cell_scaled = nullptr;
+            ierr = MatDuplicate(saj_unscaled, MAT_COPY_VALUES, &saj_cell_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatScale(saj_cell_scaled, -dt / cell_volume);
+            IBTK_CHKERRQ(ierr);
+
+            Mat saj_theta_scaled = nullptr;
+            ierr = MatDuplicate(saj_unscaled, MAT_COPY_VALUES, &saj_theta_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatScale(saj_theta_scaled, -dt * theta_ds / cell_volume);
+            IBTK_CHKERRQ(ierr);
+
+            auto compute_rel_mat_error = [](Mat lhs, Mat rhs) -> double
+            {
+                Mat diff = nullptr;
+                PetscErrorCode ierr_local = MatDuplicate(lhs, MAT_COPY_VALUES, &diff);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatAXPY(diff, -1.0, rhs, DIFFERENT_NONZERO_PATTERN);
+                IBTK_CHKERRQ(ierr_local);
+                PetscReal diff_norm = 0.0;
+                PetscReal rhs_norm = 0.0;
+                ierr_local = MatNorm(diff, NORM_FROBENIUS, &diff_norm);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatNorm(lhs, NORM_FROBENIUS, &rhs_norm);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatDestroy(&diff);
+                IBTK_CHKERRQ(ierr_local);
+                return static_cast<double>(diff_norm) / std::max(static_cast<double>(rhs_norm), 1.0e-14);
+            };
+
+            const double saj_cell_scaled_rel_error = compute_rel_mat_error(SAJ, saj_cell_scaled);
+            const double saj_theta_scaled_rel_error = compute_rel_mat_error(SAJ, saj_theta_scaled);
+            pout << "saj_cell_scaled_relative_error = " << saj_cell_scaled_rel_error << std::endl;
+            pout << "saj_theta_scaled_relative_error = " << saj_theta_scaled_rel_error << std::endl;
+
+            ierr = MatDestroy(&saj_unscaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&saj_cell_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&saj_theta_scaled);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        const bool run_saj_vector_compare = input_db->getBoolWithDefault("RUN_SAJ_VECTOR_COMPARE", false);
+        if (run_saj_vector_compare)
+        {
+            Pointer<SAMRAIVectorReal<NDIM, double>> saj_jv = eul_rhs_vec->cloneVector("saj_jv");
+            saj_jv->allocateVectorData();
+            saj_jv->setToScalar(0.0);
+            jac_op->apply(*v, *saj_jv);
+
+            Pointer<SAMRAIVectorReal<NDIM, double>> saj_diff = eul_rhs_vec->cloneVector("saj_diff");
+            saj_diff->allocateVectorData();
+            saj_diff->subtract(saj_jv, jv);
+
+            double saj_jv_side_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_jv_cell_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_diff_side_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_diff_cell_norm = std::numeric_limits<double>::quiet_NaN();
+            const bool saj_jv_finite =
+                side_l2_norm_is_finite(
+                    hier_velocity_data_ops, saj_jv->getComponentDescriptorIndex(0), wgt_sc_idx, saj_jv_side_norm) &&
+                cell_l2_norm_is_finite(
+                    hier_pressure_data_ops, saj_jv->getComponentDescriptorIndex(1), wgt_cc_idx, saj_jv_cell_norm);
+            const bool saj_diff_finite =
+                side_l2_norm_is_finite(
+                    hier_velocity_data_ops, saj_diff->getComponentDescriptorIndex(0), wgt_sc_idx, saj_diff_side_norm) &&
+                cell_l2_norm_is_finite(
+                    hier_pressure_data_ops, saj_diff->getComponentDescriptorIndex(1), wgt_cc_idx, saj_diff_cell_norm);
+            if (!saj_jv_finite || !saj_diff_finite)
+            {
+                ++test_failures;
+                pout << "saj jacobian comparison norms are non-finite" << std::endl;
+            }
+            else
+            {
+                const double saj_rel_error =
+                    std::sqrt(saj_diff_side_norm * saj_diff_side_norm + saj_diff_cell_norm * saj_diff_cell_norm) /
+                    std::max(std::sqrt(saj_jv_side_norm * saj_jv_side_norm + saj_jv_cell_norm * saj_jv_cell_norm),
+                             1.0e-14);
+                pout << "saj_relative_error = " << saj_rel_error << std::endl;
+                const double saj_rel_tol = input_db->getDoubleWithDefault("SAJ_REL_TOL", 5.0e-12);
+                if (!(saj_rel_error <= saj_rel_tol))
+                {
+                    ++test_failures;
+                    pout << "saj_relative_error exceeds tolerance: " << saj_rel_tol << std::endl;
+                }
+            }
+        }
+
         Pointer<PETScKrylovLinearSolver> linear_solver =
             new PETScKrylovLinearSolver("stokes_ib_solver_components::linear_solver", nullptr, "ib_");
         linear_solver->setOperator(jac_op);

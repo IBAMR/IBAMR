@@ -1749,7 +1749,7 @@ void
 IBMethod::getForceData(std::vector<Pointer<LData>>** F_data, bool** F_needs_ghost_fill, TimePoint time_pt)
 {
     double time = convertTimeEnumToDouble(time_pt);
-    getPositionData(F_data, F_needs_ghost_fill, time);
+    getForceData(F_data, F_needs_ghost_fill, time);
 }
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

@@ -32,6 +32,11 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <petscao.h>
+#include <petscmat.h>
+#include <petscvec.h>
+
+#include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
 #include <IntVector.h>
@@ -41,6 +46,7 @@
 #include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
 #include <SAMRAIVectorReal.h>
+#include <SideVariable.h>
 #include <VariableContext.h>
 #include <VariableFillPattern.h>
 
@@ -87,9 +93,9 @@ namespace IBAMR
  * values): \verbatim
 
  smoother_type = "ADDITIVE"                     // see setSmootherType()
- U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
+ U_prolongation_method = "RT0_REFINE"           // see setProlongationMethods()
  P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
- U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
+ U_restriction_method = "RT0_COARSEN"           // see setRestrictionMethods()
  P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
  coarse_solver_type = "LEVEL_SMOOTHER"          // see setCoarseSolverType()
  coarse_solver_rel_residual_tol = 1.0e-5        // see setCoarseSolverRelativeTolerance()
@@ -233,6 +239,45 @@ public:
     //\}
 
     /*!
+     * \name Functions for accessing Stokes-system transfer operators.
+     */
+    //\{
+
+    /*!
+     * \brief Select which prolongation/refinement and restriction/coarsening pair to access.
+     */
+    enum class OperatorComponent
+    {
+        FULL,
+        VELOCITY,
+        PRESSURE
+    };
+
+    /*!
+     * \brief Get the prolongation operator for the level pair \f$(\text{ln}, \text{ln}+1)\f$.
+     *
+     * Here \p ln is the coarse/source level and \p ln + 1 is the fine/destination level.
+     * `OperatorComponent::FULL` returns the coupled Stokes prolongation operator,
+     * `OperatorComponent::VELOCITY` returns the velocity-only prolongation operator,
+     * and `OperatorComponent::PRESSURE` returns the pressure-only prolongation operator.
+     */
+    Mat getProlongationOp(int ln, OperatorComponent component = OperatorComponent::FULL) const;
+
+    /*!
+     * \brief Get the coarsening scaling vector for the level pair \f$(\text{ln}, \text{ln}+1)\f$.
+     *
+     * Here \p ln is the coarse/destination level and \p ln + 1 is the fine/source level.
+     * The restriction/coarsening operator is defined to be the scaled adjoint of prolongation/refinement,
+     * \f$R = L P^T\f$, and this function returns the diagonal scaling \f$L\f$.
+     * `OperatorComponent::FULL` selects the coupled Stokes pair,
+     * `OperatorComponent::VELOCITY` selects the velocity-only pair,
+     * and `OperatorComponent::PRESSURE` selects the pressure-only pair.
+     */
+    Vec getCoarseningScalingOp(int ln, OperatorComponent component = OperatorComponent::FULL) const;
+
+    //\}
+
+    /*!
      * \name Partial implementation of FACPreconditionerStrategy interface.
      */
     //\{
@@ -343,6 +388,12 @@ protected:
     virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) = 0;
 
     /*!
+     * \brief Lazily build the requested prolongation/refinement and restriction/coarsening pair
+     * for the level pair \f$(\text{ln}, \text{ln}+1)\f$.
+     */
+    void ensureTransferOperatorIsBuilt(int ln, OperatorComponent component) const;
+
+    /*!
      * \name Methods for executing, caching, and resetting communication
      * schedules.
      */
@@ -439,13 +490,26 @@ protected:
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_U_prolongation_method = "CONSTANT_REFINE", d_P_prolongation_method = "LINEAR_REFINE";
+    std::string d_U_prolongation_method = "RT0_REFINE", d_P_prolongation_method = "LINEAR_REFINE";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
      * error or residual.
      */
-    std::string d_U_restriction_method = "CONSERVATIVE_COARSEN", d_P_restriction_method = "CONSERVATIVE_COARSEN";
+    std::string d_U_restriction_method = "RT0_COARSEN", d_P_restriction_method = "CONSERVATIVE_COARSEN";
+
+    /*
+     * DOF indexing, application ordering, and algebraic transfer operators for
+     * Stokes-system components on various patch levels.
+     */
+    mutable std::vector<std::vector<int>> d_num_dofs_per_proc;
+    int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
+    mutable std::vector<AO> d_u_p_app_ordering;
+    mutable std::vector<int> d_u_ao_offset, d_p_ao_offset;
+    mutable std::vector<Mat> d_velocity_prolongation_mat, d_pressure_prolongation_mat, d_prolongation_mat;
+    mutable std::vector<Vec> d_velocity_coarsening_scale, d_pressure_coarsening_scale, d_coarsening_scale;
 
     /*
      * Coarse level solver parameters.
@@ -537,7 +601,7 @@ private:
     /*
      * Combined U & P physical boundary operator.
      */
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
+    std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_U_P_bc_op;
 
     /*
      * Error prolongation (refinement) operator.

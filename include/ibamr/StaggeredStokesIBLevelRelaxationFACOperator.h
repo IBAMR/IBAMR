@@ -103,9 +103,9 @@ namespace IBAMR
  * values): \verbatim
 
  smoother_type = "ADDITIVE"                     // see setSmootherType()
- U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
+ U_prolongation_method = "RT0_REFINE"           // see setProlongationMethods()
  P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
- U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
+ U_restriction_method = "RT0_COARSEN"           // see setRestrictionMethods()
  P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
  coarse_solver_type = "LEVEL_SMOOTHER"          // see setCoarseSolverType()
  coarse_solver_rel_residual_tol = 1.0e-5        // see setCoarseSolverRelativeTolerance()
@@ -171,7 +171,7 @@ public:
     //\}
 
     /*!
-     * \name Functions for accessing the level operators and solvers.
+     * \name Functions for accessing the IB-specific level operators and solvers.
      */
     //\{
 
@@ -184,20 +184,6 @@ public:
      * \brief Get the Eulerian elasticity level operator.
      */
     Mat getEulerianElasticityLevelOp(int ln) const;
-
-    /*!
-     * \brief Get the prolongation level operator. The prolongation
-     * operator prolongs data from level \em ln to level \em ln + 1.
-     */
-    Mat getProlongationOp(int ln) const;
-
-    /*!
-     * \brief Get the scaling for level restriction operator. The restriction
-     * operator restricts data from level \em ln + 1 to level \em ln.
-     * Restriction op is defined to be the scaled adjoint of prolongation
-     * operator, i.e., R = L P^T.
-     */
-    Vec getRestrictionScalingOp(int ln) const;
 
     //\}
 
@@ -299,24 +285,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
-     * Velocity and pressure prolongation type.
-     */
-    std::string d_u_petsc_prolongation_method = "RT0", d_p_petsc_prolongation_method = "CONSERVATIVE";
-
-    /*
-     * Application ordering of u and p from MAC DOFs on various patch levels.
-     */
-    std::vector<AO> d_u_p_app_ordering;
-
-    /*
-     * Eulerian data for storing u and p DOFs indexing.
-     */
-    std::vector<std::vector<int>> d_num_dofs_per_proc;
-    int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
-
-    /*
      * The time stepping type.
      */
     TimeSteppingType d_time_stepping_type;
@@ -332,12 +300,10 @@ private:
     Mat d_J_mat;
 
     /*
-     * Data structures for elasticity and prolongation operator representation
-     * on various patch levels.
+     * Full level operators and Eulerian elasticity operators on patch levels.
      */
     double d_SAJ_fill = 1.0, d_RStokesIBP_fill = 1.0;
-    std::vector<Mat> d_SAJ_mat, d_SAJ_prolongation_mat, d_stokesib_prolongation_mat, d_galerkin_stokesib_mat;
-    std::vector<Vec> d_scale_SAJ_restriction_mat, d_scale_stokesib_restriction_mat;
+    mutable std::vector<Mat> d_level_mat, d_SAJ_mat;
 
     /*
      * Mappings from patch indices to patch operators.
