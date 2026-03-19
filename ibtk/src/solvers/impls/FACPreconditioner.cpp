@@ -28,9 +28,9 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <algorithm>
 #include <ostream>
 #include <string>
-#include <utility>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -103,6 +103,8 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
+    inspectCycleBegin(b);
+
     // Set the initial guess to equal zero.
     x.setToScalar(0.0, /*interior_only*/ false);
 
@@ -141,6 +143,8 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                      << "." << std::endl);
         }
     }
+
+    inspectCycleEnd(x);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -271,24 +275,29 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
     {
         // Solve Au = f on the coarsest level.
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        inspectCycleStage("coarse_sol", u, level_num);
     }
     else
     {
         // Restrict the residual to the next coarser level.
         d_fac_strategy->restrictResidual(f, f, level_num - 1);
+        inspectCycleStage("coarse_rhs", f, level_num - 1);
 
         // Recursively call the FAC algorithm.
         FACVCycleNoPreSmoothing(u, f, level_num - 1);
+        inspectCycleStage("coarse_sol", u, level_num - 1);
 
         // Prolong the error from the next coarser level.  Because we did not
         // perform any presmoothing, we do not need to correct the solution on
         // the current level.
         d_fac_strategy->prolongError(u, u, level_num);
+        inspectCycleStage("y_after_correction", u, level_num);
 
         // Smooth error on the current level.
         if (d_num_post_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            inspectCycleStage("y_post", u, level_num);
         }
     }
     return;
@@ -304,21 +313,28 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
     if (level_num == d_coarsest_ln)
     {
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        inspectCycleStage("coarse_sol", u, level_num);
     }
     else
     {
         if (d_num_pre_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            inspectCycleStage("y_pre", u, level_num);
         }
         d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
+        inspectCycleStage("residual_fine", r, level_num);
         d_fac_strategy->restrictResidual(r, f, level_num - 1);
+        inspectCycleStage("coarse_rhs", f, level_num - 1);
         d_fac_strategy->setToZero(u, level_num - 1);
         for (int k = 0; k < mu; ++k) muCycle(u, f, r, level_num - 1, mu);
+        inspectCycleStage("coarse_sol", u, level_num - 1);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        inspectCycleStage("y_after_correction", u, level_num);
         if (d_num_post_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            inspectCycleStage("y_post", u, level_num);
         }
     }
     return;
@@ -333,22 +349,29 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
     if (level_num == d_coarsest_ln)
     {
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        inspectCycleStage("coarse_sol", u, level_num);
     }
     else
     {
         if (d_num_pre_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            inspectCycleStage("y_pre", u, level_num);
         }
         d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
+        inspectCycleStage("residual_fine", r, level_num);
         d_fac_strategy->restrictResidual(r, f, level_num - 1);
+        inspectCycleStage("coarse_rhs", f, level_num - 1);
         d_fac_strategy->setToZero(u, level_num - 1);
         muCycle(u, f, r, level_num - 1, 2);
         muCycle(u, f, r, level_num - 1, 1);
+        inspectCycleStage("coarse_sol", u, level_num - 1);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        inspectCycleStage("y_after_correction", u, level_num);
         if (d_num_post_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            inspectCycleStage("y_post", u, level_num);
         }
     }
     return;
@@ -387,6 +410,24 @@ FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
 } // getFromInput
+
+void
+FACPreconditioner::inspectCycleBegin(const SAMRAIVectorReal<NDIM, double>&)
+{
+    return;
+} // inspectCycleBegin
+
+void
+FACPreconditioner::inspectCycleEnd(const SAMRAIVectorReal<NDIM, double>&)
+{
+    return;
+} // inspectCycleEnd
+
+void
+FACPreconditioner::inspectCycleStage(const std::string&, const SAMRAIVectorReal<NDIM, double>&, const int)
+{
+    return;
+} // inspectCycleStage
 
 //////////////////////////////////////////////////////////////////////////////
 

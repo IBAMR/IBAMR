@@ -9,36 +9,37 @@ INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve res
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 Input database:
 input_db {
-   MU                      = 0.01                           // input used
-   RHO                     = 1                              // input used
-   MAX_LEVELS              = 1                              // input used
-   REF_RATIO               = 2                              // input used
-   N                       = 32                             // input used
-   L                       = 1                              // input used
-   DELTA_FUNCTION          = "IB_4"                         // input used
-   START_TIME              = 0                              // input used
-   END_TIME                = 0.015625                       // input used
-   GROW_DT                 = 2                              // input used
-   NUM_CYCLES              = 1                              // input used
-   CREEPING_FLOW           = TRUE                           // input used
-   IB_TIME_STEPPING = "BACKWARD_EULER"               // input used
-   CONVECTIVE_TS_TYPE      = "FORWARD_EULER"                // input used
-   CONVECTIVE_OP_TYPE      = "CENTERED"                     // input used
-   CONVECTIVE_FORM         = "CONSERVATIVE"                 // input used
-   NORMALIZE_PRESSURE      = TRUE                           // input used
-   CFL_MAX                 = 0.3                            // input used
-   DT                      = 0.015625                       // input used
-   ERROR_ON_DT_CHANGE      = TRUE                           // input used
-   VORTICITY_TAGGING       = FALSE                          // input used
-   TAG_BUFFER              = 2                              // input used
-   REGRID_CFL_INTERVAL     = 0.5                            // input used
-   OUTPUT_U                = FALSE                          // input used
-   OUTPUT_P                = FALSE                          // input used
-   OUTPUT_F                = FALSE                          // input used
-   OUTPUT_OMEGA            = FALSE                          // input used
-   OUTPUT_DIV_U            = FALSE                          // input used
-   ENABLE_LOGGING          = TRUE                           // input used
-   RR                      = 2                              // input used
+   MU                  = 0.01                               // input used
+   RHO                 = 1                                  // input used
+   MAX_LEVELS          = 1                                  // input used
+   REF_RATIO           = 2                                  // input used
+   N                   = 32                                 // input used
+   L                   = 1                                  // input used
+   DELTA_FUNCTION      = "IB_4"                             // input used
+   START_TIME          = 0                                  // input used
+   END_TIME            = 0.015625                           // input used
+   GROW_DT             = 2                                  // input used
+   NUM_CYCLES          = 1                                  // input used
+   CREEPING_FLOW       = TRUE                               // input used
+   IB_TIME_STEPPING    = "BACKWARD_EULER"                   // input used
+   CONVECTIVE_TS_TYPE  = "FORWARD_EULER"                    // input used
+   CONVECTIVE_OP_TYPE  = "CENTERED"                         // input used
+   CONVECTIVE_FORM     = "CONSERVATIVE"                     // input used
+   NORMALIZE_PRESSURE  = TRUE                               // input used
+   CFL_MAX             = 0.3                                // input used
+   DT                  = 0.015625                           // input used
+   ERROR_ON_DT_CHANGE  = TRUE                               // input used
+   VORTICITY_TAGGING   = FALSE                              // input used
+   TAG_BUFFER          = 2                                  // input used
+   REGRID_CFL_INTERVAL = 0.5                                // input used
+   OUTPUT_U            = FALSE                              // input used
+   OUTPUT_P            = FALSE                              // input used
+   OUTPUT_F            = FALSE                              // input used
+   OUTPUT_OMEGA        = FALSE                              // input used
+   OUTPUT_DIV_U        = FALSE                              // input used
+   ENABLE_LOGGING      = TRUE                               // input used
+   RR                  = 2                                  // input used
+   SPRING_STIFFNESS    = 100                                // from default
    test {
       write_reference = FALSE                               // input not used
    }

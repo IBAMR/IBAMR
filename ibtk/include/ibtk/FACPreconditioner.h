@@ -255,8 +255,6 @@ public:
      */
     int getNumPostSmoothingSweeps() const;
 
-    //\}
-
     /*!
      * \brief Get the FAC preconditioner strategy objects employed by the
      * preconditioner.
@@ -284,6 +282,44 @@ protected:
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                   int level_num,
                   int mu);
+
+    /*!
+     * \brief Inspect the start of a preconditioner cycle.
+     *
+     * Subclasses may override this method to retain the cycle right-hand side,
+     * initialize driver-owned tracing state, or perform other non-intrusive
+     * inspection before the FAC cycle begins.
+     *
+     * \param rhs Right-hand-side vector for the current cycle.
+     */
+    virtual void inspectCycleBegin(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
+    /*!
+     * \brief Inspect the end of a preconditioner cycle.
+     *
+     * Subclasses may override this method to retain the final cycle result,
+     * flush any buffered inspection state, or export driver-owned audit data
+     * after the FAC cycle completes.
+     *
+     * \param x Final solution/update vector produced by the current cycle.
+     */
+    virtual void inspectCycleEnd(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+
+    /*!
+     * \brief Inspect an intermediate FAC cycle stage.
+     *
+     * Subclasses may override this method to observe stage-specific vectors,
+     * such as coarse-grid right-hand sides or post-smoothing iterates, without
+     * baking audit policy into the FAC implementation.
+     *
+     * \param stage Name identifying the current cycle stage.
+     * \param vec Vector associated with the current cycle stage.
+     * \param level_num Patch hierarchy level on which \p vec is defined.
+     */
+    virtual void
+    inspectCycleStage(const std::string& stage, const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+
+    //\}
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

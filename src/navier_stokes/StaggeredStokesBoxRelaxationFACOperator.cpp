@@ -726,8 +726,8 @@ StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(cons
         IBTK_CHKERRQ(ierr);
         ierr = KSPDestroy(&d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
-        d_patch_side_bc_box_overlap[ln].resize(0);
-        d_patch_cell_bc_box_overlap[ln].resize(0);
+        d_patch_side_bc_box_overlap[ln].clear();
+        d_patch_cell_bc_box_overlap[ln].clear();
     }
     return;
 } // deallocateOperatorStateSpecialized
