@@ -44,6 +44,7 @@
 #include <SAMRAIVectorReal.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -52,6 +53,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -121,57 +123,156 @@ build_petsc_subdomain_index_sets(std::vector<IS>& subdomain_is,
     return;
 } // build_petsc_subdomain_index_sets
 
-class ConstPetscVecArrayMap
+template <class SolverType>
+Eigen::MatrixXd
+build_qr_solve_matrix(const Eigen::MatrixXd& local_operator, const double threshold)
 {
-public:
-    ConstPetscVecArrayMap(Vec vec, const Eigen::Index size) : d_vec(vec), d_size(size)
-    {
-        const int ierr = VecGetArrayRead(d_vec, &d_array);
-        IBTK_CHKERRQ(ierr);
-    }
+    SolverType solver(local_operator);
+    if (threshold >= 0.0) solver.setThreshold(threshold);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_qr_solve_matrix
 
-    ~ConstPetscVecArrayMap()
-    {
-        const int ierr = VecRestoreArrayRead(d_vec, &d_array);
-        IBTK_CHKERRQ(ierr);
-    }
+Eigen::MatrixXd
+build_llt_solve_matrix(const Eigen::MatrixXd& local_operator)
+{
+    Eigen::LLT<Eigen::MatrixXd> solver(local_operator);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_llt_solve_matrix
 
-    Eigen::Map<const Eigen::VectorXd> getMap() const
-    {
-        return Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_array), d_size);
-    }
+Eigen::MatrixXd
+build_ldlt_solve_matrix(const Eigen::MatrixXd& local_operator)
+{
+    Eigen::LDLT<Eigen::MatrixXd> solver(local_operator);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_ldlt_solve_matrix
 
-private:
-    Vec d_vec = nullptr;
-    Eigen::Index d_size = 0;
-    const PetscScalar* d_array = nullptr;
+Eigen::MatrixXd
+build_householder_qr_solve_matrix(const Eigen::MatrixXd& local_operator)
+{
+    Eigen::HouseholderQR<Eigen::MatrixXd> solver(local_operator);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_householder_qr_solve_matrix
+
+Eigen::MatrixXd
+build_partial_piv_lu_solve_matrix(const Eigen::MatrixXd& local_operator)
+{
+    Eigen::PartialPivLU<Eigen::MatrixXd> solver(local_operator);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_partial_piv_lu_solve_matrix
+
+Eigen::MatrixXd
+build_full_piv_lu_solve_matrix(const Eigen::MatrixXd& local_operator, const double threshold)
+{
+    Eigen::FullPivLU<Eigen::MatrixXd> solver(local_operator);
+    if (threshold >= 0.0) solver.setThreshold(threshold);
+    return solver.solve(Eigen::MatrixXd::Identity(local_operator.rows(), local_operator.cols()));
+} // build_full_piv_lu_solve_matrix
+
+template <class SolverType>
+struct eigen_solver_supports_threshold : std::false_type
+{
 };
 
-class PetscVecArrayMap
+template <>
+struct eigen_solver_supports_threshold<Eigen::FullPivLU<Eigen::MatrixXd>> : std::true_type
 {
-public:
-    PetscVecArrayMap(Vec vec, const Eigen::Index size) : d_vec(vec), d_size(size)
-    {
-        const int ierr = VecGetArray(d_vec, &d_array);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    ~PetscVecArrayMap()
-    {
-        const int ierr = VecRestoreArray(d_vec, &d_array);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    Eigen::Map<Eigen::VectorXd> getMap() const
-    {
-        return Eigen::Map<Eigen::VectorXd>(reinterpret_cast<double*>(d_array), d_size);
-    }
-
-private:
-    Vec d_vec = nullptr;
-    Eigen::Index d_size = 0;
-    PetscScalar* d_array = nullptr;
 };
+
+template <>
+struct eigen_solver_supports_threshold<Eigen::ColPivHouseholderQR<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <>
+struct eigen_solver_supports_threshold<Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <>
+struct eigen_solver_supports_threshold<Eigen::FullPivHouseholderQR<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <>
+struct eigen_solver_supports_threshold<Eigen::JacobiSVD<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <>
+struct eigen_solver_supports_threshold<Eigen::BDCSVD<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <class SolverType>
+struct eigen_solver_uses_svd_compute : std::false_type
+{
+};
+
+template <>
+struct eigen_solver_uses_svd_compute<Eigen::JacobiSVD<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <>
+struct eigen_solver_uses_svd_compute<Eigen::BDCSVD<Eigen::MatrixXd>> : std::true_type
+{
+};
+
+template <class SolverType>
+void
+initialize_eigen_solver(SolverType& solver, const Eigen::MatrixXd& local_operator, const double threshold)
+{
+    if constexpr (eigen_solver_uses_svd_compute<SolverType>::value)
+    {
+        solver.compute(local_operator, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    }
+    else
+    {
+        solver.compute(local_operator);
+    }
+
+    if constexpr (eigen_solver_supports_threshold<SolverType>::value)
+    {
+        if (threshold >= 0.0) solver.setThreshold(threshold);
+    }
+}
+
+template <class SolverType, class RhsType>
+auto
+solve_eigen_system(const SolverType& solver, const RhsType& rhs) -> decltype(solver.solve(rhs))
+{
+    return solver.solve(rhs);
+}
+
+template <class SVDType>
+Eigen::MatrixXd
+build_svd_pseudoinverse(const Eigen::MatrixXd& local_operator, const double threshold)
+{
+    SVDType svd(local_operator, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    if (threshold >= 0.0) svd.setThreshold(threshold);
+
+    const auto& singular_values = svd.singularValues();
+    Eigen::VectorXd inv_singular_values = Eigen::VectorXd::Zero(singular_values.size());
+    if (singular_values.size() > 0)
+    {
+        const double cutoff = singular_values[0] * svd.threshold();
+        for (Eigen::Index k = 0; k < singular_values.size(); ++k)
+        {
+            if (singular_values[k] > cutoff) inv_singular_values[k] = 1.0 / singular_values[k];
+        }
+    }
+
+    return svd.matrixV() * inv_singular_values.asDiagonal() * svd.matrixU().adjoint();
+} // build_svd_pseudoinverse
+
+Eigen::MatrixXd
+build_complete_orthogonal_decomposition_pseudoinverse(const Eigen::MatrixXd& local_operator, const double threshold)
+{
+    Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> solver(local_operator);
+    if (threshold >= 0.0) solver.setThreshold(threshold);
+    Eigen::MatrixXd pseudoinverse = solver.pseudoInverse();
+    return pseudoinverse;
+} // build_complete_orthogonal_decomposition_pseudoinverse
 } // namespace
 
 Eigen::SparseMatrix<double, Eigen::RowMajor>
@@ -262,8 +363,8 @@ PETScLevelSolver::getASMSubdomains(std::vector<std::vector<int>>** nonoverlap_su
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
-    *nonoverlap_subdomain_dofs = &d_nonoverlap_subdomain_dofs;
-    *subdomain_dofs = &d_subdomain_dofs;
+    if (nonoverlap_subdomain_dofs) *nonoverlap_subdomain_dofs = &d_nonoverlap_subdomain_dofs;
+    if (subdomain_dofs) *subdomain_dofs = &d_subdomain_dofs;
     return;
 } // getASMSubdomains
 
@@ -523,6 +624,24 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
         if (input_db->keyExists("pc_type")) d_pc_type = input_db->getString("pc_type");
         if (input_db->keyExists("shell_pc_type")) d_shell_pc_type = input_db->getString("shell_pc_type");
+        if (input_db->keyExists("eigen_subdomain_solver_type"))
+        {
+            d_eigen_subdomain_solver_type =
+                parseEigenSubdomainSolverType(input_db->getString("eigen_subdomain_solver_type"));
+        }
+        if (input_db->keyExists("eigen_subdomain_solver_threshold"))
+        {
+            d_eigen_subdomain_solver_threshold = input_db->getDouble("eigen_subdomain_solver_threshold");
+        }
+        if (input_db->keyExists("eigen_subdomain_pseudoinverse_type"))
+        {
+            d_eigen_subdomain_pseudoinverse_type =
+                parseEigenSubdomainSolverType(input_db->getString("eigen_subdomain_pseudoinverse_type"));
+        }
+        if (input_db->keyExists("eigen_subdomain_pseudoinverse_threshold"))
+        {
+            d_eigen_subdomain_pseudoinverse_threshold = input_db->getDouble("eigen_subdomain_pseudoinverse_threshold");
+        }
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
     }
@@ -557,6 +676,8 @@ PETScLevelSolver::normalizeShellSmootherType(const std::string& type) const
 {
     if (type == "additive-petsc") return "additive";
     if (type == "multiplicative-petsc") return "multiplicative";
+    if (type == "additive-eigen-pinv") return "additive-eigen-pseudoinverse";
+    if (type == "multiplicative-eigen-pinv") return "multiplicative-eigen-pseudoinverse";
     return type;
 } // normalizeShellSmootherType
 
@@ -572,6 +693,7 @@ PETScLevelSolver::parsePreconditionerType(const std::string& type) const
 PETScLevelSolver::ShellSmootherBackend
 PETScLevelSolver::parseShellSmootherBackend(const std::string& type) const
 {
+    if (type.find("-eigen-pseudoinverse") != std::string::npos) return ShellSmootherBackend::EIGEN_PSEUDOINVERSE;
     return type.find("-eigen") != std::string::npos ? ShellSmootherBackend::EIGEN : ShellSmootherBackend::PETSC;
 } // parseShellSmootherBackend
 
@@ -589,6 +711,340 @@ PETScLevelSolver::parseShellSmootherPartition(const std::string& type, ShellSmoo
     return composition == ShellSmootherComposition::ADDITIVE ? ShellSmootherPartition::RESTRICT :
                                                                ShellSmootherPartition::BASIC;
 } // parseShellSmootherPartition
+
+PETScLevelSolver::EigenSubdomainSolverType
+PETScLevelSolver::parseEigenSubdomainSolverType(const std::string& type) const
+{
+    std::string normalized = type;
+    std::transform(normalized.begin(),
+                   normalized.end(),
+                   normalized.begin(),
+                   [](const unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (normalized == "custom" || normalized == "staggered_stokes_custom" || normalized == "staggered-stokes-custom")
+    {
+        return EigenSubdomainSolverType::CUSTOM;
+    }
+    if (normalized == "llt")
+    {
+        return EigenSubdomainSolverType::LLT;
+    }
+    if (normalized == "ldlt")
+    {
+        return EigenSubdomainSolverType::LDLT;
+    }
+    if (normalized == "partialpivlu" || normalized == "partial-piv-lu" || normalized == "partial_piv_lu")
+    {
+        return EigenSubdomainSolverType::PARTIAL_PIV_LU;
+    }
+    if (normalized == "fullpivlu" || normalized == "full-piv-lu" || normalized == "full_piv_lu")
+    {
+        return EigenSubdomainSolverType::FULL_PIV_LU;
+    }
+    if (normalized == "householderqr" || normalized == "householder-qr" || normalized == "householder_qr")
+    {
+        return EigenSubdomainSolverType::HOUSEHOLDER_QR;
+    }
+    if (normalized == "colpivhouseholderqr" || normalized == "col-piv-householder-qr" ||
+        normalized == "col_piv_householder_qr")
+    {
+        return EigenSubdomainSolverType::COL_PIV_HOUSEHOLDER_QR;
+    }
+    if (normalized == "completeorthogonaldecomposition" || normalized == "complete-orthogonal-decomposition" ||
+        normalized == "complete_orthogonal_decomposition" || normalized == "cod")
+    {
+        return EigenSubdomainSolverType::COMPLETE_ORTHOGONAL_DECOMPOSITION;
+    }
+    if (normalized == "fullpivhouseholderqr" || normalized == "full-piv-householder-qr" ||
+        normalized == "full_piv_householder_qr")
+    {
+        return EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR;
+    }
+    if (normalized == "jacobisvd" || normalized == "jacobi-svd" || normalized == "jacobi_svd")
+    {
+        return EigenSubdomainSolverType::JACOBI_SVD;
+    }
+    if (normalized == "bdcsvd" || normalized == "bdc-svd" || normalized == "bdc_svd")
+    {
+        return EigenSubdomainSolverType::BDC_SVD;
+    }
+
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::parseEigenSubdomainSolverType()\n"
+                             << "Unknown Eigen subdomain solver type: " << type << std::endl);
+    return EigenSubdomainSolverType::JACOBI_SVD;
+} // parseEigenSubdomainSolverType
+
+PETScLevelSolver::EigenSubdomainSolverType
+PETScLevelSolver::getEigenSolveSolverType() const
+{
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN:
+        return d_eigen_subdomain_solver_type;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+    case ShellSmootherBackend::PETSC:
+        break;
+    }
+
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::getEigenSolveSolverType()\n"
+                             << "Eigen solve-based solver type requested for a non-solve shell backend." << std::endl);
+    return EigenSubdomainSolverType::PARTIAL_PIV_LU;
+} // getEigenSolveSolverType
+
+PETScLevelSolver::EigenSubdomainSolverType
+PETScLevelSolver::getEigenPseudoinverseSolverType() const
+{
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+        return d_eigen_subdomain_pseudoinverse_type;
+    case ShellSmootherBackend::EIGEN:
+    case ShellSmootherBackend::PETSC:
+        break;
+    }
+
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::getEigenPseudoinverseSolverType()\n"
+                             << "Eigen matrix-based solver type requested for a non-pseudoinverse shell backend."
+                             << std::endl);
+    return EigenSubdomainSolverType::COL_PIV_HOUSEHOLDER_QR;
+} // getEigenPseudoinverseSolverType
+
+bool
+PETScLevelSolver::usingCustomEigenSolveSubdomainSolver() const
+{
+    return (d_shell_smoother_backend == ShellSmootherBackend::EIGEN &&
+            d_eigen_subdomain_solver_type == EigenSubdomainSolverType::CUSTOM);
+} // usingCustomEigenSolveSubdomainSolver
+
+bool
+PETScLevelSolver::usingCustomEigenPseudoinverseSubdomainSolver() const
+{
+    return (d_shell_smoother_backend == ShellSmootherBackend::EIGEN_PSEUDOINVERSE &&
+            d_eigen_subdomain_pseudoinverse_type == EigenSubdomainSolverType::CUSTOM);
+} // usingCustomEigenPseudoinverseSubdomainSolver
+
+template <class SolverType>
+PETScLevelSolver::EigenTypedSolveStorage<SolverType>&
+PETScLevelSolver::getEigenSolveStorage()
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    auto* storage = static_cast<EigenTypedSolveStorage<SolverType>*>(d_shell_data.eigen_data->solve_storage.get());
+    TBOX_ASSERT(storage);
+    return *storage;
+}
+
+template <class SolverType>
+const PETScLevelSolver::EigenTypedSolveStorage<SolverType>&
+PETScLevelSolver::getEigenSolveStorage() const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    const auto* storage =
+        static_cast<const EigenTypedSolveStorage<SolverType>*>(d_shell_data.eigen_data->solve_storage.get());
+    TBOX_ASSERT(storage);
+    return *storage;
+}
+
+template <class SolverType>
+void
+PETScLevelSolver::initializeBuiltinEigenSolveStorage()
+{
+    auto& shell = d_shell_data;
+    shell.eigen_data = std::make_unique<EigenShellSmootherData>();
+    auto storage = std::make_unique<EigenTypedSolveStorage<SolverType>>();
+    storage->solvers.resize(static_cast<std::size_t>(shell.n_local_subdomains));
+    shell.eigen_data->solve_storage = std::move(storage);
+    auto& typed_storage = getEigenSolveStorage<SolverType>();
+    initializeEigenShellDataWithLocalOperatorHook(
+        [this, &typed_storage](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num)
+        {
+            initialize_eigen_solver(
+                typed_storage.solvers[subdomain_num], local_operator, d_eigen_subdomain_solver_threshold);
+        });
+}
+
+template <class SolverType>
+void
+PETScLevelSolver::applyAdditiveEigenSolveImpl(Vec x, Vec y)
+{
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+    auto& eigen = *d_shell_data.eigen_data;
+    auto& typed_storage = getEigenSolveStorage<SolverType>();
+    const Eigen::Index n = eigen.n_dofs;
+    TBOX_ASSERT(n > 0);
+
+    {
+        ConstPetscVecArrayMap x_array(x, n);
+        PetscVecArrayMap y_array(y, n);
+        const auto x_map = x_array.getMap();
+        auto y_map = y_array.getMap();
+        y_map.setZero();
+        for (std::size_t subdomain_num = 0; subdomain_num < eigen.common_subdomains.size(); ++subdomain_num)
+        {
+            auto& cache = eigen.common_subdomains[subdomain_num];
+            auto& solver = typed_storage.solvers[subdomain_num];
+            std::size_t rhs_idx = 0;
+            for (const int dof : cache.overlap_dofs)
+            {
+                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
+            }
+            cache.delta_workspace = solve_eigen_system(solver, cache.rhs_workspace);
+            std::size_t update_idx = 0;
+            for (const int dof : cache.update_dofs)
+            {
+                y_map[dof] +=
+                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+            }
+        }
+    }
+    postprocessShellResult(y);
+}
+
+template <class SolverType>
+void
+PETScLevelSolver::applyMultiplicativeEigenSolveImpl(Vec x, Vec y)
+{
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+    auto& shell = d_shell_data;
+    auto& eigen = *shell.eigen_data;
+    auto& typed_storage = getEigenSolveStorage<SolverType>();
+    const Eigen::Index n = eigen.n_dofs;
+    TBOX_ASSERT(n > 0);
+
+    {
+        ConstPetscVecArrayMap x_array(x, n);
+        PetscVecArrayMap y_array(y, n);
+        const auto x_map = x_array.getMap();
+        auto y_map = y_array.getMap();
+        Eigen::VectorXd residual(n);
+        y_map.setZero();
+        residual = x_map;
+        const std::size_t n_subdomains = static_cast<std::size_t>(shell.n_local_subdomains);
+        for (std::size_t subdomain_num = 0; subdomain_num + 1 < n_subdomains; ++subdomain_num)
+        {
+            auto& cache = eigen.common_subdomains[subdomain_num];
+            auto& solver = typed_storage.solvers[subdomain_num];
+            std::size_t rhs_idx = 0;
+            for (const int dof : cache.overlap_dofs)
+            {
+                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
+            }
+            cache.delta_workspace = solve_eigen_system(solver, cache.rhs_workspace);
+
+            std::size_t update_idx = 0;
+            for (const int dof : cache.update_dofs)
+            {
+                y_map[dof] +=
+                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+            }
+            if (cache.active_residual_update_mat.rows() > 0)
+            {
+                std::size_t residual_input_idx = 0;
+                for (const int local_pos : cache.update_local_positions)
+                {
+                    cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
+                        cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
+                }
+                cache.residual_delta_workspace.noalias() =
+                    cache.active_residual_update_mat * cache.residual_input_workspace;
+                std::size_t row_idx = 0;
+                for (const int row : cache.active_residual_update_rows)
+                {
+                    residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
+                }
+            }
+        }
+        if (n_subdomains > 0)
+        {
+            auto& cache = eigen.common_subdomains.back();
+            auto& solver = typed_storage.solvers.back();
+            std::size_t rhs_idx = 0;
+            for (const int dof : cache.overlap_dofs)
+            {
+                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
+            }
+            cache.delta_workspace = solve_eigen_system(solver, cache.rhs_workspace);
+
+            std::size_t update_idx = 0;
+            for (const int dof : cache.update_dofs)
+            {
+                y_map[dof] +=
+                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+            }
+        }
+    }
+    postprocessShellResult(y);
+}
+
+const std::vector<int>&
+PETScLevelSolver::getEigenOverlapDofs(const std::size_t subdomain_num) const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    TBOX_ASSERT(subdomain_num < d_shell_data.eigen_data->common_subdomains.size());
+    return d_shell_data.eigen_data->common_subdomains[subdomain_num].overlap_dofs;
+} // getEigenOverlapDofs
+
+const std::vector<int>&
+PETScLevelSolver::getEigenUpdateDofs(const std::size_t subdomain_num) const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    TBOX_ASSERT(subdomain_num < d_shell_data.eigen_data->common_subdomains.size());
+    return d_shell_data.eigen_data->common_subdomains[subdomain_num].update_dofs;
+} // getEigenUpdateDofs
+
+const std::vector<int>&
+PETScLevelSolver::getEigenUpdateLocalPositions(const std::size_t subdomain_num) const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    TBOX_ASSERT(subdomain_num < d_shell_data.eigen_data->common_subdomains.size());
+    return d_shell_data.eigen_data->common_subdomains[subdomain_num].update_local_positions;
+} // getEigenUpdateLocalPositions
+
+const std::vector<int>&
+PETScLevelSolver::getEigenActiveResidualUpdateRows(const std::size_t subdomain_num) const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    TBOX_ASSERT(subdomain_num < d_shell_data.eigen_data->common_subdomains.size());
+    return d_shell_data.eigen_data->common_subdomains[subdomain_num].active_residual_update_rows;
+} // getEigenActiveResidualUpdateRows
+
+const Eigen::SparseMatrix<double, Eigen::RowMajor>&
+PETScLevelSolver::getEigenActiveResidualUpdateMat(const std::size_t subdomain_num) const
+{
+    TBOX_ASSERT(d_shell_data.eigen_data);
+    TBOX_ASSERT(subdomain_num < d_shell_data.eigen_data->common_subdomains.size());
+    return d_shell_data.eigen_data->common_subdomains[subdomain_num].active_residual_update_mat;
+} // getEigenActiveResidualUpdateMat
+
+void
+PETScLevelSolver::initializeBuiltinEigenSubdomainSolver(const EigenSubdomainSolverType solver_type,
+                                                        const Eigen::MatrixXd& local_operator,
+                                                        const std::size_t subdomain_num)
+{
+    dispatchEigenSolverType(solver_type,
+                            [&](auto solver_tag)
+                            {
+                                using SolverType = typename decltype(solver_tag)::type;
+                                initialize_eigen_solver(getEigenSolveStorage<SolverType>().solvers[subdomain_num],
+                                                        local_operator,
+                                                        d_eigen_subdomain_solver_threshold);
+                            });
+    return;
+} // initializeBuiltinEigenSubdomainSolver
+
+Eigen::VectorXd
+PETScLevelSolver::solveBuiltinEigenSubdomainSystem(const EigenSubdomainSolverType solver_type,
+                                                   const Eigen::VectorXd& rhs,
+                                                   const std::size_t subdomain_num) const
+{
+    Eigen::VectorXd solution;
+    dispatchEigenSolverType(solver_type,
+                            [&](auto solver_tag)
+                            {
+                                using SolverType = typename decltype(solver_tag)::type;
+                                solution =
+                                    solve_eigen_system(getEigenSolveStorage<SolverType>().solvers[subdomain_num], rhs);
+                            });
+    return solution;
+} // solveBuiltinEigenSubdomainSystem
 
 void
 PETScLevelSolver::cacheASMSubdomains(const std::vector<std::set<int>>& subdomain_dofs,
@@ -894,122 +1350,191 @@ PETScLevelSolver::initializePetscShellData()
 void
 PETScLevelSolver::initializeEigenShellData()
 {
-    auto& shell = d_shell_data;
-    shell.eigen_data = std::make_unique<EigenShellSmootherData>();
-    auto& eigen = *shell.eigen_data;
-    const bool use_multiplicative = d_shell_smoother_composition == ShellSmootherComposition::MULTIPLICATIVE;
-    eigen.eigen_level_mat = copyPETScMatToEigenSparse(d_petsc_mat);
-    eigen.eigen_subdomains.resize(static_cast<std::size_t>(shell.n_local_subdomains));
-    for (int subdomain_num = 0; subdomain_num < shell.n_local_subdomains; ++subdomain_num)
+    switch (d_shell_smoother_backend)
     {
-        auto& cache = eigen.eigen_subdomains[static_cast<std::size_t>(subdomain_num)];
-        cache.overlap_dofs = d_subdomain_dofs[static_cast<std::size_t>(subdomain_num)];
-        const Eigen::Index overlap_size = static_cast<Eigen::Index>(cache.overlap_dofs.size());
-        std::unordered_map<int, int> overlap_col_map;
-        overlap_col_map.reserve(static_cast<std::size_t>(overlap_size));
-        for (Eigen::Index local_col = 0; local_col < overlap_size; ++local_col)
+    case ShellSmootherBackend::EIGEN:
+        if (usingCustomEigenSolveSubdomainSolver())
         {
-            overlap_col_map[cache.overlap_dofs[static_cast<std::size_t>(local_col)]] = static_cast<int>(local_col);
-        }
-
-        cache.nonoverlap_dofs = d_nonoverlap_subdomain_dofs[static_cast<std::size_t>(subdomain_num)];
-        cache.nonoverlap_local_positions.resize(cache.nonoverlap_dofs.size());
-        std::unordered_map<int, int> nonoverlap_col_map;
-        nonoverlap_col_map.reserve(cache.nonoverlap_dofs.size());
-        for (std::size_t local_col = 0; local_col < cache.nonoverlap_dofs.size(); ++local_col)
-        {
-            const int dof = cache.nonoverlap_dofs[local_col];
-            const auto overlap_pos_it = overlap_col_map.find(dof);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(overlap_pos_it != overlap_col_map.end());
-#endif
-            cache.nonoverlap_local_positions[local_col] = overlap_pos_it->second;
-            nonoverlap_col_map[dof] = static_cast<int>(local_col);
-        }
-
-        Eigen::MatrixXd local_operator = Eigen::MatrixXd::Zero(overlap_size, overlap_size);
-        for (Eigen::Index local_row = 0; local_row < overlap_size; ++local_row)
-        {
-            const int global_row = cache.overlap_dofs[static_cast<std::size_t>(local_row)];
-            for (auto it =
-                     Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator(eigen.eigen_level_mat, global_row);
-                 it;
-                 ++it)
-            {
-                const auto col_it = overlap_col_map.find(static_cast<int>(it.col()));
-                if (col_it != overlap_col_map.end()) local_operator(local_row, col_it->second) = it.value();
-            }
-        }
-
-        cache.svd = std::make_unique<Eigen::JacobiSVD<Eigen::MatrixXd>>(local_operator,
-                                                                        Eigen::ComputeThinU | Eigen::ComputeThinV);
-
-        switch (d_shell_smoother_partition)
-        {
-        case ShellSmootherPartition::BASIC:
-            cache.update_dofs = cache.overlap_dofs;
-            cache.update_local_positions.resize(cache.overlap_dofs.size());
-            for (std::size_t local_pos = 0; local_pos < cache.update_local_positions.size(); ++local_pos)
-            {
-                cache.update_local_positions[local_pos] = static_cast<int>(local_pos);
-            }
-            break;
-        case ShellSmootherPartition::RESTRICT:
-            cache.update_dofs = cache.nonoverlap_dofs;
-            cache.update_local_positions = cache.nonoverlap_local_positions;
+            initializeCustomEigenShellData();
             break;
         }
-
-        if (use_multiplicative)
+        dispatchEigenSolverType(getEigenSolveSolverType(),
+                                [&](auto solver_tag)
+                                {
+                                    using SolverType = typename decltype(solver_tag)::type;
+                                    initializeBuiltinEigenSolveStorage<SolverType>();
+                                });
+        break;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+        if (usingCustomEigenPseudoinverseSubdomainSolver())
         {
-            const std::unordered_map<int, int>* active_col_map = nullptr;
-            int active_num_cols = 0;
-            switch (d_shell_smoother_partition)
-            {
-            case ShellSmootherPartition::BASIC:
-                active_col_map = &overlap_col_map;
-                active_num_cols = static_cast<int>(cache.overlap_dofs.size());
-                break;
-            case ShellSmootherPartition::RESTRICT:
-                active_col_map = &nonoverlap_col_map;
-                active_num_cols = static_cast<int>(cache.nonoverlap_dofs.size());
-                break;
-            }
-
-            std::vector<Eigen::Triplet<double>> triplets;
-            std::unordered_map<int, int> row_map;
-            for (int row = 0; row < eigen.eigen_level_mat.rows(); ++row)
-            {
-                for (auto it = Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator(eigen.eigen_level_mat, row);
-                     it;
-                     ++it)
+            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeEigenShellData()\n"
+                                     << "Custom Eigen matrix-based shell data must be implemented by a subclass."
+                                     << std::endl);
+        }
+        switch (getEigenPseudoinverseSolverType())
+        {
+        case EigenSubdomainSolverType::CUSTOM:
+            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeEigenShellData()\n"
+                                     << "CUSTOM is not a built-in Eigen matrix-based subdomain solver type."
+                                     << std::endl);
+            break;
+        case EigenSubdomainSolverType::LLT:
+        case EigenSubdomainSolverType::LDLT:
+        case EigenSubdomainSolverType::PARTIAL_PIV_LU:
+        case EigenSubdomainSolverType::FULL_PIV_LU:
+        case EigenSubdomainSolverType::HOUSEHOLDER_QR:
+        case EigenSubdomainSolverType::COL_PIV_HOUSEHOLDER_QR:
+        case EigenSubdomainSolverType::COMPLETE_ORTHOGONAL_DECOMPOSITION:
+        case EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR:
+        case EigenSubdomainSolverType::JACOBI_SVD:
+        case EigenSubdomainSolverType::BDC_SVD:
+            initializeEigenShellDataWithLocalOperatorHook(
+                [this](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num)
                 {
-                    const auto active_col_it = active_col_map->find(static_cast<int>(it.col()));
-                    if (active_col_it == active_col_map->end()) continue;
-
-                    const auto row_it = row_map.find(row);
-                    int local_row = -1;
-                    if (row_it == row_map.end())
-                    {
-                        local_row = static_cast<int>(cache.active_residual_update_rows.size());
-                        cache.active_residual_update_rows.push_back(row);
-                        row_map.emplace(row, local_row);
-                    }
-                    else
-                    {
-                        local_row = row_it->second;
-                    }
-                    triplets.emplace_back(local_row, active_col_it->second, it.value());
-                }
-            }
-
-            cache.active_residual_update_mat.resize(static_cast<int>(cache.active_residual_update_rows.size()),
-                                                    active_num_cols);
-            cache.active_residual_update_mat.setFromTriplets(triplets.begin(), triplets.end());
+                    auto& cache = d_shell_data.eigen_data->common_subdomains[subdomain_num];
+                    cache.local_pseudoinverse = buildEigenSubdomainPseudoinverse(local_operator);
+                });
+            break;
         }
+        break;
+    case ShellSmootherBackend::PETSC:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeEigenShellData()\n"
+                                 << "PETSc shell backend should not initialize Eigen shell data." << std::endl);
+        break;
     }
     return;
 } // initializeEigenShellData
+
+void
+PETScLevelSolver::initializeEigenSubdomainSolver(const Eigen::MatrixXd& local_operator, std::size_t subdomain_num)
+{
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN:
+        if (usingCustomEigenSolveSubdomainSolver())
+        {
+            TBOX_ERROR(d_object_name << " " << d_options_prefix
+                                     << " PETScLevelSolver::initializeEigenSubdomainSolver()\n"
+                                     << "Custom Eigen solve-based subdomain solvers must be implemented by a "
+                                     << "subclass." << std::endl);
+        }
+        initializeBuiltinEigenSubdomainSolver(getEigenSolveSolverType(), local_operator, subdomain_num);
+        break;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+        if (usingCustomEigenPseudoinverseSubdomainSolver())
+        {
+            TBOX_ERROR(d_object_name << " " << d_options_prefix
+                                     << " PETScLevelSolver::initializeEigenSubdomainSolver()\n"
+                                     << "Custom Eigen matrix-based subdomain solvers must be implemented by a "
+                                     << "subclass." << std::endl);
+        }
+        d_shell_data.eigen_data->common_subdomains[subdomain_num].local_pseudoinverse =
+            buildEigenSubdomainPseudoinverse(local_operator);
+        break;
+    case ShellSmootherBackend::PETSC:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeEigenSubdomainSolver()\n"
+                                 << "PETSc shell backend should not initialize Eigen subdomain solvers." << std::endl);
+        break;
+    }
+    return;
+} // initializeEigenSubdomainSolver
+
+Eigen::VectorXd
+PETScLevelSolver::solveEigenSubdomainSystem(const Eigen::VectorXd& rhs, std::size_t subdomain_num) const
+{
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN:
+        if (usingCustomEigenSolveSubdomainSolver())
+        {
+            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::solveEigenSubdomainSystem()\n"
+                                     << "Custom Eigen solve-based subdomain solvers must be implemented by a "
+                                     << "subclass." << std::endl);
+        }
+        return solveBuiltinEigenSubdomainSystem(getEigenSolveSolverType(), rhs, subdomain_num);
+        break;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+        if (usingCustomEigenPseudoinverseSubdomainSolver())
+        {
+            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::solveEigenSubdomainSystem()\n"
+                                     << "Custom Eigen matrix-based subdomain solvers must be implemented by a "
+                                     << "subclass." << std::endl);
+        }
+        return d_shell_data.eigen_data->common_subdomains[subdomain_num].local_pseudoinverse * rhs;
+    case ShellSmootherBackend::PETSC:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::solveEigenSubdomainSystem()\n"
+                                 << "PETSc shell backend should not use the Eigen solve path." << std::endl);
+        break;
+    }
+
+    return Eigen::VectorXd();
+} // solveEigenSubdomainSystem
+
+void
+PETScLevelSolver::initializeCustomEigenShellData()
+{
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeCustomEigenShellData()\n"
+                             << "Custom Eigen shell data must be implemented by a subclass." << std::endl);
+} // initializeCustomEigenShellData
+
+void
+PETScLevelSolver::applyAdditiveCustomEigen(Vec /*x*/, Vec /*y*/)
+{
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::applyAdditiveCustomEigen()\n"
+                             << "Custom additive Eigen shell application must be implemented by a subclass."
+                             << std::endl);
+} // applyAdditiveCustomEigen
+
+void
+PETScLevelSolver::applyMultiplicativeCustomEigen(Vec /*x*/, Vec /*y*/)
+{
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::applyMultiplicativeCustomEigen()\n"
+                             << "Custom multiplicative Eigen shell application must be implemented by a subclass."
+                             << std::endl);
+} // applyMultiplicativeCustomEigen
+
+Eigen::MatrixXd
+PETScLevelSolver::buildEigenSubdomainPseudoinverse(const Eigen::MatrixXd& local_operator) const
+{
+    switch (getEigenPseudoinverseSolverType())
+    {
+    case EigenSubdomainSolverType::CUSTOM:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::buildEigenSubdomainPseudoinverse()\n"
+                                 << "Custom Eigen matrix-based subdomain solvers must be implemented by a subclass."
+                                 << std::endl);
+        break;
+    case EigenSubdomainSolverType::LLT:
+        return build_llt_solve_matrix(local_operator);
+    case EigenSubdomainSolverType::LDLT:
+        return build_ldlt_solve_matrix(local_operator);
+    case EigenSubdomainSolverType::PARTIAL_PIV_LU:
+        return build_partial_piv_lu_solve_matrix(local_operator);
+    case EigenSubdomainSolverType::FULL_PIV_LU:
+        return build_full_piv_lu_solve_matrix(local_operator, d_eigen_subdomain_pseudoinverse_threshold);
+    case EigenSubdomainSolverType::HOUSEHOLDER_QR:
+        return build_householder_qr_solve_matrix(local_operator);
+    case EigenSubdomainSolverType::COL_PIV_HOUSEHOLDER_QR:
+        return build_qr_solve_matrix<Eigen::ColPivHouseholderQR<Eigen::MatrixXd>>(
+            local_operator, d_eigen_subdomain_pseudoinverse_threshold);
+    case EigenSubdomainSolverType::COMPLETE_ORTHOGONAL_DECOMPOSITION:
+        return build_complete_orthogonal_decomposition_pseudoinverse(local_operator,
+                                                                     d_eigen_subdomain_pseudoinverse_threshold);
+    case EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR:
+        return build_qr_solve_matrix<Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>(
+            local_operator, d_eigen_subdomain_pseudoinverse_threshold);
+    case EigenSubdomainSolverType::JACOBI_SVD:
+        return build_svd_pseudoinverse<Eigen::JacobiSVD<Eigen::MatrixXd>>(local_operator,
+                                                                          d_eigen_subdomain_pseudoinverse_threshold);
+    case EigenSubdomainSolverType::BDC_SVD:
+        return build_svd_pseudoinverse<Eigen::BDCSVD<Eigen::MatrixXd>>(local_operator,
+                                                                       d_eigen_subdomain_pseudoinverse_threshold);
+    }
+
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::buildEigenSubdomainPseudoinverse()\n"
+                             << "Unknown Eigen subdomain pseudoinverse type." << std::endl);
+    return Eigen::MatrixXd();
+} // buildEigenSubdomainPseudoinverse
 
 void
 PETScLevelSolver::deallocatePetscShellData()
@@ -1076,8 +1601,9 @@ PETScLevelSolver::deallocateEigenShellData()
     auto& shell = d_shell_data;
     if (!shell.eigen_data) return;
 
-    shell.eigen_data->eigen_level_mat.resize(0, 0);
-    shell.eigen_data->eigen_subdomains.clear();
+    shell.eigen_data->n_dofs = 0;
+    shell.eigen_data->common_subdomains.clear();
+    shell.eigen_data->solve_storage.reset();
     shell.eigen_data.reset();
     return;
 } // deallocateEigenShellData
@@ -1122,15 +1648,36 @@ PETScLevelSolver::configureShellApply(PC ksp_pc)
         }
         break;
     case ShellSmootherBackend::EIGEN:
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
         switch (d_shell_smoother_composition)
         {
         case ShellSmootherComposition::ADDITIVE:
             apply_op = PETScLevelSolver::PCApply_AdditiveEigen;
-            pc_name_suffix = "PC_AdditiveEigen";
+            switch (d_shell_smoother_backend)
+            {
+            case ShellSmootherBackend::EIGEN:
+                pc_name_suffix = "PC_AdditiveEigen";
+                break;
+            case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+                pc_name_suffix = "PC_AdditiveEigenPseudoinverse";
+                break;
+            case ShellSmootherBackend::PETSC:
+                break;
+            }
             break;
         case ShellSmootherComposition::MULTIPLICATIVE:
             apply_op = PETScLevelSolver::PCApply_MultiplicativeEigen;
-            pc_name_suffix = "PC_MultiplicativeEigen";
+            switch (d_shell_smoother_backend)
+            {
+            case ShellSmootherBackend::EIGEN:
+                pc_name_suffix = "PC_MultiplicativeEigen";
+                break;
+            case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+                pc_name_suffix = "PC_MultiplicativeEigenPseudoinverse";
+                break;
+            case ShellSmootherBackend::PETSC:
+                break;
+            }
             break;
         }
         break;
@@ -1140,9 +1687,15 @@ PETScLevelSolver::configureShellApply(PC ksp_pc)
         TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellApply()\n"
                                  << "Unknown PCSHELL specified. Supported values are additive, additive-basic, "
                                     "additive-restrict, additive-eigen, additive-eigen-basic, "
-                                    "additive-eigen-restrict, multiplicative, multiplicative-basic, "
-                                    "multiplicative-restrict, multiplicative-eigen, "
-                                    "multiplicative-eigen-basic, and multiplicative-eigen-restrict."
+                                    "additive-eigen-restrict, "
+                                    "additive-eigen-pseudoinverse, "
+                                    "additive-eigen-pseudoinverse-basic, additive-eigen-pseudoinverse-restrict, "
+                                    "multiplicative, multiplicative-basic, multiplicative-restrict, "
+                                    "multiplicative-eigen, multiplicative-eigen-basic, "
+                                    "multiplicative-eigen-restrict, "
+                                    "multiplicative-eigen-pseudoinverse, "
+                                    "multiplicative-eigen-pseudoinverse-basic, and "
+                                    "multiplicative-eigen-pseudoinverse-restrict."
                                  << std::endl);
     }
     ierr = PCShellSetApply(ksp_pc, apply_op);
@@ -1168,6 +1721,7 @@ PETScLevelSolver::configureShellPreconditioner(PC ksp_pc)
         initializePetscShellData();
         break;
     case ShellSmootherBackend::EIGEN:
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
         initializeEigenShellData();
         break;
     }
@@ -1340,92 +1894,158 @@ PETScLevelSolver::updateResidualPetsc(const int subdomain_num, Vec sub_y, Vec re
 void
 PETScLevelSolver::applyAdditiveEigen(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
-    const auto& eigen = *d_shell_data.eigen_data;
-    const Eigen::Index n = eigen.eigen_level_mat.rows();
-    TBOX_ASSERT(n > 0);
-
+    if (usingCustomEigenSolveSubdomainSolver())
     {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        y_map.setZero();
-        for (const auto& cache : eigen.eigen_subdomains)
+        applyAdditiveCustomEigen(x, y);
+        return;
+    }
+
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN:
+        dispatchEigenSolverType(getEigenSolveSolverType(),
+                                [&](auto solver_tag)
+                                {
+                                    using SolverType = typename decltype(solver_tag)::type;
+                                    applyAdditiveEigenSolveImpl<SolverType>(x, y);
+                                });
+        break;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+    {
+        TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+        auto& eigen = *d_shell_data.eigen_data;
+        const Eigen::Index n = eigen.n_dofs;
+        TBOX_ASSERT(n > 0);
+
         {
-            Eigen::VectorXd rhs = Eigen::VectorXd::Zero(static_cast<Eigen::Index>(cache.overlap_dofs.size()));
-            std::size_t rhs_idx = 0;
-            for (const int dof : cache.overlap_dofs)
+            ConstPetscVecArrayMap x_array(x, n);
+            PetscVecArrayMap y_array(y, n);
+            const auto x_map = x_array.getMap();
+            auto y_map = y_array.getMap();
+            y_map.setZero();
+            for (std::size_t subdomain_num = 0; subdomain_num < eigen.common_subdomains.size(); ++subdomain_num)
             {
-                rhs[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
-            }
-            const Eigen::VectorXd delta = cache.svd->solve(rhs);
-            std::size_t update_idx = 0;
-            for (const int dof : cache.update_dofs)
-            {
-                y_map[dof] += delta[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+                auto& cache = eigen.common_subdomains[subdomain_num];
+                std::size_t rhs_idx = 0;
+                for (const int dof : cache.overlap_dofs)
+                {
+                    cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
+                }
+                cache.delta_workspace.noalias() = cache.local_pseudoinverse * cache.rhs_workspace;
+                std::size_t update_idx = 0;
+                for (const int dof : cache.update_dofs)
+                {
+                    y_map[dof] +=
+                        cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+                }
             }
         }
+        postprocessShellResult(y);
+        break;
     }
-    postprocessShellResult(y);
+    case ShellSmootherBackend::PETSC:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::applyAdditiveEigen()\n"
+                                 << "PETSc shell backend should not use the Eigen additive path." << std::endl);
+        break;
+    }
     return;
 } // applyAdditiveEigen
 
 void
 PETScLevelSolver::applyMultiplicativeEigen(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
-    auto& shell = d_shell_data;
-    const auto& eigen = *shell.eigen_data;
-    const Eigen::Index n = eigen.eigen_level_mat.rows();
-    TBOX_ASSERT(n > 0);
-
+    if (usingCustomEigenSolveSubdomainSolver())
     {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        Eigen::VectorXd residual(n);
-        y_map.setZero();
-        residual = x_map;
-        for (std::size_t subdomain_num = 0; subdomain_num < static_cast<std::size_t>(shell.n_local_subdomains);
-             ++subdomain_num)
-        {
-            const auto& cache = eigen.eigen_subdomains[subdomain_num];
-            const Eigen::Index overlap_size = static_cast<Eigen::Index>(cache.overlap_dofs.size());
-            Eigen::VectorXd rhs = Eigen::VectorXd::Zero(overlap_size);
-            std::size_t rhs_idx = 0;
-            for (const int dof : cache.overlap_dofs)
-            {
-                rhs[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-            const Eigen::VectorXd delta = cache.svd->solve(rhs);
+        applyMultiplicativeCustomEigen(x, y);
+        return;
+    }
 
-            std::size_t update_idx = 0;
-            for (const int dof : cache.update_dofs)
+    switch (d_shell_smoother_backend)
+    {
+    case ShellSmootherBackend::EIGEN:
+        dispatchEigenSolverType(getEigenSolveSolverType(),
+                                [&](auto solver_tag)
+                                {
+                                    using SolverType = typename decltype(solver_tag)::type;
+                                    applyMultiplicativeEigenSolveImpl<SolverType>(x, y);
+                                });
+        break;
+    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
+    {
+        TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+        auto& shell = d_shell_data;
+        auto& eigen = *shell.eigen_data;
+        const Eigen::Index n = eigen.n_dofs;
+        TBOX_ASSERT(n > 0);
+
+        {
+            ConstPetscVecArrayMap x_array(x, n);
+            PetscVecArrayMap y_array(y, n);
+            const auto x_map = x_array.getMap();
+            auto y_map = y_array.getMap();
+            Eigen::VectorXd residual(n);
+            y_map.setZero();
+            residual = x_map;
+            const std::size_t n_subdomains = static_cast<std::size_t>(shell.n_local_subdomains);
+            for (std::size_t subdomain_num = 0; subdomain_num + 1 < n_subdomains; ++subdomain_num)
             {
-                y_map[dof] += delta[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
-            }
-            if (subdomain_num + 1 < static_cast<std::size_t>(shell.n_local_subdomains) &&
-                cache.active_residual_update_mat.rows() > 0)
-            {
-                Eigen::VectorXd residual_input(static_cast<Eigen::Index>(cache.update_local_positions.size()));
-                std::size_t residual_input_idx = 0;
-                for (const int local_pos : cache.update_local_positions)
+                auto& cache = eigen.common_subdomains[subdomain_num];
+                std::size_t rhs_idx = 0;
+                for (const int dof : cache.overlap_dofs)
                 {
-                    residual_input[static_cast<Eigen::Index>(residual_input_idx++)] =
-                        delta[static_cast<Eigen::Index>(local_pos)];
+                    cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
                 }
-                const Eigen::VectorXd residual_delta = cache.active_residual_update_mat * residual_input;
-                std::size_t row_idx = 0;
-                for (const int row : cache.active_residual_update_rows)
+                cache.delta_workspace.noalias() = cache.local_pseudoinverse * cache.rhs_workspace;
+
+                std::size_t update_idx = 0;
+                for (const int dof : cache.update_dofs)
                 {
-                    residual[row] -= residual_delta[static_cast<Eigen::Index>(row_idx++)];
+                    y_map[dof] +=
+                        cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+                }
+                if (cache.active_residual_update_mat.rows() > 0)
+                {
+                    std::size_t residual_input_idx = 0;
+                    for (const int local_pos : cache.update_local_positions)
+                    {
+                        cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
+                            cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
+                    }
+                    cache.residual_delta_workspace.noalias() =
+                        cache.active_residual_update_mat * cache.residual_input_workspace;
+                    std::size_t row_idx = 0;
+                    for (const int row : cache.active_residual_update_rows)
+                    {
+                        residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
+                    }
+                }
+            }
+            if (n_subdomains > 0)
+            {
+                auto& cache = eigen.common_subdomains.back();
+                std::size_t rhs_idx = 0;
+                for (const int dof : cache.overlap_dofs)
+                {
+                    cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
+                }
+                cache.delta_workspace.noalias() = cache.local_pseudoinverse * cache.rhs_workspace;
+
+                std::size_t update_idx = 0;
+                for (const int dof : cache.update_dofs)
+                {
+                    y_map[dof] +=
+                        cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
                 }
             }
         }
+        postprocessShellResult(y);
+        break;
     }
-    postprocessShellResult(y);
+    case ShellSmootherBackend::PETSC:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::applyMultiplicativeEigen()\n"
+                                 << "PETSc shell backend should not use the Eigen multiplicative path." << std::endl);
+        break;
+    }
     return;
 } // applyMultiplicativeEigen
 
