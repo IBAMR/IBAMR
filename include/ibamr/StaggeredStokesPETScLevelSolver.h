@@ -65,6 +65,7 @@ class SAMRAIVectorReal;
 namespace IBAMR
 {
 class StaggeredStokesIBLevelRelaxationFACOperator;
+class StaggeredStokesEigenSchurComplementShellBackend;
 
 /*!
  * \brief Class StaggeredStokesPETScLevelSolver is a concrete PETScLevelSolver
@@ -164,16 +165,6 @@ protected:
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
-    void initializeEigenSubdomainSolver(const Eigen::MatrixXd& local_operator, std::size_t subdomain_num) override;
-
-    Eigen::VectorXd solveEigenSubdomainSystem(const Eigen::VectorXd& rhs, std::size_t subdomain_num) const override;
-
-    void initializeCustomEigenShellData() override;
-
-    void applyAdditiveCustomEigen(Vec x, Vec y) override;
-
-    void applyMultiplicativeCustomEigen(Vec x, Vec y) override;
-
     /*!
      * \brief Apply shell result postprocessing for pressure nullspace control.
      */
@@ -181,6 +172,7 @@ protected:
 
 private:
     friend class StaggeredStokesIBLevelRelaxationFACOperator;
+    friend class StaggeredStokesEigenSchurComplementShellBackend;
 
     /*!
      * \brief Set a full-level PETSc operator matrix to use directly instead of
@@ -257,61 +249,7 @@ private:
     double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
-    struct CustomEigenSchurSubdomainCache
-    {
-        int overlap_size = 0;
-        const std::vector<int>* overlap_dofs = nullptr;
-        const std::vector<int>* update_dofs = nullptr;
-        const std::vector<int>* update_local_positions = nullptr;
-        const std::vector<int>* active_residual_update_rows = nullptr;
-        std::vector<int> velocity_positions;
-        std::vector<int> pressure_positions;
-        const Eigen::SparseMatrix<double, Eigen::RowMajor>* active_residual_update_mat = nullptr;
-        Eigen::MatrixXd A00;
-        Eigen::MatrixXd A01;
-        Eigen::MatrixXd A10;
-        Eigen::MatrixXd A11;
-        Eigen::MatrixXd A00_inv_A01;
-        Eigen::MatrixXd schur;
-        Eigen::MatrixXd schur_solve_matrix;
-        Eigen::VectorXd rhs_workspace;
-        Eigen::VectorXd velocity_rhs_workspace;
-        Eigen::VectorXd pressure_rhs_workspace;
-        Eigen::VectorXd delta_workspace;
-        Eigen::VectorXd residual_input_workspace;
-        Eigen::VectorXd residual_delta_workspace;
-        Eigen::VectorXd velocity_solution_workspace;
-        Eigen::VectorXd pressure_solution_workspace;
-    };
-    struct CustomEigenA00SolverStorageBase
-    {
-        virtual ~CustomEigenA00SolverStorageBase() = default;
-    };
-    template <class SolverType>
-    struct CustomEigenA00TypedSolveStorage : public CustomEigenA00SolverStorageBase
-    {
-        std::vector<SolverType> solvers;
-    };
-    template <class SolverType>
-    CustomEigenA00TypedSolveStorage<SolverType>& getCustomEigenA00SolveStorage();
-    template <class SolverType>
-    const CustomEigenA00TypedSolveStorage<SolverType>& getCustomEigenA00SolveStorage() const;
-    template <class SolverType>
-    void initializeCustomEigenA00SolveStorage(std::size_t n_subdomains);
-    template <class SolverType>
-    void solveCustomEigenSubdomain(CustomEigenSchurSubdomainCache& custom_cache, const SolverType& a00_solver) const;
-    template <class SolverType>
-    void applyAdditiveCustomEigenImpl(Vec x, Vec y);
-    template <class SolverType>
-    void applyMultiplicativeCustomEigenImpl(Vec x, Vec y);
-    EigenSubdomainSolverType parseCustomBuiltinEigenSolverType(const std::string& type, const char* option_name) const;
-    Eigen::MatrixXd buildCustomSchurSolveMatrix(const Eigen::MatrixXd& schur) const;
-    std::vector<CustomEigenSchurSubdomainCache> d_custom_eigen_schur_subdomain_caches;
-    std::unique_ptr<CustomEigenA00SolverStorageBase> d_custom_eigen_a00_solver_storage;
-    EigenSubdomainSolverType d_custom_eigen_a00_solver_type = EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR;
-    double d_custom_eigen_a00_solver_threshold = -1.0;
-    EigenSubdomainSolverType d_custom_eigen_schur_solver_type = EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR;
-    double d_custom_eigen_schur_solver_threshold = -1.0;
+    std::unique_ptr<StaggeredStokesEigenSchurComplementShellBackend> d_eigen_schur_shell_backend;
     std::unordered_set<int> d_velocity_dof_set;
     std::unordered_set<int> d_pressure_dof_set;
     std::vector<PetscInt> d_velocity_dofs;
