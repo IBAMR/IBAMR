@@ -400,8 +400,9 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
+
                 (*kappa_data)(ci) = d_kappa_gas + (d_kappa_solid - d_kappa_gas) * heaviside +
-                                    (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
+                                      (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
             }
         }
     }
@@ -468,9 +469,10 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
-                (*specific_heat_data)(ci) =
-                    d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
-                    (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
+
+                (*specific_heat_data)(ci) = d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
+                (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
+                
             }
         }
     }

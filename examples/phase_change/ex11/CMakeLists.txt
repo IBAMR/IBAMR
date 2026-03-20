@@ -11,6 +11,19 @@
 ##
 ## ---------------------------------------------------------------------
 
-FOREACH(_dir ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11)
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "phase_change-ex11-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/phase_change/ex11"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-phase_change
+  SOURCES
+    example.cpp
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+  input2d_R1 input2d_R2 input2d_R540
+  )
