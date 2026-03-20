@@ -431,6 +431,7 @@ main(int argc, char* argv[])
         {
             TBOX_ERROR("missing stokes_ib_precond_db in input file\n");
         }
+        const bool has_pressure_nullspace = stokes_ib_precond_db->getBoolWithDefault("has_pressure_nullspace", true);
 
         Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
             "stokes_ib_implicit_example::fac_op", stokes_ib_precond_db, "stokes_ib_pc_");
@@ -444,7 +445,7 @@ main(int argc, char* argv[])
         fac_pc->setTimeInterval(current_time, new_time);
         fac_pc->setSolutionTime(new_time);
         fac_pc->setHomogeneousBc(true);
-        fac_pc->setComponentsHaveNullSpace(false, true);
+        fac_pc->setComponentsHaveNullSpace(false, has_pressure_nullspace);
         fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
         fac_pc->setIBForceJacobian(A);
         fac_pc->setIBInterpOp(J);
@@ -498,6 +499,16 @@ main(int argc, char* argv[])
         linear_solver->setTimeInterval(current_time, new_time);
         linear_solver->setSolutionTime(new_time);
         linear_solver->setInitialGuessNonzero(false);
+        Pointer<SAMRAIVectorReal<NDIM, double>> pressure_nullspace_vec;
+        if (has_pressure_nullspace)
+        {
+            pressure_nullspace_vec = eul_sol_vec->cloneVector("pressure_nullspace_vec");
+            pressure_nullspace_vec->allocateVectorData();
+            hier_velocity_data_ops->setToScalar(pressure_nullspace_vec->getComponentDescriptorIndex(0), 0.0, false);
+            hier_pressure_data_ops->setToScalar(pressure_nullspace_vec->getComponentDescriptorIndex(1), 1.0, false);
+            linear_solver->setNullSpace(
+                false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>(1, pressure_nullspace_vec));
+        }
 
         Pointer<SAMRAIVectorReal<NDIM, double>> linear_sol = eul_sol_vec->cloneVector("linear_sol");
         linear_sol->allocateVectorData();
@@ -531,6 +542,7 @@ main(int argc, char* argv[])
         linear_sol->deallocateVectorData();
         linear_rhs->deallocateVectorData();
         linear_rhs_seed_vec->deallocateVectorData();
+        if (pressure_nullspace_vec) pressure_nullspace_vec->deallocateVectorData();
 
         fac_pc->deallocateSolverState();
         jac_op->deallocateOperatorState();

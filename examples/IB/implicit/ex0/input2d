@@ -34,6 +34,7 @@ LinearSolveRhsSeedPressure {
 }
 
 stokes_ib_precond_db {
+  has_pressure_nullspace = TRUE
   num_pre_sweeps = 1
   num_post_sweeps = 1
   rediscretize_stokes = TRUE
