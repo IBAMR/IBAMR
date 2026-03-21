@@ -24,6 +24,24 @@ PETScLevelSolverEigenPseudoinverseShellBackend::PETScLevelSolverEigenPseudoinver
 {
 }
 
+const std::string&
+PETScLevelSolverEigenPseudoinverseShellBackend::getTypeKey() const
+{
+    return d_type_key;
+}
+
+const char*
+PETScLevelSolverEigenPseudoinverseShellBackend::getPCNameSuffixAdditive() const
+{
+    return "PC_AdditiveEigenPseudoinverse";
+}
+
+const char*
+PETScLevelSolverEigenPseudoinverseShellBackend::getPCNameSuffixMultiplicative() const
+{
+    return "PC_MultiplicativeEigenPseudoinverse";
+}
+
 void
 PETScLevelSolverEigenPseudoinverseShellBackend::configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
@@ -126,7 +144,6 @@ PETScLevelSolverEigenPseudoinverseShellBackend::buildSubdomainPseudoinverse(cons
 PETScLevelSolverEigenPseudoinverseShellBackend::EigenSubdomainSolverType
 PETScLevelSolverEigenPseudoinverseShellBackend::getSolverType() const
 {
-    TBOX_ASSERT(d_solver.d_shell_smoother_backend == PETScLevelSolver::ShellSmootherBackend::EIGEN_PSEUDOINVERSE);
     return d_solver_type;
 }
 
@@ -167,7 +184,7 @@ PETScLevelSolverEigenPseudoinverseShellBackend::applyAdditive(Vec x, Vec y)
             }
         }
     }
-    d_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 
 void
@@ -238,6 +255,6 @@ PETScLevelSolverEigenPseudoinverseShellBackend::applyMultiplicative(Vec x, Vec y
             }
         }
     }
-    d_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 } // namespace IBTK

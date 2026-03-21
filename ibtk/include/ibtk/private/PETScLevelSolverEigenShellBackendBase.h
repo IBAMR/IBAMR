@@ -25,10 +25,10 @@
 
 namespace IBTK
 {
-class PETScLevelSolverEigenShellBackendBase
+class PETScLevelSolverEigenShellBackendBase : public PETScLevelSolverShellBackend
 {
 public:
-    explicit PETScLevelSolverEigenShellBackendBase(PETScLevelSolver& solver) : d_solver(solver)
+    explicit PETScLevelSolverEigenShellBackendBase(PETScLevelSolverBackendContext& context) : d_context(context)
     {
     }
 
@@ -185,7 +185,7 @@ protected:
     template <class InitializeSubdomainSolver>
     void initializeCommonDataWithLocalOperatorHook(InitializeSubdomainSolver initialize_subdomain_solver);
 
-    PETScLevelSolver& d_solver;
+    PETScLevelSolverBackendContext& d_context;
     Eigen::Index d_n_dofs = 0;
     std::vector<CommonSubdomainCache> d_common_subdomains;
 

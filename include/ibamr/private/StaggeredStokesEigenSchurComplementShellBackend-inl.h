@@ -207,7 +207,7 @@ StaggeredStokesEigenSchurComplementShellBackend::applyAdditiveImpl(Vec x, Vec y)
             }
         }
     }
-    d_stokes_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 
 template <class SolverType>
@@ -294,7 +294,7 @@ StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicativeImpl(Vec x, 
             }
         }
     }
-    d_stokes_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 } // namespace IBAMR
 

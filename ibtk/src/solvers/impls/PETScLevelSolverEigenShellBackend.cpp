@@ -23,6 +23,24 @@ PETScLevelSolverEigenShellBackend::PETScLevelSolverEigenShellBackend(PETScLevelS
 {
 }
 
+const std::string&
+PETScLevelSolverEigenShellBackend::getTypeKey() const
+{
+    return d_type_key;
+}
+
+const char*
+PETScLevelSolverEigenShellBackend::getPCNameSuffixAdditive() const
+{
+    return "PC_AdditiveEigen";
+}
+
+const char*
+PETScLevelSolverEigenShellBackend::getPCNameSuffixMultiplicative() const
+{
+    return "PC_MultiplicativeEigen";
+}
+
 void
 PETScLevelSolverEigenShellBackend::configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
@@ -110,7 +128,6 @@ PETScLevelSolverEigenShellBackend::applyMultiplicative(Vec x, Vec y)
 PETScLevelSolverEigenShellBackend::EigenSubdomainSolverType
 PETScLevelSolverEigenShellBackend::getSolverType() const
 {
-    TBOX_ASSERT(d_solver.d_shell_smoother_backend == PETScLevelSolver::ShellSmootherBackend::EIGEN);
     return d_solver_type;
 }
 

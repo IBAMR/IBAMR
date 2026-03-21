@@ -120,6 +120,10 @@ public:
      */
     const std::vector<int>& getCouplingAwareASMSeedVelocityDOFs() const;
 
+    bool isVelocityDOF(int dof) const;
+
+    bool isPressureDOF(int dof) const;
+
 protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
@@ -172,7 +176,6 @@ protected:
 
 private:
     friend class StaggeredStokesIBLevelRelaxationFACOperator;
-    friend class StaggeredStokesEigenSchurComplementShellBackend;
 
     /*!
      * \brief Set a full-level PETSc operator matrix to use directly instead of
@@ -249,11 +252,12 @@ private:
     double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
-    std::unique_ptr<StaggeredStokesEigenSchurComplementShellBackend> d_eigen_schur_shell_backend;
     std::unordered_set<int> d_velocity_dof_set;
     std::unordered_set<int> d_pressure_dof_set;
     std::vector<PetscInt> d_velocity_dofs;
     std::vector<PetscInt> d_pressure_dofs;
+
+    StaggeredStokesEigenSchurComplementShellBackend* getEigenSchurShellBackend();
 
     //\}
 };

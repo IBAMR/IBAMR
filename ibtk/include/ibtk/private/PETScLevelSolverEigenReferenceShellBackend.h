@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2025 by the IBAMR developers
+// Copyright (c) 2014 - 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,17 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_private_PETScLevelSolverEigenShellBackend
-#define included_IBTK_private_PETScLevelSolverEigenShellBackend
+#ifndef included_IBTK_private_PETScLevelSolverEigenReferenceShellBackend
+#define included_IBTK_private_PETScLevelSolverEigenReferenceShellBackend
 
 #include <ibtk/private/PETScLevelSolverEigenShellBackendBase.h>
 
 namespace IBTK
 {
-class PETScLevelSolverEigenShellBackend : public PETScLevelSolverEigenShellBackendBase
+class PETScLevelSolverEigenReferenceShellBackend : public PETScLevelSolverEigenShellBackendBase
 {
 public:
-    explicit PETScLevelSolverEigenShellBackend(PETScLevelSolver& solver);
+    explicit PETScLevelSolverEigenReferenceShellBackend(PETScLevelSolver& solver);
 
     using EigenSubdomainSolverType = PETScLevelSolverEigenShellBackendBase::EigenSubdomainSolverType;
 
@@ -63,22 +63,17 @@ private:
     template <class SolverType>
     Eigen::VectorXd solveSubdomainSystem(const Eigen::VectorXd& rhs, std::size_t subdomain_num) const;
 
-    template <class SolverType>
-    void applyAdditiveImpl(Vec x, Vec y);
-
-    template <class SolverType>
-    void applyMultiplicativeImpl(Vec x, Vec y);
-
     EigenSubdomainSolverType getSolverType() const;
     double getSolverThreshold() const;
 
     std::unique_ptr<SolveStorageBase> d_solve_storage;
-    std::string d_type_key = "eigen";
+    Eigen::SparseMatrix<double, Eigen::RowMajor> d_level_mat;
+    std::string d_type_key = "eigen-reference";
     EigenSubdomainSolverType d_solver_type = EigenSubdomainSolverType::PARTIAL_PIV_LU;
     double d_solver_threshold = -1.0;
 };
 } // namespace IBTK
 
-#include <ibtk/private/PETScLevelSolverEigenShellBackend-inl.h>
+#include <ibtk/private/PETScLevelSolverEigenReferenceShellBackend-inl.h>
 
 #endif

@@ -88,14 +88,14 @@ PETScLevelSolverEigenShellBackendBase::dispatchEigenSolverType(const EigenSubdom
                                                                Handler&& handler) const
 {
     PETScLevelSolverEigenShell::dispatchSubdomainSolverType(
-        d_solver.d_object_name, d_solver.d_options_prefix, solver_type, std::forward<Handler>(handler));
+        d_context.getObjectNameForBackend(), d_context.getOptionsPrefixForBackend(), solver_type, std::forward<Handler>(handler));
 }
 
 inline PETScLevelSolverEigenShellBackendBase::EigenSubdomainSolverType
 PETScLevelSolverEigenShellBackendBase::parseEigenSubdomainSolverType(const std::string& type, const char* caller) const
 {
     return PETScLevelSolverEigenShell::parseSubdomainSolverType(
-        type, d_solver.d_object_name, d_solver.d_options_prefix, caller);
+        type, d_context.getObjectNameForBackend(), d_context.getOptionsPrefixForBackend(), caller);
 }
 
 template <class SVDType>
@@ -124,20 +124,20 @@ inline void
 PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook(
     InitializeSubdomainSolver initialize_subdomain_solver)
 {
-    const bool use_multiplicative =
-        d_solver.d_shell_smoother_composition == PETScLevelSolver::ShellSmootherComposition::MULTIPLICATIVE;
+    const bool use_multiplicative = d_context.isShellMultiplicativeForBackend();
+    const bool use_restrict_partition = d_context.useRestrictPartitionForBackend();
     const Eigen::SparseMatrix<double, Eigen::RowMajor> eigen_level_mat =
-        copyPETScMatToEigenSparse(d_solver.d_petsc_mat);
+        copyPETScMatToEigenSparse(d_context.getPETScMatForBackend());
     Eigen::SparseMatrix<double> eigen_level_mat_transpose;
     if (use_multiplicative) eigen_level_mat_transpose = eigen_level_mat.transpose();
     d_n_dofs = eigen_level_mat.rows();
     d_common_subdomains.clear();
-    d_common_subdomains.resize(d_solver.d_subdomain_dofs.size());
+    d_common_subdomains.resize(d_context.getSubdomainDOFsForBackend().size());
     for (std::size_t subdomain_num = 0; subdomain_num < d_common_subdomains.size(); ++subdomain_num)
     {
         auto& cache = d_common_subdomains[subdomain_num];
         cache = CommonSubdomainCache();
-        cache.overlap_dofs = d_solver.d_subdomain_dofs[subdomain_num];
+        cache.overlap_dofs = d_context.getSubdomainDOFsForBackend()[subdomain_num];
         const Eigen::Index overlap_size = static_cast<Eigen::Index>(cache.overlap_dofs.size());
         std::unordered_map<int, int> overlap_col_map;
         overlap_col_map.reserve(static_cast<std::size_t>(overlap_size));
@@ -146,7 +146,7 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
             overlap_col_map[cache.overlap_dofs[static_cast<std::size_t>(local_col)]] = static_cast<int>(local_col);
         }
 
-        cache.nonoverlap_dofs = d_solver.d_nonoverlap_subdomain_dofs[subdomain_num];
+        cache.nonoverlap_dofs = d_context.getNonoverlapSubdomainDOFsForBackend()[subdomain_num];
         cache.nonoverlap_local_positions.resize(cache.nonoverlap_dofs.size());
         for (std::size_t local_col = 0; local_col < cache.nonoverlap_dofs.size(); ++local_col)
         {
@@ -172,20 +172,19 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
 
         initialize_subdomain_solver(local_operator, subdomain_num);
 
-        switch (d_solver.d_shell_smoother_partition)
+        if (use_restrict_partition)
         {
-        case PETScLevelSolver::ShellSmootherPartition::BASIC:
+            cache.update_dofs = cache.nonoverlap_dofs;
+            cache.update_local_positions = cache.nonoverlap_local_positions;
+        }
+        else
+        {
             cache.update_dofs = cache.overlap_dofs;
             cache.update_local_positions.resize(cache.overlap_dofs.size());
             for (std::size_t local_pos = 0; local_pos < cache.update_local_positions.size(); ++local_pos)
             {
                 cache.update_local_positions[local_pos] = static_cast<int>(local_pos);
             }
-            break;
-        case PETScLevelSolver::ShellSmootherPartition::RESTRICT:
-            cache.update_dofs = cache.nonoverlap_dofs;
-            cache.update_local_positions = cache.nonoverlap_local_positions;
-            break;
         }
         cache.rhs_workspace.resize(overlap_size);
         cache.delta_workspace.resize(overlap_size);

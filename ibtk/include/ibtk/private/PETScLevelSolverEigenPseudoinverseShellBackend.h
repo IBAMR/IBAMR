@@ -23,13 +23,16 @@ class PETScLevelSolverEigenPseudoinverseShellBackend : public PETScLevelSolverEi
 public:
     explicit PETScLevelSolverEigenPseudoinverseShellBackend(PETScLevelSolver& solver);
 
-    void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
-    void initialize();
-    void deallocate();
+    const std::string& getTypeKey() const override;
+    void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) override;
+    const char* getPCNameSuffixAdditive() const override;
+    const char* getPCNameSuffixMultiplicative() const override;
+    void initialize() override;
+    void deallocate() override;
     void initializeSubdomainPseudoinverse(const Eigen::MatrixXd& local_operator, std::size_t subdomain_num);
     Eigen::VectorXd solveSubdomainSystem(const Eigen::VectorXd& rhs, std::size_t subdomain_num) const;
-    void applyAdditive(Vec x, Vec y);
-    void applyMultiplicative(Vec x, Vec y);
+    void applyAdditive(Vec x, Vec y) override;
+    void applyMultiplicative(Vec x, Vec y) override;
 
 private:
     using EigenSubdomainSolverType = PETScLevelSolverEigenShellBackendBase::EigenSubdomainSolverType;
@@ -38,6 +41,7 @@ private:
     double getSolverThreshold() const;
 
     Eigen::MatrixXd buildSubdomainPseudoinverse(const Eigen::MatrixXd& local_operator) const;
+    std::string d_type_key = "eigen-pseudoinverse";
     EigenSubdomainSolverType d_solver_type = EigenSubdomainSolverType::COL_PIV_HOUSEHOLDER_QR;
     double d_solver_threshold = -1.0;
 };
