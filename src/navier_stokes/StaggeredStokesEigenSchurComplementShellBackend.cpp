@@ -50,6 +50,16 @@ StaggeredStokesEigenSchurComplementShellBackend::StaggeredStokesEigenSchurComple
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : PETScLevelSolverEigenShellBackendBase(solver), d_stokes_solver(solver)
 {
+    configure(input_db);
+}
+
+void
+StaggeredStokesEigenSchurComplementShellBackend::configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+{
+    d_a00_solver_type = EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR;
+    d_a00_solver_threshold = -1.0;
+    d_schur_solver_type = EigenSubdomainSolverType::FULL_PIV_HOUSEHOLDER_QR;
+    d_schur_solver_threshold = -1.0;
     if (input_db && input_db->keyExists("a00_solver_type"))
     {
         d_a00_solver_type = parseBuiltinSolverType(input_db->getString("a00_solver_type"));
@@ -75,7 +85,13 @@ StaggeredStokesEigenSchurComplementShellBackend::getTypeKey() const
 }
 
 const char*
-StaggeredStokesEigenSchurComplementShellBackend::getPCNameSuffix() const
+StaggeredStokesEigenSchurComplementShellBackend::getPCNameSuffixAdditive() const
+{
+    return "PC_EigenSchurComplementAdditive";
+}
+
+const char*
+StaggeredStokesEigenSchurComplementShellBackend::getPCNameSuffixMultiplicative() const
 {
     return "PC_EigenSchurComplement";
 }
@@ -155,7 +171,7 @@ StaggeredStokesEigenSchurComplementShellBackend::buildSchurSolveMatrix(const Eig
 void
 StaggeredStokesEigenSchurComplementShellBackend::initialize()
 {
-    const std::size_t n_subdomains = d_stokes_solver.d_subdomain_dofs.size();
+    const std::size_t n_subdomains = d_context.getSubdomainDOFsForBackend().size();
     if (d_subdomain_caches.size() != n_subdomains)
     {
         d_subdomain_caches.resize(n_subdomains);
@@ -177,11 +193,11 @@ StaggeredStokesEigenSchurComplementShellBackend::initialize()
                 for (std::size_t local_pos = 0; local_pos < overlap_dofs.size(); ++local_pos)
                 {
                     const int dof = overlap_dofs[local_pos];
-                    if (d_stokes_solver.d_velocity_dof_set.count(dof))
+                    if (d_stokes_solver.isVelocityDOF(dof))
                     {
                         cache.velocity_positions.push_back(static_cast<int>(local_pos));
                     }
-                    else if (d_stokes_solver.d_pressure_dof_set.count(dof))
+                    else if (d_stokes_solver.isPressureDOF(dof))
                     {
                         cache.pressure_positions.push_back(static_cast<int>(local_pos));
                     }

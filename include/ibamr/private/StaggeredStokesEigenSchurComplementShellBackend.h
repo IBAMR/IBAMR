@@ -28,8 +28,7 @@
 
 namespace IBAMR
 {
-class StaggeredStokesEigenSchurComplementShellBackend : public IBTK::PETScLevelSolverEigenShellBackendBase,
-                                                        public IBTK::PETScLevelSolverRegisteredShellBackend
+class StaggeredStokesEigenSchurComplementShellBackend : public IBTK::PETScLevelSolverEigenShellBackendBase
 {
 public:
     explicit StaggeredStokesEigenSchurComplementShellBackend(StaggeredStokesPETScLevelSolver& solver,
@@ -37,7 +36,11 @@ public:
 
     const std::string& getTypeKey() const override;
 
-    const char* getPCNameSuffix() const override;
+    void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) override;
+
+    const char* getPCNameSuffixAdditive() const override;
+
+    const char* getPCNameSuffixMultiplicative() const override;
 
     void reset();
 

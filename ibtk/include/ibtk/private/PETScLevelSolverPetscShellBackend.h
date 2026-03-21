@@ -14,6 +14,8 @@
 #ifndef included_IBTK_private_PETScLevelSolverPetscShellBackend
 #define included_IBTK_private_PETScLevelSolverPetscShellBackend
 
+#include <ibtk/PETScLevelSolver.h>
+
 #include <petscksp.h>
 
 #include <memory>
@@ -23,18 +25,22 @@ namespace IBTK
 {
 class PETScLevelSolver;
 
-class PETScLevelSolverPetscShellBackend
+class PETScLevelSolverPetscShellBackend : public PETScLevelSolverShellBackend
 {
 public:
     explicit PETScLevelSolverPetscShellBackend(PETScLevelSolver& solver);
 
-    void initialize();
-    void deallocate();
+    const std::string& getTypeKey() const override;
+    void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) override;
+    const char* getPCNameSuffixAdditive() const override;
+    const char* getPCNameSuffixMultiplicative() const override;
+    void initialize() override;
+    void deallocate() override;
     void beginAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
     void endAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
     void accumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
-    void applyAdditive(Vec x, Vec y);
-    void applyMultiplicative(Vec x, Vec y);
+    void applyAdditive(Vec x, Vec y) override;
+    void applyMultiplicative(Vec x, Vec y) override;
 
 private:
     struct Data
@@ -54,8 +60,9 @@ private:
 
     void updateResidual(int subdomain_num, Vec sub_y, Vec residual);
 
-    PETScLevelSolver& d_solver;
+    PETScLevelSolverBackendContext& d_context;
     std::unique_ptr<Data> d_data;
+    std::string d_type_key = "petsc";
 };
 } // namespace IBTK
 

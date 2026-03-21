@@ -46,6 +46,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,26 @@ static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
 
+std::unique_ptr<IBTK::PETScLevelSolverShellBackend>
+allocate_eigen_schur_complement_shell_backend(IBTK::PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto* stokes_solver = dynamic_cast<StaggeredStokesPETScLevelSolver*>(&solver);
+    if (!stokes_solver) return nullptr;
+    return std::make_unique<StaggeredStokesEigenSchurComplementShellBackend>(*stokes_solver, input_db);
+}
+
+void
+register_staggered_stokes_shell_backends()
+{
+    static bool registered = false;
+    if (!registered)
+    {
+        IBTK::PETScLevelSolverShellBackendManager::getManager()->registerShellBackendFactoryFunction(
+            "eigen-schur-complement", allocate_eigen_schur_complement_shell_backend);
+        registered = true;
+    }
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -72,8 +93,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                                                                  const std::string& default_options_prefix)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    d_eigen_schur_shell_backend = std::make_unique<StaggeredStokesEigenSchurComplementShellBackend>(*this, input_db);
-    registerShellBackend(d_eigen_schur_shell_backend.get());
+    register_staggered_stokes_shell_backends();
     PETScLevelSolver::init(input_db, default_options_prefix);
     if (input_db && input_db->keyExists("subdomain_box_size"))
     {
@@ -181,7 +201,6 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
-    unregisterShellBackend(d_eigen_schur_shell_backend->getTypeKey());
     return;
 } // ~StaggeredStokesPETScLevelSolver
 
@@ -207,6 +226,18 @@ const std::vector<int>&
 StaggeredStokesPETScLevelSolver::getCouplingAwareASMSeedVelocityDOFs() const
 {
     return d_coupling_aware_asm_seed_velocity_dofs;
+}
+
+bool
+StaggeredStokesPETScLevelSolver::isVelocityDOF(const int dof) const
+{
+    return d_velocity_dof_set.count(dof) > 0;
+}
+
+bool
+StaggeredStokesPETScLevelSolver::isPressureDOF(const int dof) const
+{
+    return d_pressure_dof_set.count(dof) > 0;
 }
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -365,7 +396,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     d_pressure_dof_set.clear();
     d_velocity_dof_set.insert(d_velocity_dofs.begin(), d_velocity_dofs.end());
     d_pressure_dof_set.insert(d_pressure_dofs.begin(), d_pressure_dofs.end());
-    d_eigen_schur_shell_backend->reset();
+    if (auto* backend = getEigenSchurShellBackend()) backend->reset();
 
     if (d_augmented_operator_mat)
     {
@@ -524,7 +555,7 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
     d_coupling_aware_asm_map_data.clear();
     d_coupling_aware_asm_seed_velocity_dofs.clear();
-    d_eigen_schur_shell_backend->reset();
+    if (auto* backend = getEigenSchurShellBackend()) backend->reset();
     d_velocity_dof_set.clear();
     d_pressure_dof_set.clear();
     d_velocity_dofs.clear();
@@ -662,6 +693,12 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
     d_augmented_operator_mat = augmented_operator_mat;
     return;
 } // setAugmentedOperatorMat
+
+StaggeredStokesEigenSchurComplementShellBackend*
+StaggeredStokesPETScLevelSolver::getEigenSchurShellBackend()
+{
+    return dynamic_cast<StaggeredStokesEigenSchurComplementShellBackend*>(getShellBackend("eigen-schur-complement"));
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -36,6 +36,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <set>
 #include <string>
@@ -73,6 +74,19 @@ fill_nontrivial_rhs(const Pointer<PatchLevel<NDIM>>& level, const int f_u_idx, c
             const CellIndex<NDIM>& i_c = b();
             (*f_p_data)(i_c) = 0.03 * static_cast<double>(i_c(0)) + 0.04 * static_cast<double>(i_c(1)) - 0.1;
         }
+    }
+}
+
+void
+zero_solution_fields(const Pointer<PatchLevel<NDIM>>& level, const int u_idx, const int p_idx)
+{
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
+        u_data->fillAll(0.0);
+        p_data->fillAll(0.0);
     }
 }
 
@@ -210,6 +224,34 @@ main(int argc, char* argv[])
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
+    const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
+    const bool test_all_eigen_reference_solver_types =
+        test_db->getBoolWithDefault("test_all_eigen_reference_solver_types", false);
+    const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
+
+    std::vector<std::string> solver_types;
+    const bool is_eigen_reference_case = shell_pc_type.find("eigen-reference") != std::string::npos;
+    if (is_eigen_reference_case && test_all_eigen_reference_solver_types)
+    {
+        solver_types = { "llt",
+                         "ldlt",
+                         "partial-piv-lu",
+                         "full-piv-lu",
+                         "householder-qr",
+                         "col-piv-householder-qr",
+                         "complete-orthogonal-decomposition",
+                         "full-piv-householder-qr",
+                         "jacobi-svd",
+                         "bdc-svd" };
+    }
+    else if (test_db->keyExists("eigen_subdomain_solver_type"))
+    {
+        solver_types = { test_db->getString("eigen_subdomain_solver_type") };
+    }
+    else
+    {
+        solver_types = { "" };
+    }
 
     int test_failures = 0;
 
@@ -246,14 +288,7 @@ main(int argc, char* argv[])
     b_vec.addComponent(f_u_var, f_u_idx);
     b_vec.addComponent(f_p_var, f_p_idx);
 
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
-        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
-        u_data->fillAll(0.0);
-        p_data->fillAll(0.0);
-    }
+    zero_solution_fields(level, u_idx, p_idx);
     fill_nontrivial_rhs(level, f_u_idx, f_p_idx);
 
     std::vector<int> num_dofs_per_proc;
@@ -279,37 +314,6 @@ main(int argc, char* argv[])
                                &pressure_is);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
-    solver_db->putString("ksp_type", "preonly");
-    solver_db->putString("pc_type", "shell");
-    solver_db->putString("shell_pc_type", "multiplicative");
-    solver_db->putInteger("max_iterations", 1);
-    solver_db->putBool("initial_guess_nonzero", false);
-    solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
-    solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
-    solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
-    solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
-
-    Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
-        new IBAMR::StaggeredStokesPETScLevelSolver("solver_shell_multiplicative_semantics",
-                                                   solver_db,
-                                                   "stokes_shell_sem_");
-    PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
-    problem_coefs.setCConstant(1.0);
-    problem_coefs.setDConstant(-1.0);
-    solver->setVelocityPoissonSpecifications(problem_coefs);
-    solver->initializeSolverState(x_vec, b_vec);
-
-    std::vector<std::vector<int>>* overlap_is = nullptr;
-    std::vector<std::vector<int>>* nonoverlap_is = nullptr;
-    solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
-
-    const KSP& petsc_ksp = solver->getPETScKSP();
-    Mat A_mat = nullptr;
-    Mat pc_mat = nullptr;
-    ierr = KSPGetOperators(petsc_ksp, &A_mat, &pc_mat);
-    IBTK_CHKERRQ(ierr);
-
     const int rank = IBTK_MPI::getRank();
     Vec b_petsc = nullptr;
     Vec x_petsc = nullptr;
@@ -326,23 +330,81 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         b_petsc, f_u_idx, u_dof_index_idx, f_p_idx, p_dof_index_idx, level);
 
-    apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, 1.0, pressure_is);
-    const double expected_inf_norm = vec_norm_inf(x_expected);
-    if (!(expected_inf_norm > 0.0)) ++test_failures;
+    for (const std::string& solver_type : solver_types)
+    {
+        zero_solution_fields(level, u_idx, p_idx);
 
-    const bool converged = solver->solveSystem(x_vec, b_vec);
-    if (!converged) ++test_failures;
-    IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-        x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
-    const double actual_inf_norm = vec_norm_inf(x_petsc);
-    if (!(actual_inf_norm > 0.0)) ++test_failures;
+        Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
+        solver_db->putString("ksp_type", "preonly");
+        solver_db->putString("pc_type", "shell");
+        solver_db->putString("shell_pc_type", shell_pc_type);
+        solver_db->putInteger("max_iterations", 1);
+        solver_db->putBool("initial_guess_nonzero", false);
+        solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
+        solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
+        solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
+        solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
+        if (!solver_type.empty()) solver_db->putString("eigen_subdomain_solver_type", solver_type);
+        if (test_db->keyExists("eigen_subdomain_solver_threshold"))
+        {
+            solver_db->putDouble("eigen_subdomain_solver_threshold", test_db->getDouble("eigen_subdomain_solver_threshold"));
+        }
 
-    ierr = VecCopy(x_petsc, x_diff);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAXPY(x_diff, -1.0, x_expected);
-    IBTK_CHKERRQ(ierr);
-    const double error_inf_norm = vec_norm_inf(x_diff);
-    if (!(error_inf_norm <= tol)) ++test_failures;
+        Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver = new IBAMR::StaggeredStokesPETScLevelSolver(
+            "solver_shell_multiplicative_semantics", solver_db, "stokes_shell_sem_");
+        PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
+        problem_coefs.setCConstant(1.0);
+        problem_coefs.setDConstant(-1.0);
+        solver->setVelocityPoissonSpecifications(problem_coefs);
+        solver->initializeSolverState(x_vec, b_vec);
+
+        std::vector<std::vector<int>>* overlap_is = nullptr;
+        std::vector<std::vector<int>>* nonoverlap_is = nullptr;
+        solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
+
+        const KSP& petsc_ksp = solver->getPETScKSP();
+        Mat A_mat = nullptr;
+        Mat pc_mat = nullptr;
+        ierr = KSPGetOperators(petsc_ksp, &A_mat, &pc_mat);
+        IBTK_CHKERRQ(ierr);
+
+        apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, 1.0, pressure_is);
+        const double expected_inf_norm = vec_norm_inf(x_expected);
+        if (!(expected_inf_norm > 0.0)) ++test_failures;
+
+        const bool converged = solver->solveSystem(x_vec, b_vec);
+        if (!converged) ++test_failures;
+        IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
+        const double actual_inf_norm = vec_norm_inf(x_petsc);
+        if (!(actual_inf_norm > 0.0)) ++test_failures;
+
+        ierr = VecCopy(x_petsc, x_diff);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(x_diff, -1.0, x_expected);
+        IBTK_CHKERRQ(ierr);
+        const double error_inf_norm = vec_norm_inf(x_diff);
+
+        if (verify_reference_parity)
+        {
+            if (!(error_inf_norm <= tol)) ++test_failures;
+        }
+        else
+        {
+            if (!std::isfinite(error_inf_norm)) ++test_failures;
+        }
+
+        solver->deallocateSolverState();
+
+        const std::string solver_label = solver_type.empty() ? std::string("default") : solver_type;
+        pout << "solver_type = " << solver_label << "\n";
+        if (verify_reference_parity)
+        {
+            pout << "expected_inf_norm = " << expected_inf_norm << "\n";
+            pout << "actual_inf_norm = " << actual_inf_norm << "\n";
+            pout << "error_inf_norm = " << error_inf_norm << "\n";
+        }
+    }
 
     ierr = VecDestroy(&x_diff);
     IBTK_CHKERRQ(ierr);
@@ -355,19 +417,13 @@ main(int argc, char* argv[])
     ierr = ISDestroy(&pressure_is);
     IBTK_CHKERRQ(ierr);
 
-    solver->deallocateSolverState();
-
     for (const int data_idx : { u_idx, p_idx, f_u_idx, f_p_idx, u_dof_index_idx, p_dof_index_idx })
     {
         level->deallocatePatchData(data_idx);
     }
 
-    plog << "Input database:\n";
-    input_db->printClassData(plog);
+    pout << "shell_pc_type = " << shell_pc_type << "\n";
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
-    pout << "expected_inf_norm = " << expected_inf_norm << "\n";
-    pout << "actual_inf_norm = " << actual_inf_norm << "\n";
-    pout << "error_inf_norm = " << error_inf_norm << "\n";
     pout << "parity_tol = " << tol << "\n";
     pout << "test_failures = " << test_failures << "\n";
     return test_failures > 0 ? 1 : 0;

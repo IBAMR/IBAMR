@@ -44,6 +44,7 @@
 #include <SAMRAIVectorReal.h>
 
 #include <memory>
+#include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -71,14 +72,41 @@ class PETScLevelSolverEigenShellBackendBase;
 class PETScLevelSolverPetscShellBackend;
 class PETScLevelSolverEigenShellBackend;
 class PETScLevelSolverEigenPseudoinverseShellBackend;
-class PETScLevelSolverRegisteredShellBackend
+class PETScLevelSolverEigenReferenceShellBackend;
+class PETScLevelSolver;
+class PETScLevelSolverBackendContext
 {
 public:
-    virtual ~PETScLevelSolverRegisteredShellBackend() = default;
+    virtual ~PETScLevelSolverBackendContext() = default;
+
+    virtual const std::string& getObjectNameForBackend() const = 0;
+    virtual const std::string& getOptionsPrefixForBackend() const = 0;
+
+    virtual bool isShellMultiplicativeForBackend() const = 0;
+    virtual bool useRestrictPartitionForBackend() const = 0;
+
+    virtual const std::vector<std::vector<int>>& getSubdomainDOFsForBackend() const = 0;
+    virtual const std::vector<std::vector<int>>& getNonoverlapSubdomainDOFsForBackend() const = 0;
+
+    virtual Mat getPETScMatForBackend() const = 0;
+    virtual Vec getPETScXForBackend() const = 0;
+    virtual Vec getPETScBForBackend() const = 0;
+
+    virtual void postprocessShellResultForBackend(Vec y) = 0;
+};
+
+class PETScLevelSolverShellBackend
+{
+public:
+    virtual ~PETScLevelSolverShellBackend() = default;
 
     virtual const std::string& getTypeKey() const = 0;
 
-    virtual const char* getPCNameSuffix() const = 0;
+    virtual void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) = 0;
+
+    virtual const char* getPCNameSuffixAdditive() const = 0;
+
+    virtual const char* getPCNameSuffixMultiplicative() const = 0;
 
     virtual void initialize() = 0;
 
@@ -87,6 +115,41 @@ public:
     virtual void applyAdditive(Vec x, Vec y) = 0;
 
     virtual void applyMultiplicative(Vec x, Vec y) = 0;
+};
+
+class PETScLevelSolverShellBackendManager
+{
+public:
+    using ShellBackendMaker = std::unique_ptr<PETScLevelSolverShellBackend> (*)(
+        PETScLevelSolver& solver,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    static PETScLevelSolverShellBackendManager* getManager();
+
+    static void freeManager();
+
+    std::unique_ptr<PETScLevelSolverShellBackend>
+    allocateShellBackend(const std::string& type_key,
+                         PETScLevelSolver& solver,
+                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) const;
+
+    void registerShellBackendFactoryFunction(const std::string& type_key, ShellBackendMaker backend_maker);
+
+    std::vector<std::string> getRegisteredShellBackendTypes() const;
+
+protected:
+    PETScLevelSolverShellBackendManager();
+    ~PETScLevelSolverShellBackendManager() = default;
+
+private:
+    PETScLevelSolverShellBackendManager(const PETScLevelSolverShellBackendManager& from) = delete;
+    PETScLevelSolverShellBackendManager& operator=(const PETScLevelSolverShellBackendManager& that) = delete;
+
+    static PETScLevelSolverShellBackendManager* s_shell_backend_manager_instance;
+    static bool s_registered_callback;
+    static unsigned char s_shutdown_priority;
+
+    std::map<std::string, ShellBackendMaker> d_shell_backend_maker_map;
 };
 
 /*!
@@ -110,7 +173,7 @@ public:
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScLevelSolver : public LinearSolver
+class PETScLevelSolver : public LinearSolver, public PETScLevelSolverBackendContext
 {
 public:
     /*!
@@ -137,6 +200,26 @@ public:
      * \brief Get the PETSc KSP object.
      */
     const KSP& getPETScKSP() const;
+
+    const std::string& getObjectNameForBackend() const override;
+
+    const std::string& getOptionsPrefixForBackend() const override;
+
+    bool isShellMultiplicativeForBackend() const override;
+
+    bool useRestrictPartitionForBackend() const override;
+
+    const std::vector<std::vector<int>>& getSubdomainDOFsForBackend() const override;
+
+    const std::vector<std::vector<int>>& getNonoverlapSubdomainDOFsForBackend() const override;
+
+    Mat getPETScMatForBackend() const override;
+
+    Vec getPETScXForBackend() const override;
+
+    Vec getPETScBForBackend() const override;
+
+    void postprocessShellResultForBackend(Vec y) override;
 
     /*!
      * \brief Get the stored ASM-like subdomain description.
@@ -264,11 +347,6 @@ public:
     //\}
 
 protected:
-    friend class PETScLevelSolverEigenShellBackendBase;
-    friend class PETScLevelSolverPetscShellBackend;
-    friend class PETScLevelSolverEigenShellBackend;
-    friend class PETScLevelSolverEigenPseudoinverseShellBackend;
-
     /*!
      * \brief Basic initialization.
      */
@@ -338,9 +416,8 @@ protected:
      */
     virtual void setupNullSpace();
 
-    void registerShellBackend(PETScLevelSolverRegisteredShellBackend* backend);
-
-    void unregisterShellBackend(const std::string& type_key);
+    PETScLevelSolverShellBackend* getShellBackend(const std::string& type_key);
+    const PETScLevelSolverShellBackend* getShellBackend(const std::string& type_key) const;
 
     /*!
      * \brief Associated hierarchy.
@@ -404,14 +481,6 @@ private:
         MULTIPLICATIVE
     };
 
-    enum class ShellSmootherBackend
-    {
-        PETSC,
-        EIGEN,
-        EIGEN_PSEUDOINVERSE,
-        REGISTERED
-    };
-
     enum class ShellSmootherPartition
     {
         BASIC,
@@ -423,15 +492,15 @@ private:
      * composition, and partition settings.
      */
     void configureShellSmootherType();
+    void loadShellBackends(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     std::string normalizeShellSmootherType(const std::string& type) const;
     std::string extractShellSmootherTypeKey(const std::string& type) const;
     PreconditionerType parsePreconditionerType(const std::string& type) const;
-    ShellSmootherBackend parseShellSmootherBackend(const std::string& type_key) const;
+    std::string parseShellSmootherBackendKey(const std::string& type_key) const;
     ShellSmootherComposition parseShellSmootherComposition(const std::string& type) const;
     ShellSmootherPartition parseShellSmootherPartition(const std::string& type,
                                                        ShellSmootherComposition composition) const;
-    PETScLevelSolverRegisteredShellBackend* findRegisteredShellBackend(const std::string& type_key) const;
     /*!
      * \brief Cache set-like subdomain descriptions in the stored vector form.
      */
@@ -493,34 +562,16 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_AdditivePetsc(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_AdditiveShell(PC pc, Vec x, Vec y);
 
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_MultiplicativePetsc(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the Eigen-based additive shell preconditioner.
-     */
-    static PetscErrorCode PCApply_AdditiveEigen(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the Eigen-based multiplicative shell preconditioner.
-     */
-    static PetscErrorCode PCApply_MultiplicativeEigen(PC pc, Vec x, Vec y);
-
-    static PetscErrorCode PCApply_RegisteredShell(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_MultiplicativeShell(PC pc, Vec x, Vec y);
 
     PreconditionerType d_preconditioner_type = PreconditionerType::OTHER;
     ShellSmootherComposition d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
-    ShellSmootherBackend d_shell_smoother_backend = ShellSmootherBackend::PETSC;
+    std::string d_shell_smoother_backend_key = "petsc";
     ShellSmootherPartition d_shell_smoother_partition = ShellSmootherPartition::BASIC;
-    std::unique_ptr<PETScLevelSolverPetscShellBackend> d_petsc_shell_backend;
-    std::unique_ptr<PETScLevelSolverEigenShellBackend> d_eigen_shell_backend;
-    std::unique_ptr<PETScLevelSolverEigenPseudoinverseShellBackend> d_eigen_pseudoinverse_shell_backend;
-    std::unordered_map<std::string, PETScLevelSolverRegisteredShellBackend*> d_registered_shell_backends;
-    PETScLevelSolverRegisteredShellBackend* d_active_registered_shell_backend = nullptr;
+    std::unordered_map<std::string, std::unique_ptr<PETScLevelSolverShellBackend>> d_shell_backends;
+    PETScLevelSolverShellBackend* d_active_shell_backend = nullptr;
 };
 } // namespace IBTK
 

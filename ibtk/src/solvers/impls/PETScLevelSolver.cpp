@@ -14,10 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/PETScLevelSolverEigenPseudoinverseShellBackend.h>
+#include <ibtk/private/PETScLevelSolverEigenReferenceShellBackend.h>
 #include <ibtk/private/PETScLevelSolverEigenShellBackend.h>
 #include <ibtk/private/PETScLevelSolverPetscShellBackend.h>
 
@@ -54,10 +54,9 @@
 #include <iomanip>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <set>
 #include <string>
-#include <type_traits>
-#include <unordered_map>
 #include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -125,7 +124,111 @@ build_petsc_subdomain_index_sets(std::vector<IS>& subdomain_is,
     }
     return;
 } // build_petsc_subdomain_index_sets
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_petsc_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto backend = std::make_unique<PETScLevelSolverPetscShellBackend>(solver);
+    backend->configure(input_db);
+    return backend;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_eigen_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto backend = std::make_unique<PETScLevelSolverEigenShellBackend>(solver);
+    backend->configure(input_db);
+    return backend;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_eigen_pseudoinverse_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto backend = std::make_unique<PETScLevelSolverEigenPseudoinverseShellBackend>(solver);
+    backend->configure(input_db);
+    return backend;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_eigen_reference_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto backend = std::make_unique<PETScLevelSolverEigenReferenceShellBackend>(solver);
+    backend->configure(input_db);
+    return backend;
+}
 } // namespace
+
+PETScLevelSolverShellBackendManager* PETScLevelSolverShellBackendManager::s_shell_backend_manager_instance = nullptr;
+bool PETScLevelSolverShellBackendManager::s_registered_callback = false;
+unsigned char PETScLevelSolverShellBackendManager::s_shutdown_priority = 200;
+
+PETScLevelSolverShellBackendManager*
+PETScLevelSolverShellBackendManager::getManager()
+{
+    if (!s_shell_backend_manager_instance)
+    {
+        s_shell_backend_manager_instance = new PETScLevelSolverShellBackendManager();
+    }
+    if (!s_registered_callback)
+    {
+        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        s_registered_callback = true;
+    }
+    return s_shell_backend_manager_instance;
+}
+
+void
+PETScLevelSolverShellBackendManager::freeManager()
+{
+    delete s_shell_backend_manager_instance;
+    s_shell_backend_manager_instance = nullptr;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+PETScLevelSolverShellBackendManager::allocateShellBackend(const std::string& type_key,
+                                                          PETScLevelSolver& solver,
+                                                          Pointer<Database> input_db) const
+{
+    const auto it = d_shell_backend_maker_map.find(type_key);
+    if (it == d_shell_backend_maker_map.end())
+    {
+        TBOX_ERROR("PETScLevelSolverShellBackendManager::allocateShellBackend():\n"
+                   << "  unrecognized shell backend type: " << type_key << "\n");
+    }
+    return (it->second)(solver, input_db);
+}
+
+void
+PETScLevelSolverShellBackendManager::registerShellBackendFactoryFunction(const std::string& type_key,
+                                                                         ShellBackendMaker backend_maker)
+{
+    if (d_shell_backend_maker_map.find(type_key) != d_shell_backend_maker_map.end())
+    {
+        pout << "PETScLevelSolverShellBackendManager::registerShellBackendFactoryFunction():\n"
+             << "  NOTICE: overriding initialization function for shell backend type = " << type_key << "\n";
+    }
+    d_shell_backend_maker_map[type_key] = backend_maker;
+}
+
+std::vector<std::string>
+PETScLevelSolverShellBackendManager::getRegisteredShellBackendTypes() const
+{
+    std::vector<std::string> type_keys;
+    type_keys.reserve(d_shell_backend_maker_map.size());
+    for (const auto& entry : d_shell_backend_maker_map)
+    {
+        type_keys.push_back(entry.first);
+    }
+    return type_keys;
+}
+
+PETScLevelSolverShellBackendManager::PETScLevelSolverShellBackendManager() : d_shell_backend_maker_map()
+{
+    registerShellBackendFactoryFunction("petsc", allocate_petsc_shell_backend);
+    registerShellBackendFactoryFunction("eigen", allocate_eigen_shell_backend);
+    registerShellBackendFactoryFunction("eigen-pseudoinverse", allocate_eigen_pseudoinverse_shell_backend);
+    registerShellBackendFactoryFunction("eigen-reference", allocate_eigen_reference_shell_backend);
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -144,9 +247,6 @@ PETScLevelSolver::PETScLevelSolver()
                      TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::initializeSolverState()");
                  t_deallocate_solver_state =
                      TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::deallocateSolverState()"););
-    d_petsc_shell_backend = std::make_unique<PETScLevelSolverPetscShellBackend>(*this);
-    d_eigen_shell_backend = std::make_unique<PETScLevelSolverEigenShellBackend>(*this);
-    d_eigen_pseudoinverse_shell_backend = std::make_unique<PETScLevelSolverEigenPseudoinverseShellBackend>(*this);
     return;
 } // PETScLevelSolver
 
@@ -180,6 +280,66 @@ PETScLevelSolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 } // getPETScKSP
+
+const std::string&
+PETScLevelSolver::getObjectNameForBackend() const
+{
+    return d_object_name;
+}
+
+const std::string&
+PETScLevelSolver::getOptionsPrefixForBackend() const
+{
+    return d_options_prefix;
+}
+
+bool
+PETScLevelSolver::isShellMultiplicativeForBackend() const
+{
+    return d_shell_smoother_composition == ShellSmootherComposition::MULTIPLICATIVE;
+}
+
+bool
+PETScLevelSolver::useRestrictPartitionForBackend() const
+{
+    return d_shell_smoother_partition == ShellSmootherPartition::RESTRICT;
+}
+
+const std::vector<std::vector<int>>&
+PETScLevelSolver::getSubdomainDOFsForBackend() const
+{
+    return d_subdomain_dofs;
+}
+
+const std::vector<std::vector<int>>&
+PETScLevelSolver::getNonoverlapSubdomainDOFsForBackend() const
+{
+    return d_nonoverlap_subdomain_dofs;
+}
+
+Mat
+PETScLevelSolver::getPETScMatForBackend() const
+{
+    return d_petsc_mat;
+}
+
+Vec
+PETScLevelSolver::getPETScXForBackend() const
+{
+    return d_petsc_x;
+}
+
+Vec
+PETScLevelSolver::getPETScBForBackend() const
+{
+    return d_petsc_b;
+}
+
+void
+PETScLevelSolver::postprocessShellResultForBackend(Vec y)
+{
+    postprocessShellResult(y);
+}
 
 void
 PETScLevelSolver::getASMSubdomains(std::vector<std::vector<int>>** nonoverlap_subdomain_dofs,
@@ -452,12 +612,25 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
     }
-    d_eigen_shell_backend->configure(input_db);
-    d_eigen_pseudoinverse_shell_backend->configure(input_db);
+    loadShellBackends(input_db);
     d_preconditioner_type = parsePreconditionerType(d_pc_type);
     configureShellSmootherType();
     return;
 } // init
+
+void
+PETScLevelSolver::loadShellBackends(Pointer<Database> input_db)
+{
+    d_shell_backends.clear();
+    auto* manager = PETScLevelSolverShellBackendManager::getManager();
+    for (const auto& type_key : manager->getRegisteredShellBackendTypes())
+    {
+        auto backend = manager->allocateShellBackend(type_key, *this, input_db);
+        if (!backend) continue;
+        const std::string key = backend->getTypeKey();
+        d_shell_backends[key] = std::move(backend);
+    }
+}
 
 void
 PETScLevelSolver::configureShellSmootherType()
@@ -465,22 +638,28 @@ PETScLevelSolver::configureShellSmootherType()
     if (d_preconditioner_type != PreconditionerType::SHELL)
     {
         d_shell_pc_type.clear();
-        d_shell_smoother_backend = ShellSmootherBackend::PETSC;
+        d_shell_smoother_backend_key = "petsc";
         d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
         d_shell_smoother_partition = ShellSmootherPartition::BASIC;
-        d_active_registered_shell_backend = nullptr;
+        d_active_shell_backend = nullptr;
         return;
     }
 
     d_shell_pc_type = normalizeShellSmootherType(d_shell_pc_type);
-    if (d_shell_pc_type.empty()) return;
+    if (d_shell_pc_type.empty())
+    {
+        d_shell_smoother_backend_key = "petsc";
+        d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+        d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+        d_active_shell_backend = getShellBackend(d_shell_smoother_backend_key);
+        return;
+    }
 
     const std::string type_key = extractShellSmootherTypeKey(d_shell_pc_type);
-    d_shell_smoother_backend = parseShellSmootherBackend(type_key);
+    d_shell_smoother_backend_key = parseShellSmootherBackendKey(type_key);
     d_shell_smoother_composition = parseShellSmootherComposition(d_shell_pc_type);
     d_shell_smoother_partition = parseShellSmootherPartition(d_shell_pc_type, d_shell_smoother_composition);
-    d_active_registered_shell_backend =
-        d_shell_smoother_backend == ShellSmootherBackend::REGISTERED ? findRegisteredShellBackend(type_key) : nullptr;
+    d_active_shell_backend = getShellBackend(d_shell_smoother_backend_key);
     return;
 } // configureShellSmootherType
 
@@ -529,18 +708,25 @@ PETScLevelSolver::parsePreconditionerType(const std::string& type) const
     return PreconditionerType::OTHER;
 } // parsePreconditionerType
 
-PETScLevelSolver::ShellSmootherBackend
-PETScLevelSolver::parseShellSmootherBackend(const std::string& type_key) const
+std::string
+PETScLevelSolver::parseShellSmootherBackendKey(const std::string& type_key) const
 {
-    if (type_key.empty() || type_key == "petsc") return ShellSmootherBackend::PETSC;
-    if (type_key == "eigen-pseudoinverse") return ShellSmootherBackend::EIGEN_PSEUDOINVERSE;
-    if (type_key == "eigen") return ShellSmootherBackend::EIGEN;
-    if (findRegisteredShellBackend(type_key)) return ShellSmootherBackend::REGISTERED;
+    const std::string normalized_key = type_key.empty() ? "petsc" : type_key;
+    if (getShellBackend(normalized_key)) return normalized_key;
 
-    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::parseShellSmootherBackend()\n"
-                             << "Unknown shell smoother backend key: " << type_key << std::endl);
-    return ShellSmootherBackend::PETSC;
-} // parseShellSmootherBackend
+    std::ostringstream supported_types;
+    bool first = true;
+    for (const auto& entry : d_shell_backends)
+    {
+        if (!first) supported_types << ", ";
+        supported_types << entry.first;
+        first = false;
+    }
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::parseShellSmootherBackendKey()\n"
+                             << "Unknown shell smoother backend key: " << normalized_key << "\n"
+                             << "Available shell backend keys: " << supported_types.str() << std::endl);
+    return "petsc";
+} // parseShellSmootherBackendKey
 
 PETScLevelSolver::ShellSmootherComposition
 PETScLevelSolver::parseShellSmootherComposition(const std::string& type) const
@@ -556,13 +742,6 @@ PETScLevelSolver::parseShellSmootherPartition(const std::string& type, ShellSmoo
     return composition == ShellSmootherComposition::ADDITIVE ? ShellSmootherPartition::RESTRICT :
                                                                ShellSmootherPartition::BASIC;
 } // parseShellSmootherPartition
-
-PETScLevelSolverRegisteredShellBackend*
-PETScLevelSolver::findRegisteredShellBackend(const std::string& type_key) const
-{
-    const auto it = d_registered_shell_backends.find(type_key);
-    return it == d_registered_shell_backends.end() ? nullptr : it->second;
-}
 
 void
 PETScLevelSolver::cacheASMSubdomains(const std::vector<std::set<int>>& subdomain_dofs,
@@ -651,10 +830,11 @@ PETScLevelSolver::configureFieldSplitPreconditioner(PC ksp_pc)
 void
 PETScLevelSolver::deallocateShellData()
 {
-    d_petsc_shell_backend->deallocate();
-    d_eigen_shell_backend->deallocate();
-    d_eigen_pseudoinverse_shell_backend->deallocate();
-    if (d_active_registered_shell_backend) d_active_registered_shell_backend->deallocate();
+    for (auto& entry : d_shell_backends)
+    {
+        entry.second->deallocate();
+    }
+    d_active_shell_backend = nullptr;
     d_subdomain_dofs.clear();
     d_nonoverlap_subdomain_dofs.clear();
     return;
@@ -671,78 +851,21 @@ PETScLevelSolver::configureShellApply(PC ksp_pc)
 
     PetscErrorCode (*apply_op)(PC, Vec, Vec) = nullptr;
     const char* pc_name_suffix = nullptr;
-    switch (d_shell_smoother_backend)
+    switch (d_shell_smoother_composition)
     {
-    case ShellSmootherBackend::PETSC:
-        switch (d_shell_smoother_composition)
-        {
-        case ShellSmootherComposition::ADDITIVE:
-            apply_op = PETScLevelSolver::PCApply_AdditivePetsc;
-            pc_name_suffix = "PC_AdditivePetsc";
-            break;
-        case ShellSmootherComposition::MULTIPLICATIVE:
-            apply_op = PETScLevelSolver::PCApply_MultiplicativePetsc;
-            pc_name_suffix = "PC_MultiplicativePetsc";
-            break;
-        }
+    case ShellSmootherComposition::ADDITIVE:
+        apply_op = PETScLevelSolver::PCApply_AdditiveShell;
+        pc_name_suffix = d_active_shell_backend ? d_active_shell_backend->getPCNameSuffixAdditive() : nullptr;
         break;
-    case ShellSmootherBackend::EIGEN:
-    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-        switch (d_shell_smoother_composition)
-        {
-        case ShellSmootherComposition::ADDITIVE:
-            apply_op = PETScLevelSolver::PCApply_AdditiveEigen;
-            switch (d_shell_smoother_backend)
-            {
-            case ShellSmootherBackend::EIGEN:
-                pc_name_suffix = "PC_AdditiveEigen";
-                break;
-            case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-                pc_name_suffix = "PC_AdditiveEigenPseudoinverse";
-                break;
-            case ShellSmootherBackend::REGISTERED:
-            case ShellSmootherBackend::PETSC:
-                break;
-            }
-            break;
-        case ShellSmootherComposition::MULTIPLICATIVE:
-            apply_op = PETScLevelSolver::PCApply_MultiplicativeEigen;
-            switch (d_shell_smoother_backend)
-            {
-            case ShellSmootherBackend::EIGEN:
-                pc_name_suffix = "PC_MultiplicativeEigen";
-                break;
-            case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-                pc_name_suffix = "PC_MultiplicativeEigenPseudoinverse";
-                break;
-            case ShellSmootherBackend::REGISTERED:
-            case ShellSmootherBackend::PETSC:
-                break;
-            }
-            break;
-        }
-        break;
-    case ShellSmootherBackend::REGISTERED:
-        apply_op = PETScLevelSolver::PCApply_RegisteredShell;
-        pc_name_suffix =
-            d_active_registered_shell_backend ? d_active_registered_shell_backend->getPCNameSuffix() : nullptr;
+    case ShellSmootherComposition::MULTIPLICATIVE:
+        apply_op = PETScLevelSolver::PCApply_MultiplicativeShell;
+        pc_name_suffix = d_active_shell_backend ? d_active_shell_backend->getPCNameSuffixMultiplicative() : nullptr;
         break;
     }
-    if (!apply_op || !pc_name_suffix)
+    if (!d_active_shell_backend || !apply_op || !pc_name_suffix)
     {
         TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellApply()\n"
-                                 << "Unknown PCSHELL specified. Supported values are additive, additive-basic, "
-                                    "additive-restrict, additive-eigen, additive-eigen-basic, "
-                                    "additive-eigen-restrict, "
-                                    "additive-eigen-pseudoinverse, "
-                                    "additive-eigen-pseudoinverse-basic, additive-eigen-pseudoinverse-restrict, "
-                                    "multiplicative, multiplicative-basic, multiplicative-restrict, "
-                                    "multiplicative-eigen, multiplicative-eigen-basic, "
-                                    "multiplicative-eigen-restrict, "
-                                    "multiplicative-eigen-pseudoinverse, "
-                                    "multiplicative-eigen-pseudoinverse-basic, and "
-                                    "multiplicative-eigen-pseudoinverse-restrict, "
-                                    "plus any registered shell backend keys."
+                                 << "Invalid shell smoother configuration for shell_pc_type = " << d_shell_pc_type
                                  << std::endl);
     }
     ierr = PCShellSetApply(ksp_pc, apply_op);
@@ -757,28 +880,14 @@ void
 PETScLevelSolver::configureShellPreconditioner(PC ksp_pc)
 {
     cacheGeneratedASMSubdomains();
-
-    switch (d_shell_smoother_backend)
+    d_active_shell_backend = getShellBackend(d_shell_smoother_backend_key);
+    if (!d_active_shell_backend)
     {
-    case ShellSmootherBackend::PETSC:
-        d_petsc_shell_backend->initialize();
-        break;
-    case ShellSmootherBackend::EIGEN:
-        d_eigen_shell_backend->initialize();
-        break;
-    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-        d_eigen_pseudoinverse_shell_backend->initialize();
-        break;
-    case ShellSmootherBackend::REGISTERED:
-        if (!d_active_registered_shell_backend)
-        {
-            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellPreconditioner()\n"
-                                     << "Registered shell backend selected with no active registered backend."
-                                     << std::endl);
-        }
-        d_active_registered_shell_backend->initialize();
-        break;
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellPreconditioner()\n"
+                                 << "Selected shell backend key has no allocated backend: "
+                                 << d_shell_smoother_backend_key << std::endl);
     }
+    d_active_shell_backend->initialize();
 
     configureShellApply(ksp_pc);
     return;
@@ -809,26 +918,18 @@ PETScLevelSolver::postprocessShellResult(Vec& /*y*/)
     return;
 } // postprocessShellResult
 
-void
-PETScLevelSolver::registerShellBackend(PETScLevelSolverRegisteredShellBackend* backend)
+PETScLevelSolverShellBackend*
+PETScLevelSolver::getShellBackend(const std::string& type_key)
 {
-    if (!backend)
-    {
-        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::registerShellBackend()\n"
-                                 << "Cannot register a null shell backend." << std::endl);
-    }
-    d_registered_shell_backends[backend->getTypeKey()] = backend;
+    auto it = d_shell_backends.find(type_key);
+    return it == d_shell_backends.end() ? nullptr : it->second.get();
 }
 
-void
-PETScLevelSolver::unregisterShellBackend(const std::string& type_key)
+const PETScLevelSolverShellBackend*
+PETScLevelSolver::getShellBackend(const std::string& type_key) const
 {
-    auto it = d_registered_shell_backends.find(type_key);
-    if (it != d_registered_shell_backends.end())
-    {
-        if (d_active_registered_shell_backend == it->second) d_active_registered_shell_backend = nullptr;
-        d_registered_shell_backends.erase(it);
-    }
+    auto it = d_shell_backends.find(type_key);
+    return it == d_shell_backends.end() ? nullptr : it->second.get();
 }
 
 void
@@ -867,7 +968,7 @@ PETScLevelSolver::setupNullSpace()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 PetscErrorCode
-PETScLevelSolver::PCApply_AdditivePetsc(PC pc, Vec x, Vec y)
+PETScLevelSolver::PCApply_AdditiveShell(PC pc, Vec x, Vec y)
 {
     PetscFunctionBeginUser;
     int ierr;
@@ -878,12 +979,16 @@ PETScLevelSolver::PCApply_AdditivePetsc(PC pc, Vec x, Vec y)
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-    solver->d_petsc_shell_backend->applyAdditive(x, y);
+    if (!solver->d_active_shell_backend)
+    {
+        TBOX_ERROR("PETScLevelSolver::PCApply_AdditiveShell(): no active shell backend." << std::endl);
+    }
+    solver->d_active_shell_backend->applyAdditive(x, y);
     PetscFunctionReturn(0);
-} // PCApply_AdditivePetsc
+} // PCApply_AdditiveShell
 
 PetscErrorCode
-PETScLevelSolver::PCApply_MultiplicativePetsc(PC pc, Vec x, Vec y)
+PETScLevelSolver::PCApply_MultiplicativeShell(PC pc, Vec x, Vec y)
 {
     PetscFunctionBeginUser;
     int ierr;
@@ -894,117 +999,13 @@ PETScLevelSolver::PCApply_MultiplicativePetsc(PC pc, Vec x, Vec y)
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-    solver->d_petsc_shell_backend->applyMultiplicative(x, y);
+    if (!solver->d_active_shell_backend)
+    {
+        TBOX_ERROR("PETScLevelSolver::PCApply_MultiplicativeShell(): no active shell backend." << std::endl);
+    }
+    solver->d_active_shell_backend->applyMultiplicative(x, y);
     PetscFunctionReturn(0);
-} // PCApply_MultiplicativePetsc
-
-PetscErrorCode
-PETScLevelSolver::PCApply_AdditiveEigen(PC pc, Vec x, Vec y)
-{
-    PetscFunctionBeginUser;
-    int ierr;
-    void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
-    CHKERRQ(ierr);
-    auto solver = static_cast<PETScLevelSolver*>(ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(solver);
-#endif
-    if (IBTK_MPI::getNodes() != 1)
-    {
-        TBOX_ERROR("PETScLevelSolver::PCApply_AdditiveEigen(): only supports 1 MPI rank" << std::endl);
-    }
-    switch (solver->d_shell_smoother_backend)
-    {
-    case ShellSmootherBackend::EIGEN:
-        solver->d_eigen_shell_backend->applyAdditive(x, y);
-        break;
-    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-        solver->d_eigen_pseudoinverse_shell_backend->applyAdditive(x, y);
-        break;
-    case ShellSmootherBackend::REGISTERED:
-        TBOX_ERROR(
-            "PETScLevelSolver::PCApply_AdditiveEigen(): registered shell backend should not use the "
-            "Eigen additive path."
-            << std::endl);
-        break;
-    case ShellSmootherBackend::PETSC:
-        TBOX_ERROR(
-            "PETScLevelSolver::PCApply_AdditiveEigen(): PETSc shell backend should not use the Eigen "
-            "additive path."
-            << std::endl);
-        break;
-    }
-    PetscFunctionReturn(0);
-} // PCApply_AdditiveEigen
-
-PetscErrorCode
-PETScLevelSolver::PCApply_MultiplicativeEigen(PC pc, Vec x, Vec y)
-{
-    PetscFunctionBeginUser;
-    int ierr;
-    void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
-    CHKERRQ(ierr);
-    auto solver = static_cast<PETScLevelSolver*>(ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(solver);
-#endif
-    if (IBTK_MPI::getNodes() != 1)
-    {
-        TBOX_ERROR("PETScLevelSolver::PCApply_MultiplicativeEigen(): only supports 1 MPI rank" << std::endl);
-    }
-    switch (solver->d_shell_smoother_backend)
-    {
-    case ShellSmootherBackend::EIGEN:
-        solver->d_eigen_shell_backend->applyMultiplicative(x, y);
-        break;
-    case ShellSmootherBackend::EIGEN_PSEUDOINVERSE:
-        solver->d_eigen_pseudoinverse_shell_backend->applyMultiplicative(x, y);
-        break;
-    case ShellSmootherBackend::REGISTERED:
-        TBOX_ERROR(
-            "PETScLevelSolver::PCApply_MultiplicativeEigen(): registered shell backend should not use the "
-            "Eigen multiplicative path."
-            << std::endl);
-        break;
-    case ShellSmootherBackend::PETSC:
-        TBOX_ERROR(
-            "PETScLevelSolver::PCApply_MultiplicativeEigen(): PETSc shell backend should not use the Eigen "
-            "multiplicative path."
-            << std::endl);
-        break;
-    }
-    PetscFunctionReturn(0);
-} // PCApply_MultiplicativeEigen
-
-PetscErrorCode
-PETScLevelSolver::PCApply_RegisteredShell(PC pc, Vec x, Vec y)
-{
-    PetscFunctionBeginUser;
-    int ierr;
-    void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
-    CHKERRQ(ierr);
-    auto solver = static_cast<PETScLevelSolver*>(ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(solver);
-#endif
-    if (!solver->d_active_registered_shell_backend)
-    {
-        TBOX_ERROR("PETScLevelSolver::PCApply_RegisteredShell(): no active registered shell backend." << std::endl);
-    }
-    switch (solver->d_shell_smoother_composition)
-    {
-    case ShellSmootherComposition::ADDITIVE:
-        solver->d_active_registered_shell_backend->applyAdditive(x, y);
-        break;
-    case ShellSmootherComposition::MULTIPLICATIVE:
-        solver->d_active_registered_shell_backend->applyMultiplicative(x, y);
-        break;
-    }
-    PetscFunctionReturn(0);
-} // PCApply_RegisteredShell
+} // PCApply_MultiplicativeShell
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

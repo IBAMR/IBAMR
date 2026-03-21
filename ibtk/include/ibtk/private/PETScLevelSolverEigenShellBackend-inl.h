@@ -41,12 +41,11 @@ inline void
 PETScLevelSolverEigenShellBackend::initializeSolveStorage()
 {
     auto storage = std::make_unique<TypedSolveStorage<SolverType>>();
-    storage->solvers.resize(d_solver.d_subdomain_dofs.size());
+    storage->solvers.resize(d_context.getSubdomainDOFsForBackend().size());
     d_solve_storage = std::move(storage);
 
     initializeCommonDataWithLocalOperatorHook(
-        [this](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num)
-        {
+        [this](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num) {
             initializeEigenSolver(
                 getSolveStorage<SolverType>().solvers[subdomain_num], local_operator, getSolverThreshold());
         });
@@ -102,7 +101,7 @@ PETScLevelSolverEigenShellBackend::applyAdditiveImpl(Vec x, Vec y)
             }
         }
     }
-    d_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 
 template <class SolverType>
@@ -177,7 +176,7 @@ PETScLevelSolverEigenShellBackend::applyMultiplicativeImpl(Vec x, Vec y)
             }
         }
     }
-    d_solver.postprocessShellResult(y);
+    d_context.postprocessShellResultForBackend(y);
 }
 } // namespace IBTK
 
