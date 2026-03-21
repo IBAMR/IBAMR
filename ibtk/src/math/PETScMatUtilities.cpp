@@ -767,8 +767,32 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                  const int dof_index_idx,
                                                  Pointer<PatchLevel<NDIM>> patch_level)
 {
+    constructPatchLevelSCInterpOp(mat,
+                                  interp_fcn,
+                                  interp_stencil,
+                                  interp_fcn,
+                                  interp_stencil,
+                                  X_vec,
+                                  num_dofs_per_proc,
+                                  dof_index_idx,
+                                  patch_level);
+    return;
+} // constructPatchLevelSCInterpOp
+
+void
+PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
+                                                 void (*component_interp_fcn)(double r_lower, double* w),
+                                                 int component_interp_stencil,
+                                                 void (*transverse_interp_fcn)(double r_lower, double* w),
+                                                 int transverse_interp_stencil,
+                                                 Vec& X_vec,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 const int dof_index_idx,
+                                                 Pointer<PatchLevel<NDIM>> patch_level)
+{
     // \todo Properly support odd stencil sizes.
-    if (interp_stencil % 2 != 0) interp_stencil += 1;
+    if (component_interp_stencil % 2 != 0) component_interp_stencil += 1;
+    if (transverse_interp_stencil % 2 != 0) transverse_interp_stencil += 1;
 
     int ierr;
     if (mat)
@@ -869,12 +893,16 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         for (int axis = 0; axis < NDIM; ++axis)
         {
             // Determine the stencil box.
-            if (interp_stencil % 2 != 0)
+            std::array<int, NDIM> interp_stencil = {};
+            for (int d = 0; d < NDIM; ++d)
             {
-                TBOX_ERROR(
-                    "PETScMatUtilities::constructPatchLevelSCInterpOp(): support for odd "
-                    "stencil "
-                    "sizes not currently implemented\n");
+                interp_stencil[d] = (d == axis ? component_interp_stencil : transverse_interp_stencil);
+                if (interp_stencil[d] % 2 != 0)
+                {
+                    TBOX_ERROR(
+                        "PETScMatUtilities::constructPatchLevelSCInterpOp(): support for odd "
+                        "stencil sizes not currently implemented\n");
+                }
             }
             Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
             hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
@@ -883,18 +911,18 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             {
                 if (d == axis)
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2;
+                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2 + 1;
+                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2;
                 }
                 else if (X[d] <= X_cell[d])
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2 - 1;
+                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2;
+                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2 - 1;
                 }
                 else
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2;
+                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2 + 1;
+                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2;
                 }
             }
             const int local_idx = NDIM * k + axis;
@@ -937,13 +965,19 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Construct the interpolation weights for this IB point.
         std::vector<double> w[NDIM];
-        for (auto& vec : w) vec.resize(interp_stencil);
-        int stencil_box_nvals = 1;
-        for (unsigned int d = 0; d < NDIM; ++d) stencil_box_nvals *= interp_stencil;
-        std::vector<double> stencil_box_vals(stencil_box_nvals);
-        std::vector<int> stencil_box_cols(stencil_box_nvals);
         for (int axis = 0; axis < NDIM; ++axis)
         {
+            std::array<int, NDIM> interp_stencil = {};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                interp_stencil[d] = (d == axis ? component_interp_stencil : transverse_interp_stencil);
+                w[d].resize(interp_stencil[d]);
+            }
+            int stencil_box_nvals = 1;
+            for (unsigned int d = 0; d < NDIM; ++d) stencil_box_nvals *= interp_stencil[d];
+            std::vector<double> stencil_box_vals(stencil_box_nvals);
+            std::vector<int> stencil_box_cols(stencil_box_nvals);
+
             // Look-up the stencil box.
             const Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
             const hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
@@ -954,7 +988,14 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                 const int i = stencil_box_lower(d);
                 const double X_stencil_lower =
                     (static_cast<double>(i - domain_lower(d)) + (d == axis ? 0.0 : 0.5)) * dx[d] + x_lower[d];
-                interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
+                if (d == axis)
+                {
+                    component_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
+                }
+                else
+                {
+                    transverse_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
+                }
             }
 
             // Compute the weights of the d-dimensional delta function as the

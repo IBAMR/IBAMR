@@ -31,6 +31,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_enums.h>
@@ -98,28 +99,100 @@ namespace
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
-// IB-4 interpolation function.
-static void
-ib_4_interp_fcn(const double r, double* const w)
+struct JacobianKernelSpec
 {
-    const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-    w[0] = 0.125 * (5.0 - 2.0 * r - q);
-    w[1] = 0.125 * (5.0 - 2.0 * r + q);
-    w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-    w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-    return;
-} // ib_4_interp_fcn
-static const int ib_4_interp_stencil = 4;
+    void (*component_interp_fcn)(double r_lower, double* w) = nullptr;
+    int component_interp_stencil = -1;
+    void (*transverse_interp_fcn)(double r_lower, double* w) = nullptr;
+    int transverse_interp_stencil = -1;
+};
 
-// Piecewise linear interpolation function
-static void
-pwl_interp_fcn(const double r, double* const w)
+JacobianKernelSpec
+get_jacobian_kernel_spec(const std::string& jac_delta_fcn)
 {
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return;
-} // pwl_interp_fcn
-static const int pwl_interp_stencil = 2;
+    using PMU = IBTK::PETScMatUtilities;
+    if (jac_delta_fcn == "PIECEWISE_LINEAR" || jac_delta_fcn == "BSPLINE_2")
+    {
+        return { PMU::bspline_2_interp_fcn,
+                 PMU::bspline_2_interp_stencil,
+                 PMU::bspline_2_interp_fcn,
+                 PMU::bspline_2_interp_stencil };
+    }
+    else if (jac_delta_fcn == "BSPLINE_3")
+    {
+        return { PMU::bspline_3_interp_fcn,
+                 PMU::bspline_3_interp_stencil,
+                 PMU::bspline_3_interp_fcn,
+                 PMU::bspline_3_interp_stencil };
+    }
+    else if (jac_delta_fcn == "BSPLINE_4")
+    {
+        return { PMU::bspline_4_interp_fcn,
+                 PMU::bspline_4_interp_stencil,
+                 PMU::bspline_4_interp_fcn,
+                 PMU::bspline_4_interp_stencil };
+    }
+    else if (jac_delta_fcn == "BSPLINE_5")
+    {
+        return { PMU::bspline_5_interp_fcn,
+                 PMU::bspline_5_interp_stencil,
+                 PMU::bspline_5_interp_fcn,
+                 PMU::bspline_5_interp_stencil };
+    }
+    else if (jac_delta_fcn == "BSPLINE_6")
+    {
+        return { PMU::bspline_6_interp_fcn,
+                 PMU::bspline_6_interp_stencil,
+                 PMU::bspline_6_interp_fcn,
+                 PMU::bspline_6_interp_stencil };
+    }
+    else if (jac_delta_fcn == "COMPOSITE_BSPLINE_32")
+    {
+        return { PMU::bspline_3_interp_fcn,
+                 PMU::bspline_3_interp_stencil,
+                 PMU::bspline_2_interp_fcn,
+                 PMU::bspline_2_interp_stencil };
+    }
+    else if (jac_delta_fcn == "COMPOSITE_BSPLINE_43")
+    {
+        return { PMU::bspline_4_interp_fcn,
+                 PMU::bspline_4_interp_stencil,
+                 PMU::bspline_3_interp_fcn,
+                 PMU::bspline_3_interp_stencil };
+    }
+    else if (jac_delta_fcn == "COMPOSITE_BSPLINE_54")
+    {
+        return { PMU::bspline_5_interp_fcn,
+                 PMU::bspline_5_interp_stencil,
+                 PMU::bspline_4_interp_fcn,
+                 PMU::bspline_4_interp_stencil };
+    }
+    else if (jac_delta_fcn == "COMPOSITE_BSPLINE_65")
+    {
+        return { PMU::bspline_6_interp_fcn,
+                 PMU::bspline_6_interp_stencil,
+                 PMU::bspline_5_interp_fcn,
+                 PMU::bspline_5_interp_stencil };
+    }
+    else if (jac_delta_fcn == "IB_3")
+    {
+        return { PMU::ib_3_interp_fcn, PMU::ib_3_interp_stencil, PMU::ib_3_interp_fcn, PMU::ib_3_interp_stencil };
+    }
+    else if (jac_delta_fcn == "IB_4")
+    {
+        return { PMU::ib_4_interp_fcn, PMU::ib_4_interp_stencil, PMU::ib_4_interp_fcn, PMU::ib_4_interp_stencil };
+    }
+    else if (jac_delta_fcn == "IB_5")
+    {
+        return { PMU::ib_5_interp_fcn, PMU::ib_5_interp_stencil, PMU::ib_5_interp_fcn, PMU::ib_5_interp_stencil };
+    }
+    else if (jac_delta_fcn == "IB_6")
+    {
+        return { PMU::ib_6_interp_fcn, PMU::ib_6_interp_stencil, PMU::ib_6_interp_fcn, PMU::ib_6_interp_stencil };
+    }
+
+    return {};
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -589,29 +662,25 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = nullptr;
-    if (d_jac_delta_fcn == "IB_4")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             ib_4_interp_fcn,
-                                             ib_4_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             pwl_interp_fcn,
-                                             pwl_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else
+    const JacobianKernelSpec kernel_spec = get_jacobian_kernel_spec(d_jac_delta_fcn);
+    if (!kernel_spec.component_interp_fcn || !kernel_spec.transverse_interp_fcn ||
+        kernel_spec.component_interp_stencil <= 0 || kernel_spec.transverse_interp_stencil <= 0)
     {
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
-                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
+                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian.\n"
+                   << " Supported values are: PIECEWISE_LINEAR, BSPLINE_2, BSPLINE_3, BSPLINE_4, BSPLINE_5, "
+                      "BSPLINE_6, COMPOSITE_BSPLINE_32, COMPOSITE_BSPLINE_43, COMPOSITE_BSPLINE_54, "
+                      "COMPOSITE_BSPLINE_65, IB_3, IB_4, IB_5, IB_6."
+                   << std::endl);
     }
+    d_ib_implicit_ops->constructInterpOp(interp_op,
+                                         kernel_spec.component_interp_fcn,
+                                         kernel_spec.component_interp_stencil,
+                                         kernel_spec.transverse_interp_fcn,
+                                         kernel_spec.transverse_interp_stencil,
+                                         d_num_dofs_per_proc[finest_ln],
+                                         d_u_dof_index_idx,
+                                         data_time);
     stokes_fac_op->setIBInterpOp(interp_op);
     stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
 

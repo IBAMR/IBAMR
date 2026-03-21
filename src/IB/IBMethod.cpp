@@ -1039,6 +1039,21 @@ IBMethod::constructInterpOp(Mat& J,
                             const int dof_index_idx,
                             const double data_time)
 {
+    constructInterpOp(
+        J, spread_fnc, stencil_width, spread_fnc, stencil_width, num_dofs_per_proc, dof_index_idx, data_time);
+    return;
+} // constructInterpOp
+
+void
+IBMethod::constructInterpOp(Mat& J,
+                            void (*component_spread_fnc)(const double, double*),
+                            const int component_stencil_width,
+                            void (*transverse_spread_fnc)(const double, double*),
+                            const int transverse_stencil_width,
+                            const std::vector<int>& num_dofs_per_proc,
+                            const int dof_index_idx,
+                            const double data_time)
+{
     if (J)
     {
         int ierr = MatDestroy(&J);
@@ -1054,12 +1069,19 @@ IBMethod::constructInterpOp(Mat& J,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    PETScMatUtilities::constructPatchLevelSCInterpOp(
-        J, spread_fnc, stencil_width, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(J,
+                                                     component_spread_fnc,
+                                                     component_stencil_width,
+                                                     transverse_spread_fnc,
+                                                     transverse_stencil_width,
+                                                     X_vec,
+                                                     num_dofs_per_proc,
+                                                     dof_index_idx,
+                                                     finest_level);
 
     return;
 
-} // getInterpOperator
+} // constructInterpOp
 
 void
 IBMethod::computeLagrangianFluidSource(const double data_time)
