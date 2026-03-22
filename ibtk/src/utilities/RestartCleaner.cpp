@@ -21,8 +21,11 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
 #include <optional>
 #include <regex>
+#include <sstream>
 
 #include "ibtk/app_namespaces.h"
 
@@ -33,6 +36,7 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 const std::regex RestartCleaner::s_restart_dir_pattern("restore\\.([0-9]{6,})");
+const std::string RestartCleaner::s_important_marker_filename(".important");
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -81,6 +85,50 @@ RestartCleaner::cleanup()
     }
     IBTK_MPI::barrier();
 } // cleanup
+
+void
+RestartCleaner::markImportant(int restart_restore_number)
+{
+    if (IBTK_MPI::getRank() == 0)
+    {
+        // Construct the directory path using IBAMR's zero-padding convention (minimum 6 digits)
+        std::ostringstream dirname;
+        dirname << "restore." << std::setfill('0') << std::setw(6) << restart_restore_number;
+        std::filesystem::path dir_path = std::filesystem::path(d_restart_base_path) / dirname.str();
+
+        if (!std::filesystem::exists(dir_path))
+        {
+            TBOX_WARNING(d_object_name << "::markImportant(): "
+                                       << "Directory does not exist: " << dir_path << "\n"
+                                       << "markImportant() must be called after writeRestartFile() "
+                                       << "has created the restart directory.\n"
+                                       << "Skipping importance marking for restart restore number "
+                                       << restart_restore_number << "." << std::endl);
+            return;
+        }
+
+        std::filesystem::path marker_path = dir_path / s_important_marker_filename;
+        if (!std::filesystem::exists(marker_path))
+        {
+            std::ofstream marker_file(marker_path);
+            if (!marker_file)
+            {
+                TBOX_WARNING(d_object_name << "::markImportant(): "
+                                           << "Failed to create marker file: " << marker_path << std::endl);
+            }
+            else if (d_enable_logging)
+            {
+                plog << d_object_name << "::markImportant(): Marked " << dir_path << " as important" << std::endl;
+            }
+        }
+        else if (d_enable_logging)
+        {
+            plog << d_object_name << "::markImportant(): " << dir_path << " is already marked as important"
+                 << std::endl;
+        }
+    }
+    IBTK_MPI::barrier();
+} // markImportant
 
 std::vector<int>
 RestartCleaner::getAvailableRestartRestoreNumbers() const
@@ -194,6 +242,12 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
     return restart_dirs;
 } // getAllRestartDirs
 
+bool
+RestartCleaner::isMarkedImportant(const std::filesystem::path& dir_path) const
+{
+    return std::filesystem::exists(dir_path / s_important_marker_filename);
+} // isMarkedImportant
+
 void
 RestartCleaner::keepRecentN() const
 {
@@ -236,19 +290,46 @@ RestartCleaner::keepRecentN() const
               valid_dirs.end(),
               [](const DirInfo& a, const DirInfo& b) { return a.restart_restore_number < b.restart_restore_number; });
 
-    // Delete older directories
-    size_t dirs_to_delete_count = valid_dirs.size() - d_keep_restart_count;
+    // Determine the boundary between "old" and "recent" directories.
+    // Directories at indices [0, keep_start_idx) are candidates for deletion.
+    // Directories at indices [keep_start_idx, end) are always kept (recent N).
+    size_t keep_start_idx = valid_dirs.size() - d_keep_restart_count;
+
+    // Among the deletion candidates, count important directories (kept) vs normal (deleted)
+    size_t important_count = 0;
+    for (size_t i = 0; i < keep_start_idx; ++i)
+    {
+        if (isMarkedImportant(valid_dirs[i].path))
+        {
+            ++important_count;
+        }
+    }
+    size_t dirs_to_delete_count = keep_start_idx - important_count;
 
     if (d_enable_logging)
     {
         plog << d_object_name << "::keepRecentN(): Found " << valid_dirs.size() << " valid directories, "
-             << "keeping " << d_keep_restart_count << " most recent, "
-             << "deleting " << dirs_to_delete_count << " oldest" << std::endl;
+             << "keeping " << d_keep_restart_count << " most recent";
+        if (important_count > 0)
+        {
+            plog << " + " << important_count << " important";
+        }
+        plog << ", deleting " << dirs_to_delete_count << " oldest" << std::endl;
     }
 
-    for (size_t i = 0; i < dirs_to_delete_count; ++i)
+    for (size_t i = 0; i < keep_start_idx; ++i)
     {
         const auto& dir_path = valid_dirs[i].path;
+
+        // Skip directories marked as important
+        if (isMarkedImportant(dir_path))
+        {
+            if (d_enable_logging)
+            {
+                plog << d_object_name << "::keepRecentN(): Keeping important directory " << dir_path << std::endl;
+            }
+            continue;
+        }
 
         if (d_dry_run)
         {
