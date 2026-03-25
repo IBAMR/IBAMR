@@ -19,10 +19,12 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/INSSmagorinskyTurbulenceModel.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
+#include <ibamr/INSTurbulenceModel.h>
 #include <ibamr/INSTurbulenceStatistics.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
@@ -637,6 +639,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_U_src_var = new SideVariable<NDIM, double>(d_object_name + "::U_src");
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
+    d_F_turb_var = new SideVariable<NDIM, double>(d_object_name + "::F_turb");
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
     return;
 } // INSStaggeredHierarchyIntegrator
@@ -735,6 +738,23 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 } // getPressureSubdomainSolver
 
 void
+INSStaggeredHierarchyIntegrator::registerTurbulenceModel(Pointer<INSTurbulenceModel> turbulence_model)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(!d_turbulence_model);
+#endif
+    d_turbulence_model = turbulence_model;
+    return;
+}
+
+Pointer<INSTurbulenceModel>
+INSStaggeredHierarchyIntegrator::getTurbulenceModel() const
+{
+    return d_turbulence_model;
+}
+
+void
 INSStaggeredHierarchyIntegrator::registerTurbulenceStatistics(Pointer<INSTurbulenceStatistics> turbulence_statistics)
 {
 #if !defined(NDEBUG)
@@ -800,6 +820,20 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    if (!d_turbulence_model && d_turbulence_model_type != "NONE")
+    {
+        if (d_turbulence_model_type == "SMAGORINSKY")
+        {
+            d_turbulence_model =
+                new INSSmagorinskyTurbulenceModel(d_object_name + "::TurbulenceModel", d_turbulence_model_db);
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): unsupported turbulence model type "
+                                     << d_turbulence_model_type << "\n");
+        }
+    }
 
     if (!d_turbulence_statistics && d_turbulence_statistics_type != TurbulenceStatisticsType::NONE)
     {
@@ -1043,6 +1077,15 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     {
         d_F_div_idx = invalid_index;
     }
+    if (d_turbulence_model)
+    {
+        registerVariable(d_F_turb_idx, d_F_turb_var, no_ghosts);
+    }
+    else
+    {
+        d_F_turb_idx = invalid_index;
+    }
+
     // Register variables for plotting.
     if (d_visit_writer)
     {
@@ -1592,6 +1635,23 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    if (d_turbulence_model)
+    {
+        const int U_turb_idx = (cycle_num == 0) ? d_U_current_idx : d_U_new_idx;
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, U_turb_idx);
+        d_U_bdry_bc_fill_op->fillData((cycle_num == 0) ? current_time : new_time);
+        d_turbulence_model->computeTurbulenceForce(d_F_turb_idx,
+                                                   d_F_turb_var,
+                                                   d_U_scratch_idx,
+                                                   d_U_var,
+                                                   getVelocityBoundaryConditions(),
+                                                   d_hierarchy,
+                                                   (cycle_num == 0) ? current_time : new_time,
+                                                   d_problem_coefs);
+        d_hier_sc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_turb_idx);
+    }
+
     // Account for internal source/sink distributions.
     if (d_Q_fcn)
     {
@@ -1705,6 +1765,11 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
         d_hier_sc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
+    }
+    if (d_turbulence_model)
+    {
+        d_hier_sc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_turb_idx);
     }
     if (d_Q_fcn)
     {

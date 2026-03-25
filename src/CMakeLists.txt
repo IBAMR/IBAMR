@@ -83,12 +83,15 @@ SET(CXX_SRC
 
   # navier stokes
   navier_stokes/INSIntermediateVelocityBcCoef.cpp
+  navier_stokes/INSSGSKinematics.cpp
+  navier_stokes/INSSGSStressData.cpp
   navier_stokes/INSAveragingTurbulenceStatistics.cpp
   navier_stokes/INSStaggeredCenteredConvectiveOperator.cpp
   navier_stokes/StaggeredStokesPETScMatUtilities.cpp
   navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
   navier_stokes/StokesSpecifications.cpp
   navier_stokes/INSStaggeredStochasticForcing.cpp
+  navier_stokes/INSSmagorinskyTurbulenceModel.cpp
   navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
   navier_stokes/StaggeredStokesSolverManager.cpp
   navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp

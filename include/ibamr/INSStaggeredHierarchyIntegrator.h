@@ -46,6 +46,7 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSTurbulenceModel;
 class INSTurbulenceStatistics;
 } // namespace IBAMR
 namespace IBTK
@@ -130,6 +131,19 @@ public:
      * useful in constructing block preconditioners.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver() override;
+
+    /*!
+     * Register a turbulence model that adds an explicit closure force to the
+     * momentum equation.
+     *
+     * This method should be called before initializeHierarchyIntegrator().
+     */
+    void registerTurbulenceModel(SAMRAI::tbox::Pointer<INSTurbulenceModel> turbulence_model);
+
+    /*!
+     * Get the registered turbulence model, if any.
+     */
+    SAMRAI::tbox::Pointer<INSTurbulenceModel> getTurbulenceModel() const;
 
     /*!
      * Register a turbulence-statistics accumulator.
@@ -435,14 +449,29 @@ private:
     bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
     /*!
+     * Requested built-in turbulence-model type.
+     */
+    std::string d_turbulence_model_type = "NONE";
+
+    /*!
      * Requested built-in turbulence-statistics type.
      */
     TurbulenceStatisticsType d_turbulence_statistics_type = TurbulenceStatisticsType::NONE;
 
     /*!
+     * Input database for configuring the turbulence model.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_turbulence_model_db;
+
+    /*!
      * Input database for configuring the turbulence-statistics object.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_turbulence_statistics_db;
+
+    /*!
+     * Registered turbulence model used to add explicit closure forcing.
+     */
+    SAMRAI::tbox::Pointer<INSTurbulenceModel> d_turbulence_model;
 
     /*!
      * Registered turbulence-statistics accumulator.
@@ -481,6 +510,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_indicator_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_F_div_var;
+    /*!
+     * Side-centered variable storing turbulence-model forcing for diagnostics
+     * and RHS assembly.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_F_turb_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_EE_var;
 
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
@@ -538,6 +572,11 @@ private:
      */
     int d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index, d_indicator_idx = IBTK::invalid_index,
         d_F_div_idx = IBTK::invalid_index;
+
+    /*!
+     * Patch-data descriptor index for d_F_turb_var.
+     */
+    int d_F_turb_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 
