@@ -14,6 +14,8 @@
 #ifndef included_IBAMR_INSTurbulenceStatistics_inl
 #define included_IBAMR_INSTurbulenceStatistics_inl
 
+#include <ibamr/INSTurbulenceStatistics.h>
+
 namespace IBAMR
 {
 inline INSTurbulenceStatistics::INSTurbulenceStatistics(std::string object_name, const double statistics_start_time)
