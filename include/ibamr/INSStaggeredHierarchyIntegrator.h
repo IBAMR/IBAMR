@@ -83,6 +83,12 @@ namespace IBAMR
 class INSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
+    enum class TurbulenceStatisticsType
+    {
+        NONE,
+        AVERAGED_VELOCITY
+    };
+
     /*!
      * The constructor for class INSStaggeredHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
@@ -431,7 +437,7 @@ private:
     /*!
      * Requested built-in turbulence-statistics type.
      */
-    std::string d_turbulence_statistics_type = "NONE";
+    TurbulenceStatisticsType d_turbulence_statistics_type = TurbulenceStatisticsType::NONE;
 
     /*!
      * Input database for configuring the turbulence-statistics object.

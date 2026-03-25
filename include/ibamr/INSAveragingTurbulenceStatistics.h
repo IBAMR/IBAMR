@@ -49,6 +49,12 @@ namespace IBAMR
 class INSAveragingTurbulenceStatistics : public INSTurbulenceStatistics
 {
 public:
+    enum class AnalysisCentering
+    {
+        CELL,
+        NODE
+    };
+
     /*!
      * \brief Constructor.
      *
@@ -135,119 +141,38 @@ public:
                                     double tol = 1.0e-8) const;
 
 private:
-    /*!
-     * Scratch side-centered velocity variable used for ghost filling prior to
-     * interpolation.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_U_sc_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_velocity_side_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_velocity_cell_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_velocity_node_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_velocity_product_cell_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_velocity_product_node_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_velocity_mean_cell_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_velocity_mean_node_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_velocity_product_mean_cell_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_velocity_product_mean_node_var;
 
-    /*!
-     * Cell-centered instantaneous velocity variable.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_U_cc_var;
-
-    /*!
-     * Node-centered instantaneous velocity variable.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_U_nc_var;
-
-    /*!
-     * Cell-centered instantaneous symmetric second moment \f$U \otimes U\f$.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_UU_cc_var;
-
-    /*!
-     * Node-centered instantaneous symmetric second moment \f$U \otimes U\f$.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_UU_nc_var;
-
-    /*!
-     * Cell-centered averaged velocity variable used for snapshot recovery.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_U_mean_cc_var;
-
-    /*!
-     * Node-centered averaged velocity variable used for snapshot recovery.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_U_mean_nc_var;
-
-    /*!
-     * Cell-centered averaged velocity-product variable used for snapshot
-     * recovery.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_UU_mean_cc_var;
-
-    /*!
-     * Node-centered averaged velocity-product variable used for snapshot
-     * recovery.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_UU_mean_nc_var;
-
-    /*!
-     * Patch-data descriptor index for d_U_sc_scratch_var.
-     */
-    int d_U_sc_scratch_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_U_cc_var.
-     */
-    int d_U_cc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_U_nc_var.
-     */
-    int d_U_nc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_UU_cc_var.
-     */
-    int d_UU_cc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_UU_nc_var.
-     */
-    int d_UU_nc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_U_mean_cc_var.
-     */
-    int d_U_mean_cc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_U_mean_nc_var.
-     */
-    int d_U_mean_nc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_UU_mean_cc_var.
-     */
-    int d_UU_mean_cc_idx = IBTK::invalid_index;
-
-    /*!
-     * Patch-data descriptor index for d_UU_mean_nc_var.
-     */
-    int d_UU_mean_nc_idx = IBTK::invalid_index;
+    int d_velocity_side_scratch_idx = IBTK::invalid_index;
+    int d_velocity_cell_idx = IBTK::invalid_index;
+    int d_velocity_node_idx = IBTK::invalid_index;
+    int d_velocity_product_cell_idx = IBTK::invalid_index;
+    int d_velocity_product_node_idx = IBTK::invalid_index;
+    int d_velocity_mean_cell_idx = IBTK::invalid_index;
+    int d_velocity_mean_node_idx = IBTK::invalid_index;
+    int d_velocity_product_mean_cell_idx = IBTK::invalid_index;
+    int d_velocity_product_mean_node_idx = IBTK::invalid_index;
 
     /*!
      * Refinement operator used when filling recovered snapshots on a hierarchy.
      */
     std::string d_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    /*!
-     * Analysis-data centering, either `CELL` or `NODE`.
-     */
-    std::string d_analysis_centering = "CELL";
+    AnalysisCentering d_analysis_centering = AnalysisCentering::CELL;
 
     /*!
      * Averaging manager for the first moment \f$\langle U \rangle\f$.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyAveragedDataManager> d_U_avg_manager;
-
-    /*!
-     * Averaging manager for the symmetric second moment
-     * \f$\langle U \otimes U \rangle\f$.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyAveragedDataManager> d_UU_avg_manager;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyAveragedDataManager> d_velocity_average_manager;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyAveragedDataManager> d_velocity_product_average_manager;
 };
 } // namespace IBAMR
 

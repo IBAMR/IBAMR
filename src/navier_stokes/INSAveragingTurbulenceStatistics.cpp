@@ -18,8 +18,6 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/snapshot_utilities.h>
 
-#include <tbox/MemoryDatabase.h>
-
 #include <CellData.h>
 #include <CellIndex.h>
 #include <CellIterator.h>
@@ -34,6 +32,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <utility>
 
@@ -41,6 +40,8 @@
 
 namespace
 {
+constexpr int SYM_TENSOR_DEPTH = NDIM * (NDIM + 1) / 2;
+
 void
 allocate_patch_data(const int idx,
                     const double time,
@@ -63,24 +64,9 @@ deallocate_patch_data(const int idx, const SAMRAI::tbox::Pointer<SAMRAI::hier::P
     }
 }
 
-SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-build_velocity_product_db(const std::string& object_name, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db)
-{
-    auto db = new SAMRAI::tbox::MemoryDatabase(object_name + "::VelocityProductDB");
-    db->putDouble("period_start", input_db->getDouble("period_start"));
-    db->putDouble("period_end", input_db->getDouble("period_end"));
-    db->putDouble("threshold", input_db->getDouble("threshold"));
-    db->putInteger("num_snapshots", input_db->getInteger("num_snapshots"));
-    db->putBool("enable_logging", input_db->getBool("enable_logging"));
-    db->putBool("output_data", false);
-    db->putString("dir_dump_name", input_db->getStringWithDefault("dir_dump_name", "./"));
-    db->putString("refine_type", input_db->getStringWithDefault("refine_type", "CONSERVATIVE_LINEAR_REFINE"));
-    return db;
-}
-
 template <class DataType, class IndexType>
 void
-store_symmetric_tensor(DataType& data, const IndexType& idx, const double* entries)
+store_symmetric_tensor(DataType& data, const IndexType& idx, const std::array<double, SYM_TENSOR_DEPTH>& entries)
 {
 #if (NDIM == 2)
     data(idx, 0) = entries[0];
@@ -106,6 +92,123 @@ normalize_centering(std::string centering)
                    [](const unsigned char c) { return static_cast<char>(std::toupper(c)); });
     return centering;
 }
+
+INSAveragingTurbulenceStatistics::AnalysisCentering
+parse_analysis_centering(const std::string& centering)
+{
+    const std::string normalized_centering = normalize_centering(centering);
+    if (normalized_centering == "CELL") return INSAveragingTurbulenceStatistics::AnalysisCentering::CELL;
+    if (normalized_centering == "NODE") return INSAveragingTurbulenceStatistics::AnalysisCentering::NODE;
+    TBOX_ERROR("parse_analysis_centering(): unsupported analysis centering " << centering << "\n");
+    return INSAveragingTurbulenceStatistics::AnalysisCentering::CELL;
+}
+
+const std::string&
+analysis_centering_to_string(const INSAveragingTurbulenceStatistics::AnalysisCentering centering)
+{
+    static const std::string cell = "CELL";
+    static const std::string node = "NODE";
+    switch (centering)
+    {
+    case INSAveragingTurbulenceStatistics::AnalysisCentering::CELL:
+        return cell;
+    case INSAveragingTurbulenceStatistics::AnalysisCentering::NODE:
+        return node;
+    }
+    return cell;
+}
+
+template <class DataType, class IndexType>
+std::array<double, NDIM>
+read_velocity(const DataType& data, const IndexType& idx)
+{
+    std::array<double, NDIM> velocity = {};
+    for (int comp = 0; comp < NDIM; ++comp) velocity[comp] = data(idx, comp);
+    return velocity;
+}
+
+std::array<double, SYM_TENSOR_DEPTH>
+compute_symmetric_second_moment(const std::array<double, NDIM>& velocity)
+{
+#if (NDIM == 2)
+    return { velocity[0] * velocity[0], velocity[1] * velocity[1], velocity[0] * velocity[1] };
+#endif
+#if (NDIM == 3)
+    return { velocity[0] * velocity[0], velocity[1] * velocity[1], velocity[2] * velocity[2],
+             velocity[1] * velocity[2], velocity[0] * velocity[2], velocity[0] * velocity[1] };
+#endif
+}
+
+template <class DataType, class IndexType>
+void
+fill_symmetric_second_moment(DataType& velocity_product_data, const DataType& velocity_data, const IndexType& idx)
+{
+    const auto velocity = read_velocity(velocity_data, idx);
+    const auto second_moment = compute_symmetric_second_moment(velocity);
+    store_symmetric_tensor(velocity_product_data, idx, second_moment);
+}
+
+template <class ReynoldsDataType, class MeanDataType, class IndexType>
+void
+fill_reynolds_tensor(ReynoldsDataType& reynolds_data,
+                     const MeanDataType& mean_velocity_data,
+                     const MeanDataType& mean_velocity_product_data,
+                     const IndexType& idx,
+                     const std::string& object_name)
+{
+    const auto mean_velocity = read_velocity(mean_velocity_data, idx);
+    std::array<double, SYM_TENSOR_DEPTH> reynolds_sym = {};
+    for (int comp = 0; comp < SYM_TENSOR_DEPTH; ++comp)
+    {
+        reynolds_sym[comp] = mean_velocity_product_data(idx, comp);
+    }
+#if (NDIM == 2)
+    reynolds_sym[0] -= mean_velocity[0] * mean_velocity[0];
+    reynolds_sym[1] -= mean_velocity[1] * mean_velocity[1];
+    reynolds_sym[2] -= mean_velocity[0] * mean_velocity[1];
+#endif
+#if (NDIM == 3)
+    reynolds_sym[0] -= mean_velocity[0] * mean_velocity[0];
+    reynolds_sym[1] -= mean_velocity[1] * mean_velocity[1];
+    reynolds_sym[2] -= mean_velocity[2] * mean_velocity[2];
+    reynolds_sym[3] -= mean_velocity[1] * mean_velocity[2];
+    reynolds_sym[4] -= mean_velocity[0] * mean_velocity[2];
+    reynolds_sym[5] -= mean_velocity[0] * mean_velocity[1];
+#endif
+
+    const int depth = reynolds_data.getDepth();
+    if (depth == SYM_TENSOR_DEPTH)
+    {
+        store_symmetric_tensor(reynolds_data, idx, reynolds_sym);
+    }
+#if (NDIM == 2)
+    else if (depth == 4)
+    {
+        reynolds_data(idx, 0) = reynolds_sym[0];
+        reynolds_data(idx, 1) = reynolds_sym[2];
+        reynolds_data(idx, 2) = reynolds_sym[2];
+        reynolds_data(idx, 3) = reynolds_sym[1];
+    }
+#endif
+#if (NDIM == 3)
+    else if (depth == 9)
+    {
+        reynolds_data(idx, 0) = reynolds_sym[0];
+        reynolds_data(idx, 1) = reynolds_sym[5];
+        reynolds_data(idx, 2) = reynolds_sym[4];
+        reynolds_data(idx, 3) = reynolds_sym[5];
+        reynolds_data(idx, 4) = reynolds_sym[1];
+        reynolds_data(idx, 5) = reynolds_sym[3];
+        reynolds_data(idx, 6) = reynolds_sym[4];
+        reynolds_data(idx, 7) = reynolds_sym[3];
+        reynolds_data(idx, 8) = reynolds_sym[2];
+    }
+#endif
+    else
+    {
+        TBOX_ERROR(object_name << ": unsupported Reynolds-tensor depth " << depth << "\n");
+    }
+}
 } // namespace
 
 namespace IBAMR
@@ -117,88 +220,104 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
                                                                    const bool register_for_restart)
     : INSTurbulenceStatistics(std::move(object_name), input_db->getDoubleWithDefault("statistics_start_time", 0.0))
 {
+    (void)U_var;
     d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
-    d_analysis_centering =
-        normalize_centering(input_db->getStringWithDefault("analysis_centering", d_analysis_centering));
-    if (d_analysis_centering != "CELL" && d_analysis_centering != "NODE")
-    {
-        TBOX_ERROR(d_object_name << "::INSAveragingTurbulenceStatistics(): unsupported analysis centering "
-                                 << d_analysis_centering << "\n");
-    }
+    d_analysis_centering = parse_analysis_centering(
+        input_db->getStringWithDefault("analysis_centering", analysis_centering_to_string(d_analysis_centering)));
 
-    d_U_sc_scratch_var = new SideVariable<NDIM, double>(d_object_name + "::U_sc_scratch");
-    d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
-    d_U_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::U_nc", NDIM, false);
-    d_UU_cc_var = new CellVariable<NDIM, double>(d_object_name + "::UU_cc", NDIM * (NDIM + 1) / 2);
-    d_UU_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::UU_nc", NDIM * (NDIM + 1) / 2, false);
-    d_U_mean_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_mean_cc", NDIM);
-    d_U_mean_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::U_mean_nc", NDIM, false);
-    d_UU_mean_cc_var = new CellVariable<NDIM, double>(d_object_name + "::UU_mean_cc", NDIM * (NDIM + 1) / 2);
-    d_UU_mean_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::UU_mean_nc", NDIM * (NDIM + 1) / 2, false);
+    d_velocity_side_scratch_var = new SideVariable<NDIM, double>(d_object_name + "::U_sc_scratch");
+    d_velocity_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
+    d_velocity_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_nc", NDIM, false);
+    d_velocity_product_cell_var = new CellVariable<NDIM, double>(d_object_name + "::UU_cc", SYM_TENSOR_DEPTH);
+    d_velocity_product_node_var = new NodeVariable<NDIM, double>(d_object_name + "::UU_nc", SYM_TENSOR_DEPTH, false);
+    d_velocity_mean_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_mean_cc", NDIM);
+    d_velocity_mean_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_mean_nc", NDIM, false);
+    d_velocity_product_mean_cell_var = new CellVariable<NDIM, double>(d_object_name + "::UU_mean_cc", SYM_TENSOR_DEPTH);
+    d_velocity_product_mean_node_var =
+        new NodeVariable<NDIM, double>(d_object_name + "::UU_mean_nc", SYM_TENSOR_DEPTH, false);
 
     auto* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> ctx = var_db->getContext(d_object_name + "::CONTEXT");
-    d_U_sc_scratch_idx = var_db->registerVariableAndContext(d_U_sc_scratch_var, ctx, IntVector<NDIM>(1));
-    d_U_cc_idx = var_db->registerVariableAndContext(d_U_cc_var, ctx, IntVector<NDIM>(0));
-    d_U_nc_idx = var_db->registerVariableAndContext(d_U_nc_var, ctx, IntVector<NDIM>(0));
-    d_UU_cc_idx = var_db->registerVariableAndContext(d_UU_cc_var, ctx, IntVector<NDIM>(0));
-    d_UU_nc_idx = var_db->registerVariableAndContext(d_UU_nc_var, ctx, IntVector<NDIM>(0));
-    d_U_mean_cc_idx = var_db->registerVariableAndContext(d_U_mean_cc_var, ctx, IntVector<NDIM>(0));
-    d_U_mean_nc_idx = var_db->registerVariableAndContext(d_U_mean_nc_var, ctx, IntVector<NDIM>(0));
-    d_UU_mean_cc_idx = var_db->registerVariableAndContext(d_UU_mean_cc_var, ctx, IntVector<NDIM>(0));
-    d_UU_mean_nc_idx = var_db->registerVariableAndContext(d_UU_mean_nc_var, ctx, IntVector<NDIM>(0));
+    d_velocity_side_scratch_idx =
+        var_db->registerVariableAndContext(d_velocity_side_scratch_var, ctx, IntVector<NDIM>(1));
+    d_velocity_cell_idx = var_db->registerVariableAndContext(d_velocity_cell_var, ctx, IntVector<NDIM>(0));
+    d_velocity_node_idx = var_db->registerVariableAndContext(d_velocity_node_var, ctx, IntVector<NDIM>(0));
+    d_velocity_product_cell_idx =
+        var_db->registerVariableAndContext(d_velocity_product_cell_var, ctx, IntVector<NDIM>(0));
+    d_velocity_product_node_idx =
+        var_db->registerVariableAndContext(d_velocity_product_node_var, ctx, IntVector<NDIM>(0));
+    d_velocity_mean_cell_idx = var_db->registerVariableAndContext(d_velocity_mean_cell_var, ctx, IntVector<NDIM>(0));
+    d_velocity_mean_node_idx = var_db->registerVariableAndContext(d_velocity_mean_node_var, ctx, IntVector<NDIM>(0));
+    d_velocity_product_mean_cell_idx =
+        var_db->registerVariableAndContext(d_velocity_product_mean_cell_var, ctx, IntVector<NDIM>(0));
+    d_velocity_product_mean_node_idx =
+        var_db->registerVariableAndContext(d_velocity_product_mean_node_var, ctx, IntVector<NDIM>(0));
 
-    if (d_analysis_centering == "CELL")
+    switch (d_analysis_centering)
     {
-        d_U_avg_manager = new IBTK::HierarchyAveragedDataManager(
-            d_object_name + "::VelocityAveraging", d_U_cc_var, input_db, grid_geom, register_for_restart);
-        d_UU_avg_manager = new IBTK::HierarchyAveragedDataManager(d_object_name + "::VelocityProductAveraging",
-                                                                  d_UU_cc_var,
-                                                                  build_velocity_product_db(d_object_name, input_db),
-                                                                  grid_geom,
-                                                                  register_for_restart);
-    }
-    else
-    {
-        d_U_avg_manager = new IBTK::HierarchyAveragedDataManager(
-            d_object_name + "::VelocityAveraging", d_U_nc_var, input_db, grid_geom, register_for_restart);
-        d_UU_avg_manager = new IBTK::HierarchyAveragedDataManager(d_object_name + "::VelocityProductAveraging",
-                                                                  d_UU_nc_var,
-                                                                  build_velocity_product_db(d_object_name, input_db),
-                                                                  grid_geom,
-                                                                  register_for_restart);
+    case AnalysisCentering::CELL:
+        d_velocity_average_manager = new IBTK::HierarchyAveragedDataManager(
+            d_object_name + "::VelocityAveraging", d_velocity_cell_var, input_db, grid_geom, register_for_restart);
+        d_velocity_product_average_manager =
+            new IBTK::HierarchyAveragedDataManager(d_object_name + "::VelocityProductAveraging",
+                                                   d_velocity_product_cell_var,
+                                                   input_db,
+                                                   grid_geom,
+                                                   register_for_restart);
+        break;
+    case AnalysisCentering::NODE:
+        d_velocity_average_manager = new IBTK::HierarchyAveragedDataManager(
+            d_object_name + "::VelocityAveraging", d_velocity_node_var, input_db, grid_geom, register_for_restart);
+        d_velocity_product_average_manager =
+            new IBTK::HierarchyAveragedDataManager(d_object_name + "::VelocityProductAveraging",
+                                                   d_velocity_product_node_var,
+                                                   input_db,
+                                                   grid_geom,
+                                                   register_for_restart);
+        break;
     }
 }
 
 bool
 INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
-                                                   const Pointer<SideVariable<NDIM, double>> U_var,
+                                                   const Pointer<SideVariable<NDIM, double>> /*U_var*/,
                                                    const std::vector<RobinBcCoefStrategy<NDIM>*>& velocity_bc_coefs,
                                                    const double data_time,
                                                    const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                    const Pointer<IBTK::HierarchyMathOps> hier_math_ops)
 {
-    // Delay statistics accumulation until the configured start time.
     if (!shouldUpdateStatistics(data_time)) return false;
 
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int U_avg_idx = d_analysis_centering == "CELL" ? d_U_cc_idx : d_U_nc_idx;
-    const int UU_avg_idx = d_analysis_centering == "CELL" ? d_UU_cc_idx : d_UU_nc_idx;
-    const int wgt_idx = d_analysis_centering == "CELL" ? wgt_cc_idx : IBTK::invalid_index;
+    int velocity_idx = IBTK::invalid_index;
+    int velocity_product_idx = IBTK::invalid_index;
+    int wgt_idx = IBTK::invalid_index;
+    switch (d_analysis_centering)
+    {
+    case AnalysisCentering::CELL:
+        velocity_idx = d_velocity_cell_idx;
+        velocity_product_idx = d_velocity_product_cell_idx;
+        wgt_idx = wgt_cc_idx;
+        break;
+    case AnalysisCentering::NODE:
+        velocity_idx = d_velocity_node_idx;
+        velocity_product_idx = d_velocity_product_node_idx;
+        break;
+    }
 
-    allocate_patch_data(d_U_sc_scratch_idx, data_time, hierarchy);
-    allocate_patch_data(U_avg_idx, data_time, hierarchy);
-    allocate_patch_data(UU_avg_idx, data_time, hierarchy);
+    allocate_patch_data(d_velocity_side_scratch_idx, data_time, hierarchy);
+    allocate_patch_data(velocity_idx, data_time, hierarchy);
+    allocate_patch_data(velocity_product_idx, data_time, hierarchy);
 
     Pointer<PatchHierarchy<NDIM>> hierarchy_nc = hierarchy;
     auto* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<HierarchyDataOpsReal<NDIM, double>> hier_sc_data_ops =
-        hier_ops_manager->getOperationsDouble(d_U_sc_scratch_var, hierarchy_nc, true);
-    hier_sc_data_ops->copyData(d_U_sc_scratch_idx, U_idx);
+        hier_ops_manager->getOperationsDouble(d_velocity_side_scratch_var, hierarchy_nc, true);
+    hier_sc_data_ops->copyData(d_velocity_side_scratch_idx, U_idx);
 
     using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     IBTK::HierarchyGhostCellInterpolation ghost_fill;
-    ghost_fill.initializeOperatorState(ITC(d_U_sc_scratch_idx,
+    ghost_fill.initializeOperatorState(ITC(d_velocity_side_scratch_idx,
                                            "CONSERVATIVE_LINEAR_REFINE",
                                            true,
                                            "CONSERVATIVE_COARSEN",
@@ -208,14 +327,27 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                                        hierarchy);
     ghost_fill.fillData(data_time);
 
-    if (d_analysis_centering == "CELL")
+    switch (d_analysis_centering)
     {
-        hier_math_ops->interp(d_U_cc_idx, d_U_cc_var, d_U_sc_scratch_idx, d_U_sc_scratch_var, nullptr, data_time, true);
-    }
-    else
-    {
-        hier_math_ops->interp(
-            d_U_nc_idx, d_U_nc_var, true, d_U_sc_scratch_idx, d_U_sc_scratch_var, nullptr, data_time, true);
+    case AnalysisCentering::CELL:
+        hier_math_ops->interp(d_velocity_cell_idx,
+                              d_velocity_cell_var,
+                              d_velocity_side_scratch_idx,
+                              d_velocity_side_scratch_var,
+                              nullptr,
+                              data_time,
+                              true);
+        break;
+    case AnalysisCentering::NODE:
+        hier_math_ops->interp(d_velocity_node_idx,
+                              d_velocity_node_var,
+                              true,
+                              d_velocity_side_scratch_idx,
+                              d_velocity_side_scratch_var,
+                              nullptr,
+                              data_time,
+                              true);
+        break;
     }
 
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -224,98 +356,82 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            if (d_analysis_centering == "CELL")
+            switch (d_analysis_centering)
             {
-                Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(d_U_cc_idx);
-                Pointer<CellData<NDIM, double>> UU_data = patch->getPatchData(d_UU_cc_idx);
-
+            case AnalysisCentering::CELL:
+            {
+                Pointer<CellData<NDIM, double>> velocity_data = patch->getPatchData(d_velocity_cell_idx);
+                Pointer<CellData<NDIM, double>> velocity_product_data =
+                    patch->getPatchData(d_velocity_product_cell_idx);
                 for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
                 {
                     const CellIndex<NDIM> idx = *ci;
-#if (NDIM == 2)
-                    const double uu[3] = { (*U_cc_data)(idx, 0) * (*U_cc_data)(idx, 0),
-                                           (*U_cc_data)(idx, 1) * (*U_cc_data)(idx, 1),
-                                           (*U_cc_data)(idx, 0) * (*U_cc_data)(idx, 1) };
-#endif
-#if (NDIM == 3)
-                    const double uu[6] = {
-                        (*U_cc_data)(idx, 0) * (*U_cc_data)(idx, 0), (*U_cc_data)(idx, 1) * (*U_cc_data)(idx, 1),
-                        (*U_cc_data)(idx, 2) * (*U_cc_data)(idx, 2), (*U_cc_data)(idx, 1) * (*U_cc_data)(idx, 2),
-                        (*U_cc_data)(idx, 0) * (*U_cc_data)(idx, 2), (*U_cc_data)(idx, 0) * (*U_cc_data)(idx, 1)
-                    };
-#endif
-                    store_symmetric_tensor(*UU_data, idx, uu);
+                    fill_symmetric_second_moment(*velocity_product_data, *velocity_data, idx);
                 }
+                break;
             }
-            else
+            case AnalysisCentering::NODE:
             {
-                Pointer<NodeData<NDIM, double>> U_nc_data = patch->getPatchData(d_U_nc_idx);
-                Pointer<NodeData<NDIM, double>> UU_data = patch->getPatchData(d_UU_nc_idx);
-
+                Pointer<NodeData<NDIM, double>> velocity_data = patch->getPatchData(d_velocity_node_idx);
+                Pointer<NodeData<NDIM, double>> velocity_product_data =
+                    patch->getPatchData(d_velocity_product_node_idx);
                 for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
                 {
                     const NodeIndex<NDIM> idx = *ni;
-#if (NDIM == 2)
-                    const double uu[3] = { (*U_nc_data)(idx, 0) * (*U_nc_data)(idx, 0),
-                                           (*U_nc_data)(idx, 1) * (*U_nc_data)(idx, 1),
-                                           (*U_nc_data)(idx, 0) * (*U_nc_data)(idx, 1) };
-#endif
-#if (NDIM == 3)
-                    const double uu[6] = {
-                        (*U_nc_data)(idx, 0) * (*U_nc_data)(idx, 0), (*U_nc_data)(idx, 1) * (*U_nc_data)(idx, 1),
-                        (*U_nc_data)(idx, 2) * (*U_nc_data)(idx, 2), (*U_nc_data)(idx, 1) * (*U_nc_data)(idx, 2),
-                        (*U_nc_data)(idx, 0) * (*U_nc_data)(idx, 2), (*U_nc_data)(idx, 0) * (*U_nc_data)(idx, 1)
-                    };
-#endif
-                    store_symmetric_tensor(*UU_data, idx, uu);
+                    fill_symmetric_second_moment(*velocity_product_data, *velocity_data, idx);
                 }
+                break;
+            }
             }
         }
     }
 
-    const bool U_steady = d_U_avg_manager->updateTimeAveragedSnapshot(U_avg_idx, data_time, hierarchy, wgt_idx);
-    const bool UU_steady = d_UU_avg_manager->updateTimeAveragedSnapshot(UU_avg_idx, data_time, hierarchy, wgt_idx);
+    const bool U_steady =
+        d_velocity_average_manager->updateTimeAveragedSnapshot(velocity_idx, data_time, hierarchy, wgt_idx);
+    const bool UU_steady = d_velocity_product_average_manager->updateTimeAveragedSnapshot(
+        velocity_product_idx, data_time, hierarchy, wgt_idx);
 
-    deallocate_patch_data(UU_avg_idx, hierarchy);
-    deallocate_patch_data(U_avg_idx, hierarchy);
-    deallocate_patch_data(d_U_sc_scratch_idx, hierarchy);
+    deallocate_patch_data(velocity_product_idx, hierarchy);
+    deallocate_patch_data(velocity_idx, hierarchy);
+    deallocate_patch_data(d_velocity_side_scratch_idx, hierarchy);
     return U_steady && UU_steady;
 }
 
 bool
 INSAveragingTurbulenceStatistics::isAtSteadyState() const
 {
-    return d_U_avg_manager->isAtPeriodicSteadyState() && d_UU_avg_manager->isAtPeriodicSteadyState();
+    return d_velocity_average_manager->isAtPeriodicSteadyState() &&
+           d_velocity_product_average_manager->isAtPeriodicSteadyState();
 }
 
 const std::string&
 INSAveragingTurbulenceStatistics::getAnalysisCentering() const
 {
-    return d_analysis_centering;
+    return analysis_centering_to_string(d_analysis_centering);
 }
 
 IBTK::HierarchyAveragedDataManager&
 INSAveragingTurbulenceStatistics::getAveragedVelocityManager()
 {
-    return *d_U_avg_manager;
+    return *d_velocity_average_manager;
 }
 
 const IBTK::HierarchyAveragedDataManager&
 INSAveragingTurbulenceStatistics::getAveragedVelocityManager() const
 {
-    return *d_U_avg_manager;
+    return *d_velocity_average_manager;
 }
 
 IBTK::HierarchyAveragedDataManager&
 INSAveragingTurbulenceStatistics::getAveragedVelocityProductManager()
 {
-    return *d_UU_avg_manager;
+    return *d_velocity_product_average_manager;
 }
 
 const IBTK::HierarchyAveragedDataManager&
 INSAveragingTurbulenceStatistics::getAveragedVelocityProductManager() const
 {
-    return *d_UU_avg_manager;
+    return *d_velocity_product_average_manager;
 }
 
 void
@@ -323,23 +439,32 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
                                                              const Pointer<CellVariable<NDIM, double>> /*R_var*/,
                                                              const double time,
                                                              const Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                             const Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                             const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
                                                              const double tol) const
 {
-    if (d_analysis_centering != "CELL")
+    if (d_analysis_centering != AnalysisCentering::CELL)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): cell-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << d_analysis_centering << "\n");
+                                 << "analysis_centering = " << analysis_centering_to_string(d_analysis_centering)
+                                 << "\n");
     }
 
-    const double snapshot_time = d_U_avg_manager->getTimePoint(time, tol);
-    allocate_patch_data(d_U_mean_cc_idx, snapshot_time, hierarchy);
-    allocate_patch_data(d_UU_mean_cc_idx, snapshot_time, hierarchy);
+    const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
+    allocate_patch_data(d_velocity_mean_cell_idx, snapshot_time, hierarchy);
+    allocate_patch_data(d_velocity_product_mean_cell_idx, snapshot_time, hierarchy);
 
-    IBTK::fill_snapshot_on_hierarchy(
-        d_U_avg_manager->getSnapshotCache(), d_U_mean_cc_idx, snapshot_time, hierarchy, d_refine_type, tol);
-    IBTK::fill_snapshot_on_hierarchy(
-        d_UU_avg_manager->getSnapshotCache(), d_UU_mean_cc_idx, snapshot_time, hierarchy, d_refine_type, tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
+                                     d_velocity_mean_cell_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_product_average_manager->getSnapshotCache(),
+                                     d_velocity_product_mean_cell_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
 
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -348,69 +473,19 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<CellData<NDIM, double>> R_data = patch->getPatchData(R_idx);
-            Pointer<CellData<NDIM, double>> U_mean_data = patch->getPatchData(d_U_mean_cc_idx);
-            Pointer<CellData<NDIM, double>> UU_mean_data = patch->getPatchData(d_UU_mean_cc_idx);
+            Pointer<CellData<NDIM, double>> U_mean_data = patch->getPatchData(d_velocity_mean_cell_idx);
+            Pointer<CellData<NDIM, double>> UU_mean_data = patch->getPatchData(d_velocity_product_mean_cell_idx);
 
             for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
             {
                 const CellIndex<NDIM> idx = *ci;
-                const int depth = R_data->getDepth();
-#if (NDIM == 2)
-                const double r_sym[3] = { (*UU_mean_data)(idx, 0) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 0),
-                                          (*UU_mean_data)(idx, 1) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 1),
-                                          (*UU_mean_data)(idx, 2) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 1) };
-                if (depth == 3)
-                {
-                    store_symmetric_tensor(*R_data, idx, r_sym);
-                }
-                else if (depth == 4)
-                {
-                    (*R_data)(idx, 0) = r_sym[0];
-                    (*R_data)(idx, 1) = r_sym[2];
-                    (*R_data)(idx, 2) = r_sym[2];
-                    (*R_data)(idx, 3) = r_sym[1];
-                }
-                else
-                {
-                    TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): unsupported 2D tensor depth " << depth
-                                             << "\n");
-                }
-#endif
-#if (NDIM == 3)
-                const double r_sym[6] = { (*UU_mean_data)(idx, 0) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 0),
-                                          (*UU_mean_data)(idx, 1) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 1),
-                                          (*UU_mean_data)(idx, 2) - (*U_mean_data)(idx, 2) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 3) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 4) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 5) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 1) };
-                if (depth == 6)
-                {
-                    store_symmetric_tensor(*R_data, idx, r_sym);
-                }
-                else if (depth == 9)
-                {
-                    (*R_data)(idx, 0) = r_sym[0];
-                    (*R_data)(idx, 1) = r_sym[5];
-                    (*R_data)(idx, 2) = r_sym[4];
-                    (*R_data)(idx, 3) = r_sym[5];
-                    (*R_data)(idx, 4) = r_sym[1];
-                    (*R_data)(idx, 5) = r_sym[3];
-                    (*R_data)(idx, 6) = r_sym[4];
-                    (*R_data)(idx, 7) = r_sym[3];
-                    (*R_data)(idx, 8) = r_sym[2];
-                }
-                else
-                {
-                    TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): unsupported 3D tensor depth " << depth
-                                             << "\n");
-                }
-#endif
+                fill_reynolds_tensor(*R_data, *U_mean_data, *UU_mean_data, idx, d_object_name);
             }
         }
     }
 
-    deallocate_patch_data(d_UU_mean_cc_idx, hierarchy);
-    deallocate_patch_data(d_U_mean_cc_idx, hierarchy);
+    deallocate_patch_data(d_velocity_product_mean_cell_idx, hierarchy);
+    deallocate_patch_data(d_velocity_mean_cell_idx, hierarchy);
 }
 
 void
@@ -421,20 +496,29 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
                                                              const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
                                                              const double tol) const
 {
-    if (d_analysis_centering != "NODE")
+    if (d_analysis_centering != AnalysisCentering::NODE)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): node-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << d_analysis_centering << "\n");
+                                 << "analysis_centering = " << analysis_centering_to_string(d_analysis_centering)
+                                 << "\n");
     }
 
-    const double snapshot_time = d_U_avg_manager->getTimePoint(time, tol);
-    allocate_patch_data(d_U_mean_nc_idx, snapshot_time, hierarchy);
-    allocate_patch_data(d_UU_mean_nc_idx, snapshot_time, hierarchy);
+    const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
+    allocate_patch_data(d_velocity_mean_node_idx, snapshot_time, hierarchy);
+    allocate_patch_data(d_velocity_product_mean_node_idx, snapshot_time, hierarchy);
 
-    IBTK::fill_snapshot_on_hierarchy(
-        d_U_avg_manager->getSnapshotCache(), d_U_mean_nc_idx, snapshot_time, hierarchy, d_refine_type, tol);
-    IBTK::fill_snapshot_on_hierarchy(
-        d_UU_avg_manager->getSnapshotCache(), d_UU_mean_nc_idx, snapshot_time, hierarchy, d_refine_type, tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
+                                     d_velocity_mean_node_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_product_average_manager->getSnapshotCache(),
+                                     d_velocity_product_mean_node_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
 
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -443,68 +527,18 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<NodeData<NDIM, double>> R_data = patch->getPatchData(R_idx);
-            Pointer<NodeData<NDIM, double>> U_mean_data = patch->getPatchData(d_U_mean_nc_idx);
-            Pointer<NodeData<NDIM, double>> UU_mean_data = patch->getPatchData(d_UU_mean_nc_idx);
+            Pointer<NodeData<NDIM, double>> U_mean_data = patch->getPatchData(d_velocity_mean_node_idx);
+            Pointer<NodeData<NDIM, double>> UU_mean_data = patch->getPatchData(d_velocity_product_mean_node_idx);
 
             for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
             {
                 const NodeIndex<NDIM> idx = *ni;
-                const int depth = R_data->getDepth();
-#if (NDIM == 2)
-                const double r_sym[3] = { (*UU_mean_data)(idx, 0) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 0),
-                                          (*UU_mean_data)(idx, 1) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 1),
-                                          (*UU_mean_data)(idx, 2) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 1) };
-                if (depth == 3)
-                {
-                    store_symmetric_tensor(*R_data, idx, r_sym);
-                }
-                else if (depth == 4)
-                {
-                    (*R_data)(idx, 0) = r_sym[0];
-                    (*R_data)(idx, 1) = r_sym[2];
-                    (*R_data)(idx, 2) = r_sym[2];
-                    (*R_data)(idx, 3) = r_sym[1];
-                }
-                else
-                {
-                    TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): unsupported 2D tensor depth " << depth
-                                             << "\n");
-                }
-#endif
-#if (NDIM == 3)
-                const double r_sym[6] = { (*UU_mean_data)(idx, 0) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 0),
-                                          (*UU_mean_data)(idx, 1) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 1),
-                                          (*UU_mean_data)(idx, 2) - (*U_mean_data)(idx, 2) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 3) - (*U_mean_data)(idx, 1) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 4) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 2),
-                                          (*UU_mean_data)(idx, 5) - (*U_mean_data)(idx, 0) * (*U_mean_data)(idx, 1) };
-                if (depth == 6)
-                {
-                    store_symmetric_tensor(*R_data, idx, r_sym);
-                }
-                else if (depth == 9)
-                {
-                    (*R_data)(idx, 0) = r_sym[0];
-                    (*R_data)(idx, 1) = r_sym[5];
-                    (*R_data)(idx, 2) = r_sym[4];
-                    (*R_data)(idx, 3) = r_sym[5];
-                    (*R_data)(idx, 4) = r_sym[1];
-                    (*R_data)(idx, 5) = r_sym[3];
-                    (*R_data)(idx, 6) = r_sym[4];
-                    (*R_data)(idx, 7) = r_sym[3];
-                    (*R_data)(idx, 8) = r_sym[2];
-                }
-                else
-                {
-                    TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): unsupported 3D tensor depth " << depth
-                                             << "\n");
-                }
-#endif
+                fill_reynolds_tensor(*R_data, *U_mean_data, *UU_mean_data, idx, d_object_name);
             }
         }
     }
 
-    deallocate_patch_data(d_UU_mean_nc_idx, hierarchy);
-    deallocate_patch_data(d_U_mean_nc_idx, hierarchy);
+    deallocate_patch_data(d_velocity_product_mean_node_idx, hierarchy);
+    deallocate_patch_data(d_velocity_mean_node_idx, hierarchy);
 }
 } // namespace IBAMR

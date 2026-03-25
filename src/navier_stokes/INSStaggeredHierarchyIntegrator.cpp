@@ -361,6 +361,31 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
+INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType
+parse_turbulence_statistics_type(const std::string& turbulence_statistics_type)
+{
+    if (turbulence_statistics_type == "NONE") return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE;
+    if (turbulence_statistics_type == "AVERAGED_VELOCITY")
+        return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::AVERAGED_VELOCITY;
+    TBOX_ERROR("parse_turbulence_statistics_type(): unsupported turbulence statistics type "
+               << turbulence_statistics_type << "\n");
+    return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE;
+}
+
+std::string
+turbulence_statistics_type_to_string(
+    const INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType turbulence_statistics_type)
+{
+    switch (turbulence_statistics_type)
+    {
+    case INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE:
+        return "NONE";
+    case INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::AVERAGED_VELOCITY:
+        return "AVERAGED_VELOCITY";
+    }
+    return "NONE";
+}
+
 // Copy data from a side-centered variable to a face-centered variable.
 void
 copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM>> hierarchy)
@@ -476,13 +501,14 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
 
     if (input_db->isDatabase("TurbulenceStatistics"))
     {
-        d_turbulence_statistics_type = "AVERAGED_VELOCITY";
+        d_turbulence_statistics_type = TurbulenceStatisticsType::AVERAGED_VELOCITY;
         d_turbulence_statistics_db = input_db->getDatabase("TurbulenceStatistics");
     }
-    d_turbulence_statistics_type =
-        input_db->getStringWithDefault("turbulence_statistics_type", d_turbulence_statistics_type);
+    std::string turbulence_statistics_type_string = input_db->getStringWithDefault(
+        "turbulence_statistics_type", turbulence_statistics_type_to_string(d_turbulence_statistics_type));
     if (d_turbulence_statistics_db && d_turbulence_statistics_db->keyExists("statistics_type"))
-        d_turbulence_statistics_type = d_turbulence_statistics_db->getString("statistics_type");
+        turbulence_statistics_type_string = d_turbulence_statistics_db->getString("statistics_type");
+    d_turbulence_statistics_type = parse_turbulence_statistics_type(turbulence_statistics_type_string);
 
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
@@ -769,25 +795,27 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
 
-    if (!d_turbulence_statistics && d_turbulence_statistics_type != "NONE")
+    if (!d_turbulence_statistics && d_turbulence_statistics_type != TurbulenceStatisticsType::NONE)
     {
         if (!d_turbulence_statistics_db)
         {
             TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): turbulence statistics requested without a "
                                         "TurbulenceStatistics database.\n");
         }
-        if (d_turbulence_statistics_type == "AVERAGED_VELOCITY")
+        switch (d_turbulence_statistics_type)
         {
+        case TurbulenceStatisticsType::AVERAGED_VELOCITY:
             d_turbulence_statistics = new INSAveragingTurbulenceStatistics(d_object_name + "::TurbulenceStatistics",
                                                                            d_U_var,
                                                                            d_turbulence_statistics_db,
                                                                            d_hierarchy->getGridGeometry(),
                                                                            d_registered_for_restart);
-        }
-        else
-        {
+            break;
+        case TurbulenceStatisticsType::NONE:
+            break;
+        default:
             TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): unsupported turbulence statistics type "
-                                     << d_turbulence_statistics_type << "\n");
+                                     << turbulence_statistics_type_to_string(d_turbulence_statistics_type) << "\n");
         }
     }
 

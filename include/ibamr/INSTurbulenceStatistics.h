@@ -62,10 +62,7 @@ public:
      * \param statistics_start_time Simulation time at which statistics
      * accumulation should begin.
      */
-    explicit INSTurbulenceStatistics(std::string object_name, const double statistics_start_time = 0.0)
-        : d_object_name(std::move(object_name)), d_statistics_start_time(statistics_start_time)
-    {
-    }
+    explicit INSTurbulenceStatistics(std::string object_name, double statistics_start_time = 0.0);
 
     /*!
      * \brief Destructor.
@@ -96,10 +93,7 @@ protected:
      * \brief Return true when statistics should be updated at the supplied
      * simulation time.
      */
-    bool shouldUpdateStatistics(const double data_time) const
-    {
-        return data_time >= d_statistics_start_time;
-    }
+    bool shouldUpdateStatistics(double data_time) const;
 
     /*!
      * Object name used in logging and subordinate database/variable names.
@@ -112,5 +106,7 @@ protected:
     double d_statistics_start_time = 0.0;
 };
 } // namespace IBAMR
+
+#include <ibamr/private/INSTurbulenceStatistics-inl.h> // IWYU pragma: keep
 
 #endif
