@@ -63,7 +63,7 @@ public:
      * accumulation until the specified simulation time.
      */
     INSAveragingTurbulenceStatistics(std::string object_name,
-                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> U_var,
+                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
                                      bool register_for_restart = true);

@@ -216,13 +216,12 @@ fill_reynolds_tensor(ReynoldsDataType& reynolds_data,
 namespace IBAMR
 {
 INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string object_name,
-                                                                   Pointer<SideVariable<NDIM, double>> U_var,
+                                                                   Pointer<SideVariable<NDIM, double>> /*U_var*/,
                                                                    Pointer<Database> input_db,
                                                                    Pointer<GridGeometry<NDIM>> grid_geom,
                                                                    const bool register_for_restart)
     : INSTurbulenceStatistics(std::move(object_name), input_db->getDoubleWithDefault("statistics_start_time", 0.0))
 {
-    (void)U_var;
     d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
     d_analysis_centering = parse_analysis_centering(
         input_db->getStringWithDefault("analysis_centering", analysis_centering_to_string(d_analysis_centering)));
