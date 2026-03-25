@@ -382,6 +382,8 @@ turbulence_statistics_type_to_string(
         return "NONE";
     case INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::AVERAGED_VELOCITY:
         return "AVERAGED_VELOCITY";
+    default:
+        TBOX_ERROR("turbulence_statistics_type_to_string(): unsupported turbulence statistics type enum value\n");
     }
     return "NONE";
 }

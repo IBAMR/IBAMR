@@ -114,8 +114,10 @@ analysis_centering_to_string(const INSAveragingTurbulenceStatistics::AnalysisCen
         return cell;
     case INSAveragingTurbulenceStatistics::AnalysisCentering::NODE:
         return node;
+    default:
+        TBOX_ERROR("analysis_centering_to_string(): unsupported analysis centering enum value\n");
     }
-    return cell;
+    return node;
 }
 
 template <class DataType, class IndexType>
@@ -275,6 +277,9 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
                                                    grid_geom,
                                                    register_for_restart);
         break;
+    default:
+        TBOX_ERROR(d_object_name << ": unsupported analysis centering "
+                                 << analysis_centering_to_string(d_analysis_centering) << "\n");
     }
 }
 
@@ -303,6 +308,9 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
         velocity_idx = d_velocity_node_idx;
         velocity_product_idx = d_velocity_product_node_idx;
         break;
+    default:
+        TBOX_ERROR(d_object_name << ": unsupported analysis centering "
+                                 << analysis_centering_to_string(d_analysis_centering) << "\n");
     }
 
     allocate_patch_data(d_velocity_side_scratch_idx, data_time, hierarchy);
@@ -348,6 +356,9 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                               data_time,
                               true);
         break;
+    default:
+        TBOX_ERROR(d_object_name << ": unsupported analysis centering "
+                                 << analysis_centering_to_string(d_analysis_centering) << "\n");
     }
 
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -382,6 +393,9 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                 }
                 break;
             }
+            default:
+                TBOX_ERROR(d_object_name << ": unsupported analysis centering "
+                                         << analysis_centering_to_string(d_analysis_centering) << "\n");
             }
         }
     }
