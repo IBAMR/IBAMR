@@ -501,13 +501,28 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     if (input_db->keyExists("regrid_projection_sub_precond_type"))
         d_regrid_projection_sub_precond_type = input_db->getString("regrid_projection_sub_precond_type");
 
+    if (input_db->keyExists("turbulence_model_type"))
+    {
+        d_turbulence_model_type = input_db->getString("turbulence_model_type");
+    }
+    if (input_db->isDatabase("TurbulenceModel")) d_turbulence_model_db = input_db->getDatabase("TurbulenceModel");
     if (input_db->isDatabase("TurbulenceStatistics"))
     {
         d_turbulence_statistics_type = TurbulenceStatisticsType::AVERAGED_VELOCITY;
         d_turbulence_statistics_db = input_db->getDatabase("TurbulenceStatistics");
     }
-    std::string turbulence_statistics_type_string = input_db->getStringWithDefault(
-        "turbulence_statistics_type", turbulence_statistics_type_to_string(d_turbulence_statistics_type));
+
+    if (d_turbulence_model_db && d_turbulence_model_db->keyExists("model_type"))
+    {
+        d_turbulence_model_type = d_turbulence_model_db->getString("model_type");
+    }
+    if (!d_turbulence_model_db) d_turbulence_model_db = new MemoryDatabase("TurbulenceModel");
+
+    std::string turbulence_statistics_type_string = turbulence_statistics_type_to_string(d_turbulence_statistics_type);
+    if (input_db->keyExists("turbulence_statistics_type"))
+    {
+        turbulence_statistics_type_string = input_db->getString("turbulence_statistics_type");
+    }
     if (d_turbulence_statistics_db && d_turbulence_statistics_db->keyExists("statistics_type"))
         turbulence_statistics_type_string = d_turbulence_statistics_db->getString("statistics_type");
     d_turbulence_statistics_type = parse_turbulence_statistics_type(turbulence_statistics_type_string);
