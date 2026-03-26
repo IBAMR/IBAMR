@@ -14,6 +14,8 @@
 #ifndef included_IBAMR_INSTurbulenceStatistics_inl
 #define included_IBAMR_INSTurbulenceStatistics_inl
 
+#include <ibamr/config.h>
+
 #include <ibamr/INSTurbulenceStatistics.h>
 
 namespace IBAMR
