@@ -936,7 +936,7 @@ protected:
     std::vector<IBTK::RigidDOFVector> d_brinkman_so_vel;
     std::vector<IBTK::FreeRigidDOFVector> d_brinkman_free_dofs;
     std::vector<double> d_brinkman_mass;
-    std::vector<Eigen::Matrix3d> d_brinkman_intertia_tensor_initial;
+    std::vector<Eigen::Matrix3d> d_brinkman_inertia_tensor_initial;
     std::vector<Eigen::Quaterniond> d_brinkman_quaternion;
 
     /*!
@@ -954,9 +954,10 @@ protected:
     std::vector<std::unique_ptr<std::ofstream> > d_contour_integral_stream;
 
     /*!
-     * Acoustic radiation force acting on the body
+     * Acoustic radiation force and torque acting on the body
      */
     std::vector<std::array<double, NDIM> > d_acoustic_radiation_force;
+    std::vector<std::array<double, 3> > d_acoustic_radiation_torque;
 
     /*!
      * First-order hydrodynamic force and torque acting on the body

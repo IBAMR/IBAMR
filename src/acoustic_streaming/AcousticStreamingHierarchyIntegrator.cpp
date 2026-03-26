@@ -916,7 +916,7 @@ AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 
     d_brinkman_center.push_back(center);
     d_brinkman_mass.push_back(mass);
-    d_brinkman_intertia_tensor_initial.push_back(J_com);
+    d_brinkman_inertia_tensor_initial.push_back(J_com);
     d_brinkman_quaternion.push_back(Eigen::Quaterniond::Identity());
 
     d_brinkman_free_dofs.push_back(free_dofs);
@@ -1218,6 +1218,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_fo_real_hydro_torque.resize(num_bodies);
     d_fo_imag_hydro_torque.resize(num_bodies);
     d_acoustic_radiation_force.resize(num_bodies);
+    d_acoustic_radiation_torque.resize(num_bodies);
 
     // Register scratch variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
@@ -3844,6 +3845,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 
         // Zero out the vectors.
         IBTK::Vector3d radiation_force = IBTK::Vector3d::Zero();
+        IBTK::Vector3d radiation_torque = IBTK::Vector3d::Zero();
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -3897,6 +3899,12 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
                         // Compute the required unit normal
                         IBTK::Vector3d n = IBTK::Vector3d::Zero();
                         n(axis) = signof(phi_upper - phi_lower);
+
+                        // Get the relative coordinate from X0
+                        IBTK::Vector3d X0 = IBTK::Vector3d::Zero();
+                        std::copy(d_brinkman_center[k].data(), d_brinkman_center[k].data() + NDIM, X0.data());
+                        const IBTK::Vector3d r_vec =
+                            IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i) - X0;
 
                         // Compute pressure on the face using simple averaging (n. -p I) * dA
                         const IBTK::Vector3d pn = 0.5 * n * ((*p2_data)(c_l) + (*p2_data)(c_u));
@@ -3977,15 +3985,22 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 
                         // Add up the pressure force: n.(-pI)dS, shear viscosity force: (mu*(grad U + grad U)^T).ndS,
                         // bulk viscosity force: n. (lambda div U2)dS, and convective force: <rho (U1.n) U1> dS
-                        radiation_force +=
+                        // Moment of the force gives the torque.
+                        IBTK::Vector3d face_force =
                             (-pn * dS) + (n(axis) * viscous_trac * dS) + (bulk_trac * dS) + (-convective_trac * dS);
+                        IBTK::Vector3d face_torque = r_vec.cross(face_force);
+
+                        radiation_force += face_force;
+                        radiation_torque += face_torque;
                     }
                 }
             }
         }
         IBTK_MPI::sumReduction(radiation_force.data(), radiation_force.size());
+        IBTK_MPI::sumReduction(radiation_torque.data(), radiation_torque.size());
 
         std::copy(radiation_force.data(), radiation_force.data() + NDIM, d_acoustic_radiation_force[k].begin());
+        std::copy(radiation_torque.data(), radiation_torque.data() + 3, d_acoustic_radiation_torque[k].begin());
 
         // // Output radiation force in stream files at the last cycle
         // if (d_current_num_cycles == cycle_num + 1 && d_write_contour_integrals && IBTK_MPI::getRank() == 0)
@@ -4360,7 +4375,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
     comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
     comp_fill_op->fillData(time);
 
-    int sc_wgt_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+    int cc_wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Perform surface integration to determine hydrodynamic force due to the first-order solution.
     for (unsigned k = 0; k < num_bodies; ++k)
@@ -4426,7 +4441,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
                 Pointer<CellData<NDIM, double> > lambda_data = nullptr;
                 if (d_lambda_var) lambda_data = patch->getPatchData(d_lambda_scratch_idx);
 
-                Pointer<SideData<NDIM, double> > wgt_data = patch->getPatchData(sc_wgt_idx);
+                Pointer<CellData<NDIM, double> > cc_wgt_data = patch->getPatchData(cc_wgt_idx);
 
                 auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
 
@@ -4545,29 +4560,45 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
                         hydro_real_torque += r_vec.cross(real_trac);
                         hydro_imag_torque += r_vec.cross(imag_trac);
                     }
+                }
 
-                    // Get the contribution from the volumetric momentum term
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                // Get the contribution from the volumetric momentum term. Here loop over cell centroids
+                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                {
+                    CellIndex<NDIM> c_i(it());
+                    const double phi_cell = (*phi_data)(c_i);
+                    const double S_cell = (*S_data)(c_i);
+
+                    // Get the relative coordinate from X0
+                    IBTK::Vector3d X0 = IBTK::Vector3d::Zero();
+                    std::copy(d_brinkman_center[k].data(), d_brinkman_center[k].data() + NDIM, X0.data());
+                    const IBTK::Vector3d r_vec = IBTK::IndexUtilities::getCellCenter<IBTK::Vector3d>(*patch, c_i) - X0;
+
+                    // Integrate momentum within the volume bounded by two contours
+                    if (S_cell - contour_val <= 0.0 && phi_cell >= 0.0)
                     {
-                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
-                        CellIndex<NDIM> c_l = s_i.toCell(SideIndex<NDIM>::Lower);
-                        CellIndex<NDIM> c_u = s_i.toCell(SideIndex<NDIM>::Upper);
-                        const double phi_lower = (*phi_data)(c_l);
-                        const double phi_upper = (*phi_data)(c_u);
-                        const double S_lower = (*S_data)(c_l);
-                        const double S_upper = (*S_data)(c_u);
+                        const double& vol_cell = (*cc_wgt_data)(c_i);
 
-                        const double phi_face = 0.5 * (phi_lower + phi_upper);
-                        const double S_face = 0.5 * (S_lower + S_upper);
-
-                        // Integrate momentum within the volume bounded by two contours
-                        if (S_face - contour_val <= 0.0 && phi_face >= 0.0)
+                        IBTK::Vector3d real_momentum = IBTK::Vector3d::Zero();
+                        IBTK::Vector3d imag_momentum = IBTK::Vector3d::Zero();
+                        double rho_cell = 0.0;
+                        for (int d = 0; d < NDIM; ++d)
                         {
-                            const double& rho = (*rho_data)(s_i);
-                            const double& vol = (*wgt_data)(s_i);
-                            hydro_real_force[axis] += d_acoustic_freq * rho * (*U1_imag_data)(s_i)*vol;
-                            hydro_imag_force[axis] += -d_acoustic_freq * rho * (*U1_real_data)(s_i)*vol;
+                            rho_cell += (*rho_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Lower)) +
+                                        (*rho_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Upper));
+                            real_momentum(d) = 0.5 * ((*U1_imag_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Lower)) +
+                                                      (*U1_imag_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Upper)));
+                            imag_momentum(d) = 0.5 * ((*U1_real_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Lower)) +
+                                                      (*U1_real_data)(SideIndex<NDIM>(c_i, d, SideIndex<NDIM>::Upper)));
                         }
+                        rho_cell /= (2.0 * NDIM);
+                        real_momentum *= d_acoustic_freq * rho_cell * vol_cell;
+                        imag_momentum *= -d_acoustic_freq * rho_cell * vol_cell;
+
+                        hydro_real_force += real_momentum;
+                        hydro_imag_force += imag_momentum;
+                        hydro_real_torque += r_vec.cross(real_momentum);
+                        hydro_imag_torque += r_vec.cross(imag_momentum);
                     }
                 }
             }
@@ -4615,6 +4646,9 @@ AcousticStreamingHierarchyIntegrator::computeFOResidual(Pointer<SAMRAIVectorReal
     for (int b = 0; b < num_bodies; ++b)
     {
         const double& mass = d_brinkman_mass[b];
+        const auto& inertia_tensor = d_brinkman_inertia_tensor_initial[b];
+
+        // Add contribution from force for translational DOFs
         for (int i = 0; i < NDIM; ++i)
         {
             if (d_brinkman_free_dofs[b](i))
@@ -4626,6 +4660,31 @@ AcousticStreamingHierarchyIntegrator::computeFOResidual(Pointer<SAMRAIVectorReal
                         R(k) = mass * d_acoustic_freq * d_brinkman_fo_real_vel[b](i) - d_fo_imag_hydro_force[b][i];
                     else
                         R(k) = mass * d_acoustic_freq * d_brinkman_fo_imag_vel[b](i) + d_fo_real_hydro_force[b][i];
+                }
+            }
+        }
+        // Add contribution from torque for rotational DOFs
+        for (int i = NDIM; i < s_max_free_dofs; ++i)
+        {
+            if (d_brinkman_free_dofs[b](i))
+            {
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    k = k + 1;
+                    if (comp == REAL)
+                    {
+#if (NDIM == 2)
+                        R(k) = inertia_tensor(2, 2) * d_acoustic_freq * d_brinkman_fo_real_vel[b](2) -
+                               d_fo_imag_hydro_torque[b][2];
+#endif
+                    }
+                    else
+                    {
+#if (NDIM == 2)
+                        R(k) = inertia_tensor(2, 2) * d_acoustic_freq * d_brinkman_fo_imag_vel[b](2) +
+                               d_fo_real_hydro_torque[b][2];
+#endif
+                    }
                 }
             }
         }
@@ -4651,6 +4710,19 @@ AcousticStreamingHierarchyIntegrator::computeSOResidual(Eigen::VectorXd& R, doub
             {
                 k = k + 1;
                 R(k) = d_acoustic_radiation_force[b][i];
+            }
+        }
+
+        for (int i = NDIM; i < s_max_free_dofs; ++i)
+        {
+            if (d_brinkman_free_dofs[b](i))
+            {
+                k = k + 1;
+#if (NDIM == 2)
+                R(k) = d_acoustic_radiation_torque[b][2];
+#elif (NDIM == 3)
+                R(k) = d_acoustic_radiation_torque[b][i - NDIM];
+#endif
             }
         }
     }
