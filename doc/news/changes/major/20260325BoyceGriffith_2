@@ -1,0 +1,3 @@
+New: Added SGS turbulence-model infrastructure for staggered INS, including native-location Smagorinsky stress evaluation on staggered grids, manufactured SGS verification examples, and CI-oriented attest tests.
+<br>
+(Boyce Griffith, 2026/03/25)
