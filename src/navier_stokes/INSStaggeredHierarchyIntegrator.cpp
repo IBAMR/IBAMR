@@ -662,6 +662,7 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
                                                                  d_object_name + "::velocity_sub_precond",
                                                                  d_velocity_sub_precond_db,
                                                                  "velocity_sub_pc_");
+        d_velocity_solver->setHierarchyMathOps(d_hier_math_ops);
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -685,6 +686,7 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
                                                                  d_object_name + "::pressure_sub_precond",
                                                                  d_pressure_sub_precond_db,
                                                                  "pressure_sub_pc_");
+        d_pressure_solver->setHierarchyMathOps(d_hier_math_ops);
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
@@ -719,6 +721,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
                                                                        d_object_name + "::stokes_sub_precond",
                                                                        d_stokes_sub_precond_db,
                                                                        "stokes_sub_pc_");
+        d_stokes_solver->setHierarchyMathOps(d_hier_math_ops);
         d_stokes_solver_needs_init = true;
     }
     return d_stokes_solver;
@@ -2213,6 +2216,7 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
+    regrid_projection_solver->setHierarchyMathOps(d_hier_math_ops);
     auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
