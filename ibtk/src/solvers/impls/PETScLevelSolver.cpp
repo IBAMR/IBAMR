@@ -16,6 +16,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/PETScLevelSolverBlasLapackShellBackend.h>
 #include <ibtk/private/PETScLevelSolverEigenPseudoinverseShellBackend.h>
 #include <ibtk/private/PETScLevelSolverEigenReferenceShellBackend.h>
 #include <ibtk/private/PETScLevelSolverEigenShellBackend.h>
@@ -134,6 +135,14 @@ allocate_petsc_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_d
 }
 
 std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_blas_lapack_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
+{
+    auto backend = std::make_unique<PETScLevelSolverBlasLapackShellBackend>(solver);
+    backend->configure(input_db);
+    return backend;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
 allocate_eigen_shell_backend(PETScLevelSolver& solver, Pointer<Database> input_db)
 {
     auto backend = std::make_unique<PETScLevelSolverEigenShellBackend>(solver);
@@ -225,6 +234,7 @@ PETScLevelSolverShellBackendManager::getRegisteredShellBackendTypes() const
 PETScLevelSolverShellBackendManager::PETScLevelSolverShellBackendManager() : d_shell_backend_maker_map()
 {
     registerShellBackendFactoryFunction("petsc", allocate_petsc_shell_backend);
+    registerShellBackendFactoryFunction("blas-lapack", allocate_blas_lapack_shell_backend);
     registerShellBackendFactoryFunction("eigen", allocate_eigen_shell_backend);
     registerShellBackendFactoryFunction("eigen-pseudoinverse", allocate_eigen_pseudoinverse_shell_backend);
     registerShellBackendFactoryFunction("eigen-reference", allocate_eigen_reference_shell_backend);

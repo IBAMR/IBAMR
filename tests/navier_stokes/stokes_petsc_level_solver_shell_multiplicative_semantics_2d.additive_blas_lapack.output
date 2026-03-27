@@ -1,0 +1,5 @@
+solver_type = default
+shell_pc_type = additive-blas-lapack
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-10
+test_failures = 0
