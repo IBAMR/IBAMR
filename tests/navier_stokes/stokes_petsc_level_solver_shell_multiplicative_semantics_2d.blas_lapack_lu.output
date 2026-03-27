@@ -1,4 +1,4 @@
-solver_type = default
+solver_type = lu
 expected_inf_norm = 0.660682
 actual_inf_norm = 0.660682
 error_inf_norm = 0
