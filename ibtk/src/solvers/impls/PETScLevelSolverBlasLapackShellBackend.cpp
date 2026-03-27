@@ -24,6 +24,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
+#include <cstddef>
+#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -54,6 +57,23 @@ copy_vec_to_std_vector(Vec vec, PetscInt n_entries)
     IBTK_CHKERRQ(ierr);
     return values;
 }
+
+std::size_t
+column_major_index(const PetscBLASInt row, const PetscBLASInt col, const PetscBLASInt lda)
+{
+    return static_cast<std::size_t>(row) + static_cast<std::size_t>(col) * static_cast<std::size_t>(lda);
+}
+
+PetscBLASInt
+query_lapack_workspace_size(const PetscScalar query_value)
+{
+    const PetscReal real_query = PetscRealPart(query_value);
+    if (real_query < 1.0)
+    {
+        return 1;
+    }
+    return static_cast<PetscBLASInt>(real_query);
+}
 } // namespace
 
 PETScLevelSolverBlasLapackShellBackend::PETScLevelSolverBlasLapackShellBackend(PETScLevelSolver& solver)
@@ -70,12 +90,17 @@ PETScLevelSolverBlasLapackShellBackend::getTypeKey() const
 void
 PETScLevelSolverBlasLapackShellBackend::configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
-    d_subdomain_solver_type = "lu";
+    d_subdomain_solver_type = SubdomainSolverType::SVD;
+    d_subdomain_solver_rcond = -1.0;
     if (!input_db) return;
 
     if (input_db->keyExists("blas_lapack_subdomain_solver_type"))
     {
         parseSolverType(input_db->getString("blas_lapack_subdomain_solver_type"));
+    }
+    if (input_db->keyExists("blas_lapack_subdomain_solver_rcond"))
+    {
+        d_subdomain_solver_rcond = input_db->getDouble("blas_lapack_subdomain_solver_rcond");
     }
 }
 
@@ -116,13 +141,16 @@ PETScLevelSolverBlasLapackShellBackend::initialize()
     d_subdomains.resize(overlap_subdomain_dofs.size());
     for (std::size_t subdomain_num = 0; subdomain_num < d_subdomains.size(); ++subdomain_num)
     {
+        std::vector<PetscScalar> local_operator;
         initializeSubdomainData(d_subdomains[subdomain_num],
+                                local_operator,
+                                subdomain_num,
                                 overlap_subdomain_dofs[subdomain_num],
                                 nonoverlap_subdomain_dofs[subdomain_num],
                                 use_restrict_partition,
                                 use_multiplicative,
                                 level_mat);
-        factorizeSubdomainMatrix(d_subdomains[subdomain_num]);
+        initializeSubdomainSolveData(d_subdomains[subdomain_num], local_operator);
     }
 }
 
@@ -216,19 +244,170 @@ PETScLevelSolverBlasLapackShellBackend::applyMultiplicative(Vec x, Vec y)
 void
 PETScLevelSolverBlasLapackShellBackend::parseSolverType(const std::string& type_name)
 {
-    d_subdomain_solver_type = to_lower(type_name);
-    if (d_subdomain_solver_type != "lu")
+    const std::string normalized_type_name = to_lower(type_name);
+    if (normalized_type_name == "svd")
     {
-        TBOX_ERROR(d_context.getObjectNameForBackend()
-                   << " " << d_context.getOptionsPrefixForBackend()
-                   << " PETScLevelSolverBlasLapackShellBackend::configure()\n"
-                   << "Unsupported blas_lapack_subdomain_solver_type = " << type_name << "\n"
-                   << "Supported values: lu" << std::endl);
+        d_subdomain_solver_type = SubdomainSolverType::SVD;
+        return;
+    }
+    if (normalized_type_name == "lu")
+    {
+        d_subdomain_solver_type = SubdomainSolverType::LU;
+        return;
+    }
+    if (normalized_type_name == "cholesky")
+    {
+        d_subdomain_solver_type = SubdomainSolverType::CHOLESKY;
+        return;
+    }
+    if (normalized_type_name == "symmetric-indefinite")
+    {
+        d_subdomain_solver_type = SubdomainSolverType::SYMMETRIC_INDEFINITE;
+        return;
+    }
+    if (normalized_type_name == "qr")
+    {
+        d_subdomain_solver_type = SubdomainSolverType::QR;
+        return;
+    }
+
+    TBOX_ERROR(d_context.getObjectNameForBackend()
+               << " " << d_context.getOptionsPrefixForBackend()
+               << " PETScLevelSolverBlasLapackShellBackend::configure()\n"
+               << "Unsupported blas_lapack_subdomain_solver_type = " << type_name << "\n"
+               << "Supported values: svd, lu, cholesky, symmetric-indefinite, qr" << std::endl);
+}
+
+template <class SolverDataType>
+SolverDataType&
+PETScLevelSolverBlasLapackShellBackend::getSolverData(SubdomainData& subdomain_data) const
+{
+    auto* solver_data = dynamic_cast<SolverDataType*>(subdomain_data.solver_data.get());
+    TBOX_ASSERT(solver_data != nullptr);
+    return *solver_data;
+}
+
+template <class SolverDataType>
+const SolverDataType&
+PETScLevelSolverBlasLapackShellBackend::getSolverData(const SubdomainData& subdomain_data) const
+{
+    const auto* solver_data = dynamic_cast<const SolverDataType*>(subdomain_data.solver_data.get());
+    TBOX_ASSERT(solver_data != nullptr);
+    return *solver_data;
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolveData(
+    SubdomainData& subdomain_data,
+    const std::vector<PetscScalar>& local_operator) const
+{
+    switch (d_subdomain_solver_type)
+    {
+    case SubdomainSolverType::LU:
+    {
+        if (subdomain_data.local_size == 0) return;
+        auto solver_data = std::make_unique<LUSolverData>();
+        solver_data->factor = local_operator;
+        solver_data->pivot.resize(static_cast<std::size_t>(std::max<PetscBLASInt>(1, subdomain_data.local_size)), 0);
+        PetscBLASInt info = 0;
+        LAPACKgetrf_(&subdomain_data.local_size,
+                     &subdomain_data.local_size,
+                     solver_data->factor.data(),
+                     &subdomain_data.local_lda,
+                     solver_data->pivot.data(),
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolveData()\n"
+                       << "LAPACKgetrf failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        subdomain_data.solver_data = std::move(solver_data);
+        return;
+    }
+    case SubdomainSolverType::CHOLESKY:
+    {
+        if (subdomain_data.local_size == 0) return;
+        verifySymmetricSubdomainMatrix(subdomain_data, local_operator);
+        auto solver_data = std::make_unique<CholeskySolverData>();
+        solver_data->factor = local_operator;
+        PetscBLASInt info = 0;
+        const char uplo = 'L';
+        LAPACKpotrf_(&uplo, &subdomain_data.local_size, solver_data->factor.data(), &subdomain_data.local_lda, &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolveData()\n"
+                       << "LAPACKpotrf failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        subdomain_data.solver_data = std::move(solver_data);
+        return;
+    }
+    case SubdomainSolverType::SYMMETRIC_INDEFINITE:
+    {
+        if (subdomain_data.local_size == 0) return;
+        verifySymmetricSubdomainMatrix(subdomain_data, local_operator);
+        auto solver_data = std::make_unique<SymmetricIndefiniteSolverData>();
+        solver_data->factor = local_operator;
+        solver_data->pivot.resize(static_cast<std::size_t>(std::max<PetscBLASInt>(1, subdomain_data.local_size)), 0);
+        PetscBLASInt info = 0;
+        const char uplo = 'L';
+        PetscBLASInt lwork = -1;
+        PetscScalar work_query = 0.0;
+        LAPACKsytrf_(&uplo,
+                     &subdomain_data.local_size,
+                     solver_data->factor.data(),
+                     &subdomain_data.local_lda,
+                     solver_data->pivot.data(),
+                     &work_query,
+                     &lwork,
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolveData()\n"
+                       << "LAPACKsytrf workspace query failed for subdomain " << subdomain_data.subdomain_num
+                       << " with info = " << info << ".\n");
+        }
+        lwork = query_lapack_workspace_size(work_query);
+        solver_data->work.resize(static_cast<std::size_t>(lwork), 0.0);
+        LAPACKsytrf_(&uplo,
+                     &subdomain_data.local_size,
+                     solver_data->factor.data(),
+                     &subdomain_data.local_lda,
+                     solver_data->pivot.data(),
+                     solver_data->work.data(),
+                     &lwork,
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolveData()\n"
+                       << "LAPACKsytrf failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        subdomain_data.solver_data = std::move(solver_data);
+        return;
+    }
+    case SubdomainSolverType::QR:
+        buildQRSolveMatrix(subdomain_data, local_operator);
+        return;
+    case SubdomainSolverType::SVD:
+        buildSVDSolveMatrix(subdomain_data, local_operator);
+        return;
     }
 }
 
 void
 PETScLevelSolverBlasLapackShellBackend::initializeSubdomainData(SubdomainData& subdomain_data,
+                                                                std::vector<PetscScalar>& local_operator,
+                                                                const std::size_t subdomain_num,
                                                                 const std::vector<int>& overlap_dofs,
                                                                 const std::vector<int>& nonoverlap_dofs,
                                                                 const bool use_restrict_partition,
@@ -236,13 +415,13 @@ PETScLevelSolverBlasLapackShellBackend::initializeSubdomainData(SubdomainData& s
                                                                 Mat level_mat) const
 {
     subdomain_data = SubdomainData();
+    subdomain_data.subdomain_num = subdomain_num;
     subdomain_data.overlap_dofs = overlap_dofs;
     const PetscBLASInt overlap_size = static_cast<PetscBLASInt>(overlap_dofs.size());
     subdomain_data.local_size = overlap_size;
     subdomain_data.local_lda = std::max<PetscBLASInt>(1, overlap_size);
-    subdomain_data.local_operator_lu.resize(
-        static_cast<std::size_t>(subdomain_data.local_lda) * static_cast<std::size_t>(overlap_size), 0.0);
-    subdomain_data.pivot.resize(static_cast<std::size_t>(std::max<PetscBLASInt>(1, overlap_size)), 0);
+    local_operator.assign(static_cast<std::size_t>(subdomain_data.local_lda) * static_cast<std::size_t>(overlap_size),
+                          0.0);
     subdomain_data.rhs_workspace.resize(static_cast<std::size_t>(overlap_size), 0.0);
     subdomain_data.delta_workspace.resize(static_cast<std::size_t>(overlap_size), 0.0);
 
@@ -266,9 +445,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeSubdomainData(SubdomainData& s
             const auto col_it = overlap_col_map.find(static_cast<int>(cols[entry]));
             if (col_it != overlap_col_map.end())
             {
-                subdomain_data.local_operator_lu[static_cast<std::size_t>(local_row) +
-                                                 static_cast<std::size_t>(col_it->second) *
-                                                     static_cast<std::size_t>(subdomain_data.local_lda)] = vals[entry];
+                local_operator[column_major_index(local_row, col_it->second, subdomain_data.local_lda)] = vals[entry];
             }
         }
         ierr = MatRestoreRow(level_mat, global_row, &row_nnz, &cols, &vals);
@@ -356,11 +533,8 @@ PETScLevelSolverBlasLapackShellBackend::initializeSubdomainData(SubdomainData& s
             {
                 const PetscBLASInt local_col =
                     static_cast<PetscBLASInt>(std::distance(subdomain_data.update_dofs.begin(), col_it));
-                subdomain_data.active_residual_update_mat[static_cast<std::size_t>(local_row) +
-                                                          static_cast<std::size_t>(local_col) *
-                                                              static_cast<std::size_t>(
-                                                                  subdomain_data.active_residual_update_lda)] =
-                    vals[entry];
+                subdomain_data.active_residual_update_mat[column_major_index(
+                    local_row, local_col, subdomain_data.active_residual_update_lda)] = vals[entry];
             }
         }
         ierr = MatRestoreRow(level_mat, global_row, &row_nnz, &cols, &vals);
@@ -369,23 +543,256 @@ PETScLevelSolverBlasLapackShellBackend::initializeSubdomainData(SubdomainData& s
 }
 
 void
-PETScLevelSolverBlasLapackShellBackend::factorizeSubdomainMatrix(SubdomainData& subdomain_data) const
+PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix(SubdomainData& subdomain_data,
+                                                           const std::vector<PetscScalar>& local_operator) const
 {
     if (subdomain_data.local_size == 0) return;
 
+    auto solver_data = std::make_unique<DenseSolveMatrixSolverData>();
+    std::vector<PetscScalar> qr_factor = local_operator;
+    std::vector<PetscScalar> tau(static_cast<std::size_t>(subdomain_data.local_size), 0.0);
     PetscBLASInt info = 0;
-    LAPACKgetrf_(&subdomain_data.local_size,
+    PetscBLASInt lwork = -1;
+    PetscScalar work_query = 0.0;
+    LAPACKgeqrf_(&subdomain_data.local_size,
                  &subdomain_data.local_size,
-                 subdomain_data.local_operator_lu.data(),
+                 qr_factor.data(),
                  &subdomain_data.local_lda,
-                 subdomain_data.pivot.data(),
+                 tau.data(),
+                 &work_query,
+                 &lwork,
                  &info);
     if (info != 0)
     {
         TBOX_ERROR(d_context.getObjectNameForBackend()
                    << " " << d_context.getOptionsPrefixForBackend()
-                   << " PETScLevelSolverBlasLapackShellBackend::factorizeSubdomainMatrix()\n"
-                   << "LAPACKgetrf failed with info = " << info << ".\n");
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "LAPACKgeqrf workspace query failed for subdomain " << subdomain_data.subdomain_num
+                   << " with info = " << info << ".\n");
+    }
+    lwork = query_lapack_workspace_size(work_query);
+    std::vector<PetscScalar> work(static_cast<std::size_t>(lwork), 0.0);
+    LAPACKgeqrf_(&subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 qr_factor.data(),
+                 &subdomain_data.local_lda,
+                 tau.data(),
+                 work.data(),
+                 &lwork,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "LAPACKgeqrf failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                   << ".\n");
+    }
+
+    std::vector<PetscScalar> r_factor(
+        static_cast<std::size_t>(subdomain_data.local_size) * static_cast<std::size_t>(subdomain_data.local_size), 0.0);
+    PetscReal max_abs_diag = 0.0;
+    for (PetscBLASInt col = 0; col < subdomain_data.local_size; ++col)
+    {
+        for (PetscBLASInt row = 0; row <= col; ++row)
+        {
+            r_factor[column_major_index(row, col, subdomain_data.local_size)] =
+                qr_factor[column_major_index(row, col, subdomain_data.local_lda)];
+        }
+        max_abs_diag =
+            std::max(max_abs_diag, PetscAbsScalar(qr_factor[column_major_index(col, col, subdomain_data.local_lda)]));
+    }
+    if (max_abs_diag == 0.0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "QR factorization produced a zero diagonal for subdomain " << subdomain_data.subdomain_num
+                   << ".\n");
+    }
+    if (d_subdomain_solver_rcond >= 0.0)
+    {
+        for (PetscBLASInt diag_idx = 0; diag_idx < subdomain_data.local_size; ++diag_idx)
+        {
+            const PetscReal abs_diag =
+                PetscAbsScalar(qr_factor[column_major_index(diag_idx, diag_idx, subdomain_data.local_lda)]);
+            if (abs_diag <= d_subdomain_solver_rcond * max_abs_diag)
+            {
+                TBOX_ERROR(d_context.getObjectNameForBackend()
+                           << " " << d_context.getOptionsPrefixForBackend()
+                           << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                           << "QR factorization detected a rank-deficient subdomain " << subdomain_data.subdomain_num
+                           << " using blas_lapack_subdomain_solver_rcond = " << d_subdomain_solver_rcond << ".\n");
+            }
+        }
+    }
+
+    lwork = -1;
+    work_query = 0.0;
+    LAPACKorgqr_(&subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 qr_factor.data(),
+                 &subdomain_data.local_lda,
+                 tau.data(),
+                 &work_query,
+                 &lwork,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "LAPACKorgqr workspace query failed for subdomain " << subdomain_data.subdomain_num
+                   << " with info = " << info << ".\n");
+    }
+    lwork = query_lapack_workspace_size(work_query);
+    work.assign(static_cast<std::size_t>(lwork), 0.0);
+    LAPACKorgqr_(&subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 qr_factor.data(),
+                 &subdomain_data.local_lda,
+                 tau.data(),
+                 work.data(),
+                 &lwork,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "LAPACKorgqr failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                   << ".\n");
+    }
+
+    solver_data->solve_matrix.assign(
+        static_cast<std::size_t>(subdomain_data.local_size) * static_cast<std::size_t>(subdomain_data.local_size), 0.0);
+    for (PetscBLASInt row = 0; row < subdomain_data.local_size; ++row)
+    {
+        for (PetscBLASInt col = 0; col < subdomain_data.local_size; ++col)
+        {
+            solver_data->solve_matrix[column_major_index(row, col, subdomain_data.local_size)] =
+                qr_factor[column_major_index(col, row, subdomain_data.local_lda)];
+        }
+    }
+
+    LAPACKtrtrs_("U",
+                 "N",
+                 "N",
+                 &subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 r_factor.data(),
+                 &subdomain_data.local_size,
+                 solver_data->solve_matrix.data(),
+                 &subdomain_data.local_size,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildQRSolveMatrix()\n"
+                   << "LAPACKtrtrs failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                   << ".\n");
+    }
+    subdomain_data.solver_data = std::move(solver_data);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::buildSVDSolveMatrix(SubdomainData& subdomain_data,
+                                                            const std::vector<PetscScalar>& local_operator) const
+{
+    if (subdomain_data.local_size == 0) return;
+
+    auto solver_data = std::make_unique<SVDSolverData>();
+    std::vector<PetscScalar> svd_factor = local_operator;
+    solver_data->solve_matrix.assign(
+        static_cast<std::size_t>(subdomain_data.local_size) * static_cast<std::size_t>(subdomain_data.local_size), 0.0);
+    for (PetscBLASInt diag_idx = 0; diag_idx < subdomain_data.local_size; ++diag_idx)
+    {
+        solver_data->solve_matrix[column_major_index(diag_idx, diag_idx, subdomain_data.local_size)] = 1.0;
+    }
+    solver_data->singular_values.resize(static_cast<std::size_t>(subdomain_data.local_size), 0.0);
+
+    const PetscReal rcond = d_subdomain_solver_rcond >= 0.0 ? d_subdomain_solver_rcond : -1.0;
+    PetscBLASInt info = 0;
+    PetscBLASInt lwork = -1;
+    PetscScalar work_query = 0.0;
+    LAPACKgelss_(&subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 svd_factor.data(),
+                 &subdomain_data.local_lda,
+                 solver_data->solve_matrix.data(),
+                 &subdomain_data.local_size,
+                 solver_data->singular_values.data(),
+                 &rcond,
+                 &solver_data->effective_rank,
+                 &work_query,
+                 &lwork,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildSVDSolveMatrix()\n"
+                   << "LAPACKgelss workspace query failed for subdomain " << subdomain_data.subdomain_num
+                   << " with info = " << info << ".\n");
+    }
+
+    lwork = query_lapack_workspace_size(work_query);
+    std::vector<PetscScalar> work(static_cast<std::size_t>(lwork), 0.0);
+    LAPACKgelss_(&subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 &subdomain_data.local_size,
+                 svd_factor.data(),
+                 &subdomain_data.local_lda,
+                 solver_data->solve_matrix.data(),
+                 &subdomain_data.local_size,
+                 solver_data->singular_values.data(),
+                 &rcond,
+                 &solver_data->effective_rank,
+                 work.data(),
+                 &lwork,
+                 &info);
+    if (info != 0)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::buildSVDSolveMatrix()\n"
+                   << "LAPACKgelss failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                   << ", effective rank = " << solver_data->effective_rank << ".\n");
+    }
+    subdomain_data.solver_data = std::move(solver_data);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::verifySymmetricSubdomainMatrix(
+    const SubdomainData& subdomain_data,
+    const std::vector<PetscScalar>& local_operator) const
+{
+    PetscReal max_entry = 0.0;
+    PetscReal max_asymmetry = 0.0;
+    for (PetscBLASInt row = 0; row < subdomain_data.local_size; ++row)
+    {
+        for (PetscBLASInt col = row; col < subdomain_data.local_size; ++col)
+        {
+            const PetscScalar upper = local_operator[column_major_index(row, col, subdomain_data.local_lda)];
+            const PetscScalar lower = local_operator[column_major_index(col, row, subdomain_data.local_lda)];
+            max_entry = std::max(max_entry, PetscAbsScalar(upper));
+            max_entry = std::max(max_entry, PetscAbsScalar(lower));
+            max_asymmetry = std::max(max_asymmetry, PetscAbsScalar(upper - lower));
+        }
+    }
+    const PetscReal symmetry_tol =
+        100.0 * std::numeric_limits<PetscReal>::epsilon() * std::max<PetscReal>(1.0, max_entry);
+    if (max_asymmetry > symmetry_tol)
+    {
+        TBOX_ERROR(d_context.getObjectNameForBackend()
+                   << " " << d_context.getOptionsPrefixForBackend()
+                   << " PETScLevelSolverBlasLapackShellBackend::verifySymmetricSubdomainMatrix()\n"
+                   << "Subdomain " << subdomain_data.subdomain_num << " is not symmetric enough for the "
+                   << getSolverTypeName() << " solver. Maximum asymmetry = " << max_asymmetry << ".\n");
     }
 }
 
@@ -396,22 +803,97 @@ PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem(SubdomainData& subd
 
     const PetscBLASInt nrhs = 1;
     PetscBLASInt info = 0;
-    const char trans = 'N';
-    LAPACKgetrs_(&trans,
-                 &subdomain_data.local_size,
-                 &nrhs,
-                 subdomain_data.local_operator_lu.data(),
-                 &subdomain_data.local_lda,
-                 subdomain_data.pivot.data(),
-                 subdomain_data.delta_workspace.data(),
-                 &subdomain_data.local_size,
-                 &info);
-    if (info != 0)
+    switch (d_subdomain_solver_type)
     {
-        TBOX_ERROR(d_context.getObjectNameForBackend()
-                   << " " << d_context.getOptionsPrefixForBackend()
-                   << " PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem()\n"
-                   << "LAPACKgetrs failed with info = " << info << ".\n");
+    case SubdomainSolverType::LU:
+    {
+        const auto& solver_data = getSolverData<LUSolverData>(subdomain_data);
+        const char trans = 'N';
+        LAPACKgetrs_(&trans,
+                     &subdomain_data.local_size,
+                     &nrhs,
+                     solver_data.factor.data(),
+                     &subdomain_data.local_lda,
+                     solver_data.pivot.data(),
+                     subdomain_data.delta_workspace.data(),
+                     &subdomain_data.local_size,
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem()\n"
+                       << "LAPACKgetrs failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        return;
+    }
+    case SubdomainSolverType::CHOLESKY:
+    {
+        const auto& solver_data = getSolverData<CholeskySolverData>(subdomain_data);
+        const char uplo = 'L';
+        LAPACKpotrs_(&uplo,
+                     &subdomain_data.local_size,
+                     &nrhs,
+                     solver_data.factor.data(),
+                     &subdomain_data.local_lda,
+                     subdomain_data.delta_workspace.data(),
+                     &subdomain_data.local_size,
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem()\n"
+                       << "LAPACKpotrs failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        return;
+    }
+    case SubdomainSolverType::SYMMETRIC_INDEFINITE:
+    {
+        const auto& solver_data = getSolverData<SymmetricIndefiniteSolverData>(subdomain_data);
+        const char uplo = 'L';
+        LAPACKsytrs_(&uplo,
+                     &subdomain_data.local_size,
+                     &nrhs,
+                     solver_data.factor.data(),
+                     &subdomain_data.local_lda,
+                     solver_data.pivot.data(),
+                     subdomain_data.delta_workspace.data(),
+                     &subdomain_data.local_size,
+                     &info);
+        if (info != 0)
+        {
+            TBOX_ERROR(d_context.getObjectNameForBackend()
+                       << " " << d_context.getOptionsPrefixForBackend()
+                       << " PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem()\n"
+                       << "LAPACKsytrs failed for subdomain " << subdomain_data.subdomain_num << " with info = " << info
+                       << ".\n");
+        }
+        return;
+    }
+    case SubdomainSolverType::QR:
+    case SubdomainSolverType::SVD:
+    {
+        const auto& solver_data = getSolverData<DenseSolveMatrixSolverData>(subdomain_data);
+        const char trans = 'N';
+        const PetscBLASInt inc = 1;
+        const PetscScalar alpha = 1.0;
+        const PetscScalar beta = 0.0;
+        BLASgemv_(&trans,
+                  &subdomain_data.local_size,
+                  &subdomain_data.local_size,
+                  &alpha,
+                  solver_data.solve_matrix.data(),
+                  &subdomain_data.local_size,
+                  subdomain_data.rhs_workspace.data(),
+                  &inc,
+                  &beta,
+                  subdomain_data.delta_workspace.data(),
+                  &inc);
+        return;
+    }
     }
 }
 
@@ -452,5 +934,24 @@ PETScLevelSolverBlasLapackShellBackend::updateResidual(SubdomainData& subdomain_
         const int row = subdomain_data.active_residual_update_rows[row_idx];
         residual[static_cast<std::size_t>(row)] -= subdomain_data.residual_delta_workspace[row_idx];
     }
+}
+
+const char*
+PETScLevelSolverBlasLapackShellBackend::getSolverTypeName() const
+{
+    switch (d_subdomain_solver_type)
+    {
+    case SubdomainSolverType::SVD:
+        return "svd";
+    case SubdomainSolverType::LU:
+        return "lu";
+    case SubdomainSolverType::CHOLESKY:
+        return "cholesky";
+    case SubdomainSolverType::SYMMETRIC_INDEFINITE:
+        return "symmetric-indefinite";
+    case SubdomainSolverType::QR:
+        return "qr";
+    }
+    return "unknown";
 }
 } // namespace IBTK

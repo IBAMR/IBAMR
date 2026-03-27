@@ -1,7 +1,4 @@
-solver_type = default
-expected_inf_norm = 0.660682
-actual_inf_norm = 0.660682
-error_inf_norm = 0
+solver_type = qr
 shell_pc_type = multiplicative-blas-lapack
 coupling_aware_asm_closure_policy = RELAXED
 parity_tol = 1e-10

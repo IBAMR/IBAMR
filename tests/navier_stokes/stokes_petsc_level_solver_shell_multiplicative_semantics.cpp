@@ -266,12 +266,17 @@ main(int argc, char* argv[])
     const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
     const bool test_all_eigen_reference_solver_types =
         test_db->getBoolWithDefault("test_all_eigen_reference_solver_types", false);
+    const bool test_all_blas_lapack_solver_types =
+        test_db->getBoolWithDefault("test_all_blas_lapack_solver_types", false);
     const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
     const bool use_multiplicative = !shell_pc_type_is_additive(shell_pc_type);
     const bool use_restrict_partition = shell_pc_type_uses_restrict_partition(shell_pc_type);
+    const double velocity_poisson_c = test_db->getDoubleWithDefault("velocity_poisson_c", 1.0);
+    const double velocity_poisson_d = test_db->getDoubleWithDefault("velocity_poisson_d", -1.0);
 
     std::vector<std::string> solver_types;
     const bool is_eigen_reference_case = shell_pc_type.find("eigen-reference") != std::string::npos;
+    const bool is_blas_lapack_case = shell_pc_type.find("blas-lapack") != std::string::npos;
     if (is_eigen_reference_case && test_all_eigen_reference_solver_types)
     {
         solver_types = { "llt",
@@ -288,6 +293,14 @@ main(int argc, char* argv[])
     else if (test_db->keyExists("eigen_subdomain_solver_type"))
     {
         solver_types = { test_db->getString("eigen_subdomain_solver_type") };
+    }
+    else if (is_blas_lapack_case && test_all_blas_lapack_solver_types)
+    {
+        solver_types = { "svd", "lu", "cholesky", "symmetric-indefinite", "qr" };
+    }
+    else if (test_db->keyExists("blas_lapack_subdomain_solver_type"))
+    {
+        solver_types = { test_db->getString("blas_lapack_subdomain_solver_type") };
     }
     else
     {
@@ -385,17 +398,32 @@ main(int argc, char* argv[])
         solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
         solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
         solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
-        if (!solver_type.empty()) solver_db->putString("eigen_subdomain_solver_type", solver_type);
+        if (!solver_type.empty())
+        {
+            if (is_eigen_reference_case)
+            {
+                solver_db->putString("eigen_subdomain_solver_type", solver_type);
+            }
+            else if (is_blas_lapack_case)
+            {
+                solver_db->putString("blas_lapack_subdomain_solver_type", solver_type);
+            }
+        }
         if (test_db->keyExists("eigen_subdomain_solver_threshold"))
         {
             solver_db->putDouble("eigen_subdomain_solver_threshold", test_db->getDouble("eigen_subdomain_solver_threshold"));
+        }
+        if (test_db->keyExists("blas_lapack_subdomain_solver_rcond"))
+        {
+            solver_db->putDouble("blas_lapack_subdomain_solver_rcond",
+                                 test_db->getDouble("blas_lapack_subdomain_solver_rcond"));
         }
 
         Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver = new IBAMR::StaggeredStokesPETScLevelSolver(
             "solver_shell_multiplicative_semantics", solver_db, "stokes_shell_sem_");
         PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
-        problem_coefs.setCConstant(1.0);
-        problem_coefs.setDConstant(-1.0);
+        problem_coefs.setCConstant(velocity_poisson_c);
+        problem_coefs.setDConstant(velocity_poisson_d);
         solver->setVelocityPoissonSpecifications(problem_coefs);
         solver->initializeSolverState(x_vec, b_vec);
 

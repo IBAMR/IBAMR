@@ -1,7 +1,7 @@
 solver_type = default
 expected_inf_norm = 1.00323
 actual_inf_norm = 1.00323
-error_inf_norm = 1.22125e-15
+error_inf_norm = 0
 shell_pc_type = multiplicative-blas-lapack-restrict
 coupling_aware_asm_closure_policy = RELAXED
 parity_tol = 1e-10
