@@ -411,7 +411,8 @@ main(int argc, char* argv[])
         }
         if (test_db->keyExists("eigen_subdomain_solver_threshold"))
         {
-            solver_db->putDouble("eigen_subdomain_solver_threshold", test_db->getDouble("eigen_subdomain_solver_threshold"));
+            solver_db->putDouble("eigen_subdomain_solver_threshold",
+                                 test_db->getDouble("eigen_subdomain_solver_threshold"));
         }
         if (test_db->keyExists("blas_lapack_subdomain_solver_rcond"))
         {

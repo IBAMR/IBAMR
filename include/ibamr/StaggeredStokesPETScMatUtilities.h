@@ -161,13 +161,12 @@ public:
      * \brief Compute the ordered seed velocity DOFs used by coupling-aware ASM.
      */
     static void
-    computePatchLevelCouplingAwareASMSeedVelocityDofs(
-        std::vector<int>& seed_velocity_dofs,
-        int u_dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-        const PatchLevelCellClosureMapData& map_data,
-        int seed_velocity_axis = 0,
-        int seed_velocity_stride = 1);
+    computePatchLevelCouplingAwareASMSeedVelocityDofs(std::vector<int>& seed_velocity_dofs,
+                                                      int u_dof_index_idx,
+                                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                                      const PatchLevelCellClosureMapData& map_data,
+                                                      int seed_velocity_axis = 0,
+                                                      int seed_velocity_stride = 1);
 
     /*!
      * \brief Determine involved cells from A00 row sparsity and seed velocity
