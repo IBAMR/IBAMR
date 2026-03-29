@@ -1,0 +1,154 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Warning in file ``/Users/boyceg/code/IBAMR/ibtk/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 136
+WARNING MESSAGE: 
+CartSideDoubleCubicCoarsen::coarsen():
+  cubic coarsening requires a refinement ratio of 4 or larger.
+  reverting to weighted averaging.
+
+Warning in file ``/Users/boyceg/code/IBAMR/ibtk/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 128
+WARNING MESSAGE: 
+CartCellDoubleCubicCoarsen::coarsen():
+  cubic coarsening requires a refinement ratio of 4 or larger.
+  reverting to weighted averaging.
+
+fd_relative_error = 4.29249e-09
+krylov_linear_iterations = 1
+krylov_linear_residual_norm = 6.73999e-08
+Input database:
+input_db {
+   MU                     = 0.01                            // input used
+   RHO                    = 1                               // input used
+   MAX_LEVELS             = 2                               // input used
+   REF_RATIO              = 2                               // input used
+   N                      = 4                               // input used
+   L                      = 1                               // input used
+   DX                     = 0.125                           // input used
+   DT                     = 0.005                           // input used
+   NUM_CYCLES             = 1                               // input not used
+   X_CENTER               = 0.5                             // input used
+   Y_CENTER               = 0.5                             // input used
+   X_RADIUS               = 0.2                             // input used
+   Y_RADIUS               = 0.2                             // input used
+   DS                     = 0.125                           // input used
+   SPRING_STIFFNESS       = 200                             // input used
+   DELTA_FUNCTION         = "IB_4"                          // input used
+   IB_TIME_STEPPING       = "BACKWARD_EULER"                // input used
+   TAG_BUFFER             = 2                               // input used
+   FD_REL_TOL             = 1e-06                           // input used
+   USE_FIXED_LE_OPERATORS = TRUE                            // input used
+   PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat" // input used
+   RR                     = 2                               // input used
+   stokes_ib_precond_db {
+      num_pre_sweeps                 = 1                    // input used
+      num_post_sweeps                = 1                    // input used
+      rediscretize_stokes            = TRUE                 // input used
+      res_rediscretized_stokes       = TRUE                 // input used
+      level_solver_type              = "PETSC_LEVEL_SOLVER" // input used
+      level_solver_rel_residual_tol  = 1e-10                // input used
+      level_solver_abs_residual_tol  = 1e-50                // input used
+      level_solver_max_iterations    = 1                    // input used
+      coarse_solver_type             = "PETSC_LEVEL_SOLVER" // input used
+      coarse_solver_rel_residual_tol = 1e-10                // input used
+      coarse_solver_abs_residual_tol = 1e-50                // input used
+      coarse_solver_max_iterations   = 1                    // input used
+      level_solver_db {
+         use_ksp_as_smoother    = TRUE                      // input not used
+         initial_guess_nonzero  = TRUE                      // input used
+         ksp_type               = "richardson"              // input used
+         pc_type                = "asm"                     // input used
+         subdomain_box_size     = 8, 8                      // input used
+         subdomain_overlap_size = 0, 0                      // input used
+      }
+      coarse_solver_db {
+         use_ksp_as_smoother    = FALSE                     // input not used
+         initial_guess_nonzero  = TRUE                      // input used
+         ksp_type               = "preonly"                 // input used
+         pc_type                = "lu"                      // input used
+         subdomain_box_size     = 4, 4                      // input used
+         subdomain_overlap_size = 0, 0                      // input used
+      }
+   }
+   IBMethod {
+      delta_fcn = "IB_4"                                    // input used
+   }
+   IBRedundantInitializer {
+      max_levels       = 2                                  // input used
+      base_filenames_0 = "x"                                // input used
+      base_filenames_1 = "x"                                // input used
+   }
+   Main {
+      log_file_name         = "output"                      // input used
+      log_all_nodes         = FALSE                         // input used
+      viz_dump_interval     = 0                             // input used
+      viz_dump_dirname      = "viz"                         // input used
+      restart_dump_interval = 0                             // input used
+      restart_dump_dirname  = "restart"                     // input used
+      data_dump_interval    = 0                             // input used
+      data_dump_dirname     = "hier_data"                   // input used
+      timer_dump_interval   = 0                             // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(3,3)]                    // input used
+      x_lo               = 0, 0                             // input used
+      x_up               = 1, 1                             // input used
+      periodic_dimension = 1, 1                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 2                         // input used
+      efficiency_tolerance      = 0.85                      // input used
+      combine_efficiency        = 0.85                      // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input used
+         level_2 = 2, 2                                     // input not used
+         level_3 = 2, 2                                     // input not used
+         level_4 = 2, 2                                     // input not used
+         level_5 = 2, 2                                     // input not used
+         level_6 = 2, 2                                     // input not used
+         level_7 = 2, 2                                     // input not used
+      }
+      largest_patch_size {
+         level_0 = 4, 4                                     // input used
+         level_1 = 8, 8                                     // input used
+         level_2 = 16, 16                                   // input used
+         level_3 = 32, 32                                   // input used
+         level_4 = 64, 64                                   // input used
+         level_5 = 128, 128                                 // input used
+         level_6 = 256, 256                                 // input used
+         level_7 = 512, 512                                 // input used
+      }
+      smallest_patch_size {
+         level_0 = 4, 4                                     // input used
+         level_1 = 8, 8                                     // input used
+         level_2 = 16, 16                                   // input used
+         level_3 = 32, 32                                   // input used
+         level_4 = 64, 64                                   // input used
+         level_5 = 128, 128                                 // input used
+         level_6 = 256, 256                                 // input used
+         level_7 = 512, 512                                 // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "REFINE_BOXES"                       // input used
+      RefineBoxes {
+         level_0 = [(0,0),(3,3)]                            // input used
+         level_1 = [(0,0),(7,7)]                            // input used
+         level_2 = [(0,0),(15,15)]                          // input used
+         level_3 = [(0,0),(31,31)]                          // input used
+         level_4 = [(0,0),(63,63)]                          // input used
+         level_5 = [(0,0),(127,127)]                        // input used
+         level_6 = [(0,0),(255,255)]                        // input used
+      }
+   }
+   LoadBalancer {
+      processor_mapping                    = "SFC"          // input not used
+      max_workload_factor                  = 1              // input used
+      workload_patch_data_index            = -1             // input not used
+      workload_tolerance                   = 0              // input used
+      bin_pack_method                      = "SPATIAL"      // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+}
+test_failures = 0

@@ -59,6 +59,28 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
+
+void
+move_is_to_subdomain_dofs(std::vector<std::set<int>>& subdomain_dofs, std::vector<IS>& subdomain_is)
+{
+    subdomain_dofs.resize(subdomain_is.size());
+    for (std::size_t subdomain_num = 0; subdomain_num < subdomain_is.size(); ++subdomain_num)
+    {
+        const PetscInt* idxs = nullptr;
+        PetscInt n_idxs = 0;
+        int ierr = ISGetLocalSize(subdomain_is[subdomain_num], &n_idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISGetIndices(subdomain_is[subdomain_num], &idxs);
+        IBTK_CHKERRQ(ierr);
+        subdomain_dofs[subdomain_num].insert(idxs, idxs + n_idxs);
+        ierr = ISRestoreIndices(subdomain_is[subdomain_num], &idxs);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&subdomain_is[subdomain_num]);
+        IBTK_CHKERRQ(ierr);
+    }
+    subdomain_is.clear();
+    return;
+} // move_is_to_subdomain_dofs
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -70,6 +92,14 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     // Configure solver.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, std::move(default_options_prefix));
+    if (input_db && input_db->keyExists("subdomain_box_size"))
+    {
+        input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
+    }
+    if (input_db && input_db->keyExists("subdomain_overlap_size"))
+    {
+        input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
+    }
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -95,18 +125,22 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
-                                                 std::vector<std::set<int>>& /*nonoverlap_is*/)
+CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                                                 std::vector<std::set<int>>& nonoverlap_is)
 {
-    // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
-    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
-                                                        d_nonoverlap_is,
+    // Construct overlapping subdomains and nonoverlapping partition subsets
+    // for ASM and MSM preconditioners.
+    std::vector<IS> overlap_subdomains, partition_subsets;
+    PETScMatUtilities::constructPatchLevelASMSubdomains(overlap_subdomains,
+                                                        partition_subsets,
                                                         d_box_size,
                                                         d_overlap_size,
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
                                                         d_level,
                                                         d_cf_boundary);
+    move_is_to_subdomain_dofs(overlap_is, overlap_subdomains);
+    move_is_to_subdomain_dofs(nonoverlap_is, partition_subsets);
     return;
 } // generateASMSubdomains
 

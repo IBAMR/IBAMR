@@ -288,11 +288,19 @@ main(int argc, char* argv[])
         solver->setVelocityPoissonSpecifications(problem_coefs);
         solver->initializeSolverState(x_vec, b_vec);
 
-        std::vector<IS>* nonoverlap_is_ptr = nullptr;
-        std::vector<IS>* overlap_is_ptr = nullptr;
-        solver->getASMSubdomains(&nonoverlap_is_ptr, &overlap_is_ptr);
-        std::vector<std::set<int>> overlap_sets = collect_is_sets(*overlap_is_ptr);
-        std::vector<std::set<int>> nonoverlap_sets = collect_is_sets(*nonoverlap_is_ptr);
+        std::vector<std::vector<int>>* nonoverlap_dofs_ptr = nullptr;
+        std::vector<std::vector<int>>* subdomain_dofs_ptr = nullptr;
+        solver->getASMSubdomains(&nonoverlap_dofs_ptr, &subdomain_dofs_ptr);
+        std::vector<std::set<int>> overlap_sets(subdomain_dofs_ptr->size());
+        for (std::size_t k = 0; k < subdomain_dofs_ptr->size(); ++k)
+        {
+            overlap_sets[k].insert((*subdomain_dofs_ptr)[k].begin(), (*subdomain_dofs_ptr)[k].end());
+        }
+        std::vector<std::set<int>> nonoverlap_sets(nonoverlap_dofs_ptr->size());
+        for (std::size_t k = 0; k < nonoverlap_dofs_ptr->size(); ++k)
+        {
+            nonoverlap_sets[k].insert((*nonoverlap_dofs_ptr)[k].begin(), (*nonoverlap_dofs_ptr)[k].end());
+        }
 
         solver->deallocateSolverState();
         return std::make_pair(overlap_sets, nonoverlap_sets);

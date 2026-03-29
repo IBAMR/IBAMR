@@ -107,6 +107,7 @@ SET(CXX_SRC
   navier_stokes/INSHierarchyIntegrator.cpp
   navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
   navier_stokes/StaggeredStokesPETScLevelSolver.cpp
+  navier_stokes/StaggeredStokesEigenSchurComplementShellBackend.cpp
   navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp
   navier_stokes/StaggeredStokesBoxRelaxationFACOperator.cpp
   navier_stokes/INSStaggeredConvectiveOperatorManager.cpp
@@ -159,6 +160,9 @@ SET(CXX_SRC
   IB/IBKirchhoffRodForceGen.cpp
   IB/IBAnchorPointSpec.cpp
   IB/IBImplicitStaggeredHierarchyIntegrator.cpp
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
+  IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
   IB/IBRedundantInitializer.cpp
   IB/IBAnchorPointSpecFactory.cpp
   IB/CIBStrategy.cpp

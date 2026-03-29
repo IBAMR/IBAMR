@@ -12,3 +12,4 @@
 ## ---------------------------------------------------------------------
 
 ADD_SUBDIRECTORY(explicit)
+ADD_SUBDIRECTORY(implicit)

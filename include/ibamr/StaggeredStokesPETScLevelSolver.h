@@ -30,7 +30,10 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <petscmat.h>
 #include <petscvec.h>
+
+#include <Eigen/Cholesky>
 
 #include <CellVariable.h>
 #include <IntVector.h>
@@ -40,6 +43,7 @@
 
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace SAMRAI
@@ -60,6 +64,9 @@ class SAMRAIVectorReal;
 
 namespace IBAMR
 {
+class StaggeredStokesIBLevelRelaxationFACOperator;
+class StaggeredStokesEigenSchurComplementShellBackend;
+
 /*!
  * \brief Class StaggeredStokesPETScLevelSolver is a concrete PETScLevelSolver
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
@@ -92,6 +99,30 @@ public:
     {
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * \brief Get the cached velocity field DOFs for the current level.
+     */
+    const std::vector<PetscInt>& getCachedVelocityDOFs() const;
+
+    /*!
+     * \brief Get the cached pressure field DOFs for the current level.
+     */
+    const std::vector<PetscInt>& getCachedPressureDOFs() const;
+
+    /*!
+     * \brief Get the cached coupling-aware ASM closure-map data for the current level.
+     */
+    const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& getCouplingAwareASMMapData() const;
+
+    /*!
+     * \brief Get the cached ordered seed velocity DOFs used by coupling-aware ASM.
+     */
+    const std::vector<int>& getCouplingAwareASMSeedVelocityDOFs() const;
+
+    bool isVelocityDOF(int dof) const;
+
+    bool isPressureDOF(int dof) const;
 
 protected:
     /*!
@@ -138,7 +169,37 @@ protected:
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
+    /*!
+     * \brief Apply shell result postprocessing for pressure nullspace control.
+     */
+    void postprocessShellResult(Vec& y) override;
+
 private:
+    friend class StaggeredStokesIBLevelRelaxationFACOperator;
+
+    /*!
+     * \brief Set a full-level PETSc operator matrix to use directly instead of
+     * rediscretizing the Stokes operator in initializeSolverStateSpecialized().
+     *
+     * The provided matrix must live in the full coupled Stokes DOF space
+     * (velocity+pressure). The solver duplicates this matrix during
+     * initialization so subsequent modifications to the provided matrix do not
+     * affect the level solver state.
+     */
+    void setOperatorMat(Mat operator_mat);
+
+    /*!
+     * \brief Set a matrix contribution to be added to the full level operator
+     * matrix assembled in initializeSolverStateSpecialized().
+     *
+     * The augmentation may be either:
+     * 1) a full coupled Stokes matrix contribution (velocity+pressure space),
+     * or
+     * 2) an A00 velocity-block contribution; this is embedded in the full
+     *    coupled matrix by velocity DOF mapping.
+     */
+    void setAugmentedOperatorMat(Mat augmented_operator_mat);
+
     /*!
      * \brief Default constructor.
      *
@@ -175,6 +236,7 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
+    SAMRAI::hier::IntVector<NDIM> d_box_size = 2, d_overlap_size = 1;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
@@ -185,8 +247,17 @@ private:
     int d_coupling_aware_asm_seed_stride = 1;
     CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
     StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
-    bool d_coupling_aware_asm_map_data_is_initialized = false;
+    std::vector<int> d_coupling_aware_asm_seed_velocity_dofs;
     bool d_log_asm_subdomains = false;
+    double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
+    Mat d_operator_mat = nullptr;
+    Mat d_augmented_operator_mat = nullptr;
+    std::unordered_set<int> d_velocity_dof_set;
+    std::unordered_set<int> d_pressure_dof_set;
+    std::vector<PetscInt> d_velocity_dofs;
+    std::vector<PetscInt> d_pressure_dofs;
+
+    StaggeredStokesEigenSchurComplementShellBackend* getEigenSchurShellBackend();
 
     //\}
 };

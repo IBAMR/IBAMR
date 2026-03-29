@@ -20,8 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/PETScLevelSolverEigenShellBackendCommon.h>
 
 #include <tbox/Pointer.h>
 
@@ -29,12 +31,24 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <Eigen/Cholesky>
+#include <Eigen/Core>
+#include <Eigen/LU>
+#include <Eigen/QR>
+#include <Eigen/SVD>
+#include <Eigen/Sparse>
+
 #include <CoarseFineBoundary.h>
 #include <IntVector.h>
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <map>
+#include <memory>
+#include <set>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI
@@ -54,6 +68,90 @@ class Database;
 
 namespace IBTK
 {
+class PETScLevelSolverEigenShellBackendBase;
+class PETScLevelSolverPetscShellBackend;
+class PETScLevelSolverEigenShellBackend;
+class PETScLevelSolverEigenPseudoinverseShellBackend;
+class PETScLevelSolverEigenReferenceShellBackend;
+class PETScLevelSolver;
+class PETScLevelSolverBackendContext
+{
+public:
+    virtual ~PETScLevelSolverBackendContext() = default;
+
+    virtual const std::string& getObjectNameForBackend() const = 0;
+    virtual const std::string& getOptionsPrefixForBackend() const = 0;
+
+    virtual bool isShellMultiplicativeForBackend() const = 0;
+    virtual bool useRestrictPartitionForBackend() const = 0;
+
+    virtual const std::vector<std::vector<int>>& getSubdomainDOFsForBackend() const = 0;
+    virtual const std::vector<std::vector<int>>& getNonoverlapSubdomainDOFsForBackend() const = 0;
+
+    virtual Mat getPETScMatForBackend() const = 0;
+    virtual Vec getPETScXForBackend() const = 0;
+    virtual Vec getPETScBForBackend() const = 0;
+
+    virtual void postprocessShellResultForBackend(Vec y) = 0;
+};
+
+class PETScLevelSolverShellBackend
+{
+public:
+    virtual ~PETScLevelSolverShellBackend() = default;
+
+    virtual const std::string& getTypeKey() const = 0;
+
+    virtual void configure(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) = 0;
+
+    virtual const char* getPCNameSuffixAdditive() const = 0;
+
+    virtual const char* getPCNameSuffixMultiplicative() const = 0;
+
+    virtual void initialize() = 0;
+
+    virtual void deallocate() = 0;
+
+    virtual void applyAdditive(Vec x, Vec y) = 0;
+
+    virtual void applyMultiplicative(Vec x, Vec y) = 0;
+};
+
+class PETScLevelSolverShellBackendManager
+{
+public:
+    using ShellBackendMaker =
+        std::unique_ptr<PETScLevelSolverShellBackend> (*)(PETScLevelSolver& solver,
+                                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    static PETScLevelSolverShellBackendManager* getManager();
+
+    static void freeManager();
+
+    std::unique_ptr<PETScLevelSolverShellBackend>
+    allocateShellBackend(const std::string& type_key,
+                         PETScLevelSolver& solver,
+                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) const;
+
+    void registerShellBackendFactoryFunction(const std::string& type_key, ShellBackendMaker backend_maker);
+
+    std::vector<std::string> getRegisteredShellBackendTypes() const;
+
+protected:
+    PETScLevelSolverShellBackendManager();
+    ~PETScLevelSolverShellBackendManager() = default;
+
+private:
+    PETScLevelSolverShellBackendManager(const PETScLevelSolverShellBackendManager& from) = delete;
+    PETScLevelSolverShellBackendManager& operator=(const PETScLevelSolverShellBackendManager& that) = delete;
+
+    static PETScLevelSolverShellBackendManager* s_shell_backend_manager_instance;
+    static bool s_registered_callback;
+    static unsigned char s_shutdown_priority;
+
+    std::map<std::string, ShellBackendMaker> d_shell_backend_maker_map;
+};
+
 /*!
  * \brief Class PETScLevelSolver is an abstract LinearSolver for solving systems
  * of linear equations on a \em single SAMRAI::hier::PatchLevel using <A
@@ -75,7 +173,7 @@ namespace IBTK
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScLevelSolver : public LinearSolver
+class PETScLevelSolver : public LinearSolver, public PETScLevelSolverBackendContext
 {
 public:
     /*!
@@ -103,10 +201,36 @@ public:
      */
     const KSP& getPETScKSP() const;
 
+    const std::string& getObjectNameForBackend() const override;
+
+    const std::string& getOptionsPrefixForBackend() const override;
+
+    bool isShellMultiplicativeForBackend() const override;
+
+    bool useRestrictPartitionForBackend() const override;
+
+    const std::vector<std::vector<int>>& getSubdomainDOFsForBackend() const override;
+
+    const std::vector<std::vector<int>>& getNonoverlapSubdomainDOFsForBackend() const override;
+
+    Mat getPETScMatForBackend() const override;
+
+    Vec getPETScXForBackend() const override;
+
+    Vec getPETScBForBackend() const override;
+
+    void postprocessShellResultForBackend(Vec y) override;
+
     /*!
-     * \brief Get ASM subdomains.
+     * \brief Get the stored ASM-like subdomain description.
+     *
+     * The returned \p subdomain_dofs define the overlapping subdomains used by
+     * ASM-like methods. The returned \p nonoverlap_subdomain_dofs define
+     * nonoverlapping subsets of those subdomains whose union covers the local
+     * domain.
      */
-    void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
+    void getASMSubdomains(std::vector<std::vector<int>>** nonoverlap_subdomain_dofs,
+                          std::vector<std::vector<int>>** subdomain_dofs);
 
     /*!
      * \name Linear solver functionality.
@@ -229,10 +353,17 @@ protected:
     void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomains and nonoverlapping partition subsets
+     * for ASM-like preconditioners.
+     *
+     * The \p subdomain_dofs argument stores the actual overlapping subdomains.
+     * The \p nonoverlap_subdomain_dofs argument stores nonoverlapping subsets
+     * of those subdomains whose union covers the local domain. Set-like input
+     * containers keep construction simple for callers; this class normalizes
+     * them into sorted vectors before storing or materializing PETSc objects.
      */
-    virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
-                                       std::vector<std::set<int>>& nonoverlap_is);
+    virtual void generateASMSubdomains(std::vector<std::set<int>>& subdomain_dofs,
+                                       std::vector<std::set<int>>& nonoverlap_subdomain_dofs);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -273,9 +404,20 @@ protected:
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
+     * \brief Optional postprocess hook for shell smoothers.
+     *
+     * Subclasses may override this method to apply problem-specific postprocess
+     * operations after shell preconditioner application.
+     */
+    virtual void postprocessShellResult(Vec& /*y*/);
+
+    /*!
      * \brief Setup the solver nullspace (if any).
      */
     virtual void setupNullSpace();
+
+    PETScLevelSolverShellBackend* getShellBackend(const std::string& type_key);
+    const PETScLevelSolverShellBackend* getShellBackend(const std::string& type_key) const;
 
     /*!
      * \brief Associated hierarchy.
@@ -302,22 +444,8 @@ protected:
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
-    MatNullSpace d_petsc_nullsp;
+    MatNullSpace d_petsc_nullsp = nullptr;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
-    //\}
-
-    /*!
-     * \name Support for additive and multiplicative Schwarz preconditioners.
-     */
-    //\{
-    Vec d_local_x, d_local_y;
-    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    int d_n_local_subdomains, d_n_subdomains_max;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
-    std::vector<VecScatter> d_restriction, d_prolongation;
-    std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
-    std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
     /*!
@@ -328,7 +456,89 @@ protected:
     std::vector<IS> d_field_is;
     //\}
 
+    /*!
+     * \brief Overlapping subdomains and nonoverlapping partition subsets used
+     * by ASM-like preconditioners.
+     *
+     * The overlapping subdomains define the subdomain solves. The partition
+     * subsets define nonoverlapping subsets of those subdomains whose union
+     * covers the local domain.
+     */
+    std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
+
 private:
+    enum class PreconditionerType
+    {
+        OTHER,
+        ASM,
+        FIELDSPLIT,
+        SHELL
+    };
+
+    enum class ShellSmootherComposition
+    {
+        ADDITIVE,
+        MULTIPLICATIVE
+    };
+
+    enum class ShellSmootherPartition
+    {
+        BASIC,
+        RESTRICT
+    };
+
+    /*!
+     * \brief Parse the configured shell smoother string into backend,
+     * composition, and partition settings.
+     */
+    void configureShellSmootherType();
+    void loadShellBackends(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    std::string normalizeShellSmootherType(const std::string& type) const;
+    std::string extractShellSmootherTypeKey(const std::string& type) const;
+    PreconditionerType parsePreconditionerType(const std::string& type) const;
+    std::string parseShellSmootherBackendKey(const std::string& type_key) const;
+    ShellSmootherComposition parseShellSmootherComposition(const std::string& type) const;
+    ShellSmootherPartition parseShellSmootherPartition(const std::string& type,
+                                                       ShellSmootherComposition composition) const;
+    /*!
+     * \brief Cache set-like subdomain descriptions in the stored vector form.
+     */
+    void cacheASMSubdomains(const std::vector<std::set<int>>& subdomain_dofs,
+                            const std::vector<std::set<int>>& nonoverlap_subdomain_dofs);
+
+    /*!
+     * \brief Generate and cache the stored ASM-like subdomain description.
+     */
+    void cacheGeneratedASMSubdomains();
+
+    /*!
+     * \brief Configure a PETSc ASM preconditioner from the cached subdomain
+     * description.
+     */
+    void configureASMPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Configure a PETSc fieldsplit preconditioner.
+     */
+    void configureFieldSplitPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Configure a shell preconditioner from the cached subdomain
+     * description.
+     */
+    void configureShellPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Deallocate shell smoother data.
+     */
+    void deallocateShellData();
+
+    /*!
+     * \brief Configure the shell apply callback.
+     */
+    void configureShellApply(PC ksp_pc);
+
     /*!
      * \brief Copy constructor.
      *
@@ -352,17 +562,16 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_AdditiveShell(PC pc, Vec x, Vec y);
 
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_MultiplicativeShell(PC pc, Vec x, Vec y);
 
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
+    PreconditionerType d_preconditioner_type = PreconditionerType::OTHER;
+    ShellSmootherComposition d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+    std::string d_shell_smoother_backend_key = "petsc";
+    ShellSmootherPartition d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+    std::unordered_map<std::string, std::unique_ptr<PETScLevelSolverShellBackend>> d_shell_backends;
+    PETScLevelSolverShellBackend* d_active_shell_backend = nullptr;
 };
 } // namespace IBTK
 

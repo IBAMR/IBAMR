@@ -319,6 +319,15 @@ public:
                            int dof_index_idx,
                            double data_time) override;
 
+    void constructInterpOp(Mat& J,
+                           void (*component_spread_fnc)(const double, double*),
+                           int component_stencil_width,
+                           void (*transverse_spread_fnc)(const double, double*),
+                           int transverse_stencil_width,
+                           const std::vector<int>& num_dofs_per_proc,
+                           int dof_index_idx,
+                           double data_time) override;
+
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
      */
@@ -584,6 +593,7 @@ protected:
     double d_current_time = std::numeric_limits<double>::quiet_NaN(),
            d_new_time = std::numeric_limits<double>::quiet_NaN(),
            d_half_time = std::numeric_limits<double>::quiet_NaN();
+    double d_solverless_start_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Boolean values tracking whether certain quantities need to be

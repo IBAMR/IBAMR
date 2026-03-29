@@ -255,8 +255,6 @@ public:
      */
     int getNumPostSmoothingSweeps() const;
 
-    //\}
-
     /*!
      * \brief Get the FAC preconditioner strategy objects employed by the
      * preconditioner.
@@ -284,6 +282,8 @@ protected:
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                   int level_num,
                   int mu);
+
+    //\}
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -26,18 +28,13 @@
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
-#include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
 
-#include <petsclog.h>
 #include <petscmat.h>
 
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <BoxArray.h>
-#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellGeometry.h>
@@ -51,9 +48,6 @@
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
 #include <ProcessorMapping.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideGeometry.h>
@@ -62,14 +56,10 @@
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
-#include <VariableFillPattern.h>
 
 #include <algorithm>
 #include <array>
-#include <map>
-#include <memory>
 #include <numeric>
-#include <ostream>
 #include <set>
 #include <sstream>
 #include <vector>
@@ -108,9 +98,21 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
  * - the map is cleared before insertion.
  */
 void
-build_coupling_aware_velocity_seed_pair_map(std::map<int, std::set<int>>& velocity_dof_to_paired_seed_velocity_dofs,
-                                            const int u_dof_index_idx,
-                                            Pointer<PatchLevel<NDIM>> patch_level)
+finalize_sorted_unique_map_values(std::unordered_map<int, std::vector<int>>& map_data)
+{
+    for (auto& pair : map_data)
+    {
+        std::vector<int>& values = pair.second;
+        std::sort(values.begin(), values.end());
+        values.erase(std::unique(values.begin(), values.end()), values.end());
+    }
+}
+
+void
+build_coupling_aware_velocity_seed_pair_map(
+    std::unordered_map<int, std::vector<int>>& velocity_dof_to_paired_seed_velocity_dofs,
+    const int u_dof_index_idx,
+    Pointer<PatchLevel<NDIM>> patch_level)
 {
     velocity_dof_to_paired_seed_velocity_dofs.clear();
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -132,16 +134,17 @@ build_coupling_aware_velocity_seed_pair_map(std::map<int, std::set<int>>& veloci
             {
                 const int dof = axis_velocity_dofs[axis];
                 if (dof < 0) continue;
-                std::set<int>& paired_set = velocity_dof_to_paired_seed_velocity_dofs[dof];
+                std::vector<int>& paired_set = velocity_dof_to_paired_seed_velocity_dofs[dof];
                 for (int paired_axis = 0; paired_axis < NDIM; ++paired_axis)
                 {
                     if (paired_axis == axis) continue;
                     const int paired_dof = axis_velocity_dofs[paired_axis];
-                    if (paired_dof >= 0) paired_set.insert(paired_dof);
+                    if (paired_dof >= 0) paired_set.push_back(paired_dof);
                 }
             }
         }
     }
+    finalize_sorted_unique_map_values(velocity_dof_to_paired_seed_velocity_dofs);
 }
 
 /*!
@@ -237,20 +240,24 @@ construct_nonoverlap_subdomains_from_overlap(const std::vector<std::set<int>>& i
     const int mpi_rank = IBTK_MPI::getRank();
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int one_past_local_dof = first_local_dof + num_dofs_per_proc[mpi_rank];
+    const std::size_t n_local_dofs = static_cast<std::size_t>(one_past_local_dof - first_local_dof);
 
-    std::map<int, std::size_t> dof_owner;
+    const std::size_t invalid_owner = is_overlap.size();
+    std::vector<std::size_t> dof_owner(n_local_dofs, invalid_owner);
     for (std::size_t k = 0; k < is_overlap.size(); ++k)
     {
         for (const int dof : is_overlap[k])
         {
             if (dof < first_local_dof || dof >= one_past_local_dof) continue;
-            if (dof_owner.find(dof) == dof_owner.end()) dof_owner[dof] = k;
+            const std::size_t local_offset = static_cast<std::size_t>(dof - first_local_dof);
+            if (dof_owner[local_offset] == invalid_owner) dof_owner[local_offset] = k;
         }
     }
-    for (const auto& pair : dof_owner)
+    for (std::size_t local_offset = 0; local_offset < n_local_dofs; ++local_offset)
     {
-        const int dof = pair.first;
-        const std::size_t owner = pair.second;
+        const std::size_t owner = dof_owner[local_offset];
+        if (owner == invalid_owner) continue;
+        const int dof = first_local_dof + static_cast<int>(local_offset);
         is_nonoverlap[owner].insert(dof);
     }
 
@@ -273,7 +280,7 @@ construct_nonoverlap_subdomains_from_overlap(const std::vector<std::set<int>>& i
 void
 find_cell_closure_dofs_from_map(std::set<int>& closure_dofs,
                                 const std::set<int>& involved_cell_dofs,
-                                const std::map<int, std::set<int>>& cell_dof_to_closure_dofs)
+                                const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs)
 {
     closure_dofs.clear();
     for (const int cell_dof : involved_cell_dofs)
@@ -292,8 +299,8 @@ find_cell_closure_dofs_from_map(std::set<int>& closure_dofs,
  */
 void
 validate_coupling_aware_a00_matrix(Mat A00_mat,
-                                   const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                   const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+                                   const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                   const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
                                    const std::string& where)
 {
     PetscInt nrows = -1, ncols = -1;
@@ -343,14 +350,16 @@ validate_coupling_aware_a00_matrix(Mat A00_mat,
  *
  * Output set setup:
  * - `initial_velocity_dofs` is reset to `seed_velocity_components`.
- * - for each locally owned seed row, row-neighbor velocity DOFs are inserted.
+ * - for each locally owned seed row, structurally coupled velocity DOFs are inserted.
  */
 void
 build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_dofs,
                                                 const std::set<int>& seed_velocity_components,
                                                 Mat A00_mat,
                                                 const PetscInt first_local_row,
-                                                const PetscInt one_past_local_row)
+                                                const PetscInt one_past_local_row,
+                                                const double relative_numerical_zero_tol,
+                                                const bool use_structural_coupling = false)
 {
     initial_velocity_dofs = seed_velocity_components;
     for (const int velocity_dof : seed_velocity_components)
@@ -359,13 +368,26 @@ build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_
         if (row < first_local_row || row >= one_past_local_row) continue;
         PetscInt ncols = 0;
         const PetscInt* cols = nullptr;
-        int ierr = MatGetRow(A00_mat, row, &ncols, &cols, nullptr);
+        const PetscScalar* vals = nullptr;
+        int ierr = MatGetRow(A00_mat, row, &ncols, &cols, &vals);
         IBTK_CHKERRQ(ierr);
+        double row_max_abs = 0.0;
         for (PetscInt col_idx = 0; col_idx < ncols; ++col_idx)
         {
-            initial_velocity_dofs.insert(static_cast<int>(cols[col_idx]));
+            row_max_abs = std::max(row_max_abs, static_cast<double>(PetscAbsScalar(vals[col_idx])));
         }
-        ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, nullptr);
+        const double numerical_zero_tol =
+            std::max(static_cast<double>(ncols) * std::numeric_limits<double>::epsilon() * row_max_abs,
+                     relative_numerical_zero_tol * row_max_abs);
+        for (PetscInt col_idx = 0; col_idx < ncols; ++col_idx)
+        {
+            const double value = PetscRealPart(vals[col_idx]);
+            if (use_structural_coupling || !IBTK::abs_equal_eps(value, 0.0, numerical_zero_tol))
+            {
+                initial_velocity_dofs.insert(static_cast<int>(cols[col_idx]));
+            }
+        }
+        ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, &vals);
         IBTK_CHKERRQ(ierr);
     }
 }
@@ -380,9 +402,10 @@ build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_
  *   `velocity_dofs`.
  */
 void
-find_involved_cells_from_velocity_set(std::set<int>& involved_cell_dofs,
-                                      const std::set<int>& velocity_dofs,
-                                      const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs)
+find_involved_cells_from_velocity_set(
+    std::set<int>& involved_cell_dofs,
+    const std::set<int>& velocity_dofs,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs)
 {
     involved_cell_dofs.clear();
     for (const int velocity_dof : velocity_dofs)
@@ -396,8 +419,8 @@ find_involved_cells_from_velocity_set(std::set<int>& involved_cell_dofs,
 }
 
 void
-build_coupling_aware_velocity_dof_maps(std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                       std::map<int, int>& velocity_dof_to_component_axis,
+build_coupling_aware_velocity_dof_maps(std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                       std::unordered_map<int, int>& velocity_dof_to_component_axis,
                                        const int u_dof_index_idx,
                                        const int p_dof_index_idx,
                                        Pointer<PatchLevel<NDIM>> patch_level)
@@ -421,24 +444,26 @@ build_coupling_aware_velocity_dof_maps(std::map<int, std::set<int>>& velocity_do
                 if (velocity_dof < 0) continue;
 
                 velocity_dof_to_component_axis[velocity_dof] = axis;
-                std::set<int>& adjacent_cell_dofs = velocity_dof_to_adjacent_cell_dofs[velocity_dof];
+                std::vector<int>& adjacent_cell_dofs = velocity_dof_to_adjacent_cell_dofs[velocity_dof];
                 for (int side = 0; side <= 1; ++side)
                 {
                     const int cell_dof = (*p_dof_data)(i_s.toCell(side));
-                    if (cell_dof >= 0) adjacent_cell_dofs.insert(cell_dof);
+                    if (cell_dof >= 0) adjacent_cell_dofs.push_back(cell_dof);
                 }
             }
         }
     }
+    finalize_sorted_unique_map_values(velocity_dof_to_adjacent_cell_dofs);
 }
 
 void
-build_cell_dof_to_closure_map_from_velocity_maps(std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
-                                                 const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                                 const std::map<int, int>& velocity_dof_to_component_axis,
-                                                 const int u_dof_index_idx,
-                                                 const int p_dof_index_idx,
-                                                 Pointer<PatchLevel<NDIM>> patch_level)
+build_cell_dof_to_closure_map_from_velocity_maps(
+    std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, int>& velocity_dof_to_component_axis,
+    const int u_dof_index_idx,
+    const int p_dof_index_idx,
+    Pointer<PatchLevel<NDIM>> patch_level)
 {
     cell_dof_to_closure_dofs.clear();
 
@@ -455,8 +480,8 @@ build_cell_dof_to_closure_map_from_velocity_maps(std::map<int, std::set<int>>& c
             const int cell_dof = (*p_dof_data)(ic);
             if (cell_dof < 0) continue;
 
-            std::set<int>& closure_dofs = cell_dof_to_closure_dofs[cell_dof];
-            closure_dofs.insert(cell_dof);
+            std::vector<int>& closure_dofs = cell_dof_to_closure_dofs[cell_dof];
+            closure_dofs.push_back(cell_dof);
             auto add_velocity_to_closure = [&](const int velocity_dof)
             {
                 if (velocity_dof < 0) return;
@@ -473,14 +498,14 @@ build_cell_dof_to_closure_map_from_velocity_maps(std::map<int, std::set<int>>& c
                     TBOX_ERROR("build_cell_dof_to_closure_map_from_velocity_maps():\n"
                                << "  missing adjacent-cell entry for velocity DOF " << velocity_dof << ".\n");
                 }
-                if (adjacent_it->second.find(cell_dof) == adjacent_it->second.end())
+                if (!std::binary_search(adjacent_it->second.begin(), adjacent_it->second.end(), cell_dof))
                 {
                     TBOX_ERROR("build_cell_dof_to_closure_map_from_velocity_maps():\n"
                                << "  inconsistent adjacency: velocity DOF " << velocity_dof
                                << " not adjacent to cell DOF " << cell_dof << ".\n");
                 }
 #endif
-                closure_dofs.insert(velocity_dof);
+                closure_dofs.push_back(velocity_dof);
             };
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -491,6 +516,7 @@ build_cell_dof_to_closure_map_from_velocity_maps(std::map<int, std::set<int>>& c
             }
         }
     }
+    finalize_sorted_unique_map_values(cell_dof_to_closure_dofs);
 }
 } // namespace
 
@@ -632,16 +658,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        nlocal,
-                        nlocal,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        0,
-                        nlocal ? &d_nnz[0] : nullptr,
-                        0,
-                        nlocal ? &o_nnz[0] : nullptr,
-                        &mat);
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -966,7 +984,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     u_mat_cols[uu_stencil_sz + side] = (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                 }
 
-                ierr = MatSetValues(mat, 1, &u_dof_index, u_stencil_sz, &u_mat_cols[0], &u_mat_vals[0], INSERT_VALUES);
+                ierr = MatSetValues(
+                    mat, 1, &u_dof_index, u_stencil_sz, u_mat_cols.data(), u_mat_vals.data(), INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -993,7 +1012,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             p_mat_vals[pu_stencil_sz] = 0.0;
             p_mat_cols[pu_stencil_sz] = p_dof_index;
 
-            ierr = MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, &p_mat_cols[0], &p_mat_vals[0], INSERT_VALUES);
+            ierr =
+                MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, p_mat_cols.data(), p_mat_vals.data(), INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -1096,25 +1116,113 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(
 } // constructPatchLevelGeometricalASMSubdomains
 
 void
-StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(PatchLevelCellClosureMapData& map_data,
-                                                                 const int u_dof_index_idx,
-                                                                 const int p_dof_index_idx,
-                                                                 Pointer<PatchLevel<NDIM>> patch_level)
+StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocityMapDataIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                                                         const int u_dof_index_idx,
+                                                                         const int p_dof_index_idx,
+                                                                         Pointer<PatchLevel<NDIM>> patch_level)
 {
+    if (map_data.velocity_maps_are_built) return;
     build_coupling_aware_velocity_dof_maps(map_data.velocity_dof_to_adjacent_cell_dofs,
                                            map_data.velocity_dof_to_component_axis,
                                            u_dof_index_idx,
                                            p_dof_index_idx,
                                            patch_level);
+    map_data.velocity_maps_are_built = true;
+}
+
+void
+StaggeredStokesPETScMatUtilities::ensurePatchLevelCellClosureMapIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                                                        const int u_dof_index_idx,
+                                                                        const int p_dof_index_idx,
+                                                                        Pointer<PatchLevel<NDIM>> patch_level)
+{
+    if (map_data.cell_closure_map_is_built) return;
+    ensurePatchLevelVelocityMapDataIsBuilt(map_data, u_dof_index_idx, p_dof_index_idx, patch_level);
     build_cell_dof_to_closure_map_from_velocity_maps(map_data.cell_dof_to_closure_dofs,
                                                      map_data.velocity_dof_to_adjacent_cell_dofs,
                                                      map_data.velocity_dof_to_component_axis,
                                                      u_dof_index_idx,
                                                      p_dof_index_idx,
                                                      patch_level);
+    map_data.cell_closure_map_is_built = true;
+}
+
+void
+StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt(PatchLevelCellClosureMapData& map_data,
+                                                                             const int u_dof_index_idx,
+                                                                             Pointer<PatchLevel<NDIM>> patch_level)
+{
+    if (map_data.velocity_seed_pair_map_is_built) return;
     build_coupling_aware_velocity_seed_pair_map(
         map_data.velocity_dof_to_paired_seed_velocity_dofs, u_dof_index_idx, patch_level);
+    map_data.velocity_seed_pair_map_is_built = true;
+}
 
+void
+StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs(
+    std::vector<int>& seed_velocity_dofs,
+    const int u_dof_index_idx,
+    Pointer<PatchLevel<NDIM>> patch_level,
+    const PatchLevelCellClosureMapData& map_data,
+    const int seed_velocity_axis,
+    const int seed_velocity_stride)
+{
+    if (seed_velocity_axis < 0 || seed_velocity_axis >= NDIM)
+    {
+        TBOX_ERROR("StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs():\n"
+                   << "  invalid seed_velocity_axis = " << seed_velocity_axis << ".\n");
+    }
+    if (seed_velocity_stride < 1)
+    {
+        TBOX_ERROR("StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs():\n"
+                   << "  invalid seed_velocity_stride = " << seed_velocity_stride << ".\n");
+    }
+    if (!map_data.velocity_maps_are_built)
+    {
+        TBOX_ERROR("StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs():\n"
+                   << "  velocity map data must be built before computing seed velocity DOFs.\n");
+    }
+
+    std::vector<int> axis_velocity_dofs;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box, seed_velocity_axis);
+        Pointer<SideData<NDIM, int>> u_dof_data = patch->getPatchData(u_dof_index_idx);
+        for (Box<NDIM>::Iterator b(side_patch_box); b; b++)
+        {
+            const SideIndex<NDIM> i_s(b(), seed_velocity_axis, SideIndex<NDIM>::Lower);
+            const int dof = (*u_dof_data)(i_s);
+            if (dof < 0) continue;
+            const auto axis_it = map_data.velocity_dof_to_component_axis.find(dof);
+            if (axis_it == map_data.velocity_dof_to_component_axis.end()) continue;
+            if (axis_it->second != seed_velocity_axis) continue;
+            axis_velocity_dofs.push_back(dof);
+        }
+    }
+    std::sort(axis_velocity_dofs.begin(), axis_velocity_dofs.end());
+    axis_velocity_dofs.erase(std::unique(axis_velocity_dofs.begin(), axis_velocity_dofs.end()),
+                             axis_velocity_dofs.end());
+
+    seed_velocity_dofs.clear();
+    int axis_velocity_counter = 0;
+    for (const int dof : axis_velocity_dofs)
+    {
+        if ((axis_velocity_counter % seed_velocity_stride) == 0) seed_velocity_dofs.push_back(dof);
+        ++axis_velocity_counter;
+    }
+    return;
+}
+
+void
+StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(PatchLevelCellClosureMapData& map_data,
+                                                                 const int u_dof_index_idx,
+                                                                 const int p_dof_index_idx,
+                                                                 Pointer<PatchLevel<NDIM>> patch_level)
+{
+    ensurePatchLevelCellClosureMapIsBuilt(map_data, u_dof_index_idx, p_dof_index_idx, patch_level);
+    ensurePatchLevelVelocitySeedPairMapIsBuilt(map_data, u_dof_index_idx, patch_level);
     return;
 } // buildPatchLevelCellClosureMaps
 
@@ -1123,8 +1231,9 @@ StaggeredStokesPETScMatUtilities::findCoupledCellDofsFromA00(
     std::set<int>& involved_cell_dofs,
     Mat A00_mat,
     const std::set<int>& seed_velocity_dofs,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs)
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+    const double relative_numerical_zero_tol)
 {
     involved_cell_dofs.clear();
     if (!A00_mat || seed_velocity_dofs.empty()) return;
@@ -1138,8 +1247,13 @@ StaggeredStokesPETScMatUtilities::findCoupledCellDofsFromA00(
     int ierr = MatGetOwnershipRange(A00_mat, &first_local_row, &row_end);
     IBTK_CHKERRQ(ierr);
     std::set<int> initial_velocity_dofs;
-    build_initial_velocity_set_from_seed_components(
-        initial_velocity_dofs, seed_velocity_dofs, A00_mat, first_local_row, row_end);
+    build_initial_velocity_set_from_seed_components(initial_velocity_dofs,
+                                                    seed_velocity_dofs,
+                                                    A00_mat,
+                                                    first_local_row,
+                                                    row_end,
+                                                    relative_numerical_zero_tol,
+                                                    false);
     find_involved_cells_from_velocity_set(
         involved_cell_dofs, initial_velocity_dofs, velocity_dof_to_adjacent_cell_dofs);
 
@@ -1150,13 +1264,15 @@ static void
 construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
+    const int level_num,
     Mat A00_mat,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
-    const std::map<int, int>& velocity_dof_to_component_axis,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, int>& velocity_dof_to_component_axis,
     const int seed_velocity_axis,
     const CouplingAwareASMClosurePolicy closure_policy,
-    const std::map<int, std::set<int>>& velocity_dof_to_paired_seed_velocity_dofs)
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_paired_seed_velocity_dofs,
+    const double relative_numerical_zero_tol)
 {
     TBOX_ASSERT(overlap_is.size() == nonoverlap_is.size());
     if (!A00_mat || overlap_is.empty()) return;
@@ -1207,8 +1323,13 @@ construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
             }
         }
 
-        build_initial_velocity_set_from_seed_components(
-            initial_velocity_dofs, initial_seed_components, A00_mat, first_local_row, row_end);
+        build_initial_velocity_set_from_seed_components(initial_velocity_dofs,
+                                                        initial_seed_components,
+                                                        A00_mat,
+                                                        first_local_row,
+                                                        row_end,
+                                                        relative_numerical_zero_tol,
+                                                        closure_policy == CouplingAwareASMClosurePolicy::STRICT);
         find_involved_cells_from_velocity_set(
             involved_cell_dofs, initial_velocity_dofs, velocity_dof_to_adjacent_cell_dofs);
         if (closure_policy == CouplingAwareASMClosurePolicy::STRICT)
@@ -1259,36 +1380,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     const PatchLevelCellClosureMapData& map_data,
     const int seed_velocity_axis,
     const int seed_velocity_stride,
-    const CouplingAwareASMClosurePolicy closure_policy)
+    const CouplingAwareASMClosurePolicy closure_policy,
+    const double relative_numerical_zero_tol)
 {
-    std::set<int> axis_velocity_dofs;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box, seed_velocity_axis);
-        Pointer<SideData<NDIM, int>> u_dof_data = patch->getPatchData(u_dof_index_idx);
-        for (Box<NDIM>::Iterator b(side_patch_box); b; b++)
-        {
-            const SideIndex<NDIM> i_s(b(), seed_velocity_axis, SideIndex<NDIM>::Lower);
-            const int dof = (*u_dof_data)(i_s);
-            if (dof < 0) continue;
-            const auto axis_it = map_data.velocity_dof_to_component_axis.find(dof);
-            if (axis_it == map_data.velocity_dof_to_component_axis.end()) continue;
-            if (axis_it->second != seed_velocity_axis) continue;
-            axis_velocity_dofs.insert(dof);
-        }
-    }
-
-    std::set<int> seed_velocity_dofs;
-    int axis_velocity_counter = 0;
-    for (const int dof : axis_velocity_dofs)
-    {
-        // Match the MATLAB smoother's linearized seed stepping semantics:
-        // keep every `seed_velocity_stride`-th seed in sorted DOF order.
-        if ((axis_velocity_counter % seed_velocity_stride) == 0) seed_velocity_dofs.insert(dof);
-        ++axis_velocity_counter;
-    }
+    std::vector<int> seed_velocity_dofs;
+    computePatchLevelCouplingAwareASMSeedVelocityDofs(
+        seed_velocity_dofs, u_dof_index_idx, patch_level, map_data, seed_velocity_axis, seed_velocity_stride);
 
     is_overlap.clear();
     is_nonoverlap.clear();
@@ -1305,13 +1402,15 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
         is_overlap,
         is_nonoverlap,
+        patch_level->getLevelNumber(),
         A00_mat,
         map_data.velocity_dof_to_adjacent_cell_dofs,
         map_data.cell_dof_to_closure_dofs,
         map_data.velocity_dof_to_component_axis,
         seed_velocity_axis,
         closure_policy,
-        map_data.velocity_dof_to_paired_seed_velocity_dofs);
+        map_data.velocity_dof_to_paired_seed_velocity_dofs,
+        relative_numerical_zero_tol);
 
     // Paranoid coverage check: overlap subdomains must cover all locally owned
     // DOFs (equivalently all DOFs in serial).

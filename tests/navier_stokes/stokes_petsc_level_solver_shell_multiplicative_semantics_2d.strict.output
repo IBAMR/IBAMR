@@ -1,0 +1,8 @@
+solver_type = default
+expected_inf_norm = 0.765963
+actual_inf_norm = 0.765963
+error_inf_norm = 0
+shell_pc_type = multiplicative
+coupling_aware_asm_closure_policy = STRICT
+parity_tol = 1e-10
+test_failures = 0

@@ -363,6 +363,7 @@ private:
 
     // Solvers and associated vectors.
     bool d_solve_for_position = false;
+    // Accepted values are PIECEWISE_LINEAR/BSPLINE_2..6, COMPOSITE_BSPLINE_32/43/54/65, and IB_3/4/5/6.
     std::string d_jac_delta_fcn = "IB_4";
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
