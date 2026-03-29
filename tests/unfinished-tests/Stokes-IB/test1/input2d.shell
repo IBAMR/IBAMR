@@ -20,7 +20,7 @@ END_TIME            = 300.0               // final simulation time
 GROW_DT             = 2.0e0               // growth factor for timesteps
 NUM_CYCLES          = 1                   // number of cycles of fixed-point iteration
 CREEPING_FLOW      = TRUE
-DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"
+IB_TIME_STEPPING = "BACKWARD_EULER"
 ADVECTION_TIME_STEPPING = "FORWARD_EULER"
 
 CONVECTIVE_TS_TYPE  = "FORWARD_EULER"     // convective time stepping type
@@ -164,7 +164,7 @@ INSStaggeredHierarchyIntegrator {
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
    creeping_flow                 = CREEPING_FLOW
-   viscous_time_stepping_type    = DIFFUSION_TIME_STEPPING
+   viscous_time_stepping_type    = IB_TIME_STEPPING
    convective_time_stepping_type = CONVECTIVE_TS_TYPE
    convective_op_type            = CONVECTIVE_OP_TYPE
    convective_difference_form    = CONVECTIVE_FORM
@@ -184,7 +184,7 @@ INSStaggeredHierarchyIntegrator {
 
 Main {
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "output"
    log_all_nodes               = FALSE
 
 // visualization dump parameters

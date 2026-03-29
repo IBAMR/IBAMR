@@ -182,7 +182,7 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "output"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
