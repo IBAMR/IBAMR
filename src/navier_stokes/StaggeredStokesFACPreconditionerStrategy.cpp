@@ -1220,10 +1220,8 @@ StaggeredStokesFACPreconditionerStrategy::ensureTransferOperatorIsBuilt(const in
 
     if (!*prolongation_mat)
     {
-        const std::string u_matrix_prolongation_method =
-            get_matrix_prolongation_operator_name(d_U_prolongation_method);
-        const std::string p_matrix_prolongation_method =
-            get_matrix_prolongation_operator_name(d_P_prolongation_method);
+        const std::string u_matrix_prolongation_method = get_matrix_prolongation_operator_name(d_U_prolongation_method);
+        const std::string p_matrix_prolongation_method = get_matrix_prolongation_operator_name(d_P_prolongation_method);
         if (!d_u_p_app_ordering[ln])
         {
             Pointer<PatchLevel<NDIM>> coarse_level = d_hierarchy->getPatchLevel(ln);

@@ -43,8 +43,8 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -120,9 +120,9 @@ public:
 class PETScLevelSolverShellBackendManager
 {
 public:
-    using ShellBackendMaker = std::unique_ptr<PETScLevelSolverShellBackend> (*)(
-        PETScLevelSolver& solver,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    using ShellBackendMaker =
+        std::unique_ptr<PETScLevelSolverShellBackend> (*)(PETScLevelSolver& solver,
+                                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     static PETScLevelSolverShellBackendManager* getManager();
 
