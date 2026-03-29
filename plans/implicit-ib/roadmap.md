@@ -15,7 +15,7 @@ Use deterministic CMake tests as the main confidence signal, but treat milestone
 ---
 
 ## Current State (2026-03-04)
-1. Development is on branch `codex/implicit-ib-milestone-2`.
+1. Development is on branch `codex/implicit-ib-milestone-3`.
 2. Milestone 1 remains under review in PR `#1887`.
 3. Milestone 2 implementation work is complete on this branch:
    - PR-A utility and deterministic test work is complete.
@@ -32,6 +32,8 @@ Use deterministic CMake tests as the main confidence signal, but treat milestone
 7. Expanded validation on the milestone-1 branch is passing:
    - `attest -R '^IB/'` (all `IB` tests in current CMake build subset).
 8. M2 solver-mode tests and transfer-invariant tests are passing in CMake and autotools builds.
+9. M3 test work is complete for strict-CAV/classical-Vanka equivalence, RIDP sum-invariant checks, RT0 velocity transfer parity, and pressure transfer parity in 2D/3D.
+10. End-to-end FAC runtime transfer-configuration validation is tracked in Milestone 4.
 
 ---
 
@@ -86,39 +88,32 @@ Implement coupling-aware Vanka smoother construction for implicit Stokes-IB solv
 
 ---
 
-## Milestone 3 — Stokes infrastructure verification (without IB coupling)
+## Milestone 3 — Stokes infrastructure + RT0/RIDP transfer verification (without IB coupling)
 ### Goal
-Verify that Stokes-only infrastructure corresponds to basic Vanka-style multigrid behavior, including known special cases where strict CAV and classical Vanka should coincide.
+Verify that Stokes-only infrastructure corresponds to basic Vanka-style multigrid behavior and validate key RT0/RIDP transfer invariants.
 
 ### Scope
 1. Define reference Stokes-only cases.
 2. Compare IBAMR behavior with MATLAB reference implementations.
 3. Document where strict CAV should match classical Vanka and where behavior intentionally differs.
-
-### Status
-- Not started.
-
----
-
-## Milestone 4 — RT0 prolongation validation
-### Goal
-Add confidence that RT0 prolongation is behaving as expected, especially divergence-related behavior for velocity transfer.
-
-### Scope
-1. Add focused tests/diagnostics for transfer invariants.
-2. Check both FAC transfer settings and PETSc-side transfer settings.
-3. Record expected behavior and known caveats in roadmap notes.
-4. Verify the RT0 implementation behavior directly.
-5. Add a deterministic transfer test for `R * Id * P`:
+4. Add focused tests/diagnostics for transfer invariants.
+5. Check both FAC transfer settings and PETSc-side transfer settings.
+6. Verify `R * Id * P` behavior:
    - row sums are `1` for velocity DOFs and `0` for pressure DOFs,
    - column sums are `1` for velocity DOFs and `0` for pressure DOFs.
 
 ### Status
-- Not started.
+- Complete on branch (`codex/implicit-ib-milestone-3`).
+- Completed:
+1. Strict-CAV/classical-Vanka equivalence tests added in 2D/3D.
+2. RIDP sum-invariant tests added in 2D/3D.
+3. RT0 velocity prolongation/restriction parity tests (matrix-based PETSc vs matrix-free SAMRAI) added in 2D/3D, with affine, piecewise-RT0, and nonlinear profiles.
+4. Pressure transfer parity tests (`CONSTANT_REFINE`/`CONSERVATIVE_COARSEN`) added in 2D/3D, with affine and nonlinear profiles.
+5. Transfer parity tests now include nontriviality checks and SAMRAI-vs-PETSc max-norm consistency checks for corresponding fields.
 
 ---
 
-## Milestone 5 — MATLAB parity for Stokes + IB
+## Milestone 4 — MATLAB parity for Stokes + IB
 ### Goal
 Build exact-comparison cases between IBAMR and MATLAB for Stokes+IB using programmatic structure generation, then identify and reduce discrepancies.
 
@@ -126,13 +121,14 @@ Build exact-comparison cases between IBAMR and MATLAB for Stokes+IB using progra
 1. Align geometry/parameters between codebases.
 2. Compare subdomains, iteration traces, and residual behavior.
 3. Track mismatches with likely causes and resolution plan.
+4. Add an end-to-end FAC runtime transfer-configuration validation case that complements Milestone 3 operator-level parity tests.
 
 ### Status
 - Not started.
 
 ---
 
-## Milestone 6 — Bespoke Gauss-Seidel performance work
+## Milestone 5 — Bespoke Gauss-Seidel performance work
 ### Goal
 Improve performance of the custom GS-like smoother while preserving intended solver semantics.
 
@@ -146,7 +142,7 @@ Improve performance of the custom GS-like smoother while preserving intended sol
 
 ---
 
-## Milestone 7 — Parallel correctness and robustness
+## Milestone 6 — Parallel correctness and robustness
 ### Goal
 Extend current serial-validated behavior to parallel runs with consistent subdomain and solver behavior.
 
@@ -160,7 +156,7 @@ Extend current serial-validated behavior to parallel runs with consistent subdom
 
 ---
 
-## Milestone 8 — Kernel generalization beyond `IB_4`
+## Milestone 7 — Kernel generalization beyond `IB_4`
 ### Goal
 Generalize implementation to support additional IB kernel functions while preserving coupling-aware logic and solver correctness.
 
@@ -191,7 +187,7 @@ Flexible batching, with clear milestone intent:
    - avoid coupling-aware/classical-Vanka feature coverage in Milestone 1.
 
 ## Key Comparison Notes vs MATLAB
-- Deferred until Milestones 3 and 5.
+- Deferred until Milestones 3 and 4.
 - Current milestone does not treat MATLAB parity as a gate.
 
 ## PR History and Follow-up Items
