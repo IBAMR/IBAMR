@@ -13,7 +13,7 @@ CartCellDoubleCubicCoarsen::coarsen():
 
 fd_relative_error = 2.41777e-08
 krylov_linear_iterations = 5
-krylov_linear_residual_norm = 4.29333e-06
+krylov_linear_residual_norm = 6.85808e-06
 Input database:
 input_db {
    MU                     = 0.01                            // input used

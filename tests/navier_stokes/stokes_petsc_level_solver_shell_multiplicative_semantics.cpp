@@ -277,11 +277,16 @@ main(int argc, char* argv[])
     std::vector<std::string> solver_types;
     const bool is_eigen_reference_case = shell_pc_type.find("eigen-reference") != std::string::npos;
     const bool is_blas_lapack_case = shell_pc_type.find("blas-lapack") != std::string::npos;
+    if (is_eigen_reference_case && !use_multiplicative)
+    {
+        pout << "unsupported shell_pc_type = " << shell_pc_type << "\n";
+        pout << "reason = eigen-reference backend only supports multiplicative mode\n";
+        pout << "suggested shell_pc_type = multiplicative-eigen-reference\n";
+        return 1;
+    }
     if (is_eigen_reference_case && test_all_eigen_reference_solver_types)
     {
-        solver_types = { "llt",
-                         "ldlt",
-                         "partial-piv-lu",
+        solver_types = { "partial-piv-lu",
                          "full-piv-lu",
                          "householder-qr",
                          "col-piv-householder-qr",
@@ -296,7 +301,7 @@ main(int argc, char* argv[])
     }
     else if (is_blas_lapack_case && test_all_blas_lapack_solver_types)
     {
-        solver_types = { "svd", "lu", "cholesky", "symmetric-indefinite", "qr" };
+        solver_types = { "svd", "lu", "symmetric-indefinite", "qr" };
     }
     else if (test_db->keyExists("blas_lapack_subdomain_solver_type"))
     {

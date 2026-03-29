@@ -3243,8 +3243,6 @@ main(int argc, char* argv[])
         ln_level->deallocatePatchData(p_dof_index_idx);
     }
 
-    plog << "Input database:\n";
-    input_db->printClassData(plog);
     pout << "test_failures = " << test_failures << "\n";
     return test_failures > 0 ? 1 : 0;
 }

@@ -50,11 +50,13 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <map>
 #include <set>
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -161,19 +163,24 @@ write_set_vector(const std::string& path, const std::vector<std::set<int>>& sets
 }
 
 void
-write_axis_map(const std::string& path, const std::map<int, int>& map_data)
+write_axis_map(const std::string& path, const std::unordered_map<int, int>& map_data)
 {
     std::ofstream os(path);
     os << map_data.size() << "\n";
-    for (const auto& kv : map_data) os << kv.first << " " << kv.second << "\n";
+    std::vector<std::pair<int, int>> ordered_map(map_data.begin(), map_data.end());
+    std::sort(ordered_map.begin(), ordered_map.end());
+    for (const auto& kv : ordered_map) os << kv.first << " " << kv.second << "\n";
 }
 
 void
-write_set_map(const std::string& path, const std::map<int, std::set<int>>& map_data)
+write_set_map(const std::string& path, const std::unordered_map<int, std::vector<int>>& map_data)
 {
     std::ofstream os(path);
     os << map_data.size() << "\n";
-    for (const auto& kv : map_data)
+    std::vector<std::pair<int, std::vector<int>>> ordered_map(map_data.begin(), map_data.end());
+    std::sort(
+        ordered_map.begin(), ordered_map.end(), [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+    for (const auto& kv : ordered_map)
     {
         os << kv.first << " " << kv.second.size();
         for (const int v : kv.second) os << " " << v;
@@ -181,11 +188,35 @@ write_set_map(const std::string& path, const std::map<int, std::set<int>>& map_d
     }
 }
 
+std::string
+format_set(const std::set<int>& values)
+{
+    std::ostringstream os;
+    os << "{";
+    bool first = true;
+    for (const int value : values)
+    {
+        if (!first) os << ", ";
+        os << value;
+        first = false;
+    }
+    os << "}";
+    return os.str();
+}
+
+std::set<int>
+set_difference_copy(const std::set<int>& lhs, const std::set<int>& rhs)
+{
+    std::set<int> out;
+    std::set_difference(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::inserter(out, out.end()));
+    return out;
+}
+
 std::vector<int>
 compute_ordered_seed_velocity_dofs(Pointer<PatchLevel<NDIM>> patch_level,
                                    const int seed_velocity_axis,
                                    const int u_dof_index_idx,
-                                   const std::map<int, int>& velocity_dof_to_component_axis)
+                                   const std::unordered_map<int, int>& velocity_dof_to_component_axis)
 {
     std::set<int> axis_velocity_dofs;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -356,21 +387,53 @@ generate_springs(
 }
 
 std::set<int>
+expand_velocity_dofs_from_seed_components(const std::set<int>& seed_velocity_components,
+                                          Mat A00_mat,
+                                          const bool use_structural_coupling = false)
+{
+    std::set<int> initial_velocity_dofs = seed_velocity_components;
+    for (const int velocity_dof : seed_velocity_components)
+    {
+        PetscInt ncols = 0;
+        const PetscInt* cols = nullptr;
+        const PetscScalar* vals = nullptr;
+        const PetscInt row = static_cast<PetscInt>(velocity_dof);
+        int ierr = MatGetRow(A00_mat, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+
+        double row_max_abs = 0.0;
+        for (PetscInt k = 0; k < ncols; ++k)
+        {
+            row_max_abs = std::max(row_max_abs, static_cast<double>(PetscAbsScalar(vals[k])));
+        }
+        const double numerical_zero_tol =
+            std::max(static_cast<double>(ncols) * std::numeric_limits<double>::epsilon() * row_max_abs,
+                     IBTK_RELATIVE_NUMERICAL_ZERO_TOL * row_max_abs);
+
+        for (PetscInt k = 0; k < ncols; ++k)
+        {
+            const double value = PetscRealPart(vals[k]);
+            if (use_structural_coupling || std::abs(value) > numerical_zero_tol)
+            {
+                initial_velocity_dofs.insert(static_cast<int>(cols[k]));
+            }
+        }
+
+        ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+    }
+    return initial_velocity_dofs;
+}
+
+std::set<int>
 matlab_extract_coupled_dofs_relaxed(const int seed_velocity_dof,
                                     Mat A00_mat,
-                                    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
-                                    const std::map<int, int>& velocity_dof_to_component_axis)
+                                    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+                                    const std::unordered_map<int, int>& velocity_dof_to_component_axis)
 {
-    std::set<int> initial_velocity_dofs = { seed_velocity_dof };
-    PetscInt ncols = 0;
-    const PetscInt* cols = nullptr;
-    const PetscInt row = static_cast<PetscInt>(seed_velocity_dof);
-    int ierr = MatGetRow(A00_mat, row, &ncols, &cols, nullptr);
-    IBTK_CHKERRQ(ierr);
-    for (PetscInt k = 0; k < ncols; ++k) initial_velocity_dofs.insert(static_cast<int>(cols[k]));
-    ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, nullptr);
-    IBTK_CHKERRQ(ierr);
+    const std::set<int> initial_velocity_dofs =
+        expand_velocity_dofs_from_seed_components({ seed_velocity_dof }, A00_mat);
 
     std::set<int> involved_cells;
     for (const int vel_dof : initial_velocity_dofs)
@@ -397,12 +460,13 @@ matlab_extract_coupled_dofs_relaxed(const int seed_velocity_dof,
 }
 
 std::set<int>
-matlab_extract_coupled_dofs_strict(const int seed_velocity_dof,
-                                   Mat A00_mat,
-                                   const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                   const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
-                                   const std::map<int, int>& velocity_dof_to_component_axis,
-                                   const std::map<int, std::set<int>>& velocity_dof_to_paired_seed_velocity_dofs)
+matlab_extract_coupled_dofs_strict(
+    const int seed_velocity_dof,
+    Mat A00_mat,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, int>& velocity_dof_to_component_axis,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_paired_seed_velocity_dofs)
 {
     std::set<int> initial_seed_components = { seed_velocity_dof };
     const auto pair_it = velocity_dof_to_paired_seed_velocity_dofs.find(seed_velocity_dof);
@@ -411,18 +475,8 @@ matlab_extract_coupled_dofs_strict(const int seed_velocity_dof,
         initial_seed_components.insert(pair_it->second.begin(), pair_it->second.end());
     }
 
-    std::set<int> initial_velocity_dofs = initial_seed_components;
-    for (const int seed_component_dof : initial_seed_components)
-    {
-        PetscInt ncols = 0;
-        const PetscInt* cols = nullptr;
-        const PetscInt row = static_cast<PetscInt>(seed_component_dof);
-        int ierr = MatGetRow(A00_mat, row, &ncols, &cols, nullptr);
-        IBTK_CHKERRQ(ierr);
-        for (PetscInt k = 0; k < ncols; ++k) initial_velocity_dofs.insert(static_cast<int>(cols[k]));
-        ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, nullptr);
-        IBTK_CHKERRQ(ierr);
-    }
+    const std::set<int> initial_velocity_dofs =
+        expand_velocity_dofs_from_seed_components(initial_seed_components, A00_mat, true);
 
     std::set<int> candidate_cells;
     for (const int vel_dof : initial_velocity_dofs)
@@ -616,6 +670,8 @@ main(int argc, char* argv[])
     if (overlap_relaxed.size() != overlap_strict.size())
     {
         ++test_failures;
+        pout << "overlap_size_mismatch: relaxed=" << overlap_relaxed.size() << " strict=" << overlap_strict.size()
+             << "\n";
     }
 
     const std::vector<int> ordered_seeds =
@@ -624,6 +680,8 @@ main(int argc, char* argv[])
     if (overlap_relaxed.size() != ordered_seeds.size() || overlap_strict.size() != ordered_seeds.size())
     {
         ++test_failures;
+        pout << "seed_count_mismatch: relaxed=" << overlap_relaxed.size() << " strict=" << overlap_strict.size()
+             << " ordered_seeds=" << ordered_seeds.size() << "\n";
     }
 
     for (std::size_t k = 0; k < overlap_relaxed.size() && k < ordered_seeds.size(); ++k)
@@ -638,6 +696,13 @@ main(int argc, char* argv[])
         if (overlap_relaxed[k] != matlab_relaxed)
         {
             ++test_failures;
+            const std::set<int> ibamr_only = set_difference_copy(overlap_relaxed[k], matlab_relaxed);
+            const std::set<int> matlab_only = set_difference_copy(matlab_relaxed, overlap_relaxed[k]);
+            pout << "relaxed_overlap_mismatch: index=" << k << " seed=" << seed << "\n";
+            pout << "  ibamr = " << format_set(overlap_relaxed[k]) << "\n";
+            pout << "  matlab = " << format_set(matlab_relaxed) << "\n";
+            pout << "  ibamr_only = " << format_set(ibamr_only) << "\n";
+            pout << "  matlab_only = " << format_set(matlab_only) << "\n";
             break;
         }
     }
@@ -655,6 +720,13 @@ main(int argc, char* argv[])
         if (overlap_strict[k] != matlab_strict)
         {
             ++test_failures;
+            const std::set<int> ibamr_only = set_difference_copy(overlap_strict[k], matlab_strict);
+            const std::set<int> matlab_only = set_difference_copy(matlab_strict, overlap_strict[k]);
+            pout << "strict_overlap_mismatch: index=" << k << " seed=" << seed << "\n";
+            pout << "  ibamr = " << format_set(overlap_strict[k]) << "\n";
+            pout << "  matlab = " << format_set(matlab_strict) << "\n";
+            pout << "  ibamr_only = " << format_set(ibamr_only) << "\n";
+            pout << "  matlab_only = " << format_set(matlab_only) << "\n";
             break;
         }
     }
