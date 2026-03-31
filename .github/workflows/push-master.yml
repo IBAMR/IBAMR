@@ -28,10 +28,10 @@ jobs:
       image: 'docker://wellsd2/ibamr:ibamr-0.18-dependencies-ubuntu'
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         id: git
       - name: Clone IBAMR-docs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: IBAMR/IBAMR-docs
           path: IBAMR-docs
@@ -49,7 +49,7 @@ jobs:
           cd build
           ninja documentation
       - name: Archive Doxygen Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: doxygen-log
           path: build/doxygen.log
@@ -101,11 +101,11 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 4
       - name: Populate ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: ccache
         id: cache
@@ -156,14 +156,14 @@ jobs:
       CCACHE_DIR: /tmp/ibamr-ccache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         id: git
       - name: Verify that clang-format was run
         id: format
         run: |
           git config --global --add safe.directory '*'
       - name: Populate ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: ccache
         id: cache
@@ -271,13 +271,13 @@ jobs:
           exit $configure_status
       - name: Archive CMakeConfigureLog.yaml
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-CMakeConfigureLog.yaml
           path: CMakeConfigureLog.yaml
       - name: Archive compile_commands.json
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-compile_commands.json
           path: compile_commands.json
