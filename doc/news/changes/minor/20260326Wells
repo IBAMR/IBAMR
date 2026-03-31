@@ -1,0 +1,5 @@
+Improved: IBAMR::INSStaggeredHierarchyIntegrator now uses the same
+IBTK::HierarchyMathOps objects in most of its solvers. This saves about 50
+patch data indices and a small amount of memory.
+<br>
+(David Wells, 2025/07/14)
