@@ -1,4 +1,4 @@
-# Using `attest`, IBAMR's test suite runner
+# Using attest, IBAMR's test suite runner
 
 ## Introduction
 
