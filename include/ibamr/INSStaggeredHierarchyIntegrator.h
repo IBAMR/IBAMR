@@ -46,6 +46,7 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSTurbulenceStatistics;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -82,6 +83,12 @@ namespace IBAMR
 class INSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
+    enum class TurbulenceStatisticsType
+    {
+        NONE,
+        AVERAGED_VELOCITY
+    };
+
     /*!
      * The constructor for class INSStaggeredHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
@@ -123,6 +130,18 @@ public:
      * useful in constructing block preconditioners.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver() override;
+
+    /*!
+     * Register a turbulence-statistics accumulator.
+     *
+     * This method should be called before initializeHierarchyIntegrator().
+     */
+    void registerTurbulenceStatistics(SAMRAI::tbox::Pointer<INSTurbulenceStatistics> turbulence_statistics);
+
+    /*!
+     * Get the registered turbulence-statistics object, if any.
+     */
+    SAMRAI::tbox::Pointer<INSTurbulenceStatistics> getTurbulenceStatistics() const;
 
     /*!
      * Register a solver for the time-dependent incompressible Stokes equations.
@@ -415,6 +434,27 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
+    /*!
+     * Requested built-in turbulence-statistics type.
+     */
+    TurbulenceStatisticsType d_turbulence_statistics_type = TurbulenceStatisticsType::NONE;
+
+    /*!
+     * Input database for configuring the turbulence-statistics object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_turbulence_statistics_db;
+
+    /*!
+     * Registered turbulence-statistics accumulator.
+     */
+    SAMRAI::tbox::Pointer<INSTurbulenceStatistics> d_turbulence_statistics;
+
+    /*!
+     * Cached flag used to edge-trigger steady-state logging for turbulence
+     * statistics.
+     */
+    bool d_turbulence_statistics_is_steady = false;
+
     std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
                 d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED,
                 d_stokes_sub_precond_type = StaggeredStokesSolverManager::UNDEFINED;
@@ -441,7 +481,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_indicator_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_F_div_var;
-
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_EE_var;
 
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";

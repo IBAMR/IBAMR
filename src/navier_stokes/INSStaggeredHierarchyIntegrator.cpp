@@ -15,6 +15,7 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConvectiveOperator.h>
+#include <ibamr/INSAveragingTurbulenceStatistics.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
@@ -22,6 +23,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
+#include <ibamr/INSTurbulenceStatistics.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
@@ -359,6 +361,33 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
+INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType
+parse_turbulence_statistics_type(const std::string& turbulence_statistics_type)
+{
+    if (turbulence_statistics_type == "NONE") return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE;
+    if (turbulence_statistics_type == "AVERAGED_VELOCITY")
+        return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::AVERAGED_VELOCITY;
+    TBOX_ERROR("parse_turbulence_statistics_type(): unsupported turbulence statistics type "
+               << turbulence_statistics_type << "\n");
+    return INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE;
+}
+
+std::string
+turbulence_statistics_type_to_string(
+    const INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType turbulence_statistics_type)
+{
+    switch (turbulence_statistics_type)
+    {
+    case INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::NONE:
+        return "NONE";
+    case INSStaggeredHierarchyIntegrator::TurbulenceStatisticsType::AVERAGED_VELOCITY:
+        return "AVERAGED_VELOCITY";
+    default:
+        TBOX_ERROR("turbulence_statistics_type_to_string(): unsupported turbulence statistics type enum value\n");
+    }
+    return "NONE";
+}
+
 // Copy data from a side-centered variable to a face-centered variable.
 void
 copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM>> hierarchy)
@@ -471,6 +500,21 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
         d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
     if (input_db->keyExists("regrid_projection_sub_precond_type"))
         d_regrid_projection_sub_precond_type = input_db->getString("regrid_projection_sub_precond_type");
+
+    if (input_db->isDatabase("TurbulenceStatistics"))
+    {
+        d_turbulence_statistics_type = TurbulenceStatisticsType::AVERAGED_VELOCITY;
+        d_turbulence_statistics_db = input_db->getDatabase("TurbulenceStatistics");
+    }
+
+    std::string turbulence_statistics_type_string = turbulence_statistics_type_to_string(d_turbulence_statistics_type);
+    if (input_db->keyExists("turbulence_statistics_type"))
+    {
+        turbulence_statistics_type_string = input_db->getString("turbulence_statistics_type");
+    }
+    if (d_turbulence_statistics_db && d_turbulence_statistics_db->keyExists("statistics_type"))
+        turbulence_statistics_type_string = d_turbulence_statistics_db->getString("statistics_type");
+    d_turbulence_statistics_type = parse_turbulence_statistics_type(turbulence_statistics_type_string);
 
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
@@ -693,6 +737,23 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 } // getPressureSubdomainSolver
 
 void
+INSStaggeredHierarchyIntegrator::registerTurbulenceStatistics(Pointer<INSTurbulenceStatistics> turbulence_statistics)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(!d_turbulence_statistics);
+#endif
+    d_turbulence_statistics = turbulence_statistics;
+    return;
+}
+
+Pointer<INSTurbulenceStatistics>
+INSStaggeredHierarchyIntegrator::getTurbulenceStatistics() const
+{
+    return d_turbulence_statistics;
+}
+
+void
 INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
 {
 #if !defined(NDEBUG)
@@ -742,6 +803,30 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    if (!d_turbulence_statistics && d_turbulence_statistics_type != TurbulenceStatisticsType::NONE)
+    {
+        if (!d_turbulence_statistics_db)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): turbulence statistics requested without a "
+                                        "TurbulenceStatistics database.\n");
+        }
+        switch (d_turbulence_statistics_type)
+        {
+        case TurbulenceStatisticsType::AVERAGED_VELOCITY:
+            d_turbulence_statistics = new INSAveragingTurbulenceStatistics(d_object_name + "::TurbulenceStatistics",
+                                                                           d_U_var,
+                                                                           d_turbulence_statistics_db,
+                                                                           d_hierarchy->getGridGeometry(),
+                                                                           d_registered_for_restart);
+            break;
+        case TurbulenceStatisticsType::NONE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): unsupported turbulence statistics type "
+                                     << turbulence_statistics_type_to_string(d_turbulence_statistics_type) << "\n");
+        }
+    }
 
     // Setup solvers.
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
@@ -961,7 +1046,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     {
         d_F_div_idx = invalid_index;
     }
-
     // Register variables for plotting.
     if (d_visit_writer)
     {
@@ -1371,6 +1455,19 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
         synchronizeHierarchyData(NEW_DATA);
+    }
+
+    if (d_turbulence_statistics && !skip_synchronize_new_state_data)
+    {
+        const bool steady_state = d_turbulence_statistics->updateStatistics(
+            d_U_new_idx, d_U_var, getVelocityBoundaryConditions(), new_time, d_hierarchy, d_hier_math_ops);
+        if (steady_state && !d_turbulence_statistics_is_steady && d_enable_logging)
+        {
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): turbulence statistics reached periodic steady "
+                    "state\n";
+        }
+        d_turbulence_statistics_is_steady = steady_state;
     }
 
     // Deallocate scratch data.

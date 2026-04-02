@@ -1,0 +1,3 @@
+New: Added turbulence-statistics infrastructure for staggered INS, including configurable delayed accumulation via `statistics_start_time`, manufactured verification examples, and CI-oriented attest tests.
+<br>
+(Boyce Griffith, 2026/03/25)
