@@ -191,7 +191,11 @@ public:
      * \brief Function to compute the variable surface tension coefficient.
      */
     using ComputeSurfaceTensionCoefficientPtr = void (*)(int F_idx,
-                                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+<<<<<<< HEAD
+                                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+=======
+                                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+>>>>>>> d1d1d32c8 (Changes to the phase change source files and liquid fraction extrapolation)
                                                          int cycle_num,
                                                          double time,
                                                          double current_time,
