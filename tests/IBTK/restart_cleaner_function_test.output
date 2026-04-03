@@ -57,5 +57,68 @@ Test 5 PASSED: Error handling works correctly
 MPI rank=0, size=1
 Test 6 PASSED: MPI environment compatibility verified
 
+=== Test 7: markImportant Creates Marker File ===
+MarkTest::markImportant(): Marked "test_restart_mark/restore.000300" as important
+Test 7 PASSED: markImportant correctly created marker file
+
+=== Test 8: Cleanup Respects Importance Markers ===
+ImportanceTest::markImportant(): Marked "test_restart_importance/restore.000200" as important
+ImportanceTest::markImportant(): Marked "test_restart_importance/restore.000400" as important
+ImportanceTest::keepRecentN(): Found 8 valid directories, keeping 3 most recent + 2 important, deleting 3 oldest
+ImportanceTest::keepRecentN(): Deleting "test_restart_importance/restore.000100"
+ImportanceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_importance/restore.000100"
+ImportanceTest::keepRecentN(): Keeping important directory "test_restart_importance/restore.000200"
+ImportanceTest::keepRecentN(): Deleting "test_restart_importance/restore.000300"
+ImportanceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_importance/restore.000300"
+ImportanceTest::keepRecentN(): Keeping important directory "test_restart_importance/restore.000400"
+ImportanceTest::keepRecentN(): Deleting "test_restart_importance/restore.000500"
+ImportanceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_importance/restore.000500"
+ImportanceTest::keepRecentN(): Cleanup completed
+Remaining after importance cleanup: 200 400 600 700 800 
+Test 8 PASSED: Cleanup correctly preserved important directories
+
+=== Test 9: Important Oldest Directory Survives ===
+OldestImportantTest::markImportant(): Marked "test_restart_oldest_important/restore.000100" as important
+OldestImportantTest::keepRecentN(): Found 5 valid directories, keeping 2 most recent + 1 important, deleting 2 oldest
+OldestImportantTest::keepRecentN(): Keeping important directory "test_restart_oldest_important/restore.000100"
+OldestImportantTest::keepRecentN(): Deleting "test_restart_oldest_important/restore.000200"
+OldestImportantTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_oldest_important/restore.000200"
+OldestImportantTest::keepRecentN(): Deleting "test_restart_oldest_important/restore.000300"
+OldestImportantTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_oldest_important/restore.000300"
+OldestImportantTest::keepRecentN(): Cleanup completed
+Remaining after oldest-important cleanup: 100 400 500 
+Test 9 PASSED: Oldest important directory correctly preserved
+
+=== Test 10: Marker Persistence Across Multiple Cleanups ===
+PersistenceTest::markImportant(): Marked "test_restart_persistence/restore.000200" as important
+PersistenceTest::keepRecentN(): Found 8 valid directories, keeping 3 most recent + 1 important, deleting 4 oldest
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000100"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000100"
+PersistenceTest::keepRecentN(): Keeping important directory "test_restart_persistence/restore.000200"
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000300"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000300"
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000400"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000400"
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000500"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000500"
+PersistenceTest::keepRecentN(): Cleanup completed
+Round 1 survivors: 200 600 700 800 
+Round 1 PASSED
+PersistenceTest::keepRecentN(): Found 6 valid directories, keeping 3 most recent + 1 important, deleting 2 oldest
+PersistenceTest::keepRecentN(): Keeping important directory "test_restart_persistence/restore.000200"
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000600"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000600"
+PersistenceTest::keepRecentN(): Deleting "test_restart_persistence/restore.000700"
+PersistenceTest::keepRecentN(): Successfully deleted 6 files/directories from "test_restart_persistence/restore.000700"
+PersistenceTest::keepRecentN(): Cleanup completed
+Round 2 survivors: 200 800 900 1000 
+Round 2 PASSED
+PersistenceNewObj::keepRecentN(): Found 4 valid directories, keeping 3 most recent + 1 important, deleting 0 oldest
+PersistenceNewObj::keepRecentN(): Keeping important directory "test_restart_persistence/restore.000200"
+PersistenceNewObj::keepRecentN(): Cleanup completed
+Round 3 survivors: 200 800 900 1000 
+Round 3 PASSED
+Test 10 PASSED: Markers persist across multiple cleanups and new objects
+
 === RestartCleaner Functional Test Summary ===
 ALL TESTS PASSED!
