@@ -351,6 +351,34 @@ c
 c     Computes D = alpha div (c u).
 c
 c     Uses centered differences to compute the cell centered divergence
+c     of product of two cell centered variable u=(u0,u1,u2) and c=(c0,c1,c2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine cctocdiv3d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u2,u_gcw,
+     &     c0,c1,c2,c_gcw,    
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+c      implicit none
+c
+
+c     NOT YET IMPLEMENTED
+ 
+      return
+      end
+
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div (c u).
+c
+c     Uses centered differences to compute the cell centered divergence
 c     of product of two side centered variable u=(u0,u1,u2) and c=(c0,c1,c2).
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -484,6 +512,36 @@ c
          enddo
       enddo
 c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div (c u) + beta V.
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of product of two cell centered variable u=(u0,u1,u2) and c=(c0,c1,c2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine cctocdivadd3d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u2,u_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     beta,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+c      implicit none
+c
+c     Input.
+
+c     NOT IMPLEMENTED YET.
+
       return
       end
 c

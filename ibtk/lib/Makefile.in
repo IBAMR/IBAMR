@@ -288,6 +288,8 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/SCPoissonSolverManager.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalOperator.cpp \
 	../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/VCSCViscousOperator.cpp \
 	../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \
@@ -471,6 +473,8 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK2d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-SCPoissonSolverManager.$(OBJEXT) \
+	../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.$(OBJEXT) \
+	../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-VCSCViscousOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-VCSCViscousDilatationalOperator.$(OBJEXT) \
@@ -624,6 +628,8 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/SCPoissonSolverManager.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalOperator.cpp \
 	../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/VCSCViscousOperator.cpp \
 	../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \
@@ -805,6 +811,8 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK3d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-SCPoissonSolverManager.$(OBJEXT) \
+	../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.$(OBJEXT) \
+	../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-VCSCViscousOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-VCSCViscousDilatationalOperator.$(OBJEXT) \
@@ -1043,6 +1051,8 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po \
@@ -1075,6 +1085,8 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po \
@@ -1760,6 +1772,8 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/SCPoissonSolverManager.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp \
+	../src/solvers/impls/VCCCViscousDilatationalOperator.cpp \
 	../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/VCSCViscousOperator.cpp \
 	../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \
@@ -2249,6 +2263,12 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-SCPoissonSolverManager.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.$(OBJEXT):  \
@@ -2796,6 +2816,12 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/solvers/impls/libIBTK3d_a-SCPoissonSolverManager.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -3238,6 +3264,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
@@ -3270,6 +3298,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
@@ -4413,6 +4443,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/SCPoissonSolverManager.cpp' object='../src/solvers/impls/libIBTK2d_a-SCPoissonSolverManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-SCPoissonSolverManager.obj `if test -f '../src/solvers/impls/SCPoissonSolverManager.cpp'; then $(CYGPATH_W) '../src/solvers/impls/SCPoissonSolverManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/SCPoissonSolverManager.cpp'; fi`
+
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.o: ../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.o `test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.o `test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.obj: ../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; fi`
+
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.o: ../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.o `test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.o `test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+
+../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.obj: ../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-VCCCViscousDilatationalOperator.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; fi`
 
 ../src/solvers/impls/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.o: ../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.o `test -f '../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp
@@ -6388,6 +6446,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-SCPoissonSolverManager.obj `if test -f '../src/solvers/impls/SCPoissonSolverManager.cpp'; then $(CYGPATH_W) '../src/solvers/impls/SCPoissonSolverManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/SCPoissonSolverManager.cpp'; fi`
 
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.o: ../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.o `test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.o `test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.obj: ../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp'; fi`
+
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.o: ../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.o `test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.o `test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+
+../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.obj: ../src/solvers/impls/VCCCViscousDilatationalOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/VCCCViscousDilatationalOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-VCCCViscousDilatationalOperator.obj `if test -f '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/VCCCViscousDilatationalOperator.cpp'; fi`
+
 ../src/solvers/impls/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.o: ../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.o `test -f '../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po
@@ -7718,6 +7804,8 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po
@@ -7750,6 +7838,8 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po
@@ -8055,6 +8145,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCCCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po
@@ -8087,6 +8179,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCCCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousDilatationalPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po

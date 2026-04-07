@@ -227,6 +227,19 @@ public:
              int m = 0) const;
 
     /*!
+     * \brief Computes dst = alpha div (coef 1 src1) + beta src2.
+     *
+     * Uses centered differences.
+     */
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+             double alpha,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef1,
+             double beta,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
      * \brief Computes dst_l = alpha div (coef 1 src1) + beta src2_m.
      *
      * Uses centered differences.
@@ -481,6 +494,21 @@ public:
                  int n = 0) const;
 
     /*!
+     * \brief Computes dst = alpha div coef1 ((grad src1) + (grad src1)^T)
+     * + beta coef2 src1 + gamma src2.
+     */
+    void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                    double alpha,
+                    double beta,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef2,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                    double gamma,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    bool use_harmonic_interp) const;
+
+    /*!
      * \brief Computes dst_l = alpha div coef1 ((grad src1_m) + (grad src1_m)^T)
      * + beta coef2 src1_m + gamma src2_n.
      */
@@ -515,6 +543,17 @@ public:
                     int l = 0,
                     int m = 0,
                     int n = 0) const;
+
+    /*!
+     * \brief Computes dst = alpha grad (coef1 div src1) + beta src2.
+     */
+    void vc_dilational(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                       double alpha,
+                       double beta_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Computes dst_l = alpha grad (coef1_m div src1_m) + beta src2_n.

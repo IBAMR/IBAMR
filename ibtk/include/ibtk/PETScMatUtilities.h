@@ -96,6 +96,35 @@ public:
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
+     * cell-centered viscous operator of a cell-centered variable
+     * restricted to a single SAMRAI::hier::PatchLevel.
+     */
+    static void constructPatchLevelVCCCViscousOp(Mat& mat,
+                                                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 double data_time,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                                 VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * cell-centered viscous and dilatational operator of a cell-centered variable
+     * restricted to a single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelVCCCViscousDilatationalOp(Mat& mat,
+                                                 const IBTK::ProblemSpecification* problem_spec,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 double data_time,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                                 VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered Laplacian of a side-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
