@@ -131,6 +131,8 @@ DIM_DEPENDENT_SOURCES = \
 ../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 ../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/SCPoissonSolverManager.cpp \
+../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp \
+../src/solvers/impls/VCCCViscousDilatationalOperator.cpp \
 ../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/VCSCViscousOperator.cpp \
 ../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \

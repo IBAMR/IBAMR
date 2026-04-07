@@ -147,6 +147,7 @@ SET(CXX_SRC
   solvers/impls/NewtonKrylovSolverManager.cpp
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/VCSCViscousDilatationalPETScLevelSolver.cpp
+  solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
   solvers/impls/CCPoissonSolverManager.cpp
   solvers/impls/PoissonFACPreconditionerStrategy.cpp
@@ -156,6 +157,7 @@ SET(CXX_SRC
   solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp
   solvers/impls/VCSCViscousOperator.cpp
   solvers/impls/VCSCViscousDilatationalOperator.cpp
+  solvers/impls/VCCCViscousDilatationalOperator.cpp
   solvers/impls/FACPreconditioner.cpp
   solvers/impls/PETScMFFDJacobianOperator.cpp
   solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp

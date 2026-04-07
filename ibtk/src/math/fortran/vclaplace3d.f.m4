@@ -21,6 +21,37 @@ c
 c     Computes (f0,f1,f2) = alpha div mu (grad (u0,u1,u1) + grad(u0,u1,u2)^T) 
 c     + beta (u0,u1,f2) + gamma (v0,v1,v2)
 c
+c     Computes the cell-centered variable coefficient generalized
+c     Laplacian, with cell-centered coefficient mu and cell-centered
+c     vector fields (u0,u1,u2) and (v0,v1,v2).
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctocvclaplace3d(
+     &     f0,f1,f2,f_gcw,
+     &     alpha,beta,
+     &     mu,mu_gcw,
+     &     rho0,rho1,rho2,rho_gcw,
+     &     u0,u1,u2,u_gcw,
+     &     gamma,
+     &     v0,v1,v2,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     var_rho,
+     &     use_harmonic_interp)
+c
+c      implicit none
+
+c     NOT IMPLEMENTED YET             
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes (f0,f1,f2) = alpha div mu (grad (u0,u1,u1) + grad(u0,u1,u2)^T) 
+c     + beta (u0,u1,f2) + gamma (v0,v1,v2)
+c
 c     Computes the side-centered variable coefficient generalized
 c     Laplacian, with edge-centered coefficient mu and side-centered
 c     vector fields (u0,u1,u2) and (v0,v1,v2).
@@ -270,6 +301,37 @@ c
          enddo
       enddo
 c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes (f0,f1,f2) = alpha grad lambda (div (u0,u1,u2)) + beta (v0,v1,v2).
+c
+c     Computes the cell-centered variable coefficient dilatational stress force, 
+c     with cell-centered bulk viscosity coefficient lambda and cell-centered
+c     vector fields (u0,u1,u2) and (v0,v1,v2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctocvcdilatational3d(
+     &     f0,f1,f2,f_gcw,
+     &     alpha,beta,
+     &     lambda,lambda_gcw,
+     &     u0,u1,u2,u_gcw,
+     &     v0,v1,v2,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+c      implicit none
+c
+c     Input.
+c
+      
+c     NOT IMPLEMENTED YET
+
       return
       end
 c

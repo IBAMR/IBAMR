@@ -53,6 +53,11 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+namespace IBTK
+{
+class ProblemSpecification;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -96,6 +101,65 @@ public:
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                           double data_time);
+
+    /*!
+     * \brief Composite stencil key for cell-centered vector viscous operators.
+     */
+    struct CCVCStencilKey
+    {
+        SAMRAI::hier::Index<NDIM> offset;
+        int comp = -1;
+    };
+
+    /*!
+     * \brief Lexicographic ordering for CCVCStencilKey.
+     */
+    struct CCVCStencilKeyComp
+    {
+        bool operator()(const CCVCStencilKey& a, const CCVCStencilKey& b) const
+        {
+            IndexFortranOrder idx_less;
+            if (idx_less(a.offset, b.offset)) return true;
+            if (idx_less(b.offset, a.offset)) return false;
+            return a.comp < b.comp;
+        }
+    };
+
+    using CCVCStencilMap = std::map<CCVCStencilKey, int, CCVCStencilKeyComp>;
+
+    static CCVCStencilKey makeCCVCStencilKey(const SAMRAI::hier::Index<NDIM>& offset, int comp)
+    {
+        CCVCStencilKey key;
+        key.offset = offset;
+        key.comp = comp;
+        return key;
+    }
+
+    /*!
+     * \brief Compute the matrix coefficients corresponding to a cell-centered
+     * discretization of the divergence of viscous stress.
+     */
+    static void
+    computeVCCCViscousOpMatrixCoefficients(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                           const std::vector<CCVCStencilMap>& stencil_map_vec,
+                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                           double data_time,
+                                           VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Compute the matrix coefficients corresponding to a cell-centered
+     * discretization of the divergence of viscous and dilatational stress.
+     */
+    static void computeVCCCViscousDilatationalOpMatrixCoefficients(
+        SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const std::vector<CCVCStencilMap>& stencil_map_vec,
+        const ProblemSpecification* problem_spec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        VCInterpType mu_interp_type);
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
@@ -207,6 +271,21 @@ public:
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * variable-coefficient viscous and dilatational stress tensor.
+     */
+    static void adjustVCCCViscousDilatationalOpRHSAtPhysicalBoundary(
+        SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        int mu_idx,
+        int lambda_idx,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        bool homogeneous_bc,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * cell-centered discretization of the Laplacian.
      *
@@ -267,6 +346,19 @@ public:
         SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
         const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
         const int data_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const int mu_idx,
+        const int lambda_idx,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * cell-centered discretization of the variable coefficient viscous and dilatational stress tensor.
+     */
+    static void adjustVCCCViscousDilatationalOpRHSAtCoarseFineBoundary(
+        SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+        const SAMRAI::pdat::CellData<NDIM, double>& sol_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const int mu_idx,
         const int lambda_idx,

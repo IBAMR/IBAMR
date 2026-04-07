@@ -1115,6 +1115,63 @@ HierarchyMathOps::div(const int dst_idx,
 
 void
 HierarchyMathOps::div(const int dst_idx,
+                      const Pointer<CellVariable<NDIM, double> > dst_var,
+                      const double alpha,
+                      const int src1_idx,
+                      const Pointer<CellVariable<NDIM, double> > src1_var,
+                      const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                      const double src1_ghost_fill_time,
+                      int coef1_idx,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef1_var,
+                      SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> coef1_ghost_fill,
+                      double coef1_ghost_fill_time,
+                      const double beta,
+                      const int src2_idx,
+                      const Pointer<CellVariable<NDIM, double> > src2_var)
+{
+    if (coef1_idx < 0)
+    {
+        div(dst_idx,
+            dst_var,
+            alpha,
+            src1_idx,
+            src1_var,
+            src1_ghost_fill,
+            src1_ghost_fill_time,
+            beta,
+            src2_idx,
+            src2_var,
+            /*dst_depth*/ 0,
+            /*src2_depth*/ 0);
+        return;
+    }
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (coef1_ghost_fill) coef1_ghost_fill->fillData(coef1_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete divergence.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<CellData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<CellData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.div(dst_data, alpha, src1_data, coef1_data, beta, src2_data, patch);
+        }
+    }
+
+    return;
+} // div
+
+void
+HierarchyMathOps::div(const int dst_idx,
                       const Pointer<CellVariable<NDIM, double> > /*dst_var*/,
                       const double alpha,
                       const int src1_idx,
@@ -2943,6 +3000,76 @@ HierarchyMathOps::laplace(const int dst_idx,
 
 void
 HierarchyMathOps::vc_laplace(const int dst_idx,
+                             const Pointer<CellVariable<NDIM, double> > dst_var,
+                             const double alpha,
+                             const double beta,
+                             const int coef1_idx,
+                             const Pointer<CellVariable<NDIM, double> > /*coef_var*/,
+                             const int src1_idx,
+                             const Pointer<CellVariable<NDIM, double> > src1_var,
+                             const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                             const double src1_ghost_fill_time,
+                             const IBTK::VCInterpType coef1_interp_type,
+                             int coef2_idx,
+                             Pointer<CellVariable<NDIM, double> > /*coef2_var*/,
+                             const double gamma,
+                             const int src2_idx,
+                             const Pointer<CellVariable<NDIM, double> > src2_var)
+{
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+
+    Pointer<CellDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double> > src1_factory = src1_var->getPatchDataFactory();
+    if (dst_factory->getDefaultDepth() != NDIM || src1_factory->getDefaultDepth() != NDIM)
+    {
+        TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
+                   << "  cell-centered variable-coefficient Laplacian requires NDIM-valued data" << std::endl);
+    }
+    if (src2_var)
+    {
+        Pointer<CellDataFactory<NDIM, double> > src2_factory = src2_var->getPatchDataFactory();
+        if (src2_factory->getDefaultDepth() != NDIM)
+        {
+            TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
+                       << "  cell-centered variable-coefficient Laplacian requires NDIM-valued data" << std::endl);
+        }
+    }
+    if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
+    {
+        TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
+                   << "  unsupported variable coefficient interpolation type: "
+                   << enum_to_string<VCInterpType>(coef1_interp_type) << " \n"
+                   << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
+    }
+    const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
+
+    // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
+    // gamma src2 independently on each level.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<CellData<NDIM, double> > coef2_data =
+                (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : Pointer<PatchData<NDIM> >();
+            Pointer<CellData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<CellData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.vc_laplace(
+                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch, use_harmonic_interp);
+        }
+    }
+
+    return;
+} // vc_laplace
+
+void
+HierarchyMathOps::vc_laplace(const int dst_idx,
                              const Pointer<SideVariable<NDIM, double> > dst_var,
                              const double alpha,
                              const double beta,
@@ -3144,6 +3271,62 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     }
     return;
 } // vc_laplace
+
+void
+HierarchyMathOps::vc_dilatational(int dst_idx,
+                                  Pointer<CellVariable<NDIM, double> > dst_var,
+                                  double alpha,
+                                  int coef1_idx,
+                                  Pointer<CellVariable<NDIM, double> > /*coef1_var*/,
+                                  int src1_idx,
+                                  Pointer<CellVariable<NDIM, double> > src1_var,
+                                  Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                                  double src1_ghost_fill_time,
+                                  double beta,
+                                  int src2_idx,
+                                  Pointer<CellVariable<NDIM, double> > src2_var)
+{
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+
+    Pointer<CellDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double> > src1_factory = src1_var->getPatchDataFactory();
+    if (dst_factory->getDefaultDepth() != NDIM || src1_factory->getDefaultDepth() != NDIM)
+    {
+        TBOX_ERROR("HierarchyMathOps::vc_dilatational():\n"
+                   << "  cell-centered variable-coefficient dilatational stress force requires vector-valued data"
+                   << std::endl);
+    }
+    if (src2_var)
+    {
+        Pointer<CellDataFactory<NDIM, double> > src2_factory = src2_var->getPatchDataFactory();
+        if (src2_factory->getDefaultDepth() != NDIM)
+        {
+            TBOX_ERROR("HierarchyMathOps::vc_dilatational():\n"
+                       << "  cell-centered variable-coefficient dilatational stress force requires vector-valued data"
+                       << std::endl);
+        }
+    }
+
+    // Compute dst = alpha grad coef1 (div src1)  + beta src2 independently on each level.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<CellData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<CellData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.vc_dilational(dst_data, alpha, beta, coef1_data, src1_data, src2_data, patch);
+        }
+    }
+
+    return;
+} // vc_dilatational
 
 void
 HierarchyMathOps::vc_dilatational(int dst_idx,

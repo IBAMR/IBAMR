@@ -18,7 +18,131 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes (f0,f1) = alpha div mu (grad (u0,u1) + grad(u0,u1)^T) + beta (u0,u1) +
+c     Computes (f0,f1) = alpha div mu (grad (u0,u1) + grad(u0,u1)^T) + beta rho (u0,u1) +
+c     gamma (v0,v1).
+c
+c     Computes the cell-centered variable coefficient generalized
+c     Laplacian, with cell-centered coefficient mu and cell-centered
+c     vector fields (u0,u1) and (v0,v1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctocvclaplace2d(
+     &     f0,f1,f_gcw,
+     &     alpha,beta,
+     &     mu,mu_gcw,
+     &     rho0,rho1,rho_gcw,
+     &     u0,u1,u_gcw,
+     &     gamma,
+     &     v0,v1,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     var_rho,
+     &     use_harmonic_interp)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL a_avg2, h_avg2
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER f_gcw,mu_gcw,rho_gcw,u_gcw,v_gcw,var_rho
+      INTEGER use_harmonic_interp
+
+      REAL alpha,beta,gamma
+
+      REAL mu(CELL2d(ilower,iupper,mu_gcw))
+
+      REAL rho0(CELL2d(ilower,iupper,rho_gcw))
+      REAL rho1(CELL2d(ilower,iupper,rho_gcw))
+      
+      REAL u0(CELL2d(ilower,iupper,u_gcw))
+      REAL u1(CELL2d(ilower,iupper,u_gcw))
+
+      REAL v0(CELL2d(ilower,iupper,v_gcw))
+      REAL v1(CELL2d(ilower,iupper,v_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL f0(CELL2d(ilower,iupper,f_gcw))
+      REAL f1(CELL2d(ilower,iupper,f_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1,rho
+      REAL    mu_e,mu_w,mu_n,mu_s
+c
+c     Compute the discrete divergence of mu (grad (u0,u1) + grad (u0,u1)^T).
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+
+            if (use_harmonic_interp .eq. 1) then
+                mu_e = h_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = h_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = h_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = h_avg2(mu(i0,i1),mu(i0,i1-1))
+            else
+                mu_e = a_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = a_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = a_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = a_avg2(mu(i0,i1),mu(i0,i1-1))
+            endif
+
+            rho = beta
+            if (var_rho .eq. 1) then
+               rho = rho0(i0,i1)*beta
+            endif
+            f0(i0,i1) = alpha*(
+     &           2.d0*fac0**2.d0*(
+     &           mu_e*(u0(i0+1,i1)-u0(i0,i1))-
+     &           mu_w*(u0(i0,i1)-u0(i0-1,i1))) +
+     &           0.25d0*mu_n*fac0*fac1*(u1(i0+1,i1)+u1(i0+1,i1+1) - 
+     &                 u1(i0-1,i1) -u1(i0-1,i1+1)) -
+     &           0.25d0*mu_s*fac0*fac1*(u1(i0+1,i1)+u1(i0+1,i1-1) - 
+     &                 u1(i0-1,i1) -u1(i0-1,i1-1)) +
+     &           mu_n*fac1**2.d0*(u0(i0,i1+1) - u0(i0,i1)) -
+     &           mu_s*fac1**2.d0*(u0(i0,i1) - u0(i0,i1-1))) +
+     &           rho*u0(i0,i1) + gamma*v0(i0,i1)
+
+            rho = beta
+            if (var_rho .eq. 1) then
+               rho = rho1(i0,i1)*beta
+            endif
+            f1(i0,i1) = alpha*(
+     &           2.d0*fac1**2.d0*(
+     &           mu_n*
+     &           (u1(i0,i1+1)-u1(i0,i1))-
+     &           mu_s*
+     &           (u1(i0,i1)-u1(i0,i1-1)))+
+     &           mu_e*fac0**2.d0*(u1(i0+1,i1)-u1(i0,i1)) -
+     &           mu_w*fac0**2.d0*(u1(i0,i1)-u1(i0-1,i1)) +
+     &           0.25d0*fac0*fac1*mu_e*(u0(i0+1,i1+1)+u0(i0,i1+1) -
+     &                   u0(i0+1,i1-1)-u0(i0,i1-1)) -
+     &           0.25d0*fac0*fac1*mu_w*(u0(i0-1,i1+1)+u0(i0,i1+1) -
+     &                   u0(i0-1,i1-1)-u0(i0,i1-1)) ) +
+     &           rho*u1(i0,i1) + gamma*v1(i0,i1)
+         enddo
+      enddo
+
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes (f0,f1) = alpha div mu (grad (u0,u1) + grad(u0,u1)^T) + beta rho (u0,u1) +
 c     gamma (v0,v1).
 c
 c     Computes the side-centered variable coefficient generalized
@@ -153,6 +277,99 @@ c
      &           fac0*fac1*(mu(i0+1,i1)*(u0(i0+1,i1)-u0(i0+1,i1-1))-
      &           mu(i0,i1)*(u0(i0,i1)-u0(i0,i1-1)))) +
      &           rho*u1(i0,i1) + gamma*v1(i0,i1)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes (f0,f1) = alpha grad lambda (div (u0,u1)) + beta (v0,v1).
+c
+c     Computes the cell-centered variable coefficient dilatational stress force, 
+c     with cell-centered bulk viscosity coefficient lambda and cell-centered
+c     vector fields (u0,u1) and (v0,v1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctocvcdilatational2d(
+     &     f0,f1,f_gcw,
+     &     alpha,beta,
+     &     lambda,lambda_gcw,
+     &     u0,u1,u_gcw,
+     &     v0,v1,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER f_gcw,lambda_gcw,u_gcw,v_gcw
+
+      REAL alpha,beta
+
+      REAL lambda(CELL2d(ilower,iupper,lambda_gcw))
+      
+      REAL u0(CELL2d(ilower,iupper,u_gcw))
+      REAL u1(CELL2d(ilower,iupper,u_gcw))
+
+      REAL v0(CELL2d(ilower,iupper,v_gcw))
+      REAL v1(CELL2d(ilower,iupper,v_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL f0(CELL2d(ilower,iupper,f_gcw))
+      REAL f1(CELL2d(ilower,iupper,f_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1
+      REAL    div_e,div_w,div_n,div_s
+      REAL    lambda_e,lambda_w,lambda_n,lambda_s
+c
+c     Compute alpha grad lambda (div (u0,u1)) + beta (v0,v1).
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+            div_e = fac0*(u0(i0+1,i1) - u0(i0,i1))+
+     &            0.25d0*fac1*(u1(i0,i1+1) + u1(i0+1,i1+1) - 
+     &                         u1(i0,i1-1) - u1(i0+1,i1-1))   
+      
+            div_w = fac0*(u0(i0,i1) - u0(i0-1,i1))+
+     &            0.25d0*fac1*(u1(i0-1,i1+1) + u1(i0,i1+1) - 
+     &                         u1(i0-1,i1-1) - u1(i0,i1-1)) 
+
+            div_n = 0.25d0*fac0*(u0(i0+1,i1+1) + u0(i0+1,i1)  - 
+     &                           u0(i0-1,i1+1) - u0(i0-1,i1)) +
+     &            fac1*(u1(i0,i1+1) - u1(i0,i1))  
+
+            div_s = 0.25d0*fac0*(u0(i0+1,i1-1) + u0(i0+1,i1)  - 
+     &                           u0(i0-1,i1-1) - u0(i0-1,i1)) +
+     &            fac1*(u1(i0,i1) - u1(i0,i1-1))
+
+            lambda_e = 0.5d0*(lambda(i0+1,i1) + lambda(i0,i1))
+            lambda_w = 0.5d0*(lambda(i0-1,i1) + lambda(i0,i1))
+            lambda_n = 0.5d0*(lambda(i0,i1+1) + lambda(i0,i1))
+            lambda_s = 0.5d0*(lambda(i0,i1)   + lambda(i0,i1-1))  
+
+            f0(i0,i1) = alpha*fac0*(lambda_e*div_e -
+     &            lambda_w*div_w)+ beta*v0(i0,i1)  
+
+            f1(i0,i1) = alpha*fac1*(lambda_n*div_n -
+     &            lambda_s*div_s)+ beta*v1(i0,i1)      
+            
          enddo
       enddo
 c

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2023 by the IBAMR developers
+// Copyright (c) 2017 - 2023 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -13,50 +13,45 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBTK_CCLaplaceOperator
-#define included_IBTK_CCLaplaceOperator
+#ifndef included_IBTK_VCCCViscousDilatationalOperator
+#define included_IBTK_VCCCViscousDilatationalOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/config.h>
 
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/ibtk_utilities.h"
-
-#include "Box.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
-
-#include <string>
-#include <vector>
+#include "ibtk/CCLaplaceOperator.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class CCLaplaceOperator is a concrete LaplaceOperator which implements
- * a globally second-order accurate cell-centered finite difference
- * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
- * \cdot D \nabla\f$.
+ * \brief Class VCCCViscousDilatationalOperator is a subclass of CCLaplaceOperator
+ * which implements a globally second-order accurate cell-centered finite
+ * difference discretization of a vector elliptic operator of the form
+ * \f$ L = \beta C I +  \nabla \cdot \mu ( (\nabla u) + (\nabla u)^T ) + \nabla (\lambda \nabla \cdot u) = \f$.
+ *
+ * Here \f$ u \f$ and \f$ C \f$ are vector valued cell-centered fields,
+ * \f$ \mu \f$ is a node-(2D) or edge-(3D) centered scalar field, and \f$ \lambda\f$
+ * is a cell-centered field.
+ *
+ * The scaling factors of \f$ C \f$ and \f$ \mu \f$ variables are passed separately
+ * and are denoted by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
  */
-class CCLaplaceOperator : public LaplaceOperator
+class VCCCViscousDilatationalOperator : public CCLaplaceOperator
 {
 public:
     /*!
-     * \brief Constructor for class CCLaplaceOperator initializes the operator
+     * \brief Constructor for class VCCCViscousDilatationalOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    CCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
+    VCCCViscousDilatationalOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
      */
-    ~CCLaplaceOperator();
+    ~VCCCViscousDilatationalOperator();
 
     /*!
      * \name Linear operator functionality.
@@ -118,18 +113,12 @@ public:
     void deallocateOperatorState() override;
 
     //\}
-protected:
-    // Operator parameters.
-    int d_ncomp = 0;
 
-    // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
-    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
-
-    // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+    /*!
+     * \brief Set the interpolation type to be used in computing the
+     * variable coefficient viscous Laplacian.
+     */
+    void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
 
 private:
     /*!
@@ -137,7 +126,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCLaplaceOperator() = delete;
+    VCCCViscousDilatationalOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -146,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCLaplaceOperator(const CCLaplaceOperator& from) = delete;
+    VCCCViscousDilatationalOperator(const VCCCViscousDilatationalOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -157,10 +146,15 @@ private:
      *
      * \return A reference to this object.
      */
-    CCLaplaceOperator& operator=(const CCLaplaceOperator& that) = delete;
+    VCCCViscousDilatationalOperator& operator=(const VCCCViscousDilatationalOperator& that) = delete;
+
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
 };
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CCLaplaceOperator
+#endif // #ifndef included_IBTK_VCCCViscousDilatationalOperator

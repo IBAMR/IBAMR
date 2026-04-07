@@ -424,6 +424,32 @@ public:
      * \brief Compute the cell-centered divergence of a cell-centered vector
      * field using centered differences.
      *
+     * Sets dst = alpha div (coef1 * src1) + beta src2.
+     *
+     * Compute the divergence of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void div(int dst_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+             double alpha,
+             int src1_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             double src1_ghost_fill_time,
+             int coef1_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef1_var,
+             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> coef1_ghost_fill,
+             double coef1_ghost_fill_time,
+             double beta = 0.0,
+             int src2_idx = invalid_index,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr);
+
+    /*!
+     * \brief Compute the cell-centered divergence of a cell-centered vector
+     * field using centered differences.
+     *
      * Sets dst = alpha div src1 + beta src2.
      *
      * Compute the divergence of a vector field using centered differences.
@@ -1131,6 +1157,35 @@ public:
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.
      *
+     * Interally, coef1 will be interpolated onto appropriate locations. Harmonic interpolation
+     * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
+     * from nodes to cells
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void vc_laplace(int dst_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                    double alpha,
+                    double beta,
+                    int coef1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef1_var,
+                    int src1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    double src1_ghost_fill_time,
+                    IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
+                    int coef2_idx = invalid_index,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef2_var = nullptr,
+                    double gamma = 0.0,
+                    int src2_idx = invalid_index,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = nullptr);
+
+    /*!
+     * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
+     * src1 + gamma src2, the variable coefficient generalized Laplacian of
+     * src1.
+     *
      * \note This routine is only appropriate for NDIM == 2 and uses node centered coef1.
      * Interally, coef1 will be interpolated onto cell centers when needed. Harmonic interpolation
      * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
@@ -1185,6 +1240,26 @@ public:
                     double gamma = 0.0,
                     int src2_idx = invalid_index,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr);
+
+    /*!
+     * \brief Compute dst = alpha grad coef1 (div src1)  + beta src2, the variable coefficient
+     * dilatational stress force.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void vc_dilatational(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                         double alpha,
+                         int coef1_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef1_var,
+                         int src1_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                         double src1_ghost_fill_time,
+                         double beta = 0.0,
+                         int src2_idx = invalid_index,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha grad coef1 (div src1)  + beta src2, the variable coefficient

@@ -16,6 +16,18 @@ define(INTEGER,`integer')dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the arithmetic average based on the two inputs
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      REAL function a_avg2(a0,a1)
+      implicit none
+      REAL a0,a1
+      a_avg2 = 0.5d0*(a0+a1)
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the arithmetic average based on the four inputs
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

@@ -1,0 +1,161 @@
+
+
+u_fcn = "X0^2*X1 + X0*X1^2"
+v_fcn = "X0*X1 - X0^2*X1^2"
+u {
+   function_0 = u_fcn   // x-component
+   function_1 = v_fcn     // y-component
+}
+
+a = 1.0
+b = 10.0
+
+mu {
+   A = a
+   function = "10 + A*X0^2*X1^2"
+}
+
+lambda {
+   B = b
+   function = "5 + B*X0^2*X1^2"
+}
+
+f  {
+
+   A = a
+   B = b
+
+   function_0 = "15 + 50*X1 + X0*(20 + X1*(-60 + 2*A*X0^3 + 3*X0*(A + B + 2*A*X0)*X1 + 2*X0*(6*A + 3*B - 4*(A + B)*X0)*X1^2 + 2*(2*A + B)*X1^3))"
+   function_1 = "2*(5*(3 - 2*X1)*X1 - 3*(2*A + B)*X0^4*X1^2 + X0*(15 + A*X1^3) + X0^2*(-25 + (2*B - 3*A*(-1 + X1))*X1^3) + X0^3*X1*(B + 3*B*X1 + 2*A*(1 + X1)))"
+}
+
+
+// u velocity
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = u_fcn
+   gcoef_function_1 = u_fcn
+   gcoef_function_2 = u_fcn
+   gcoef_function_3 = u_fcn
+
+}
+
+// v velocity
+VelocityBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = v_fcn
+   gcoef_function_1 = v_fcn
+   gcoef_function_2 = v_fcn
+   gcoef_function_3 = v_fcn
+
+}
+
+
+
+solver_type = "VC_CC_VELOCITY_PETSC_KRYLOV_SOLVER"
+solver_db {
+   ksp_type          = "fgmres"
+   pc_type           = "shell"
+   rel_residual_tol  = 1.0e-12
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = TRUE
+}
+
+precond_type = "VC_CC_VELOCITY_PETSC_LEVEL_SOLVER"
+precond_db {
+   ksp_type          = "gmres"
+   pc_type           = "bjacobi"
+   rel_residual_tol  = 1.0e-14
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = FALSE
+}
+
+
+Main {
+// log file parameters
+   log_file_name = "VCCCViscousDilatationalOpSolverTester2d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 32
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}

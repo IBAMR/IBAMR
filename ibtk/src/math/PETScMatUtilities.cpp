@@ -432,6 +432,498 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 } // constructPatchLevelSCLaplaceOp
 
 void
+PETScMatUtilities::constructPatchLevelVCCCViscousOp(
+    Mat& mat,
+    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    int dof_index_idx,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+    VCInterpType mu_interp_type)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+#endif
+
+    using StencilMapType = PoissonUtilities::CCVCStencilMap;
+    const auto make_key = PoissonUtilities::makeCCVCStencilKey;
+
+    static std::vector<StencilMapType> stencil_map_vec;
+    static const hier::Index<NDIM> ORIGIN(0);
+    static const int stencil_sz = 1 + 2 * NDIM + 9 * (NDIM - 1);
+
+    if (stencil_map_vec.empty())
+    {
+        stencil_map_vec.resize(NDIM);
+
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            StencilMapType& sm = stencil_map_vec[axis];
+            int idx = 0;
+
+            // Same-component center.
+            sm[make_key(ORIGIN, axis)] = idx++;
+
+            // Same-component nearest neighbors.
+            for (int d = 0; d < NDIM; ++d)
+            {
+                sm[make_key(get_shift(d, +1), axis)] = idx++;
+                sm[make_key(get_shift(d, -1), axis)] = idx++;
+            }
+
+            // Cross-component entries.
+            for (int comp = 0; comp < NDIM; ++comp)
+            {
+                if (comp == axis) continue;
+
+                const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                // Interior strip.
+                sm[make_key(ea_p + ec_p, comp)] = idx++;
+                sm[make_key(ea_m + ec_p, comp)] = idx++;
+                sm[make_key(ea_p, comp)] = idx++;
+                sm[make_key(ea_m, comp)] = idx++;
+                sm[make_key(ea_p + ec_m, comp)] = idx++;
+                sm[make_key(ea_m + ec_m, comp)] = idx++;
+
+                // Boundary-generated entries from correct pass-2 elimination.
+                sm[make_key(ec_p, comp)] = idx++;
+                sm[make_key(ORIGIN, comp)] = idx++;
+                sm[make_key(ec_m, comp)] = idx++;
+            }
+
+#if !defined(NDEBUG)
+            TBOX_ASSERT(idx == stencil_sz);
+#endif
+        }
+    }
+
+    int ierr = 0;
+
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int proc_upper = proc_lower + n_local;
+    const int n_total = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+
+    std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+#if !defined(NDEBUG)
+        TBOX_ASSERT(dof_index_data->getDepth() == NDIM);
+#endif
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int row = (*dof_index_data)(i, axis);
+                if (!(proc_lower <= row && row < proc_upper)) continue;
+
+                const int local_idx = row - proc_lower;
+
+                auto count_col = [&](const CellIndex<NDIM>& j, int comp)
+                {
+                    const int col = (*dof_index_data)(j, comp);
+                    if (proc_lower <= col && col < proc_upper)
+                        d_nnz[local_idx] += 1;
+                    else
+                        o_nnz[local_idx] += 1;
+                };
+
+                // Center.
+                d_nnz[local_idx] += 1;
+
+                // Same-component neighbors.
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    count_col(i + get_shift(d, +1), axis);
+                    count_col(i + get_shift(d, -1), axis);
+                }
+
+                // Cross-component entries.
+                for (int comp = 0; comp < NDIM; ++comp)
+                {
+                    if (comp == axis) continue;
+
+                    const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                    const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                    const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                    const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                    const hier::Index<NDIM> shifts[9] = { ea_p + ec_p, ea_m + ec_p, ea_p,   ea_m, ea_p + ec_m,
+                                                          ea_m + ec_m, ec_p,        ORIGIN, ec_m };
+
+                    for (int k = 0; k < 9; ++k)
+                    {
+                        count_col(i + shifts[k], comp);
+                    }
+                }
+
+                d_nnz[local_idx] = std::min(n_local, d_nnz[local_idx]);
+                o_nnz[local_idx] = std::min(n_total - n_local, o_nnz[local_idx]);
+            }
+        }
+    }
+
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        n_local ? &d_nnz[0] : nullptr,
+                        0,
+                        n_local ? &o_nnz[0] : nullptr,
+                        &mat);
+    IBTK_CHKERRQ(ierr);
+
+    ierr = MatSetBlockSize(mat, NDIM);
+    IBTK_CHKERRQ(ierr);
+
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        const IntVector<NDIM> no_ghosts(0);
+        CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz * NDIM, no_ghosts);
+
+        PoissonUtilities::computeVCCCViscousOpMatrixCoefficients(
+            matrix_coefs, patch, stencil_map_vec, poisson_spec, bc_coefs, data_time, mu_interp_type);
+
+        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+        std::vector<double> mat_vals(stencil_sz);
+        std::vector<int> mat_cols(stencil_sz);
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int row = (*dof_index_data)(i, axis);
+                if (!(proc_lower <= row && row < proc_upper)) continue;
+
+                const StencilMapType& sm = stencil_map_vec[axis];
+                const int offset = axis * stencil_sz;
+
+                int idx = 0;
+
+                // Same-component center.
+                mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(ORIGIN, axis)));
+                mat_cols[idx] = (*dof_index_data)(i, axis);
+
+                // Same-component nearest neighbors.
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    idx += 1;
+                    mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(get_shift(d, +1), axis)));
+                    mat_cols[idx] = (*dof_index_data)(i + get_shift(d, +1), axis);
+
+                    idx += 1;
+                    mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(get_shift(d, -1), axis)));
+                    mat_cols[idx] = (*dof_index_data)(i + get_shift(d, -1), axis);
+                }
+
+                // Cross-component entries.
+                for (int comp = 0; comp < NDIM; ++comp)
+                {
+                    if (comp == axis) continue;
+
+                    const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                    const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                    const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                    const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                    const hier::Index<NDIM> shifts[9] = { ea_p + ec_p, ea_m + ec_p, ea_p,   ea_m, ea_p + ec_m,
+                                                          ea_m + ec_m, ec_p,        ORIGIN, ec_m };
+
+                    for (int k = 0; k < 9; ++k)
+                    {
+                        idx += 1;
+                        mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(shifts[k], comp)));
+                        mat_cols[idx] = (*dof_index_data)(i + shifts[k], comp);
+                    }
+                }
+
+#if !defined(NDEBUG)
+                TBOX_ASSERT(idx == stencil_sz - 1);
+#endif
+
+                ierr = MatSetValues(mat, 1, &row, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+
+    return;
+} // constructPatchLevelVCCCViscousOp
+
+void
+PETScMatUtilities::constructPatchLevelVCCCViscousDilatationalOp(Mat& mat,
+                                                                const ProblemSpecification* problem_spec,
+                                                                const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                                double data_time,
+                                                                const std::vector<int>& num_dofs_per_proc,
+                                                                int dof_index_idx,
+                                                                Pointer<PatchLevel<NDIM> > patch_level,
+                                                                VCInterpType mu_interp_type)
+{
+    const auto& vc_op_spec = static_cast<const VCViscousDilatationalOpSpec&>(*problem_spec);
+    NULL_USE(vc_op_spec);
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+#endif
+
+    using StencilMapType = PoissonUtilities::CCVCStencilMap;
+    const auto make_key = PoissonUtilities::makeCCVCStencilKey;
+
+    static std::vector<StencilMapType> stencil_map_vec;
+    static const hier::Index<NDIM> ORIGIN(0);
+    static const int stencil_sz = 1 + 2 * NDIM + 9 * (NDIM - 1);
+
+    if (stencil_map_vec.empty())
+    {
+        stencil_map_vec.resize(NDIM);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            StencilMapType& sm = stencil_map_vec[axis];
+            int idx = 0;
+
+            // Same-component entries.
+            sm[make_key(ORIGIN, axis)] = idx++;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                sm[make_key(get_shift(d, +1), axis)] = idx++;
+                sm[make_key(get_shift(d, -1), axis)] = idx++;
+            }
+
+            // Cross-component entries: interior strip + boundary-generated entries.
+            for (int comp = 0; comp < NDIM; ++comp)
+            {
+                if (comp == axis) continue;
+
+                const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                sm[make_key(ea_p + ec_p, comp)] = idx++;
+                sm[make_key(ea_m + ec_p, comp)] = idx++;
+                sm[make_key(ea_p, comp)] = idx++;
+                sm[make_key(ea_m, comp)] = idx++;
+                sm[make_key(ea_p + ec_m, comp)] = idx++;
+                sm[make_key(ea_m + ec_m, comp)] = idx++;
+
+                sm[make_key(ec_p, comp)] = idx++;
+                sm[make_key(ORIGIN, comp)] = idx++;
+                sm[make_key(ec_m, comp)] = idx++;
+            }
+
+#if !defined(NDEBUG)
+            TBOX_ASSERT(idx == stencil_sz);
+#endif
+        }
+    }
+
+    int ierr = 0;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int proc_upper = proc_lower + n_local;
+    const int n_total = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+
+    std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+#if !defined(NDEBUG)
+        TBOX_ASSERT(dof_index_data->getDepth() == NDIM);
+#endif
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int row = (*dof_index_data)(i, axis);
+                if (!(proc_lower <= row && row < proc_upper)) continue;
+
+                const int local_idx = row - proc_lower;
+
+                auto count_col = [&](const CellIndex<NDIM>& j, int comp)
+                {
+                    const int col = (*dof_index_data)(j, comp);
+                    if (proc_lower <= col && col < proc_upper)
+                        d_nnz[local_idx] += 1;
+                    else
+                        o_nnz[local_idx] += 1;
+                };
+
+                // Same-component center.
+                d_nnz[local_idx] += 1;
+
+                // Same-component neighbors.
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    count_col(i + get_shift(d, +1), axis);
+                    count_col(i + get_shift(d, -1), axis);
+                }
+
+                // Cross-component entries.
+                for (int comp = 0; comp < NDIM; ++comp)
+                {
+                    if (comp == axis) continue;
+
+                    const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                    const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                    const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                    const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                    const hier::Index<NDIM> shifts[9] = { ea_p + ec_p, ea_m + ec_p, ea_p,   ea_m, ea_p + ec_m,
+                                                          ea_m + ec_m, ec_p,        ORIGIN, ec_m };
+
+                    for (int k = 0; k < 9; ++k)
+                    {
+                        count_col(i + shifts[k], comp);
+                    }
+                }
+
+                d_nnz[local_idx] = std::min(n_local, d_nnz[local_idx]);
+                o_nnz[local_idx] = std::min(n_total - n_local, o_nnz[local_idx]);
+            }
+        }
+    }
+
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        n_local ? &d_nnz[0] : nullptr,
+                        0,
+                        n_local ? &o_nnz[0] : nullptr,
+                        &mat);
+    IBTK_CHKERRQ(ierr);
+
+    ierr = MatSetBlockSize(mat, NDIM);
+    IBTK_CHKERRQ(ierr);
+
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        const IntVector<NDIM> no_ghosts(0);
+        CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz * NDIM, no_ghosts);
+
+        PoissonUtilities::computeVCCCViscousDilatationalOpMatrixCoefficients(
+            matrix_coefs, patch, stencil_map_vec, problem_spec, bc_coefs, data_time, mu_interp_type);
+
+        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+        std::vector<double> mat_vals(stencil_sz);
+        std::vector<int> mat_cols(stencil_sz);
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int row = (*dof_index_data)(i, axis);
+                if (!(proc_lower <= row && row < proc_upper)) continue;
+
+                const StencilMapType& sm = stencil_map_vec[axis];
+                const int offset = axis * stencil_sz;
+
+                int idx = 0;
+                mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(ORIGIN, axis)));
+                mat_cols[idx] = (*dof_index_data)(i, axis);
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    idx += 1;
+                    mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(get_shift(d, +1), axis)));
+                    mat_cols[idx] = (*dof_index_data)(i + get_shift(d, +1), axis);
+
+                    idx += 1;
+                    mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(get_shift(d, -1), axis)));
+                    mat_cols[idx] = (*dof_index_data)(i + get_shift(d, -1), axis);
+                }
+
+                for (int comp = 0; comp < NDIM; ++comp)
+                {
+                    if (comp == axis) continue;
+
+                    const hier::Index<NDIM> ea_p = get_shift(axis, +1);
+                    const hier::Index<NDIM> ea_m = get_shift(axis, -1);
+                    const hier::Index<NDIM> ec_p = get_shift(comp, +1);
+                    const hier::Index<NDIM> ec_m = get_shift(comp, -1);
+
+                    const hier::Index<NDIM> shifts[9] = { ea_p + ec_p, ea_m + ec_p, ea_p,   ea_m, ea_p + ec_m,
+                                                          ea_m + ec_m, ec_p,        ORIGIN, ec_m };
+
+                    for (int k = 0; k < 9; ++k)
+                    {
+                        idx += 1;
+                        mat_vals[idx] = matrix_coefs(i, offset + sm.at(make_key(shifts[k], comp)));
+                        mat_cols[idx] = (*dof_index_data)(i + shifts[k], comp);
+                    }
+                }
+
+#if !defined(NDEBUG)
+                TBOX_ASSERT(idx == stencil_sz - 1);
+#endif
+
+                ierr = MatSetValues(mat, 1, &row, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+} // constructPatchLevelCCVCViscousDilatationalOp
+
+void
 PETScMatUtilities::constructPatchLevelVCSCViscousOp(Mat& mat,
                                                     const PoissonSpecifications& poisson_spec,
                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,

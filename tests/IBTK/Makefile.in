@@ -97,6 +97,7 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	phys_boundary_ops_2d$(EXEEXT) phys_boundary_ops_3d$(EXEEXT) \
 	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT) \
 	box_utilities_01_2d$(EXEEXT) box_utilities_01_3d$(EXEEXT) \
+	vc_cc_viscous_dilatational_solver_2d$(EXEEXT) \
 	ghost_accumulation_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
@@ -558,6 +559,15 @@ subdomain_level_translation_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(subdomain_level_translation_01_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_vc_cc_viscous_dilatational_solver_2d_OBJECTS = vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.$(OBJEXT)
+vc_cc_viscous_dilatational_solver_2d_OBJECTS =  \
+	$(am_vc_cc_viscous_dilatational_solver_2d_OBJECTS)
+vc_cc_viscous_dilatational_solver_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+vc_cc_viscous_dilatational_solver_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(vc_cc_viscous_dilatational_solver_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_vc_viscous_solver_2d_OBJECTS =  \
 	vc_viscous_solver_2d-vc_viscous_solver.$(OBJEXT)
 vc_viscous_solver_2d_OBJECTS = $(am_vc_viscous_solver_2d_OBJECTS)
@@ -647,6 +657,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po \
 	./$(DEPDIR)/snapshot_cache_01_2d-snapshot_cache_01.Po \
 	./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po \
+	./$(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po \
 	./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po \
 	./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po \
 	./$(DEPDIR)/version_macros-version_macros.Po
@@ -701,6 +712,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(snapshot_cache_01_2d_SOURCES) \
 	$(subdomain_level_translation_01_SOURCES) \
+	$(vc_cc_viscous_dilatational_solver_2d_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES) $(version_macros_SOURCES)
 DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
@@ -738,6 +750,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(snapshot_cache_01_2d_SOURCES) \
 	$(am__subdomain_level_translation_01_SOURCES_DIST) \
+	$(vc_cc_viscous_dilatational_solver_2d_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES) $(version_macros_SOURCES)
 am__can_run_installinfo = \
@@ -1112,6 +1125,9 @@ vc_viscous_solver_2d_SOURCES = vc_viscous_solver.cpp
 vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
+vc_cc_viscous_dilatational_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+vc_cc_viscous_dilatational_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+vc_cc_viscous_dilatational_solver_2d_SOURCES = vc_cc_viscous_dilatational_solver.cpp
 @LIBMESH_ENABLED_TRUE@jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
@@ -1423,6 +1439,10 @@ subdomain_level_translation_01$(EXEEXT): $(subdomain_level_translation_01_OBJECT
 	@rm -f subdomain_level_translation_01$(EXEEXT)
 	$(AM_V_CXXLD)$(subdomain_level_translation_01_LINK) $(subdomain_level_translation_01_OBJECTS) $(subdomain_level_translation_01_LDADD) $(LIBS)
 
+vc_cc_viscous_dilatational_solver_2d$(EXEEXT): $(vc_cc_viscous_dilatational_solver_2d_OBJECTS) $(vc_cc_viscous_dilatational_solver_2d_DEPENDENCIES) $(EXTRA_vc_cc_viscous_dilatational_solver_2d_DEPENDENCIES) 
+	@rm -f vc_cc_viscous_dilatational_solver_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(vc_cc_viscous_dilatational_solver_2d_LINK) $(vc_cc_viscous_dilatational_solver_2d_OBJECTS) $(vc_cc_viscous_dilatational_solver_2d_LDADD) $(LIBS)
+
 vc_viscous_solver_2d$(EXEEXT): $(vc_viscous_solver_2d_OBJECTS) $(vc_viscous_solver_2d_DEPENDENCIES) $(EXTRA_vc_viscous_solver_2d_DEPENDENCIES) 
 	@rm -f vc_viscous_solver_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(vc_viscous_solver_2d_LINK) $(vc_viscous_solver_2d_OBJECTS) $(vc_viscous_solver_2d_LDADD) $(LIBS)
@@ -1491,6 +1511,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snapshot_cache_01_2d-snapshot_cache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/version_macros-version_macros.Po@am__quote@ # am--include-marker
@@ -2225,6 +2246,20 @@ subdomain_level_translation_01-subdomain_level_translation_01.obj: subdomain_lev
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(subdomain_level_translation_01_CXXFLAGS) $(CXXFLAGS) -c -o subdomain_level_translation_01-subdomain_level_translation_01.obj `if test -f 'subdomain_level_translation_01.cpp'; then $(CYGPATH_W) 'subdomain_level_translation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/subdomain_level_translation_01.cpp'; fi`
 
+vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.o: vc_cc_viscous_dilatational_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_viscous_dilatational_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.o -MD -MP -MF $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Tpo -c -o vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.o `test -f 'vc_cc_viscous_dilatational_solver.cpp' || echo '$(srcdir)/'`vc_cc_viscous_dilatational_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Tpo $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_cc_viscous_dilatational_solver.cpp' object='vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_viscous_dilatational_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.o `test -f 'vc_cc_viscous_dilatational_solver.cpp' || echo '$(srcdir)/'`vc_cc_viscous_dilatational_solver.cpp
+
+vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.obj: vc_cc_viscous_dilatational_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_viscous_dilatational_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.obj -MD -MP -MF $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Tpo -c -o vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.obj `if test -f 'vc_cc_viscous_dilatational_solver.cpp'; then $(CYGPATH_W) 'vc_cc_viscous_dilatational_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_cc_viscous_dilatational_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Tpo $(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_cc_viscous_dilatational_solver.cpp' object='vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_viscous_dilatational_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.obj `if test -f 'vc_cc_viscous_dilatational_solver.cpp'; then $(CYGPATH_W) 'vc_cc_viscous_dilatational_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_cc_viscous_dilatational_solver.cpp'; fi`
+
 vc_viscous_solver_2d-vc_viscous_solver.o: vc_viscous_solver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_viscous_solver_2d-vc_viscous_solver.o -MD -MP -MF $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo -c -o vc_viscous_solver_2d-vc_viscous_solver.o `test -f 'vc_viscous_solver.cpp' || echo '$(srcdir)/'`vc_viscous_solver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
@@ -2448,6 +2483,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
 	-rm -f ./$(DEPDIR)/snapshot_cache_01_2d-snapshot_cache_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
+	-rm -f ./$(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/version_macros-version_macros.Po
@@ -2546,6 +2582,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
 	-rm -f ./$(DEPDIR)/snapshot_cache_01_2d-snapshot_cache_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
+	-rm -f ./$(DEPDIR)/vc_cc_viscous_dilatational_solver_2d-vc_cc_viscous_dilatational_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/version_macros-version_macros.Po

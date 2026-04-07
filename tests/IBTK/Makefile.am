@@ -18,6 +18,7 @@ poisson_01_3d samraidatacache_01_2d samraidatacache_01_3d laplace_01_2d \
 laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
 vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d \
+vc_cc_viscous_dilatational_solver_2d \
 ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
 ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
 helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros \
@@ -150,6 +151,10 @@ vc_viscous_solver_2d_SOURCES = vc_viscous_solver.cpp
 vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
+
+vc_cc_viscous_dilatational_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+vc_cc_viscous_dilatational_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+vc_cc_viscous_dilatational_solver_2d_SOURCES = vc_cc_viscous_dilatational_solver.cpp
 
 if LIBMESH_ENABLED
 jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
