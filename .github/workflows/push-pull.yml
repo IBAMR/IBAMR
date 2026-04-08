@@ -53,7 +53,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -62,7 +62,7 @@ jobs:
           ./scripts/formatting/download-clang-format
           ./scripts/formatting/check-indentation
       - name: Populate ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: ccache
         id: cache
@@ -140,7 +140,7 @@ jobs:
       CCACHE_DIR: /tmp/ibamr-ccache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -149,7 +149,7 @@ jobs:
           ./scripts/formatting/download-clang-format
           ./scripts/formatting/check-indentation
       - name: Populate ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: ccache
         id: cache
@@ -258,13 +258,13 @@ jobs:
           exit $configure_status
       - name: Archive CMakeConfigureLog.yaml
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-CMakeConfigureLog.yaml
           path: CMakeConfigureLog.yaml
       - name: Archive compile_commands.json
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-compile_commands.json
           path: compile_commands.json
@@ -283,7 +283,7 @@ jobs:
       image: 'docker://wellsd2/ibamr:ibamr-0.18-dependencies-archlinux'
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         id: git
       - name: Verify that clang-format was run
         id: format
