@@ -1,0 +1,166 @@
+MU = 1.0
+RHO = 1.0
+L = 1.0
+N = 8
+START_TIME = 0.0
+END_TIME = 1.0
+DT_MAX = 0.1
+
+Main {
+   log_file_name = "sgs_verify_3d_trigonometric.log"
+   log_all_nodes = FALSE
+   viz_dump_interval = 0
+   restart_dump_interval = 0
+   timer_dump_interval = 0
+}
+
+ManufacturedSGS {
+   case_name = "TRIGONOMETRIC"
+   verification_tol = 1.0e-10
+}
+
+VelocityInitialConditions {
+   function_0 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   function_1 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   function_2 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+   gcoef_function_0 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_1 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_2 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_3 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_4 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_5 = "sin(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+   gcoef_function_0 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_1 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_2 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_3 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_4 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+   gcoef_function_5 = "cos(6.283185307179586*X_0)*sin(6.283185307179586*X_1)*cos(6.283185307179586*X_2)"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+   gcoef_function_0 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+   gcoef_function_1 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+   gcoef_function_2 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+   gcoef_function_3 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+   gcoef_function_4 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+   gcoef_function_5 = "cos(6.283185307179586*X_0)*cos(6.283185307179586*X_1)*sin(6.283185307179586*X_2)"
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu = MU
+   rho = RHO
+   start_time = START_TIME
+   end_time = END_TIME
+   grow_dt = 1.0
+   num_cycles = 1
+   convective_time_stepping_type = "MIDPOINT_RULE"
+   convective_op_type = "CUI"
+   convective_difference_form = "ADVECTIVE"
+   normalize_pressure = TRUE
+   cfl = 0.5
+   dt_max = DT_MAX
+   using_vorticity_tagging = FALSE
+   tag_buffer = 0
+   regrid_interval = 1000000
+   output_U = FALSE
+   output_P = FALSE
+   output_F = FALSE
+   output_Omega = FALSE
+   output_Div_U = FALSE
+   output_EE = FALSE
+   enable_logging = FALSE
+   turbulence_model_type = "SMAGORINSKY"
+
+   TurbulenceModel {
+      model_type = "SMAGORINSKY"
+      smagorinsky_constant = 0.17
+      filter_width_scale = 1.0
+      max_turbulent_viscosity = 1.0e12
+   }
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0.0,0.0,0.0
+   x_up = L,L,L
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   ratio_to_coarser {
+      level_1 = 4,4,4
+   }
+   largest_patch_size {
+      level_0 = 256,256,256
+   }
+   smallest_patch_size {
+      level_0 = 2,2,2
+   }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+TimerManager {
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBAMR::*::*","IBTK::*::*"
+}
