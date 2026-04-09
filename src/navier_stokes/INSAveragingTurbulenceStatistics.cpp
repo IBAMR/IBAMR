@@ -40,6 +40,29 @@ namespace
 {
 constexpr int SYM_TENSOR_DEPTH = NDIM * (NDIM + 1) / 2;
 
+#if (NDIM == 2)
+constexpr std::array<std::array<int, 2>, SYM_TENSOR_DEPTH> SYM_COMPONENTS = { { { { 0, 0 }, { 1, 1 }, { 0, 1 } } } };
+#endif
+
+#if (NDIM == 3)
+constexpr std::array<std::array<int, 2>, SYM_TENSOR_DEPTH> SYM_COMPONENTS = {
+    { { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 1, 2 }, { 0, 2 }, { 0, 1 } } }
+};
+#endif
+
+int
+sym_component_index(const int comp0, const int comp1)
+{
+    const int i = comp0 <= comp1 ? comp0 : comp1;
+    const int j = comp0 <= comp1 ? comp1 : comp0;
+    for (int comp = 0; comp < SYM_TENSOR_DEPTH; ++comp)
+    {
+        if (SYM_COMPONENTS[comp][0] == i && SYM_COMPONENTS[comp][1] == j) return comp;
+    }
+    TBOX_ERROR("sym_component_index(): unsupported component pair (" << i << ", " << j << ")\n");
+    return IBTK::invalid_index;
+}
+
 void
 allocate_patch_data(const int idx,
                     const double time,
@@ -66,19 +89,7 @@ template <class DataType, class IndexType>
 void
 store_symmetric_tensor(DataType& data, const IndexType& idx, const std::array<double, SYM_TENSOR_DEPTH>& entries)
 {
-#if (NDIM == 2)
-    data(idx, 0) = entries[0];
-    data(idx, 1) = entries[1];
-    data(idx, 2) = entries[2];
-#endif
-#if (NDIM == 3)
-    data(idx, 0) = entries[0];
-    data(idx, 1) = entries[1];
-    data(idx, 2) = entries[2];
-    data(idx, 3) = entries[3];
-    data(idx, 4) = entries[4];
-    data(idx, 5) = entries[5];
-#endif
+    for (int comp = 0; comp < SYM_TENSOR_DEPTH; ++comp) data(idx, comp) = entries[comp];
 }
 
 template <class DataType, class IndexType>
@@ -93,13 +104,14 @@ read_velocity(const DataType& data, const IndexType& idx)
 std::array<double, SYM_TENSOR_DEPTH>
 compute_symmetric_second_moment(const std::array<double, NDIM>& velocity)
 {
-#if (NDIM == 2)
-    return { velocity[0] * velocity[0], velocity[1] * velocity[1], velocity[0] * velocity[1] };
-#endif
-#if (NDIM == 3)
-    return { velocity[0] * velocity[0], velocity[1] * velocity[1], velocity[2] * velocity[2],
-             velocity[1] * velocity[2], velocity[0] * velocity[2], velocity[0] * velocity[1] };
-#endif
+    std::array<double, SYM_TENSOR_DEPTH> second_moment = {};
+    for (int comp = 0; comp < SYM_TENSOR_DEPTH; ++comp)
+    {
+        const int i = SYM_COMPONENTS[comp][0];
+        const int j = SYM_COMPONENTS[comp][1];
+        second_moment[comp] = velocity[i] * velocity[j];
+    }
+    return second_moment;
 }
 
 template <class DataType, class IndexType>
@@ -125,19 +137,12 @@ fill_reynolds_tensor(ReynoldsDataType& reynolds_data,
     {
         reynolds_sym[comp] = mean_velocity_product_data(idx, comp);
     }
-#if (NDIM == 2)
-    reynolds_sym[0] -= mean_velocity[0] * mean_velocity[0];
-    reynolds_sym[1] -= mean_velocity[1] * mean_velocity[1];
-    reynolds_sym[2] -= mean_velocity[0] * mean_velocity[1];
-#endif
-#if (NDIM == 3)
-    reynolds_sym[0] -= mean_velocity[0] * mean_velocity[0];
-    reynolds_sym[1] -= mean_velocity[1] * mean_velocity[1];
-    reynolds_sym[2] -= mean_velocity[2] * mean_velocity[2];
-    reynolds_sym[3] -= mean_velocity[1] * mean_velocity[2];
-    reynolds_sym[4] -= mean_velocity[0] * mean_velocity[2];
-    reynolds_sym[5] -= mean_velocity[0] * mean_velocity[1];
-#endif
+    for (int comp = 0; comp < SYM_TENSOR_DEPTH; ++comp)
+    {
+        const int i = SYM_COMPONENTS[comp][0];
+        const int j = SYM_COMPONENTS[comp][1];
+        reynolds_sym[comp] -= mean_velocity[i] * mean_velocity[j];
+    }
 
     const int depth = reynolds_data.getDepth();
     if (depth == SYM_TENSOR_DEPTH)
@@ -146,23 +151,14 @@ fill_reynolds_tensor(ReynoldsDataType& reynolds_data,
     }
     else if (depth == NDIM * NDIM)
     {
-#if (NDIM == 2)
-        reynolds_data(idx, 0) = reynolds_sym[0];
-        reynolds_data(idx, 1) = reynolds_sym[2];
-        reynolds_data(idx, 2) = reynolds_sym[2];
-        reynolds_data(idx, 3) = reynolds_sym[1];
-#endif
-#if (NDIM == 3)
-        reynolds_data(idx, 0) = reynolds_sym[0];
-        reynolds_data(idx, 1) = reynolds_sym[5];
-        reynolds_data(idx, 2) = reynolds_sym[4];
-        reynolds_data(idx, 3) = reynolds_sym[5];
-        reynolds_data(idx, 4) = reynolds_sym[1];
-        reynolds_data(idx, 5) = reynolds_sym[3];
-        reynolds_data(idx, 6) = reynolds_sym[4];
-        reynolds_data(idx, 7) = reynolds_sym[3];
-        reynolds_data(idx, 8) = reynolds_sym[2];
-#endif
+        for (int comp_i = 0; comp_i < NDIM; ++comp_i)
+        {
+            for (int comp_j = 0; comp_j < NDIM; ++comp_j)
+            {
+                const int component = sym_component_index(comp_i, comp_j);
+                reynolds_data(idx, comp_i * NDIM + comp_j) = reynolds_sym[component];
+            }
+        }
     }
     else
     {
