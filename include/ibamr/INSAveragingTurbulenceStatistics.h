@@ -34,14 +34,22 @@ namespace hier
 {
 template <int DIM>
 class GridGeometry;
+template <int DIM>
+class Variable;
 } // namespace hier
 } // namespace SAMRAI
 
 namespace IBAMR
 {
+enum class DataCentering
+{
+    CELL,
+    NODE
+};
+
 /*!
- * \brief Tracks mean velocity and mean velocity products for staggered INS
- * simulations.
+ * \brief Tracks mean velocity and mean velocity second moments,
+ * \f$\langle u_i u_j \rangle\f$, for staggered INS simulations.
  *
  * This class uses HierarchyAveragedDataManager for both the velocity and its
  * symmetric second moment. The retained SnapshotCache objects can then be used
@@ -50,18 +58,14 @@ namespace IBAMR
 class INSAveragingTurbulenceStatistics : public INSTurbulenceStatistics
 {
 public:
-    enum class AnalysisCentering
-    {
-        CELL,
-        NODE
-    };
-
     /*!
      * \brief Constructor.
      *
-     * Recognized input options include the averaging controls consumed by
-     * HierarchyAveragedDataManager and `statistics_start_time`, which delays
-     * accumulation until the specified simulation time.
+     * Recognized input options:
+     * - `analysis_centering` (`"CELL"` or `"NODE"`)
+     * - `refine_type` (refine operator used to recover snapshots)
+     * - `statistics_start_time` (delay accumulation until this simulation time)
+     * - averaging options used by `IBTK::HierarchyAveragedDataManager`
      */
     INSAveragingTurbulenceStatistics(std::string object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
@@ -90,7 +94,7 @@ public:
      * \brief Return the centering used for analysis data, either `CELL` or
      * `NODE`.
      */
-    std::string getAnalysisCentering() const;
+    DataCentering getDataCentering() const;
 
     /*!
      * \brief Access the manager storing the averaged velocity field.
@@ -119,6 +123,14 @@ public:
      *
      * The destination cell variable must have depth NDIM*(NDIM+1)/2 or
      * NDIM*NDIM.
+     *
+     * \param R_idx Patch-data index for the destination Reynolds-stress field.
+     * \param R_var Destination cell-centered variable.
+     * \param time Requested snapshot time.
+     * \param hierarchy Patch hierarchy on which to fill data.
+     * \param hier_math_ops Hierarchy math operations helper.
+     * \param tol Time-point lookup tolerance used to match \p time to stored
+     * snapshot times.
      */
     void fillReynoldsStressSnapshot(int R_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> R_var,
@@ -133,6 +145,14 @@ public:
      *
      * The destination node variable must have depth NDIM*(NDIM+1)/2 or
      * NDIM*NDIM.
+     *
+     * \param R_idx Patch-data index for the destination Reynolds-stress field.
+     * \param R_var Destination node-centered variable.
+     * \param time Requested snapshot time.
+     * \param hierarchy Patch hierarchy on which to fill data.
+     * \param hier_math_ops Hierarchy math operations helper.
+     * \param tol Time-point lookup tolerance used to match \p time to stored
+     * snapshot times.
      */
     void fillReynoldsStressSnapshot(int R_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> R_var,
@@ -140,6 +160,62 @@ public:
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     double tol = 1.0e-8) const;
+
+    /*!
+     * Fill a Reynolds-stress snapshot into either cell- or node-centered data.
+     *
+     * This overload dispatches based on the runtime variable type.
+     *
+     * \param R_idx Patch-data index for the destination Reynolds-stress field.
+     * \param R_var Destination variable (cell- or node-centered).
+     * \param time Requested snapshot time.
+     * \param hierarchy Patch hierarchy on which to fill data.
+     * \param hier_math_ops Hierarchy math operations helper.
+     * \param tol Time-point lookup tolerance used to match \p time to stored
+     * snapshot times.
+     */
+    void fillReynoldsStressSnapshot(int R_idx,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> R_var,
+                                    double time,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                    double tol = 1.0e-8) const;
+
+    /*!
+     * Fill a TKE snapshot, \f$k=\frac{1}{2}R_{ii}\f$, into cell-centered data.
+     *
+     * \param k_idx Patch-data index for the destination TKE field.
+     * \param k_var Destination cell-centered variable.
+     * \param time Requested snapshot time.
+     * \param hierarchy Patch hierarchy on which to fill data.
+     * \param hier_math_ops Hierarchy math operations helper.
+     * \param tol Time-point lookup tolerance used to match \p time to stored
+     * snapshot times.
+     */
+    void fillTurbulentKineticEnergySnapshot(int k_idx,
+                                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> k_var,
+                                            double time,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                            double tol = 1.0e-8) const;
+
+    /*!
+     * Fill a TKE snapshot, \f$k=\frac{1}{2}R_{ii}\f$, into node-centered data.
+     *
+     * \param k_idx Patch-data index for the destination TKE field.
+     * \param k_var Destination node-centered variable.
+     * \param time Requested snapshot time.
+     * \param hierarchy Patch hierarchy on which to fill data.
+     * \param hier_math_ops Hierarchy math operations helper.
+     * \param tol Time-point lookup tolerance used to match \p time to stored
+     * snapshot times.
+     */
+    void fillTurbulentKineticEnergySnapshot(int k_idx,
+                                            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> k_var,
+                                            double time,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                            double tol = 1.0e-8) const;
 
 private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_velocity_side_scratch_var;
@@ -167,7 +243,7 @@ private:
      */
     std::string d_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    AnalysisCentering d_analysis_centering = AnalysisCentering::CELL;
+    DataCentering d_data_centering = DataCentering::CELL;
 
     /*!
      * Averaging managers for the first and second moments,
@@ -181,25 +257,24 @@ private:
 namespace IBAMR
 {
 template <>
-inline INSAveragingTurbulenceStatistics::AnalysisCentering
-string_to_enum<INSAveragingTurbulenceStatistics::AnalysisCentering>(const std::string& val)
+inline DataCentering
+string_to_enum<DataCentering>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "CELL") == 0) return INSAveragingTurbulenceStatistics::AnalysisCentering::CELL;
-    if (strcasecmp(val.c_str(), "NODE") == 0) return INSAveragingTurbulenceStatistics::AnalysisCentering::NODE;
+    if (strcasecmp(val.c_str(), "CELL") == 0) return DataCentering::CELL;
+    if (strcasecmp(val.c_str(), "NODE") == 0) return DataCentering::NODE;
     TBOX_ERROR("unsupported analysis centering value " << val << "\n");
-    return INSAveragingTurbulenceStatistics::AnalysisCentering::CELL;
+    return DataCentering::CELL;
 }
 
 template <>
 inline std::string
-enum_to_string<INSAveragingTurbulenceStatistics::AnalysisCentering>(
-    INSAveragingTurbulenceStatistics::AnalysisCentering val)
+enum_to_string<DataCentering>(DataCentering val)
 {
     switch (val)
     {
-    case INSAveragingTurbulenceStatistics::AnalysisCentering::CELL:
+    case DataCentering::CELL:
         return "CELL";
-    case INSAveragingTurbulenceStatistics::AnalysisCentering::NODE:
+    case DataCentering::NODE:
         return "NODE";
     default:
         TBOX_ERROR("unsupported analysis centering enum value\n");

@@ -93,7 +93,7 @@ protected:
      * \brief Return true when statistics should be updated at the supplied
      * simulation time.
      */
-    bool shouldUpdateStatistics(double data_time) const;
+    virtual bool shouldUpdateStatistics(double data_time) const;
 
     /*!
      * Object name used in logging and subordinate database/variable names.

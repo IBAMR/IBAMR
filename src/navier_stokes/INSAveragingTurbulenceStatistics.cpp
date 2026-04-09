@@ -41,12 +41,12 @@ namespace
 constexpr int SYM_TENSOR_DEPTH = NDIM * (NDIM + 1) / 2;
 
 #if (NDIM == 2)
-constexpr std::array<std::array<int, 2>, SYM_TENSOR_DEPTH> SYM_COMPONENTS = { { { { 0, 0 }, { 1, 1 }, { 0, 1 } } } };
+constexpr std::array<std::array<int, 2>, SYM_TENSOR_DEPTH> SYM_COMPONENTS = { { { 0, 0 }, { 1, 1 }, { 0, 1 } } };
 #endif
 
 #if (NDIM == 3)
 constexpr std::array<std::array<int, 2>, SYM_TENSOR_DEPTH> SYM_COMPONENTS = {
-    { { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 1, 2 }, { 0, 2 }, { 0, 1 } } }
+    { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 1, 2 }, { 0, 2 }, { 0, 1 } }
 };
 #endif
 
@@ -61,28 +61,6 @@ sym_component_index(const int comp0, const int comp1)
     }
     TBOX_ERROR("sym_component_index(): unsupported component pair (" << i << ", " << j << ")\n");
     return IBTK::invalid_index;
-}
-
-void
-allocate_patch_data(const int idx,
-                    const double time,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
-{
-    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(idx)) level->allocatePatchData(idx, time);
-    }
-}
-
-void
-deallocate_patch_data(const int idx, const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
-{
-    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
-    }
 }
 
 template <class DataType, class IndexType>
@@ -177,40 +155,30 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
     : INSTurbulenceStatistics(std::move(object_name), input_db->getDoubleWithDefault("statistics_start_time", 0.0))
 {
     d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
-    d_analysis_centering = string_to_enum<AnalysisCentering>(
-        input_db->getStringWithDefault("analysis_centering", enum_to_string<AnalysisCentering>(d_analysis_centering)));
+    d_data_centering = string_to_enum<DataCentering>(
+        input_db->getStringWithDefault("analysis_centering", enum_to_string<DataCentering>(d_data_centering)));
 
     d_velocity_side_scratch_var = new SideVariable<NDIM, double>(d_object_name + "::U_sc_scratch");
-    d_velocity_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
-    d_velocity_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_nc", NDIM, false);
-    d_velocity_product_cell_var = new CellVariable<NDIM, double>(d_object_name + "::UU_cc", SYM_TENSOR_DEPTH);
-    d_velocity_product_node_var = new NodeVariable<NDIM, double>(d_object_name + "::UU_nc", SYM_TENSOR_DEPTH, false);
-    d_velocity_mean_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_mean_cc", NDIM);
-    d_velocity_mean_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_mean_nc", NDIM, false);
-    d_velocity_product_mean_cell_var = new CellVariable<NDIM, double>(d_object_name + "::UU_mean_cc", SYM_TENSOR_DEPTH);
-    d_velocity_product_mean_node_var =
-        new NodeVariable<NDIM, double>(d_object_name + "::UU_mean_nc", SYM_TENSOR_DEPTH, false);
-
     auto* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> ctx = var_db->getContext(d_object_name + "::CONTEXT");
     d_velocity_side_scratch_idx =
         var_db->registerVariableAndContext(d_velocity_side_scratch_var, ctx, IntVector<NDIM>(1));
-    d_velocity_cell_idx = var_db->registerVariableAndContext(d_velocity_cell_var, ctx, IntVector<NDIM>(0));
-    d_velocity_node_idx = var_db->registerVariableAndContext(d_velocity_node_var, ctx, IntVector<NDIM>(0));
-    d_velocity_product_cell_idx =
-        var_db->registerVariableAndContext(d_velocity_product_cell_var, ctx, IntVector<NDIM>(0));
-    d_velocity_product_node_idx =
-        var_db->registerVariableAndContext(d_velocity_product_node_var, ctx, IntVector<NDIM>(0));
-    d_velocity_mean_cell_idx = var_db->registerVariableAndContext(d_velocity_mean_cell_var, ctx, IntVector<NDIM>(0));
-    d_velocity_mean_node_idx = var_db->registerVariableAndContext(d_velocity_mean_node_var, ctx, IntVector<NDIM>(0));
-    d_velocity_product_mean_cell_idx =
-        var_db->registerVariableAndContext(d_velocity_product_mean_cell_var, ctx, IntVector<NDIM>(0));
-    d_velocity_product_mean_node_idx =
-        var_db->registerVariableAndContext(d_velocity_product_mean_node_var, ctx, IntVector<NDIM>(0));
 
-    switch (d_analysis_centering)
+    switch (d_data_centering)
     {
-    case AnalysisCentering::CELL:
+    case DataCentering::CELL:
+        d_velocity_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
+        d_velocity_product_cell_var = new CellVariable<NDIM, double>(d_object_name + "::UU_cc", SYM_TENSOR_DEPTH);
+        d_velocity_mean_cell_var = new CellVariable<NDIM, double>(d_object_name + "::U_mean_cc", NDIM);
+        d_velocity_product_mean_cell_var =
+            new CellVariable<NDIM, double>(d_object_name + "::UU_mean_cc", SYM_TENSOR_DEPTH);
+        d_velocity_cell_idx = var_db->registerVariableAndContext(d_velocity_cell_var, ctx, IntVector<NDIM>(0));
+        d_velocity_product_cell_idx =
+            var_db->registerVariableAndContext(d_velocity_product_cell_var, ctx, IntVector<NDIM>(0));
+        d_velocity_mean_cell_idx =
+            var_db->registerVariableAndContext(d_velocity_mean_cell_var, ctx, IntVector<NDIM>(0));
+        d_velocity_product_mean_cell_idx =
+            var_db->registerVariableAndContext(d_velocity_product_mean_cell_var, ctx, IntVector<NDIM>(0));
         d_velocity_average_manager = new IBTK::HierarchyAveragedDataManager(
             d_object_name + "::VelocityAveraging", d_velocity_cell_var, input_db, grid_geom, register_for_restart);
         d_velocity_product_average_manager =
@@ -220,7 +188,20 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
                                                    grid_geom,
                                                    register_for_restart);
         break;
-    case AnalysisCentering::NODE:
+    case DataCentering::NODE:
+        d_velocity_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_nc", NDIM, false);
+        d_velocity_product_node_var =
+            new NodeVariable<NDIM, double>(d_object_name + "::UU_nc", SYM_TENSOR_DEPTH, false);
+        d_velocity_mean_node_var = new NodeVariable<NDIM, double>(d_object_name + "::U_mean_nc", NDIM, false);
+        d_velocity_product_mean_node_var =
+            new NodeVariable<NDIM, double>(d_object_name + "::UU_mean_nc", SYM_TENSOR_DEPTH, false);
+        d_velocity_node_idx = var_db->registerVariableAndContext(d_velocity_node_var, ctx, IntVector<NDIM>(0));
+        d_velocity_product_node_idx =
+            var_db->registerVariableAndContext(d_velocity_product_node_var, ctx, IntVector<NDIM>(0));
+        d_velocity_mean_node_idx =
+            var_db->registerVariableAndContext(d_velocity_mean_node_var, ctx, IntVector<NDIM>(0));
+        d_velocity_product_mean_node_idx =
+            var_db->registerVariableAndContext(d_velocity_product_mean_node_var, ctx, IntVector<NDIM>(0));
         d_velocity_average_manager = new IBTK::HierarchyAveragedDataManager(
             d_object_name + "::VelocityAveraging", d_velocity_node_var, input_db, grid_geom, register_for_restart);
         d_velocity_product_average_manager =
@@ -231,8 +212,8 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
                                                    register_for_restart);
         break;
     default:
-        TBOX_ERROR(d_object_name << ": unsupported analysis centering enum value "
-                                 << static_cast<int>(d_analysis_centering) << "\n");
+        TBOX_ERROR(d_object_name << ": unsupported data centering enum value " << static_cast<int>(d_data_centering)
+                                 << "\n");
     }
 }
 
@@ -250,25 +231,24 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
     int velocity_idx = IBTK::invalid_index;
     int velocity_product_idx = IBTK::invalid_index;
     int wgt_idx = IBTK::invalid_index;
-    switch (d_analysis_centering)
+    switch (d_data_centering)
     {
-    case AnalysisCentering::CELL:
+    case DataCentering::CELL:
         velocity_idx = d_velocity_cell_idx;
         velocity_product_idx = d_velocity_product_cell_idx;
         wgt_idx = wgt_cc_idx;
         break;
-    case AnalysisCentering::NODE:
+    case DataCentering::NODE:
         velocity_idx = d_velocity_node_idx;
         velocity_product_idx = d_velocity_product_node_idx;
         break;
     default:
-        TBOX_ERROR(d_object_name << ": unsupported analysis centering enum value "
-                                 << static_cast<int>(d_analysis_centering) << "\n");
+        TBOX_ERROR(d_object_name << ": unsupported data centering enum value " << static_cast<int>(d_data_centering)
+                                 << "\n");
     }
 
-    allocate_patch_data(d_velocity_side_scratch_idx, data_time, hierarchy);
-    allocate_patch_data(velocity_idx, data_time, hierarchy);
-    allocate_patch_data(velocity_product_idx, data_time, hierarchy);
+    IBTK::allocate_patch_data(
+        { d_velocity_side_scratch_idx, velocity_idx, velocity_product_idx }, data_time, hierarchy);
 
     Pointer<PatchHierarchy<NDIM>> hierarchy_nc = hierarchy;
     auto* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -288,9 +268,9 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                                        hierarchy);
     ghost_fill.fillData(data_time);
 
-    switch (d_analysis_centering)
+    switch (d_data_centering)
     {
-    case AnalysisCentering::CELL:
+    case DataCentering::CELL:
         hier_math_ops->interp(d_velocity_cell_idx,
                               d_velocity_cell_var,
                               d_velocity_side_scratch_idx,
@@ -299,7 +279,7 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                               data_time,
                               true);
         break;
-    case AnalysisCentering::NODE:
+    case DataCentering::NODE:
         hier_math_ops->interp(d_velocity_node_idx,
                               d_velocity_node_var,
                               true,
@@ -310,8 +290,8 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
                               true);
         break;
     default:
-        TBOX_ERROR(d_object_name << ": unsupported analysis centering enum value "
-                                 << static_cast<int>(d_analysis_centering) << "\n");
+        TBOX_ERROR(d_object_name << ": unsupported data centering enum value " << static_cast<int>(d_data_centering)
+                                 << "\n");
     }
 
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -320,35 +300,35 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            switch (d_analysis_centering)
+            switch (d_data_centering)
             {
-            case AnalysisCentering::CELL:
+            case DataCentering::CELL:
             {
                 Pointer<CellData<NDIM, double>> velocity_data = patch->getPatchData(d_velocity_cell_idx);
                 Pointer<CellData<NDIM, double>> velocity_product_data =
                     patch->getPatchData(d_velocity_product_cell_idx);
                 for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
                 {
-                    const CellIndex<NDIM> idx = *ci;
+                    const CellIndex<NDIM>& idx = *ci;
                     fill_symmetric_second_moment(*velocity_product_data, *velocity_data, idx);
                 }
                 break;
             }
-            case AnalysisCentering::NODE:
+            case DataCentering::NODE:
             {
                 Pointer<NodeData<NDIM, double>> velocity_data = patch->getPatchData(d_velocity_node_idx);
                 Pointer<NodeData<NDIM, double>> velocity_product_data =
                     patch->getPatchData(d_velocity_product_node_idx);
                 for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM> idx = *ni;
+                    const NodeIndex<NDIM>& idx = *ni;
                     fill_symmetric_second_moment(*velocity_product_data, *velocity_data, idx);
                 }
                 break;
             }
             default:
-                TBOX_ERROR(d_object_name << ": unsupported analysis centering enum value "
-                                         << static_cast<int>(d_analysis_centering) << "\n");
+                TBOX_ERROR(d_object_name << ": unsupported data centering enum value "
+                                         << static_cast<int>(d_data_centering) << "\n");
             }
         }
     }
@@ -358,9 +338,7 @@ INSAveragingTurbulenceStatistics::updateStatistics(const int U_idx,
     const bool UU_steady = d_velocity_product_average_manager->updateTimeAveragedSnapshot(
         velocity_product_idx, data_time, hierarchy, wgt_idx);
 
-    deallocate_patch_data(velocity_product_idx, hierarchy);
-    deallocate_patch_data(velocity_idx, hierarchy);
-    deallocate_patch_data(d_velocity_side_scratch_idx, hierarchy);
+    IBTK::deallocate_patch_data({ d_velocity_side_scratch_idx, velocity_idx, velocity_product_idx }, hierarchy);
     return U_steady && UU_steady;
 }
 
@@ -371,10 +349,10 @@ INSAveragingTurbulenceStatistics::isAtSteadyState() const
            d_velocity_product_average_manager->isAtPeriodicSteadyState();
 }
 
-std::string
-INSAveragingTurbulenceStatistics::getAnalysisCentering() const
+DataCentering
+INSAveragingTurbulenceStatistics::getDataCentering() const
 {
-    return enum_to_string<AnalysisCentering>(d_analysis_centering);
+    return d_data_centering;
 }
 
 IBTK::HierarchyAveragedDataManager&
@@ -409,16 +387,14 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
                                                              const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
                                                              const double tol) const
 {
-    if (d_analysis_centering != AnalysisCentering::CELL)
+    if (d_data_centering != DataCentering::CELL)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): cell-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << enum_to_string<AnalysisCentering>(d_analysis_centering)
-                                 << "\n");
+                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
-    allocate_patch_data(d_velocity_mean_cell_idx, snapshot_time, hierarchy);
-    allocate_patch_data(d_velocity_product_mean_cell_idx, snapshot_time, hierarchy);
+    IBTK::allocate_patch_data({ d_velocity_mean_cell_idx, d_velocity_product_mean_cell_idx }, snapshot_time, hierarchy);
 
     IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
                                      d_velocity_mean_cell_idx,
@@ -445,14 +421,13 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
 
             for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
             {
-                const CellIndex<NDIM> idx = *ci;
+                const CellIndex<NDIM>& idx = *ci;
                 fill_reynolds_tensor(*R_data, *U_mean_data, *UU_mean_data, idx, d_object_name);
             }
         }
     }
 
-    deallocate_patch_data(d_velocity_product_mean_cell_idx, hierarchy);
-    deallocate_patch_data(d_velocity_mean_cell_idx, hierarchy);
+    IBTK::deallocate_patch_data({ d_velocity_mean_cell_idx, d_velocity_product_mean_cell_idx }, hierarchy);
 }
 
 void
@@ -463,16 +438,14 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
                                                              const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
                                                              const double tol) const
 {
-    if (d_analysis_centering != AnalysisCentering::NODE)
+    if (d_data_centering != DataCentering::NODE)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): node-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << enum_to_string<AnalysisCentering>(d_analysis_centering)
-                                 << "\n");
+                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
-    allocate_patch_data(d_velocity_mean_node_idx, snapshot_time, hierarchy);
-    allocate_patch_data(d_velocity_product_mean_node_idx, snapshot_time, hierarchy);
+    IBTK::allocate_patch_data({ d_velocity_mean_node_idx, d_velocity_product_mean_node_idx }, snapshot_time, hierarchy);
 
     IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
                                      d_velocity_mean_node_idx,
@@ -499,13 +472,143 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
 
             for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
             {
-                const NodeIndex<NDIM> idx = *ni;
+                const NodeIndex<NDIM>& idx = *ni;
                 fill_reynolds_tensor(*R_data, *U_mean_data, *UU_mean_data, idx, d_object_name);
             }
         }
     }
 
-    deallocate_patch_data(d_velocity_product_mean_node_idx, hierarchy);
-    deallocate_patch_data(d_velocity_mean_node_idx, hierarchy);
+    IBTK::deallocate_patch_data({ d_velocity_mean_node_idx, d_velocity_product_mean_node_idx }, hierarchy);
+}
+
+void
+INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
+                                                             const Pointer<Variable<NDIM>> R_var,
+                                                             const double time,
+                                                             const Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                             const Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                             const double tol) const
+{
+    Pointer<CellVariable<NDIM, double>> R_cc_var = R_var;
+    if (R_cc_var)
+    {
+        fillReynoldsStressSnapshot(R_idx, R_cc_var, time, hierarchy, hier_math_ops, tol);
+        return;
+    }
+    Pointer<NodeVariable<NDIM, double>> R_nc_var = R_var;
+    if (R_nc_var)
+    {
+        fillReynoldsStressSnapshot(R_idx, R_nc_var, time, hierarchy, hier_math_ops, tol);
+        return;
+    }
+    TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): unsupported destination variable type\n");
+}
+
+void
+INSAveragingTurbulenceStatistics::fillTurbulentKineticEnergySnapshot(
+    const int k_idx,
+    const Pointer<CellVariable<NDIM, double>> /*k_var*/,
+    const double time,
+    const Pointer<PatchHierarchy<NDIM>> hierarchy,
+    const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
+    const double tol) const
+{
+    if (d_data_centering != DataCentering::CELL)
+    {
+        TBOX_ERROR(d_object_name << "::fillTurbulentKineticEnergySnapshot(): cell-centered TKE requested, but "
+                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+    }
+
+    const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
+    IBTK::allocate_patch_data({ d_velocity_mean_cell_idx, d_velocity_product_mean_cell_idx }, snapshot_time, hierarchy);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
+                                     d_velocity_mean_cell_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_product_average_manager->getSnapshotCache(),
+                                     d_velocity_product_mean_cell_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> k_data = patch->getPatchData(k_idx);
+            Pointer<CellData<NDIM, double>> U_data = patch->getPatchData(d_velocity_mean_cell_idx);
+            Pointer<CellData<NDIM, double>> UU_data = patch->getPatchData(d_velocity_product_mean_cell_idx);
+            for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+            {
+                const CellIndex<NDIM>& idx = *ci;
+                double trace = 0.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    trace += (*UU_data)(idx, d) - (*U_data)(idx, d) * (*U_data)(idx, d);
+                }
+                (*k_data)(idx) = 0.5 * trace;
+            }
+        }
+    }
+    IBTK::deallocate_patch_data({ d_velocity_mean_cell_idx, d_velocity_product_mean_cell_idx }, hierarchy);
+}
+
+void
+INSAveragingTurbulenceStatistics::fillTurbulentKineticEnergySnapshot(
+    const int k_idx,
+    const Pointer<NodeVariable<NDIM, double>> /*k_var*/,
+    const double time,
+    const Pointer<PatchHierarchy<NDIM>> hierarchy,
+    const Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
+    const double tol) const
+{
+    if (d_data_centering != DataCentering::NODE)
+    {
+        TBOX_ERROR(d_object_name << "::fillTurbulentKineticEnergySnapshot(): node-centered TKE requested, but "
+                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+    }
+
+    const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
+    IBTK::allocate_patch_data({ d_velocity_mean_node_idx, d_velocity_product_mean_node_idx }, snapshot_time, hierarchy);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_average_manager->getSnapshotCache(),
+                                     d_velocity_mean_node_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+    IBTK::fill_snapshot_on_hierarchy(d_velocity_product_average_manager->getSnapshotCache(),
+                                     d_velocity_product_mean_node_idx,
+                                     snapshot_time,
+                                     hierarchy,
+                                     d_refine_type,
+                                     tol);
+
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<NodeData<NDIM, double>> k_data = patch->getPatchData(k_idx);
+            Pointer<NodeData<NDIM, double>> U_data = patch->getPatchData(d_velocity_mean_node_idx);
+            Pointer<NodeData<NDIM, double>> UU_data = patch->getPatchData(d_velocity_product_mean_node_idx);
+            for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+            {
+                const NodeIndex<NDIM>& idx = *ni;
+                double trace = 0.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    trace += (*UU_data)(idx, d) - (*U_data)(idx, d) * (*U_data)(idx, d);
+                }
+                (*k_data)(idx) = 0.5 * trace;
+            }
+        }
+    }
+    IBTK::deallocate_patch_data({ d_velocity_mean_node_idx, d_velocity_product_mean_node_idx }, hierarchy);
 }
 } // namespace IBAMR

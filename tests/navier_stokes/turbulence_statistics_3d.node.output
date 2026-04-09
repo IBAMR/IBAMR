@@ -1,5 +1,3 @@
-WARNING: AppInitializer::AppInitializer(): viz_dump_interval > 0, but `viz_dump_dirname' is not specified in input file
-WARNING: AppInitializer::AppInitializer(): restart_dump_interval > 0, but `restart_dump_dirname' is not specified in input file
 INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field

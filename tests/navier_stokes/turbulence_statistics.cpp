@@ -30,6 +30,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/snapshot_utilities.h>
 
@@ -59,26 +60,6 @@ struct ManufacturedVelocityCoefficients
     LinearVectorCoefficients cosine;
     LinearVectorCoefficients sine;
 };
-
-void
-allocate_patch_data(const int idx, const double data_time, const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy)
-{
-    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(idx)) level->allocatePatchData(idx, data_time);
-    }
-}
-
-void
-deallocate_patch_data(const int idx, const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy)
-{
-    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
-    }
-}
 
 ManufacturedVelocityCoefficients
 get_manufactured_velocity_coefficients()
@@ -181,7 +162,7 @@ fill_side_velocity(const int U_idx,
                    const double data_time,
                    const double period)
 {
-    allocate_patch_data(U_idx, data_time, patch_hierarchy);
+    IBTK::allocate_patch_data(U_idx, data_time, patch_hierarchy);
 
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -228,8 +209,7 @@ verify_cell_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
     const int U_mean_idx = var_db->registerVariableAndContext(U_mean_var, ctx, IntVector<NDIM>(1));
     const int R_idx = var_db->registerVariableAndContext(R_var, ctx, IntVector<NDIM>(0));
 
-    allocate_patch_data(U_mean_idx, snapshot_time, patch_hierarchy);
-    allocate_patch_data(R_idx, snapshot_time, patch_hierarchy);
+    IBTK::allocate_patch_data({ U_mean_idx, R_idx }, snapshot_time, patch_hierarchy);
 
     IBTK::fill_snapshot_on_hierarchy(statistics->getAveragedVelocityManager().getSnapshotCache(),
                                      U_mean_idx,
@@ -256,7 +236,7 @@ verify_cell_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
 
             for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
             {
-                const CellIndex<NDIM> idx = ci();
+                const CellIndex<NDIM>& idx = ci();
                 Vector X = {};
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -287,8 +267,7 @@ verify_cell_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
         }
     }
 
-    deallocate_patch_data(R_idx, patch_hierarchy);
-    deallocate_patch_data(U_mean_idx, patch_hierarchy);
+    IBTK::deallocate_patch_data({ U_mean_idx, R_idx }, patch_hierarchy);
 
     pout << "CELL statistics errors: |<U>-exact|_max = " << max_mean_error << ", |R-exact|_max = " << max_reynolds_error
          << ", |k-exact|_max = " << max_tke_error << "\n";
@@ -309,8 +288,7 @@ verify_node_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
     const int U_mean_idx = var_db->registerVariableAndContext(U_mean_var, ctx, IntVector<NDIM>(1));
     const int R_idx = var_db->registerVariableAndContext(R_var, ctx, IntVector<NDIM>(0));
 
-    allocate_patch_data(U_mean_idx, snapshot_time, patch_hierarchy);
-    allocate_patch_data(R_idx, snapshot_time, patch_hierarchy);
+    IBTK::allocate_patch_data({ U_mean_idx, R_idx }, snapshot_time, patch_hierarchy);
 
     IBTK::fill_snapshot_on_hierarchy(statistics->getAveragedVelocityManager().getSnapshotCache(),
                                      U_mean_idx,
@@ -337,7 +315,7 @@ verify_node_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
 
             for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
             {
-                const NodeIndex<NDIM> idx = ni();
+                const NodeIndex<NDIM>& idx = ni();
                 Vector X = {};
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -368,8 +346,7 @@ verify_node_statistics(const Pointer<INSAveragingTurbulenceStatistics>& statisti
         }
     }
 
-    deallocate_patch_data(R_idx, patch_hierarchy);
-    deallocate_patch_data(U_mean_idx, patch_hierarchy);
+    IBTK::deallocate_patch_data({ U_mean_idx, R_idx }, patch_hierarchy);
 
     pout << "NODE statistics errors: |<U>-exact|_max = " << max_mean_error << ", |R-exact|_max = " << max_reynolds_error
          << ", |k-exact|_max = " << max_tke_error << "\n";
@@ -395,8 +372,7 @@ verify_periodic_phase_cell_statistics(const Pointer<INSAveragingTurbulenceStatis
     double max_tke_error = 0.0;
     for (const double snapshot_time : statistics->getAveragedVelocityManager().getSnapshotTimePoints())
     {
-        allocate_patch_data(U_phase_idx, snapshot_time, patch_hierarchy);
-        allocate_patch_data(R_idx, snapshot_time, patch_hierarchy);
+        IBTK::allocate_patch_data({ U_phase_idx, R_idx }, snapshot_time, patch_hierarchy);
 
         IBTK::fill_snapshot_on_hierarchy(statistics->getAveragedVelocityManager().getSnapshotCache(),
                                          U_phase_idx,
@@ -420,7 +396,7 @@ verify_periodic_phase_cell_statistics(const Pointer<INSAveragingTurbulenceStatis
 
                 for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
                 {
-                    const CellIndex<NDIM> idx = ci();
+                    const CellIndex<NDIM>& idx = ci();
                     Vector X = {};
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -448,8 +424,7 @@ verify_periodic_phase_cell_statistics(const Pointer<INSAveragingTurbulenceStatis
             }
         }
 
-        deallocate_patch_data(R_idx, patch_hierarchy);
-        deallocate_patch_data(U_phase_idx, patch_hierarchy);
+        IBTK::deallocate_patch_data({ U_phase_idx, R_idx }, patch_hierarchy);
     }
 
     pout << "CELL periodic-phase errors: |U_phase-exact|_max = " << max_phase_error
@@ -476,8 +451,7 @@ verify_periodic_phase_node_statistics(const Pointer<INSAveragingTurbulenceStatis
     double max_tke_error = 0.0;
     for (const double snapshot_time : statistics->getAveragedVelocityManager().getSnapshotTimePoints())
     {
-        allocate_patch_data(U_phase_idx, snapshot_time, patch_hierarchy);
-        allocate_patch_data(R_idx, snapshot_time, patch_hierarchy);
+        IBTK::allocate_patch_data({ U_phase_idx, R_idx }, snapshot_time, patch_hierarchy);
 
         IBTK::fill_snapshot_on_hierarchy(statistics->getAveragedVelocityManager().getSnapshotCache(),
                                          U_phase_idx,
@@ -501,7 +475,7 @@ verify_periodic_phase_node_statistics(const Pointer<INSAveragingTurbulenceStatis
 
                 for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM> idx = ni();
+                    const NodeIndex<NDIM>& idx = ni();
                     Vector X = {};
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -529,8 +503,7 @@ verify_periodic_phase_node_statistics(const Pointer<INSAveragingTurbulenceStatis
             }
         }
 
-        deallocate_patch_data(R_idx, patch_hierarchy);
-        deallocate_patch_data(U_phase_idx, patch_hierarchy);
+        IBTK::deallocate_patch_data({ U_phase_idx, R_idx }, patch_hierarchy);
     }
 
     pout << "NODE periodic-phase errors: |U_phase-exact|_max = " << max_phase_error
@@ -616,41 +589,45 @@ main(int argc, char* argv[])
         }
     }
 
-    const std::string analysis_centering = statistics->getAnalysisCentering();
+    const DataCentering data_centering = statistics->getDataCentering();
     double max_error = std::numeric_limits<double>::quiet_NaN();
     if (periodic_mode)
     {
-        if (analysis_centering == "CELL")
+        switch (data_centering)
         {
+        case DataCentering::CELL:
             max_error = verify_periodic_phase_cell_statistics(
                 statistics, patch_hierarchy, hier_math_ops, coeffs, sample_period);
-        }
-        else if (analysis_centering == "NODE")
-        {
+            break;
+        case DataCentering::NODE:
             max_error = verify_periodic_phase_node_statistics(
                 statistics, patch_hierarchy, hier_math_ops, coeffs, sample_period);
+            break;
+        default:
+            TBOX_ERROR("Unsupported analysis centering " << enum_to_string<DataCentering>(data_centering) << "\n");
         }
     }
     else
     {
         const double snapshot_time = *(statistics->getAveragedVelocityManager().getSnapshotTimePoints().begin());
-        if (analysis_centering == "CELL")
+        switch (data_centering)
         {
+        case DataCentering::CELL:
             max_error = verify_cell_statistics(statistics, patch_hierarchy, hier_math_ops, coeffs, snapshot_time);
-        }
-        else if (analysis_centering == "NODE")
-        {
+            break;
+        case DataCentering::NODE:
             max_error = verify_node_statistics(statistics, patch_hierarchy, hier_math_ops, coeffs, snapshot_time);
+            break;
+        default:
+            TBOX_ERROR("Unsupported analysis centering " << enum_to_string<DataCentering>(data_centering) << "\n");
         }
     }
-
-    if (std::isnan(max_error)) TBOX_ERROR("Unsupported analysis centering " << analysis_centering << "\n");
 
     const bool success = max_error <= verification_tol;
     if (compact_output)
     {
         pout << "mode = " << (periodic_mode ? "PERIODIC_PHASE" : "RUNNING_MEAN") << "\n";
-        pout << "analysis_centering = " << analysis_centering << "\n";
+        pout << "analysis_centering = " << enum_to_string<DataCentering>(data_centering) << "\n";
         pout << "verification = " << (success ? "PASS" : "FAIL") << "\n";
     }
     else

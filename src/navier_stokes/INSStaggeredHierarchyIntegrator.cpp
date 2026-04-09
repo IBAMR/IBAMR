@@ -1430,7 +1430,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         synchronizeHierarchyData(NEW_DATA);
     }
 
-    if (d_turbulence_statistics && !skip_synchronize_new_state_data)
+    if (d_turbulence_statistics && d_turbulence_statistics_type != TurbulenceStatisticsType::NONE &&
+        !skip_synchronize_new_state_data)
     {
         const bool steady_state = d_turbulence_statistics->updateStatistics(
             d_U_new_idx, d_U_var, getVelocityBoundaryConditions(), new_time, d_hierarchy, d_hier_math_ops);

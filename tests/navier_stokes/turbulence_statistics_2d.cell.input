@@ -9,7 +9,9 @@ DT_MAX = 0.1
 
 Main {
    viz_dump_interval = 0
+   viz_dump_dirname = "viz_dump"
    restart_dump_interval = 0
+   restart_dump_dirname = "restart_dump"
    timer_dump_interval = 0
 }
 
