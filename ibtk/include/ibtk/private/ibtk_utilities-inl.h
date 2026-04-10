@@ -42,6 +42,14 @@ allocate_patch_data(const IntegerContainer& idxs,
 }
 
 inline void
+allocate_patch_data(const std::initializer_list<int> idxs,
+                    const double data_time,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
+{
+    for (const int idx : idxs) allocate_patch_data(idx, data_time, hierarchy);
+}
+
+inline void
 allocate_patch_data(const SAMRAI::hier::ComponentSelector& idxs,
                     const double data_time,
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
@@ -68,6 +76,13 @@ deallocate_patch_data(const IntegerContainer& idxs,
                       const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
 {
     for (const auto idx : idxs) deallocate_patch_data(idx, hierarchy);
+}
+
+inline void
+deallocate_patch_data(const std::initializer_list<int> idxs,
+                      const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy)
+{
+    for (const int idx : idxs) deallocate_patch_data(idx, hierarchy);
 }
 
 inline void

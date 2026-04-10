@@ -36,6 +36,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <initializer_list>
 #include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
@@ -160,6 +161,14 @@ void allocate_patch_data(const IntegerContainer& idxs,
                          const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
 
 /*!
+ * \brief Allocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are not already allocated.
+ */
+void allocate_patch_data(std::initializer_list<int> idxs,
+                         double data_time,
+                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
  * \brief Allocate all indices selected by \p idxs on all levels of
  * \p hierarchy if they are not already allocated.
  */
@@ -179,6 +188,13 @@ void deallocate_patch_data(int idx, const SAMRAI::tbox::Pointer<SAMRAI::hier::Pa
  */
 template <class IntegerContainer>
 void deallocate_patch_data(const IntegerContainer& idxs,
+                           const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Deallocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are currently allocated.
+ */
+void deallocate_patch_data(std::initializer_list<int> idxs,
                            const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
 
 /*!
