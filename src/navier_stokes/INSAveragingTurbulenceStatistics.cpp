@@ -155,8 +155,8 @@ INSAveragingTurbulenceStatistics::INSAveragingTurbulenceStatistics(std::string o
     : INSTurbulenceStatistics(std::move(object_name), input_db->getDoubleWithDefault("statistics_start_time", 0.0))
 {
     d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
-    d_data_centering = string_to_enum<DataCentering>(
-        input_db->getStringWithDefault("analysis_centering", enum_to_string<DataCentering>(d_data_centering)));
+    d_data_centering = string_to_enum<DataCentering>(input_db->getStringWithDefault(
+        "analysis_centering", IBAMR::enum_to_string<IBAMR::DataCentering>(d_data_centering)));
 
     d_velocity_side_scratch_var = new SideVariable<NDIM, double>(d_object_name + "::U_sc_scratch");
     auto* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -390,7 +390,8 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
     if (d_data_centering != DataCentering::CELL)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): cell-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+                                 << "analysis_centering = "
+                                 << IBAMR::enum_to_string<IBAMR::DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
@@ -441,7 +442,8 @@ INSAveragingTurbulenceStatistics::fillReynoldsStressSnapshot(const int R_idx,
     if (d_data_centering != DataCentering::NODE)
     {
         TBOX_ERROR(d_object_name << "::fillReynoldsStressSnapshot(): node-centered Reynolds stresses requested, but "
-                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+                                 << "analysis_centering = "
+                                 << IBAMR::enum_to_string<IBAMR::DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
@@ -516,7 +518,8 @@ INSAveragingTurbulenceStatistics::fillTurbulentKineticEnergySnapshot(
     if (d_data_centering != DataCentering::CELL)
     {
         TBOX_ERROR(d_object_name << "::fillTurbulentKineticEnergySnapshot(): cell-centered TKE requested, but "
-                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+                                 << "analysis_centering = "
+                                 << IBAMR::enum_to_string<IBAMR::DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);
@@ -570,7 +573,8 @@ INSAveragingTurbulenceStatistics::fillTurbulentKineticEnergySnapshot(
     if (d_data_centering != DataCentering::NODE)
     {
         TBOX_ERROR(d_object_name << "::fillTurbulentKineticEnergySnapshot(): node-centered TKE requested, but "
-                                 << "analysis_centering = " << enum_to_string<DataCentering>(d_data_centering) << "\n");
+                                 << "analysis_centering = "
+                                 << IBAMR::enum_to_string<IBAMR::DataCentering>(d_data_centering) << "\n");
     }
 
     const double snapshot_time = d_velocity_average_manager->getTimePoint(time, tol);

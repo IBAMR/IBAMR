@@ -604,7 +604,8 @@ main(int argc, char* argv[])
                 statistics, patch_hierarchy, hier_math_ops, coeffs, sample_period);
             break;
         default:
-            TBOX_ERROR("Unsupported analysis centering " << enum_to_string<DataCentering>(data_centering) << "\n");
+            TBOX_ERROR("Unsupported analysis centering " << IBAMR::enum_to_string<IBAMR::DataCentering>(data_centering)
+                                                         << "\n");
         }
     }
     else
@@ -619,7 +620,8 @@ main(int argc, char* argv[])
             max_error = verify_node_statistics(statistics, patch_hierarchy, hier_math_ops, coeffs, snapshot_time);
             break;
         default:
-            TBOX_ERROR("Unsupported analysis centering " << enum_to_string<DataCentering>(data_centering) << "\n");
+            TBOX_ERROR("Unsupported analysis centering " << IBAMR::enum_to_string<IBAMR::DataCentering>(data_centering)
+                                                         << "\n");
         }
     }
 
@@ -627,7 +629,7 @@ main(int argc, char* argv[])
     if (compact_output)
     {
         pout << "mode = " << (periodic_mode ? "PERIODIC_PHASE" : "RUNNING_MEAN") << "\n";
-        pout << "analysis_centering = " << enum_to_string<DataCentering>(data_centering) << "\n";
+        pout << "analysis_centering = " << IBAMR::enum_to_string<IBAMR::DataCentering>(data_centering) << "\n";
         pout << "verification = " << (success ? "PASS" : "FAIL") << "\n";
     }
     else
