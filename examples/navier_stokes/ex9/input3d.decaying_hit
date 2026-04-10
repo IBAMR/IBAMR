@@ -1,0 +1,141 @@
+// Periodic 3D decaying homogeneous-isotropic-turbulence-style example.
+//
+// The initial condition is a smooth divergence-free multimode field built
+// from a periodic vector potential. This is intended as a lightweight LES
+// example rather than a high-resolution reference DNS benchmark.
+
+MU  = 7.5e-4
+RHO = 1.0
+L   = 6.283185307179586
+
+MAX_LEVELS = 1
+REF_RATIO  = 2
+N = 32
+NFINEST = N
+
+SOLVER_TYPE        = "STAGGERED"
+CFL_MAX            = 0.3
+DT_MAX             = 2.0e-3
+START_TIME         = 0.0
+END_TIME           = 0.5
+GROW_DT            = 1.0
+NUM_CYCLES         = 1
+CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"
+CONVECTIVE_OP_TYPE = "CUI"
+CONVECTIVE_FORM    = "ADVECTIVE"
+NORMALIZE_PRESSURE = TRUE
+VORTICITY_TAGGING  = FALSE
+TAG_BUFFER         = 1
+REGRID_INTERVAL    = 1000000
+OUTPUT_U           = TRUE
+OUTPUT_P           = TRUE
+OUTPUT_F           = FALSE
+OUTPUT_OMEGA       = TRUE
+OUTPUT_DIV_U       = FALSE
+OUTPUT_EE          = FALSE
+ENABLE_LOGGING     = TRUE
+
+// Divergence-free field from A = (A_x, A_y, A_z) with
+// A_x = 0.20*cos(2*X_1)*cos(X_2)
+// A_y = 0.15*cos(2*X_2)*cos(X_0)
+// A_z = 0.18*cos(2*X_0)*cos(X_1)
+U = "-0.18*cos(2*X_0)*sin(X_1) + 0.30*sin(2*X_2)*cos(X_0)"
+V = "-0.20*cos(2*X_1)*sin(X_2) + 0.36*sin(2*X_0)*cos(X_1)"
+W = "-0.15*cos(2*X_2)*sin(X_0) + 0.40*sin(2*X_1)*cos(X_2)"
+P = "0.0"
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+   function_2 = W
+}
+
+PressureInitialConditions {
+   function = P
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = NUM_CYCLES
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   convective_op_type            = CONVECTIVE_OP_TYPE
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   output_EE                     = OUTPUT_EE
+   enable_logging                = ENABLE_LOGGING
+   turbulence_model_type         = "SMAGORINSKY"
+
+   TurbulenceModel {
+      model_type = "SMAGORINSKY"
+      smagorinsky_constant = 0.12
+      filter_width_scale = 1.0
+      max_turbulent_viscosity = 1.0e12
+   }
+}
+
+Main {
+   solver_type                   = SOLVER_TYPE
+   log_file_name                 = "decaying_hit_3d.log"
+   log_all_nodes                 = FALSE
+   viz_writer                    = "VisIt"
+   viz_dump_interval             = 10
+   viz_dump_dirname              = "viz_decaying_hit_3d"
+   visit_number_procs_per_file   = 1
+   restart_dump_interval         = 0
+   restart_dump_dirname          = "restart_decaying_hit_3d"
+   timer_dump_interval           = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0.0,0.0,0.0
+   x_up = L,L,L
+   periodic_dimension = 1,1,1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 128,128,128
+   }
+   smallest_patch_size {
+      level_0 = 8,8,8
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency   = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+TimerManager {
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}
