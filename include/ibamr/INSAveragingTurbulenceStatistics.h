@@ -48,24 +48,35 @@ enum class DataCentering
 };
 
 /*!
- * \brief Tracks mean velocity and mean velocity second moments,
- * \f$\langle u_i u_j \rangle\f$, for staggered INS simulations.
+ * \brief Tracks mean velocity and mean velocity second moments for staggered
+ * INS simulations.
+ *
+ * The retained statistics are
+ * \f[
+ * \langle u_i \rangle
+ * \f]
+ * and
+ * \f[
+ * \langle u_i u_j \rangle.
+ * \f]
  *
  * This class uses HierarchyAveragedDataManager for both the velocity and its
  * symmetric second moment. The retained SnapshotCache objects can then be used
  * to reconstruct Reynolds-stress snapshots on a hierarchy.
+ *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+ analysis_centering = "CELL"                // "CELL" or "NODE"
+ refine_type = "CONSERVATIVE_LINEAR_REFINE" // refine operator used to recover snapshots
+ statistics_start_time = 0.0                // delay accumulation until this simulation time
+ // averaging options used by IBTK::HierarchyAveragedDataManager
+ \endverbatim
  */
 class INSAveragingTurbulenceStatistics : public INSTurbulenceStatistics
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * Recognized input options:
-     * - `analysis_centering` (`"CELL"` or `"NODE"`)
-     * - `refine_type` (refine operator used to recover snapshots)
-     * - `statistics_start_time` (delay accumulation until this simulation time)
-     * - averaging options used by `IBTK::HierarchyAveragedDataManager`
      */
     INSAveragingTurbulenceStatistics(std::string object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
