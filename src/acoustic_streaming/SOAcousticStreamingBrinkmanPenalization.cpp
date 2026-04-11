@@ -84,6 +84,19 @@ SOAcousticStreamingBrinkmanPenalization::setFOVelocityPatchDataIndices(int U1_re
 } // setFOVelocityPatchDataIndices
 
 void
+SOAcousticStreamingBrinkmanPenalization::setRigidVelocity(const IBTK::RigidDOFVector& fo_real_rigid_vel,
+                                                          const IBTK::RigidDOFVector& fo_imag_rigid_vel,
+                                                          const IBTK::RigidDOFVector& so_rigid_vel,
+                                                          const std::array<double, NDIM>& X0)
+{
+    d_fo_real_rigid_vel = fo_real_rigid_vel;
+    d_fo_imag_rigid_vel = fo_imag_rigid_vel;
+    d_so_rigid_vel = so_rigid_vel;
+    d_X_com = X0;
+    return;
+} // setRigidVelocity
+
+void
 SOAcousticStreamingBrinkmanPenalization::setAcousticAngularFrequency(double omega)
 {
     d_acoustic_freq = omega;
@@ -127,7 +140,12 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
         Pointer<SideData<NDIM, double> > Ur = patch->getPatchData(d_U1_real_idx);
         Pointer<SideData<NDIM, double> > Ui = patch->getPatchData(d_U1_imag_idx);
 
-        IBTK::Vector3d U, W, X_com;
+        IBTK::Vector3d U1Re, U1Im, W1Re, W1Im, U2, W2, X_com;
+        rdv_to_eigen(d_fo_real_rigid_vel, U1Re, W1Re);
+        rdv_to_eigen(d_fo_imag_rigid_vel, U1Im, W1Im);
+        rdv_to_eigen(d_so_rigid_vel, U2, W2);
+        X_com.setZero();
+        std::copy(d_X_com.data(), d_X_com.data() + NDIM, X_com.data());
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
@@ -141,12 +159,42 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
 
                 if (phi <= alpha)
                 {
+                    // Compute the second-order velocity BC
+                    const IBTK::Vector3d R = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, is) - X_com;
+                    IBTK::Vector3d V1Re = IBTK::Vector3d::Zero();
+                    IBTK::Vector3d V1Im = IBTK::Vector3d::Zero();
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        if (d == axis)
+                        {
+                            V1Re(d) = (*Ur)(is);
+                            V1Im(d) = (*Ui)(is);
+                        }
+                        else
+                        {
+                            const SideIndex<NDIM> is_e(it(), d, SideIndex<NDIM>::Lower);
+                            const SideIndex<NDIM> is_ne(it(), d, SideIndex<NDIM>::Upper);
+                            const SideIndex<NDIM> is_w(it() + get_shift(axis, -1), d, SideIndex<NDIM>::Lower);
+                            const SideIndex<NDIM> is_nw(it() + get_shift(axis, -1), d, SideIndex<NDIM>::Upper);
+
+                            V1Re(d) = 0.25 * ((*Ur)(is_e) + (*Ur)(is_ne) + (*Ur)(is_w) + (*Ur)(is_nw));
+                            V1Im(d) = 0.25 * ((*Ui)(is_e) + (*Ui)(is_ne) + (*Ui)(is_w) + (*Ui)(is_nw));
+                        }
+                    }
+                    IBTK::Vector3d W1RexR = W1Re.cross(R);
+                    IBTK::Vector3d W1ImxR = W1Im.cross(R);
+                    IBTK::Vector3d W1ImxW1RexR = W1Im.cross(W1RexR);
+                    IBTK::Vector3d W1RexW1ImxR = W1Re.cross(W1ImxR);
+                    IBTK::Vector3d W1RexV1Im = W1Re.cross(V1Im);
+                    IBTK::Vector3d W1ImxV1Re = W1Im.cross(V1Re);
+                    IBTK::Vector3d so_velocity = U2 + W2.cross(R);
+
                     // Compute the Stokes drift velocity at the side center based on the first-order velocity field.
                     const SideIndex<NDIM> is_e(it(), axis, SideIndex<NDIM>::Upper);
                     const SideIndex<NDIM> is_w(it() + get_shift(axis, -1), axis, SideIndex<NDIM>::Lower);
-                    const double g_normal =
-                        ((*Ui)(is) * ((*Ur)(is_e) - (*Ur)(is_w)) - (*Ur)(is) * ((*Ui)(is_e) - (*Ui)(is_w))) /
-                        (2.0 * patch_dx[axis]);
+                    const double g_normal = ((V1Im(axis) + W1ImxR(axis)) * ((*Ur)(is_e) - (*Ur)(is_w)) -
+                                             (V1Re(axis) + W1RexR(axis)) * ((*Ui)(is_e) - (*Ui)(is_w))) /
+                                            (2.0 * patch_dx[axis]);
 
                     double g_tangential = 0.0;
                     for (int d = 0; d < NDIM; ++d)
@@ -156,27 +204,15 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
                         const SideIndex<NDIM> is_n(it() + get_shift(d, 1), axis, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> is_s(it() + get_shift(d, -1), axis, SideIndex<NDIM>::Lower);
 
-                        const SideIndex<NDIM> is_e(it(), d, SideIndex<NDIM>::Lower);
-                        const SideIndex<NDIM> is_ne(it(), d, SideIndex<NDIM>::Upper);
-                        const SideIndex<NDIM> is_w(it() + get_shift(axis, -1), d, SideIndex<NDIM>::Lower);
-                        const SideIndex<NDIM> is_nw(it() + get_shift(axis, -1), d, SideIndex<NDIM>::Upper);
-
-                        g_tangential += 0.25 * ((*Ui)(is_e) + (*Ui)(is_ne) + (*Ui)(is_w) + (*Ui)(is_nw)) *
-                                        ((*Ur)(is_n) - (*Ur)(is_s)) / (2 * patch_dx[d]);
-                        g_tangential -= 0.25 * ((*Ur)(is_e) + (*Ur)(is_ne) + (*Ur)(is_w) + (*Ur)(is_nw)) *
-                                        ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
+                        g_tangential += (V1Im(d) + W1ImxR(d)) * ((*Ur)(is_n) - (*Ur)(is_s)) / (2 * patch_dx[d]);
+                        g_tangential -= (V1Re(d) + W1RexR(d)) * ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
                     }
-                    const double stokes_drift = -(g_normal + g_tangential) / (2.0 * d_acoustic_freq);
+                    double stokes_drift = -(g_normal + g_tangential);
+                    stokes_drift += (W1RexV1Im(axis) - W1ImxV1Re(axis));
+                    stokes_drift += (W1RexW1ImxR(axis) - W1ImxW1RexR(axis));
+                    stokes_drift /= (2.0 * d_acoustic_freq);
 
-                    // Compute the rigid body velocity at the side center
-                    // V = U + WxR
-                    rdv_to_eigen(d_rigid_vel, U, W);
-                    X_com.setZero();
-                    std::copy(d_X_com.data(), d_X_com.data() + NDIM, X_com.data());
-                    const IBTK::Vector3d R = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, is) - X_com;
-                    IBTK::Vector3d solid_velocity = U + W.cross(R);
-
-                    (*b_data)(is) = (stokes_drift + solid_velocity[axis]) * d_penalty_factor * (1.0 - Hphi);
+                    (*b_data)(is) = (stokes_drift + so_velocity[axis]) * d_penalty_factor * (1.0 - Hphi);
                 }
             }
         }

@@ -86,20 +86,10 @@ BrinkmanPenalizationMethod::registerSolidLevelSet(int ls_current_idx,
 } // registerSolidLevelSet
 
 void
-BrinkmanPenalizationMethod::setRigidVelocity(const IBTK::FreeRigidDOFVector& free_dofs,
-                                             const IBTK::RigidDOFVector& UW,
+BrinkmanPenalizationMethod::setRigidVelocity(const IBTK::RigidDOFVector& UW,
                                              const std::array<double, NDIM>& X_com,
                                              int depth)
 {
-    d_free_rigid_dofs = free_dofs;
-    for (int i = 0; i < s_max_free_dofs; ++i)
-    {
-        if (d_free_rigid_dofs(i))
-        {
-            d_is_freely_moving = true;
-            break;
-        }
-    }
     d_rigid_vel = UW;
     d_X_com = X_com;
     d_depth = depth;

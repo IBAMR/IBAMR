@@ -64,6 +64,14 @@ public:
     void setFOVelocityPatchDataIndices(int U1_real_idx, int U1_imag_idx);
 
     /*
+     * \brief Set first and second-order rigid velocities in the Brinkman penalized zone.
+     * @param X0 center of mass of the body
+     */
+    void setRigidVelocity(const IBTK::RigidDOFVector& fo_real_rigid_vel,
+                          const IBTK::RigidDOFVector& fo_imag_rigid_vel,
+                          const IBTK::RigidDOFVector& so_rigid_vel,
+                          const std::array<double, NDIM>& X0);
+    /*
      * \brief Set acoustic angular frequency.
      */
     void setAcousticAngularFrequency(double omega);
@@ -83,6 +91,11 @@ protected:
      * \brief Acoustic angular frequency.
      */
     double d_acoustic_freq = std::numeric_limits<double>::signaling_NaN();
+
+    /*
+     * \brief Rigid body velocities that need to be imposed in the Brinkman zone.
+     */
+    IBTK::RigidDOFVector d_fo_real_rigid_vel, d_fo_imag_rigid_vel, d_so_rigid_vel;
 
 private:
     /*!

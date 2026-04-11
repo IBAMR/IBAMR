@@ -97,10 +97,7 @@ public:
      * @param depth of the velocity index.
      * @param X0 center of mass of the body
      */
-    void setRigidVelocity(const IBTK::FreeRigidDOFVector& free_dofs,
-                          const IBTK::RigidDOFVector& rigid_vel,
-                          const std::array<double, NDIM>& X0,
-                          int depth = 0);
+    void setRigidVelocity(const IBTK::RigidDOFVector& rigid_vel, const std::array<double, NDIM>& X0, int depth = 0);
 
     /*!
      * \brief Compute the desired rigid body velocity in the Brinkman penalized (solid) zone.
@@ -141,8 +138,6 @@ protected:
     /*
      * \brief Uniform velocity data that needs to be imposed in the Brinkman zone.
      */
-    IBTK::FreeRigidDOFVector d_free_rigid_dofs;
-    bool d_is_freely_moving = false;
     IBTK::RigidDOFVector d_rigid_vel;
     std::array<double, NDIM> d_X_com;
     int d_depth = 0;

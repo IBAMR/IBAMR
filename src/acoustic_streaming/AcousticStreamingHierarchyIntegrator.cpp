@@ -1828,8 +1828,6 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
 
         pout << "FO NEWTON ITERATION # = " << iter << "\n"
              << "|| Residual FO || = " << current_residual << std::endl;
-        break;
-
         if (iter == 0 && current_residual <= 1e-7) break;
         if (iter > 0 && (current_residual / init_residual <= 1e-4 || current_residual <= 1e-7)) break;
 
@@ -1912,9 +1910,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         for (int k = 0; k < num_bodies; ++k)
         {
             Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
-            // auto& so_brinkman_force = d_so_brinkman_force[k];
             so_brinkman_force->setRigidVelocity(
-                d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+                d_brinkman_fo_real_vel[k], d_brinkman_fo_imag_vel[k], d_brinkman_so_vel[k], d_brinkman_center[k]);
             so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
         }
         d_hier_sc_data_ops->add(
@@ -1977,9 +1974,10 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                     for (int k = 0; k < num_bodies; ++k)
                     {
                         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
-                        // auto& so_brinkman_force = d_so_brinkman_force[k];
-                        so_brinkman_force->setRigidVelocity(
-                            d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+                        so_brinkman_force->setRigidVelocity(d_brinkman_fo_real_vel[k],
+                                                            d_brinkman_fo_imag_vel[k],
+                                                            d_brinkman_so_vel[k],
+                                                            d_brinkman_center[k]);
                         so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
                     }
                     d_hier_sc_data_ops->add(d_rhs2_vec->getComponentDescriptorIndex(0),
@@ -3424,10 +3422,8 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsFOSystem(Pointer<SAMRAIV
             auto& bpm = d_fo_brinkman_force[k];
             for (int comp = 0; comp < 2; ++comp)
             {
-                bpm->setRigidVelocity(d_brinkman_free_dofs[k],
-                                      (comp == REAL ? d_brinkman_fo_imag_vel[k] : d_brinkman_fo_real_vel[k]),
-                                      d_brinkman_center[k],
-                                      comp);
+                bpm->setRigidVelocity(
+                    (comp == REAL ? d_brinkman_fo_imag_vel[k] : d_brinkman_fo_real_vel[k]), d_brinkman_center[k], comp);
                 bpm->computeBrinkmanVelocity(F1_rhs_idx, new_time, cycle_num);
             }
         }
@@ -4024,9 +4020,9 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForceBP(double tim
     // Compute the contribution to the radiation force from chi/kappa *U_b term of the Brinkman penalization force.
     for (int k = 0; k < num_bodies; ++k)
     {
-        auto& so_brinkman_force = d_so_brinkman_force[k];
+        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
         so_brinkman_force->setRigidVelocity(
-            d_brinkman_free_dofs[k], d_brinkman_so_vel[k], d_brinkman_center[k], /*depth*/ 0);
+            d_brinkman_fo_real_vel[k], d_brinkman_fo_imag_vel[k], d_brinkman_so_vel[k], d_brinkman_center[k]);
 
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
         so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, time, /*cycle_num*/ 0);

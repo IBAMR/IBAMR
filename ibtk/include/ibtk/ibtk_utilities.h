@@ -29,8 +29,8 @@
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core" // IWYU pragma: export
-#include "Eigen/StdVector"
 #include "Eigen/Geometry"
+#include "Eigen/StdVector"
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
