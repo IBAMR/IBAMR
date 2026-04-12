@@ -56,9 +56,14 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iomanip>
 #include <limits>
 #include <memory>
+#include <set>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -77,6 +82,99 @@ namespace
 static const int SIDEG = 1;
 static const int CELLG = 1;
 static const int NOGHOST = 0;
+
+std::ofstream
+open_output_file(const std::string& filename)
+{
+    std::ofstream out(filename.c_str());
+    if (!out)
+    {
+        TBOX_ERROR("unable to open output file: " << filename << "\n");
+    }
+    out << std::scientific << std::setprecision(17);
+    return out;
+}
+
+void
+write_matrix_market(const std::string& filename, Mat mat)
+{
+    PetscInt nrows = 0;
+    PetscInt ncols = 0;
+    PetscErrorCode ierr = MatGetSize(mat, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+
+    PetscInt nnz = 0;
+    for (PetscInt i = 0; i < nrows; ++i)
+    {
+        PetscInt row_nnz = 0;
+        const PetscInt* row_cols = nullptr;
+        const PetscScalar* row_vals = nullptr;
+        ierr = MatGetRow(mat, i, &row_nnz, &row_cols, &row_vals);
+        IBTK_CHKERRQ(ierr);
+        nnz += row_nnz;
+        ierr = MatRestoreRow(mat, i, &row_nnz, &row_cols, &row_vals);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    std::ofstream out = open_output_file(filename);
+    out << "%%MatrixMarket matrix coordinate real general\n";
+    out << nrows << " " << ncols << " " << nnz << "\n";
+    for (PetscInt i = 0; i < nrows; ++i)
+    {
+        PetscInt row_nnz = 0;
+        const PetscInt* row_cols = nullptr;
+        const PetscScalar* row_vals = nullptr;
+        ierr = MatGetRow(mat, i, &row_nnz, &row_cols, &row_vals);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < row_nnz; ++k)
+        {
+            out << (i + 1) << " " << (row_cols[k] + 1) << " " << PetscRealPart(row_vals[k]) << "\n";
+        }
+        ierr = MatRestoreRow(mat, i, &row_nnz, &row_cols, &row_vals);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+void
+write_subdomains_json(const std::string& filename,
+                      int level_num,
+                      const std::vector<std::vector<int>>& overlap_subdomains,
+                      const std::vector<std::vector<int>>& nonoverlap_subdomains)
+{
+    std::ofstream out = open_output_file(filename);
+    out << "{\n";
+    out << "  \"level\": " << level_num << ",\n";
+    out << "  \"num_subdomains\": " << overlap_subdomains.size() << ",\n";
+    out << "  \"overlap\": [\n";
+    for (std::size_t k = 0; k < overlap_subdomains.size(); ++k)
+    {
+        out << "    [";
+        for (std::size_t q = 0; q < overlap_subdomains[k].size(); ++q)
+        {
+            out << overlap_subdomains[k][q];
+            if (q + 1 < overlap_subdomains[k].size()) out << ", ";
+        }
+        out << "]";
+        if (k + 1 < overlap_subdomains.size()) out << ",";
+        out << "\n";
+    }
+    out << "  ],\n";
+    out << "  \"nonoverlap\": [\n";
+    for (std::size_t k = 0; k < nonoverlap_subdomains.size(); ++k)
+    {
+        out << "    [";
+        for (std::size_t q = 0; q < nonoverlap_subdomains[k].size(); ++q)
+        {
+            out << nonoverlap_subdomains[k][q];
+            if (q + 1 < nonoverlap_subdomains[k].size()) out << ", ";
+        }
+        out << "]";
+        if (k + 1 < nonoverlap_subdomains.size()) out << ",";
+        out << "\n";
+    }
+    out << "  ]\n";
+    out << "}\n";
+}
 
 } // namespace
 
@@ -413,6 +511,11 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
         if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
         level_solver->setInitialGuessNonzero(initial_guess_nonzero);
 
+        if (isweep == 0)
+        {
+            dumpFirstSweepASMState(level_num, level_solver);
+        }
+
         level_solver->solveSystem(*e_level, *r_level);
     }
     return;
@@ -428,6 +531,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int finest_reset_ln)
 {
     int ierr;
+    d_first_sweep_asm_dump_done_by_level.assign(d_finest_ln + 1, false);
 
     const double dt = d_new_time - d_current_time;
     double kappa = std::numeric_limits<double>::quiet_NaN();
@@ -669,6 +773,65 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
 } // initializeOperatorStateSpecialized
 
 void
+StaggeredStokesIBLevelRelaxationFACOperator::dumpFirstSweepASMState(
+    const int level_num,
+    Pointer<StaggeredStokesPETScLevelSolver> level_solver)
+{
+    if (!level_solver) return;
+    if (level_num < 0) return;
+    if (static_cast<std::size_t>(level_num) >= d_first_sweep_asm_dump_done_by_level.size()) return;
+    if (d_first_sweep_asm_dump_done_by_level[level_num]) return;
+
+    const char* dump_dir_env = std::getenv("IBAMR_CAV_FIRST_SWEEP_DUMP_DIR");
+    if (!dump_dir_env || std::strlen(dump_dir_env) == 0) return;
+    const std::string dump_dir(dump_dir_env);
+    Utilities::recursiveMkdir(dump_dir);
+
+    std::vector<std::vector<int>>* nonoverlap_subdomains = nullptr;
+    std::vector<std::vector<int>>* overlap_subdomains = nullptr;
+    level_solver->getASMSubdomains(&nonoverlap_subdomains, &overlap_subdomains);
+    if (!nonoverlap_subdomains || !overlap_subdomains) return;
+
+    write_subdomains_json(dump_dir + "/subdomains_first_sweep_level" + std::to_string(level_num) + ".json",
+                          level_num,
+                          *overlap_subdomains,
+                          *nonoverlap_subdomains);
+
+    const KSP& level_ksp = level_solver->getPETScKSP();
+    Mat level_A = nullptr;
+    PetscErrorCode ierr = KSPGetOperators(level_ksp, &level_A, nullptr);
+    IBTK_CHKERRQ(ierr);
+
+    for (std::size_t k = 0; k < overlap_subdomains->size(); ++k)
+    {
+        const std::vector<int>& overlap_dofs = (*overlap_subdomains)[k];
+        std::vector<PetscInt> overlap_dofs_petsc(overlap_dofs.begin(), overlap_dofs.end());
+        IS overlap_is = nullptr;
+        ierr = ISCreateGeneral(PETSC_COMM_SELF,
+                               static_cast<PetscInt>(overlap_dofs_petsc.size()),
+                               overlap_dofs_petsc.empty() ? nullptr : overlap_dofs_petsc.data(),
+                               PETSC_COPY_VALUES,
+                               &overlap_is);
+        IBTK_CHKERRQ(ierr);
+
+        Mat subdomain_A = nullptr;
+        ierr = MatCreateSubMatrix(level_A, overlap_is, overlap_is, MAT_INITIAL_MATRIX, &subdomain_A);
+        IBTK_CHKERRQ(ierr);
+        write_matrix_market(dump_dir + "/A_subdomain_first_sweep_level" + std::to_string(level_num) + "_k" +
+                                std::to_string(k) + ".mtx",
+                            subdomain_A);
+
+        ierr = MatDestroy(&subdomain_A);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&overlap_is);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    d_first_sweep_asm_dump_done_by_level[level_num] = true;
+    return;
+} // dumpFirstSweepASMState
+
+void
 StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
                                                                                 const int finest_reset_ln)
 {
@@ -698,6 +861,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
         d_patch_side_bc_box_overlap[ln].clear();
         d_patch_cell_bc_box_overlap[ln].clear();
     }
+    d_first_sweep_asm_dump_done_by_level.clear();
     return;
 } // deallocateOperatorStateSpecialized
 

@@ -135,6 +135,36 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                        << "  expected value >= 1.\n");
         }
     }
+    if (input_db && input_db->keyExists("coupling_aware_asm_seed_traversal_order"))
+    {
+        const std::string seed_traversal_order = input_db->getString("coupling_aware_asm_seed_traversal_order");
+        d_coupling_aware_asm_seed_traversal_order =
+            string_to_enum<CouplingAwareASMSeedTraversalOrder>(seed_traversal_order);
+        bool valid_seed_traversal_order = false;
+#if (NDIM == 2)
+        valid_seed_traversal_order =
+            d_coupling_aware_asm_seed_traversal_order == CouplingAwareASMSeedTraversalOrder::I_J ||
+            d_coupling_aware_asm_seed_traversal_order == CouplingAwareASMSeedTraversalOrder::J_I;
+#else
+        valid_seed_traversal_order =
+            d_coupling_aware_asm_seed_traversal_order == CouplingAwareASMSeedTraversalOrder::I_J_K ||
+            d_coupling_aware_asm_seed_traversal_order == CouplingAwareASMSeedTraversalOrder::J_K_I ||
+            d_coupling_aware_asm_seed_traversal_order == CouplingAwareASMSeedTraversalOrder::K_I_J;
+#endif
+        if (!valid_seed_traversal_order)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_seed_traversal_order = " << seed_traversal_order << "\n"
+#if (NDIM == 2)
+                       << "  expected one of " << enum_to_string(CouplingAwareASMSeedTraversalOrder::I_J) << " or "
+                       << enum_to_string(CouplingAwareASMSeedTraversalOrder::J_I) << ".\n");
+#else
+                       << "  expected one of " << enum_to_string(CouplingAwareASMSeedTraversalOrder::I_J_K) << ", "
+                       << enum_to_string(CouplingAwareASMSeedTraversalOrder::J_K_I) << ", or "
+                       << enum_to_string(CouplingAwareASMSeedTraversalOrder::K_I_J) << ".\n");
+#endif
+        }
+    }
     if (input_db && input_db->keyExists("coupling_aware_asm_closure_policy"))
     {
         const std::string closure_policy = input_db->getString("coupling_aware_asm_closure_policy");
@@ -275,7 +305,8 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
             d_level,
             d_coupling_aware_asm_map_data,
             d_coupling_aware_asm_seed_axis,
-            d_coupling_aware_asm_seed_stride);
+            d_coupling_aware_asm_seed_stride,
+            d_coupling_aware_asm_seed_traversal_order);
         if (d_coupling_aware_asm_closure_policy == CouplingAwareASMClosurePolicy::STRICT)
         {
             StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt(
@@ -295,6 +326,7 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
             d_coupling_aware_asm_map_data,
             d_coupling_aware_asm_seed_axis,
             d_coupling_aware_asm_seed_stride,
+            d_coupling_aware_asm_seed_traversal_order,
             d_coupling_aware_asm_closure_policy,
             d_coupling_aware_asm_relative_zero_tol);
         int ierr = MatDestroy(&A00_velocity_mat);

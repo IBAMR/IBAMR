@@ -240,6 +240,8 @@ protected:
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
 private:
+    void dumpFirstSweepASMState(int level_num, SAMRAI::tbox::Pointer<StaggeredStokesPETScLevelSolver> level_solver);
+
     /*!
      * \brief Default constructor.
      *
@@ -310,6 +312,7 @@ private:
      */
     std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cell_bc_box_overlap;
+    std::vector<bool> d_first_sweep_asm_dump_done_by_level;
 };
 } // namespace IBAMR
 

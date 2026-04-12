@@ -245,6 +245,13 @@ private:
     ASMSubdomainConstructionMode d_asm_subdomain_construction_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
     int d_coupling_aware_asm_seed_axis = 0;
     int d_coupling_aware_asm_seed_stride = 1;
+#if (NDIM == 2)
+    CouplingAwareASMSeedTraversalOrder d_coupling_aware_asm_seed_traversal_order =
+        CouplingAwareASMSeedTraversalOrder::I_J;
+#else
+    CouplingAwareASMSeedTraversalOrder d_coupling_aware_asm_seed_traversal_order =
+        CouplingAwareASMSeedTraversalOrder::I_J_K;
+#endif
     CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
     StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
     std::vector<int> d_coupling_aware_asm_seed_velocity_dofs;

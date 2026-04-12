@@ -59,6 +59,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <numeric>
 #include <set>
 #include <sstream>
@@ -85,6 +86,72 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
+
+std::array<int, NDIM>
+get_seed_traversal_axis_order(const CouplingAwareASMSeedTraversalOrder seed_traversal_order)
+{
+    std::array<int, NDIM> axis_order(array_constant<int, NDIM>(0));
+    if (NDIM == 2)
+    {
+        switch (seed_traversal_order)
+        {
+        case CouplingAwareASMSeedTraversalOrder::I_J:
+            axis_order[0] = 0;
+            axis_order[1] = 1;
+            return axis_order;
+        case CouplingAwareASMSeedTraversalOrder::J_I:
+            axis_order[0] = 1;
+            axis_order[1] = 0;
+            return axis_order;
+        case CouplingAwareASMSeedTraversalOrder::I_J_K:
+        case CouplingAwareASMSeedTraversalOrder::J_K_I:
+        case CouplingAwareASMSeedTraversalOrder::K_I_J:
+            TBOX_ERROR("get_seed_traversal_axis_order():\n"
+                       << "  3D-only seed traversal order " << enum_to_string(seed_traversal_order)
+                       << " is invalid in 2D.\n");
+        case CouplingAwareASMSeedTraversalOrder::UNKNOWN:
+        default:
+            TBOX_ERROR("get_seed_traversal_axis_order():\n"
+                       << "  unsupported seed traversal order " << enum_to_string(seed_traversal_order) << ".\n");
+        }
+    }
+    else if (NDIM == 3)
+    {
+        switch (seed_traversal_order)
+        {
+        case CouplingAwareASMSeedTraversalOrder::I_J_K:
+            axis_order[0] = 0;
+            axis_order[1] = 1;
+            axis_order[2] = 2;
+            return axis_order;
+        case CouplingAwareASMSeedTraversalOrder::K_I_J:
+            axis_order[0] = 2;
+            axis_order[1] = 0;
+            axis_order[2] = 1;
+            return axis_order;
+        case CouplingAwareASMSeedTraversalOrder::J_K_I:
+            axis_order[0] = 1;
+            axis_order[1] = 2;
+            axis_order[2] = 0;
+            return axis_order;
+        case CouplingAwareASMSeedTraversalOrder::I_J:
+        case CouplingAwareASMSeedTraversalOrder::J_I:
+            TBOX_ERROR("get_seed_traversal_axis_order():\n"
+                       << "  2D-only seed traversal order " << enum_to_string(seed_traversal_order)
+                       << " is invalid in 3D.\n");
+        case CouplingAwareASMSeedTraversalOrder::UNKNOWN:
+        default:
+            TBOX_ERROR("get_seed_traversal_axis_order():\n"
+                       << "  unsupported seed traversal order " << enum_to_string(seed_traversal_order) << ".\n");
+        }
+    }
+    else
+    {
+        TBOX_ERROR("get_seed_traversal_axis_order():\n"
+                   << "  unsupported NDIM = " << NDIM << ".\n");
+    }
+    return axis_order;
+}
 
 /*!
  * Build STRICT-policy seed-pairing groups for velocity DOFs.
@@ -358,8 +425,7 @@ build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_
                                                 Mat A00_mat,
                                                 const PetscInt first_local_row,
                                                 const PetscInt one_past_local_row,
-                                                const double relative_numerical_zero_tol,
-                                                const bool use_structural_coupling = false)
+                                                const double relative_numerical_zero_tol)
 {
     initial_velocity_dofs = seed_velocity_components;
     for (const int velocity_dof : seed_velocity_components)
@@ -381,8 +447,8 @@ build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_
                      relative_numerical_zero_tol * row_max_abs);
         for (PetscInt col_idx = 0; col_idx < ncols; ++col_idx)
         {
-            const double value = PetscRealPart(vals[col_idx]);
-            if (use_structural_coupling || !IBTK::abs_equal_eps(value, 0.0, numerical_zero_tol))
+            const double value_abs = static_cast<double>(PetscAbsScalar(vals[col_idx]));
+            if (value_abs > numerical_zero_tol)
             {
                 initial_velocity_dofs.insert(static_cast<int>(cols[col_idx]));
             }
@@ -1165,7 +1231,8 @@ StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityD
     Pointer<PatchLevel<NDIM>> patch_level,
     const PatchLevelCellClosureMapData& map_data,
     const int seed_velocity_axis,
-    const int seed_velocity_stride)
+    const int seed_velocity_stride,
+    const CouplingAwareASMSeedTraversalOrder seed_traversal_order)
 {
     if (seed_velocity_axis < 0 || seed_velocity_axis >= NDIM)
     {
@@ -1183,7 +1250,12 @@ StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityD
                    << "  velocity map data must be built before computing seed velocity DOFs.\n");
     }
 
-    std::vector<int> axis_velocity_dofs;
+    struct SeedVelocityRecord
+    {
+        int dof = -1;
+        std::array<int, NDIM> logical_index{};
+    };
+    std::vector<SeedVelocityRecord> axis_velocity_records;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
@@ -1198,12 +1270,37 @@ StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityD
             const auto axis_it = map_data.velocity_dof_to_component_axis.find(dof);
             if (axis_it == map_data.velocity_dof_to_component_axis.end()) continue;
             if (axis_it->second != seed_velocity_axis) continue;
-            axis_velocity_dofs.push_back(dof);
+            SeedVelocityRecord rec;
+            rec.dof = dof;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                rec.logical_index[d] = i_s(static_cast<int>(d));
+            }
+            axis_velocity_records.push_back(rec);
         }
     }
-    std::sort(axis_velocity_dofs.begin(), axis_velocity_dofs.end());
-    axis_velocity_dofs.erase(std::unique(axis_velocity_dofs.begin(), axis_velocity_dofs.end()),
-                             axis_velocity_dofs.end());
+
+    const std::array<int, NDIM> axis_order = get_seed_traversal_axis_order(seed_traversal_order);
+    std::sort(axis_velocity_records.begin(),
+              axis_velocity_records.end(),
+              [&axis_order](const SeedVelocityRecord& lhs, const SeedVelocityRecord& rhs)
+              {
+                  for (unsigned int q = 0; q < NDIM; ++q)
+                  {
+                      const int d = axis_order[q];
+                      if (lhs.logical_index[d] < rhs.logical_index[d]) return true;
+                      if (lhs.logical_index[d] > rhs.logical_index[d]) return false;
+                  }
+                  return lhs.dof < rhs.dof;
+              });
+
+    std::vector<int> axis_velocity_dofs;
+    axis_velocity_dofs.reserve(axis_velocity_records.size());
+    std::set<int> seen_dofs;
+    for (const auto& rec : axis_velocity_records)
+    {
+        if (seen_dofs.insert(rec.dof).second) axis_velocity_dofs.push_back(rec.dof);
+    }
 
     seed_velocity_dofs.clear();
     int axis_velocity_counter = 0;
@@ -1247,13 +1344,8 @@ StaggeredStokesPETScMatUtilities::findCoupledCellDofsFromA00(
     int ierr = MatGetOwnershipRange(A00_mat, &first_local_row, &row_end);
     IBTK_CHKERRQ(ierr);
     std::set<int> initial_velocity_dofs;
-    build_initial_velocity_set_from_seed_components(initial_velocity_dofs,
-                                                    seed_velocity_dofs,
-                                                    A00_mat,
-                                                    first_local_row,
-                                                    row_end,
-                                                    relative_numerical_zero_tol,
-                                                    false);
+    build_initial_velocity_set_from_seed_components(
+        initial_velocity_dofs, seed_velocity_dofs, A00_mat, first_local_row, row_end, relative_numerical_zero_tol);
     find_involved_cells_from_velocity_set(
         involved_cell_dofs, initial_velocity_dofs, velocity_dof_to_adjacent_cell_dofs);
 
@@ -1328,8 +1420,7 @@ construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
                                                         A00_mat,
                                                         first_local_row,
                                                         row_end,
-                                                        relative_numerical_zero_tol,
-                                                        closure_policy == CouplingAwareASMClosurePolicy::STRICT);
+                                                        relative_numerical_zero_tol);
         find_involved_cells_from_velocity_set(
             involved_cell_dofs, initial_velocity_dofs, velocity_dof_to_adjacent_cell_dofs);
         if (closure_policy == CouplingAwareASMClosurePolicy::STRICT)
@@ -1380,12 +1471,18 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     const PatchLevelCellClosureMapData& map_data,
     const int seed_velocity_axis,
     const int seed_velocity_stride,
+    const CouplingAwareASMSeedTraversalOrder seed_traversal_order,
     const CouplingAwareASMClosurePolicy closure_policy,
     const double relative_numerical_zero_tol)
 {
     std::vector<int> seed_velocity_dofs;
-    computePatchLevelCouplingAwareASMSeedVelocityDofs(
-        seed_velocity_dofs, u_dof_index_idx, patch_level, map_data, seed_velocity_axis, seed_velocity_stride);
+    computePatchLevelCouplingAwareASMSeedVelocityDofs(seed_velocity_dofs,
+                                                      u_dof_index_idx,
+                                                      patch_level,
+                                                      map_data,
+                                                      seed_velocity_axis,
+                                                      seed_velocity_stride,
+                                                      seed_traversal_order);
 
     is_overlap.clear();
     is_nonoverlap.clear();
