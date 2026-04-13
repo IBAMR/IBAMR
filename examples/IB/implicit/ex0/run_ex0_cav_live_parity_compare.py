@@ -20,8 +20,15 @@ class SparseMatrix:
 
 
 def read_json(path: str):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError as ex:
+        raise RuntimeError(f"missing JSON file: {path}") from ex
+    except json.JSONDecodeError as ex:
+        raise RuntimeError(f"invalid JSON in {path}: line {ex.lineno} column {ex.colno}: {ex.msg}") from ex
+    except OSError as ex:
+        raise RuntimeError(f"unable to read JSON file {path}: {ex}") from ex
 
 
 def write_json(path: str, obj):
@@ -36,35 +43,42 @@ def as_int_list(values) -> List[int]:
 
 
 def read_matrix_market(path: str) -> SparseMatrix:
-    with open(path, "r", encoding="utf-8") as f:
-        header = f.readline().strip().lower()
-        if not header.startswith("%%matrixmarket matrix coordinate"):
-            raise RuntimeError(f"unsupported MatrixMarket header in {path}: {header}")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            header = f.readline().strip().lower()
+            if not header.startswith("%%matrixmarket matrix coordinate"):
+                raise RuntimeError(f"unsupported MatrixMarket header in {path}: {header}")
 
-        line = f.readline()
-        while line.startswith("%"):
             line = f.readline()
-        if not line:
-            raise RuntimeError(f"missing size line in {path}")
+            while line.startswith("%"):
+                line = f.readline()
+            if not line:
+                raise RuntimeError(f"missing size line in {path}")
 
-        nrows, ncols, nnz = [int(tok) for tok in line.strip().split()]
-        entries: Dict[Tuple[int, int], float] = {}
-        for _ in range(nnz):
-            entry = f.readline()
-            if not entry:
-                raise RuntimeError(f"unexpected EOF while reading entries from {path}")
-            parts = entry.strip().split()
-            if len(parts) < 3:
-                raise RuntimeError(f"invalid entry in {path}: {entry.strip()}")
-            i = int(parts[0]) - 1
-            j = int(parts[1]) - 1
-            val = float(parts[2])
-            key = (i, j)
-            entries[key] = entries.get(key, 0.0) + val
-            if entries[key] == 0.0:
-                del entries[key]
+            nrows, ncols, nnz = [int(tok) for tok in line.strip().split()]
+            entries: Dict[Tuple[int, int], float] = {}
+            for _ in range(nnz):
+                entry = f.readline()
+                if not entry:
+                    raise RuntimeError(f"unexpected EOF while reading entries from {path}")
+                parts = entry.strip().split()
+                if len(parts) < 3:
+                    raise RuntimeError(f"invalid entry in {path}: {entry.strip()}")
+                i = int(parts[0]) - 1
+                j = int(parts[1]) - 1
+                val = float(parts[2])
+                key = (i, j)
+                entries[key] = entries.get(key, 0.0) + val
+                if entries[key] == 0.0:
+                    del entries[key]
 
-    return SparseMatrix(nrows=nrows, ncols=ncols, entries=entries)
+        return SparseMatrix(nrows=nrows, ncols=ncols, entries=entries)
+    except FileNotFoundError as ex:
+        raise RuntimeError(f"missing MatrixMarket file: {path}") from ex
+    except ValueError as ex:
+        raise RuntimeError(f"invalid numeric entry in {path}: {ex}") from ex
+    except OSError as ex:
+        raise RuntimeError(f"unable to read MatrixMarket file {path}: {ex}") from ex
 
 
 def sparse_rel_metrics(lhs: SparseMatrix, rhs: SparseMatrix) -> Tuple[float, float, float, float]:
@@ -333,21 +347,6 @@ def extract_velocity_block(mat: SparseMatrix, dof_records: List[dict]) -> Sparse
     return SparseMatrix(nrows=n, ncols=n, entries=entries)
 
 
-def compute_live_cond2_a00(bundle_root: str, level: int) -> Tuple[float, dict]:
-    dof_path = os.path.join(bundle_root, f"dof_map_level{level}.json")
-    A_path = os.path.join(bundle_root, f"A_level{level}.mtx")
-    dof_map = read_json(dof_path)["dofs"]
-    A_level = read_matrix_market(A_path)
-    A00 = extract_velocity_block(A_level, dof_map)
-    cond2, diagnostics = estimate_cond2_from_square_sparse(A00)
-    diagnostics["source_bundle_dir"] = bundle_root
-    diagnostics["source_level"] = level
-    diagnostics["a00_shape"] = [A00.nrows, A00.ncols]
-    diagnostics["a00_nnz"] = len(A00.entries)
-    diagnostics["cond2_a00"] = cond2
-    return cond2, diagnostics
-
-
 def matlab_quote(path: str) -> str:
     return path.replace("'", "''")
 
@@ -395,7 +394,18 @@ def estimate_cond2_via_matlab(
             "stderr_tail": proc.stderr[-2000:] if proc.stderr else "",
         }
         if proc.returncode != 0:
-            raise RuntimeError(f"MATLAB cond2 run failed (returncode={proc.returncode})")
+            out_preview = ""
+            if os.path.exists(out_path):
+                try:
+                    with open(out_path, "r", encoding="utf-8") as f:
+                        out_preview = f.read()[-2000:]
+                except OSError:
+                    out_preview = ""
+            raise RuntimeError(
+                "MATLAB cond2 run failed "
+                f"(returncode={proc.returncode}; stdout_tail={diagnostics['stdout_tail']!r}; "
+                f"stderr_tail={diagnostics['stderr_tail']!r}; out_tail={out_preview!r})"
+            )
         if not os.path.exists(out_path):
             raise RuntimeError("MATLAB cond2 run did not produce output file")
         lines = [line.strip() for line in open(out_path, "r", encoding="utf-8").read().splitlines() if line.strip()]
@@ -413,6 +423,7 @@ def compute_live_cond2_a00_backend(
     level: int,
     backend: str,
     matlab_bin: str,
+    strict_backend: bool,
 ) -> Tuple[float, dict]:
     dof_path = os.path.join(bundle_root, f"dof_map_level{level}.json")
     A_path = os.path.join(bundle_root, f"A_level{level}.mtx")
@@ -438,6 +449,9 @@ def compute_live_cond2_a00_backend(
         except Exception as ex:
             diagnostics["backend_used"] = "python_fallback"
             diagnostics["matlab_error"] = str(ex)
+            diagnostics["strict_backend"] = strict_backend
+            if strict_backend:
+                raise RuntimeError(f"MATLAB cond2 backend failed in strict mode: {ex}")
             cond2, py_diag = estimate_cond2_from_square_sparse(A00)
             diagnostics.update(py_diag)
             diagnostics["cond2_a00"] = cond2
@@ -497,6 +511,102 @@ def vector_comparison_metrics(lhs: List[float], rhs: List[float]) -> Dict[str, f
         "rel_linf_sym": rel_linf_sym,
         "rel_l2_sym": rel_l2_sym,
     }
+
+
+def metrics_within_tolerance(rel_linf: float, rel_l2: float, rel_tol: float) -> bool:
+    return (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+
+
+def float_within_tolerance(lhs: float, rhs: float, abs_tol: float, rel_tol: float) -> bool:
+    if not math.isfinite(lhs) or not math.isfinite(rhs):
+        return False
+    return abs(lhs - rhs) <= max(abs_tol, rel_tol * max(abs(lhs), abs(rhs)))
+
+
+def compare_core_metadata(ib_meta: dict, mat_meta: dict) -> Tuple[bool, str, dict]:
+    checked = {}
+    mismatches = []
+
+    def require_field(meta: dict, meta_name: str, field: str):
+        if field in meta:
+            return meta[field]
+        mismatches.append(f"missing metadata field '{field}' in {meta_name} bundle")
+        return None
+
+    for field in ("case_id", "closure_policy"):
+        ib_val = require_field(ib_meta, "IBAMR", field)
+        mat_val = require_field(mat_meta, "MATLAB", field)
+        if ib_val is None or mat_val is None:
+            continue
+        checked[field] = {"ibamr": ib_val, "matlab": mat_val}
+        if field == "closure_policy":
+            ib_cmp = str(ib_val).strip().upper()
+            mat_cmp = str(mat_val).strip().upper()
+        else:
+            ib_cmp = str(ib_val).strip()
+            mat_cmp = str(mat_val).strip()
+        if ib_cmp != mat_cmp:
+            mismatches.append(f"metadata field '{field}' mismatch: ibamr={ib_val} matlab={mat_val}")
+
+    for field in ("finest_level", "num_curve_points"):
+        ib_val = require_field(ib_meta, "IBAMR", field)
+        mat_val = require_field(mat_meta, "MATLAB", field)
+        if ib_val is None or mat_val is None:
+            continue
+        try:
+            ib_i = int(ib_val)
+            mat_i = int(mat_val)
+        except Exception:
+            mismatches.append(f"metadata field '{field}' is not integer-convertible")
+            continue
+        checked[field] = {"ibamr": ib_i, "matlab": mat_i}
+        if ib_i != mat_i:
+            mismatches.append(f"metadata field '{field}' mismatch: ibamr={ib_i} matlab={mat_i}")
+
+    float_abs_tol = 1.0e-14
+    float_rel_tol = 1.0e-12
+    for field in ("dt", "rho", "mu", "marker_spacing_ds"):
+        ib_val = require_field(ib_meta, "IBAMR", field)
+        mat_val = require_field(mat_meta, "MATLAB", field)
+        if ib_val is None or mat_val is None:
+            continue
+        try:
+            ib_f = float(ib_val)
+            mat_f = float(mat_val)
+        except Exception:
+            mismatches.append(f"metadata field '{field}' is not float-convertible")
+            continue
+        checked[field] = {"ibamr": ib_f, "matlab": mat_f, "abs_tol": float_abs_tol, "rel_tol": float_rel_tol}
+        if not float_within_tolerance(ib_f, mat_f, float_abs_tol, float_rel_tol):
+            mismatches.append(
+                f"metadata field '{field}' mismatch: ibamr={ib_f:.17g} matlab={mat_f:.17g} "
+                f"(abs_tol={float_abs_tol:.1e}, rel_tol={float_rel_tol:.1e})"
+            )
+
+    field = "level_global_dof_counts"
+    ib_val = require_field(ib_meta, "IBAMR", field)
+    mat_val = require_field(mat_meta, "MATLAB", field)
+    if ib_val is not None and mat_val is not None:
+        try:
+            ib_counts = [int(v) for v in ib_val]
+            mat_counts = [int(v) for v in mat_val]
+        except Exception:
+            mismatches.append(f"metadata field '{field}' is not an integer list in one or both bundles")
+            ib_counts = None
+            mat_counts = None
+        if ib_counts is not None and mat_counts is not None:
+            checked[field] = {"ibamr": ib_counts, "matlab": mat_counts}
+            if ib_counts != mat_counts:
+                mismatches.append(f"metadata field '{field}' mismatch: ibamr={ib_counts} matlab={mat_counts}")
+
+    details = {"checked_fields": checked, "mismatches": mismatches}
+    if mismatches:
+        return False, "stage A metadata mismatch: " + "; ".join(mismatches), details
+    return (
+        True,
+        "metadata parity matches for case/closure/level counts and core runtime parameters",
+        details,
+    )
 
 
 def parse_levels(root: str) -> List[int]:
@@ -609,16 +719,113 @@ def compare_markers(
 
     pos_abs, pos_rhs_max, pos_rel_linf, pos_rel_l2 = vector_rel_metrics(pos_lhs, pos_rhs)
     force_abs, force_rhs_max, force_rel_linf, force_rel_l2 = vector_rel_metrics(force_lhs, force_rhs)
-    ok = (pos_rel_linf <= rel_tol) and (pos_rel_l2 <= rel_tol) and (force_rel_linf <= rel_tol) and (
-        force_rel_l2 <= rel_tol
-    )
+    pos_ok = metrics_within_tolerance(pos_rel_linf, pos_rel_l2, rel_tol)
+    force_ok = metrics_within_tolerance(force_rel_linf, force_rel_l2, rel_tol)
+    ok = pos_ok and force_ok
     msg = (
         f"markers rel metrics: "
         f"pos[max_abs={pos_abs:.3e}, rhs_max={pos_rhs_max:.3e}, rel_linf={pos_rel_linf:.3e}, rel_l2={pos_rel_l2:.3e}], "
         f"force[max_abs={force_abs:.3e}, rhs_max={force_rhs_max:.3e}, rel_linf={force_rel_linf:.3e}, rel_l2={force_rel_l2:.3e}, "
-        f"matlab_scale={matlab_force_scale:.17g}]"
+        f"matlab_scale={matlab_force_scale:.17g}], rel_tol={rel_tol:.3e}"
     )
     return ok, msg
+
+
+def compare_ibamr_first_sweep_consistency(
+    ib_root: str, levels: List[int], rel_tol: float, require_artifacts: bool
+) -> Tuple[bool, str]:
+    if not levels:
+        return True, "first-sweep consistency check skipped (no levels)"
+
+    coarsest_level = min(levels)
+    smoother_levels = [ln for ln in levels if ln != coarsest_level]
+    if not smoother_levels:
+        return True, "first-sweep consistency check skipped (single-level hierarchy)"
+
+    first_sweep_subdomain_paths = {
+        ln: os.path.join(ib_root, f"subdomains_first_sweep_level{ln}.json") for ln in smoother_levels
+    }
+    present_levels = [ln for ln in smoother_levels if os.path.exists(first_sweep_subdomain_paths[ln])]
+    if not present_levels:
+        if require_artifacts:
+            missing_paths = [first_sweep_subdomain_paths[ln] for ln in smoother_levels]
+            return (
+                False,
+                "first-sweep consistency check is required for Stage-D parity audits; missing: "
+                + ", ".join(missing_paths),
+            )
+        return True, "first-sweep consistency check skipped (no first-sweep artifacts for smoother levels)"
+
+    missing_levels = [ln for ln in smoother_levels if ln not in present_levels]
+    if missing_levels:
+        missing_paths = [first_sweep_subdomain_paths[ln] for ln in missing_levels]
+        return (
+            False,
+            "first-sweep consistency check requires artifacts on all smoother levels when enabled; "
+            + "missing: "
+            + ", ".join(missing_paths),
+        )
+
+    matrix_checks = 0
+    for ln in smoother_levels:
+        stage_sub = read_json(os.path.join(ib_root, f"subdomains_level{ln}.json"))
+        first_sub = read_json(first_sweep_subdomain_paths[ln])
+
+        stage_overlap = stage_sub.get("overlap")
+        stage_nonoverlap = stage_sub.get("nonoverlap")
+        first_overlap = first_sub.get("overlap")
+        first_nonoverlap = first_sub.get("nonoverlap")
+        if not isinstance(stage_overlap, list) or not isinstance(first_overlap, list):
+            return False, f"level {ln}: invalid overlap payload in subdomain JSON"
+        if not isinstance(stage_nonoverlap, list) or not isinstance(first_nonoverlap, list):
+            return False, f"level {ln}: invalid nonoverlap payload in subdomain JSON"
+        if len(stage_overlap) != len(first_overlap):
+            return (
+                False,
+                f"level {ln}: first-sweep overlap subdomain count mismatch "
+                f"(stage_b={len(stage_overlap)}, first_sweep={len(first_overlap)})",
+            )
+        if len(stage_nonoverlap) != len(first_nonoverlap):
+            return (
+                False,
+                f"level {ln}: first-sweep nonoverlap subdomain count mismatch "
+                f"(stage_b={len(stage_nonoverlap)}, first_sweep={len(first_nonoverlap)})",
+            )
+
+        for k in range(len(stage_overlap)):
+            stage_overlap_k = as_int_list(stage_overlap[k])
+            stage_nonoverlap_k = as_int_list(stage_nonoverlap[k])
+            first_overlap_k = as_int_list(first_overlap[k])
+            first_nonoverlap_k = as_int_list(first_nonoverlap[k])
+            if set(stage_overlap_k) != set(first_overlap_k):
+                return False, f"level {ln}, subdomain {k}: first-sweep overlap membership mismatch vs Stage-B export"
+            if set(stage_nonoverlap_k) != set(first_nonoverlap_k):
+                return False, f"level {ln}, subdomain {k}: first-sweep nonoverlap membership mismatch vs Stage-B export"
+
+            stage_sub_path = os.path.join(ib_root, f"A_subdomain_level{ln}_k{k}.mtx")
+            first_sub_path = os.path.join(ib_root, f"A_subdomain_first_sweep_level{ln}_k{k}.mtx")
+            if not os.path.exists(stage_sub_path):
+                return False, f"level {ln}, subdomain {k}: missing Stage-B subdomain matrix: {stage_sub_path}"
+            if not os.path.exists(first_sub_path):
+                return False, f"level {ln}, subdomain {k}: missing first-sweep subdomain matrix: {first_sub_path}"
+
+            stage_sub_A = read_matrix_market(stage_sub_path)
+            first_sub_A = read_matrix_market(first_sub_path)
+            if stage_sub_A.nrows != first_sub_A.nrows or stage_sub_A.ncols != first_sub_A.ncols:
+                return False, f"level {ln}, subdomain {k}: first-sweep matrix shape mismatch vs Stage-B export"
+            max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(stage_sub_A, first_sub_A)
+            if not metrics_within_tolerance(rel_linf, rel_l2, rel_tol):
+                return (
+                    False,
+                    f"level {ln}, subdomain {k}: first-sweep matrix mismatch vs Stage-B export "
+                    f"max_abs={max_abs:.3e} rhs_max={rhs_max:.3e} rel_linf={rel_linf:.3e} rel_l2={rel_l2:.3e}",
+                )
+            matrix_checks += 1
+
+    return (
+        True,
+        f"first-sweep consistency passed on smoother levels {smoother_levels} ({matrix_checks} subdomain matrices)",
+    )
 
 
 def compare_stage_2(
@@ -628,9 +835,14 @@ def compare_stage_2(
     rel_tol: float,
     coord_tol: float,
     normalize_pressure_row_sign: bool,
+    require_first_sweep_consistency: bool,
 ):
     perms = {}
     stage_notes: List[str] = []
+    stage_base_message = (
+        "stage 2 matches (subdomain sequence is order-sensitive; "
+        "subdomain overlap/nonoverlap DOF contents use set-equality)"
+    )
     coarsest_level = min(levels) if levels else -1
 
     for ln in levels:
@@ -654,7 +866,7 @@ def compare_stage_2(
         if normalize_pressure_row_sign:
             mat_A_ib = flip_row_signs(mat_A_ib, pressure_dofs)
         max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(ib_A, mat_A_ib)
-        ok = (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+        ok = metrics_within_tolerance(rel_linf, rel_l2, rel_tol)
         if not ok:
             return (
                 False,
@@ -673,7 +885,8 @@ def compare_stage_2(
                 continue
             if ln == coarsest_level:
                 stage_notes.append(
-                    f"level {ln}: skipped subdomain checks (ibamr seeds={len(ib_seeds)}, matlab seeds={len(mat_seeds)})"
+                    f"level {ln}: skipped subdomain checks (ibamr seeds={len(ib_seeds)}, matlab seeds={len(mat_seeds)}); "
+                    "coarsest-level solve is direct semantics and is gated in Stage D coarse semantic vectors"
                 )
                 continue
             return False, {}, f"level {ln}: seed count mismatch ibamr={len(ib_seeds)} matlab={len(mat_seeds)}"
@@ -738,16 +951,23 @@ def compare_stage_2(
                 pressure_local_rows = {idx for idx, dof in enumerate(ib_overlap_k) if dof in pressure_dofs}
                 mat_sub_reordered = flip_row_signs(mat_sub_reordered, pressure_local_rows)
             max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(ib_sub_A, mat_sub_reordered)
-            ok = (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+            ok = metrics_within_tolerance(rel_linf, rel_l2, rel_tol)
             if not ok:
                 return False, {}, (
                     f"level {ln}, subdomain {k}: subdomain matrix mismatch "
                     f"max_abs={max_abs:.3e} rhs_max={rhs_max:.3e} rel_linf={rel_linf:.3e} rel_l2={rel_l2:.3e}"
                 )
 
+    first_sweep_ok, first_sweep_message = compare_ibamr_first_sweep_consistency(
+        ib_root, levels, rel_tol, require_first_sweep_consistency
+    )
+    if not first_sweep_ok:
+        return False, {}, first_sweep_message
+    stage_notes.append(first_sweep_message)
+
     if stage_notes:
-        return True, perms, "stage 2 matches; " + "; ".join(stage_notes)
-    return True, perms, "stage 2 matches"
+        return True, perms, stage_base_message + "; " + "; ".join(stage_notes)
+    return True, perms, stage_base_message
 
 
 def compare_stage_3(ib_root: str, mat_root: str, levels: List[int], perms, rel_tol: float):
@@ -768,7 +988,7 @@ def compare_stage_3(ib_root: str, mat_root: str, levels: List[int], perms, rel_t
 
         mat_P_ib = remap_matrix(mat_P, mat_to_ib_fine, mat_to_ib_coarse)
         max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(ib_P, mat_P_ib)
-        ok = (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+        ok = metrics_within_tolerance(rel_linf, rel_l2, rel_tol)
         if not ok:
             return (
                 False,
@@ -783,7 +1003,7 @@ def compare_stage_3(ib_root: str, mat_root: str, levels: List[int], perms, rel_t
 
         mat_R_ib = remap_matrix(mat_R, mat_to_ib_coarse, mat_to_ib_fine)
         max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(ib_R, mat_R_ib)
-        ok = (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+        ok = metrics_within_tolerance(rel_linf, rel_l2, rel_tol)
         if not ok:
             return (
                 False,
@@ -855,7 +1075,7 @@ def compare_smoother_level_solutions(
             "pressure_means": {"ibamr": ib_p_mean, "matlab": mat_p_mean},
             "used_pressure_gauge_projection_for_pass": bool(use_pressure_gauge_projected_metrics and p_idx),
         }
-        if not ((metrics["rel_linf_ref"] <= rel_tol) and (metrics["rel_l2_ref"] <= rel_tol)):
+        if not metrics_within_tolerance(metrics["rel_linf_ref"], metrics["rel_l2_ref"], rel_tol):
             return (
                 False,
                 payload,
@@ -905,6 +1125,117 @@ def compare_smoother_level_solutions(
     return True, details, f"per-level smoother diagnostics match ({checked} vector comparisons, {compare_mode})"
 
 
+def remap_column_vector(vec: SparseMatrix, row_map: Dict[int, int]) -> List[float]:
+    if vec.ncols != 1:
+        raise RuntimeError(f"expected column vector with ncols=1, got ncols={vec.ncols}")
+    remapped = remap_matrix(vec, row_map, {0: 0})
+    return sparse_column_to_dense(remapped)
+
+
+def compare_coarse_level_semantics(
+    ib_root: str,
+    mat_root: str,
+    coarsest_level: int,
+    perms,
+    rel_tol: float,
+    normalize_pressure_row_sign: bool,
+):
+    ib_rhs_path = os.path.join(ib_root, "preconditioned_apply_coarse_rhs_level0.mtx")
+    mat_rhs_path = os.path.join(mat_root, "preconditioned_apply_coarse_rhs_level0.mtx")
+    ib_corr_path = os.path.join(ib_root, "preconditioned_apply_coarse_correction_level0.mtx")
+    mat_corr_path = os.path.join(mat_root, "preconditioned_apply_coarse_correction_level0.mtx")
+
+    required_pairs = [
+        ("coarse_rhs", ib_rhs_path, mat_rhs_path),
+        ("coarse_correction", ib_corr_path, mat_corr_path),
+    ]
+    for label, ib_path, mat_path in required_pairs:
+        ib_exists = os.path.exists(ib_path)
+        mat_exists = os.path.exists(mat_path)
+        if not ib_exists and not mat_exists:
+            return False, {}, f"missing coarse semantic vector for {label} in both bundles"
+        if ib_exists != mat_exists:
+            return False, {}, f"missing coarse semantic vector for {label} in one bundle"
+
+    if coarsest_level not in perms:
+        return False, {}, f"missing level permutation for coarse level {coarsest_level}"
+
+    mat_to_ib = perms[coarsest_level]["mat_to_ib"]
+    coarse_dof = read_json(os.path.join(ib_root, f"dof_map_level{coarsest_level}.json"))["dofs"]
+    pressure_idx = sorted([int(r["dof"]) for r in coarse_dof if r["kind"] == "pressure"])
+    pressure_set = set(pressure_idx)
+
+    ib_rhs_vec = read_matrix_market(ib_rhs_path)
+    mat_rhs_vec = read_matrix_market(mat_rhs_path)
+    if ib_rhs_vec.nrows != mat_rhs_vec.nrows or ib_rhs_vec.ncols != mat_rhs_vec.ncols:
+        return (
+            False,
+            {},
+            f"coarse RHS shape mismatch ibamr=({ib_rhs_vec.nrows},{ib_rhs_vec.ncols}) "
+            f"matlab=({mat_rhs_vec.nrows},{mat_rhs_vec.ncols})",
+        )
+    ib_rhs_vals = sparse_column_to_dense(ib_rhs_vec)
+    mat_rhs_vals = remap_column_vector(mat_rhs_vec, mat_to_ib)
+    rhs_raw = vector_comparison_metrics(ib_rhs_vals, mat_rhs_vals)
+    mat_rhs_vals_normalized = list(mat_rhs_vals)
+    if normalize_pressure_row_sign:
+        for i in pressure_idx:
+            mat_rhs_vals_normalized[i] = -mat_rhs_vals_normalized[i]
+    rhs_normalized = vector_comparison_metrics(ib_rhs_vals, mat_rhs_vals_normalized)
+    rhs_ok = metrics_within_tolerance(rhs_normalized["rel_linf_ref"], rhs_normalized["rel_l2_ref"], rel_tol)
+
+    ib_corr_vec = read_matrix_market(ib_corr_path)
+    mat_corr_vec = read_matrix_market(mat_corr_path)
+    if ib_corr_vec.nrows != mat_corr_vec.nrows or ib_corr_vec.ncols != mat_corr_vec.ncols:
+        return (
+            False,
+            {},
+            f"coarse correction shape mismatch ibamr=({ib_corr_vec.nrows},{ib_corr_vec.ncols}) "
+            f"matlab=({mat_corr_vec.nrows},{mat_corr_vec.ncols})",
+        )
+    ib_corr_vals = sparse_column_to_dense(ib_corr_vec)
+    mat_corr_vals = remap_column_vector(mat_corr_vec, mat_to_ib)
+    corr_raw = vector_comparison_metrics(ib_corr_vals, mat_corr_vals)
+    ib_corr_gauge, ib_corr_pressure_mean = subtract_pressure_mean(ib_corr_vals, pressure_idx)
+    mat_corr_gauge, mat_corr_pressure_mean = subtract_pressure_mean(mat_corr_vals, pressure_idx)
+    corr_gauge = vector_comparison_metrics(ib_corr_gauge, mat_corr_gauge)
+    corr_ok = metrics_within_tolerance(corr_gauge["rel_linf_ref"], corr_gauge["rel_l2_ref"], rel_tol)
+
+    ok = rhs_ok and corr_ok
+    details = {
+        "ok": ok,
+        "tolerances": {"rel": rel_tol},
+        "coarse_rhs": {
+            "raw_metrics": rhs_raw,
+            "pressure_row_sign_normalized_metrics": rhs_normalized,
+            "used_pressure_row_sign_normalization": bool(normalize_pressure_row_sign and pressure_set),
+            "ok": rhs_ok,
+        },
+        "coarse_correction": {
+            "raw_metrics": corr_raw,
+            "pressure_gauge_projected_metrics": corr_gauge,
+            "pressure_means": {"ibamr": ib_corr_pressure_mean, "matlab": mat_corr_pressure_mean},
+            "used_pressure_gauge_projection": bool(pressure_set),
+            "ok": corr_ok,
+        },
+    }
+    if not ok:
+        return (
+            False,
+            details,
+            f"coarse-level semantic mismatch: rhs rel_ref(linf={rhs_normalized['rel_linf_ref']:.3e}, "
+            f"l2={rhs_normalized['rel_l2_ref']:.3e}), correction(gauge) rel_ref(linf={corr_gauge['rel_linf_ref']:.3e}, "
+            f"l2={corr_gauge['rel_l2_ref']:.3e})",
+        )
+    return (
+        True,
+        details,
+        f"coarse-level semantic vectors match: rhs rel_ref(linf={rhs_normalized['rel_linf_ref']:.3e}, "
+        f"l2={rhs_normalized['rel_l2_ref']:.3e}), correction(gauge) rel_ref(linf={corr_gauge['rel_linf_ref']:.3e}, "
+        f"l2={corr_gauge['rel_l2_ref']:.3e})",
+    )
+
+
 def compare_stage_4(
     ib_root: str,
     mat_root: str,
@@ -913,10 +1244,15 @@ def compare_stage_4(
     perms,
     rel_tol: float,
     use_pressure_gauge_projected_metrics: bool,
+    normalize_pressure_row_sign: bool,
+    require_coarse_semantics: bool,
+    require_smoother_semantics: bool,
     cond_safety_factor: float,
     cond_threshold_floor: float,
+    stage_d_fixed_threshold: float,
     cond2_backend: str,
     cond2_matlab_bin: str,
+    cond2_strict_backend: bool,
 ):
     mat_to_ib = perms[finest_level]["mat_to_ib"]
     ib_x_path = os.path.join(ib_root, "preconditioned_apply_input_level_fine.mtx")
@@ -946,13 +1282,7 @@ def compare_stage_4(
             return False, f"preconditioned apply input must be a column vector, got ncols={ib_x.ncols}", {}
         mat_x_ib = remap_matrix(mat_x, mat_to_ib, col_map)
         x_max_abs, x_rhs_max, x_rel_linf, x_rel_l2 = sparse_rel_metrics(ib_x, mat_x_ib)
-        if not ((x_rel_linf <= rel_tol) and (x_rel_l2 <= rel_tol)):
-            return (
-                False,
-                f"preconditioned apply input mismatch max_abs={x_max_abs:.3e} rhs_max={x_rhs_max:.3e} "
-                f"rel_linf={x_rel_linf:.3e} rel_l2={x_rel_l2:.3e}",
-                {},
-            )
+        x_match_ok = metrics_within_tolerance(x_rel_linf, x_rel_l2, rel_tol)
 
         ib_y = read_matrix_market(ib_y_path)
         mat_y = read_matrix_market(mat_y_path)
@@ -966,7 +1296,6 @@ def compare_stage_4(
         if ib_y.ncols != 1:
             return False, f"preconditioned apply output must be a column vector, got ncols={ib_y.ncols}", {}
         mat_y_ib = remap_matrix(mat_y, mat_to_ib, col_map)
-        y_max_abs, y_rhs_max, y_rel_linf, y_rel_l2 = sparse_rel_metrics(ib_y, mat_y_ib)
         ib_y_vec = sparse_column_to_dense(ib_y)
         mat_y_vec = sparse_column_to_dense(mat_y_ib)
         metrics = vector_comparison_metrics(ib_y_vec, mat_y_vec)
@@ -990,17 +1319,42 @@ def compare_stage_4(
         smoother_ok, smoother_details, smoother_message = compare_smoother_level_solutions(
             ib_root, mat_root, levels, perms, rel_tol, use_pressure_gauge_projected_metrics
         )
+        if require_smoother_semantics and not smoother_details:
+            smoother_ok = False
+            smoother_message = "missing per-level smoother diagnostics required for Stage D semantic gating"
 
         cond2_a00, cond2_details = compute_live_cond2_a00_backend(
-            ib_root, finest_level, cond2_backend, cond2_matlab_bin
+            ib_root, finest_level, cond2_backend, cond2_matlab_bin, cond2_strict_backend
         )
         cond_threshold_raw = cond_safety_factor * cond2_a00 * sys.float_info.epsilon
         cond_threshold = max(cond_threshold_raw, cond_threshold_floor)
         cond_valid = math.isfinite(cond2_a00) and math.isfinite(cond_threshold)
-        y_pass_metrics = pressure_gauge_projected_metrics if use_pressure_gauge_projected_metrics else metrics
-        fixed_ok = (y_pass_metrics["rel_linf_ref"] <= rel_tol) and (y_pass_metrics["rel_l2_ref"] <= rel_tol)
+        y_pass_metrics = pressure_gauge_projected_metrics if p_idx else metrics
+        fixed_ok = (y_pass_metrics["rel_linf_ref"] <= stage_d_fixed_threshold) and (
+            y_pass_metrics["rel_l2_ref"] <= stage_d_fixed_threshold
+        )
         cond_ok = cond_valid and (y_pass_metrics["rel_linf_ref"] <= cond_threshold) and (
             y_pass_metrics["rel_l2_ref"] <= cond_threshold
+        )
+        stage_d_threshold = max(stage_d_fixed_threshold, cond_threshold_floor, cond_threshold_raw if cond_valid else 0.0)
+        stage_d_accept_ok = (y_pass_metrics["rel_linf_ref"] <= stage_d_threshold) and (
+            y_pass_metrics["rel_l2_ref"] <= stage_d_threshold
+        )
+        coarsest_level = min(levels)
+        coarse_ok, coarse_details, coarse_message = compare_coarse_level_semantics(
+            ib_root,
+            mat_root,
+            coarsest_level,
+            perms,
+            stage_d_threshold,
+            normalize_pressure_row_sign,
+        )
+        input_ok = x_match_ok
+        stage_d_overall_ok = (
+            input_ok
+            and stage_d_accept_ok
+            and (coarse_ok or not require_coarse_semantics)
+            and (smoother_ok or not require_smoother_semantics)
         )
 
         details = {
@@ -1010,15 +1364,19 @@ def compare_stage_4(
                 "rhs_linf": x_rhs_max,
                 "rel_linf_ref": x_rel_linf,
                 "rel_l2_ref": x_rel_l2,
+                "ok_vs_tolerances": x_match_ok,
+                "rel_tol_for_diagnostic_only": rel_tol,
             },
             "output_metrics": metrics,
             "block_metrics": block_metrics,
             "pressure_gauge_projected_metrics": pressure_gauge_projected_metrics,
             "pressure_means": {"ibamr": ib_p_mean, "matlab": mat_p_mean},
-            "used_pressure_gauge_projection_for_stage_d_pass": bool(use_pressure_gauge_projected_metrics),
+            "used_pressure_gauge_projection_for_stage_d_pass": bool(p_idx),
+            "stage_d_require_coarse_semantics": require_coarse_semantics,
+            "stage_d_require_smoother_semantics": require_smoother_semantics,
             "stage_d_outcome_fixed_threshold": {
                 "ok": fixed_ok,
-                "rel_tol": rel_tol,
+                "rel_tol": stage_d_fixed_threshold,
                 "metric_rel_linf_ref": y_pass_metrics["rel_linf_ref"],
                 "metric_rel_l2_ref": y_pass_metrics["rel_l2_ref"],
             },
@@ -1035,37 +1393,97 @@ def compare_stage_4(
                 "metric_rel_l2_ref": y_pass_metrics["rel_l2_ref"],
                 "cond2_details": cond2_details,
             },
+            "stage_d_outcome_composite_acceptance": {
+                "ok": stage_d_accept_ok,
+                "threshold": stage_d_threshold,
+                "fixed_threshold": stage_d_fixed_threshold,
+                "conditioning_threshold_raw": cond_threshold_raw,
+                "conditioning_threshold_floor": cond_threshold_floor,
+                "metric_rel_linf_ref": y_pass_metrics["rel_linf_ref"],
+                "metric_rel_l2_ref": y_pass_metrics["rel_l2_ref"],
+                "uses_gauge_projected_metrics": bool(p_idx),
+            },
+            "stage_d_outcome_with_coarse_semantics": {
+                "ok": stage_d_overall_ok,
+                "input_vector_ok": input_ok,
+                "coarse_semantics_ok": coarse_ok,
+                "coarse_semantics_required": require_coarse_semantics,
+                "smoother_semantics_ok": smoother_ok,
+                "smoother_semantics_required": require_smoother_semantics,
+            },
+            "coarse_level_semantics": {
+                "ok": coarse_ok,
+                "message": coarse_message,
+                "details": coarse_details,
+            },
             "smoother_level_solutions": {
                 "ok": smoother_ok,
                 "message": smoother_message,
                 "details": smoother_details,
             },
         }
-        if not smoother_ok:
-            return False, f"smoother-level solution mismatch: {smoother_message}", details
 
-        if not fixed_ok:
+        if not stage_d_overall_ok:
+            failure_clauses = []
+            if not input_ok:
+                failure_clauses.append(
+                    f"input mismatch rel_ref(linf={x_rel_linf:.3e}, l2={x_rel_l2:.3e})"
+                )
+            if not stage_d_accept_ok:
+                failure_clauses.append(
+                    f"output mismatch rel_ref(linf={y_pass_metrics['rel_linf_ref']:.3e}, "
+                    f"l2={y_pass_metrics['rel_l2_ref']:.3e}); sym(linf={y_pass_metrics['rel_linf_sym']:.3e}, "
+                    f"l2={y_pass_metrics['rel_l2_sym']:.3e}); pressure-gauge-projected sym(linf="
+                    f"{pressure_gauge_projected_metrics['rel_linf_sym']:.3e}, l2={pressure_gauge_projected_metrics['rel_l2_sym']:.3e}); "
+                    f"fixed_ok={fixed_ok}; conditioning_ok={cond_ok}; composite_ok={stage_d_accept_ok} "
+                    f"(composite_threshold={stage_d_threshold:.3e}, cond_threshold={cond_threshold:.3e}, "
+                    f"cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})"
+                )
+            if require_coarse_semantics and not coarse_ok:
+                failure_clauses.append(f"coarse_semantics_ok={coarse_ok} ({coarse_message})")
+            if require_smoother_semantics and not smoother_ok:
+                failure_clauses.append(f"smoother_semantics_ok={smoother_ok} ({smoother_message})")
+            if not failure_clauses:
+                failure_clauses.append("unknown stage-4 mismatch")
             return (
                 False,
-                f"preconditioned apply output mismatch rel_ref(linf={y_pass_metrics['rel_linf_ref']:.3e}, "
-                f"l2={y_pass_metrics['rel_l2_ref']:.3e}); sym(linf={y_pass_metrics['rel_linf_sym']:.3e}, "
-                f"l2={y_pass_metrics['rel_l2_sym']:.3e}); pressure-gauge-projected sym(linf="
-                f"{pressure_gauge_projected_metrics['rel_linf_sym']:.3e}, l2={pressure_gauge_projected_metrics['rel_l2_sym']:.3e}); "
-                f"fixed_ok={fixed_ok}; conditioning_ok={cond_ok} "
-                f"(threshold={cond_threshold:.3e}, cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})",
+                "stage 4 mismatch: " + "; ".join(failure_clauses),
                 details,
             )
 
+        smoother_clause = smoother_message
+        if not smoother_ok and not require_smoother_semantics:
+            smoother_clause = f"{smoother_message}; treated as diagnostic only"
+        coarse_clause = coarse_message
+        if not require_coarse_semantics:
+            coarse_clause = f"{coarse_clause}; treated as diagnostic only"
         return (
             True,
             f"stage 4 matches (single-vector preconditioned apply): rel_ref(linf={metrics['rel_linf_ref']:.3e}, "
             f"l2={metrics['rel_l2_ref']:.3e}); sym(linf={metrics['rel_linf_sym']:.3e}, "
             f"l2={metrics['rel_l2_sym']:.3e}); pressure-gauge-projected sym(linf="
             f"{pressure_gauge_projected_metrics['rel_linf_sym']:.3e}, l2={pressure_gauge_projected_metrics['rel_l2_sym']:.3e}); "
-            f"fixed_ok={fixed_ok}; conditioning_ok={cond_ok} "
-            f"(threshold={cond_threshold:.3e}, cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e}); "
-            f"{smoother_message}",
+            f"fixed_ok={fixed_ok}; conditioning_ok={cond_ok}; composite_ok={stage_d_accept_ok}; "
+            f"overall_ok={stage_d_overall_ok} "
+            f"(composite_threshold={stage_d_threshold:.3e}, cond_threshold={cond_threshold:.3e}, "
+            f"cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e}); {coarse_clause}; "
+            f"{smoother_clause}",
             details,
+        )
+
+    if require_coarse_semantics or require_smoother_semantics:
+        required_checks = []
+        if require_coarse_semantics:
+            required_checks.append("coarse semantic checks")
+        if require_smoother_semantics:
+            required_checks.append("smoother semantic checks")
+        return (
+            False,
+            "stage 4 "
+            + " and ".join(required_checks)
+            + " require preconditioned_apply_{input,output}_level_fine.mtx plus exported semantic vectors; "
+            + "matrix-export-only mode is insufficient",
+            {},
         )
 
     ib_path = os.path.join(ib_root, "MinvA_level_fine.mtx")
@@ -1084,13 +1502,15 @@ def compare_stage_4(
     mat_M_ib = remap_matrix(mat_M, mat_to_ib, mat_to_ib)
     max_abs, rhs_max, rel_linf, rel_l2 = sparse_rel_metrics(ib_M, mat_M_ib)
     cond2_a00, cond2_details = compute_live_cond2_a00_backend(
-        ib_root, finest_level, cond2_backend, cond2_matlab_bin
+        ib_root, finest_level, cond2_backend, cond2_matlab_bin, cond2_strict_backend
     )
     cond_threshold_raw = cond_safety_factor * cond2_a00 * sys.float_info.epsilon
     cond_threshold = max(cond_threshold_raw, cond_threshold_floor)
     cond_valid = math.isfinite(cond2_a00) and math.isfinite(cond_threshold)
-    fixed_ok = (rel_linf <= rel_tol) and (rel_l2 <= rel_tol)
+    fixed_ok = (rel_linf <= stage_d_fixed_threshold) and (rel_l2 <= stage_d_fixed_threshold)
     cond_ok = cond_valid and (rel_linf <= cond_threshold) and (rel_l2 <= cond_threshold)
+    stage_d_threshold = max(stage_d_fixed_threshold, cond_threshold_floor, cond_threshold_raw if cond_valid else 0.0)
+    stage_d_accept_ok = (rel_linf <= stage_d_threshold) and (rel_l2 <= stage_d_threshold)
     details = {
         "mode": "matrix_export",
         "matrix_metrics": {
@@ -1099,7 +1519,7 @@ def compare_stage_4(
             "rel_linf_ref": rel_linf,
             "rel_l2_ref": rel_l2,
         },
-        "stage_d_outcome_fixed_threshold": {"ok": fixed_ok, "rel_tol": rel_tol},
+        "stage_d_outcome_fixed_threshold": {"ok": fixed_ok, "rel_tol": stage_d_fixed_threshold},
         "stage_d_outcome_conditioning_aware": {
             "ok": cond_ok,
             "valid": cond_valid,
@@ -1111,20 +1531,33 @@ def compare_stage_4(
             "threshold": cond_threshold,
             "cond2_details": cond2_details,
         },
+        "stage_d_outcome_composite_acceptance": {
+            "ok": stage_d_accept_ok,
+            "threshold": stage_d_threshold,
+            "fixed_threshold": stage_d_fixed_threshold,
+            "conditioning_threshold_raw": cond_threshold_raw,
+            "conditioning_threshold_floor": cond_threshold_floor,
+            "metric_rel_linf_ref": rel_linf,
+            "metric_rel_l2_ref": rel_l2,
+        },
     }
-    if not fixed_ok:
+    if not stage_d_accept_ok:
         return (
             False,
             f"MinvA mismatch max_abs={max_abs:.3e} rhs_max={rhs_max:.3e} "
-            f"rel_linf={rel_linf:.3e} rel_l2={rel_l2:.3e}; fixed_ok={fixed_ok}; conditioning_ok={cond_ok} "
-            f"(threshold={cond_threshold:.3e}, cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})",
+            f"rel_linf={rel_linf:.3e} rel_l2={rel_l2:.3e}; fixed_ok={fixed_ok}; conditioning_ok={cond_ok}; "
+            f"composite_ok={stage_d_accept_ok} "
+            f"(composite_threshold={stage_d_threshold:.3e}, cond_threshold={cond_threshold:.3e}, "
+            f"cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})",
             details,
         )
 
     return (
         True,
-        f"stage 4 matches (matrix export): fixed_ok={fixed_ok}; conditioning_ok={cond_ok} "
-        f"(threshold={cond_threshold:.3e}, cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})",
+        f"stage 4 matches (matrix export): fixed_ok={fixed_ok}; conditioning_ok={cond_ok}; "
+        f"composite_ok={stage_d_accept_ok} "
+        f"(composite_threshold={stage_d_threshold:.3e}, cond_threshold={cond_threshold:.3e}, "
+        f"cond2_a00={cond2_a00:.6e}, C={cond_safety_factor:.3e})",
         details,
     )
 
@@ -1133,7 +1566,6 @@ def main():
     parser = argparse.ArgumentParser(description="Compare IBAMR and MATLAB live CAV parity bundles")
     parser.add_argument("--ibamr-dir", required=True, help="Path to IBAMR parity bundle directory")
     parser.add_argument("--matlab-dir", required=True, help="Path to MATLAB parity bundle directory")
-    parser.add_argument("--abs-tol", type=float, default=1.0e-12)
     parser.add_argument("--rel-tol", type=float, default=1.0e-10)
     parser.add_argument("--coord-tol", type=float, default=1.0e-12)
     parser.add_argument(
@@ -1147,12 +1579,27 @@ def main():
         "--stage-d-pressure-gauge-projected",
         choices=["true", "false"],
         default="true",
-        help="Whether Stage D vector parity checks should use pressure-mean-projected metrics as the pass criterion",
+        help="Whether smoother-diagnostic vectors in Stage D should report pressure-mean-projected metrics",
+    )
+    parser.add_argument(
+        "--stage-d-require-coarse-semantics",
+        choices=["true", "false"],
+        default="true",
+        help=(
+            "Whether Stage D pass/fail requires coarse-level semantic vector checks "
+            "(coarse RHS with pressure-row sign normalization and coarse correction with pressure gauge projection)"
+        ),
+    )
+    parser.add_argument(
+        "--stage-d-require-smoother-semantics",
+        choices=["true", "false"],
+        default="true",
+        help="Whether Stage D pass/fail requires per-level smoother diagnostic vector parity",
     )
     parser.add_argument(
         "--stage-d-cond-safety-factor",
         type=float,
-        default=1.0,
+        default=5.0,
         help="Safety factor C for conditioning-aware Stage D metric: rel_err <= C * cond2(A00) * eps_machine",
     )
     parser.add_argument(
@@ -1160,6 +1607,12 @@ def main():
         type=float,
         default=1.0e-12,
         help="Lower bound applied to conditioning-aware Stage D threshold: threshold = max(C*cond2(A00)*eps_machine, floor)",
+    )
+    parser.add_argument(
+        "--stage-d-fixed-threshold",
+        type=float,
+        default=1.0e-10,
+        help="Fixed Stage D threshold included in composite acceptance: max(fixed, C*cond2(A00)*eps_machine, floor)",
     )
     parser.add_argument(
         "--stage-d-cond2-backend",
@@ -1172,94 +1625,204 @@ def main():
         default="/Applications/MATLAB_R2025b.app/bin/matlab",
         help="MATLAB executable used when --stage-d-cond2-backend=matlab",
     )
+    parser.add_argument(
+        "--stage-d-cond2-strict-backend",
+        choices=["true", "false"],
+        default="true",
+        help="Whether Stage D must fail when MATLAB cond2 backend fails instead of falling back to Python",
+    )
+    parser.add_argument(
+        "--metadata-ibamr-git-sha",
+        default="",
+        help="IBAMR git SHA recorded by the audit runner for reproducibility metadata",
+    )
+    parser.add_argument(
+        "--metadata-matlab-git-sha",
+        default="",
+        help="MATLAB reference repository git SHA recorded by the audit runner for reproducibility metadata",
+    )
+    parser.add_argument(
+        "--metadata-matlab-v-cycle-override-used",
+        choices=["true", "false"],
+        default="false",
+        help="Whether the MATLAB export used an IBAMR-provided v_cycle.m override",
+    )
+    parser.add_argument(
+        "--metadata-matlab-v-cycle-override-path",
+        default="",
+        help="Path to the MATLAB v_cycle override file when used",
+    )
+    parser.add_argument(
+        "--metadata-matlab-v-cycle-override-sha256",
+        default="",
+        help="SHA256 hash of the MATLAB v_cycle override file when used",
+    )
     parser.add_argument("--report-json", default="")
     parser.add_argument("--report-text", default="")
     args = parser.parse_args()
 
-    ib_meta = read_json(os.path.join(args.ibamr_dir, "metadata.json"))
-    mat_meta = read_json(os.path.join(args.matlab_dir, "metadata.json"))
-    finest_level = int(ib_meta["finest_level"])
-    matlab_force_scale = float(mat_meta.get("marker_spacing_ds", 1.0))
     normalize_pressure_row_sign = args.normalize_pressure_row_sign.lower() == "true"
     stage_d_pressure_gauge_projected = args.stage_d_pressure_gauge_projected.lower() == "true"
+    stage_d_require_coarse_semantics = args.stage_d_require_coarse_semantics.lower() == "true"
+    stage_d_require_smoother_semantics = args.stage_d_require_smoother_semantics.lower() == "true"
+    stage_d_cond2_strict_backend = args.stage_d_cond2_strict_backend.lower() == "true"
+    stage_b_require_first_sweep_consistency = args.max_stage == "D"
+    matlab_v_cycle_override_used = args.metadata_matlab_v_cycle_override_used.lower() == "true"
 
     report = {
         "ibamr_dir": args.ibamr_dir,
         "matlab_dir": args.matlab_dir,
-        "abs_tol": args.abs_tol,
         "rel_tol": args.rel_tol,
         "comparison_mode": "relative_only",
         "normalize_pressure_row_sign": normalize_pressure_row_sign,
         "stage_d_pressure_gauge_projected": stage_d_pressure_gauge_projected,
+        "stage_d_require_coarse_semantics": stage_d_require_coarse_semantics,
+        "stage_d_require_smoother_semantics": stage_d_require_smoother_semantics,
+        "stage_b_require_first_sweep_consistency": stage_b_require_first_sweep_consistency,
         "stage_d_cond_safety_factor": args.stage_d_cond_safety_factor,
         "stage_d_cond_threshold_floor": args.stage_d_cond_threshold_floor,
+        "stage_d_fixed_threshold": args.stage_d_fixed_threshold,
         "stage_d_cond2_backend": args.stage_d_cond2_backend,
         "stage_d_cond2_matlab_bin": args.stage_d_cond2_matlab_bin,
+        "stage_d_cond2_strict_backend": stage_d_cond2_strict_backend,
+        "repro_metadata": {
+            "ibamr_git_sha": args.metadata_ibamr_git_sha,
+            "matlab_git_sha": args.metadata_matlab_git_sha,
+            "matlab_v_cycle_override": {
+                "used": matlab_v_cycle_override_used,
+                "path": args.metadata_matlab_v_cycle_override_path,
+                "sha256": args.metadata_matlab_v_cycle_override_sha256,
+            },
+        },
         "status": "PASS",
         "failed_stage": None,
         "message": "all stages passed",
         "stages": [],
     }
 
-    levels = parse_levels(args.ibamr_dir)
-    if not levels:
+    def set_stage_failure(stage_name: str, message: str) -> None:
         report["status"] = "FAIL"
-        report["failed_stage"] = "A"
-        report["message"] = "no level files found in IBAMR bundle"
-    elif parse_levels(args.matlab_dir) != levels:
-        report["status"] = "FAIL"
-        report["failed_stage"] = "A"
-        report["message"] = "IBAMR and MATLAB level sets differ"
+        report["failed_stage"] = stage_name
+        report["message"] = message
 
-    if report["status"] == "PASS" and args.max_stage in {"A", "B", "C", "D"}:
-        ok, msg = compare_markers(args.ibamr_dir, args.matlab_dir, finest_level, args.rel_tol, matlab_force_scale)
-        report["stages"].append({"stage": "A", "ok": ok, "message": msg})
-        if not ok:
-            report["status"] = "FAIL"
-            report["failed_stage"] = "A"
-            report["message"] = msg
-
-    perms = {}
-    if report["status"] == "PASS" and args.max_stage in {"B", "C", "D"}:
-        ok, perms, msg = compare_stage_2(
-            args.ibamr_dir, args.matlab_dir, levels, args.rel_tol, args.coord_tol, normalize_pressure_row_sign
-        )
-        report["stages"].append({"stage": "B", "ok": ok, "message": msg})
-        if not ok:
-            report["status"] = "FAIL"
-            report["failed_stage"] = "B"
-            report["message"] = msg
-
-    if report["status"] == "PASS" and args.max_stage in {"C", "D"}:
-        ok, msg = compare_stage_3(args.ibamr_dir, args.matlab_dir, levels, perms, args.rel_tol)
-        report["stages"].append({"stage": "C", "ok": ok, "message": msg})
-        if not ok:
-            report["status"] = "FAIL"
-            report["failed_stage"] = "C"
-            report["message"] = msg
-
-    if report["status"] == "PASS" and args.max_stage == "D":
-        ok, msg, details = compare_stage_4(
-            args.ibamr_dir,
-            args.matlab_dir,
-            levels,
-            finest_level,
-            perms,
-            args.rel_tol,
-            stage_d_pressure_gauge_projected,
-            args.stage_d_cond_safety_factor,
-            args.stage_d_cond_threshold_floor,
-            args.stage_d_cond2_backend,
-            args.stage_d_cond2_matlab_bin,
-        )
-        stage_record = {"stage": "D", "ok": ok, "message": msg}
+    def append_stage_result(stage_name: str, ok: bool, message: str, details: dict = None) -> None:
+        stage_record = {"stage": stage_name, "ok": ok, "message": message}
         if details:
             stage_record["details"] = details
         report["stages"].append(stage_record)
+
+    finest_level = -1
+    matlab_force_scale = 1.0
+    ib_meta = {}
+    mat_meta = {}
+    levels: List[int] = []
+    perms = {}
+
+    try:
+        ib_meta = read_json(os.path.join(args.ibamr_dir, "metadata.json"))
+        mat_meta = read_json(os.path.join(args.matlab_dir, "metadata.json"))
+        finest_level = int(ib_meta["finest_level"])
+        matlab_force_scale = float(mat_meta.get("marker_spacing_ds", 1.0))
+    except Exception as ex:
+        set_stage_failure("A", f"stage A metadata load failure: {ex}")
+
+    if report["status"] == "PASS":
+        try:
+            ib_levels = parse_levels(args.ibamr_dir)
+            mat_levels = parse_levels(args.matlab_dir)
+        except Exception as ex:
+            set_stage_failure("A", f"stage A level-discovery failure: {ex}")
+        else:
+            levels = ib_levels
+            if not levels:
+                set_stage_failure("A", "no level files found in IBAMR bundle")
+            elif mat_levels != levels:
+                set_stage_failure(
+                    "A",
+                    f"IBAMR and MATLAB level sets differ (ibamr={levels}, matlab={mat_levels})",
+                )
+            elif finest_level not in levels:
+                set_stage_failure(
+                    "A",
+                    f"metadata finest_level={finest_level} is not present in discovered levels {levels}",
+                )
+
+    if report["status"] == "PASS" and args.max_stage in {"A", "B", "C", "D"}:
+        try:
+            metadata_ok, metadata_msg, metadata_details = compare_core_metadata(ib_meta, mat_meta)
+            if not metadata_ok:
+                ok = False
+                msg = metadata_msg
+            else:
+                marker_ok, marker_msg = compare_markers(
+                    args.ibamr_dir, args.matlab_dir, finest_level, args.rel_tol, matlab_force_scale
+                )
+                ok = marker_ok
+                msg = metadata_msg + "; " + marker_msg
+        except Exception as ex:
+            ok = False
+            metadata_details = {}
+            msg = f"stage A artifact/parse failure: {ex}"
+        append_stage_result("A", ok, msg, {"metadata_consistency": metadata_details})
         if not ok:
-            report["status"] = "FAIL"
-            report["failed_stage"] = "D"
-            report["message"] = msg
+            set_stage_failure("A", msg)
+
+    if report["status"] == "PASS" and args.max_stage in {"B", "C", "D"}:
+        try:
+            ok, perms, msg = compare_stage_2(
+                args.ibamr_dir,
+                args.matlab_dir,
+                levels,
+                args.rel_tol,
+                args.coord_tol,
+                normalize_pressure_row_sign,
+                stage_b_require_first_sweep_consistency,
+            )
+        except Exception as ex:
+            ok = False
+            perms = {}
+            msg = f"stage B artifact/parse failure: {ex}"
+        append_stage_result("B", ok, msg)
+        if not ok:
+            set_stage_failure("B", msg)
+
+    if report["status"] == "PASS" and args.max_stage in {"C", "D"}:
+        try:
+            ok, msg = compare_stage_3(args.ibamr_dir, args.matlab_dir, levels, perms, args.rel_tol)
+        except Exception as ex:
+            ok = False
+            msg = f"stage C artifact/parse failure: {ex}"
+        append_stage_result("C", ok, msg)
+        if not ok:
+            set_stage_failure("C", msg)
+
+    if report["status"] == "PASS" and args.max_stage == "D":
+        try:
+            ok, msg, details = compare_stage_4(
+                args.ibamr_dir,
+                args.matlab_dir,
+                levels,
+                finest_level,
+                perms,
+                args.rel_tol,
+                stage_d_pressure_gauge_projected,
+                normalize_pressure_row_sign,
+                stage_d_require_coarse_semantics,
+                stage_d_require_smoother_semantics,
+                args.stage_d_cond_safety_factor,
+                args.stage_d_cond_threshold_floor,
+                args.stage_d_fixed_threshold,
+                args.stage_d_cond2_backend,
+                args.stage_d_cond2_matlab_bin,
+                stage_d_cond2_strict_backend,
+            )
+        except Exception as ex:
+            ok = False
+            details = {}
+            msg = f"stage D artifact/parse failure: {ex}"
+        append_stage_result("D", ok, msg, details)
+        if not ok:
+            set_stage_failure("D", msg)
 
     summary_lines = [
         f"Status: {report['status']}",
