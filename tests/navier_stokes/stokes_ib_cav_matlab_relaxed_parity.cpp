@@ -24,6 +24,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ibtk/app_namespaces.h>
@@ -59,8 +60,8 @@ check_set(const std::string& label, const std::set<int>& expected, const std::se
 std::set<int>
 matlab_extract_coupled_dofs(const int seed_velocity_dof,
                             Mat A00_mat,
-                            const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                            const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+                            const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                            const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
                             const std::map<int, int>& velocity_dof_to_component_axis)
 {
     std::set<int> initial_velocity_dofs = { seed_velocity_dof };
@@ -108,8 +109,8 @@ construct_coupling_aware_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
     Mat A00_mat,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
     const std::map<int, int>& velocity_dof_to_component_axis,
     const int seed_velocity_axis)
 {
@@ -178,12 +179,12 @@ main(int argc, char* argv[])
     int test_failures = 0;
 
     // Synthetic velocity/cell connectivity for a tiny staggered layout.
-    const std::map<int, std::set<int>> velocity_dof_to_adjacent_cell_dofs = {
+    const std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs = {
         { 0, { 10 } }, { 1, { 10, 11 } }, { 2, { 11, 12 } }, { 3, { 12 } }, { 4, { 10 } }, { 5, { 11 } }, { 6, { 12 } }
     };
-    const std::map<int, std::set<int>> cell_dof_to_closure_dofs = { { 10, { 0, 1, 4, 10 } },
-                                                                    { 11, { 1, 2, 5, 11 } },
-                                                                    { 12, { 2, 3, 6, 12 } } };
+    const std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs = {
+        { 10, { 0, 1, 4, 10 } }, { 11, { 1, 2, 5, 11 } }, { 12, { 2, 3, 6, 12 } }
+    };
     const std::map<int, int> velocity_dof_to_component_axis = { { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 },
                                                                 { 4, 1 }, { 5, 1 }, { 6, 1 } };
 

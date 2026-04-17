@@ -24,6 +24,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ibtk/app_namespaces.h>
@@ -59,8 +60,8 @@ check_set(const std::string& label, const std::set<int>& expected, const std::se
 std::set<int>
 matlab_extract_coupled_dofs_relaxed(const int seed_velocity_dof,
                                     Mat A00_mat,
-                                    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+                                    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
                                     const std::map<int, int>& velocity_dof_to_component_axis)
 {
     std::set<int> velocity_dofs = { seed_velocity_dof };
@@ -108,8 +109,8 @@ std::set<int>
 matlab_extract_coupled_dofs_strict(const int seed_x_velocity_dof,
                                    const int paired_y_velocity_dof,
                                    Mat A00_mat,
-                                   const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-                                   const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+                                   const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+                                   const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
                                    const std::map<int, int>& velocity_dof_to_component_axis)
 {
     std::set<int> initial_velocity_dofs = { seed_x_velocity_dof, paired_y_velocity_dof };
@@ -187,12 +188,12 @@ construct_coupling_aware_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
     Mat A00_mat,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
     const std::map<int, int>& velocity_dof_to_component_axis,
     const int seed_velocity_axis,
     const IBAMR::CouplingAwareASMClosurePolicy closure_policy,
-    const std::map<int, std::set<int>>& velocity_dof_to_paired_seed_velocity_dofs = {})
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_paired_seed_velocity_dofs = {})
 {
     std::set<int> seed_velocity_dofs, involved_cell_dofs, closure_dofs, initial_velocity_dofs, initial_seed_components;
     for (std::size_t k = 0; k < overlap_is.size(); ++k)
@@ -299,10 +300,12 @@ main(int argc, char* argv[])
 
     // Synthetic case intentionally chosen so strict and relaxed MATLAB
     // extractors differ.
-    const std::map<int, std::set<int>> velocity_dof_to_adjacent_cell_dofs = { { 0, { 10 } }, { 1, { 10, 11 } },
-                                                                              { 2, { 11 } }, { 3, { 10 } },
-                                                                              { 4, { 11 } }, { 5, { 11 } } };
-    const std::map<int, std::set<int>> cell_dof_to_closure_dofs = { { 10, { 0, 1, 3, 10 } }, { 11, { 1, 2, 4, 11 } } };
+    const std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs = {
+        { 0, { 10 } }, { 1, { 10, 11 } }, { 2, { 11 } }, { 3, { 10 } }, { 4, { 11 } }, { 5, { 11 } }
+    };
+    const std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs = {
+        { 10, { 0, 1, 3, 10 } }, { 11, { 1, 2, 4, 11 } }
+    };
     const std::map<int, int> velocity_dof_to_component_axis = { { 0, 0 }, { 1, 0 }, { 2, 0 },
                                                                 { 3, 1 }, { 4, 1 }, { 5, 1 } };
 

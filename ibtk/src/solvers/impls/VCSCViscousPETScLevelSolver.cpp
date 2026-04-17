@@ -104,7 +104,6 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
                                                         d_dof_index_idx,
                                                         d_level,
                                                         d_mu_interp_type);
-
     d_petsc_pc = d_petsc_mat;
 
     // Setup SAMRAI communication objects.

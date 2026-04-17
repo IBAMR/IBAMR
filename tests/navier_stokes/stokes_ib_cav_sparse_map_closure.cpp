@@ -24,6 +24,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ibtk/app_namespaces.h>
@@ -61,12 +62,12 @@ construct_coupling_aware_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
     Mat A00_mat,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
     const std::map<int, int>& velocity_dof_to_component_axis,
     const int seed_velocity_axis,
     const IBAMR::CouplingAwareASMClosurePolicy closure_policy = IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
-    const std::map<int, std::set<int>>& velocity_dof_to_paired_seed_velocity_dofs = {})
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_paired_seed_velocity_dofs = {})
 {
     if (overlap_is.size() != nonoverlap_is.size())
     {
@@ -182,12 +183,12 @@ main(int argc, char* argv[])
     Pointer<Database> input_db = app_initializer->getInputDatabase();
     int test_failures = 0;
 
-    const std::map<int, std::set<int>> velocity_dof_to_adjacent_cell_dofs = {
+    const std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs = {
         { 0, { 10 } }, { 1, { 10, 11 } }, { 2, { 11 } }, { 3, { 11, 12 } }, { 4, { 12 } }
     };
-    const std::map<int, std::set<int>> cell_dof_to_closure_dofs = { { 10, { 0, 1, 10 } },
-                                                                    { 11, { 1, 2, 3, 11 } },
-                                                                    { 12, { 3, 4, 12 } } };
+    const std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs = {
+        { 10, { 0, 1, 10 } }, { 11, { 1, 2, 3, 11 } }, { 12, { 3, 4, 12 } }
+    };
     const std::map<int, int> velocity_dof_to_component_axis = { { 0, 0 }, { 1, 1 }, { 2, 0 }, { 3, 1 }, { 4, 0 } };
 
     Mat SAJ_mat = nullptr;
