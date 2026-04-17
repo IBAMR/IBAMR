@@ -2409,6 +2409,7 @@ main(int argc, char* argv[])
                 level_map_data[ln_idx],
                 seed_velocity_axis,
                 seed_velocity_stride,
+                CouplingAwareASMSeedTraversalOrder::I_J,
                 CouplingAwareASMClosurePolicy::RELAXED);
 
             StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
@@ -2422,6 +2423,7 @@ main(int argc, char* argv[])
                 level_map_data[ln_idx],
                 seed_velocity_axis,
                 seed_velocity_stride,
+                CouplingAwareASMSeedTraversalOrder::I_J,
                 CouplingAwareASMClosurePolicy::STRICT);
 
             std::vector<std::set<int>> field_is;
