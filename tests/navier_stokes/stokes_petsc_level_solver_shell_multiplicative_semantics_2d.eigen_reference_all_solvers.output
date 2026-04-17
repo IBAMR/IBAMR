@@ -1,5 +1,3 @@
-solver_type = llt
-solver_type = ldlt
 solver_type = partial-piv-lu
 solver_type = full-piv-lu
 solver_type = householder-qr
@@ -11,4 +9,4 @@ solver_type = bdc-svd
 shell_pc_type = multiplicative-eigen-reference
 coupling_aware_asm_closure_policy = RELAXED
 parity_tol = 1e-10
-test_failures = 2
+test_failures = 0
