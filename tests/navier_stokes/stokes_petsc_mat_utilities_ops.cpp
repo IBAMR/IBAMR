@@ -134,6 +134,7 @@ main(int argc, char* argv[])
         map_data,
         0,
         1,
+        IBAMR::CouplingAwareASMSeedTraversalOrder::I_J,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED);
     if (overlap_cav.empty() || nonoverlap_cav.empty()) ++test_failures;
     if (static_cast<int>(overlap_cav.size()) != axis0_velocity_count) ++test_failures;
@@ -150,6 +151,7 @@ main(int argc, char* argv[])
         map_data,
         0,
         2,
+        IBAMR::CouplingAwareASMSeedTraversalOrder::I_J,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED);
     if (overlap_cav_stride2.empty() || nonoverlap_cav_stride2.empty()) ++test_failures;
     const int expected_stride2_count = (axis0_velocity_count + 1) / 2;
