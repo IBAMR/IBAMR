@@ -87,6 +87,54 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     {
         input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
+    if (input_db && input_db->keyExists("asm_subdomain_construction_mode"))
+    {
+        const std::string mode = input_db->getString("asm_subdomain_construction_mode");
+        d_asm_subdomain_construction_mode = string_to_enum<ASMSubdomainConstructionMode>(mode);
+        if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::UNKNOWN)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid asm_subdomain_construction_mode = " << mode << "\n"
+                       << "  expected values are " << enum_to_string(ASMSubdomainConstructionMode::GEOMETRICAL)
+                       << " and " << enum_to_string(ASMSubdomainConstructionMode::COUPLING_AWARE) << ".\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_seed_axis"))
+    {
+        d_coupling_aware_asm_seed_axis = input_db->getInteger("coupling_aware_asm_seed_axis");
+        if (d_coupling_aware_asm_seed_axis < 0 || d_coupling_aware_asm_seed_axis >= NDIM)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_seed_axis = " << d_coupling_aware_asm_seed_axis << "\n"
+                       << "  expected value in [0, " << NDIM - 1 << "].\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_seed_stride"))
+    {
+        d_coupling_aware_asm_seed_stride = input_db->getInteger("coupling_aware_asm_seed_stride");
+        if (d_coupling_aware_asm_seed_stride < 1)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_seed_stride = " << d_coupling_aware_asm_seed_stride << "\n"
+                       << "  expected value >= 1.\n");
+        }
+    }
+    if (input_db && input_db->keyExists("coupling_aware_asm_closure_policy"))
+    {
+        const std::string closure_policy = input_db->getString("coupling_aware_asm_closure_policy");
+        d_coupling_aware_asm_closure_policy = string_to_enum<CouplingAwareASMClosurePolicy>(closure_policy);
+        if (d_coupling_aware_asm_closure_policy == CouplingAwareASMClosurePolicy::UNKNOWN)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_closure_policy = " << closure_policy << "\n"
+                       << "  expected values are " << enum_to_string(CouplingAwareASMClosurePolicy::RELAXED) << " and "
+                       << enum_to_string(CouplingAwareASMClosurePolicy::STRICT) << ".\n");
+        }
+    }
+    if (input_db && input_db->keyExists("log_ASM_subdomains"))
+    {
+        d_log_asm_subdomains = input_db->getBool("log_ASM_subdomains");
+    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -356,6 +404,14 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
         }
     }
     d_petsc_pc = d_petsc_mat;
+    d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
+    d_coupling_aware_asm_map_data_is_initialized = false;
+    if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
+            d_coupling_aware_asm_map_data, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        d_coupling_aware_asm_map_data_is_initialized = true;
+    }
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {

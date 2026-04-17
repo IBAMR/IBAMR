@@ -209,6 +209,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    ASMSubdomainConstructionMode d_asm_subdomain_construction_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    int d_coupling_aware_asm_seed_axis = 0;
+    int d_coupling_aware_asm_seed_stride = 1;
+    CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
+    bool d_coupling_aware_asm_map_data_is_initialized = false;
+    bool d_log_asm_subdomains = false;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
 
