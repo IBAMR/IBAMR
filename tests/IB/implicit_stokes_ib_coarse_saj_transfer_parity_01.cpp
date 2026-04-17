@@ -503,9 +503,31 @@ main(int argc, char* argv[])
     int ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, 1.0, &SAJ_full);
     IBTK_CHKERRQ(ierr);
 
+    std::vector<std::set<int>> full_field_is;
+    std::vector<std::string> full_field_names;
+    IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+        full_field_is, full_field_names, full_num_dofs_fine, u_full_dof_index_idx, p_full_dof_index_idx, fine_level);
+    const auto velocity_name_it = std::find(full_field_names.begin(), full_field_names.end(), "velocity");
+    if (velocity_name_it == full_field_names.end())
+    {
+        TBOX_ERROR("implicit_stokes_ib_coarse_saj_transfer_parity_01: velocity field not found.\n");
+    }
+    const std::size_t velocity_idx =
+        static_cast<std::size_t>(std::distance(full_field_names.begin(), velocity_name_it));
+    std::vector<PetscInt> velocity_dofs(full_field_is[velocity_idx].begin(), full_field_is[velocity_idx].end());
+    IS velocity_is = nullptr;
+    ierr = ISCreateGeneral(PETSC_COMM_WORLD,
+                           static_cast<PetscInt>(velocity_dofs.size()),
+                           velocity_dofs.empty() ? nullptr : velocity_dofs.data(),
+                           PETSC_COPY_VALUES,
+                           &velocity_is);
+    IBTK_CHKERRQ(ierr);
+
     Mat SAJ_u_fine = nullptr;
-    IBAMR::StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(
-        SAJ_u_fine, SAJ_full, full_num_dofs_fine, u_full_dof_index_idx, p_full_dof_index_idx, fine_level);
+    ierr = MatCreateSubMatrix(SAJ_full, velocity_is, velocity_is, MAT_INITIAL_MATRIX, &SAJ_u_fine);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISDestroy(&velocity_is);
+    IBTK_CHKERRQ(ierr);
     Vec saj_row_max_abs = nullptr;
     ierr = MatCreateVecs(SAJ_u_fine, &saj_row_max_abs, nullptr);
     IBTK_CHKERRQ(ierr);
