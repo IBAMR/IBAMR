@@ -1,31 +1,34 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fd_relative_error = 1.62155e-08
+fd_relative_error = 1.19068e-08
+saj_cell_scaled_relative_error = 0
+saj_theta_scaled_relative_error = 0.256637
 krylov_linear_iterations = 2
 krylov_linear_residual_norm = 4.49449e-06
 Input database:
 input_db {
-   MU                      = 0.01                           // input used
-   RHO                     = 1                              // input used
-   MAX_LEVELS              = 1                              // input used
-   REF_RATIO               = 2                              // input used
-   N                       = 4                              // input used
-   L                       = 1                              // input used
-   DX                      = 0.25                           // input used
-   DT                      = 0.005                          // input used
-   NUM_CYCLES              = 1                              // input not used
-   X_CENTER                = 0.5                            // input used
-   Y_CENTER                = 0.5                            // input used
-   X_RADIUS                = 0.2                            // input used
-   Y_RADIUS                = 0.2                            // input used
-   DS                      = 0.25                           // input used
-   SPRING_STIFFNESS        = 200                            // input used
-   DELTA_FUNCTION          = "IB_4"                         // input used
-   IB_TIME_STEPPING = "BACKWARD_EULER"               // input used
-   TAG_BUFFER              = 2                              // input used
-   FD_REL_TOL              = 1e-06                          // input used
-   USE_FIXED_LE_OPERATORS  = TRUE                           // input used
-   PETSC_OPTIONS_FILE      = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=1.dat" // input used
-   RR                      = 2                              // input used
+   MU                     = 0.01                            // input used
+   RHO                    = 1                               // input used
+   MAX_LEVELS             = 1                               // input used
+   REF_RATIO              = 2                               // input used
+   N                      = 4                               // input used
+   L                      = 1                               // input used
+   DX                     = 0.25                            // input used
+   DT                     = 0.005                           // input used
+   NUM_CYCLES             = 1                               // input not used
+   X_CENTER               = 0.5                             // input used
+   Y_CENTER               = 0.5                             // input used
+   X_RADIUS               = 0.2                             // input used
+   Y_RADIUS               = 0.2                             // input used
+   DS                     = 0.25                            // input used
+   SPRING_STIFFNESS       = 200                             // input used
+   DELTA_FUNCTION         = "IB_4"                          // input used
+   IB_TIME_STEPPING       = "BACKWARD_EULER"                // input used
+   TAG_BUFFER             = 2                               // input used
+   FD_REL_TOL             = 1e-06                           // input used
+   USE_FIXED_LE_OPERATORS = TRUE                            // input used
+   PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=1.dat" // input used
+   RR                     = 2                               // input used
+   RUN_SAJ_VECTOR_COMPARE = FALSE                           // from default
    stokes_ib_precond_db {
       num_pre_sweeps                 = 1                    // input used
       num_post_sweeps                = 1                    // input used

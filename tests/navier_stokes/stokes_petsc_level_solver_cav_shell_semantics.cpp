@@ -80,7 +80,7 @@ void
 apply_matlab_cav_sweep(Vec y,
                        Vec b,
                        Mat A,
-                       const std::vector<std::vector<int>>& overlap_subdomain_dofs,
+                       const std::vector<IS>& overlap_subdomains,
                        const double alpha,
                        IS pressure_is)
 {
@@ -90,16 +90,8 @@ apply_matlab_cav_sweep(Vec y,
     ierr = VecDuplicate(y, &r);
     IBTK_CHKERRQ(ierr);
 
-    for (const std::vector<int>& subdomain_dofs : overlap_subdomain_dofs)
+    for (IS overlap_subdomain : overlap_subdomains)
     {
-        IS overlap_subdomain = nullptr;
-        ierr = ISCreateGeneral(PETSC_COMM_WORLD,
-                               static_cast<PetscInt>(subdomain_dofs.size()),
-                               subdomain_dofs.empty() ? nullptr : subdomain_dofs.data(),
-                               PETSC_COPY_VALUES,
-                               &overlap_subdomain);
-        IBTK_CHKERRQ(ierr);
-
         ierr = MatMult(A, y, r);
         IBTK_CHKERRQ(ierr);
         ierr = VecAYPX(r, -1.0, b);
@@ -163,8 +155,6 @@ apply_matlab_cav_sweep(Vec y,
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&r_sub);
         IBTK_CHKERRQ(ierr);
-        ierr = ISDestroy(&overlap_subdomain);
-        IBTK_CHKERRQ(ierr);
     }
 
     Vec p_sub = nullptr;
@@ -208,10 +198,12 @@ main(int argc, char* argv[])
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
 
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
+    const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
     const double alpha = test_db->getDoubleWithDefault("shell_pc_relaxation_factor", 1.0);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
+    const bool require_parity = test_db->getBoolWithDefault("require_parity", true);
 
     int test_failures = 0;
 
@@ -284,7 +276,7 @@ main(int argc, char* argv[])
     Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
     solver_db->putString("ksp_type", "preonly");
     solver_db->putString("pc_type", "shell");
-    solver_db->putString("shell_pc_type", "coupling_aware_vanka");
+    solver_db->putString("shell_pc_type", shell_pc_type);
     solver_db->putDouble("shell_pc_relaxation_factor", alpha);
     solver_db->putInteger("max_iterations", 1);
     solver_db->putBool("initial_guess_nonzero", false);
@@ -301,8 +293,8 @@ main(int argc, char* argv[])
     solver->setVelocityPoissonSpecifications(problem_coefs);
     solver->initializeSolverState(x_vec, b_vec);
 
-    std::vector<std::vector<int>>* overlap_is = nullptr;
-    std::vector<std::vector<int>>* nonoverlap_is = nullptr;
+    std::vector<IS>* overlap_is = nullptr;
+    std::vector<IS>* nonoverlap_is = nullptr;
     solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
 
     const KSP& petsc_ksp = solver->getPETScKSP();
@@ -329,21 +321,21 @@ main(int argc, char* argv[])
 
     apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, alpha, pressure_is);
     const double expected_inf_norm = vec_norm_inf(x_expected);
-    if (!(expected_inf_norm > 0.0)) ++test_failures;
+    if (require_parity && !(expected_inf_norm > 0.0)) ++test_failures;
 
     const bool converged = solver->solveSystem(x_vec, b_vec);
-    if (!converged) ++test_failures;
+    if (require_parity && !converged) ++test_failures;
     IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
     const double actual_inf_norm = vec_norm_inf(x_petsc);
-    if (!(actual_inf_norm > 0.0)) ++test_failures;
+    if (require_parity && !(actual_inf_norm > 0.0)) ++test_failures;
 
     ierr = VecCopy(x_petsc, x_diff);
     IBTK_CHKERRQ(ierr);
     ierr = VecAXPY(x_diff, -1.0, x_expected);
     IBTK_CHKERRQ(ierr);
     const double error_inf_norm = vec_norm_inf(x_diff);
-    if (!(error_inf_norm <= tol)) ++test_failures;
+    if (require_parity && !(error_inf_norm <= tol)) ++test_failures;
 
     ierr = VecDestroy(&x_diff);
     IBTK_CHKERRQ(ierr);
@@ -366,7 +358,9 @@ main(int argc, char* argv[])
     plog << "Input database:\n";
     input_db->printClassData(plog);
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
+    pout << "shell_pc_type = " << shell_pc_type << "\n";
     pout << "shell_pc_relaxation_factor = " << alpha << "\n";
+    pout << "require_parity = " << require_parity << "\n";
     pout << "expected_inf_norm = " << expected_inf_norm << "\n";
     pout << "actual_inf_norm = " << actual_inf_norm << "\n";
     pout << "error_inf_norm = " << error_inf_norm << "\n";

@@ -12,8 +12,10 @@ CartCellDoubleCubicCoarsen::coarsen():
   reverting to weighted averaging.
 
 fd_relative_error = 4.29249e-09
+saj_cell_scaled_relative_error = 0
+saj_theta_scaled_relative_error = 0.371681
 krylov_linear_iterations = 1
-krylov_linear_residual_norm = 1.00125e-07
+krylov_linear_residual_norm = 1.48474e-07
 Input database:
 input_db {
    MU                     = 0.01                            // input used
@@ -38,6 +40,7 @@ input_db {
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
    PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat" // input used
    RR                     = 2                               // input used
+   RUN_SAJ_VECTOR_COMPARE = FALSE                           // from default
    stokes_ib_precond_db {
       num_pre_sweeps                 = 1                    // input used
       num_post_sweeps                = 1                    // input used

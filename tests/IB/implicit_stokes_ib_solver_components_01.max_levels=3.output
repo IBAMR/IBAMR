@@ -11,9 +11,11 @@ CartCellDoubleCubicCoarsen::coarsen():
   cubic coarsening requires a refinement ratio of 4 or larger.
   reverting to weighted averaging.
 
-fd_relative_error = 2.41777e-08
+fd_relative_error = 2.4078e-08
+saj_cell_scaled_relative_error = 0
+saj_theta_scaled_relative_error = 0.685841
 krylov_linear_iterations = 5
-krylov_linear_residual_norm = 4.29333e-06
+krylov_linear_residual_norm = 4.28687e-06
 Input database:
 input_db {
    MU                     = 0.01                            // input used
@@ -38,6 +40,7 @@ input_db {
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
    PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=3.dat" // input used
    RR                     = 2                               // input used
+   RUN_SAJ_VECTOR_COMPARE = FALSE                           // from default
    stokes_ib_precond_db {
       num_pre_sweeps                 = 1                    // input used
       num_post_sweeps                = 1                    // input used
