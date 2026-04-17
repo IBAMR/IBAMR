@@ -39,6 +39,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "../tests.h"
@@ -73,14 +74,26 @@ check_set(const std::string& label, const std::set<int>& expected, const std::se
     return false;
 }
 
+std::set<int>
+set_from_vector(const std::vector<int>& values)
+{
+    return std::set<int>(values.begin(), values.end());
+}
+
+bool
+check_set(const std::string& label, const std::set<int>& expected, const std::vector<int>& actual)
+{
+    return check_set(label, expected, set_from_vector(actual));
+}
+
 void
 construct_coupling_aware_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
     Mat A00_mat,
-    const std::map<int, std::set<int>>& velocity_dof_to_adjacent_cell_dofs,
-    const std::map<int, std::set<int>>& cell_dof_to_closure_dofs,
-    const std::map<int, int>& velocity_dof_to_component_axis,
+    const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
+    const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
+    const std::unordered_map<int, int>& velocity_dof_to_component_axis,
     const int seed_velocity_axis)
 {
     std::set<int> seed_velocity_dofs, involved_cell_dofs, closure_dofs, initial_velocity_dofs;
