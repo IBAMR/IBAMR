@@ -1197,7 +1197,7 @@ StaggeredStokesFACPreconditionerStrategy::ensureTransferOperatorIsBuilt(const in
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
-    TBOX_ASSERT(d_is_initialized);
+    TBOX_ASSERT(d_is_initialized || d_in_initialize_operator_state);
 #endif
 
     Mat* prolongation_mat = nullptr;
