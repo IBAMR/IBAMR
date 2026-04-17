@@ -8,8 +8,10 @@ set(stokes_level_solver_header "${src_root}/include/ibamr/StaggeredStokesPETScLe
 
 set(files_to_scan
     "${src_root}/ibtk/include/ibtk/private/PETScLevelSolverPetscShellBackend.h"
+    "${src_root}/ibtk/include/ibtk/private/PETScLevelSolverBlasLapackShellBackend.h"
     "${src_root}/ibtk/include/ibtk/private/PETScLevelSolverEigenShellBackendBase.h"
     "${src_root}/ibtk/src/solvers/impls/PETScLevelSolverPetscShellBackend.cpp"
+    "${src_root}/ibtk/src/solvers/impls/PETScLevelSolverBlasLapackShellBackend.cpp"
     "${src_root}/ibtk/src/solvers/impls/PETScLevelSolverEigenPseudoinverseShellBackend.cpp"
     "${src_root}/ibtk/src/solvers/impls/PETScLevelSolverEigenReferenceShellBackend.cpp"
     "${src_root}/src/navier_stokes/StaggeredStokesEigenSchurComplementShellBackend.cpp")

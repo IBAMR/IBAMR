@@ -152,6 +152,7 @@ SET(CXX_SRC
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
   solvers/impls/PETScLevelSolverPetscShellBackend.cpp
+  solvers/impls/PETScLevelSolverBlasLapackShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenPseudoinverseShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenReferenceShellBackend.cpp

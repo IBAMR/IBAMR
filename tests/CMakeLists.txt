@@ -399,3 +399,20 @@ set_tests_properties(autotests
     ENVIRONMENT "PYTHONUNBUFFERED=yes"
     TIMEOUT 1800
 )
+
+ADD_TEST(
+  NAME navier_stokes_blas_lapack_cholesky_rejects_indefinite_blocks
+  COMMAND
+    /bin/sh
+    -c
+    "\"${CMAKE_BINARY_DIR}/tests/navier_stokes/stokes_petsc_level_solver_shell_multiplicative_semantics_2d\" \
+    \"${CMAKE_SOURCE_DIR}/tests/navier_stokes/stokes_petsc_level_solver_shell_multiplicative_semantics_2d.blas_lapack_cholesky.input\" \
+    > cholesky_rejects.log 2>&1; \
+    status=$?; \
+    cat cholesky_rejects.log; \
+    test $status -ne 0"
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests/navier_stokes)
+set_tests_properties(navier_stokes_blas_lapack_cholesky_rejects_indefinite_blocks
+  PROPERTIES
+    TIMEOUT 120
+)
