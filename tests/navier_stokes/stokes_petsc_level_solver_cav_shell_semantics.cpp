@@ -77,7 +77,12 @@ fill_nontrivial_rhs(const Pointer<PatchLevel<NDIM>>& level, const int f_u_idx, c
 }
 
 void
-apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, const double alpha, IS pressure_is)
+apply_matlab_cav_sweep(Vec y,
+                       Vec b,
+                       Mat A,
+                       const std::vector<std::vector<int>>& overlap_subdomain_dofs,
+                       const double alpha,
+                       IS pressure_is)
 {
     int ierr = VecZeroEntries(y);
     IBTK_CHKERRQ(ierr);
@@ -85,8 +90,16 @@ apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, c
     ierr = VecDuplicate(y, &r);
     IBTK_CHKERRQ(ierr);
 
-    for (const IS overlap_subdomain : overlap_is)
+    for (const std::vector<int>& subdomain_dofs : overlap_subdomain_dofs)
     {
+        IS overlap_subdomain = nullptr;
+        ierr = ISCreateGeneral(PETSC_COMM_WORLD,
+                               static_cast<PetscInt>(subdomain_dofs.size()),
+                               subdomain_dofs.empty() ? nullptr : subdomain_dofs.data(),
+                               PETSC_COPY_VALUES,
+                               &overlap_subdomain);
+        IBTK_CHKERRQ(ierr);
+
         ierr = MatMult(A, y, r);
         IBTK_CHKERRQ(ierr);
         ierr = VecAYPX(r, -1.0, b);
@@ -149,6 +162,8 @@ apply_matlab_cav_sweep(Vec y, Vec b, Mat A, const std::vector<IS>& overlap_is, c
         ierr = MatDestroy(&A_sub);
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&r_sub);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&overlap_subdomain);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -286,8 +301,8 @@ main(int argc, char* argv[])
     solver->setVelocityPoissonSpecifications(problem_coefs);
     solver->initializeSolverState(x_vec, b_vec);
 
-    std::vector<IS>* overlap_is = nullptr;
-    std::vector<IS>* nonoverlap_is = nullptr;
+    std::vector<std::vector<int>>* overlap_is = nullptr;
+    std::vector<std::vector<int>>* nonoverlap_is = nullptr;
     solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
 
     const KSP& petsc_ksp = solver->getPETScKSP();
