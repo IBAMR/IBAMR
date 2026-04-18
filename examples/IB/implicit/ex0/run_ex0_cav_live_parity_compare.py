@@ -464,6 +464,28 @@ def compute_live_cond2_a00_backend(
     return cond2, diagnostics
 
 
+def build_conditioning_threshold(
+    cond2_a00: float,
+    fixed_threshold: float,
+    cond_safety_factor: float,
+    cond_threshold_floor: float,
+) -> dict:
+    cond_threshold_raw = cond_safety_factor * cond2_a00 * sys.float_info.epsilon
+    cond_threshold = max(cond_threshold_raw, cond_threshold_floor)
+    cond_valid = math.isfinite(cond2_a00) and math.isfinite(cond_threshold)
+    composite_threshold = max(fixed_threshold, cond_threshold_floor, cond_threshold_raw if cond_valid else 0.0)
+    return {
+        "valid": cond_valid,
+        "fixed_threshold": fixed_threshold,
+        "cond_safety_factor": cond_safety_factor,
+        "cond_threshold_raw": cond_threshold_raw,
+        "cond_threshold": cond_threshold,
+        "cond_threshold_floor": cond_threshold_floor,
+        "eps_machine": sys.float_info.epsilon,
+        "composite_threshold": composite_threshold,
+    }
+
+
 def sparse_column_to_dense(mat: SparseMatrix) -> List[float]:
     if mat.ncols != 1:
         raise RuntimeError(f"expected column vector matrix with ncols=1, got ncols={mat.ncols}")
@@ -1023,12 +1045,33 @@ def compare_smoother_level_solutions(
     mat_root: str,
     levels: List[int],
     perms,
-    rel_tol: float,
+    fixed_threshold: float,
     use_pressure_gauge_projected_metrics: bool,
+    cond_safety_factor: float,
+    cond_threshold_floor: float,
+    cond2_backend: str,
+    cond2_matlab_bin: str,
+    cond2_strict_backend: bool,
 ):
     col_map = {0: 0}
     details = {}
     checked = 0
+    level_thresholds = {}
+
+    def get_level_threshold(ln: int):
+        if ln not in level_thresholds:
+            cond2_a00, cond2_details = compute_live_cond2_a00_backend(
+                ib_root, ln, cond2_backend, cond2_matlab_bin, cond2_strict_backend
+            )
+            threshold_details = build_conditioning_threshold(
+                cond2_a00, fixed_threshold, cond_safety_factor, cond_threshold_floor
+            )
+            level_thresholds[ln] = {
+                "cond2_a00": cond2_a00,
+                "cond2_details": cond2_details,
+                **threshold_details,
+            }
+        return level_thresholds[ln]
 
     def compare_one(mat_to_ib, ln: int, phase: str, kind: str, filename: str):
         ib_path = os.path.join(ib_root, filename)
@@ -1072,6 +1115,7 @@ def compare_smoother_level_solutions(
         gauge_metrics = vector_comparison_metrics(ib_gauge_vals, mat_gauge_vals)
         pass_metrics = gauge_metrics if p_idx else raw_metrics
         reported_metrics = gauge_metrics if (use_pressure_gauge_projected_metrics and p_idx) else raw_metrics
+        threshold_info = get_level_threshold(ln)
 
         payload = {
             "pass_metrics": pass_metrics,
@@ -1081,15 +1125,20 @@ def compare_smoother_level_solutions(
             "pressure_means": {"ibamr": ib_p_mean, "matlab": mat_p_mean},
             "used_pressure_gauge_projection_for_pass": bool(p_idx),
             "used_pressure_gauge_projection_for_report": bool(use_pressure_gauge_projected_metrics and p_idx),
+            "conditioning_threshold": threshold_info,
         }
-        if not metrics_within_tolerance(pass_metrics["rel_linf_ref"], pass_metrics["rel_l2_ref"], rel_tol):
+        threshold = threshold_info["composite_threshold"]
+        if (pass_metrics["rel_linf_ref"] > threshold) or (pass_metrics["rel_l2_ref"] > threshold):
             metric_mode = "pressure-gauge-projected" if p_idx else "raw"
             return (
                 False,
                 payload,
                 f"level {ln}: smoother {phase} {kind} mismatch using {metric_mode} pass metrics "
                 f"rel_ref(linf={pass_metrics['rel_linf_ref']:.3e}, l2={pass_metrics['rel_l2_ref']:.3e}); "
-                f"sym(linf={pass_metrics['rel_linf_sym']:.3e}, l2={pass_metrics['rel_l2_sym']:.3e})",
+                f"sym(linf={pass_metrics['rel_linf_sym']:.3e}, l2={pass_metrics['rel_l2_sym']:.3e}); "
+                f"composite_threshold={threshold:.3e} (fixed_threshold={threshold_info['fixed_threshold']:.3e}, "
+                f"cond_threshold={threshold_info['cond_threshold']:.3e}, "
+                f"cond2_a00_level={threshold_info['cond2_a00']:.6e}, C={threshold_info['cond_safety_factor']:.3e})",
             )
         return True, payload, ""
 
@@ -1135,7 +1184,7 @@ def compare_smoother_level_solutions(
         details,
         "per-level smoother diagnostics match "
         f"({checked} vector comparisons; pass uses pressure-gauge-projected metrics when pressure DOFs exist; "
-        f"report mode={report_mode})",
+        f"conditioning-aware per-level thresholds; report mode={report_mode})",
     )
 
 
@@ -1331,7 +1380,17 @@ def compare_stage_4(
         pressure_gauge_projected_metrics = vector_comparison_metrics(ib_y_gauge, mat_y_gauge)
 
         smoother_ok, smoother_details, smoother_message = compare_smoother_level_solutions(
-            ib_root, mat_root, levels, perms, rel_tol, use_pressure_gauge_projected_metrics
+            ib_root,
+            mat_root,
+            levels,
+            perms,
+            stage_d_fixed_threshold,
+            use_pressure_gauge_projected_metrics,
+            cond_safety_factor,
+            cond_threshold_floor,
+            cond2_backend,
+            cond2_matlab_bin,
+            cond2_strict_backend,
         )
         if require_smoother_semantics and not smoother_details:
             smoother_ok = False
@@ -1340,9 +1399,12 @@ def compare_stage_4(
         cond2_a00, cond2_details = compute_live_cond2_a00_backend(
             ib_root, finest_level, cond2_backend, cond2_matlab_bin, cond2_strict_backend
         )
-        cond_threshold_raw = cond_safety_factor * cond2_a00 * sys.float_info.epsilon
-        cond_threshold = max(cond_threshold_raw, cond_threshold_floor)
-        cond_valid = math.isfinite(cond2_a00) and math.isfinite(cond_threshold)
+        output_threshold_info = build_conditioning_threshold(
+            cond2_a00, stage_d_fixed_threshold, cond_safety_factor, cond_threshold_floor
+        )
+        cond_threshold_raw = output_threshold_info["cond_threshold_raw"]
+        cond_threshold = output_threshold_info["cond_threshold"]
+        cond_valid = output_threshold_info["valid"]
         y_pass_metrics = pressure_gauge_projected_metrics if p_idx else metrics
         fixed_ok = (y_pass_metrics["rel_linf_ref"] <= stage_d_fixed_threshold) and (
             y_pass_metrics["rel_l2_ref"] <= stage_d_fixed_threshold
@@ -1350,7 +1412,7 @@ def compare_stage_4(
         cond_ok = cond_valid and (y_pass_metrics["rel_linf_ref"] <= cond_threshold) and (
             y_pass_metrics["rel_l2_ref"] <= cond_threshold
         )
-        stage_d_threshold = max(stage_d_fixed_threshold, cond_threshold_floor, cond_threshold_raw if cond_valid else 0.0)
+        stage_d_threshold = output_threshold_info["composite_threshold"]
         stage_d_accept_ok = (y_pass_metrics["rel_linf_ref"] <= stage_d_threshold) and (
             y_pass_metrics["rel_l2_ref"] <= stage_d_threshold
         )
@@ -1518,12 +1580,15 @@ def compare_stage_4(
     cond2_a00, cond2_details = compute_live_cond2_a00_backend(
         ib_root, finest_level, cond2_backend, cond2_matlab_bin, cond2_strict_backend
     )
-    cond_threshold_raw = cond_safety_factor * cond2_a00 * sys.float_info.epsilon
-    cond_threshold = max(cond_threshold_raw, cond_threshold_floor)
-    cond_valid = math.isfinite(cond2_a00) and math.isfinite(cond_threshold)
+    output_threshold_info = build_conditioning_threshold(
+        cond2_a00, stage_d_fixed_threshold, cond_safety_factor, cond_threshold_floor
+    )
+    cond_threshold_raw = output_threshold_info["cond_threshold_raw"]
+    cond_threshold = output_threshold_info["cond_threshold"]
+    cond_valid = output_threshold_info["valid"]
     fixed_ok = (rel_linf <= stage_d_fixed_threshold) and (rel_l2 <= stage_d_fixed_threshold)
     cond_ok = cond_valid and (rel_linf <= cond_threshold) and (rel_l2 <= cond_threshold)
-    stage_d_threshold = max(stage_d_fixed_threshold, cond_threshold_floor, cond_threshold_raw if cond_valid else 0.0)
+    stage_d_threshold = output_threshold_info["composite_threshold"]
     stage_d_accept_ok = (rel_linf <= stage_d_threshold) and (rel_l2 <= stage_d_threshold)
     details = {
         "mode": "matrix_export",
