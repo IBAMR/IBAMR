@@ -314,6 +314,29 @@ These requirements were missing or inconsistently enforced in earlier parity att
     - Failure clauses include output composite acceptance, coarse semantics, and smoother semantics.
     - `cond2(A00)≈1.722844e+08`, Stage-D composite threshold `≈1.913e-07`.
 
+### 2026-04-18: Audit correctness fixes + fresh live replay
+- Audit-note/code mismatch found and corrected in `run_ex0_cav_live_parity_export_matlab.m`:
+  - the checked-in wrapper did **not** yet implement the documented reproducibility hardening from 2026-04-13,
+  - it now uses a per-run unique scratch directory, calls `restoredefaultpath()`, adds only:
+    - parity override scratch (`v_cycle.m`, `-begin`),
+    - MATLAB reference repository root (`-end`),
+  - and restores the original MATLAB path plus removes the scratch directory on exit.
+- Comparator semantics hardening (`run_ex0_cav_live_parity_compare.py`):
+  - smoother-level Stage-D pass/fail now always uses pressure-gauge-projected metrics when pressure DOFs exist (Requirement #6 is no longer optionally bypassed by `--stage-d-pressure-gauge-projected=false`),
+  - `--stage-d-pressure-gauge-projected` is now report-presentation-only for smoother diagnostics,
+  - Stage-B now always emits the documented coarsest-level direct-semantics note when both sides have empty seed lists on the coarsest level.
+- Comparator replay check on retained restacked bundles:
+  - `/tmp/ibamr_cav_live_parity_restacked_20260417`
+  - `K=1e6`, `RELAXED`, strict semantic profile still `FAIL` due smoother semantics only,
+  - replay with `--stage-d-pressure-gauge-projected=false` now keeps gauge-projected smoother pass semantics while changing only reported smoother metrics (for example, one reported raw smoother metric is `~4.84e-02` while the pass metric remains `~6.19e-11`).
+- Fresh live rerun outside sandbox (patched wrapper + current comparator):
+  - artifact root: `/tmp/ibamr_cav_live_parity_audit_20260418_k1e6`
+  - command profile: `K=1e6`, strict semantic defaults, MATLAB `cond2(A00)` backend
+  - outcomes:
+    - `RELAXED=FAIL`: smoother semantics only (`level 2 pre output rel_ref(linf=1.731e-10, l2=1.401e-10)`), while Stage-D output composite acceptance and coarse semantics pass (`output rel_linf≈5.461e-11`, threshold `≈1.913e-09`),
+    - `STRICT=FAIL`: smoother semantics only (`level 1 pre output rel_ref(linf=2.479e-10, l2=2.231e-10)`), while Stage-D output composite acceptance and coarse semantics pass (`output rel_linf≈1.154e-10`, threshold `≈1.913e-09`),
+  - report metadata confirms the IBAMR parity override `v_cycle.m` was used.
+
 ## Next Action
 - Keep Stage A/B/C and metadata parity locked.
 - Debug and resolve Stage-D smoother semantic divergence at `K=1e6` (first strict-profile semantic failure).

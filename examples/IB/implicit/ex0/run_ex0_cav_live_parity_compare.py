@@ -880,14 +880,18 @@ def compare_stage_2(
 
         ib_seeds = [int(v) for v in ib_sub["seed_velocity_dofs"]]
         mat_seeds = [int(v) for v in mat_sub["seed_velocity_dofs"]]
+        coarsest_note = (
+            f"level {ln}: skipped subdomain checks (ibamr seeds={len(ib_seeds)}, matlab seeds={len(mat_seeds)}); "
+            "coarsest-level solve is direct semantics and is gated in Stage D coarse semantic vectors"
+        )
         if len(ib_seeds) == 0 or len(mat_seeds) == 0:
+            if ln == coarsest_level and len(ib_seeds) == len(mat_seeds):
+                stage_notes.append(coarsest_note)
+                continue
             if len(ib_seeds) == len(mat_seeds):
                 continue
             if ln == coarsest_level:
-                stage_notes.append(
-                    f"level {ln}: skipped subdomain checks (ibamr seeds={len(ib_seeds)}, matlab seeds={len(mat_seeds)}); "
-                    "coarsest-level solve is direct semantics and is gated in Stage D coarse semantic vectors"
-                )
+                stage_notes.append(coarsest_note)
                 continue
             return False, {}, f"level {ln}: seed count mismatch ibamr={len(ib_seeds)} matlab={len(mat_seeds)}"
 
@@ -1066,22 +1070,26 @@ def compare_smoother_level_solutions(
             ib_gauge_vals, ib_p_mean = subtract_pressure_mean(ib_vals, p_idx)
             mat_gauge_vals, mat_p_mean = subtract_pressure_mean(mat_vals, p_idx)
         gauge_metrics = vector_comparison_metrics(ib_gauge_vals, mat_gauge_vals)
-        metrics = gauge_metrics if (use_pressure_gauge_projected_metrics and p_idx) else raw_metrics
+        pass_metrics = gauge_metrics if p_idx else raw_metrics
+        reported_metrics = gauge_metrics if (use_pressure_gauge_projected_metrics and p_idx) else raw_metrics
 
         payload = {
-            "pass_metrics": metrics,
+            "pass_metrics": pass_metrics,
+            "reported_metrics": reported_metrics,
             "raw_metrics": raw_metrics,
             "pressure_gauge_projected_metrics": gauge_metrics,
             "pressure_means": {"ibamr": ib_p_mean, "matlab": mat_p_mean},
-            "used_pressure_gauge_projection_for_pass": bool(use_pressure_gauge_projected_metrics and p_idx),
+            "used_pressure_gauge_projection_for_pass": bool(p_idx),
+            "used_pressure_gauge_projection_for_report": bool(use_pressure_gauge_projected_metrics and p_idx),
         }
-        if not metrics_within_tolerance(metrics["rel_linf_ref"], metrics["rel_l2_ref"], rel_tol):
+        if not metrics_within_tolerance(pass_metrics["rel_linf_ref"], pass_metrics["rel_l2_ref"], rel_tol):
+            metric_mode = "pressure-gauge-projected" if p_idx else "raw"
             return (
                 False,
                 payload,
-                f"level {ln}: smoother {phase} {kind} mismatch rel_ref(linf={metrics['rel_linf_ref']:.3e}, "
-                f"l2={metrics['rel_l2_ref']:.3e}); sym(linf={metrics['rel_linf_sym']:.3e}, "
-                f"l2={metrics['rel_l2_sym']:.3e})",
+                f"level {ln}: smoother {phase} {kind} mismatch using {metric_mode} pass metrics "
+                f"rel_ref(linf={pass_metrics['rel_linf_ref']:.3e}, l2={pass_metrics['rel_l2_ref']:.3e}); "
+                f"sym(linf={pass_metrics['rel_linf_sym']:.3e}, l2={pass_metrics['rel_l2_sym']:.3e})",
             )
         return True, payload, ""
 
@@ -1121,8 +1129,14 @@ def compare_smoother_level_solutions(
 
     if checked == 0:
         return True, details, "no per-level smoother diagnostics exported"
-    compare_mode = "pressure-gauge-projected" if use_pressure_gauge_projected_metrics else "raw"
-    return True, details, f"per-level smoother diagnostics match ({checked} vector comparisons, {compare_mode})"
+    report_mode = "pressure-gauge-projected" if use_pressure_gauge_projected_metrics else "raw"
+    return (
+        True,
+        details,
+        "per-level smoother diagnostics match "
+        f"({checked} vector comparisons; pass uses pressure-gauge-projected metrics when pressure DOFs exist; "
+        f"report mode={report_mode})",
+    )
 
 
 def remap_column_vector(vec: SparseMatrix, row_map: Dict[int, int]) -> List[float]:
@@ -1579,7 +1593,10 @@ def main():
         "--stage-d-pressure-gauge-projected",
         choices=["true", "false"],
         default="true",
-        help="Whether smoother-diagnostic vectors in Stage D should report pressure-mean-projected metrics",
+        help=(
+            "Whether Stage-D smoother diagnostics should present pressure-mean-projected metrics as the primary report; "
+            "pass/fail always uses gauge projection when pressure DOFs exist"
+        ),
     )
     parser.add_argument(
         "--stage-d-require-coarse-semantics",
