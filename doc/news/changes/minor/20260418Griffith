@@ -1,0 +1,3 @@
+Stabilization: Restore implicit IB solver functionality and introduce independent solver and operator components.
+<br>
+(Boyce Griffith, 2026/04/18)
