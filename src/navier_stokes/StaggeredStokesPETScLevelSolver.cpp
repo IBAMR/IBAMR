@@ -21,6 +21,7 @@
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/PoissonUtilities.h>
@@ -51,6 +52,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -68,6 +70,73 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
+
+void
+construct_cached_field_is(const std::vector<std::set<int>>& field_is,
+                          const std::vector<std::string>& field_names,
+                          const std::string& field_name,
+                          IS& local_is)
+{
+    if (local_is) return;
+
+    const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
+    if (field_name_it == field_names.end())
+    {
+        TBOX_ERROR("construct_cached_field_is():\n"
+                   << "  unable to locate " << field_name << " field DOFs.\n");
+    }
+
+    const std::size_t field_idx = static_cast<std::size_t>(std::distance(field_names.begin(), field_name_it));
+    std::vector<PetscInt> field_dofs(field_is[field_idx].begin(), field_is[field_idx].end());
+    int ierr = ISCreateGeneral(PETSC_COMM_WORLD,
+                               static_cast<PetscInt>(field_dofs.size()),
+                               field_dofs.empty() ? nullptr : field_dofs.data(),
+                               PETSC_COPY_VALUES,
+                               &local_is);
+    IBTK_CHKERRQ(ierr);
+
+    return;
+}
+
+void
+construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_block_mat, AO& velocity_field_ao)
+{
+    if (velocity_field_ao) return;
+
+    PetscInt n_velocity_global = 0;
+    PetscInt n_velocity_local = 0;
+    PetscInt row_start = 0;
+    PetscInt row_end = 0;
+    int ierr = ISGetSize(velocity_field_is_local, &n_velocity_global);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISGetLocalSize(velocity_field_is_local, &n_velocity_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(velocity_block_mat, &row_start, &row_end);
+    IBTK_CHKERRQ(ierr);
+    if (n_velocity_local != row_end - row_start)
+    {
+        TBOX_ERROR("construct_cached_velocity_field_ao():\n"
+                   << "  local velocity-field DOF count (" << n_velocity_local
+                   << ") does not match local velocity-block row count (" << row_end - row_start << ").\n");
+    }
+
+    std::vector<PetscInt> velocity_field_ids(static_cast<std::size_t>(n_velocity_local));
+    for (PetscInt k = 0; k < n_velocity_local; ++k)
+    {
+        velocity_field_ids[static_cast<std::size_t>(k)] = row_start + k;
+    }
+    const PetscInt* velocity_full_ids = nullptr;
+    ierr = ISGetIndices(velocity_field_is_local, &velocity_full_ids);
+    IBTK_CHKERRQ(ierr);
+    ierr = AOCreateBasic(
+        PETSC_COMM_WORLD, n_velocity_local, velocity_field_ids.data(), velocity_full_ids, &velocity_field_ao);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISRestoreIndices(velocity_field_is_local, &velocity_full_ids);
+    IBTK_CHKERRQ(ierr);
+
+    return;
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -78,7 +147,14 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
-
+    if (input_db && input_db->keyExists("subdomain_box_size"))
+    {
+        input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
+    }
+    if (input_db && input_db->keyExists("subdomain_overlap_size"))
+    {
+        input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
+    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -176,32 +252,157 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
-                                                                     d_U_problem_coefs,
-                                                                     d_U_bc_coefs,
-                                                                     d_new_time,
-                                                                     d_num_dofs_per_proc,
-                                                                     d_u_dof_index_idx,
-                                                                     d_p_dof_index_idx,
-                                                                     d_level);
-    d_petsc_pc = d_petsc_mat;
+    if (d_operator_mat)
+    {
+        ierr = MatDuplicate(d_operator_mat, MAT_COPY_VALUES, &d_petsc_mat);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                         d_U_problem_coefs,
+                                                                         d_U_bc_coefs,
+                                                                         d_new_time,
+                                                                         d_num_dofs_per_proc,
+                                                                         d_u_dof_index_idx,
+                                                                         d_p_dof_index_idx,
+                                                                         d_level);
+    }
 
+    std::vector<std::set<int>> field_is;
+    std::vector<std::string> field_names;
+    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+        field_is, field_names, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+    construct_cached_field_is(field_is, field_names, "velocity", d_velocity_field_is_local);
+    construct_cached_field_is(field_is, field_names, "pressure", d_pressure_is_local);
+
+    if (d_augmented_operator_mat)
+    {
+        PetscInt full_m = 0, full_n = 0, aug_m = 0, aug_n = 0;
+        ierr = MatGetSize(d_petsc_mat, &full_m, &full_n);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatGetSize(d_augmented_operator_mat, &aug_m, &aug_n);
+        IBTK_CHKERRQ(ierr);
+
+        if (aug_m == full_m && aug_n == full_n)
+        {
+            ierr = MatAXPY(d_petsc_mat, 1.0, d_augmented_operator_mat, DIFFERENT_NONZERO_PATTERN);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            PetscInt n_velocity_global = 0;
+            ierr = ISGetSize(d_velocity_field_is_local, &n_velocity_global);
+            IBTK_CHKERRQ(ierr);
+            if (aug_m != n_velocity_global || aug_n != n_velocity_global)
+            {
+                TBOX_ERROR("StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized():\n"
+                           << "  augmented operator has incompatible size: (" << aug_m << " x " << aug_n << ").\n"
+                           << "  expected either full operator size (" << full_m << " x " << full_n
+                           << ") or velocity block size (" << n_velocity_global << " x " << n_velocity_global
+                           << ").\n");
+            }
+
+            construct_cached_velocity_field_ao(
+                d_velocity_field_is_local, d_augmented_operator_mat, d_velocity_field_ao);
+
+            PetscInt row_start = 0, row_end = 0;
+            ierr = MatGetOwnershipRange(d_augmented_operator_mat, &row_start, &row_end);
+            IBTK_CHKERRQ(ierr);
+            PetscInt full_m_local = 0, full_n_local = 0;
+            ierr = MatGetLocalSize(d_petsc_mat, &full_m_local, &full_n_local);
+            IBTK_CHKERRQ(ierr);
+
+            Mat preallocator = nullptr;
+            ierr = MatCreate(PETSC_COMM_WORLD, &preallocator);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetSizes(preallocator, full_m_local, full_n_local, full_m, full_n);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetType(preallocator, MATPREALLOCATOR);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetUp(preallocator);
+            IBTK_CHKERRQ(ierr);
+
+            std::vector<PetscInt> mapped_cols;
+            for (PetscInt row = row_start; row < row_end; ++row)
+            {
+                PetscInt ncols = 0;
+                const PetscInt* cols = nullptr;
+                const PetscScalar* vals = nullptr;
+                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+
+                mapped_cols.resize(static_cast<std::size_t>(ncols));
+                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
+                IBTK_CHKERRQ(ierr);
+
+                PetscInt full_row = row;
+                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
+                IBTK_CHKERRQ(ierr);
+
+                ierr = MatSetValues(preallocator, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(preallocator, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(preallocator, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+
+            Mat embedded_augmented_operator_mat = nullptr;
+            ierr = MatCreate(PETSC_COMM_WORLD, &embedded_augmented_operator_mat);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetSizes(embedded_augmented_operator_mat, full_m_local, full_n_local, full_m, full_n);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetType(embedded_augmented_operator_mat, MATAIJ);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatPreallocatorPreallocate(preallocator, PETSC_TRUE, embedded_augmented_operator_mat);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&preallocator);
+            IBTK_CHKERRQ(ierr);
+
+            for (PetscInt row = row_start; row < row_end; ++row)
+            {
+                PetscInt ncols = 0;
+                const PetscInt* cols = nullptr;
+                const PetscScalar* vals = nullptr;
+                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+
+                mapped_cols.resize(static_cast<std::size_t>(ncols));
+                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
+                IBTK_CHKERRQ(ierr);
+
+                PetscInt full_row = row;
+                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
+                IBTK_CHKERRQ(ierr);
+
+                ierr = MatSetValues(
+                    embedded_augmented_operator_mat, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+
+            ierr = MatAXPY(d_petsc_mat, 1.0, embedded_augmented_operator_mat, DIFFERENT_NONZERO_PATTERN);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&embedded_augmented_operator_mat);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    d_petsc_pc = d_petsc_mat;
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
-        bool level_covers_entire_domain = d_level_num == 0;
-        if (d_level_num > 0)
-        {
-            int local_cf_bdry_box_size = 0;
-            for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-                const Array<BoundaryBox<NDIM>>& type_1_cf_bdry = d_cf_boundary->getBoundaries(patch->getPatchNumber(),
-                                                                                              /* boundary type */ 1);
-                local_cf_bdry_box_size += type_1_cf_bdry.size();
-            }
-            level_covers_entire_domain = IBTK_MPI::sumReduction(local_cf_bdry_box_size) == 0;
-        }
+        const bool level_covers_entire_domain =
+            IBTK::IndexUtilities::patchLevelCoversEntireDomain(d_level_num, d_level, d_cf_boundary);
 
         if (level_covers_entire_domain)
         {
@@ -240,6 +441,21 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
+    if (d_velocity_field_is_local)
+    {
+        int ierr = ISDestroy(&d_velocity_field_is_local);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (d_pressure_is_local)
+    {
+        int ierr = ISDestroy(&d_pressure_is_local);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (d_velocity_field_ao)
+    {
+        int ierr = AODestroy(&d_velocity_field_ao);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // deallocateSolverStateSpecialized
 
@@ -317,6 +533,20 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     copyToPETScVec(petsc_b, b);
     return;
 } // setupKSPVecs
+
+void
+StaggeredStokesPETScLevelSolver::setOperatorMat(Mat operator_mat)
+{
+    d_operator_mat = operator_mat;
+    return;
+} // setOperatorMat
+
+void
+StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_mat)
+{
+    d_augmented_operator_mat = augmented_operator_mat;
+    return;
+} // setAugmentedOperatorMat
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

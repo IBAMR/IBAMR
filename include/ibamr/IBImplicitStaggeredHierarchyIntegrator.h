@@ -96,7 +96,7 @@ public:
      * unregisters the integrator object with the restart manager when the
      * object is so registered.
      */
-    ~IBImplicitStaggeredHierarchyIntegrator() = default;
+    ~IBImplicitStaggeredHierarchyIntegrator() override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -281,6 +281,11 @@ private:
     void integrateHierarchy_velocity(double current_time, double new_time, int cycle_num);
 
     /*!
+     * Setup and allocate Eulerian solver vectors used in implicit solves.
+     */
+    void setupSolverVectors(double current_time, int coarsest_ln, int finest_ln);
+
+    /*!
      * Static function for implicit formulation.
      */
     static PetscErrorCode IBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx);
@@ -358,10 +363,13 @@ private:
 
     // Solvers and associated vectors.
     bool d_solve_for_position = false;
+    // Accepted values are PIECEWISE_LINEAR, BSPLINE_3..6, COMPOSITE_BSPLINE_32/43/54/65, and IB_3/4/5/6.
     std::string d_jac_delta_fcn = "IB_4";
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_eul_sol_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_eul_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_u_scratch_vec, d_f_scratch_vec;
     Vec d_X_current;
 };

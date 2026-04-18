@@ -31,6 +31,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_enums.h>
@@ -98,28 +99,77 @@ namespace
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
-// IB-4 interpolation function.
-static void
-ib_4_interp_fcn(const double r, double* const w)
+struct JacobianKernelSpec
 {
-    const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-    w[0] = 0.125 * (5.0 - 2.0 * r - q);
-    w[1] = 0.125 * (5.0 - 2.0 * r + q);
-    w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-    w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-    return;
-} // ib_4_interp_fcn
-static const int ib_4_interp_stencil = 4;
+    void (*component_interp_fcn)(double r_lower, double* w) = nullptr;
+    int component_interp_stencil = -1;
+    void (*transverse_interp_fcn)(double r_lower, double* w) = nullptr;
+    int transverse_interp_stencil = -1;
+};
 
-// Piecewise linear interpolation function
-static void
-pwl_interp_fcn(const double r, double* const w)
+JacobianKernelSpec
+get_jacobian_kernel_spec(const DeltaFunctionType delta_fcn_type)
 {
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return;
-} // pwl_interp_fcn
-static const int pwl_interp_stencil = 2;
+    using PMU = IBTK::PETScMatUtilities;
+    switch (delta_fcn_type)
+    {
+    case PIECEWISE_LINEAR:
+        return { PMU::piecewise_linear_delta_fcn,
+                 PMU::piecewise_linear_delta_stencil,
+                 PMU::piecewise_linear_delta_fcn,
+                 PMU::piecewise_linear_delta_stencil };
+    case BSPLINE_3:
+        return { PMU::bspline_3_delta_fcn,
+                 PMU::bspline_3_delta_stencil,
+                 PMU::bspline_3_delta_fcn,
+                 PMU::bspline_3_delta_stencil };
+    case BSPLINE_4:
+        return { PMU::bspline_4_delta_fcn,
+                 PMU::bspline_4_delta_stencil,
+                 PMU::bspline_4_delta_fcn,
+                 PMU::bspline_4_delta_stencil };
+    case BSPLINE_5:
+        return { PMU::bspline_5_delta_fcn,
+                 PMU::bspline_5_delta_stencil,
+                 PMU::bspline_5_delta_fcn,
+                 PMU::bspline_5_delta_stencil };
+    case BSPLINE_6:
+        return { PMU::bspline_6_delta_fcn,
+                 PMU::bspline_6_delta_stencil,
+                 PMU::bspline_6_delta_fcn,
+                 PMU::bspline_6_delta_stencil };
+    case COMPOSITE_BSPLINE_32:
+        return { PMU::bspline_3_delta_fcn,
+                 PMU::bspline_3_delta_stencil,
+                 PMU::piecewise_linear_delta_fcn,
+                 PMU::piecewise_linear_delta_stencil };
+    case COMPOSITE_BSPLINE_43:
+        return { PMU::bspline_4_delta_fcn,
+                 PMU::bspline_4_delta_stencil,
+                 PMU::bspline_3_delta_fcn,
+                 PMU::bspline_3_delta_stencil };
+    case COMPOSITE_BSPLINE_54:
+        return { PMU::bspline_5_delta_fcn,
+                 PMU::bspline_5_delta_stencil,
+                 PMU::bspline_4_delta_fcn,
+                 PMU::bspline_4_delta_stencil };
+    case COMPOSITE_BSPLINE_65:
+        return { PMU::bspline_6_delta_fcn,
+                 PMU::bspline_6_delta_stencil,
+                 PMU::bspline_5_delta_fcn,
+                 PMU::bspline_5_delta_stencil };
+    case IB_3:
+        return { PMU::ib_3_delta_fcn, PMU::ib_3_delta_stencil, PMU::ib_3_delta_fcn, PMU::ib_3_delta_stencil };
+    case IB_4:
+        return { PMU::ib_4_delta_fcn, PMU::ib_4_delta_stencil, PMU::ib_4_delta_fcn, PMU::ib_4_delta_stencil };
+    case IB_5:
+        return { PMU::ib_5_delta_fcn, PMU::ib_5_delta_stencil, PMU::ib_5_delta_fcn, PMU::ib_5_delta_stencil };
+    case IB_6:
+        return { PMU::ib_6_delta_fcn, PMU::ib_6_delta_stencil, PMU::ib_6_delta_fcn, PMU::ib_6_delta_stencil };
+    default:
+        return {};
+    }
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -160,7 +210,11 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     if (!d_solve_for_position)
     {
-        Pointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
+        Pointer<Database> stokes_ib_pc_db = nullptr;
+        if (input_db && input_db->isDatabase("stokes_ib_precond_db"))
+        {
+            stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
+        }
         d_stokes_solver = new IBImplicitStaggeredStokesSolver(object_name, stokes_ib_pc_db);
         ins_hier_integrator->setStokesSolver(d_stokes_solver);
     }
@@ -170,6 +224,14 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     if (from_restart) getFromRestart();
     return;
 } // IBImplicitStaggeredHierarchyIntegrator
+
+IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator()
+{
+    if (d_eul_rhs_vec) free_vector_components(*d_eul_rhs_vec);
+    if (d_u_scratch_vec) free_vector_components(*d_u_scratch_vec);
+    if (d_f_scratch_vec) free_vector_components(*d_f_scratch_vec);
+    return;
+} // ~IBImplicitStaggeredHierarchyIntegrator
 
 void
 IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
@@ -203,21 +265,17 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data, new_time);
         if (!d_solve_for_position && ln == finest_ln)
         {
-            level->allocatePatchData(d_u_dof_index_idx, current_time);
-            level->allocatePatchData(d_p_dof_index_idx, current_time);
+            if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx, current_time);
+            if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx, current_time);
             StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
                 d_num_dofs_per_proc[ln], d_u_dof_index_idx, d_p_dof_index_idx, level);
         }
     }
 
-    // Initialize IB data.
-    d_ib_implicit_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
+    // Setup and allocate solver vectors.
+    setupSolverVectors(current_time, coarsest_ln, finest_ln);
 
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
@@ -252,6 +310,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const doub
     {
         integrateHierarchy_velocity(current_time, new_time, cycle_num);
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
@@ -283,14 +344,15 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
         if (!d_solve_for_position && ln == finest_ln)
         {
-            level->deallocatePatchData(d_u_dof_index_idx);
-            level->deallocatePatchData(d_p_dof_index_idx);
+            if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
+            if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
         }
     }
+    if (d_eul_rhs_vec) d_eul_rhs_vec->deallocateVectorData();
+    if (d_u_scratch_vec) d_u_scratch_vec->deallocateVectorData();
+    if (d_f_scratch_vec) d_f_scratch_vec->deallocateVectorData();
 
     // ... and postprocess ourself.
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -371,46 +433,18 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
                                                                     const double new_time,
                                                                     const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
     int n_local;
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
-
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-
-    Pointer<Variable<NDIM>> u_var = ins_hier_integrator->getVelocityVariable();
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
-
-    Pointer<Variable<NDIM>> p_var = ins_hier_integrator->getPressureVariable();
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
-
     // Skip all cycles in the INS solver --- we advance the state data here.
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
-    // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<NDIM, double>> eul_sol_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
-    eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
-
-    Pointer<SAMRAIVectorReal<NDIM, double>> eul_rhs_vec =
-        eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
-    eul_rhs_vec->allocateVectorData(current_time);
-
-    d_u_scratch_vec = eul_sol_vec->cloneVector(d_object_name + "::u_scratch_vec");
-    d_f_scratch_vec = eul_rhs_vec->cloneVector(d_object_name + "::f_scratch_vec");
-    d_u_scratch_vec->allocateVectorData(current_time);
-    d_f_scratch_vec->allocateVectorData(current_time);
+    Pointer<SAMRAIVectorReal<NDIM, double>> eul_sol_vec = d_eul_sol_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> eul_rhs_vec = d_eul_rhs_vec;
+    TBOX_ASSERT(eul_sol_vec && eul_rhs_vec && d_u_scratch_vec && d_f_scratch_vec);
 
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
@@ -534,16 +568,11 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     IBTK_CHKERRQ(ierr);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_sol_petsc_vec);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_rhs_petsc_vec);
-    free_vector_components(*eul_rhs_vec);
-    free_vector_components(*d_u_scratch_vec);
-    free_vector_components(*d_f_scratch_vec);
     ierr = VecDestroy(&lag_sol_petsc_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&lag_rhs_petsc_vec);
     IBTK_CHKERRQ(ierr);
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy_position
 
@@ -552,47 +581,27 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
                                                                     const double new_time,
                                                                     const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
     int n_local;
 
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double half_time = current_time + 0.5 * (new_time - current_time);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
-    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
-
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
     Pointer<Variable<NDIM>> u_var = ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
-
-    Pointer<Variable<NDIM>> p_var = ins_hier_integrator->getPressureVariable();
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
 
     // Skip all cycles in the INS solver --- we advance the state data here.
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
-    // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<NDIM, double>> eul_sol_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
-    eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
-
-    Pointer<SAMRAIVectorReal<NDIM, double>> eul_rhs_vec =
-        eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
-    eul_rhs_vec->allocateVectorData(current_time);
-
-    d_f_scratch_vec = eul_rhs_vec->cloneVector(d_object_name + "::f_scratch_vec");
-    d_f_scratch_vec->allocateVectorData(current_time);
+    Pointer<SAMRAIVectorReal<NDIM, double>> eul_sol_vec = d_eul_sol_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> eul_rhs_vec = d_eul_rhs_vec;
+    TBOX_ASSERT(eul_sol_vec && eul_rhs_vec && d_f_scratch_vec);
 
     // Compute convective and previous time-step diffusive terms in the rhs vec.
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
@@ -630,29 +639,27 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = nullptr;
-    if (d_jac_delta_fcn == "IB_4")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             ib_4_interp_fcn,
-                                             ib_4_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             pwl_interp_fcn,
-                                             pwl_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else
+    const DeltaFunctionType delta_fcn_type = string_to_enum<DeltaFunctionType>(d_jac_delta_fcn);
+    const JacobianKernelSpec kernel_spec = get_jacobian_kernel_spec(delta_fcn_type);
+    if (!kernel_spec.component_interp_fcn || !kernel_spec.transverse_interp_fcn ||
+        kernel_spec.component_interp_stencil <= 0 || kernel_spec.transverse_interp_stencil <= 0)
     {
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
-                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
+                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian.\n"
+                   << " Parsed value: " << enum_to_string<DeltaFunctionType>(delta_fcn_type) << ".\n"
+                   << " Supported values are: PIECEWISE_LINEAR, BSPLINE_3, BSPLINE_4, BSPLINE_5, "
+                      "BSPLINE_6, COMPOSITE_BSPLINE_32, COMPOSITE_BSPLINE_43, COMPOSITE_BSPLINE_54, "
+                      "COMPOSITE_BSPLINE_65, IB_3, IB_4, IB_5, IB_6."
+                   << std::endl);
     }
+    d_ib_implicit_ops->constructInterpOp(interp_op,
+                                         kernel_spec.component_interp_fcn,
+                                         kernel_spec.component_interp_stencil,
+                                         kernel_spec.transverse_interp_fcn,
+                                         kernel_spec.transverse_interp_stencil,
+                                         d_num_dofs_per_proc[finest_ln],
+                                         d_u_dof_index_idx,
+                                         data_time);
     stokes_fac_op->setIBInterpOp(interp_op);
     stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
 
@@ -781,9 +788,6 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     PETScSAMRAIVectorReal::destroyPETScVector(eul_res_petsc_vec);
 
     // Deallocate Eulerian components.
-    free_vector_components(*eul_rhs_vec);
-    free_vector_components(*d_f_scratch_vec);
-
     // Deallocate solvers and operators.
     p_stokes_solver->deallocateSolverState();
     d_stokes_op->deallocateOperatorState();
@@ -794,10 +798,51 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ierr = MatDestroy(&interp_op);
     IBTK_CHKERRQ(ierr);
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy_velocity
+
+void
+IBImplicitStaggeredHierarchyIntegrator::setupSolverVectors(const double current_time,
+                                                           const int coarsest_ln,
+                                                           const int finest_ln)
+{
+    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
+    TBOX_ASSERT(ins_hier_integrator);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+    Pointer<Variable<NDIM>> u_var = ins_hier_integrator->getVelocityVariable();
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
+    Pointer<Variable<NDIM>> p_var = ins_hier_integrator->getPressureVariable();
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
+
+    const bool reset_solver_vecs = !d_eul_sol_vec || !d_eul_rhs_vec ||
+                                   d_eul_sol_vec->getCoarsestLevelNumber() != coarsest_ln ||
+                                   d_eul_sol_vec->getFinestLevelNumber() != finest_ln ||
+                                   d_eul_sol_vec->getComponentDescriptorIndex(0) != u_scratch_idx ||
+                                   d_eul_sol_vec->getComponentDescriptorIndex(1) != p_scratch_idx;
+    if (reset_solver_vecs)
+    {
+        if (d_eul_rhs_vec) free_vector_components(*d_eul_rhs_vec);
+        if (d_u_scratch_vec) free_vector_components(*d_u_scratch_vec);
+        if (d_f_scratch_vec) free_vector_components(*d_f_scratch_vec);
+
+        d_eul_sol_vec = new SAMRAIVectorReal<NDIM, double>(
+            d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+        d_eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
+        d_eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
+
+        d_eul_rhs_vec = d_eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
+        d_u_scratch_vec = d_eul_sol_vec->cloneVector(d_object_name + "::u_scratch_vec");
+        d_f_scratch_vec = d_eul_rhs_vec->cloneVector(d_object_name + "::f_scratch_vec");
+    }
+
+    d_eul_rhs_vec->allocateVectorData(current_time);
+    d_u_scratch_vec->allocateVectorData(current_time);
+    d_f_scratch_vec->allocateVectorData(current_time);
+    return;
+}
 
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx)
