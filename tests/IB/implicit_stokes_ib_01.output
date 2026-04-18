@@ -1,0 +1,251 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+Input database:
+input_db {
+   MU                  = 1                                  // input used
+   RHO                 = 0                                  // input used
+   MAX_LEVELS          = 1                                  // input used
+   REF_RATIO           = 2                                  // input used
+   N                   = 8                                  // input used
+   L                   = 1                                  // input used
+   DELTA_FUNCTION      = "IB_4"                             // input used
+   START_TIME          = 0                                  // input used
+   END_TIME            = 0.01                               // input used
+   GROW_DT             = 2                                  // input used
+   NUM_CYCLES          = 1                                  // input used
+   CREEPING_FLOW       = TRUE                               // input used
+   IB_TIME_STEPPING    = "BACKWARD_EULER"                   // input used
+   CONVECTIVE_TS_TYPE  = "FORWARD_EULER"                    // input used
+   CONVECTIVE_OP_TYPE  = "CENTERED"                         // input used
+   CONVECTIVE_FORM     = "CONSERVATIVE"                     // input used
+   NORMALIZE_PRESSURE  = TRUE                               // input used
+   CFL_MAX             = 0.3                                // input used
+   DT                  = 0.005                              // input used
+   ERROR_ON_DT_CHANGE  = TRUE                               // input used
+   VORTICITY_TAGGING   = FALSE                              // input used
+   TAG_BUFFER          = 2                                  // input used
+   REGRID_CFL_INTERVAL = 0.5                                // input used
+   OUTPUT_U            = FALSE                              // input used
+   OUTPUT_P            = FALSE                              // input used
+   OUTPUT_F            = FALSE                              // input used
+   OUTPUT_OMEGA        = FALSE                              // input used
+   OUTPUT_DIV_U        = FALSE                              // input used
+   ENABLE_LOGGING      = TRUE                               // input used
+   RR                  = 2                                  // input used
+   VelocityBcCoefs_0 {
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "0.0"                              // input used
+      gcoef_function_1 = "0.0"                              // input used
+      gcoef_function_2 = "0.0"                              // input used
+      gcoef_function_3 = "0.5 - 0.5*cos(2.0*pi*X0)"         // input used
+   }
+   VelocityBcCoefs_1 {
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "0.0"                              // input used
+      gcoef_function_1 = "0.0"                              // input used
+      gcoef_function_2 = "0.0"                              // input used
+      gcoef_function_3 = "0.0"                              // input used
+   }
+   ForcingFunction {
+      function_0 = "sin(2.0*pi*X1)"                         // input used
+      function_1 = "0.0"                                    // input used
+   }
+   VelocityInitialConditions {
+      function_0 = "sin(2.0*pi*X1)"                         // input used
+      function_1 = "0.0"                                    // input used
+   }
+   IBHierarchyIntegrator {
+      start_time              = 0                           // input used
+      end_time                = 0.01                        // input used
+      grow_dt                 = 2                           // input used
+      num_cycles              = 1                           // input used
+      regrid_cfl_interval     = 0.5                         // input used
+      dt_max                  = 0.005                       // input used
+      error_on_dt_change      = TRUE                        // input used
+      tag_buffer              = 2                           // input used
+      enable_logging          = TRUE                        // input used
+      max_integrator_steps    = 2                           // input used
+      eliminate_eulerian_vars = FALSE                       // input used
+      jacobian_delta_fcn      = "IB_4"                      // input used
+      stokes_ib_precond_db {
+         num_pre_sweeps                 = 1                 // input used
+         num_post_sweeps                = 1                 // input used
+         rediscretize_stokes            = TRUE              // input used
+         res_rediscretized_stokes       = TRUE              // input used
+         level_solver_type              = "PETSC_LEVEL_SOLVER" // input used
+         level_solver_rel_residual_tol  = 1e-12             // input used
+         level_solver_abs_residual_tol  = 1e-50             // input used
+         level_solver_max_iterations    = 1                 // input used
+         coarse_solver_type             = "PETSC_LEVEL_SOLVER" // input used
+         coarse_solver_rel_residual_tol = 1e-12             // input used
+         coarse_solver_abs_residual_tol = 1e-50             // input used
+         coarse_solver_max_iterations   = 1                 // input used
+         level_solver_db {
+            use_ksp_as_smoother    = TRUE                   // input not used
+            initial_guess_nonzero  = TRUE                   // input not used
+            ksp_type               = "richardson"           // input not used
+            pc_type                = "fieldsplit"           // input not used
+            shell_pc_type          = "multiplicative"       // input not used
+            subdomain_box_size     = 8, 8                   // input not used
+            subdomain_overlap_size = 0, 0                   // input not used
+         }
+         coarse_solver_db {
+            use_ksp_as_smoother    = FALSE                  // input not used
+            initial_guess_nonzero  = TRUE                   // input not used
+            ksp_type               = "preonly"              // input not used
+            pc_type                = "lu"                   // input not used
+            subdomain_box_size     = 8, 8                   // input not used
+            subdomain_overlap_size = 0, 0                   // input not used
+         }
+      }
+   }
+   IBMethod {
+      delta_fcn      = "IB_4"                               // input used
+      enable_logging = TRUE                                 // input used
+   }
+   IBRedundantInitializer {
+      max_levels       = 1                                  // input used
+      base_filenames_0 = "x"                                // input used
+   }
+   INSStaggeredHierarchyIntegrator {
+      mu                            = 1                     // input used
+      rho                           = 0                     // input used
+      start_time                    = 0                     // input used
+      end_time                      = 0.01                  // input used
+      grow_dt                       = 2                     // input used
+      creeping_flow                 = TRUE                  // input used
+      viscous_time_stepping_type    = "BACKWARD_EULER"      // input used
+      convective_time_stepping_type = "FORWARD_EULER"       // input used
+      convective_op_type            = "CENTERED"            // input used
+      convective_difference_form    = "CONSERVATIVE"        // input used
+      normalize_pressure            = TRUE                  // input used
+      cfl                           = 0.3                   // input used
+      dt_max                        = 0.005                 // input used
+      using_vorticity_tagging       = FALSE                 // input used
+      vorticity_abs_thresh          = 0.25, 0.5, 1, 2       // input used
+      tag_buffer                    = 2                     // input used
+      output_U                      = FALSE                 // input used
+      output_P                      = FALSE                 // input used
+      output_F                      = FALSE                 // input used
+      output_Omega                  = FALSE                 // input used
+      output_Div_U                  = FALSE                 // input used
+      enable_logging                = TRUE                  // input used
+      U_P_bdry_interp_type          = "LINEAR"              // from default
+   }
+   Main {
+      log_file_name         = "output"                      // input used
+      log_all_nodes         = FALSE                         // input used
+      viz_dump_interval     = 0                             // input used
+      viz_dump_dirname      = "viz_IB2d"                    // input used
+      restart_dump_interval = 0                             // input used
+      restart_dump_dirname  = "restart_IB2d"                // input used
+      data_dump_interval    = 0                             // input used
+      data_dump_dirname     = "hier_data_IB2d"              // input used
+      timer_dump_interval   = 0                             // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(7,7)]                    // input used
+      x_lo               = -0.01, -0.02                     // input used
+      x_up               = 0.99, 0.98                       // input used
+      periodic_dimension = 0, 0                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 1                         // input used
+      efficiency_tolerance      = 0.85                      // input used
+      combine_efficiency        = 0.85                      // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input not used
+         level_2 = 2, 2                                     // input not used
+         level_3 = 2, 2                                     // input not used
+      }
+      largest_patch_size {
+         level_0 = 512, 512                                 // input used
+      }
+      smallest_patch_size {
+         level_0 = 8, 8                                     // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "GRADIENT_DETECTOR"                  // input used
+   }
+   LoadBalancer {
+      processor_mapping                    = "SFC"          // input not used
+      max_workload_factor                  = 1              // input used
+      workload_patch_data_index            = -1             // input not used
+      workload_tolerance                   = 0              // input used
+      bin_pack_method                      = "SPATIAL"      // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+Advancing hierarchy by timestep size 0
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.005], dt = 0.005
+IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
+IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid
+Spreading being done from IBHierarchyIntegrator::IBFunction_velocity().
+IBHierarchyIntegrator::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid
+Spreading being done from IBHierarchyIntegrator::IBJacobianApply_velocity().
+IBHierarchyIntegrator::integrateHierarchy_velocity(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0385823
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0385823
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.005
+Advancing hierarchy by timestep size 0.005
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.005,0.01], dt = 0.005
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid
+Spreading being done from IBHierarchyIntegrator::IBFunction_velocity().
+IBHierarchyIntegrator::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid
+Spreading being done from IBHierarchyIntegrator::IBJacobianApply_velocity().
+IBHierarchyIntegrator::integrateHierarchy_velocity(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0385823
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0771646
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 1
+Simulation time is 0.01
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+final_velocity_l2_norm = 0.661438
+final_pressure_l2_norm = 0

@@ -696,8 +696,8 @@ main(int argc, char* argv[])
         // Get the matrix representation of J at the finest level
         Mat J = nullptr;
         ib_method_ops->constructInterpOp(J,
-                                         PETScMatUtilities::ib_4_interp_fcn,
-                                         PETScMatUtilities::ib_4_interp_stencil,
+                                         PETScMatUtilities::ib_4_delta_fcn,
+                                         PETScMatUtilities::ib_4_delta_stencil,
                                          num_dofs_per_proc[finest_ln],
                                          u_dof_index_idx,
                                          new_time);
