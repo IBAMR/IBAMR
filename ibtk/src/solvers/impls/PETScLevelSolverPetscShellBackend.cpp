@@ -102,10 +102,8 @@ PETScLevelSolverPetscShellBackend::initialize()
     d_data = std::make_unique<Data>();
     auto& petsc = *d_data;
     const int n_local_subdomains = static_cast<int>(d_context.getSubdomainDOFsForBackend().size());
-    const bool use_restrict_partition =
-        d_context.useRestrictPartitionForBackend();
-    const bool use_multiplicative =
-        d_context.isShellMultiplicativeForBackend();
+    const bool use_restrict_partition = d_context.useRestrictPartitionForBackend();
+    const bool use_multiplicative = d_context.isShellMultiplicativeForBackend();
     int ierr;
     if (use_multiplicative)
     {
@@ -154,7 +152,8 @@ PETScLevelSolverPetscShellBackend::initialize()
             overlap_indices[overlap_local_idx] = overlap_local_idx;
         }
 
-        const auto& nonoverlap_dofs = d_context.getNonoverlapSubdomainDOFsForBackend()[static_cast<std::size_t>(subdomain_num)];
+        const auto& nonoverlap_dofs =
+            d_context.getNonoverlapSubdomainDOFsForBackend()[static_cast<std::size_t>(subdomain_num)];
         const int nonoverlap_is_size = static_cast<int>(nonoverlap_dofs.size());
 #if !defined(NDEBUG)
         for (const int dof : nonoverlap_dofs)

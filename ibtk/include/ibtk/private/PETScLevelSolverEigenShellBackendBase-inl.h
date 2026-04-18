@@ -87,8 +87,10 @@ inline void
 PETScLevelSolverEigenShellBackendBase::dispatchEigenSolverType(const EigenSubdomainSolverType solver_type,
                                                                Handler&& handler) const
 {
-    PETScLevelSolverEigenShell::dispatchSubdomainSolverType(
-        d_context.getObjectNameForBackend(), d_context.getOptionsPrefixForBackend(), solver_type, std::forward<Handler>(handler));
+    PETScLevelSolverEigenShell::dispatchSubdomainSolverType(d_context.getObjectNameForBackend(),
+                                                            d_context.getOptionsPrefixForBackend(),
+                                                            solver_type,
+                                                            std::forward<Handler>(handler));
 }
 
 inline PETScLevelSolverEigenShellBackendBase::EigenSubdomainSolverType

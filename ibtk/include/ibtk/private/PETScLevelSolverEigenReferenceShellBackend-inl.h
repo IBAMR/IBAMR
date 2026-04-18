@@ -42,8 +42,7 @@ PETScLevelSolverEigenReferenceShellBackend::initializeSolveStorage()
     storage->solvers.resize(d_context.getSubdomainDOFsForBackend().size());
     d_solve_storage = std::move(storage);
     initializeCommonDataWithLocalOperatorHook(
-        [this](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num)
-        {
+        [this](const Eigen::MatrixXd& local_operator, const std::size_t subdomain_num) {
             initializeEigenSolver(
                 getSolveStorage<SolverType>().solvers[subdomain_num], local_operator, getSolverThreshold());
         });

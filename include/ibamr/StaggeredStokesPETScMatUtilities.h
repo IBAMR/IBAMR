@@ -160,14 +160,18 @@ public:
     /*!
      * \brief Compute the ordered seed velocity DOFs used by coupling-aware ASM.
      */
-    static void
-    computePatchLevelCouplingAwareASMSeedVelocityDofs(
+    static void computePatchLevelCouplingAwareASMSeedVelocityDofs(
         std::vector<int>& seed_velocity_dofs,
         int u_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
         const PatchLevelCellClosureMapData& map_data,
         int seed_velocity_axis = 0,
-        int seed_velocity_stride = 1);
+        int seed_velocity_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J);
+#else
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J_K);
+#endif
 
     /*!
      * \brief Determine involved cells from A00 row sparsity and seed velocity
@@ -200,6 +204,11 @@ public:
         const PatchLevelCellClosureMapData& map_data,
         int seed_velocity_axis = 0,
         int seed_velocity_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J,
+#else
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J_K,
+#endif
         CouplingAwareASMClosurePolicy closure_policy = CouplingAwareASMClosurePolicy::RELAXED,
         double relative_numerical_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL);
 

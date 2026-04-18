@@ -16,7 +16,7 @@ Y_CENTER = 0.5
 X_RADIUS = 0.2
 Y_RADIUS = 0.2
 DS = DX
-SPRING_STIFFNESS = 1.0e2 * DS / (DS^2)
+K = 1.0e2
 
 DELTA_FUNCTION = "IB_4"
 IB_TIME_STEPPING_TYPE = "BACKWARD_EULER"
@@ -52,6 +52,7 @@ stokes_ib_precond_db {
     coupling_aware_asm_closure_policy = "RELAXED"
     coupling_aware_asm_seed_axis = 0
     coupling_aware_asm_seed_stride = 1
+    coupling_aware_asm_seed_traversal_order = "I_J"
   }
 
   coarse_solver_type = "PETSC_LEVEL_SOLVER"
@@ -65,6 +66,14 @@ stokes_ib_precond_db {
     subdomain_box_size = N, N
     subdomain_overlap_size = 0, 0
   }
+}
+
+parity_audit_db {
+  enabled = FALSE
+  output_dir = "/tmp/ibamr_cav_live_parity"
+  case_id = "ex0_reference_case"
+  closure_policy = "RELAXED"
+  export_preconditioned_operator = TRUE
 }
 
 IBMethod {

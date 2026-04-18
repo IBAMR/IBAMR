@@ -1,0 +1,127 @@
+MU = 1.0e-2
+RHO = 1.0
+MAX_LEVELS = 3
+REF_RATIO = 2
+N = 8
+L = 1.0
+DT = 0.005
+X_CENTER = 0.5
+Y_CENTER = 0.5
+X_RADIUS = 0.23
+Y_RADIUS = 0.2717391304347826087
+IB_TIME_STEPPING = "BACKWARD_EULER"
+TAG_BUFFER = 2
+USE_FIXED_LE_OPERATORS = TRUE
+K = 1.0e6
+stokes_ib_precond_db {
+   has_pressure_nullspace = TRUE
+   num_pre_sweeps = 1
+   num_post_sweeps = 1
+   rediscretize_stokes = TRUE
+   res_rediscretized_stokes = TRUE
+
+   level_solver_type = "PETSC_LEVEL_SOLVER"
+   level_solver_rel_residual_tol = 1.0e-10
+   level_solver_abs_residual_tol = 1.0e-50
+   level_solver_max_iterations = 1
+   level_solver_db {
+      initial_guess_nonzero = TRUE
+      ksp_type = "richardson"
+      pc_type = "shell"
+      shell_pc_type = "multiplicative-eigen-pseudoinverse"
+      asm_subdomain_construction_mode = "COUPLING_AWARE"
+      coupling_aware_asm_closure_policy = "RELAXED"
+      coupling_aware_asm_seed_axis = 0
+      coupling_aware_asm_seed_stride = 1
+   }
+
+   coarse_solver_type = "PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-10
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      initial_guess_nonzero = TRUE
+      ksp_type = "preonly"
+      pc_type = "svd"
+   }
+}
+IBMethod {
+   delta_fcn = "IB_4"
+}
+IBRedundantInitializer {
+   max_levels = MAX_LEVELS
+   base_filenames_0 = "x"
+   base_filenames_1 = "x"
+   base_filenames_2 = "x"
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_dump_interval = 0
+   viz_dump_dirname = "viz"
+   restart_dump_interval = 0
+   restart_dump_dirname = "restart"
+   data_dump_interval = 0
+   data_dump_dirname = "hier_data"
+   timer_dump_interval = 0
+}
+CartesianGeometry {
+   domain_boxes = [ (0, 0), (N - 1, N - 1) ]
+   x_lo = 0.0, 0.0
+   x_up = L, L
+   periodic_dimension = 1, 1
+}
+RR = REF_RATIO
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = RR, RR
+      level_2 = RR, RR
+      level_3 = RR, RR
+      level_4 = RR, RR
+      level_5 = RR, RR
+      level_6 = RR, RR
+      level_7 = RR, RR
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = N*RR, N*RR
+      level_2 = N*RR^2, N*RR^2
+      level_3 = N*RR^3, N*RR^3
+      level_4 = N*RR^4, N*RR^4
+      level_5 = N*RR^5, N*RR^5
+      level_6 = N*RR^6, N*RR^6
+      level_7 = N*RR^7, N*RR^7
+   }
+   smallest_patch_size {
+      level_0 = N, N
+      level_1 = N*RR, N*RR
+      level_2 = N*RR^2, N*RR^2
+      level_3 = N*RR^3, N*RR^3
+      level_4 = N*RR^4, N*RR^4
+      level_5 = N*RR^5, N*RR^5
+      level_6 = N*RR^6, N*RR^6
+      level_7 = N*RR^7, N*RR^7
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency = 0.85
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N - 1)]
+      level_1 = [(0, 0), (N*RR - 1, N*RR - 1)]
+      level_2 = [(0, 0), (N*RR^2 - 1, N*RR^2 - 1)]
+      level_3 = [(0, 0), (N*RR^3 - 1, N*RR^3 - 1)]
+      level_4 = [(0, 0), (N*RR^4 - 1, N*RR^4 - 1)]
+      level_5 = [(0, 0), (N*RR^5 - 1, N*RR^5 - 1)]
+      level_6 = [(0, 0), (N*RR^6 - 1, N*RR^6 - 1)]
+   }
+}
+LoadBalancer {
+   processor_mapping = "SFC"
+   max_workload_factor = 1.0
+   workload_patch_data_index = -1
+   workload_tolerance = 0.0
+   bin_pack_method = "SPATIAL"
+}
