@@ -11,6 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
+/*
+ * This test exercises the implicit Stokes-IB time integrator end to end on a
+ * simple periodic 2D problem. The reported final velocity and pressure norms
+ * verify that the implicit solve path is active and produces nontrivial state
+ * updates over a full timestep advance.
+ */
+
 // Config files
 
 #include <SAMRAI_config.h>
