@@ -97,6 +97,12 @@ public:
                                             const SAMRAI::hier::Index<NDIM>& ratio);
 
     /*!
+     * \return The periodic wrapping of \p idx into the inclusive range
+     * [\p domain_lower, \p domain_upper].
+     */
+    static int wrapPeriodicIndex(int idx, int domain_lower, int domain_upper);
+
+    /*!
      * \return The cell index corresponding to location \p X relative
      * to \p x_lower and \p x_upper for the specified Cartesian grid
      * spacings \p dx and box extents \p ilower and \p iupper.
