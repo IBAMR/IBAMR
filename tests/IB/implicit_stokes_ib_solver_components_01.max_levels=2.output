@@ -1,11 +1,11 @@
 IBRedundantInitializer:  Deallocating initialization data.
-Warning in file ``/Users/boyceg/code/IBAMR/ibtk/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 136
+Warning in file ``/tmp/ibamr-branch2/ibtk/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 136
 WARNING MESSAGE: 
 CartSideDoubleCubicCoarsen::coarsen():
   cubic coarsening requires a refinement ratio of 4 or larger.
   reverting to weighted averaging.
 
-Warning in file ``/Users/boyceg/code/IBAMR/ibtk/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 128
+Warning in file ``/tmp/ibamr-branch2/ibtk/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 128
 WARNING MESSAGE: 
 CartCellDoubleCubicCoarsen::coarsen():
   cubic coarsening requires a refinement ratio of 4 or larger.
@@ -15,7 +15,7 @@ fd_relative_error = 4.29249e-09
 saj_cell_scaled_relative_error = 0
 saj_theta_scaled_relative_error = 0.371681
 krylov_linear_iterations = 1
-krylov_linear_residual_norm = 1.48474e-07
+krylov_linear_residual_norm = 1.0739e-07
 Input database:
 input_db {
    MU                     = 0.01                            // input used
