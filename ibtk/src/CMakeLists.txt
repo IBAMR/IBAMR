@@ -22,6 +22,7 @@ SET(FORTRAN_SRC_BASE
   boundary/physical_boundary/fortran/cartphysbdryop
 
   coarsen_ops/fortran/cubiccoarsen
+  coarsen_ops/fortran/cart_cell_coarsen
   coarsen_ops/fortran/rt0coarsen
   lagrangian/fortran/lagrangian_interaction
 
@@ -38,6 +39,7 @@ SET(FORTRAN_SRC_BASE
   math/fortran/vclaplace
 
   refine_ops/fortran/divpreservingrefine
+  refine_ops/fortran/cart_cell_refine
   refine_ops/fortran/cart_side_refine
 
   solvers/impls/fortran/patchsmoothers
@@ -90,6 +92,7 @@ SET(CXX_SRC
 
   # coarsen ops
   coarsen_ops/CartCellDoubleCubicCoarsen.cpp
+  coarsen_ops/CartCellDoubleLinearCoarsen.cpp
   coarsen_ops/CartSideDoubleRT0Coarsen.cpp
   coarsen_ops/CartSideDoubleCubicCoarsen.cpp
 
@@ -122,6 +125,7 @@ SET(CXX_SRC
 
   # refine ops
   refine_ops/CartCellDoubleQuadraticRefine.cpp
+  refine_ops/CartCellDoubleLinearRefine.cpp
   refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
   refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
   refine_ops/CartSideDoubleDivPreservingRefine.cpp
