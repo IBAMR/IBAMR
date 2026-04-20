@@ -1,0 +1,126 @@
+MU = 5.0e-3
+RHO = 1.0
+L = 1.0
+N = 16
+
+PERIOD = 1.0
+WARMUP_PERIODS = 2
+NUM_PERIODS = 8
+NUM_SNAPSHOTS = 16
+TIMESTEPS_PER_SNAPSHOT = 4
+DT_MAX = PERIOD/(TIMESTEPS_PER_SNAPSHOT*NUM_SNAPSHOTS)
+STATISTICS_START_TIME = WARMUP_PERIODS*PERIOD
+STEADY_STATE_THRESHOLD = 3.0e-3
+
+START_TIME = 0.0
+END_TIME = NUM_PERIODS*PERIOD
+
+Main {
+   log_file_name = "turbulence_stats_3d_periodic_node.log"
+   log_all_nodes = FALSE
+   viz_dump_interval = 0
+   viz_dump_dirname = "viz_dump"
+   restart_dump_interval = 0
+   restart_dump_dirname = "restart_dump"
+   timer_dump_interval = 0
+}
+
+PeriodicFlow {
+   period = PERIOD
+   mean_velocity_0 = 0.25
+   mean_velocity_1 = -0.12
+   mean_velocity_2 = 0.08
+   steady_mode_amplitude = 0.10
+   fluctuation_amplitude = 0.08
+   noise_amplitude = 0.02
+   noise_num_modes = 3
+   noise_seed = 31415
+   max_spatial_harmonic = 3
+}
+
+StatisticsDiagnostics {
+   enforce_verification = FALSE
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu = MU
+   rho = RHO
+   start_time = START_TIME
+   end_time = END_TIME
+   dt_init = DT_MAX
+   grow_dt = 1.0
+   num_cycles = 2
+   convective_time_stepping_type = "MIDPOINT_RULE"
+   convective_op_type = "CENTERED"
+   convective_difference_form = "ADVECTIVE"
+   normalize_pressure = TRUE
+   cfl = 1.0
+   dt_max = DT_MAX
+   using_vorticity_tagging = FALSE
+   tag_buffer = 0
+   regrid_interval = 1000000
+   output_U = FALSE
+   output_P = FALSE
+   output_F = FALSE
+   output_Omega = FALSE
+   output_Div_U = FALSE
+   output_EE = FALSE
+   enable_logging = FALSE
+
+   TurbulenceStatistics {
+      statistics_type = "AVERAGED_VELOCITY"
+      statistics_start_time = STATISTICS_START_TIME
+      period_start = 0.0
+      period_end = PERIOD
+      threshold = STEADY_STATE_THRESHOLD
+      num_snapshots = NUM_SNAPSHOTS
+      enable_logging = FALSE
+      output_data = FALSE
+      analysis_centering = "NODE"
+      refine_type = "LINEAR_REFINE"
+   }
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0.0,0.0,0.0
+   x_up = L,L,L
+   periodic_dimension = 1,1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   ratio_to_coarser {
+      level_1 = 4,4,4
+   }
+   largest_patch_size {
+      level_0 = 256,256,256
+   }
+   smallest_patch_size {
+      level_0 = 2,2,2
+   }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+TimerManager {
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBAMR::*::*","IBTK::*::*"
+}

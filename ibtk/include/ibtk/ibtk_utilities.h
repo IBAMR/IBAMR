@@ -25,6 +25,7 @@
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
+#include <ComponentSelector.h>
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
@@ -35,6 +36,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <initializer_list>
 #include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
@@ -140,6 +142,67 @@ get_data_time_str(const double data_time, const double current_time, const doubl
  * collective.
  */
 double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
+
+/*!
+ * \brief Allocate patch data index \p idx on all levels of \p hierarchy if it
+ * is not already allocated.
+ */
+void allocate_patch_data(int idx,
+                         double data_time,
+                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Allocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are not already allocated.
+ */
+template <class IntegerContainer>
+void allocate_patch_data(const IntegerContainer& idxs,
+                         double data_time,
+                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Allocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are not already allocated.
+ */
+void allocate_patch_data(std::initializer_list<int> idxs,
+                         double data_time,
+                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Allocate all indices selected by \p idxs on all levels of
+ * \p hierarchy if they are not already allocated.
+ */
+void allocate_patch_data(const SAMRAI::hier::ComponentSelector& idxs,
+                         double data_time,
+                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Deallocate patch data index \p idx on all levels of \p hierarchy if
+ * it is currently allocated.
+ */
+void deallocate_patch_data(int idx, const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Deallocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are currently allocated.
+ */
+template <class IntegerContainer>
+void deallocate_patch_data(const IntegerContainer& idxs,
+                           const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Deallocate all patch data indices in \p idxs on all levels of
+ * \p hierarchy if they are currently allocated.
+ */
+void deallocate_patch_data(std::initializer_list<int> idxs,
+                           const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+/*!
+ * \brief Deallocate all indices selected by \p idxs on all levels of
+ * \p hierarchy if they are currently allocated.
+ */
+void deallocate_patch_data(const SAMRAI::hier::ComponentSelector& idxs,
+                           const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
 
 template <class T, unsigned N>
 inline std::array<T, N>
@@ -391,6 +454,8 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
 }
 
 } // namespace IBTK
+
+#include <ibtk/private/ibtk_utilities-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 
