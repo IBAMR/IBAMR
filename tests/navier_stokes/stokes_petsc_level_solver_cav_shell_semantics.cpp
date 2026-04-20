@@ -77,12 +77,12 @@ fill_nontrivial_rhs(const Pointer<PatchLevel<NDIM>>& level, const int f_u_idx, c
 }
 
 void
-apply_matlab_cav_sweep(Vec y,
-                       Vec b,
-                       Mat A,
-                       const std::vector<IS>& overlap_subdomains,
-                       const double alpha,
-                       IS pressure_is)
+apply_reference_cav_sweep(Vec y,
+                          Vec b,
+                          Mat A,
+                          const std::vector<IS>& overlap_subdomains,
+                          const double alpha,
+                          IS pressure_is)
 {
     int ierr = VecZeroEntries(y);
     IBTK_CHKERRQ(ierr);
@@ -319,7 +319,7 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         b_petsc, f_u_idx, u_dof_index_idx, f_p_idx, p_dof_index_idx, level);
 
-    apply_matlab_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, alpha, pressure_is);
+    apply_reference_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, alpha, pressure_is);
     const double expected_inf_norm = vec_norm_inf(x_expected);
     if (require_parity && !(expected_inf_norm > 0.0)) ++test_failures;
 

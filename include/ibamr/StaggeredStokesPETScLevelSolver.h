@@ -20,7 +20,9 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
@@ -208,6 +210,20 @@ private:
     IS d_velocity_field_is_local = nullptr;
     IS d_pressure_is_local = nullptr;
     AO d_velocity_field_ao = nullptr;
+    ASMSubdomainConstructionMode d_asm_subdomain_construction_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    int d_coupling_aware_asm_seed_axis = 0;
+    int d_coupling_aware_asm_seed_stride = 1;
+#if (NDIM == 2)
+    CouplingAwareASMSeedTraversalOrder d_coupling_aware_asm_seed_traversal_order =
+        CouplingAwareASMSeedTraversalOrder::I_J;
+#else
+    CouplingAwareASMSeedTraversalOrder d_coupling_aware_asm_seed_traversal_order =
+        CouplingAwareASMSeedTraversalOrder::I_J_K;
+#endif
+    CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
+    bool d_coupling_aware_asm_map_data_is_initialized = false;
+    bool d_log_asm_subdomains = false;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
 
