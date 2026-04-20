@@ -172,8 +172,8 @@ get_ib_operator_time(const TimeSteppingType time_stepping_type, const double cur
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-PoissonSpecifications
-get_velocity_problem_coefs(const std::string& object_name,
+void
+set_velocity_problem_coefs(PoissonSpecifications& U_problem_coefs,
                            const StokesSpecifications& problem_coefs,
                            const TimeSteppingType time_stepping_type,
                            const double dt)
@@ -199,13 +199,12 @@ get_velocity_problem_coefs(const std::string& object_name,
         K2 = 1.0;
         break;
     default:
-        TBOX_ERROR("get_velocity_problem_coefs(): unsupported time stepping type\n");
+        TBOX_ERROR("set_velocity_problem_coefs(): unsupported time stepping type\n");
     }
 
-    PoissonSpecifications U_problem_coefs(object_name);
     U_problem_coefs.setCConstant(K1 * rho / dt + K2 * lambda);
     U_problem_coefs.setDConstant(-K2 * mu);
-    return U_problem_coefs;
+    return;
 }
 
 } // namespace
@@ -607,8 +606,8 @@ IBImplicitStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const do
 
     const StokesSpecifications* stokes_specs = ins_hier_integrator->getStokesSpecifications();
     TBOX_ASSERT(stokes_specs);
-    const PoissonSpecifications U_problem_coefs =
-        get_velocity_problem_coefs(d_object_name + "::U_problem_coefs", *stokes_specs, d_time_stepping_type, dt);
+    PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
+    set_velocity_problem_coefs(U_problem_coefs, *stokes_specs, d_time_stepping_type, dt);
 
     d_ib_implicit_ops->updateFixedLEOperators();
 
