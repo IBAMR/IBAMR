@@ -158,7 +158,7 @@ buildBoxOperator(Mat& A,
         }
     }
 
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, nnz.data(), &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -216,7 +216,7 @@ buildBoxOperator(Mat& A,
 
             static const int m = 1;
             static const int n = U_stencil_sz;
-            ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+            ierr = MatSetValues(A, m, &mat_row, n, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -247,7 +247,7 @@ buildBoxOperator(Mat& A,
 
         static const int m = 1;
         static const int n = P_stencil_sz;
-        ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+        ierr = MatSetValues(A, m, &mat_row, n, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
 

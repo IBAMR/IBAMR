@@ -611,29 +611,28 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         level_solver->setHomogeneousBc(true);
         level_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
-                                            *getLevelSAMRAIVectorReal(*d_rhs, ln));
-        const KSP& level_ksp = level_solver->getPETScKSP();
-        Mat level_mat, level_pc_mat;
-        ierr = KSPGetOperators(level_ksp, &level_mat, &level_pc_mat);
-        IBTK_CHKERRQ(ierr);
-        if (d_rediscretize_stokes || ln == d_finest_ln)
+        Pointer<StaggeredStokesPETScLevelSolver> p_level_solver = level_solver;
+        if (!p_level_solver)
         {
-            ierr = MatAXPY(level_mat, 1.0, d_SAJ_mat[ln], DIFFERENT_NONZERO_PATTERN);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(level_ksp, level_mat, level_mat);
-            IBTK_CHKERRQ(ierr);
+            TBOX_ERROR("StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized():\n"
+                       << "  level solver must be StaggeredStokesPETScLevelSolver to select between Galerkin "
+                          "Stokes+IB operators and SAJ-augmented rediscretized Stokes operators before "
+                          "initializeSolverState().\n");
+        }
+        const bool use_galerkin_level_operator = !d_rediscretize_stokes && ln != d_finest_ln;
+        if (use_galerkin_level_operator)
+        {
+            p_level_solver->setOperatorMat(d_galerkin_stokesib_mat[ln]);
+            p_level_solver->setAugmentedOperatorMat(nullptr);
         }
         else
         {
-            TBOX_ASSERT(!d_rediscretize_stokes);
-            ierr = MatDestroy(&level_mat);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatDestroy(&level_pc_mat);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(level_ksp, d_galerkin_stokesib_mat[ln], d_galerkin_stokesib_mat[ln]);
-            IBTK_CHKERRQ(ierr);
+            p_level_solver->setOperatorMat(nullptr);
+            p_level_solver->setAugmentedOperatorMat(d_SAJ_mat[ln]);
         }
+        level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
+                                            *getLevelSAMRAIVectorReal(*d_rhs, ln));
+        const KSP& level_ksp = level_solver->getPETScKSP();
 
         if (!d_rediscretize_stokes)
         {
@@ -672,38 +671,26 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
-        Pointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
-        if (p_coarse_solver)
+        Pointer<StaggeredStokesPETScLevelSolver> p_coarse_petsc_solver = d_coarse_solver;
+        if (!p_coarse_petsc_solver)
         {
-            const KSP& level_ksp = p_coarse_solver->getPETScKSP();
-            Mat level_mat, level_pc_mat;
-            ierr = KSPGetOperators(level_ksp, &level_mat, &level_pc_mat);
-            IBTK_CHKERRQ(ierr);
-            if (d_rediscretize_stokes)
-            {
-                ierr = MatAXPY(level_mat, 1.0, d_SAJ_mat[d_coarsest_ln], DIFFERENT_NONZERO_PATTERN);
-                IBTK_CHKERRQ(ierr);
-                ierr = KSPSetOperators(level_ksp, level_mat, level_mat);
-                IBTK_CHKERRQ(ierr);
-            }
-            else
-            {
-                TBOX_ASSERT(!d_rediscretize_stokes);
-                ierr = MatDestroy(&level_mat);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatDestroy(&level_pc_mat);
-                IBTK_CHKERRQ(ierr);
-                ierr = KSPSetOperators(
-                    level_ksp, d_galerkin_stokesib_mat[d_coarsest_ln], d_galerkin_stokesib_mat[d_coarsest_ln]);
-                IBTK_CHKERRQ(ierr);
-            }
+            TBOX_ERROR("StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized():\n"
+                       << "  coarse solver must be StaggeredStokesPETScLevelSolver to select between Galerkin "
+                          "Stokes+IB operators and SAJ-augmented rediscretized Stokes operators before "
+                          "initializeSolverState().\n");
+        }
+        if (d_rediscretize_stokes)
+        {
+            p_coarse_petsc_solver->setOperatorMat(nullptr);
+            p_coarse_petsc_solver->setAugmentedOperatorMat(d_SAJ_mat[d_coarsest_ln]);
         }
         else
         {
-            TBOX_ERROR("no mechanism for specifying IB part of Stokes-IB operator!");
+            p_coarse_petsc_solver->setOperatorMat(d_galerkin_stokesib_mat[d_coarsest_ln]);
+            p_coarse_petsc_solver->setAugmentedOperatorMat(nullptr);
         }
+        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
     d_level_solvers[d_coarsest_ln] = d_coarse_solver;
 

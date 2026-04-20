@@ -47,6 +47,7 @@
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -491,13 +492,6 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Read default Petsc options
-        if (input_db->keyExists("petsc_options_file"))
-        {
-            std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
-        }
-
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
@@ -702,8 +696,8 @@ main(int argc, char* argv[])
         // Get the matrix representation of J at the finest level
         Mat J = nullptr;
         ib_method_ops->constructInterpOp(J,
-                                         PETScMatUtilities::ib_4_interp_fcn,
-                                         PETScMatUtilities::ib_4_interp_stencil,
+                                         PETScMatUtilities::ib_4_delta_fcn,
+                                         PETScMatUtilities::ib_4_delta_stencil,
                                          num_dofs_per_proc[finest_ln],
                                          u_dof_index_idx,
                                          new_time);
