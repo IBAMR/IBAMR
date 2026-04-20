@@ -398,6 +398,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
         }
     }
     d_petsc_pc = d_petsc_mat;
+
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
