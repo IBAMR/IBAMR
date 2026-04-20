@@ -48,8 +48,9 @@ stokes_ib_precond_db {
 	    initial_guess_nonzero = TRUE
 	    ksp_type = "richardson"
 	    pc_type = "asm"
-	    subdomain_box_size = N, N
-	    subdomain_overlap_size = 0, 0
+	    asm_subdomain_construction_mode = "COUPLING_AWARE"
+	    coupling_aware_asm_closure_policy = "RELAXED"
+	    coupling_aware_asm_seed_traversal_order = "I_J"
 	  }
 
   coarse_solver_type = "PETSC_LEVEL_SOLVER"
