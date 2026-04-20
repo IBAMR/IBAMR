@@ -103,17 +103,13 @@ main(int argc, char* argv[])
 
     // Several parts of the code (such as LDataManager) expect mesh files,
     // specified in the input file, to exist in the current working
-    // directory. Since tests are run in temporary directories we need to regenerate these input
-    // to work. We also create a petsc options file for CIB solvers.
+    // directory. Since tests are run in temporary directories we need to
+    // regenerate these input files to work.
     if (IBTK_MPI::getRank() == 0)
     {
         std::ifstream plate_vertex_stream(SOURCE_DIR "/plate2d.vertex");
         std::ofstream plate_vertex_cwd("plate2d.vertex");
         plate_vertex_cwd << plate_vertex_stream.rdbuf();
-
-        std::ifstream petsc_options_stream(SOURCE_DIR "/petsc_options.dat");
-        std::ofstream petsc_options_cwd("petsc_options.dat");
-        petsc_options_cwd << petsc_options_stream.rdbuf();
     }
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -123,13 +119,6 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
-
-        // Read default Petsc options
-        if (input_db->keyExists("petsc_options_file"))
-        {
-            std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
-        }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
