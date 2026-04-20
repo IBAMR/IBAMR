@@ -1,0 +1,44 @@
+Input database:
+input_db {
+   N = 8                                                    // input used
+   Main {
+      log_file_name = "output"                              // input used
+      log_all_nodes = FALSE                                 // input used
+   }
+   test {
+      test_mode            = "affine_exactness"             // input used
+      affine_coefficient_0 = 1.75                           // input used
+      affine_coefficient_1 = -0.5                           // input used
+      tol                  = 1e-12                          // input used
+      profile_type         = "affine"                       // from default
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(7,7)]                    // input not used
+      x_lo               = 0, 0                             // input not used
+      x_up               = 1, 1                             // input not used
+      periodic_dimension = 0, 0                             // input not used
+   }
+   GriddingAlgorithm {
+      max_levels = 2                                        // input not used
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input not used
+      }
+      largest_patch_size {
+         level_0 = 16, 16                                   // input not used
+      }
+      smallest_patch_size {
+         level_0 = 8, 8                                     // input not used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "REFINE_BOXES"                       // input not used
+      RefineBoxes {
+         level_0 = [(0,0),(7,7)]                            // input not used
+         level_1 = [(0,0),(15,15)]                          // input not used
+      }
+   }
+   LoadBalancer {
+   }
+}
+rt0 affine exactness max interior side error: 0
+rt0 affine exactness test_failures: 0
