@@ -1,0 +1,20 @@
+# Outer Krylov solver (prefix: ib_)
+-ib_ksp_type fgmres
+-ib_ksp_rtol 1.0e-10
+-ib_ksp_atol 1.0e-50
+-ib_ksp_max_it 200
+-ib_ksp_monitor_true_residual
+-ib_ksp_converged_reason
+
+# FAC level smoothers (prefix: stokes_ib_pc_)
+-stokes_ib_pc_level_pc_asm_local_type additive
+-stokes_ib_pc_level_pc_asm_type basic
+-stokes_ib_pc_level_ksp_type chebyshev
+-stokes_ib_pc_level_ksp_richardson_self_scale
+-stokes_ib_pc_level_sub_ksp_type preonly
+-stokes_ib_pc_level_sub_pc_type lu
+-stokes_ib_pc_level_sub_pc_factor_shift_type nonzero
+
+# FAC coarse solve
+-stokes_ib_pc_level_0_ksp_type preonly
+-stokes_ib_pc_level_0_pc_type svd

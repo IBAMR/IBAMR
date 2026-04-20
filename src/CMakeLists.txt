@@ -159,6 +159,9 @@ SET(CXX_SRC
   IB/IBKirchhoffRodForceGen.cpp
   IB/IBAnchorPointSpec.cpp
   IB/IBImplicitStaggeredHierarchyIntegrator.cpp
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
+  IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
   IB/IBRedundantInitializer.cpp
   IB/IBAnchorPointSpecFactory.cpp
   IB/CIBStrategy.cpp
