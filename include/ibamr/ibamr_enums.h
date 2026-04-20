@@ -51,6 +51,103 @@ enum_to_string(T /*val*/)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for coupling-aware ASM closure policy.
+ */
+enum class CouplingAwareASMClosurePolicy
+{
+    RELAXED = 0,
+    STRICT = 1,
+    UNKNOWN = -1
+};
+
+template <>
+inline CouplingAwareASMClosurePolicy
+string_to_enum<CouplingAwareASMClosurePolicy>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "RELAXED") == 0) return CouplingAwareASMClosurePolicy::RELAXED;
+    if (strcasecmp(val.c_str(), "STRICT") == 0) return CouplingAwareASMClosurePolicy::STRICT;
+    return CouplingAwareASMClosurePolicy::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val)
+{
+    if (val == CouplingAwareASMClosurePolicy::RELAXED) return "RELAXED";
+    if (val == CouplingAwareASMClosurePolicy::STRICT) return "STRICT";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for coupling-aware ASM seed traversal order.
+ *
+ * Names indicate the primary->secondary->tertiary logical index ordering.
+ * Valid 2D options are I_J and J_I.
+ * Valid 3D options are I_J_K, J_K_I, and K_I_J.
+ */
+enum class CouplingAwareASMSeedTraversalOrder
+{
+    I_J = 0,
+    J_I = 1,
+    I_J_K = 2,
+    J_K_I = 3,
+    K_I_J = 4,
+    UNKNOWN = -1
+};
+
+template <>
+inline CouplingAwareASMSeedTraversalOrder
+string_to_enum<CouplingAwareASMSeedTraversalOrder>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "I_J") == 0) return CouplingAwareASMSeedTraversalOrder::I_J;
+    if (strcasecmp(val.c_str(), "J_I") == 0) return CouplingAwareASMSeedTraversalOrder::J_I;
+    if (strcasecmp(val.c_str(), "I_J_K") == 0) return CouplingAwareASMSeedTraversalOrder::I_J_K;
+    if (strcasecmp(val.c_str(), "J_K_I") == 0) return CouplingAwareASMSeedTraversalOrder::J_K_I;
+    if (strcasecmp(val.c_str(), "K_I_J") == 0) return CouplingAwareASMSeedTraversalOrder::K_I_J;
+    return CouplingAwareASMSeedTraversalOrder::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMSeedTraversalOrder>(CouplingAwareASMSeedTraversalOrder val)
+{
+    if (val == CouplingAwareASMSeedTraversalOrder::I_J) return "I_J";
+    if (val == CouplingAwareASMSeedTraversalOrder::J_I) return "J_I";
+    if (val == CouplingAwareASMSeedTraversalOrder::I_J_K) return "I_J_K";
+    if (val == CouplingAwareASMSeedTraversalOrder::J_K_I) return "J_K_I";
+    if (val == CouplingAwareASMSeedTraversalOrder::K_I_J) return "K_I_J";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for ASM subdomain construction mode.
+ */
+enum class ASMSubdomainConstructionMode
+{
+    GEOMETRICAL = 0,
+    COUPLING_AWARE = 1,
+    UNKNOWN = -1
+};
+
+template <>
+inline ASMSubdomainConstructionMode
+string_to_enum<ASMSubdomainConstructionMode>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "GEOMETRICAL") == 0) return ASMSubdomainConstructionMode::GEOMETRICAL;
+    if (strcasecmp(val.c_str(), "COUPLING_AWARE") == 0) return ASMSubdomainConstructionMode::COUPLING_AWARE;
+    return ASMSubdomainConstructionMode::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val)
+{
+    if (val == ASMSubdomainConstructionMode::GEOMETRICAL) return "GEOMETRICAL";
+    if (val == ASMSubdomainConstructionMode::COUPLING_AWARE) return "COUPLING_AWARE";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different convective differencing schemes.
  */
 enum ConvectiveDifferencingType

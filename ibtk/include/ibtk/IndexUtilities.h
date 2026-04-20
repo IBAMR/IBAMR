@@ -296,12 +296,24 @@ public:
                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift = SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
+     * \brief Partition a patch box into overlapping subdomains of size \em
+     * box_size with overlap region defined by \em overlap_size.
+     *
+     * \return Total number of subdomains the patch box got partitioned into in
+     * various dimensions.
+     */
+    static SAMRAI::hier::IntVector<NDIM> partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_boxes,
+                                                           const SAMRAI::hier::Box<NDIM>& patch_box,
+                                                           const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+
+    /*!
      * \brief Partition a patch box into subdomains of size \em box_size
      * and into equal number of overlapping subdomains whose overlap region
      * is defined by \em overlap_size.
      *
      * \return Total number of subdomains the patch box got
-     * partitioned intoin various dimensions.
+     * partitioned into in various dimensions.
      *
      * \note The overlap boxes are obtained from nonoverlap_boxes by growing
      * them suitably.

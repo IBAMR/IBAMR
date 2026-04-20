@@ -311,7 +311,6 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 inline SAMRAI::hier::IntVector<NDIM>
 IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_boxes,
-                                  std::vector<SAMRAI::hier::Box<NDIM>>& nonoverlap_boxes,
                                   const SAMRAI::hier::Box<NDIM>& patch_box,
                                   const SAMRAI::hier::IntVector<NDIM>& box_size,
                                   const SAMRAI::hier::IntVector<NDIM>& overlap_size)
@@ -324,8 +323,7 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_
     const SAMRAI::hier::IntVector<NDIM> subdomains = SAMRAI::hier::IntVector<NDIM>::max(cells / box_size, 1);
     const int n_subdomains = subdomains.getProduct();
 
-    // Compute the boxes.
-    nonoverlap_boxes.resize(n_subdomains);
+    // Compute the nonoverlapping boxes.
     overlap_boxes.resize(n_subdomains);
     int counter = 0;
     SAMRAI::hier::IntVector<NDIM> I, box_lower, box_upper;
@@ -344,8 +342,7 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_
                     if (I(d) + 1 == subdomains(d)) box_upper(d) += cells(d) % box_size(d);
                     box_upper(d) = std::min(box_upper(d), patch_upper(d));
                 }
-                nonoverlap_boxes[counter] = SAMRAI::hier::Box<NDIM>(box_lower, box_upper);
-                overlap_boxes[counter] = SAMRAI::hier::Box<NDIM>::grow(nonoverlap_boxes[counter], overlap_size);
+                overlap_boxes[counter] = SAMRAI::hier::Box<NDIM>(box_lower - overlap_size, box_upper + overlap_size);
                 ++counter;
             }
         }
@@ -355,6 +352,26 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_
 #if !defined(NDEBUG)
     TBOX_ASSERT(counter == n_subdomains);
 #endif
+    return subdomains;
+} // partitionPatchBox
+
+inline SAMRAI::hier::IntVector<NDIM>
+IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_boxes,
+                                  std::vector<SAMRAI::hier::Box<NDIM>>& nonoverlap_boxes,
+                                  const SAMRAI::hier::Box<NDIM>& patch_box,
+                                  const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& overlap_size)
+{
+    // First generate the nonoverlap boxes from the single-vector overload.
+    const SAMRAI::hier::IntVector<NDIM> subdomains =
+        partitionPatchBox(nonoverlap_boxes, patch_box, box_size, SAMRAI::hier::IntVector<NDIM>(0));
+
+    // Then generate overlap boxes by growing nonoverlap boxes.
+    overlap_boxes.resize(nonoverlap_boxes.size());
+    for (std::size_t k = 0; k < nonoverlap_boxes.size(); ++k)
+    {
+        overlap_boxes[k] = SAMRAI::hier::Box<NDIM>::grow(nonoverlap_boxes[k], overlap_size);
+    }
     return subdomains;
 } // partitionPatchBox
 
