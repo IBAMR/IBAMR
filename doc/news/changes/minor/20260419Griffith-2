@@ -1,0 +1,3 @@
+Stabilization: Add coupling-aware Vanka subdomain construction, update the implicit IB example to use it, and add deterministic coverage for the new solver and utility paths.
+<br>
+(Boyce Griffith, 2026/04/19)
