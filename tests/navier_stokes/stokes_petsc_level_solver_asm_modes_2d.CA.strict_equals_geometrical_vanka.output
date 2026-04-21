@@ -1,0 +1,90 @@
+Input database:
+input_db {
+   N = 8                                                    // input used
+   test {
+      f_data_type                               = "CELL"    // input used
+      n_components                              = 1         // input used
+      ghost_width                               = 1         // input used
+      asm_subdomain_construction_mode           = "COUPLING_AWARE" // input used
+      coupling_aware_asm_closure_policy         = "STRICT"  // input used
+      coupling_aware_asm_seed_axis              = 0         // input used
+      coupling_aware_asm_seed_stride            = 1         // input used
+      coupling_aware_asm_seed_traversal_order   = "I_J"     // input used
+      compare_against_mode                      = TRUE      // input used
+      compare_asm_subdomain_construction_mode   = "GEOMETRICAL" // input used
+      compare_coupling_aware_asm_closure_policy = "RELAXED" // input used
+      compare_subdomain_box_size                = 1, 1      // input used
+      compare_subdomain_overlap_size            = 0, 0      // input used
+      compare_coupling_aware_asm_seed_axis      = 0         // input used
+      compare_coupling_aware_asm_seed_stride    = 1         // input used
+      compare_coupling_aware_asm_seed_traversal_order = "I_J" // input used
+   }
+   Main {
+      log_file_name               = "output"                // input used
+      log_all_nodes               = FALSE                   // input used
+      viz_writer                  = "VisIt"                 // input used
+      viz_dump_dirname            = "viz2d"                 // input used
+      visit_number_procs_per_file = 1                       // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(7,7)]                    // input used
+      x_lo               = 0, 0                             // input used
+      x_up               = 1, 1                             // input used
+      periodic_dimension = 1, 1                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 1                         // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input not used
+      }
+      largest_patch_size {
+         level_0 = 8, 8                                     // input used
+      }
+      smallest_patch_size {
+         level_0 = 8, 8                                     // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "REFINE_BOXES"                       // input used
+      RefineBoxes {
+         level_0 = [(0,0),(7,7)]                            // input used
+      }
+   }
+   LoadBalancer {
+      bin_pack_method                      = "SPATIAL"      // input used
+      max_workload_factor                  = 1              // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+}
+asm_subdomain_construction_mode = COUPLING_AWARE
+coupling_aware_asm_closure_policy = STRICT
+subdomain_box_size = (2,2)
+subdomain_overlap_size = (1,1)
+coupling_aware_asm_seed_axis = 0
+coupling_aware_asm_seed_stride = 1
+coupling_aware_asm_seed_traversal_order = I_J
+n_local_dofs = 192
+n_subdomains = 64
+overlap_sizes = 5 5 5
+nonoverlap_sizes = 1 5 3
+overlap_hash = -4733870768587749120
+nonoverlap_hash = -4348850462453932552
+compare_against_mode = 1
+compare_asm_subdomain_construction_mode = GEOMETRICAL
+compare_coupling_aware_asm_closure_policy = RELAXED
+compare_subdomain_box_size = (1,1)
+compare_subdomain_overlap_size = (0,0)
+compare_coupling_aware_asm_seed_axis = 0
+compare_coupling_aware_asm_seed_stride = 1
+compare_coupling_aware_asm_seed_traversal_order = I_J
+compare_n_subdomains = 64
+compare_overlap_sizes = 5 5 5
+compare_nonoverlap_sizes = 1 5 3
+compare_overlap_hash = -4733870768587749120
+compare_nonoverlap_hash = -4348850462453932552
+compare_overlap_equal = 1
+compare_nonoverlap_equal = 1
+test_failures = 0

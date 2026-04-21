@@ -36,6 +36,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <set>
 #include <string>
@@ -77,12 +78,28 @@ fill_nontrivial_rhs(const Pointer<PatchLevel<NDIM>>& level, const int f_u_idx, c
 }
 
 void
-apply_reference_cav_sweep(Vec y,
-                          Vec b,
-                          Mat A,
-                          const std::vector<std::vector<int>>& overlap_subdomain_dofs,
-                          const double alpha,
-                          IS pressure_is)
+zero_solution_fields(const Pointer<PatchLevel<NDIM>>& level, const int u_idx, const int p_idx)
+{
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
+        u_data->fillAll(0.0);
+        p_data->fillAll(0.0);
+    }
+}
+
+void
+apply_reference_shell_action(Vec y,
+                             Vec b,
+                             Mat A,
+                             const std::vector<std::vector<int>>& overlap_subdomain_dofs,
+                             const std::vector<std::vector<int>>& nonoverlap_subdomain_dofs,
+                             const bool use_multiplicative,
+                             const bool use_restrict_partition,
+                             const double alpha,
+                             IS pressure_is)
 {
     int ierr = VecZeroEntries(y);
     IBTK_CHKERRQ(ierr);
@@ -90,8 +107,11 @@ apply_reference_cav_sweep(Vec y,
     ierr = VecDuplicate(y, &r);
     IBTK_CHKERRQ(ierr);
 
-    for (const auto& overlap_dof_list : overlap_subdomain_dofs)
+    for (std::size_t subdomain_num = 0; subdomain_num < overlap_subdomain_dofs.size(); ++subdomain_num)
     {
+        const auto& overlap_dof_list = overlap_subdomain_dofs[subdomain_num];
+        const auto& update_dof_list =
+            use_restrict_partition ? nonoverlap_subdomain_dofs[subdomain_num] : overlap_subdomain_dofs[subdomain_num];
         IS overlap_subdomain = nullptr;
         ierr = ISCreateGeneral(PETSC_COMM_SELF,
                                static_cast<PetscInt>(overlap_dof_list.size()),
@@ -99,11 +119,18 @@ apply_reference_cav_sweep(Vec y,
                                PETSC_COPY_VALUES,
                                &overlap_subdomain);
         IBTK_CHKERRQ(ierr);
-
-        ierr = MatMult(A, y, r);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAYPX(r, -1.0, b);
-        IBTK_CHKERRQ(ierr);
+        if (use_multiplicative)
+        {
+            ierr = MatMult(A, y, r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAYPX(r, -1.0, b);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecCopy(b, r);
+            IBTK_CHKERRQ(ierr);
+        }
 
         Vec r_sub_view = nullptr;
         ierr = VecGetSubVector(r, overlap_subdomain, &r_sub_view);
@@ -147,12 +174,23 @@ apply_reference_cav_sweep(Vec y,
             IBTK_CHKERRQ(ierr);
         }
 
-        Vec y_sub = nullptr;
-        ierr = VecGetSubVector(y, overlap_subdomain, &y_sub);
+        const PetscScalar* delta_sub_arr = nullptr;
+        ierr = VecGetArrayRead(delta_sub, &delta_sub_arr);
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(y_sub, 1.0, delta_sub);
+
+        PetscScalar* y_arr = nullptr;
+        ierr = VecGetArray(y, &y_arr);
         IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreSubVector(y, overlap_subdomain, &y_sub);
+        for (const int dof : update_dof_list)
+        {
+            const auto pos_it = std::find(overlap_dof_list.begin(), overlap_dof_list.end(), dof);
+            TBOX_ASSERT(pos_it != overlap_dof_list.end());
+            const std::size_t local_pos = static_cast<std::size_t>(std::distance(overlap_dof_list.begin(), pos_it));
+            y_arr[dof] += delta_sub_arr[local_pos];
+        }
+        ierr = VecRestoreArray(y, &y_arr);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(delta_sub, &delta_sub_arr);
         IBTK_CHKERRQ(ierr);
 
         ierr = KSPDestroy(&sub_ksp);
@@ -197,6 +235,20 @@ vec_norm_inf(Vec x)
     IBTK_CHKERRQ(ierr);
     return static_cast<double>(norm);
 }
+
+bool
+shell_pc_type_is_additive(const std::string& shell_pc_type)
+{
+    return shell_pc_type.find("additive") == 0;
+}
+
+bool
+shell_pc_type_uses_restrict_partition(const std::string& shell_pc_type)
+{
+    if (shell_pc_type.find("-restrict") != std::string::npos) return true;
+    if (shell_pc_type.find("-basic") != std::string::npos) return false;
+    return shell_pc_type_is_additive(shell_pc_type);
+}
 } // namespace
 
 int
@@ -208,12 +260,57 @@ main(int argc, char* argv[])
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
 
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
-    const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
-    const double alpha = test_db->getDoubleWithDefault("shell_pc_relaxation_factor", 1.0);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
-    const bool require_parity = test_db->getBoolWithDefault("require_parity", true);
+    const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
+    const bool test_all_eigen_reference_solver_types =
+        test_db->getBoolWithDefault("test_all_eigen_reference_solver_types", false);
+    const bool test_all_blas_lapack_solver_types =
+        test_db->getBoolWithDefault("test_all_blas_lapack_solver_types", false);
+    const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
+    const bool use_multiplicative = !shell_pc_type_is_additive(shell_pc_type);
+    const bool use_restrict_partition = shell_pc_type_uses_restrict_partition(shell_pc_type);
+    const double velocity_poisson_c = test_db->getDoubleWithDefault("velocity_poisson_c", 1.0);
+    const double velocity_poisson_d = test_db->getDoubleWithDefault("velocity_poisson_d", -1.0);
+
+    std::vector<std::string> solver_types;
+    const bool is_eigen_reference_case = shell_pc_type.find("eigen-reference") != std::string::npos;
+    const bool is_blas_lapack_case = shell_pc_type.find("blas-lapack") != std::string::npos;
+    if (is_eigen_reference_case && !use_multiplicative)
+    {
+        pout << "unsupported shell_pc_type = " << shell_pc_type << "\n";
+        pout << "reason = eigen-reference backend only supports multiplicative mode\n";
+        pout << "suggested shell_pc_type = multiplicative-eigen-reference\n";
+        return 1;
+    }
+    if (is_eigen_reference_case && test_all_eigen_reference_solver_types)
+    {
+        solver_types = { "partial-piv-lu",
+                         "full-piv-lu",
+                         "householder-qr",
+                         "col-piv-householder-qr",
+                         "complete-orthogonal-decomposition",
+                         "full-piv-householder-qr",
+                         "jacobi-svd",
+                         "bdc-svd" };
+    }
+    else if (test_db->keyExists("eigen_subdomain_solver_type"))
+    {
+        solver_types = { test_db->getString("eigen_subdomain_solver_type") };
+    }
+    else if (is_blas_lapack_case && test_all_blas_lapack_solver_types)
+    {
+        solver_types = { "svd", "lu", "symmetric-indefinite", "qr" };
+    }
+    else if (test_db->keyExists("blas_lapack_subdomain_solver_type"))
+    {
+        solver_types = { test_db->getString("blas_lapack_subdomain_solver_type") };
+    }
+    else
+    {
+        solver_types = { "" };
+    }
 
     int test_failures = 0;
 
@@ -222,7 +319,7 @@ main(int argc, char* argv[])
     Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(0);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> ctx = var_db->getContext("stokes_petsc_level_solver_cav_shell_semantics_ctx");
+    Pointer<VariableContext> ctx = var_db->getContext("stokes_petsc_level_solver_shell_multiplicative_semantics_ctx");
     Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("semantics_u");
     Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("semantics_p");
     Pointer<SideVariable<NDIM, double>> f_u_var = new SideVariable<NDIM, double>("semantics_f_u");
@@ -250,14 +347,7 @@ main(int argc, char* argv[])
     b_vec.addComponent(f_u_var, f_u_idx);
     b_vec.addComponent(f_p_var, f_p_idx);
 
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
-        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
-        u_data->fillAll(0.0);
-        p_data->fillAll(0.0);
-    }
+    zero_solution_fields(level, u_idx, p_idx);
     fill_nontrivial_rhs(level, f_u_idx, f_p_idx);
 
     std::vector<int> num_dofs_per_proc;
@@ -271,7 +361,7 @@ main(int argc, char* argv[])
     const auto pressure_name_it = std::find(field_names.begin(), field_names.end(), "pressure");
     if (pressure_name_it == field_names.end())
     {
-        TBOX_ERROR("stokes_petsc_level_solver_cav_shell_semantics: pressure field not found.\n");
+        TBOX_ERROR("stokes_petsc_level_solver_shell_multiplicative_semantics: pressure field not found.\n");
     }
     const std::size_t pressure_idx = static_cast<std::size_t>(std::distance(field_names.begin(), pressure_name_it));
     std::vector<PetscInt> pressure_dofs(field_is[pressure_idx].begin(), field_is[pressure_idx].end());
@@ -281,36 +371,6 @@ main(int argc, char* argv[])
                                pressure_dofs.empty() ? nullptr : pressure_dofs.data(),
                                PETSC_COPY_VALUES,
                                &pressure_is);
-    IBTK_CHKERRQ(ierr);
-
-    Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
-    solver_db->putString("ksp_type", "preonly");
-    solver_db->putString("pc_type", "shell");
-    solver_db->putString("shell_pc_type", shell_pc_type);
-    solver_db->putDouble("shell_pc_relaxation_factor", alpha);
-    solver_db->putInteger("max_iterations", 1);
-    solver_db->putBool("initial_guess_nonzero", false);
-    solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
-    solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
-    solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
-    solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
-
-    Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
-        new IBAMR::StaggeredStokesPETScLevelSolver("solver_cav_shell_semantics", solver_db, "stokes_shell_sem_");
-    PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
-    problem_coefs.setCConstant(1.0);
-    problem_coefs.setDConstant(-1.0);
-    solver->setVelocityPoissonSpecifications(problem_coefs);
-    solver->initializeSolverState(x_vec, b_vec);
-
-    std::vector<std::vector<int>>* overlap_is = nullptr;
-    std::vector<std::vector<int>>* nonoverlap_is = nullptr;
-    solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
-
-    const KSP& petsc_ksp = solver->getPETScKSP();
-    Mat A_mat = nullptr;
-    Mat pc_mat = nullptr;
-    ierr = KSPGetOperators(petsc_ksp, &A_mat, &pc_mat);
     IBTK_CHKERRQ(ierr);
 
     const int rank = IBTK_MPI::getRank();
@@ -329,23 +389,106 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         b_petsc, f_u_idx, u_dof_index_idx, f_p_idx, p_dof_index_idx, level);
 
-    apply_reference_cav_sweep(x_expected, b_petsc, A_mat, *overlap_is, alpha, pressure_is);
-    const double expected_inf_norm = vec_norm_inf(x_expected);
-    if (require_parity && !(expected_inf_norm > 0.0)) ++test_failures;
+    for (const std::string& solver_type : solver_types)
+    {
+        zero_solution_fields(level, u_idx, p_idx);
 
-    const bool converged = solver->solveSystem(x_vec, b_vec);
-    if (require_parity && !converged) ++test_failures;
-    IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-        x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
-    const double actual_inf_norm = vec_norm_inf(x_petsc);
-    if (require_parity && !(actual_inf_norm > 0.0)) ++test_failures;
+        Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
+        solver_db->putString("ksp_type", "preonly");
+        solver_db->putString("pc_type", "shell");
+        solver_db->putString("shell_pc_type", shell_pc_type);
+        solver_db->putInteger("max_iterations", 1);
+        solver_db->putBool("initial_guess_nonzero", false);
+        solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
+        solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
+        solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
+        solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
+        if (!solver_type.empty())
+        {
+            if (is_eigen_reference_case)
+            {
+                solver_db->putString("eigen_subdomain_solver_type", solver_type);
+            }
+            else if (is_blas_lapack_case)
+            {
+                solver_db->putString("blas_lapack_subdomain_solver_type", solver_type);
+            }
+        }
+        if (test_db->keyExists("eigen_subdomain_solver_threshold"))
+        {
+            solver_db->putDouble("eigen_subdomain_solver_threshold",
+                                 test_db->getDouble("eigen_subdomain_solver_threshold"));
+        }
+        if (test_db->keyExists("blas_lapack_subdomain_solver_rcond"))
+        {
+            solver_db->putDouble("blas_lapack_subdomain_solver_rcond",
+                                 test_db->getDouble("blas_lapack_subdomain_solver_rcond"));
+        }
 
-    ierr = VecCopy(x_petsc, x_diff);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAXPY(x_diff, -1.0, x_expected);
-    IBTK_CHKERRQ(ierr);
-    const double error_inf_norm = vec_norm_inf(x_diff);
-    if (require_parity && !(error_inf_norm <= tol)) ++test_failures;
+        Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver = new IBAMR::StaggeredStokesPETScLevelSolver(
+            "solver_shell_multiplicative_semantics", solver_db, "stokes_shell_sem_");
+        PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
+        problem_coefs.setCConstant(velocity_poisson_c);
+        problem_coefs.setDConstant(velocity_poisson_d);
+        solver->setVelocityPoissonSpecifications(problem_coefs);
+        solver->initializeSolverState(x_vec, b_vec);
+
+        std::vector<std::vector<int>>* overlap_is = nullptr;
+        std::vector<std::vector<int>>* nonoverlap_is = nullptr;
+        solver->getASMSubdomains(&nonoverlap_is, &overlap_is);
+
+        const KSP& petsc_ksp = solver->getPETScKSP();
+        Mat A_mat = nullptr;
+        Mat pc_mat = nullptr;
+        ierr = KSPGetOperators(petsc_ksp, &A_mat, &pc_mat);
+        IBTK_CHKERRQ(ierr);
+
+        apply_reference_shell_action(x_expected,
+                                     b_petsc,
+                                     A_mat,
+                                     *overlap_is,
+                                     *nonoverlap_is,
+                                     use_multiplicative,
+                                     use_restrict_partition,
+                                     1.0,
+                                     pressure_is);
+        const double expected_inf_norm = vec_norm_inf(x_expected);
+        if (!(expected_inf_norm > 0.0)) ++test_failures;
+
+        const bool converged = solver->solveSystem(x_vec, b_vec);
+        if (!converged) ++test_failures;
+        IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
+        const double actual_inf_norm = vec_norm_inf(x_petsc);
+        if (!(actual_inf_norm > 0.0)) ++test_failures;
+
+        ierr = VecCopy(x_petsc, x_diff);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(x_diff, -1.0, x_expected);
+        IBTK_CHKERRQ(ierr);
+        const double error_inf_norm = vec_norm_inf(x_diff);
+        const double reported_error_inf_norm = verify_reference_parity && error_inf_norm <= tol ? 0.0 : error_inf_norm;
+
+        if (verify_reference_parity)
+        {
+            if (!(error_inf_norm <= tol)) ++test_failures;
+        }
+        else
+        {
+            if (!std::isfinite(error_inf_norm)) ++test_failures;
+        }
+
+        solver->deallocateSolverState();
+
+        const std::string solver_label = solver_type.empty() ? std::string("default") : solver_type;
+        pout << "solver_type = " << solver_label << "\n";
+        if (verify_reference_parity)
+        {
+            pout << "expected_inf_norm = " << expected_inf_norm << "\n";
+            pout << "actual_inf_norm = " << actual_inf_norm << "\n";
+            pout << "error_inf_norm = " << reported_error_inf_norm << "\n";
+        }
+    }
 
     ierr = VecDestroy(&x_diff);
     IBTK_CHKERRQ(ierr);
@@ -358,22 +501,13 @@ main(int argc, char* argv[])
     ierr = ISDestroy(&pressure_is);
     IBTK_CHKERRQ(ierr);
 
-    solver->deallocateSolverState();
-
     for (const int data_idx : { u_idx, p_idx, f_u_idx, f_p_idx, u_dof_index_idx, p_dof_index_idx })
     {
         level->deallocatePatchData(data_idx);
     }
 
-    plog << "Input database:\n";
-    input_db->printClassData(plog);
-    pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
     pout << "shell_pc_type = " << shell_pc_type << "\n";
-    pout << "shell_pc_relaxation_factor = " << alpha << "\n";
-    pout << "require_parity = " << require_parity << "\n";
-    pout << "expected_inf_norm = " << expected_inf_norm << "\n";
-    pout << "actual_inf_norm = " << actual_inf_norm << "\n";
-    pout << "error_inf_norm = " << error_inf_norm << "\n";
+    pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
     pout << "parity_tol = " << tol << "\n";
     pout << "test_failures = " << test_failures << "\n";
     return test_failures > 0 ? 1 : 0;

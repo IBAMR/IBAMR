@@ -10,7 +10,7 @@ input_db {
       coupling_aware_asm_seed_stride    = 1                 // input used
       shell_pc_relaxation_factor        = 1                 // input used
       parity_tol                        = 1e-10             // input used
-      require_parity                    = FALSE             // input used
+      require_parity                    = TRUE              // input used
       shell_pc_type                     = "multiplicative"  // from default
    }
    Main {
@@ -53,9 +53,9 @@ input_db {
 coupling_aware_asm_closure_policy = RELAXED
 shell_pc_type = multiplicative
 shell_pc_relaxation_factor = 1
-require_parity = 0
-expected_inf_norm = 0.592746
-actual_inf_norm = 0
-error_inf_norm = 0.592746
+require_parity = 1
+expected_inf_norm = 0.846628
+actual_inf_norm = 0.846628
+error_inf_norm = 2.4647e-14
 parity_tol = 1e-10
 test_failures = 0
