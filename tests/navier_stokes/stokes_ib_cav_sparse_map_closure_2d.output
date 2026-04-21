@@ -1,0 +1,7 @@
+Input database:
+input_db {
+   Main {
+      log_file_name = "output"                              // input used
+   }
+}
+test_failures = 0
