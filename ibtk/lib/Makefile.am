@@ -134,6 +134,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/solvers/impls/VCCCViscousDilatationalPETScLevelSolver.cpp \
 ../src/solvers/impls/VCCCViscousDilatationalOperator.cpp \
 ../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
+../src/solvers/impls/VCCCViscousDilatationalOpPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/VCSCViscousOperator.cpp \
 ../src/solvers/impls/VCSCViscousDilatationalOperator.cpp \
 ../src/solvers/impls/VCSCViscousPETScLevelSolver.cpp \
@@ -342,6 +343,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/StreamableFactory.h \
 ../include/ibtk/StreamableManager.h \
 ../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
+../include/ibtk/VCCCViscousDilatationalOpPointRelaxationFACOperator.h \
 ../include/ibtk/VCSCViscousOperator.h \
 ../include/ibtk/VCSCViscousDilatationalOperator.h \
 ../include/ibtk/VCSCViscousPETScLevelSolver.h \

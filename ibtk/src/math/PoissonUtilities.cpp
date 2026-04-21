@@ -1130,10 +1130,15 @@ PoissonUtilities::computeVCCCViscousDilatationalOpMatrixCoefficients(
     const bool C_is_const = vc_op_spec.d_C_is_const;
     const double C_const = vc_op_spec.d_C_const;
     const int C_idx = vc_op_spec.d_C_idx;
+    int C_data_depth = 0;
     Pointer<CellData<NDIM, double> > C_data = nullptr;
     if (!C_is_const)
     {
         C_data = patch->getPatchData(C_idx);
+        C_data_depth = C_data->getDepth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(C_data_depth == 1 || C_data_depth == NDIM);
+#endif
     }
 
     Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(vc_op_spec.d_D_idx);
@@ -1187,7 +1192,8 @@ PoissonUtilities::computeVCCCViscousDilatationalOpMatrixCoefficients(
             const StencilMapType& sm = stencil_map_vec[axis];
             const int offset = axis * stencil_sz;
 
-            matrix_coefficients(i, offset + sm.at(make_key(ORIGIN, axis))) = C_is_const ? C_const : (*C_data)(i, 0);
+            matrix_coefficients(i, offset + sm.at(make_key(ORIGIN, axis))) =
+                C_is_const ? C_const : (C_data_depth == 1 ? (*C_data)(i, 0) : (*C_data)(i, axis));
 
             // Contributions from d/dx_axis of the normal stress:
             // (2 mu + lambda) du_axis/dx_axis + lambda sum_{comp != axis} du_comp/dx_comp

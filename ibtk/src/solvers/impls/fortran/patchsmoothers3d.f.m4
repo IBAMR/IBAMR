@@ -825,6 +825,63 @@ c
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c  Perform a single Gauss-Seidel sweep for
+c     (f0,f1,f2) = div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + grad (lambda div (u0, u1, u2)) + c (u0,u1,u2).
+c
+c  The smoother is written for cell-centered vector fields (u0, u1, u2), (f0, f1, f2)
+c  with cell-centered coefficients mu, lamda, and (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcccgssmooth3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu,mu_gcw,
+     &     lambda,lambda_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     is_c_const,
+     &     c_const,
+     &     use_harmonic_interp)
+c
+c      implicit none
+
+c     NOT IMPLEMENTED YET
+      return
+      end
+c    
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c  Perform a single "red" or "black" Gauss-Seidel sweep for
+c     (f0,f1,f2) = div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + grad (lambda div (u0, u1, u2)) + c (u0,u1,u2).
+c
+c  The smoother is written for cell-centered vector fields (u0, u1, u2), (f0, f1, f2)
+c  with cell-centered coefficients mu, lamda, and (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcccrbgssmooth3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu,mu_gcw,
+     &     lambda,lambda_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     is_c_const,
+     &     c_const,
+     &     use_harmonic_interp,
+     &     red_or_black)
+c
+c      implicit none
+
+c     NOT IMPLEMENTED YET
+      return
+      end
+c          
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c  Perform a single Gauss-Seidel sweep for
 c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2).
 c
 c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0, f1, f2)

@@ -161,6 +161,7 @@ SET(CXX_SRC
   solvers/impls/FACPreconditioner.cpp
   solvers/impls/PETScMFFDJacobianOperator.cpp
   solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp
+  solvers/impls/VCCCViscousDilatationalOpPointRelaxationFACOperator.cpp
   solvers/impls/CCLaplaceOperator.cpp
   solvers/impls/PETScNewtonKrylovSolver.cpp
   solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp

@@ -20,6 +20,11 @@ lambda {
    function = "5 + B*X0^2*X1^2"
 }
 
+C {
+    function_0 = "0.0"
+    function_1 = "0.0"
+}
+
 f  {
 
    A = a
@@ -81,13 +86,22 @@ solver_db {
    initial_guess_nonzero = TRUE
 }
 
-precond_type = "VC_CC_VELOCITY_PETSC_LEVEL_SOLVER"
+precond_type = "VC_CC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
 precond_db {
-   ksp_type          = "gmres"
-   pc_type           = "bjacobi"
-   rel_residual_tol  = 1.0e-14
-   abs_residual_tol  = 1.0e-15
-   initial_guess_nonzero = FALSE
+   num_pre_sweeps  = 3
+   num_post_sweeps = 3
+   prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   coarse_solver_type  = "VC_CC_VELOCITY_PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1000
+   coarse_solver_db {
+      ksp_type       = "gmres"
+      pc_type        = "bjacobi"
+      rel_residual_tol  = 1.0e-14
+      abs_residual_tol  = 1.0e-15
+   }
 }
 
 
@@ -139,12 +153,12 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
-//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
-      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//     level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
    }
 }
 

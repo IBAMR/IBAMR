@@ -222,6 +222,18 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*
+     * Coarse level solvers and solver parameters.
+     */
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+
+    /*
+     * Patch overlap data.
+     */
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
+
 private:
     /*!
      * \brief Default constructor.
@@ -249,18 +261,6 @@ private:
      * \return A reference to this object.
      */
     CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that) = delete;
-
-    /*
-     * Coarse level solvers and solver parameters.
-     */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Patch overlap data.
-     */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
 };
 } // namespace IBTK
 

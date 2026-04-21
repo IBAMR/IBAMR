@@ -72,6 +72,14 @@ FACPreconditioner::~FACPreconditioner()
 } // ~FACPreconditioner
 
 void
+FACPreconditioner::setProblemSpecification(const ProblemSpecification* problem_spec)
+{
+    LinearSolver::setProblemSpecification(problem_spec);
+    d_fac_strategy->setProblemSpecification(problem_spec);
+    return;
+} // setProblemSpecification
+
+void
 FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);

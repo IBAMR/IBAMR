@@ -16,7 +16,6 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/ProblemSpecification.h"
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/VCCCViscousDilatationalOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
@@ -55,7 +54,7 @@ namespace
 {
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
+static const std::string DATA_REFINE_TYPE = "LINEAR_REFINE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
@@ -144,7 +143,7 @@ VCCCViscousDilatationalOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
                                                       BDRY_EXTRAP_TYPE,
                                                       CONSISTENT_TYPE_2_BDRY,
                                                       d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      /*fill_pattern*/ nullptr);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);

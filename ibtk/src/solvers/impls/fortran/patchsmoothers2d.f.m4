@@ -722,6 +722,334 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c  Perform a single Gauss-Seidel sweep for
+c     (f0,f1) = div mu (grad (u0,u1) + grad (u0, u1)^T) +  grad (lambda div (u0,u1))  + c (u0,u1).
+c
+c  The smoother is written for cell-centered vector fields (u0, u1) and (f0, f1)
+c  with cell-centered coefficients mu, lambda and (c0,c1).
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcccgssmooth2d(
+     &     u0,u1,u_gcw,
+     &     f0,f1,f_gcw,
+     &     c0,c1,c_gcw,
+     &     mu,mu_gcw,
+     &     lambda,lambda_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     is_c_const,
+     &     c_const,
+     &     use_harmonic_interp)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL a_avg2, h_avg2
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,lambda_gcw
+      INTEGER is_c_const,use_harmonic_interp
+
+      REAL c_const
+
+      REAL mu(CELL2d(ilower,iupper,mu_gcw))
+      REAL lambda(CELL2d(ilower,iupper,lambda_gcw))
+
+      REAL f0(CELL2d(ilower,iupper,f_gcw))
+      REAL f1(CELL2d(ilower,iupper,f_gcw))
+
+      REAL c0(CELL2d(ilower,iupper,c_gcw))
+      REAL c1(CELL2d(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(CELL2d(ilower,iupper,u_gcw))
+      REAL u1(CELL2d(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL c
+      REAL fac0,fac1
+      REAL mu_e,mu_w,mu_n,mu_s
+      REAL lambda_e,lambda_w,lambda_n,lambda_s
+      REAL ae,aw,an,as,ap,bu
+c
+c     Perform a single Gauss-Seidel sweep.
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+            if (use_harmonic_interp .eq. 1) then
+                mu_e = h_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = h_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = h_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = h_avg2(mu(i0,i1),mu(i0,i1-1))
+            else
+                mu_e = a_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = a_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = a_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = a_avg2(mu(i0,i1),mu(i0,i1-1))
+            endif
+
+            lambda_e = a_avg2(lambda(i0+1,i1),lambda(i0,i1))
+            lambda_w = a_avg2(lambda(i0-1,i1),lambda(i0,i1))
+            lambda_n = a_avg2(lambda(i0,i1+1),lambda(i0,i1))
+            lambda_s = a_avg2(lambda(i0,i1),lambda(i0,i1-1)) 
+
+            if (is_c_const .eq. 1) then
+                 c = c_const
+            else
+                 c = c0(i0,i1)      
+            endif
+
+            ae = fac0**2.d0*(2.d0*mu_e + lambda_e)
+            aw = fac0**2.d0*(2.d0*mu_w + lambda_w)
+            an = fac1**2.d0*mu_n
+            as = fac1**2.d0*mu_s
+
+            ap = c - (
+     &         2.d0*fac0**2.d0*(mu_e + mu_w)
+     &         + fac1**2.d0*(mu_n + mu_s)
+     &         + fac0**2.d0*(lambda_e + lambda_w) )
+
+            bu = 0.25d0*fac0*fac1*(
+     &            mu_n*(u1(i0+1,i1)   + u1(i0+1,i1+1)
+     &           - u1(i0-1,i1)   - u1(i0-1,i1+1))
+     &           - mu_s*(u1(i0+1,i1)   + u1(i0+1,i1-1)
+     &           - u1(i0-1,i1)   - u1(i0-1,i1-1))
+     &           + lambda_e*(u1(i0,i1+1)   + u1(i0+1,i1+1)
+     &           - u1(i0,i1-1) - u1(i0+1,i1-1))
+     &           - lambda_w*(u1(i0-1,i1+1) + u1(i0,i1+1)
+     &           - u1(i0-1,i1-1) - u1(i0,i1-1)) )
+
+            u0(i0,i1) = ( f0(i0,i1)
+     &                    - ae*u0(i0+1,i1)
+     &                    - aw*u0(i0-1,i1)
+     &                    - an*u0(i0,i1+1)
+     &                    - as*u0(i0,i1-1)
+     &                    - bu ) / ap
+
+            if (is_c_const .eq. 1) then
+                 c = c_const
+            else
+                 c = c1(i0,i1)      
+            endif
+
+            ae = fac0**2.d0*mu_e
+            aw = fac0**2.d0*mu_w 
+            an = fac1**2.d0*(2.d0*mu_n + lambda_n)
+            as = fac1**2.d0*(2.d0*mu_s + lambda_s)
+
+            ap = c - (fac0**2.d0*(mu_e + mu_w)
+     &             + 2.d0*fac1**2.d0*(mu_n + mu_s)
+     &             + fac1**2.d0*(lambda_n + lambda_s) )
+
+            bu = 0.25d0*fac0*fac1*(
+     &            mu_e*(u0(i0+1,i1+1) + u0(i0,i1+1)
+     &            - u0(i0+1,i1-1) - u0(i0,i1-1))
+     &            - mu_w*(u0(i0-1,i1+1) + u0(i0,i1+1)
+     &            - u0(i0-1,i1-1) - u0(i0,i1-1))
+     &            + lambda_n*(u0(i0+1,i1+1) + u0(i0+1,i1)
+     &            - u0(i0-1,i1+1) - u0(i0-1,i1))
+     &            - lambda_s*(u0(i0+1,i1-1) + u0(i0+1,i1)
+     &            - u0(i0-1,i1-1) - u0(i0-1,i1)) )
+
+            u1(i0,i1) = ( f1(i0,i1)
+     &        - ae*u1(i0+1,i1)
+     &        - aw*u1(i0-1,i1)
+     &        - an*u1(i0,i1+1)
+     &        - as*u1(i0,i1-1)
+     &        - bu ) / ap
+
+         enddo 
+      enddo
+
+      return
+      end      
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single "red" or "black" Gauss-Seidel sweep for
+c     (f0,f1) = div mu (grad (u0,u1) + grad (u0, u1)^T) +  grad (lambda div (u0,u1))  + c (u0,u1).
+c
+c  The smoother is written for cell-centered vector fields (u0, u1) and (f0, f1)
+c  with cell-centered coefficients mu, lambda and (c0,c1).
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcccrbgssmooth2d(
+     &     u0,u1,u_gcw,
+     &     f0,f1,f_gcw,
+     &     c0,c1,c_gcw,
+     &     mu,mu_gcw,
+     &     lambda,lambda_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     is_c_const,
+     &     c_const,
+     &     use_harmonic_interp,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL a_avg2, h_avg2
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,lambda_gcw
+      INTEGER is_c_const,use_harmonic_interp
+      INTEGER red_or_black
+
+      REAL c_const
+
+      REAL mu(CELL2d(ilower,iupper,mu_gcw))
+      REAL lambda(CELL2d(ilower,iupper,lambda_gcw))
+
+      REAL f0(CELL2d(ilower,iupper,f_gcw))
+      REAL f1(CELL2d(ilower,iupper,f_gcw))
+
+      REAL c0(CELL2d(ilower,iupper,c_gcw))
+      REAL c1(CELL2d(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(CELL2d(ilower,iupper,u_gcw))
+      REAL u1(CELL2d(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL c
+      REAL fac0,fac1
+      REAL mu_e,mu_w,mu_n,mu_s
+      REAL lambda_e,lambda_w,lambda_n,lambda_s
+      REAL ae,aw,an,as,ap,bu
+c
+c     Perform a single "red" or "black"  Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+         if (mod(i0+i1,2) .eq. red_or_black) then
+
+            if (use_harmonic_interp .eq. 1) then
+                mu_e = h_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = h_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = h_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = h_avg2(mu(i0,i1),mu(i0,i1-1))
+            else
+                mu_e = a_avg2(mu(i0,i1),mu(i0+1,i1))
+                mu_w = a_avg2(mu(i0,i1),mu(i0-1,i1))
+                mu_n = a_avg2(mu(i0,i1),mu(i0,i1+1))
+                mu_s = a_avg2(mu(i0,i1),mu(i0,i1-1))
+            endif
+
+            lambda_e = a_avg2(lambda(i0+1,i1),lambda(i0,i1))
+            lambda_w = a_avg2(lambda(i0-1,i1),lambda(i0,i1))
+            lambda_n = a_avg2(lambda(i0,i1+1),lambda(i0,i1))
+            lambda_s = a_avg2(lambda(i0,i1),lambda(i0,i1-1)) 
+
+            if (is_c_const .eq. 1) then
+                 c = c_const
+            else
+                 c = c0(i0,i1)      
+            endif
+
+            ae = fac0**2.d0*(2.d0*mu_e + lambda_e)
+            aw = fac0**2.d0*(2.d0*mu_w + lambda_w)
+            an = fac1**2.d0*mu_n
+            as = fac1**2.d0*mu_s
+
+            ap = c - (
+     &         2.d0*fac0**2.d0*(mu_e + mu_w)
+     &         + fac1**2.d0*(mu_n + mu_s)
+     &         + fac0**2.d0*(lambda_e + lambda_w) )
+
+            bu = 0.25d0*fac0*fac1*(
+     &            mu_n*(u1(i0+1,i1)   + u1(i0+1,i1+1)
+     &           - u1(i0-1,i1)   - u1(i0-1,i1+1))
+     &           - mu_s*(u1(i0+1,i1)   + u1(i0+1,i1-1)
+     &           - u1(i0-1,i1)   - u1(i0-1,i1-1))
+     &           + lambda_e*(u1(i0,i1+1)   + u1(i0+1,i1+1)
+     &           - u1(i0,i1-1) - u1(i0+1,i1-1))
+     &           - lambda_w*(u1(i0-1,i1+1) + u1(i0,i1+1)
+     &           - u1(i0-1,i1-1) - u1(i0,i1-1)) )
+
+            u0(i0,i1) = ( f0(i0,i1)
+     &                    - ae*u0(i0+1,i1)
+     &                    - aw*u0(i0-1,i1)
+     &                    - an*u0(i0,i1+1)
+     &                    - as*u0(i0,i1-1)
+     &                    - bu ) / ap
+
+            if (is_c_const .eq. 1) then
+                 c = c_const
+            else
+                 c = c1(i0,i1)      
+            endif
+
+            ae = fac0**2.d0*mu_e
+            aw = fac0**2.d0*mu_w 
+            an = fac1**2.d0*(2.d0*mu_n + lambda_n)
+            as = fac1**2.d0*(2.d0*mu_s + lambda_s)
+
+            ap = c - (fac0**2.d0*(mu_e + mu_w)
+     &             + 2.d0*fac1**2.d0*(mu_n + mu_s)
+     &             + fac1**2.d0*(lambda_n + lambda_s) )
+
+            bu = 0.25d0*fac0*fac1*(
+     &            mu_e*(u0(i0+1,i1+1) + u0(i0,i1+1)
+     &            - u0(i0+1,i1-1) - u0(i0,i1-1))
+     &            - mu_w*(u0(i0-1,i1+1) + u0(i0,i1+1)
+     &            - u0(i0-1,i1-1) - u0(i0,i1-1))
+     &            + lambda_n*(u0(i0+1,i1+1) + u0(i0+1,i1)
+     &            - u0(i0-1,i1+1) - u0(i0-1,i1))
+     &            - lambda_s*(u0(i0+1,i1-1) + u0(i0+1,i1)
+     &            - u0(i0-1,i1-1) - u0(i0-1,i1)) )
+
+            u1(i0,i1) = ( f1(i0,i1)
+     &        - ae*u1(i0+1,i1)
+     &        - aw*u1(i0-1,i1)
+     &        - an*u1(i0,i1+1)
+     &        - as*u1(i0,i1-1)
+     &        - bu ) / ap
+
+         endif
+         
+         enddo 
+      enddo
+         
+      return
+      end      
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single Gauss-Seidel sweep for
 c     (f0,f1) = alpha div mu (grad (u0,u1) + grad (u0, u1)^T) + beta c (u0,u1).
 c
 c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)

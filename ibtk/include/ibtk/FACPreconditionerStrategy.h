@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include "ibtk/FACPreconditioner.h"
+#include "ibtk/ProblemSpecification.h"
 
 #include "tbox/ConstPointer.h"
 #include "tbox/DescribedClass.h"
@@ -80,6 +81,12 @@ public:
      * \brief Return whether the operator is initialized.
      */
     virtual bool getIsInitialized() const;
+
+    /*!
+     * \brief Set the IBTK::ProblemSpecification object used to specify
+     * the coefficients for the system of equations.
+     */
+    virtual void setProblemSpecification(const IBTK::ProblemSpecification* problem_spec);
 
     /*!
      * \brief Method to allow the FACPreconditioner object to register itself
@@ -241,6 +248,9 @@ protected:
 
     // Object name.
     const std::string d_object_name;
+
+    // Problem specification
+    const IBTK::ProblemSpecification* d_problem_spec;
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.

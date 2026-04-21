@@ -87,6 +87,11 @@ public:
     ~FACPreconditioner();
 
     /*!
+     *  \brief Set the ProblemSpecification object used by the linear operator.
+     */
+    void setProblemSpecification(const ProblemSpecification* problem_spec) override;
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{

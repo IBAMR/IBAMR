@@ -54,6 +54,13 @@ FACPreconditionerStrategy::getIsInitialized() const
 } // getIsInitialized
 
 void
+FACPreconditionerStrategy::setProblemSpecification(const IBTK::ProblemSpecification* problem_spec)
+{
+    d_problem_spec = problem_spec;
+    return;
+} // setProblemSpecification
+
+void
 FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;

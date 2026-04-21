@@ -692,9 +692,6 @@ PETScMatUtilities::constructPatchLevelVCCCViscousDilatationalOp(Mat& mat,
                                                                 Pointer<PatchLevel<NDIM> > patch_level,
                                                                 VCInterpType mu_interp_type)
 {
-    const auto& vc_op_spec = static_cast<const VCViscousDilatationalOpSpec&>(*problem_spec);
-    NULL_USE(vc_op_spec);
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
 #endif
