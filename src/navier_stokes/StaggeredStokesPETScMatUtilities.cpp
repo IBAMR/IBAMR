@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -26,18 +28,13 @@
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
-#include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
 
-#include <petsclog.h>
 #include <petscmat.h>
 
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <BoxArray.h>
-#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellGeometry.h>
@@ -51,9 +48,6 @@
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
 #include <ProcessorMapping.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideGeometry.h>
@@ -62,14 +56,12 @@
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
-#include <VariableFillPattern.h>
 
 #include <algorithm>
 #include <array>
 #include <limits>
 #include <memory>
 #include <numeric>
-#include <ostream>
 #include <set>
 #include <sstream>
 #include <vector>
@@ -95,6 +87,19 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
+
+void
+move_set_subdomains_to_dofs(std::vector<std::vector<int>>& subdomain_dofs,
+                            const std::vector<std::set<int>>& subdomain_dof_sets)
+{
+    subdomain_dofs.resize(subdomain_dof_sets.size());
+    for (std::size_t subdomain_num = 0; subdomain_num < subdomain_dof_sets.size(); ++subdomain_num)
+    {
+        subdomain_dofs[subdomain_num].assign(subdomain_dof_sets[subdomain_num].begin(),
+                                             subdomain_dof_sets[subdomain_num].end());
+    }
+    return;
+} // move_set_subdomains_to_dofs
 
 std::array<int, NDIM>
 get_seed_traversal_axis_order(const CouplingAwareASMSeedTraversalOrder seed_traversal_order)
@@ -1111,8 +1116,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(
-    std::vector<std::set<int>>& is_overlap,
-    std::vector<std::set<int>>& is_nonoverlap,
+    std::vector<std::vector<int>>& overlap_dofs,
+    std::vector<std::vector<int>>& nonoverlap_dofs,
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     Pointer<PatchLevel<NDIM>> patch_level,
@@ -1121,17 +1126,19 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(
     const IntVector<NDIM>& box_size,
     const IntVector<NDIM>& overlap_size)
 {
+    std::vector<std::set<int>> overlap_dof_sets, nonoverlap_dof_sets;
+
     // Clear previously stored index sets.
-    for (auto& k : is_overlap)
+    for (auto& k : overlap_dof_sets)
     {
         k.clear();
     }
-    is_overlap.clear();
-    for (auto& k : is_nonoverlap)
+    overlap_dof_sets.clear();
+    for (auto& k : nonoverlap_dof_sets)
     {
         k.clear();
     }
-    is_nonoverlap.clear();
+    nonoverlap_dof_sets.clear();
 
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
@@ -1145,8 +1152,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(
             overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box, box_size, overlap_size);
         subdomain_counter += overlap_boxes[patch_counter].size();
     }
-    is_overlap.resize(subdomain_counter);
-    is_nonoverlap.resize(subdomain_counter);
+    overlap_dof_sets.resize(subdomain_counter);
+    nonoverlap_dof_sets.resize(subdomain_counter);
 
     // Fill in the IS'es.
     subdomain_counter = 0, patch_counter = 0;
@@ -1183,18 +1190,20 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelGeometricalASMSubdomains(
                 {
                     const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
                     const int dof_idx = (*u_dof_data)(i_s);
-                    if (dof_idx >= 0) is_overlap[subdomain_counter].insert(dof_idx);
+                    if (dof_idx >= 0) overlap_dof_sets[subdomain_counter].insert(dof_idx);
                 }
             }
             for (Box<NDIM>::Iterator b(overlap_sub_box); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
                 const int dof_idx = (*p_dof_data)(i);
-                if (dof_idx >= 0) is_overlap[subdomain_counter].insert(dof_idx);
+                if (dof_idx >= 0) overlap_dof_sets[subdomain_counter].insert(dof_idx);
             }
         }
     }
-    construct_nonoverlap_subdomains_from_overlap(is_overlap, is_nonoverlap, num_dofs_per_proc);
+    construct_nonoverlap_subdomains_from_overlap(overlap_dof_sets, nonoverlap_dof_sets, num_dofs_per_proc);
+    move_set_subdomains_to_dofs(overlap_dofs, overlap_dof_sets);
+    move_set_subdomains_to_dofs(nonoverlap_dofs, nonoverlap_dof_sets);
     return;
 } // constructPatchLevelGeometricalASMSubdomains
 
@@ -1373,6 +1382,7 @@ static void
 construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
     std::vector<std::set<int>>& overlap_is,
     const std::vector<std::set<int>>& nonoverlap_is,
+    const int level_num,
     Mat A00_mat,
     const std::unordered_map<int, std::vector<int>>& velocity_dof_to_adjacent_cell_dofs,
     const std::unordered_map<int, std::vector<int>>& cell_dof_to_closure_dofs,
@@ -1477,8 +1487,8 @@ construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
-    std::vector<std::set<int>>& is_overlap,
-    std::vector<std::set<int>>& is_nonoverlap,
+    std::vector<std::vector<int>>& overlap_dofs,
+    std::vector<std::vector<int>>& nonoverlap_dofs,
     const std::vector<int>& num_dofs_per_proc,
     const int u_dof_index_idx,
     Pointer<PatchLevel<NDIM>> patch_level,
@@ -1491,6 +1501,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     const CouplingAwareASMClosurePolicy closure_policy,
     const double relative_numerical_zero_tol)
 {
+    std::vector<std::set<int>> overlap_dof_sets, nonoverlap_dof_sets;
     std::vector<int> seed_velocity_dofs;
     computePatchLevelCouplingAwareASMSeedVelocityDofs(seed_velocity_dofs,
                                                       u_dof_index_idx,
@@ -1500,21 +1511,22 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
                                                       seed_velocity_stride,
                                                       seed_traversal_order);
 
-    is_overlap.clear();
-    is_nonoverlap.clear();
-    is_overlap.resize(seed_velocity_dofs.size());
-    is_nonoverlap.resize(seed_velocity_dofs.size());
+    overlap_dof_sets.clear();
+    nonoverlap_dof_sets.clear();
+    overlap_dof_sets.resize(seed_velocity_dofs.size());
+    nonoverlap_dof_sets.resize(seed_velocity_dofs.size());
     std::size_t subdomain_idx = 0;
     for (const int seed_velocity_dof : seed_velocity_dofs)
     {
-        is_nonoverlap[subdomain_idx].insert(seed_velocity_dof);
-        is_overlap[subdomain_idx] = is_nonoverlap[subdomain_idx];
+        nonoverlap_dof_sets[subdomain_idx].insert(seed_velocity_dof);
+        overlap_dof_sets[subdomain_idx] = nonoverlap_dof_sets[subdomain_idx];
         ++subdomain_idx;
     }
 
     construct_coupling_aware_asm_overlap_subdomains_with_cell_closure(
-        is_overlap,
-        is_nonoverlap,
+        overlap_dof_sets,
+        nonoverlap_dof_sets,
+        patch_level->getLevelNumber(),
         A00_mat,
         map_data.velocity_dof_to_adjacent_cell_dofs,
         map_data.cell_dof_to_closure_dofs,
@@ -1530,7 +1542,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int one_past_local_dof = first_local_dof + num_dofs_per_proc[mpi_rank];
     std::vector<bool> local_dof_covered(static_cast<std::size_t>(one_past_local_dof - first_local_dof), false);
-    for (const auto& subdomain_is : is_overlap)
+    for (const auto& subdomain_is : overlap_dof_sets)
     {
         for (const int dof : subdomain_is)
         {
@@ -1570,9 +1582,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     if (closure_policy == CouplingAwareASMClosurePolicy::RELAXED)
     {
         const std::size_t min_expected_overlap_size = static_cast<std::size_t>(2 * NDIM + 1);
-        for (std::size_t k = 0; k < is_overlap.size(); ++k)
+        for (std::size_t k = 0; k < overlap_dof_sets.size(); ++k)
         {
-            const std::size_t overlap_size = is_overlap[k].size();
+            const std::size_t overlap_size = overlap_dof_sets[k].size();
             if (overlap_size < min_expected_overlap_size)
             {
                 TBOX_ERROR("StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains():\n"
@@ -1583,7 +1595,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
         }
     }
 
-    construct_nonoverlap_subdomains_from_overlap(is_overlap, is_nonoverlap, num_dofs_per_proc);
+    construct_nonoverlap_subdomains_from_overlap(overlap_dof_sets, nonoverlap_dof_sets, num_dofs_per_proc);
+    move_set_subdomains_to_dofs(overlap_dofs, overlap_dof_sets);
+    move_set_subdomains_to_dofs(nonoverlap_dofs, nonoverlap_dof_sets);
     return;
 } // constructPatchLevelCouplingAwareASMSubdomains
 

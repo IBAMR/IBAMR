@@ -112,8 +112,8 @@ public:
      * be used for additive Schwarz method.
      */
     static void constructPatchLevelGeometricalASMSubdomains(
-        std::vector<std::set<int>>& is_overlap,
-        std::vector<std::set<int>>& is_nonoverlap,
+        std::vector<std::vector<int>>& overlap_dofs,
+        std::vector<std::vector<int>>& nonoverlap_dofs,
         const std::vector<int>& num_dofs_per_proc,
         int u_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
@@ -194,8 +194,8 @@ public:
      * subdomains by removing overlaps.
      */
     static void constructPatchLevelCouplingAwareASMSubdomains(
-        std::vector<std::set<int>>& is_overlap,
-        std::vector<std::set<int>>& is_nonoverlap,
+        std::vector<std::vector<int>>& overlap_dofs,
+        std::vector<std::vector<int>>& nonoverlap_dofs,
         const std::vector<int>& num_dofs_per_proc,
         int u_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,

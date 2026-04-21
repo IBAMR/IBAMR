@@ -119,12 +119,25 @@ public:
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
+    /*!
+     * \brief Return whether \p dof is classified as a velocity DOF in the
+     * current cached level state.
+     */
+    bool isVelocityDOF(int dof) const;
+
+    /*!
+     * \brief Return whether \p dof is classified as a pressure DOF in the
+     * current cached level state.
+     */
+    bool isPressureDOF(int dof) const;
+
 protected:
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomain DOF lists for Schwarz type
+     * preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
-                               std::vector<std::set<int>>& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
+                               std::vector<std::vector<int>>& nonoverlap_dofs) override;
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -163,6 +176,11 @@ protected:
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+
+    /*!
+     * \brief Apply shell result postprocessing for pressure nullspace control.
+     */
+    void postprocessShellResult(Vec& y) override;
 
 private:
     /*!
@@ -222,11 +240,13 @@ private:
 #endif
     CouplingAwareASMClosurePolicy d_coupling_aware_asm_closure_policy = CouplingAwareASMClosurePolicy::RELAXED;
     StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData d_coupling_aware_asm_map_data;
-    bool d_coupling_aware_asm_map_data_is_initialized = false;
+    std::vector<int> d_coupling_aware_asm_seed_velocity_dofs;
     bool d_log_asm_subdomains = false;
     double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
+    std::vector<PetscInt> d_velocity_dofs;
+    std::vector<PetscInt> d_pressure_dofs;
 
     //\}
 };

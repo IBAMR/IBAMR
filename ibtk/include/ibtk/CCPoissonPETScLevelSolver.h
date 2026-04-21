@@ -126,10 +126,11 @@ public:
 
 protected:
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomain DOF lists for Schwarz type
+     * preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
-                               std::vector<std::set<int>>& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
+                               std::vector<std::vector<int>>& nonoverlap_dofs) override;
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */

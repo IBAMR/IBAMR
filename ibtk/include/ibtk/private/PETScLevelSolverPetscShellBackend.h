@@ -1,0 +1,73 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2014 - 2025 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+#ifndef included_IBTK_private_PETScLevelSolverPetscShellBackend
+#define included_IBTK_private_PETScLevelSolverPetscShellBackend
+
+#include <ibtk/private/PETScLevelSolverShellBackend.h>
+
+#include <petscksp.h>
+
+#include <memory>
+#include <vector>
+
+namespace IBTK
+{
+class PETScLevelSolver;
+
+/*!
+ * \brief PETSc-native shell smoother backend for PETScLevelSolver.
+ *
+ * This backend mirrors the traditional PETSc ASM-style implementation by
+ * constructing PETSc submatrices, scatters, and sub-KSP objects for the
+ * cached subdomain description supplied by PETScLevelSolver.
+ */
+class PETScLevelSolverPetscShellBackend : public PETScLevelSolverShellBackend
+{
+public:
+    static const std::string s_backend_name;
+
+    PETScLevelSolverPetscShellBackend() = default;
+
+    const std::string& getName() const override;
+    void initializeSolverState(const PETScLevelSolverShellBackendState& solver_state) override;
+    void deallocateSolverState() override;
+    void beginAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
+    void endAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
+    void accumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
+    void apply(Vec x, Vec y) override;
+
+private:
+    struct Data
+    {
+        Vec shell_r = nullptr;
+        InsertMode prolongation_insert_mode = INSERT_VALUES;
+        IS owned_residual_update_rows_is = nullptr;
+        std::vector<IS> global_overlap_is, global_nonoverlap_is;
+        std::vector<IS> local_overlap_is, local_nonoverlap_is;
+        std::vector<VecScatter> restriction, prolongation;
+        std::vector<KSP> sub_ksp;
+        Mat* sub_mat = nullptr;
+        Mat* active_residual_update_mat = nullptr;
+        std::vector<Vec> sub_x, sub_y, active_residual_update_x, active_residual_update_y;
+        std::vector<std::vector<int>> active_update_local_positions;
+    };
+
+    void updateResidual(int subdomain_num, Vec sub_y, Vec residual);
+
+    PETScLevelSolverShellBackendState d_solver_state;
+    std::unique_ptr<Data> d_data;
+};
+} // namespace IBTK
+
+#endif
