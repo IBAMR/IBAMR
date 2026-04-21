@@ -225,6 +225,7 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP(IIM hagen_poiseuille_flow.cpp IBAMR3d)
   SETUP(IIM taylor_couette_3d.cpp IBAMR3d)
   SETUP(IIM flow_past_sphere.cpp IBAMR3d)
+  SETUP(IIM shear_plates.cpp IBAMR2d)
 ENDIF()
 
 # IBTK:
@@ -249,6 +250,8 @@ IF(${IBAMR_HAVE_LIBMESH})
 
   SETUP_2D(IBTK bounding_boxes_01.cpp)
   SETUP_2D(IBTK multilevel_fe_01.cpp)
+
+  SETUP_3D(IBTK libmesh_rtree.cpp)
 ENDIF()
 SETUP_2D(IBTK box_utilities_01.cpp)
 SETUP_2D(IBTK snapshot_cache_01.cpp)

@@ -1,0 +1,21 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-eccentric_rotating_cylinders-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/eccentric_rotating_cylinders"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+    read_file.c
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  EXTRA_FILES
+    exact_sol.m
+    )

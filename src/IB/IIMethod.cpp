@@ -55,7 +55,9 @@
 #include "tbox/Utilities.h"
 
 #include "libmesh/boundary_info.h"
+#include "libmesh/bounding_box.h"
 #include "libmesh/compare_types.h"
+#include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/edge.h"
@@ -66,6 +68,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
+#include "libmesh/explicit_system.h"
 #include "libmesh/face.h"
 #include "libmesh/fe_base.h"
 #include "libmesh/fe_type.h"
@@ -79,6 +82,8 @@
 #include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
+#include "libmesh/point_locator_tree.h"
+#include "libmesh/point_locator_base.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/system.h"
@@ -86,6 +91,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include "ibtk/libmesh_rtree_wrappers.h"
 
 #include "petscvec.h"
 
@@ -156,6 +162,7 @@ const std::string IIMethod::COORDS_SYSTEM_NAME = "coordinates system";
 const std::string IIMethod::COORD_MAPPING_SYSTEM_NAME = "coordinate mapping system";
 const std::string IIMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IIMethod::VELOCITY_SYSTEM_NAME = "velocity system";
+const std::string IIMethod::SMOOTHED_NORMAL_SYSTEM_NAME = "smoothed normal system";
 const std::string IIMethod::NORMAL_VELOCITY_SYSTEM_NAME = "normal velocity system";
 const std::string IIMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "tangential velocity system";
 const std::string IIMethod::PRESSURE_JUMP_SYSTEM_NAME = "[[p]] system";
@@ -233,6 +240,412 @@ IIMethod::getFEDataManager(const unsigned int part) const
     TBOX_ASSERT(part < d_num_parts);
     return d_fe_data_managers[part];
 } // getFEDataManager
+
+NumericVector<double>* 
+IIMethod::getMeshCoordinatesNumeric(bool isCurrentConfiguration,std::string time,unsigned int part){
+
+
+    if(isCurrentConfiguration){
+        
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        NumericVector<double>* X_vec = nullptr;
+
+        if(time == "current"){
+            X_vec = d_X_current_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+
+        }
+        else if(time == "half"){
+            X_vec = d_X_half_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+        }
+        else if(time == "new"){
+            X_vec = d_X_new_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+        }
+        else if(time == "ib_ghost"){
+            //already assigned X_ghost_veec
+        }
+        else{
+            TBOX_ERROR("time must be set to current, half, new, or ib_ghost. case sensitive.");
+        }
+        return X_ghost_vec;
+
+    }
+    else{ //reference configuration
+
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        const MeshBase& mesh = equation_systems->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
+        std::unique_ptr<QBase> qrule;
+        System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
+        FEDataManager::SystemDofMapCache& X_dof_map_cache =
+            *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+        FEType X_fe_type = X_dof_map.variable_type(0);
+
+        //NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        //X_ghost_vec->close();
+        //PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);  
+        //NumericVector<double>* X0_vec;
+        //std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+        //copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
+        NumericVector<double>& X0_vec_ref = X_system.get_vector("INITIAL_COORDINATES");
+
+        NumericVector<double>* X0_vec = &X0_vec_ref;
+        //X0_vec->close();
+
+        return X0_vec; 
+    }
+
+} //getMeshCoordinatesNumeric
+
+PetscVector<double>* 
+IIMethod::getMeshCoordinatesPetsc(bool isCurrentConfiguration,std::string time,unsigned int part){
+
+    //this should only be used for reference configuration in the current ibamr code, otherwise we 
+    //will accidentally return the incorrect data type
+
+    if(isCurrentConfiguration){
+        //std::cout <<"using current config\n";
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* X_vec = nullptr;
+
+        if(time == "current"){
+            X_vec = d_X_current_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+
+        }
+        else if(time == "half"){
+            X_vec = d_X_half_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+        }
+        else if(time == "new"){
+            X_vec = d_X_new_vecs[part];
+            copy_and_synch(*X_vec, *X_ghost_vec); 
+        }
+        else if(time == "ib_ghost"){
+            //already assigned X_ghost_veec
+        }
+        else{
+            TBOX_ERROR("time must be set to current, half, new, or ib_ghost. case sensitive.");
+        }
+        return X_ghost_vec;
+
+    }
+    else{ //reference configuration
+        //std::cout <<"using ref config\n";
+
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        const MeshBase& mesh = equation_systems->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
+        std::unique_ptr<QBase> qrule;
+        System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
+        FEDataManager::SystemDofMapCache& X_dof_map_cache =
+            *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+        FEType X_fe_type = X_dof_map.variable_type(0);
+
+        //NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        //copy_and_synch(*X_vec, *X_ghost_vec);
+        //X_ghost_vec->close();
+        //PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
+        //PetscVector<double>* X0_vec;
+        //copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
+        //X0_vec->close();
+
+        NumericVector<double>& X0_vec_ref = X_system.get_vector("INITIAL_COORDINATES");
+
+        NumericVector<double>* X0_vec = &X0_vec_ref;
+
+        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X0_vec);
+        return X_petsc_vec; 
+    }
+}//getMeshCoordinatesPetsc
+
+
+void
+IIMethod::setupPhongNormalVectors(bool isCurrentConfiguration, unsigned int part, NumericVector<double> *x_current_vec){
+    //returns the matrix of area weighted nodal normal vectors to gain a better 
+    //evaluation of the normal vector when USE_PHONG_SHADING == true
+//std::cout <<"in phong \n";
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+    const MeshBase& mesh = equation_systems->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    //grab the position vector information for the CURRENT configuration of the mesh
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+
+    const unsigned int num_elems = mesh.n_elem();
+    const unsigned int num_nodes = mesh.n_nodes();
+
+    //store ref to dof_map obj as dof_map
+    std::vector<dof_id_type> global_dof_indices;//will need this later for storing weights
+
+    FEType fe_type = X_dof_map.variable_type(0);            
+    std::unique_ptr<FEBase> fe (FEBase::build(dim,fe_type));
+
+    //Need a one-point G-Q rule to find tangents and normals, since we
+    //have flat triangles (constant normal vectors across elements)
+    //2n-1 order is exact for n nodes, so first order G-Q is needed
+    QGauss qrule (dim,SECOND);
+
+     // Tell the FE object to use the quad rule
+    fe->attach_quadrature_rule (&qrule);
+
+    // The element Jacovian quadrature weight at each point.
+    const std::vector<Real> & JxW = fe->get_JxW();
+
+    //Physical XYZ locations of quadrature pts on the element
+    const std::vector<libMesh::Point> & q_point = fe->get_xyz();
+
+    // The element shape functions evaluated at the quadrature points.
+    // (we dont want this, we need the local coord derivative!)
+    const std::vector<std::vector<Real>> & phi = fe->get_phi();
+
+    //local basis derivs
+    std::array<const std::vector<std::vector<double> >*,NDIM - 1> dphi_dxi_X;
+    dphi_dxi_X[0] = &fe->get_dphidxi(); //indexed by qp and basis function node number
+    if (NDIM > 2) dphi_dxi_X[1] = &fe->get_dphideta(); //need this for 3d
+
+    //set up declarations for interpolation for finding normal vector at element face
+    VectorValue<double> n, x;
+    boost::multi_array<double, 2> z_node(boost::extents[NDIM][NDIM]);//3 rows in 3d, 2 rows in 2d, points to interpolate from     (boost::extents[NDIM][3])
+    std::array<VectorValue<double>, 2> dx_dxi; //local tangent vector to be filled later
+    //sets up the interpolator object
+    FEDataInterpolation fe_interpolator(mesh.mesh_dimension(), d_fe_data_managers[part]->getFEData());
+    fe_interpolator.attachQuadratureRule(&qrule);
+    fe_interpolator.init();
+
+    //Rows are nodes, columns are elements. 
+    //Fill with 1/elem weight for each node the element owns.
+
+    //no longer need these because using class variables
+    //DenseMatrix<double> weights(num_nodes,num_elems);
+    //DenseMatrix<double> elem_normals_mat(num_elems,3);//was originally NDIM, not 3, but all libmesh vectors are 3d with z = 0 for 2d 
+    //elem normal loop------------------------------------------------------------------------------------------------------------------------------
+    int current_elem_index = 0;
+    //Now we want to loop through all the elements and do some interpolating
+    //std::cout <<"before elem loop\n";
+    for (const auto & elem : mesh.active_local_element_ptr_range())
+        {
+        const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);  
+        //Get the measure of the element in the reference configuration
+        double measure = elem->volume(); 
+
+        //get the global dofs and assign them to global_dof_indices, need this for putting n in the eqn systems
+        //Fills the vector global_dof_indices with the global degree of freedom indices for the element.
+        X_dof_map.dof_indices (elem, global_dof_indices);
+
+        // Number of nodes, each triangle should have 3, in 2d only 2
+        const unsigned int n_nodes = elem->n_nodes();
+
+        //tell fe which elem we are on
+        fe->reinit(elem);
+        fe_interpolator.reinit(elem);
+        fe_interpolator.collectDataForInterpolation(elem);
+        fe_interpolator.interpolate(elem);
+        //loop over all nodes on the element, make sure we are working with triangles, or 2 nodes for 2d
+        assert((n_nodes == 2 && NDIM == 2) || (n_nodes == 3 && NDIM == 3));
+        //get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
+        //std::cout<<std::size(x_node) <<" is the size of xnode.\n";
+        for (unsigned int node_idx = 0; node_idx < NDIM; ++node_idx){
+            //get ref to current node
+            const Node *node = elem->node_ptr(node_idx);
+            //for current configuration, we need to calculate the triangle's area
+            //using the nodes from *X_vec, not the mesh.
+            if(isCurrentConfiguration){
+		    
+		    //std::cout<< "X_dof_indices: " <<X_dof_indices.size();
+		     //std::cout<< "X_dof_indices: " <<X_dof_indices[0][0];
+	     	    //std::cin.get();
+		    get_values_for_interpolation(z_node, *x_current_vec, X_dof_indices);
+                if(NDIM == 3){
+                    //double side_length_1 = std::sqrt(std::pow((z_node[0][0]-z_node[1][0]),2)+ std::pow((z_node[0][1]-z_node[1][1]),2) + std::pow((z_node[0][2]-z_node[1][2]),2));
+                    //double side_length_2 = std::sqrt(std::pow((z_node[0][0]-z_node[2][0]),2)+ std::pow((z_node[0][1]-z_node[2][1]),2) + std::pow((z_node[0][2]-z_node[2][2]),2));
+                    //double side_length_3 = std::sqrt(std::pow((z_node[2][0]-z_node[1][0]),2)+ std::pow((z_node[2][1]-z_node[1][1]),2) + std::pow((z_node[2][2]-z_node[1][2]),2));
+                    //double semi_perimeter = (side_length_1 + side_length_2 + side_length_3)/2.0;
+                    //measure = std::sqrt(semi_perimeter*(semi_perimeter-side_length_1)*(semi_perimeter-side_length_2)*(semi_perimeter-side_length_3));
+                    double centroid_x = (z_node[0][0]+z_node[1][0]+z_node[2][0])/3;
+                    double centroid_y = (z_node[0][1]+z_node[1][1]+z_node[2][1])/3;
+                    double centroid_z = (z_node[0][2]+z_node[1][2]+z_node[2][2])/3;
+                    measure = std::sqrt(std::pow(centroid_x-z_node[node_idx][0],2) + std::pow(centroid_y-z_node[node_idx][1],2)+ std::pow(centroid_y-z_node[node_idx][2],2));
+	       	}
+
+                else{
+                    measure = std::sqrt(std::pow((z_node[0][0]-z_node[1][0]),2)+ std::pow((z_node[0][1]-z_node[1][1]),2));
+                }
+            }
+            //for reference configuration, we can get information straight from the mesh's nodes
+            else{
+                for(unsigned int i=0; i < NDIM; ++i){
+                    z_node[node_idx][i] = (*node)(i);
+                }
+		    measure = std::sqrt(std::pow((elem->centroid())(0) - (*node)(0),2) + std::pow((elem->centroid())(1) - (*node)(1),2)+std::pow((elem->centroid())(2) - (*node)(2),2));
+            }
+            //Now find the global index from the local index
+            dof_id_type global_id = elem->node_id(node_idx);
+
+            //assign the weights which are smaller for larger sized elems
+            d_weights[part](global_id,current_elem_index) = 1.0/measure;
+            }
+
+        //Loop of quadrature pts
+        for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
+        {
+            //interpolate to get the tangent vector
+            for (unsigned int k = 0; k < NDIM - 1; ++k)
+            {
+                interpolate(dx_dxi[k], qp, z_node, *dphi_dxi_X[k]);
+            }
+            if (NDIM == 2)//rotation by 90 degrees in 2d
+            {
+                dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+            }
+            //compute normal from tangents 
+            n = dx_dxi[0].cross(dx_dxi[1]);
+            n = n.unit();
+            //Assign the normal vector to the correct row in the matrix of elem normals
+            //also assign it to the equation system solution
+            for (unsigned int j = 0; j < 3; ++j ){  
+                d_elem_normals[part](current_elem_index,j) = n(j);
+                //system.solution->set(global_dof_indices[j], n(j));
+            }
+        }
+        current_elem_index+=1;
+    }
+    //no longer need this 
+    DenseMatrix<double> nodal_normals_mat = d_elem_normals[part];
+    nodal_normals_mat.left_multiply(d_weights[part]);
+
+    if(isCurrentConfiguration){
+        d_current_nodal_normals[part] = nodal_normals_mat;
+        for(unsigned int row = 0; row < num_nodes; ++row){
+            double sum = 0.0;
+            for(unsigned int col = 0; col< 3;++col){
+                sum += pow(d_current_nodal_normals[part](row,col),2);
+            }
+            sum = sqrt(sum);
+            for(unsigned int col = 0; col< 3;++col){
+                d_current_nodal_normals[part](row,col) /= sum;
+            }
+        }
+    }
+
+
+    else{
+        d_reference_nodal_normals[part] = nodal_normals_mat;
+        for(unsigned int row = 0; row < num_nodes; ++row){
+            double sum = 0.0;
+            for(unsigned int col = 0; col< 3;++col){
+                sum += pow(d_reference_nodal_normals[part](row,col),2);
+            }
+            sum = sqrt(sum);
+            for(unsigned int col = 0; col< 3;++col){
+                d_reference_nodal_normals[part](row,col) /= sum;
+            }
+        }    
+    }
+
+
+    //need to normalize every row in the 2-norm 
+    /*
+    for(unsigned int row = 0; row < num_nodes; ++row){
+        double sum = 0.0;
+        for(unsigned int col = 0; col< 3;++col){
+            sum += pow(nodal_normals_mat(row,col),2);
+        }
+        sum = sqrt(sum);
+        for(unsigned int col = 0; col< 3;++col){
+            nodal_normals_mat(row,col) /= sum;
+        }
+    }
+    */
+    return;
+}
+VectorValue<double>
+IIMethod::evaluateNormalVectors(bool isCurrentConfiguration,unsigned int qp, bool USE_PHONG_NORMALS, libMesh::Elem* const elem, boost::multi_array<double, 2> x_node, const std::vector<std::vector<double> >& phi_X, std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X, unsigned int part){
+    //this function returns the normal vector at a quadrature point on a particular element
+    //either in the reference configuration or current configuration
+    //despite the fact that we pass in x_node, it is only used if USE_PHONG_NORMALS == false,
+    //otherwise the d_current_nodal_normals or d_reference_nodal_normals is used to fill the normal_node variable
+    //Note: THE RETURNED NORMAL VECTOR IS ***NOT*** UNIT LENGTH!
+    
+    //we will return this normal vector at the end
+    VectorValue<double> n;
+
+    //get eqn system and basis functions
+    
+    /*
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+    const MeshBase& mesh = equation_systems->get_mesh();
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    const unsigned int dim = mesh.mesh_dimension();
+    std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
+    fe_X->attach_quadrature_rule(&qrule);
+    const std::vector<double>& JxW = fe_X->get_JxW();
+    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi(); //local basis function
+    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X; //local basis deriv
+    dphi_dxi_X[0] = &fe_X->get_dphidxi();
+    if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
+    */
+    std::array<VectorValue<double>, 2> dx_dxi; //tangent vector 
+    /*
+    FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]->getFEData());
+    fe_interpolator.attachQuadratureRule(&qrule);
+    fe_interpolator.init();
+    */
+    if(USE_PHONG_NORMALS){
+        // this is basically x_node but just with normals instead, which will be linearly interpolated on the elem
+        boost::multi_array<double, 2> normal_node(boost::extents[NDIM][3]);//3 rows in 3d, 2 rows in 2d
+        //loop over nodes 
+        for (unsigned int node_idx = 0; node_idx < NDIM; ++node_idx){
+
+            //Now find the global index from the local index
+            dof_id_type global_id = elem->node_id(node_idx);
+
+            //fill the 2 or 3 endpoint nodes with nodal normals to interpolate
+            if(isCurrentConfiguration){
+                for(unsigned int i=0; i < 3; ++i){
+                    normal_node[node_idx][i] = (d_current_nodal_normals[part])(global_id,i);
+                }
+            }
+            else{
+                for(unsigned int i=0; i < 3; ++i){
+                    normal_node[node_idx][i] = (d_reference_nodal_normals[part])(global_id,i);
+                }
+            }
+        }
+        /*
+        fe_X->reinit(elem);
+        fe_interpolator.reinit(elem);
+        fe_interpolator.collectDataForInterpolation(elem);
+        fe_interpolator.interpolate(elem);
+        */
+        interpolate(dx_dxi[0], qp, normal_node, phi_X);
+        n = dx_dxi[0];
+        //std::cout <<"for qp is "<<qp<<", n is:"<<n<<"\n";
+    }
+
+    //if USE_PHONG_NORMALS is false, use the element normal vector (old way)
+    else{
+        for (unsigned int k = 0; k < NDIM - 1; ++k)
+            {
+                interpolate(dx_dxi[k], qp, x_node, *dphi_dxi_X[k]);
+            }
+            if (NDIM == 2)
+            {
+                dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+            }
+            n = dx_dxi[0].cross(dx_dxi[1]);
+    }
+    return n;
+}
+
 
 void
 IIMethod::registerDisconElemFamilyForJumps(const unsigned int part)
@@ -363,6 +776,10 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     d_F_half_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
 
+            d_smoothed_normal_systems.resize(d_num_parts);
+    d_smoothed_normal.resize(d_num_parts);
+    d_smoothed_normal_ghost.resize(d_num_parts);
+
     d_P_jump_systems.resize(d_num_parts);
     d_P_jump_half_vecs.resize(d_num_parts);
     d_P_jump_IB_ghost_vecs.resize(d_num_parts);
@@ -433,6 +850,12 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
+
+                      d_smoothed_normal_systems[part] = &d_equation_systems[part]->get_system(SMOOTHED_NORMAL_SYSTEM_NAME);
+        d_smoothed_normal[part] =
+            dynamic_cast<PetscVector<double>*>(d_smoothed_normal_systems[part]->current_local_solution.get());
+        d_smoothed_normal_ghost[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(SMOOTHED_NORMAL_SYSTEM_NAME, /*localize_data*/ false));
 
         if (d_use_pressure_jump_conditions)
         {
@@ -514,6 +937,7 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
         *d_U_t_half_vecs[part] = *d_U_t_current_vecs[part];
 
         *d_F_half_vecs[part] = *d_F_systems[part]->solution;
+        *d_smoothed_normal[part] = *d_smoothed_normal_systems[part]->solution;
 
         if (d_use_pressure_jump_conditions)
         {
@@ -547,7 +971,7 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 {
     IBAMR_TIMER_START(t_postprocess_integrate_data);
     std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
-        d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs
+        d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_smoothed_normal, d_F_half_vecs
     };
 
     if (d_use_pressure_jump_conditions)
@@ -603,6 +1027,10 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
+
+        *d_smoothed_normal_systems[part]->solution = *d_smoothed_normal[part];
+        *d_smoothed_normal_systems[part]->current_local_solution = *d_smoothed_normal[part];
+        
 
         if (d_use_pressure_jump_conditions)
         {
@@ -662,6 +1090,9 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
     d_F_systems.clear();
     d_F_half_vecs.clear();
     d_F_IB_ghost_vecs.clear();
+    d_smoothed_normal_systems.clear();
+    d_smoothed_normal.clear();
+    d_smoothed_normal_ghost.clear();
 
     d_P_jump_systems.clear();
     d_P_jump_half_vecs.clear();
@@ -727,13 +1158,85 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
     }
 
+    //setup rtree for the velocity interpolation step so that the near contact element search is more efficient
+    //note that this only works in SERIAL
+    // We only need to do this if using the current configuration
+    // for interactions, since the mesh may have moved since last time step
+    if(d_use_second_velocity_correction){
+        if(d_use_current_mesh_configuration){
+            for(unsigned int part = 0; part < d_num_parts; ++part){
+                EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+                const MeshBase& mesh = equation_systems->get_mesh();
+                const unsigned int dim = mesh.mesh_dimension();
+                NumericVector<double>* X_ghost_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration,"ib_ghost",part);
+                FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+                boost::multi_array<double, 2> x_node;
+                namespace bgi = boost::geometry::index;
+
+
+                System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+                const DofMap& X_dof_map = X_system.get_dof_map();
+                FEType fe_type = X_dof_map.variable_type(0);            
+                std::unique_ptr<FEBase> fe (FEBase::build(dim,fe_type));
+                QGauss qrule (dim,FIRST);
+                std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+                // Tell the FE object to use the quad rule
+                fe->attach_quadrature_rule (&qrule);
+                FEDataInterpolation fe_interpolator(mesh.mesh_dimension(), d_fe_data_managers[part]->getFEData());
+                fe_interpolator.attachQuadratureRule(&qrule);
+                fe_interpolator.init();
+
+
+                //need to figure out how to do this in current config still
+                int elem_num = 0;
+                for (const auto & elem : mesh.active_local_element_ptr_range()){
+
+                    //X_dof_indices = X_dof_map_cache.dof_indices(elem); 
+                    
+                    fe->reinit(elem);
+                    fe_interpolator.reinit(elem);
+                    fe_interpolator.collectDataForInterpolation(elem);
+                    fe_interpolator.interpolate(elem); 
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        X_dof_map_cache.dof_indices(elem, X_dof_indices[axis], axis);
+                    }
+                    get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
+
+                    double min_x = std::min(x_node[0][0], x_node[1][0]);
+                    double max_x = std::max(x_node[0][0], x_node[1][0]);
+                    double min_y = std::min(x_node[0][1], x_node[1][1]);
+                    double max_y = std::max(x_node[0][1], x_node[1][1]);
+
+                    const libMesh::Point p1(min_x,min_y,0.0); //hard-coded in 2d for EGDE2
+                    const libMesh::Point p2(max_x,max_y,0.0);
+                    const std::pair< libMesh::Point, libMesh::Point > point_pair(p1,p2);
+                    //make a box for the current point...
+                    libMesh::BoundingBox elem_box(point_pair);
+                    //...and stash it in the data structure
+                    d_bounding_boxes[part][elem_num] = elem_box; 
+                    elem_num++;
+                }
+                //At the end of each part, we will create an rtree
+                //to be used later
+                /*std::cout<< "Length of d_bounding_boxes for part "<<part<< " is "<< d_bounding_boxes[part].size()<<"\n";
+                for (const auto& bbox : d_bounding_boxes[part]) {
+                    std::cout << "Bounding Box: " << bbox.min()<<", and "<<bbox.max() << std::endl; // or any other debug info
+                }*/
+                d_rtrees[part] = std::make_unique<RTreeType>(IBTK::pack_rtree_of_indices(d_bounding_boxes[part]));
+            }
+        }
+    }
+        
+    
+    
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* U_vec = nullptr;
         NumericVector<double>* U_n_vec = nullptr;
         NumericVector<double>* U_t_vec = nullptr;
         NumericVector<double>* X_vec = nullptr;
-        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        NumericVector<double>* X_ghost_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration,"ib_ghost",part);
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
             d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
             d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
@@ -746,21 +1249,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             U_vec = d_U_current_vecs[part];
             U_n_vec = d_U_n_current_vecs[part];
             U_t_vec = d_U_t_current_vecs[part];
-            X_vec = d_X_current_vecs[part];
+            X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration,"current",part);  //d_X_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             U_vec = d_U_half_vecs[part];
             U_n_vec = d_U_n_half_vecs[part];
             U_t_vec = d_U_t_half_vecs[part];
-            X_vec = d_X_half_vecs[part];
+            X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration,"current",part);  //d_X_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             U_vec = d_U_new_vecs[part];
             U_n_vec = d_U_n_new_vecs[part];
             U_t_vec = d_U_t_new_vecs[part];
-            X_vec = d_X_new_vecs[part];
+            X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration,"current",part);  //d_X_current_vecs[part];
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -852,7 +1355,10 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
 
         X_ghost_vec->close();
-
+        //obtain the nodal normal vectors for phong shading -- only use for P1 elements
+        if(d_use_phong_normals){
+            setupPhongNormalVectors(true,part,X_ghost_vec);
+        }
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
@@ -872,10 +1378,12 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         DenseVector<double> WSS_in_rhs_e[NDIM];
 
         boost::multi_array<double, 2> x_node;
-        std::array<boost::multi_array<double, 2>, NDIM> DU_jump_node;
+        std::array<boost::multi_array<double, 2>, NDIM> DU_jump_node, DU_second_jump_node;
         std::vector<double> U_qp, U_in_qp, U_out_qp, WSS_in_qp, WSS_out_qp, n_qp, x_qp, x_in_qp, x_out_qp;
         std::array<std::vector<double>, NDIM> DU_jump_qp;
-        VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n;
+
+
+        VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n, n_secondary;
         std::array<VectorValue<double>, 2> dx_dxi;
 
         Pointer<PatchLevel<NDIM> > level =
@@ -940,6 +1448,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 DU_jump_qp[axis].resize(NDIM * n_qpoints_patch);
+                //weights_secondary[axis].resize(n_qpoints_patch);
             }
             std::fill(U_qp.begin(), U_qp.end(), 0.0);
             std::fill(U_in_qp.begin(), U_in_qp.end(), 0.0);
@@ -953,6 +1462,11 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+
+
+
+
+
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
@@ -999,6 +1513,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 {
                     double* DU_jump_begin = &DU_jump_qp[axis][NDIM * qp_offset];
                     std::fill(DU_jump_begin, DU_jump_begin + NDIM * n_qpoints, 0.0);
+
+                    //double* weights_secondary_begin = &weights_secondary[axis][qp_offset];
+                    //std::fill(weights_secondary_begin, weights_secondary_begin + n_qpoints, 0.0);
                 }
                 // Interpolate x, du, and dv at the quadrature points via
                 // accumulation, e.g., x(qp) = sum_k x_k * phi_k(qp) for each
@@ -1025,8 +1542,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         }
                     }
                 }
-                for (unsigned int qp = 0; qp < n_qpoints; ++qp)
-                {
+                for (unsigned int qp = 0; qp < n_qpoints; ++qp){
+                n = IIMethod::evaluateNormalVectors(true, qp, false, elem, x_node, phi_X, dphi_dxi, part);
+                    /*
                     for (unsigned int l = 0; l < NDIM - 1; ++l)
                     {
                         interpolate(dx_dxi[l], qp, x_node, *dphi_dxi[l]);
@@ -1036,6 +1554,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                     }
                     n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+                    */
+                    n = n.unit();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         n_qp[NDIM * (qp_offset + qp) + d] = n(d);
@@ -1096,11 +1616,12 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         x_out, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
 
                     // Some kind of assertation can be applied here using the indices of the cells away from the
-                    // interfce
+                    // interface
                 }
                 if (local_indices.empty()) continue;
                 Index<NDIM> ic_lower, ic_upper, ic_center;
                 std::array<std::array<double, 2>, NDIM> w, wr;
+                std::array<std::array<double, 2>, NDIM> w_secondary, wr_secondary; //weights for second cut
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
                 Box<NDIM> side_boxes[NDIM];
@@ -1109,17 +1630,25 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
                 }
+
+
+
+
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    IBTK::Point x_lower_axis, x_upper_axis;
+                    //std::cout << "axis is "<<axis<<"\n";
+                    
+                    IBTK::Point x_lower_axis, x_upper_axis, x_ref_2_cut;
 
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         x_lower_axis[d] = patch_x_lower[d];
                         x_upper_axis[d] = patch_x_upper[d];
+                        x_ref_2_cut[d] = patch_x_lower[d];
                     }
                     x_lower_axis[axis] -= 0.5 * patch_dx[axis];
                     x_upper_axis[axis] += 0.5 * patch_dx[axis];
+                    x_ref_2_cut[0] -= 0.5 * patch_dx[axis];
 
                     const Index<NDIM>& ilower = side_boxes[axis].lower();
                     const Index<NDIM>& iupper = side_boxes[axis].upper();
@@ -1135,16 +1664,31 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                          ),
                         boost::fortran_storage_order());
 
+
+                    //looks like this is where we are looping over all the qps inside the box on the current element
                     for (unsigned int k = 0; k < local_indices.size(); ++k)
                     {
+                        //std::cout << "inside the k loop\n";
+                        // retrieve the index for the current qp in the box
                         const int s = local_indices[k];
-                        IBTK::Point x, x_cell, xo, x_cell_o;
-                        const double* const dx = patch_dx;
+
+                        //vars for storing points & coords
+                        IBTK::Point x, x_cell, xo, x_cell_o; 
+                        const double* const dx = patch_dx; //cell size in each dim
+
+                        //iterate over each dimension
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
+
+                            // location of current qp
                             x[d] = x_qp[s * NDIM + d];
+
                             ic_center[d] = ilower[d] + boost::math::iround((x[d] - x_lower_axis[d]) / dx[d] - 0.5);
+                            //coords of cell center
                             x_cell[d] = x_lower_axis[d] + ((ic_center[d] - ilower[d]) + 0.5) * dx[d];
+
+                            //find which red-shaded box from the paper we are in
+
                             if (x[d] <= x_cell[d])
                             {
                                 ic_lower[d] = ic_center[d] - 1;
@@ -1156,6 +1700,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                                 ic_upper[d] = ic_center[d] + 1;
                             }
 
+                            //looks like these are the lambda and zeta values in the paper
                             if (x[d] <= x_cell[d])
                             {
                                 w[d][0] = (x_cell[d] - x[d]) / dx[d];
@@ -1183,69 +1728,499 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 #endif
                                           [range(0, NDIM)]);
 
-                        VectorValue<double> norm_vec, du_jump, coeff_vec, wrc;
-                        // Loop over indices to calculate the interp coefficients (Lower=0, Upper=1)
 
-                        for (int d = 0; d < NDIM; ++d) norm_vec(d) = n_qp[s * NDIM + d];
+//now secondary cut stuff --------------------------------------------------------------------------------------------
+                        boost::multi_array<double, NDIM + 1> Ujump_secondary(
+                            boost::extents[range(ic_lower[0], ic_upper[0] + 1)][range(ic_lower[1], ic_upper[1] + 1)]
+#if (NDIM == 3)
+                                          [range(ic_lower[2], ic_upper[2] + 1)]
+#endif
+                                          [range(0, NDIM)]);
+
+
+                        VectorValue<double> norm_vec, du_jump, coeff_vec, wrc, du_jump_secondary, wrc_secondary;
+
+                        for (int d = 0; d < NDIM; ++d) norm_vec(d) = n_qp[s * NDIM + d];//normal at the qp
 
                         Box<NDIM> stencil_box(ic_lower, ic_upper);
+#if(NDIM == 2)
+                        std::array<std::array<double, 4>, NDIM> DU_jump_second_cut = {}; //keep track of jump conds for each ray from qp to corner
+                        std::array<std::array<double, 4>, NDIM> weights_secondary = {}; //4 is hardcoded for 2d (number of corners in box), should be 8 in 3d
+#endif
+#if(NDIM == 3)
+                        std::array<std::array<double, 8>, NDIM> DU_jump_second_cut = {};
+                        std::array<std::array<double, 8>, NDIM> weights_secondary = {}; //4 is hardcoded for 2d (number of corners in box), should be 8 in 3d
 
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            for (BoxIterator<NDIM> b(stencil_box); b; b++)
-                            {
-                                const Index<NDIM>& ic = b();
-                                for (int j = 0; j < NDIM; ++j) wrc(j) = wr[j][ic_upper[j] - ic[j]];
-#if (NDIM == 2)
-                                interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
 #endif
-#if (NDIM == 3)
-                                interpCoeff[ic[0]][ic[1]][ic[2]][d] = (norm_vec * wrc) * norm_vec(d);
-#endif
-                            }
+
+                        if(d_use_second_velocity_correction){
+
                         }
 
-                        for (int d = 0; d < NDIM; ++d)
+
+                        unsigned int corner_number = 0;
+                        //iterate over all indices in the cell
+                        for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
+                            //std::cout << "inside the b loop\n";
+                            //get index ic for current position in the cell
+                            const Index<NDIM>& ic = b();
+
+                            if(d_use_second_velocity_correction){
+                                // check other part
+                                bool found_cut_already = false;
+
+
+                                for (unsigned int part_second = 0; part_second < d_num_parts; ++part_second){
+
+                                    //if(part_second != part){ //maybe remove this to check nearby elems (but not the elem we are on)
+
+                                        //Query the rtree to find which other bounding boxes for elements in other parts
+                                        //intersect the current quadrature point's bbox, for reference configuration ONLY
+                                        //double dx_patch = patch_dx;
+                                        namespace bgi = boost::geometry::index;
+                                        const libMesh::Point lib_x_upper(x[0]+1.5*dx[0],x[1]+1.5*dx[0],0.0); //hard-coded in 2d
+                                        const libMesh::Point lib_x_lower(x[0]-1.5*dx[0],x[1]-1.5*dx[0],0.0);
+                                        const std::pair< libMesh::Point, libMesh::Point > point_pair(lib_x_lower,lib_x_upper);
+                                        //make a box for the current point
+                                        libMesh::BoundingBox lib_x_box(point_pair);
+
+                                        std::vector<std::size_t> found_elem_list; //indices of elements found
+
+                                        //populate the list of elements found on the current part that are nearby the current element
+                                        (d_rtrees[part_second])->query(bgi::intersects(lib_x_box),std::back_inserter(found_elem_list));
+
+
+                                        // Extract the mesh.
+                                        EquationSystems* equation_systems_second = d_fe_data_managers[part_second]->getEquationSystems();
+                                        const MeshBase& mesh_second = equation_systems_second->get_mesh();
+                                        const unsigned int dim_second = mesh_second.mesh_dimension();
+                                        QGauss qrule_second (dim,FIRST);
+                                        System& X_system_second = equation_systems_second->get_system(COORDS_SYSTEM_NAME);
+                                        const DofMap& X_dof_map_second = X_system_second.get_dof_map();
+                                        FEDataManager::SystemDofMapCache& X_dof_map_cache_second =
+                                            *d_fe_data_managers[part_second]->getDofMapCache(COORDS_SYSTEM_NAME);
+                                        FEType X_fe_type_second = X_dof_map_second.variable_type(0);
+
+                                        //std::vector<std::vector<unsigned int> > X_dof_indices_second(NDIM);
+                                        FEType fe_type_second = X_fe_type_second;
+                                        std::unique_ptr<FEBase> fe_X_second = FEBase::build(dim, fe_type_second);
+                                        const std::vector<double>& JxW_second = fe_X_second->get_JxW();
+                                        const std::vector<std::vector<double> >& phi_X_second = fe_X_second->get_phi();
+                                        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_second;
+                                        dphi_dxi_second[0] = &fe_X_second->get_dphidxi();
+                                        if (NDIM > 2) dphi_dxi_second[1] = &fe_X_second->get_dphideta();
+                                        std::array<VectorValue<double>, 2> dx_dxi_second;
+                                        boost::multi_array<double, 2> x_node_second(boost::extents[NDIM][NDIM]);
+                                        fe_X_second->attach_quadrature_rule(&qrule_second);
+
+                                        const std::array<PetscVector<double>*, NDIM> DU_second_jump_ghost_vec = {
+                                        d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part_second][0] : nullptr,
+                                        d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part_second][1] : nullptr,
+                                        #if (NDIM == 3)
+                                        d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part_second][2] : nullptr,
+                                        #endif
+                                        };
+
+                                        std::array<System*, NDIM> DU_second_jump_system;
+                                        std::array<DofMap*, NDIM> DU_second_jump_dof_map;
+                                        std::array<FEDataManager::SystemDofMapCache*, NDIM> DU_second_jump_dof_map_cache;
+                                        FEType DU_second_jump_fe_type = INVALID_FE;
+                                        for (unsigned int i = 0; i < NDIM; ++i)
+                                        {
+                                            DU_second_jump_system[i] = &equation_systems_second->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
+                                            DU_second_jump_dof_map_cache[i] = d_fe_data_managers[part_second]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
+                                            DU_second_jump_dof_map[i] = &DU_second_jump_system[i]->get_dof_map();
+                                            DU_second_jump_fe_type = DU_second_jump_dof_map[i]->variable_type(0);
+                                            for (unsigned int d = 0; d < NDIM; ++d)
+                                            {
+                                                TBOX_ASSERT(DU_second_jump_dof_map[i]->variable_type(d) == DU_second_jump_fe_type);
+                                            }
+                                        }
+
+                                        //loop over elements, not patches, since thats what we have a list of.
+/*
+                                        Pointer<PatchLevel<NDIM> > level_secondary =
+                                            d_hierarchy->getPatchLevel(d_fe_data_managers[part_second]->getFinestPatchLevelNumber());
+                                        int local_patch_num_secondary = 0;
+
+                                        for (PatchLevel<NDIM>::Iterator p(level_secondary); p; p++, ++local_patch_num_secondary){
+                                            //std::cout << "made it to right inside the patch loop\n";
+                                            const std::vector<Elem*>& patch_elems_secondary =
+                                                d_fe_data_managers[part_second]->getActivePatchElementMap()[local_patch_num_secondary]; //gets a list of elems in the 1 cut patch on part#2
+                                            const size_t num_active_patch_elems_secondary = patch_elems_secondary.size();
+                                            if (!num_active_patch_elems_secondary) continue;
+*/
+                                            //get the other part's elem
+                                            //for (unsigned int e_idx = 0; e_idx < num_active_patch_elems_secondary; ++e_idx){
+                                            for (const auto& elem_n : found_elem_list){
+                                                //std::cout << "made it to right inside the elem loop loop\n";
+                                                bool has_second_cut = false; //initialized second cut check to false
+                                                
+                                                if(!found_cut_already){ //for efficiency
+
+                                                    //should probably assert whether we are using the reference or current config here 
+
+
+                                                    Elem* elem_secondary = const_cast<Elem*>(mesh_second.query_elem_ptr(elem_n));  //patch_elems_secondary[e_idx];
+
+                                                    // Use libMesh's contains_point to check if the qp is on this element
+                                                    libMesh::Point x_libmesh;
+                                                    for (unsigned int d = 0; d < NDIM; ++d) {
+                                                        x_libmesh(d) = x[d];
+                                                    }
+                                                    if (elem_secondary->contains_point(x_libmesh)) {
+                                                        //std::cout <<"On part number "<<part<<", continuing after finding same elem:"<<elem_n<<"\n";
+                                                        continue;
+                                                    }
+
+                                                    const unsigned int n_nodes_secondary = elem_secondary->n_nodes();
+
+                                                    //if we want to use the current configuration, we need to temporarily 
+                                                    //change the mesh node locations to current configuration,
+                                                    //to be returned to their original position later using the cache
+
+                                                    const auto& X_dof_indices_second = X_dof_map_cache_second.dof_indices(elem_secondary);
+
+                                                    //the purpose of this block is to change the mesh's nodes on the current
+                                                    //elem to be in the current config, for intersection purposes
+
+                                                    std::vector<libMesh::Point> X_node_cache, x_node_cache;
+                                                    if(d_use_current_mesh_configuration){
+                                                        NumericVector<double>* X_ghost_vec_secondary = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "ib_ghost", part_second);
+                                                        
+                                                        X_node_cache.resize(n_nodes_secondary);
+                                                        x_node_cache.resize(n_nodes_secondary);
+
+                                                        //fill x_node_second with current config node positions
+                                                        get_values_for_interpolation(x_node_second, *X_ghost_vec_secondary, X_dof_indices_second);
+
+                                                        for (unsigned int k = 0; k < n_nodes_secondary; ++k){
+                                                            X_node_cache[k] = elem_secondary->point(k); //save the ref config for this elem's node positions
+                                                            libMesh::Point& x_current_config = x_node_cache[k]; //weird line, but Amin uses it
+                                                            for (unsigned int d = 0; d < NDIM; ++d){
+                                                                x_current_config(d) = x_node_second[k][d];
+                                                            }
+                                                            elem_secondary->point(k) = x_current_config; //Overwrites the mesh nodes locations with current config.
+                                                                                               //Is reverted later.
+                                                        }
+                                                    }
+ 
+                                                    for (unsigned int node_idx = 0; node_idx < n_nodes_secondary; ++node_idx){
+                                                        const Node *node_second = elem_secondary->node_ptr(node_idx);     
+                                                        
+                                                        if(!d_use_current_mesh_configuration){
+                                                            //only fill this with ref config if have the flag set
+                                                            //for efficiency
+                                                            //if using current config, x_node_second[][] is filled above
+                                                            for(unsigned int i=0; i < NDIM; ++i){
+                                                                x_node_second[node_idx][i] = (*node_second)(i);
+                                                            } 
+                                                        }
+                                                        
+                                                    }
+
+                                                    fe_X_second->reinit(elem_secondary);
+                                                    VectorValue<double> cartesian_corner, q, dist_cut_to_corner; //q is radial vector,cartesian_loc is box corner
+                                                    libMesh::Point r;
+
+                                                    for (unsigned int d = 0; d < NDIM; ++d){
+                                                        r(d) = x_qp[s * NDIM + d]; //current quadrature pt location
+                                                        cartesian_corner(d) = x_lower_axis[d] + ((ic[d] - ilower[d]) + 0.5) * dx[d];
+                                                    }
+
+                                                    //Perturb the r(d) if it is grid aligned (was having trouble in anvil block test without this)
+                                                    /*
+                                                    for (unsigned int d = 0; d < NDIM; ++d) {
+                                                        const double tol = 1.0e-7 * dx[d]; 
+                                                        // If r is effectively on a grid line or half-grid line
+                                                        double grid_pos = (r(d) - x_lower_axis[d]) / dx[d];
+                                                        if (std::abs(grid_pos - std::round(grid_pos)) < 1e-6) {
+                                                            r(d) += tol; 
+                                                        }
+                                                    }*/
+
+                                                    // now we can compute the ray from qp to corner
+                                                    for (unsigned int d = 0; d < NDIM; ++d){
+                                                        q(d) = cartesian_corner(d) - r(d); //vector from qp to current box corner
+                                                    }
+                                                    //if(k == 0 && e_idx == 0){
+                                                        //std::cout <<"for axis = "<<axis<<", r is "<<r<<"cart corner is: "<<cartesian_corner<<" and q is "<<q<<"\n";
+                                                    //need to check these for axis = 1, seemingly not finding intersections or anything
+                                                   // }
+                                                    static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
+                                                    std::vector<std::pair<double, libMesh::Point> > intersections; 
+                                                        
+                                                    #if (NDIM == 2)
+                                                    has_second_cut = intersect_line_with_edge_non_coordinate(intersections, static_cast<Edge*>(elem_secondary), r, q, tolerance);
+                                                    #endif
+                                                    #if (NDIM == 3)
+                                                    has_second_cut = intersect_line_with_face(intersections, static_cast<Face*>(elem_secondary), r, q, tolerance);
+                                                    #endif 
+                                                    if(has_second_cut){
+
+                                                        
+                                                        //if(k == 0 && e_idx == 0){std::cout<< "cut found on elem "<<e_idx<<"\n";}
+                                                        //std::cout<< "second cut found on part "<<part_second<<" elem "<<elem_n<<"\n";
+                                                        for (unsigned int k = 0; k < NDIM - 1; ++k)
+                                                        {
+                                                            interpolate(dx_dxi_second[k], 0, x_node_second, *dphi_dxi_second[k]);
+                                                        }
+                                                        if (NDIM == 2)
+                                                        {
+                                                            dx_dxi_second[1] = VectorValue<double>(0.0, 0.0, 1.0);
+                                                        }
+                                                        n_secondary = (dx_dxi_second[0].cross(dx_dxi_second[1])).unit();
+                                                        n_secondary = n_secondary.unit();
+
+                                                        double alignment = norm_vec * n_secondary;
+                                                        //std::cout <<"The alignment n1*n2 = "<<alignment<<"\n";
+
+                                                        
+                                                        if(part == part_second && alignment >= 0.98){
+                                                            found_cut_already = false;
+                                                            continue;
+                                                        }
+                                                        
+                                                        found_cut_already = true; //tells us to stop looking for more cuts, have found one alr
+                                                        libMesh::Point u_param = intersections[0].second;
+                                                       
+
+                                                        //note this is only for 2d at the moment
+                                                        const libMesh::Point& p0 = *elem_secondary->node_ptr(0);
+                                                        const libMesh::Point& p1 = *elem_secondary->node_ptr(1);
+                                                        #if (NDIM == 3)
+                                                        const libMesh::Point& p2 = *elem_secondary->node_ptr(2);
+                                                        #endif
+                                                        libMesh::Point cut_location(0,0,0);
+                                                        #if (NDIM == 2)
+                                                        for (unsigned int d = 0; d < NDIM; ++d){
+                                                            cut_location(d) = 0.5 * (1 - u_param(0)) * p0(d) + 0.5 * (1+u_param(0)) * p1(d);
+                                                        }
+                                                        #endif   
+
+                                                        #if (NDIM == 3)
+                                                        for (unsigned int d = 0; d < NDIM; ++d){
+                                                            cut_location(d) = (1 - u_param(0) - u_param(1)) * p0(d) + (u_param(0)) * p1(d) + u_param(1) * p2(d);
+                                                        }
+                                                        #endif
+
+                                                        //std::cout << "For quadrature point at "<<r<<", second cut found at: "<<cut_location<<"On second elem:"<<elem_n<<"\n";
+
+                                                        for (unsigned int d = 0; d < NDIM; ++d){
+                                                            dist_cut_to_corner(d) = std::abs(cartesian_corner(d) - cut_location(d)); //vector from qp to current box corner, all positive values
+                                                        }
+
+                                                        //for (unsigned int d = 0; d < NDIM; ++d){//wait this doesn't actually change anything...
+                                                            const auto& DU_second_jump_dof_indices = DU_second_jump_dof_map_cache[axis]->dof_indices(elem_secondary);
+                                                            get_values_for_interpolation(DU_second_jump_node[axis], *DU_second_jump_ghost_vec[axis], DU_second_jump_dof_indices);
+                                                        //}
+                                                        #if (NDIM == 2)
+                                                        for (unsigned int d = 0; d < NDIM; ++d)
+                                                        {   
+                                                            DU_jump_second_cut[d][corner_number] = 0.5*(1 - u_param(0))* DU_second_jump_node[axis][0][d] +  0.5*(1 + u_param(0))* DU_second_jump_node[axis][1][d];
+                                                        }
+                                                        #endif
+
+                                                        #if (NDIM == 3)
+                                                        for (unsigned int d = 0; d < NDIM; ++d)
+                                                        {   
+                                                            DU_jump_second_cut[d][corner_number] = (1 - u_param(0) - u_param(1)) * DU_second_jump_node[axis][0][d] + (u_param(0)) * DU_second_jump_node[axis][1][d] + u_param(1) * DU_second_jump_node[axis][2][d];
+                                                            
+                                                        }
+                                                        #endif
+
+
+
+                                                        //std::cout << "cut location is: " << cut_location << ", and jump condition is: " <<DU_jump_second_cut[0][corner_number]<<", "<<DU_jump_second_cut[1][corner_number]<<"\n";
+
+                                                        /*
+                                                        if(k == 0 && e_idx == 0){
+                                                        std::cout<< "axis is (PRE JC EVAL): "<<axis<<"\n";
+                                                        std::cout<< "jc using F is: "<< DU_jump_second_cut[0][corner_number]<<", "<<DU_jump_second_cut[1][corner_number]<<"\n";
+                                                        }
+                                                        */
+                                                        //insert jump condition values manually for now:
+                                                        /*
+                                                        if(d_use_handfilled_jc_for_interpolation){
+                                                            if(axis == 0){
+                                                                DU_jump_second_cut[0][corner_number] = 0;
+                                                                DU_jump_second_cut[1][corner_number] = d_handfilled_jc;
+
+                                                            }
+                                                            else{
+                                                                DU_jump_second_cut[0][corner_number] = 0;
+                                                                DU_jump_second_cut[1][corner_number] = 0;
+                                                            }
+                                                            std::cout<<"handfilled jc:  "<<DU_jump_second_cut[0][corner_number]<<", "<<DU_jump_second_cut[1][corner_number]<<"\n";
+                                                        }   
+                                                        */
+
+                                                        VectorValue<double> correction_sign; 
+                                                        for (unsigned int i = 0; i < NDIM; i++){
+
+                                                            if(norm_vec(i)*n_secondary(i) > 0){
+                                                                correction_sign(i) = -n_secondary(i);
+                                                            }
+                                                            else if(q(i) * n_secondary(i) < 0) {
+                                                                correction_sign(i) = q(i);
+                                                            }
+                                                            else if(q(i) * n_secondary(i) > 0){
+                                                                correction_sign(i) = -q(i);
+                                                            }
+
+
+                                                            //correction_sign(i) = -q(i) * (n_secondary(i)); //-n_secondary(i) * (norm_vec(i)  * q(i)) * (-n_secondary(i) * norm_vec(i)); //should just be q(i)
+                                                        //I think this accounts for the self-cutting case and also if the the normals
+                                                        // of the two surfaces are pointing in the same direction
+                                                        }                                                      
+
+                                                        for (unsigned int i = 0; i < NDIM; i++){
+                                                            if(correction_sign(i) > 0){
+                                                                correction_sign(i) = 1;
+                                                            }
+                                                            else if(correction_sign(i) < 0){
+                                                                correction_sign(i) = -1;
+                                                            }
+                                                            else{
+                                                                correction_sign(i) = 0; //if axis aligned
+                                                            }
+                                                        }
+
+                                                       
+                                                        if(k==0 && axis ==0){//0th indexed quad point
+                                                            //std::cout << "At corner number "<<corner_number<<", the\n";
+                                                            //std::cout << "quadrature pt is: "<< r << ", cartesian corner is: " <<cartesian_corner<<", radial vector is: "<<q<<".\n";
+                                                   
+                                                            //std::cout << "cut location pt is: "<< cut_location << ", distance from cut to corner: " <<dist_cut_to_corner<<", correction sign is: "<<correction_sign<<".\n\n";
+                                                        }
+                                                        for (int d = 0; d < NDIM; ++d){
+                                                            weights_secondary[d][corner_number] = dist_cut_to_corner(d) * correction_sign(d);
+                                                        }
+                                                        //std::cout<< "weights secondary: "<<  weights_secondary[0][corner_number]<<", "<< weights_secondary[1][corner_number]<<"\n";
+
+                                                        
+                                                    }
+                                                    else{
+                                                        //no second cut found
+                                                    }
+                                                    // Restore the element coordinates.
+                                                    if(d_use_current_mesh_configuration){
+                                                        for (unsigned int k = 0; k < n_nodes_secondary; ++k)
+                                                        {
+                                                            elem_secondary->point(k) = X_node_cache[k];
+                                                        }
+                                                    }
+                                                }   
+                                            }
+                                       // }
+                                    //} //removed this because we do want to check current interface (specifically for sharp corners)
+                                }
+                            }
+                            for (int j = 0; j < NDIM; ++j) wrc(j) = wr[j][ic_upper[j] - ic[j]];
+                            corner_number +=1;
+                        }
+                        //finished iterating over the box indices, found cuts for all qps
+
+                //  | this is the spacing for the qp loop
+                        for (int d = 0; d < NDIM; ++d) //what is this dimension loop for?
+                        {
+                            unsigned int corner_number = 0;
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
                                 const Index<NDIM>& ic = b();
-                                for (int j = 0; j < NDIM; ++j) du_jump(j) = DU_jump_qp[d][s * NDIM + j];
-#if (NDIM == 2)
-                                coeff_vec =
-                                    VectorValue<double>(interpCoeff[ic[0]][ic[1]][0], interpCoeff[ic[0]][ic[1]][1]);
-                                Ujump[ic[0]][ic[1]][d] = dx[0] * w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] *
-                                                         (coeff_vec * du_jump);
-#endif
+                                
+                                for (int j = 0; j < NDIM; ++j)//new from Qi
+                                {   
+                                    du_jump(j) = DU_jump_qp[d][s * NDIM + j];
+                                    wrc(j) = wr[j][ic_upper[j] - ic[j]];
 
-#if (NDIM == 3)
-                                coeff_vec = VectorValue<double>(interpCoeff[ic[0]][ic[1]][ic[2]][0],
-                                                                interpCoeff[ic[0]][ic[1]][ic[2]][1],
-                                                                interpCoeff[ic[0]][ic[1]][ic[2]][2]);
+                                    if(d_use_second_velocity_correction){
+                                        du_jump_secondary(j) = DU_jump_second_cut[j][corner_number]; 
+                                        wrc_secondary(j) = weights_secondary[j][corner_number];
+                                    }
+                                }
+                                //std::cout<<"du_jump for 1st cut is:" << du_jump<<" on dimension "<<d<<", and s is: "<<s<<"\n";
+                                    
+                                if(d_use_handfilled_jc_for_interpolation){
+                                    if(d == 0){ //setting the one cut correction terms analytically
+                                        std::cout<<"1 Cut Error for u is: "<<du_jump(0) - 0<< "and " <<du_jump(1) - d_handfilled_jc<<"\n";
+                                        du_jump(0) = 0;
+                                        du_jump(1) = d_handfilled_jc;
+                                        
+                                    }
+                                    else{
+                                        std::cout<<"1 Cut Error for v is: "<<du_jump(0) - 0<< "and " <<du_jump(1) - 0<<"\n";
+                                        du_jump(0) == 0;
+                                        du_jump(1) == 0;
+                                    }
+                                    //std::cout<<"handfilled du_jump for 1st cut is:" << du_jump<<"\n\n";
+                                }
+                                #if (NDIM == 2)
+                                // Use velocity correction term from
+                                // https://epubs.siam.org/doi/abs/10.1137/080712970
+                                Ujump[ic[0]][ic[1]][d] =
+                                    dx[0] * w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * (wrc * du_jump);
+                                if(d_use_second_velocity_correction){
+                                    Ujump_secondary[ic[0]][ic[1]][d]  = 
+                                         w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * (wrc_secondary * du_jump_secondary);
+                                    if(k==0 && axis == 0){
+                                        //std::cout << "The sum of the correction terms (weights and JCs) is: "<<Ujump_secondary[ic[0]][ic[1]][d]<<
+                                          //  "at corner number: "<<corner_number<<"\n";
+                                    }
+                                }
+                                #endif
+
+                                #if (NDIM == 3)
+
+                                // Use velocity correction term from
+                                // https://epubs.siam.org/doi/abs/10.1137/080712970
                                 Ujump[ic[0]][ic[1]][ic[2]][d] = dx[0] * w[0][ic[0] - ic_lower[0]] *
                                                                 w[1][ic[1] - ic_lower[1]] * w[2][ic[2] - ic_lower[2]] *
-                                                                (coeff_vec * du_jump);
-#endif
+                                                                (wrc * du_jump);
+                                #endif
+                                corner_number +=1;
                             }
                         }
+
                         // Accumulate the value of U at the current location.
                         U_axis[s] = 0.0;
 
+                        //used for seeing the nodal values
+                        std::array<double, 4> box_u = {};
+                        unsigned int box_index = 0;
                         for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
+                            unsigned int corner_index = 0;
                             const Index<NDIM>& ic = b();
-#if (NDIM == 2)
-
+#if (NDIM == 2)                           
                             U_axis[s] +=
                                 w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * u_sc_data_array[ic[0]][ic[1]];
+
+
+                            if(k == 0 && axis == 0){//finding out the box's u values
+                            
+                                //std::cout <<"u_sc_data_array is: " <<u_sc_data_array[ic[0]][ic[1]] * 1.0 <<" for corner number: "<<corner_index <<std::endl;
+                            }
+                            //this is interpolating the raw nodal values, uncorrected
+
                             const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_upper[0] - ic[0]] +
                                                  n_qp[s * NDIM + 1] * wr[1][ic_upper[1] - ic[1]];
                             if (d_use_velocity_jump_conditions)
                             {
                                 const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][axis] : 0.0;
                                 U_axis[s] -= CC / mu;
+                                //std::cout<<"mu is: "<< mu<<"\n";
                             }
+
+                            if(d_use_second_velocity_correction){
+                                    U_axis[s] +=  Ujump_secondary[ic[0]][ic[1]][axis] / mu;
+                                    //we add this regardless. if no second cut, then contribution is 0
+                            }
+
 #endif
+                            //std::cout<<U_axis[s]<<" is the u-velo at qp " << s << "\n";
+
 #if (NDIM == 3)
 
                             U_axis[s] += w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] *
@@ -1258,14 +2233,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                                 const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][ic[2]][axis] : 0.0;
                                 U_axis[s] -= CC / mu;
                             }
-#endif
+                        
+#endif                  
+                       
+                        }
+                        if(k == 0 && axis == 0){
+                            //std::cout<<U_axis[s]<<" is the u-velo on the interface.\n";
                         }
                     }
+                    //end of local indices loop (this box's qps)
                     if (d_use_velocity_jump_conditions)
                     {
                         for (unsigned int k = 0; k < local_indices.size(); ++k)
                         {
                             U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
+
                             if (dh != 0.0)
                             {
                                 WSS_in_qp[NDIM * local_indices[k] + axis] =
@@ -1336,6 +2318,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
+                    n = IIMethod::evaluateNormalVectors(true, qp, false, elem, x_node, phi_X, dphi_dxi, part);
+                    /*
                     for (unsigned int k = 0; k < NDIM - 1; ++k)
                     {
                         interpolate(dx_dxi[k], qp, x_node, *dphi_dxi[k]);
@@ -1345,6 +2329,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                     }
                     n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+                    */
+                    n = n.unit();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         U(d) = U_qp[NDIM * (qp_offset + qp) + d];
@@ -1365,7 +2351,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                             U_n_rhs_e[d](k) += U_n(d) * p_JxW;
                             U_t_rhs_e[d](k) += U_t(d) * p_JxW;
                         }
+                        //std::cout <<"x-velo at pt: "<<k << " is "<<U_rhs_e[0]<<"\n";
                     }
+                    
                     if (d_use_velocity_jump_conditions)
                     {
                         for (unsigned int k = 0; k < n_basis_jump; ++k)
@@ -1466,19 +2454,23 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X_current_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "current", part); //d_X_current_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X_half_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "half", part); //d_X_half_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X_new_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "half", part); //d_X_new_vecs[part];
     }
-    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+    NumericVector<double>* X_ghost_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "ib_ghost", part); //d_X_IB_ghost_vecs[part];
     copy_and_synch(*X_vec, *X_ghost_vec);
-
+    //the following are used for phong shading
+    if(d_use_phong_normals){
+        setupPhongNormalVectors(true,part,X_ghost_vec);//current configuration node normals list
+        setupPhongNormalVectors(false,part,X_ghost_vec);//reference configuration node normals list
+    }
     WSS_in_vec = d_WSS_in_half_vecs[part];
     copy_and_synch(*WSS_in_vec, *WSS_in_ghost_vec);
 
@@ -1584,6 +2576,8 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
+    //NumericVector<double>* X0_vec = getMeshCoordinatesNumeric(false, "reference", part);
+
     std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
     copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
     X0_vec->close();
@@ -1707,6 +2701,14 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
             {
                 interpolate(X, qp, X_node, phi_X);
                 interpolate(x, qp, x_node, phi_X);
+
+                n = IIMethod::evaluateNormalVectors(true, qp, false, elem, x_node,phi_X, dphi_dxi_X, part);
+                N = IIMethod::evaluateNormalVectors(false, qp, false, elem, X_node,phi_X, dphi_dxi_X, part);
+                const double dA = N.norm();
+                N = N.unit();
+                const double da = n.norm();
+                n = n.unit();
+                /*
                 for (unsigned int k = 0; k < NDIM - 1; ++k)
                 {
                     interpolate(dX_dxi[k], qp, X_node, *dphi_dxi_X[k]);
@@ -1725,7 +2727,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
                 n = dx_dxi[0].cross(dx_dxi[1]);
                 const double da = n.norm();
                 n = n.unit();
-
+                */
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     for (unsigned int k = 0; k < n_node; ++k)
@@ -1888,7 +2890,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
     NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
     NumericVector<double>* X_vec = NULL;
-    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+    NumericVector<double>* X_ghost_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "ib_ghost", part); //d_X_IB_ghost_vecs[part];
 
     std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
@@ -1900,15 +2902,15 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X_current_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "current", part); //d_X_current_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X_half_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "half", part); //d_X_half_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X_new_vecs[part];
+        X_vec = getMeshCoordinatesNumeric(d_use_current_mesh_configuration, "new", part); //d_X_new_vecs[part];
     }
     copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -1967,6 +2969,10 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
     X_ghost_vec->close();
+    //setup nodal normals to be used with the phong vectors in current config
+    if(d_use_phong_normals){
+        setupPhongNormalVectors(true,part,X_ghost_vec);
+    }
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2013,7 +3019,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         // Setup vectors to store the values of U and X at the quadrature
         // points.
         //
-        // All this loop is doing is computing the total number of quadraturee
+        // All this loop is doing is computing the total number of quadrature
         // points associated with all of the elements we are currently
         // processing.  That number is n_qp_patch.
         unsigned int n_qp_patch = 0;
@@ -2096,6 +3102,9 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
+                n = IIMethod::evaluateNormalVectors(true, qp, false, elem, x_node, phi_X, dphi_dxi_X, part);
+
+                /*
                 for (unsigned int k = 0; k < NDIM - 1; ++k)
                 {
                     interpolate(dx_dxi[k], qp, x_node, *dphi_dxi_X[k]);
@@ -2105,7 +3114,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
                     dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                 }
                 n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
+                */
+                n = n.unit();
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     for (unsigned int k = 0; k < n_node; ++k)
@@ -2403,11 +3413,13 @@ IIMethod::computeLagrangianForce(const double data_time)
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* F_vec = d_F_half_vecs[part];
         std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        NumericVector<double>* Normal_vec = d_smoothed_normal[part];
+        std::unique_ptr<NumericVector<double> > Normal_rhs_vec = Normal_vec->zero_clone();
         std::array<DenseVector<double>, NDIM> F_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
 
-        NumericVector<double>* X_vec = d_X_half_vecs[part];
+        NumericVector<double>* X_vec = getMeshCoordinatesNumeric(true, "half", part); //d_X_half_vecs[part];
         double surface_area = 0.0;
 
         NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump_half_vecs[part] : nullptr;
@@ -2441,6 +3453,14 @@ IIMethod::computeLagrangianForce(const double data_time)
         {
             TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
         }
+
+        System* smoothed_normal_system = &equation_systems->get_system(SMOOTHED_NORMAL_SYSTEM_NAME);
+        const DofMap* smoothed_normal_dof_map = &smoothed_normal_system->get_dof_map();
+        FEType smoothed_normal_fe_type = smoothed_normal_dof_map->variable_type(0);
+        std::unique_ptr<FEBase> fe_smoothed_normal = FEBase::build(dim, smoothed_normal_fe_type);
+        FEDataManager::SystemDofMapCache& smoothed_normal_dof_map_cache =
+        *d_fe_data_managers[part]->getDofMapCache(SMOOTHED_NORMAL_SYSTEM_NAME);
+        std::array<DenseVector<double>, NDIM> Normal_rhs_e;
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -2504,6 +3524,11 @@ IIMethod::computeLagrangianForce(const double data_time)
         dphi_dxi_X[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
+        std::unique_ptr<FEBase> fe_N = FEBase::build(dim, smoothed_normal_fe_type);
+        fe_N->attach_quadrature_rule(qrule.get());
+                const std::vector<double>& JxW_N = fe_N->get_JxW();
+        const std::vector<std::vector<double> >& phi_N = fe_N->get_phi();
+
         FEType fe_jump_type = INVALID_FE;
         if (d_use_pressure_jump_conditions)
         {
@@ -2534,19 +3559,106 @@ IIMethod::computeLagrangianForce(const double data_time)
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
-        boost::multi_array<double, 2> X_node, x_node;
+        boost::multi_array<double, 2> X_node, x_node, Normal_node, Smoothed_Normal_node;
         double DU[NDIM][NDIM];
         TensorValue<double> FF;
-        VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
+        VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x, Normal_qp, normal, Smoothed_Normal;
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
+
+        //construct the appropriate nodal normals matricies before 
+        //evaluating normal vectors
+        if(d_use_phong_normals){
+            setupPhongNormalVectors(false,part, X_vec);//reference configuration node normals list
+            setupPhongNormalVectors(true,part, X_vec);//current configuration node normals list
+        }
+
         const auto el_begin = mesh.active_local_elements_begin();
         const auto el_end = mesh.active_local_elements_end();
+
+                        /////////////////////smoothing normal -- Qi Code /////////////
+        if (d_use_smoothed_normal)
+        {
+            pout << "IIMethod: Entering smoothed normal calculation loop.\n";
+            for (auto el_it = el_begin; el_it != el_end; ++el_it)
+            {
+                auto elem = *el_it;
+
+                const auto& Normal_dof_indices =
+                    smoothed_normal_dof_map_cache.dof_indices(elem); // F_dof_map_cache.dof_indices(elem);
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
+                
+
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    Normal_rhs_e[d].resize(static_cast<int>(Normal_dof_indices[d].size()));
+                    Normal_rhs_e[d].zero(); // <--- THIS WAS MISSING
+                }
+                fe_X->reinit(elem);
+                fe_N->reinit(elem);
+
+                fe_interpolator.reinit(elem);
+                fe_interpolator.collectDataForInterpolation(elem);
+                fe_interpolator.interpolate(elem);
+
+                get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
+                const unsigned int n_qpoints = qrule->n_points();
+                const size_t n_basis = phi_X.size();
+                const size_t n_basis2 = phi_jump.size();
+                const size_t n_basis3 = phi_N.size();
+
+                for (unsigned int qp = 0; qp < n_qpoints; ++qp)
+                {
+                    interpolate(x, qp, x_node, phi_X);
+                    for (unsigned int k = 0; k < NDIM - 1; ++k)
+                    {
+                        interpolate(dx_dxi[k], qp, x_node, *dphi_dxi_X[k]);
+                    }
+                    if (NDIM == 2)
+                    {
+                        dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+                    }
+
+                    n = dx_dxi[0].cross(dx_dxi[1]);
+                    const double da = n.norm();
+
+                    n = n.unit();
+                    // Add the boundary forces to the right-hand-side vector.
+                    for (unsigned int k = 0; k < n_basis3; ++k)
+                    {
+                        Normal_qp = n * phi_N[k][qp] * JxW_N[qp]; // n * phi_X[k][qp] * JxW[qp];
+                        for (unsigned int i = 0; i < NDIM; ++i)
+                        {
+                            Normal_rhs_e[i](k) += Normal_qp(i);
+                        }
+                    }
+                }
+                // Apply constraints (e.g., enforce periodic boundary conditions)
+                // and add the elemental contributions to the global vector.
+
+                for (unsigned int i = 0; i < NDIM; ++i)
+                {
+                    copy_dof_ids_to_vector(i, Normal_dof_indices, dof_id_scratch);
+                    smoothed_normal_dof_map->constrain_element_vector(Normal_rhs_e[i],
+                                                                      dof_id_scratch); // F_dof_map.constrain_element_vector(Normal_rhs_e[i],
+                                                                                       // dof_id_scratch);
+                    Normal_rhs_vec->add_vector(Normal_rhs_e[i], dof_id_scratch);
+                }
+            }
+            // SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+            Normal_rhs_vec->close();
+            d_fe_data_managers[part]->computeL2Projection(
+                *Normal_vec, *Normal_rhs_vec, SMOOTHED_NORMAL_SYSTEM_NAME);
+            Normal_vec->close();
+        }
+        
+        ///////////////////////////////////////////////
         for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             auto elem = *el_it;
             const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
+            const auto& smoothed_normal_dof_indices = smoothed_normal_dof_map_cache.dof_indices(elem);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2580,6 +3692,10 @@ IIMethod::computeLagrangianForce(const double data_time)
             {
                 fe_jump->reinit(elem);
             }
+            if (d_use_smoothed_normal)
+            {
+                get_values_for_interpolation(Normal_node, *Normal_vec, smoothed_normal_dof_indices);
+            }
 
             get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
             get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
@@ -2590,6 +3706,18 @@ IIMethod::computeLagrangianForce(const double data_time)
             {
                 interpolate(X, qp, X_node, phi_X);
                 interpolate(x, qp, x_node, phi_X);
+                n = IIMethod::evaluateNormalVectors(true, qp, d_use_phong_normals, elem, x_node, phi_X, dphi_dxi_X, part); 
+                N = IIMethod::evaluateNormalVectors(false, qp, d_use_phong_normals, elem, X_node, phi_X, dphi_dxi_X, part);
+                const double dA = N.norm();
+                N = N.unit();
+                const double da = n.norm();
+                n = n.unit();
+
+                if (d_use_smoothed_normal)
+                {
+                    interpolate(normal, qp, Normal_node, phi_N);
+                }
+                /*
                 for (unsigned int k = 0; k < NDIM - 1; ++k)
                 {
                     interpolate(dX_dxi[k], qp, X_node, *dphi_dxi_X[k]);
@@ -2609,7 +3737,12 @@ IIMethod::computeLagrangianForce(const double data_time)
                 n = dx_dxi[0].cross(dx_dxi[1]);
                 const double da = n.norm();
                 n = n.unit();
-
+                */
+                if (d_use_smoothed_normal)
+                {
+                    n = normal;
+                    n = n.unit();
+                }
                 F.zero();
 
                 if (d_lag_surface_pressure_fcn_data[part].fcn)
@@ -2812,8 +3945,9 @@ IIMethod::spreadForce(const int f_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+
+        PetscVector<double>* X_vec = getMeshCoordinatesPetsc(d_use_current_mesh_configuration, "half", part); //d_X_half_vecs[part];
+        PetscVector<double>* X_ghost_vec = getMeshCoordinatesPetsc(d_use_current_mesh_configuration, "ib_ghost", part); //d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
@@ -2983,11 +4117,19 @@ IIMethod::initializeFEEquationSystems()
                     system.add_variable(vector_variable_prefixes[i] + "_" + std::to_string(d), d_fe_order[part], vector_fe_family[i]);
                 }
             }
+            const auto smoothed_normal_family = d_use_smoothed_normal ? d_smoothed_normal_fe_family : d_fe_family[part];
+
+            auto& system = equation_systems->add_system<System>(SMOOTHED_NORMAL_SYSTEM_NAME);
+            
+              for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                system.add_variable("N_" + std::to_string(d), d_smoothed_normal_fe_order, smoothed_normal_family);
+            }
 
             equation_systems->get_system(COORDS_SYSTEM_NAME).add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
             // scalar FE systems:
-            if (d_use_pressure_jump_conditions)
+            if(true)//(d_use_pressure_jump_conditions)
             {
                 System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 System& P_in_system = equation_systems->add_system<System>(PRESSURE_IN_SYSTEM_NAME);
@@ -3062,6 +4204,10 @@ IIMethod::initializeFEData()
 
         F_system.assemble_before_solve = false;
         F_system.assemble();
+
+        auto& N_system = equation_systems->get_system<System>(SMOOTHED_NORMAL_SYSTEM_NAME);
+        N_system.assemble_before_solve = false;
+        N_system.assemble();
 
         if (d_use_pressure_jump_conditions)
         {
@@ -3293,6 +4439,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                const double /*data_time*/,
                                const unsigned int part)
 {
+    NumericVector<double>* x_current_vec = dynamic_cast<NumericVector<double>*>(&X_ghost_vec);
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -3338,6 +4485,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
     FEType fe_type = X_fe_type;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
+    const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
     std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
@@ -3359,6 +4507,11 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+        //obtain the nodal normal vectors for phong shading -- only use for P1 elements
+    if(d_use_phong_normals){
+        setupPhongNormalVectors(true,part,x_current_vec);
+    }
+    int intersection_num = 0;
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -3422,6 +4575,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                     const auto& DU_jump_dof_indices = DU_jump_dof_map_cache[axis]->dof_indices(elem);
                     get_values_for_interpolation(DU_jump_node[axis], *DU_jump_ghost_vec[axis], DU_jump_dof_indices);
                 }
+
             }
 
             // Cache the nodal and physical coordinates of the side element,
@@ -3476,6 +4630,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
+            
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box<NDIM> extended_box = patch_box;
@@ -3524,7 +4679,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                              x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                         }
                     }
-
+                    
+                    //std::cout << "on elem number "<< e_idx <<", r is: "<<r<<", and q is: "<<q<<"\n";
                     std::vector<std::pair<double, libMesh::Point> > intersections;
                     std::array<std::vector<std::pair<double, libMesh::Point> >, NDIM - 1> intersectionsSide;
 
@@ -3551,6 +4707,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         for (unsigned int k = 0; k < intersections.size(); ++k)
                         {
                             const libMesh::Point x = r + intersections[k].first * q;
+                            //std::cout<< "intersection found at: "<<x<<"\n";
                             const libMesh::Point& xi = intersections[k].second;
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = boost::math::iround((x(axis) - x_lower[axis]) / dx[axis]) + patch_lower[axis];
@@ -3559,6 +4716,9 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 std::vector<libMesh::Point> ref_coords(1, xi);
                                 fe_X->reinit(elem, &ref_coords);
                                 fe_P_jump->reinit(elem, &ref_coords);
+                                n = IIMethod::evaluateNormalVectors(true, 0, false, elem, x_node, phi_X, dphi_dxi, part);
+
+                                /*
                                 for (unsigned int l = 0; l < NDIM - 1; ++l)
                                 {
                                     interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
@@ -3568,6 +4728,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                                 }
                                 n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+                                */
+                                n = n.unit();
 
                                 // Make sure we haven't already found this
                                 // intersection.
@@ -3599,6 +4761,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                                                         candidate_ref_coords,
                                                                         candidate_normals);
                                     if (found_same_intersection_point) break;
+                                    
                                 }
 
                                 if (!found_same_intersection_point)
@@ -3607,9 +4770,14 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     // to the Eulerian grid.
                                     if (side_ghost_boxes[axis].contains(i_s))
                                     {
-                                        const double C_p = interpolate(0, P_jump_node, phi_P_jump);
+                                        
+                                        double C_p = interpolate(0, P_jump_node, phi_P_jump);
                                         const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                        if(d_use_handfilled_jc_for_force_spreading){
+                                            C_p = 0.0;
+                                        }
                                         (*f_data)(i_s) += sgn * (C_p / dx[axis]);
+                                        intersection_num++;
                                     }
 
                                     // Keep track of the positions where we have
@@ -3627,6 +4795,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         for (unsigned int k = 0; k < intersections.size(); ++k)
                         {
                             libMesh::Point xu = r + intersections[k].first * q;
+                            //std::cout<< "intersection found at: "<<xu<<"\n";
                             const libMesh::Point& xui = intersections[k].second;
                             SideIndex<NDIM> i_s_um(i_c, axis, 0);
                             Index<NDIM> i_c_neighbor = i_c;
@@ -3643,6 +4812,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 std::vector<libMesh::Point> ref_coords(1, xui);
                                 fe_X->reinit(elem, &ref_coords);
                                 fe_P_jump->reinit(elem, &ref_coords);
+                                n = IIMethod::evaluateNormalVectors(true, 0, false, elem, x_node, phi_X, dphi_dxi, part);
+                                /*
                                 for (unsigned int l = 0; l < NDIM - 1; ++l)
                                 {
                                     interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
@@ -3652,7 +4823,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                                 }
                                 n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
+                                */
+                                n = n.unit();
                                 bool found_same_intersection_point = false;
 
                                 for (int shift = -1; shift <= 1; ++shift)
@@ -3696,6 +4868,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
 
                                     const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
+                                    //std::cout << "sdh_up is: "<<sdh_up <<"\n";
+                                    //std::cout << "sdh_um is: "<<sdh_um <<"\n";
                                     TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
                                     TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
                                     if (side_ghost_boxes[axis].contains(i_s_up) &&
@@ -3705,13 +4879,31 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         double C_u_up = 0;
 
                                         interpolate(&jn(0), 0, DU_jump_node[axis], phi_P_jump);
+                                        if(d_use_handfilled_jc_for_force_spreading){
+                                            if(axis == 0){
+                                                jn(0) = 0.0;
+                                                jn(1) = d_handfilled_jc;
+                                            }
+                                            else{
+                                                jn(0) = 0.0;
+                                                jn(1) = 0.0;
+                                            }
+                                            
+                                        }
+
                                         C_u_up = sdh_up * jn(axis);
                                         C_u_um = sdh_um * jn(axis);
-
+                                        //std::cout << "jn on axis "<<axis<< " is "<<jn(axis) <<"\n";
+                                        //std::cout << "C_u_up is: "<<C_u_up <<"\n";
+                                        //std::cout << "C_u_um is: "<<C_u_um <<"\n";
                                         const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
                                         // Note that the corrections are applied to opposite sides
                                         (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
                                         (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
+                                        intersection_num++;
+                                        //std::cout << "(*f_data)(i_s_up): "<<(*f_data)(i_s_up)<<"\n";
+                                        //std::cout << "(*f_data)(i_s_um): "<<(*f_data)(i_s_um) <<"\n";
+
                                     }
 
                                     // Keep track of the positions where we have
@@ -3816,6 +5008,9 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     std::vector<libMesh::Point> ref_coords(1, xui);
                                     fe_X->reinit(elem, &ref_coords);
                                     fe_P_jump->reinit(elem, &ref_coords);
+                                    n = IIMethod::evaluateNormalVectors(true, 0, false, elem, x_node, phi_X, dphi_dxi, part);
+
+                                    /*
                                     for (unsigned int l = 0; l < NDIM - 1; ++l)
                                     {
                                         interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
@@ -3825,7 +5020,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
                                     }
                                     n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
+                                    */
+                                    n = n.unit();
                                     bool found_same_intersection_point = false;
 
                                     for (int shift = -1; shift <= 1; ++shift)
@@ -3878,13 +5074,28 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                             double C_u_up = 0;
 
                                             interpolate(&jn(0), 0, DU_jump_node[SideDim[axis][j]], phi_P_jump);
+                                            if(d_use_handfilled_jc_for_force_spreading){
+                                                if(axis == 0){
+                                                    jn(0) = 0.0;
+                                                    jn(1) = d_handfilled_jc;
+                                                }
+                                                else{
+                                                    jn(0) = 0.0;
+                                                    jn(1) = 0.0;
+                                                }
+                                            
+                                            }
                                             C_u_um = sdh_um * jn(axis);
                                             C_u_up = sdh_up * jn(axis);
-
+                                            //std::cout << "jn on axis "<<axis<< " is "<<jn(axis) <<"\n";
+                                            //std::cout << "C_u_up is: "<<C_u_up <<"\n";
+                                            //std::cout << "C_u_um is: "<<C_u_um <<"\n";
                                             const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
                                             (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
                                             (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
+                                            //std::cout << "(*f_data)(i_s_up): "<<(*f_data)(i_s_up)<<"\n";
+                                            //std::cout << "(*f_data)(i_s_um): "<<(*f_data)(i_s_um) <<"\n";
                                         }
                                         intersectionSide_u_points[j][axis][i_s_um].push_back(xu);
                                         intersectionSide_u_ref_coords[j][axis][i_s_um].push_back(xui);
@@ -3896,13 +5107,14 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                     }
                 }
             }
-
+            
             // Restore the element coordinates.
             for (unsigned int k = 0; k < n_nodes; ++k)
             {
                 elem->point(k) = X_node_cache[k];
             }
         }
+        //std::cout<<"num intersections found: "<<intersection_num<<"\n";
     }
 
     return;
@@ -4124,21 +5336,52 @@ IIMethod::commonConstructor(const std::string& object_name,
     d_normalize_pressure_jump.resize(d_num_parts);
     d_use_discon_elem_for_jumps.resize(d_num_parts);
 
+    d_bounding_boxes.resize(d_num_parts);
+
+
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const MeshBase& mesh = *meshes[part];
+        d_reference_nodal_normals.emplace_back(mesh.n_nodes(), 3);
+        d_current_nodal_normals.emplace_back(mesh.n_nodes(), 3);
+        d_weights.emplace_back(mesh.n_nodes(), mesh.n_elem());
+        d_elem_normals.emplace_back(mesh.n_elem(), 3);
+
+        
         bool mesh_has_first_order_elems = false;
         bool mesh_has_second_order_elems = false;
         auto el_it = mesh.elements_begin();
         const auto el_end = mesh.elements_end();
+
+        
+        (d_bounding_boxes[part]).resize(mesh.n_elem());
+        int elem_num = 0;
         for (; el_it != el_end; ++el_it)
         {
             auto elem = *el_it;
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+
+            d_bounding_boxes[part][elem_num] = ((elem)->loose_bounding_box());
+            elem_num++;
         }
+        
+        //setup bounding boxes in the initial configuration
+        //this is not updated if !d_use_current_mesh_configuration
+        //std::vector<std::vector<libMesh::BoundingBox>> d_bounding_boxes(d_num_parts, ); 
+        //using RTreeType = decltype(IBTK::pack_rtree_of_indices(d_bounding_boxes[0]));
+        //std::vector<std::unique_ptr<RTreeType>> d_rtrees;
+
+        //for (auto el_it = mesh.elements_begin(); el_it != el_end; ++el_it ){
+        //    d_bounding_boxes[part].emplace_back((*el_it)->loose_bounding_box());
+        //}
+        d_rtrees.emplace_back( std::make_unique<RTreeType>(IBTK::pack_rtree_of_indices(d_bounding_boxes[part])));
+        
+    
+
+
         mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
         mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
@@ -4236,6 +5479,16 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
     else if (db->isBool("IB_use_nodal_quadrature"))
         d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+    if (db->isBool("use_phong_normals"))
+        d_use_phong_normals = db-> getBool("use_phong_normals");
+    if (db->isBool("use_current_mesh_configuration"))
+        d_use_current_mesh_configuration = db -> getBool("use_current_mesh_configuration");
+    if (db->isBool("use_handfilled_jc_for_interpolation"))
+        d_use_handfilled_jc_for_interpolation = db -> getBool("use_handfilled_jc_for_interpolation");
+    if (db->isBool("use_handfilled_jc_for_force_spreading"))
+        d_use_handfilled_jc_for_force_spreading = db -> getBool("use_handfilled_jc_for_force_spreading");
+    if (db->isDouble("handfilled_jc"))
+        d_handfilled_jc = db->getDouble("handfilled_jc");
 
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
@@ -4280,7 +5533,9 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         if (db->isString("pressure_jump_fe_family"))
             d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
     }
-
+    if (db->isBool("use_second_velocity_correction")){
+        d_use_second_velocity_correction = db->getBool("use_second_velocity_correction");
+    }
     if (db->isBool("use_velocity_jump_conditions"))
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
     if (d_use_velocity_jump_conditions)
@@ -4323,6 +5578,16 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isDouble("min_ghost_cell_width"))
     {
         d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
+    }
+
+        
+    if (db->isBool("use_smoothed_normal"))
+    {
+       if (db->isString("smoothed_normal_fe_family"))
+            d_smoothed_normal_fe_family = Utility::string_to_enum<FEFamily>(db->getString("smoothed_normal_fe_family"));
+        if (db->isString("smoothed_normal_fe_order"))
+            d_smoothed_normal_fe_order = Utility::string_to_enum<Order>(db->getString("smoothed_normal_fe_order"));
+        d_use_smoothed_normal = db->getBool("use_smoothed_normal");
     }
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");

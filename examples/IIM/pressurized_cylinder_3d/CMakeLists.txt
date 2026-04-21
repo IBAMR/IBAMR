@@ -1,0 +1,23 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-pressurized_cylinder-3d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/pressurized_cylinder_3d"
+  OUTPUT_NAME
+    main3d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR3d
+  INPUT_FILES
+    input3d_pressure
+    input3d_poiseuille
+  EXTRA_FILES
+    cylinder-mesh-0.5.msh
+    cylinder-mesh-0.25.msh
+    cylinder-mesh-0.375.msh
+    )

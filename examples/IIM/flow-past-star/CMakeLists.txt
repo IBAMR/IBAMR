@@ -1,0 +1,20 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-flow_past_star-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/flow_past_star"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  EXTRA_FILES
+    star_mfac1.5.msh
+    )

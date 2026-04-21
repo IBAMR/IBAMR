@@ -1,3 +1,15 @@
+*.samrai
+*.ex2
+*.log
+*:Zone.Identifier
+
+**/viz_II_2D_N_128_pbc_normjump
+**/hier_data_II2d_N_128_pbc_normjump
+**/CMakeFiles
+**/viz_*
+**/hier_data*
+
+
 ### Generated autotools
 
 ibtk/contrib/autotools/bin
@@ -175,5 +187,4 @@ configure.log.bkp
 RDict.log
 build-*.sh
 objs-*
-*.py
-*.sh
+

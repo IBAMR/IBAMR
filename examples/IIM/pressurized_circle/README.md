@@ -1,0 +1,1 @@
+This example tests the capabilities of the smoothed normals (ICW or projected) on the enforcement of the non-penetration condition for a cylinder in two spatial dimensions. https://arxiv.org/pdf/2603.07248.

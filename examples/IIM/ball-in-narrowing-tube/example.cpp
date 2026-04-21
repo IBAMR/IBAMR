@@ -77,7 +77,7 @@ static BoundaryInfo* lag_bdry_info;
 
 // Tether (penalty) force function for the solid blocks.
 static double kappa_s = 1.0e6;
-static double kappa_plate = 1.0e3;
+static double kappa_stationary = 1.0e3;
 static double eta_s = 1.0e6;
 static double DX = 0.01;
 static double DT = 0.001;
@@ -259,7 +259,7 @@ tether_force_function(VectorValue<double>& F,
 } // tether_force_function
 
 void
-tether_force_function_lower(VectorValue<double>& F,
+tether_force_function_stationary(VectorValue<double>& F,
                       const VectorValue<double>& n,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
@@ -275,10 +275,10 @@ tether_force_function_lower(VectorValue<double>& F,
                         const std::vector<double>& u = *var_data[0];   
                         for (unsigned int d = 0; d < NDIM; ++d)
 	                    {
-                            F(d) = kappa_plate * (X(d) - x(d)) - eta_s * u[d];
+                            F(d) = kappa_stationary * (X(d) - x(d)) - eta_s * u[d];
                         }
                         return;
-                      }//tether_force_function_lower
+                      }//tether_force_function_stationary
 void
 PK1_dev_stress_function_disk(TensorValue<double>& PP,
                              const TensorValue<double>& FF,
@@ -386,7 +386,11 @@ main(int argc, char* argv[])
         const string exodus_filename = viz_dump_dirname + "/disk.ex2";
         const string exodus_bndry_filename = viz_dump_dirname + "/disk_bndry.ex2";
         const string exodus_lower_filename = viz_dump_dirname + "/lower.ex2";
-
+        const string exodus_upper_filename = viz_dump_dirname + "/upper.ex2";
+        const string exodus_blockage_filename = viz_dump_dirname + "/blockage.ex2";
+        const string exodus_blockage2_filename = viz_dump_dirname + "/blockage2.ex2";
+        const string exodus_blockage_back_filename = viz_dump_dirname + "/blockage_back.ex2";
+	const int aaaaa = 19;
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
@@ -411,19 +415,22 @@ main(int argc, char* argv[])
 
         const double left_end = input_db->getDouble("LEFT_END");
         const double right_end = input_db->getDouble("RIGHT_END");
-        const double bottom_plane_height = input_db->getDouble("BOTTOM_PLANE_HEIGHT");
+        const double lower_plate_height = input_db->getDouble("LOWER_PLATE_HEIGHT");
+        const double upper_plate_height = input_db->getDouble("UPPER_PLATE_HEIGHT");
         const double length_plate = right_end - left_end;
         const unsigned int n_elem_gen = static_cast<int>(length_plate/ds);
-        const double initial_com_x = input_db->getDouble("COM_X");
-        const double initial_com_y = input_db->getDouble("COM_Y");
-        const double initial_radius = input_db->getDouble("RADIUS");
-        const string mesh_name = input_db->getString("MESH_NAME");
-        const bool use_gmesh_input = input_db->getBool("USE_GMSH_INPUT");
+        const double initial_com_x = input_db->getDouble("BALL_COM_X");
+        const double initial_com_y = input_db->getDouble("BALL_COM_Y");
+        const double initial_radius = input_db->getDouble("BALL_RADIUS");
 
-        kappa_plate = input_db->getDouble("KAPPA_PLATE");
+        const bool use_rectangular_blockage = input_db->getBool("USE_RECTANGULAR_BLOCKAGE");
+        //const string mesh_name = input_db->getString("MESH_NAME");
+        //const bool use_gmesh_input = input_db->getBool("USE_GMSH_INPUT");
+
+        kappa_stationary = input_db->getDouble("KAPPA_STATIONARY");
 
         string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = 0.1;
+        const double R = initial_radius;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
@@ -475,7 +482,7 @@ main(int argc, char* argv[])
             Node* n = *it;
             libMesh::Point& X = *n;
             X(0) += initial_com_x;
-            X(1) += initial_com_y;//adjusts the center of the circle
+            X(1) += initial_com_y; //adjusts the center of the circle
         }
 
         mesh.prepare_for_use();
@@ -485,42 +492,164 @@ main(int argc, char* argv[])
         boundary_mesh.prepare_for_use();
 
         //setup lower interface
-        Mesh mesh_lower(init.comm(), NDIM);
+        Mesh mesh_lower(init.comm(), NDIM-1);
+        Mesh mesh_upper(init.comm(), NDIM-1);
 
-
+/*
         libMesh::GmshIO gmsh_io(mesh_lower);
         if(use_gmesh_input){
             gmsh_io.read(mesh_name);//only do this if we dont want to use the generic plate
         }
+        */
 
-        else{
-            //create bottom plate
-            int node_id = 0;
-            mesh_lower.get_boundary_info().clear_boundary_node_ids();
+        //else{
 
-            
-            for (unsigned int i = 0; i <= n_elem_gen; i++){
-                mesh_lower.add_point(libMesh::Point(right_end - ds * i, bottom_plane_height),node_id++); //generate opposite direction so that n is opposite of upper plate
+// ---------------------------------------------------------------------
+        // MODIFIED MESH GENERATION START
+        // ---------------------------------------------------------------------
+
+        // Read new geometric parameters for the narrowing
+        // MIN_GAP: The smallest distance between plates at the center (x=0)
+        // NARROWING_WIDTH: The total length of the narrowing region
+        const double initial_gap = upper_plate_height - lower_plate_height;
+        const double min_gap = input_db->getDoubleWithDefault("MIN_GAP", initial_gap); 
+        const double narrowing_width = input_db->getDoubleWithDefault("NARROWING_WIDTH", 2.0);
+        
+        // Calculate the amplitude of the bump needed on EACH plate
+        // Total constriction = initial_gap - min_gap. 
+        // We apply half of this to the top and half to the bottom to keep it symmetric.
+        const double bump_amplitude = (initial_gap - min_gap) / 2.0;
+
+        // Lambda function for the smooth cosine bump
+        // Returns the displacement to ADD to the bottom or SUBTRACT from the top
+        auto get_bump_height = [&](double x_coord) {
+            // Check if we are within the narrowing region (centered at x=0)
+            if (std::abs(x_coord) < (narrowing_width / 2.0)) {
+                // Map x from [-Width/2, Width/2] to [-Pi, Pi]
+                double phi = (x_coord / (narrowing_width / 2.0)) * M_PI;
+                // Cosine function: 0.5 * (1 + cos(phi)) varies smoothly from 0 to 1 to 0
+                return bump_amplitude * 0.5 * (1.0 + std::cos(phi));
             }
+            return 0.0;
+        };
 
+        // --- CREATE LOWER PLATE ---
+        int node_id = 0;
+        mesh_lower.get_boundary_info().clear_boundary_node_ids();
+
+        for (unsigned int i = 0; i <= n_elem_gen; i++) {
+            double x_val = right_end - ds * i;
+            double y_base = lower_plate_height;
             
-            //add Elems using adjacent nodes
-            for (unsigned int i = 0; i < n_elem_gen; i++){
-                Elem* elem = mesh_lower.add_elem(new Edge2);
-                elem->set_node(0) = mesh_lower.node_ptr(i);
-                elem->set_node(1) = mesh_lower.node_ptr(i+1);
-            }
-
+            // Add the bump to the base height (moving it upwards)
+            double y_val = y_base + get_bump_height(x_val);
+            
+            mesh_lower.add_point(libMesh::Point(x_val, y_val), node_id++);
+        }
+        
+        for (unsigned int i = 0; i < n_elem_gen; i++) {
+            Elem* elem = mesh_lower.add_elem(new Edge2);
+            elem->set_node(0) = mesh_lower.node_ptr(i);
+            elem->set_node(1) = mesh_lower.node_ptr(i + 1);
         }
         mesh_lower.prepare_for_use();
 
-        const int CIRCLE_MESH_ID = 1;
-        const int LOWER_MESH_ID = 0;
+        // --- CREATE UPPER PLATE ---
+        node_id = 0;
+        mesh_upper.get_boundary_info().clear_boundary_node_ids();
+        
+        for (unsigned int i = 0; i <= n_elem_gen; i++) {
+            double x_val = left_end + ds * i;
+            double y_base = upper_plate_height;
+
+            // Subtract the bump from the base height (moving it downwards)
+            double y_val = y_base - get_bump_height(x_val);
+
+            mesh_upper.add_point(libMesh::Point(x_val, y_val), node_id++);
+        }
+        
+        for (unsigned int i = 0; i < n_elem_gen; i++) {
+            Elem* elem = mesh_upper.add_elem(new Edge2);
+            elem->set_node(0) = mesh_upper.node_ptr(i);
+            elem->set_node(1) = mesh_upper.node_ptr(i + 1);
+        }
+        mesh_upper.prepare_for_use();
+        
+        // ---------------------------------------------------------------------
+        // MODIFIED MESH GENERATION END
+        // ---------------------------------------------------------------------
+        /*
+        Mesh mesh_solid_blockage(init.comm(), NDIM);
+        Mesh mesh_solid_blockage2(init.comm(), NDIM);
+        Mesh mesh_solid_blockage_back(init.comm(),NDIM);
+
+        
+
+        if(use_rectangular_blockage){
+            //upper block
+            const double blockage_width = 0.26;
+            const double blockage_height = 0.20;
+            const double blockage_nx = static_cast<int>(blockage_width/ds);
+            const double blockage_ny = static_cast<int>(blockage_height/ds);
+                                //build_square(&mesh,nx,ny,xmin,xmax,ymin,ymax,elem_type,false(optional))
+            MeshTools::Generation::build_square(mesh_solid_blockage, blockage_nx, blockage_ny, 1 - blockage_width, 1, (upper_plate_height-0.01)-blockage_height,(upper_plate_height-DX*2.5), Utility::string_to_enum<ElemType>("TRI3"));
+
+            //lower block
+            const double blockage_width_2 = 0.26;
+            const double blockage_height_2 = 0.20;
+            const double blockage_nx_2 = static_cast<int>(blockage_width_2/ds);
+            const double blockage_ny_2 = static_cast<int>(blockage_height_2/ds);
+                                //build_square(&mesh,nx,ny,xmin,xmax,ymin,ymax,elem_type,false(optional))
+            MeshTools::Generation::build_square(mesh_solid_blockage2, blockage_nx_2, blockage_ny_2, 1 - blockage_width_2, 1, (lower_plate_height+DX*2.5),(lower_plate_height+0.01)+blockage_height_2, Utility::string_to_enum<ElemType>("TRI3"));
+
+            //backboard block
+            const double blockage_width_back = 0.2;
+            const double blockage_height_back = 0.2;
+            const double blockage_nx_back = static_cast<int>(blockage_width_back/ds);
+            const double blockage_ny_back = static_cast<int>(blockage_height_back/ds);
+                                //build_square(&mesh,nx,ny,xmin,xmax,ymin,ymax,elem_type,false(optional))
+            MeshTools::Generation::build_square(mesh_solid_blockage_back, blockage_nx_back, blockage_ny_back, 1 + DX, 1 + DX +blockage_width_back, 0.4, 0.6, Utility::string_to_enum<ElemType>("TRI3"));
+
+
+        }
+
+        
+        BoundaryMesh mesh_blockage(mesh_solid_blockage.comm(), mesh_solid_blockage.mesh_dimension() - 1);
+        mesh_solid_blockage.boundary_info->sync(mesh_blockage);
+        mesh_blockage.prepare_for_use();
+
+        BoundaryMesh mesh_blockage2(mesh_solid_blockage2.comm(), mesh_solid_blockage2.mesh_dimension() - 1);
+        mesh_solid_blockage2.boundary_info->sync(mesh_blockage2);
+        mesh_blockage2.prepare_for_use();
+
+        BoundaryMesh mesh_blockage_back(mesh_solid_blockage_back.comm(), mesh_solid_blockage_back.mesh_dimension() - 1);
+        mesh_solid_blockage_back.boundary_info->sync(mesh_blockage_back);
+        mesh_blockage_back.prepare_for_use();
+        */
+
+
+
+
+        const int CIRCLE_MESH_ID = 0;
+        const int LOWER_MESH_ID = 1;
+        const int UPPER_MESH_ID = 2;
+        /*
+        const int BLOCKAGE_MESH_ID = 3;
+        const int BLOCKAGE_MESH_2_ID = 4;
+        const int BLOCKAGE_MESH_BACK_ID = 5;
+*/
+
         
         vector<MeshBase*> meshes;
 
-        meshes.push_back(&mesh_lower);
         meshes.push_back(&boundary_mesh);
+        meshes.push_back(&mesh_lower);
+        meshes.push_back(&mesh_upper);
+        /*
+        meshes.push_back(&mesh_blockage);     
+        meshes.push_back(&mesh_blockage2);   
+        meshes.push_back(&mesh_blockage_back);    
+        */
 
         c1_s = input_db->getDouble("C1_S");
         pr = input_db->getDouble("POISSON_RATIO");
@@ -613,6 +742,15 @@ main(int argc, char* argv[])
         vector<SystemData> velocity_data(1);
         velocity_data[0] = SystemData(FEMechanicsBase::VELOCITY_SYSTEM_NAME, vars);
 
+        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
+
+        /*
+        if (USE_DISCON_ELEMS){
+            ibfe_bndry_ops->registerDisconElemFamilyForJumps(BLOCKAGE_MESH_ID);
+            ibfe_bndry_ops->registerDisconElemFamilyForJumps(BLOCKAGE_MESH_2_ID);
+        } 
+        */
+
         ibfe_bndry_ops->initializeFEEquationSystems();
 
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
@@ -627,15 +765,31 @@ main(int argc, char* argv[])
         fem_solver->registerPK1StressFunction(PK1_dev_stress_data);
 
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
-        ibfe_bndry_ops->registerLagSurfaceForceFunction(surface_fcn_data,1);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(surface_fcn_data,0);
+        EquationSystems* bndry_equation_systems = ibfe_bndry_ops->getFEDataManager(0)->getEquationSystems();
 
-        EquationSystems* bndry_equation_systems = ibfe_bndry_ops->getFEDataManager(1)->getEquationSystems();
+        IIMethod::LagSurfaceForceFcnData tether_force_lower_data(tether_force_function_stationary, sys_data);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_lower_data,1);
+        EquationSystems* lower_equation_systems = ibfe_bndry_ops->getFEDataManager(1)->getEquationSystems();
 
-        IIMethod::LagSurfaceForceFcnData tether_force_lower_data(tether_force_function_lower, sys_data);
-        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_lower_data,0);
-        EquationSystems* lower_equation_systems = ibfe_bndry_ops->getFEDataManager(0)->getEquationSystems();
+        IIMethod::LagSurfaceForceFcnData tether_force_upper_data(tether_force_function_stationary, sys_data);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_upper_data,2);
+        EquationSystems* upper_equation_systems = ibfe_bndry_ops->getFEDataManager(2)->getEquationSystems();
+        /*
+        IIMethod::LagSurfaceForceFcnData tether_force_blockage_data(tether_force_function_stationary, sys_data);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_blockage_data,3);
+        EquationSystems* blockage_equation_systems = ibfe_bndry_ops->getFEDataManager(3)->getEquationSystems();
+        
+        IIMethod::LagSurfaceForceFcnData tether_force_blockage2_data(tether_force_function_stationary, sys_data);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_blockage2_data,4);
+        EquationSystems* blockage2_equation_systems = ibfe_bndry_ops->getFEDataManager(4)->getEquationSystems();
 
+        IIMethod::LagSurfaceForceFcnData tether_force_blockage_back_data(tether_force_function_stationary, sys_data);
+        ibfe_bndry_ops->registerLagSurfaceForceFunction(tether_force_blockage_back_data,5);
+        EquationSystems* blockage_back_equation_systems = ibfe_bndry_ops->getFEDataManager(5)->getEquationSystems();
 
+*/
+        std::cout<<"put all eqn systems in\n";
 
 
         FEMechanicsBase::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function_disk);
@@ -702,6 +856,12 @@ main(int argc, char* argv[])
         libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
         libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : NULL);
         libMesh::UniquePtr<ExodusII_IO> exodus_lower(uses_exodus ? new ExodusII_IO(mesh_lower) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_upper(uses_exodus ? new ExodusII_IO(mesh_upper) : NULL);
+        /*
+        libMesh::UniquePtr<ExodusII_IO> exodus_blockage(uses_exodus ? new ExodusII_IO(mesh_blockage) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_blockage2(uses_exodus ? new ExodusII_IO(mesh_blockage2) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_blockage_back(uses_exodus ? new ExodusII_IO(mesh_blockage_back) : NULL);
+        */
 
         ibfe_bndry_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -736,6 +896,17 @@ main(int argc, char* argv[])
                     exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 exodus_lower->write_timestep(
                             exodus_lower_filename, *lower_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+            
+                exodus_upper->write_timestep(
+                            exodus_upper_filename, *upper_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                /*
+                exodus_blockage->write_timestep(
+                            exodus_blockage_filename, *blockage_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_blockage2->write_timestep(
+                            exodus_blockage2_filename, *blockage2_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_blockage_back->write_timestep(
+                            exodus_blockage_back_filename, *blockage_back_equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                */
             
             }
         }
@@ -851,6 +1022,16 @@ main(int argc, char* argv[])
                                                     loop_time);
                         exodus_lower->write_timestep(exodus_lower_filename,
                                                  *lower_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                        exodus_upper->write_timestep(
+                            exodus_upper_filename, *upper_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                            /*
+                        exodus_blockage->write_timestep(
+                            exodus_blockage_filename, *blockage_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                        exodus_blockage2->write_timestep(
+                            exodus_blockage2_filename, *blockage2_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                        exodus_blockage_back->write_timestep(
+                            exodus_blockage_back_filename, *blockage_back_equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                            */
               
                 }
             }
