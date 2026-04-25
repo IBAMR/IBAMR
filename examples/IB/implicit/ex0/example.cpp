@@ -29,7 +29,6 @@
 #include <ibtk/LData.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMatUtilities.h>
-#include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
