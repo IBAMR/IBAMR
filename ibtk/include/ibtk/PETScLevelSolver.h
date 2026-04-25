@@ -104,9 +104,20 @@ public:
     const KSP& getPETScKSP() const;
 
     /*!
-     * \brief Get ASM subdomains.
+     * \brief Get the stored ASM-like subdomain description.
+     *
+     * These subdomains define the overlapping subdomains used by ASM-like
+     * methods.
      */
-    void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
+    const std::vector<std::vector<int>>& getASMSubdomains() const;
+
+    /*!
+     * \brief Get the stored ASM-like nonoverlapping partition subsets.
+     *
+     * These nonoverlapping subsets of the ASM subdomains cover the local
+     * domain.
+     */
+    const std::vector<std::vector<int>>& getASMNonoverlapSubdomains() const;
 
     /*!
      * \name Linear solver functionality.
@@ -229,10 +240,15 @@ protected:
     void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
+     * \brief Move PETSc index sets into sorted subdomain DOF vectors.
+     */
+    static void move_is_to_subdomain_dofs(std::vector<std::vector<int>>& subdomain_dofs, std::vector<IS>& subdomain_is);
+
+    /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
-                                       std::vector<std::set<int>>& nonoverlap_is);
+    virtual void generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
+                                       std::vector<std::vector<int>>& nonoverlap_dofs);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -271,6 +287,11 @@ protected:
                               Vec& petsc_b,
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+
+    /*!
+     * \brief Optional postprocess hook for shell preconditioner output.
+     */
+    virtual void postprocessShellResult(Vec& y);
 
     /*!
      * \brief Setup the solver nullspace (if any).
@@ -318,6 +339,16 @@ protected:
     Mat *d_sub_mat, *d_sub_bc_mat;
     std::vector<Vec> d_sub_x, d_sub_y;
     //\}
+
+    /*!
+     * \brief Overlapping subdomains and nonoverlapping partition subsets used
+     * by ASM-like preconditioners.
+     *
+     * The overlapping subdomains define the subdomain solves. The partition
+     * subsets define nonoverlapping subsets of those subdomains whose union
+     * covers the local domain.
+     */
+    std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
 
     /*!
      * \name Field split preconditioner.
