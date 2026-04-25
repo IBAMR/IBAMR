@@ -97,18 +97,22 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
-                                                 std::vector<std::set<int>>& /*nonoverlap_is*/)
+SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
+                                                 std::vector<std::vector<int>>& nonoverlap_dofs)
 {
-    // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
-    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
-                                                        d_nonoverlap_is,
+    // Construct overlapping subdomains and nonoverlapping partition subsets
+    // for ASM and MSM preconditioners.
+    std::vector<IS> overlap_subdomains, partition_subsets;
+    PETScMatUtilities::constructPatchLevelASMSubdomains(overlap_subdomains,
+                                                        partition_subsets,
                                                         d_box_size,
                                                         d_overlap_size,
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
                                                         d_level,
                                                         d_cf_boundary);
+    move_is_to_subdomain_dofs(overlap_dofs, overlap_subdomains);
+    move_is_to_subdomain_dofs(nonoverlap_dofs, partition_subsets);
     return;
 } // generateASMSubdomains
 
