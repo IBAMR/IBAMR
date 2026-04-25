@@ -35,24 +35,6 @@
 #include <functional>
 #include <vector>
 
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class CoarseFineBoundary;
-template <int DIM>
-class PatchLevel;
-} // namespace hier
-namespace pdat
-{
-template <int DIM>
-class CellIndex;
-template <int DIM>
-class SideIndex;
-} // namespace pdat
-} // namespace SAMRAI
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
