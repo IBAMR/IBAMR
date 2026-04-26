@@ -686,7 +686,6 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
 
-    copyToPETScVec(petsc_b, b);
     return;
 } // setupKSPVecs
 

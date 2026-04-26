@@ -34,6 +34,8 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -245,10 +247,11 @@ protected:
     static void move_is_to_subdomain_dofs(std::vector<std::vector<int>>& subdomain_dofs, std::vector<IS>& subdomain_is);
 
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomains and nonoverlapping partition subsets
+     * for ASM-like preconditioners in the stored vector form.
      */
-    virtual void generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
-                                       std::vector<std::vector<int>>& nonoverlap_dofs);
+    virtual void generateASMSubdomains(std::vector<std::vector<int>>& subdomain_dofs,
+                                       std::vector<std::vector<int>>& nonoverlap_subdomain_dofs);
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -289,7 +292,10 @@ protected:
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
-     * \brief Optional postprocess hook for shell preconditioner output.
+     * \brief Optional postprocess hook for shell smoothers.
+     *
+     * Subclasses may override this method to apply problem-specific postprocess
+     * operations after shell preconditioner application.
      */
     virtual void postprocessShellResult(Vec& y);
 
@@ -321,23 +327,19 @@ protected:
     //\{
     std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
     std::string d_options_prefix;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
-    MatNullSpace d_petsc_nullsp;
+    MatNullSpace d_petsc_nullsp = nullptr;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
     //\}
 
     /*!
-     * \name Support for additive and multiplicative Schwarz preconditioners.
+     * \name Field split preconditioner.
      */
     //\{
-    Vec d_local_x, d_local_y;
-    int d_n_local_subdomains, d_n_subdomains_max;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
-    std::vector<VecScatter> d_restriction, d_prolongation;
-    std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
-    std::vector<Vec> d_sub_x, d_sub_y;
+    std::vector<std::string> d_field_name;
+    std::vector<IS> d_field_is;
     //\}
 
     /*!
@@ -350,15 +352,82 @@ protected:
      */
     std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
 
-    /*!
-     * \name Field split preconditioner.
-     */
-    //\{
-    std::vector<std::string> d_field_name;
-    std::vector<IS> d_field_is;
-    //\}
-
 private:
+    struct ShellBackendData;
+
+    enum class PreconditionerType
+    {
+        ASM,
+        FIELDSPLIT,
+        SHELL,
+        UNKNOWN
+    };
+
+    enum class ShellSmootherComposition
+    {
+        ADDITIVE,
+        MULTIPLICATIVE
+    };
+
+    enum class ShellSmootherPartition
+    {
+        BASIC,
+        RESTRICT
+    };
+
+    /*!
+     * \brief Parse the configured shell smoother string into backend,
+     * composition, and partition settings.
+     */
+    void configureShellSmootherType();
+
+    std::string normalizeShellSmootherType(const std::string& type) const;
+    std::string extractShellSmootherTypeKey(const std::string& type) const;
+    PreconditionerType parsePreconditionerType(const std::string& type) const;
+    std::string parseShellSmootherBackendKey(const std::string& type_key) const;
+    ShellSmootherComposition parseShellSmootherComposition(const std::string& type) const;
+    ShellSmootherPartition parseShellSmootherPartition(const std::string& type,
+                                                       ShellSmootherComposition composition) const;
+    void cacheASMSubdomains(const std::vector<std::vector<int>>& subdomain_dofs,
+                            const std::vector<std::vector<int>>& nonoverlap_subdomain_dofs);
+
+    /*!
+     * \brief Generate and cache the stored ASM-like subdomain description.
+     */
+    void cacheGeneratedASMSubdomains();
+
+    /*!
+     * \brief Configure a PETSc ASM preconditioner from the cached subdomain
+     * description.
+     */
+    void configureASMPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Deallocate cached ASM preconditioner data.
+     */
+    void deallocateASMPreconditioner();
+
+    /*!
+     * \brief Configure a PETSc fieldsplit preconditioner.
+     */
+    void configureFieldSplitPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Deallocate cached fieldsplit preconditioner data.
+     */
+    void deallocateFieldSplitPreconditioner();
+
+    /*!
+     * \brief Configure a shell preconditioner from the cached subdomain
+     * description.
+     */
+    void configureShellPreconditioner(PC ksp_pc);
+
+    /*!
+     * \brief Deallocate cached shell preconditioner data.
+     */
+    void deallocateShellPreconditioner();
+
     /*!
      * \brief Copy constructor.
      *
@@ -382,17 +451,13 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_Shell(PC pc, Vec x, Vec y);
 
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
+    PreconditionerType d_preconditioner_type = PreconditionerType::UNKNOWN;
+    ShellSmootherComposition d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+    std::string d_shell_smoother_backend_key = "petsc";
+    ShellSmootherPartition d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+    std::unique_ptr<ShellBackendData> d_shell_backend_data;
 };
 } // namespace IBTK
 
