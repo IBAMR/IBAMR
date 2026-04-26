@@ -125,8 +125,6 @@ PETScLevelSolver::PETScLevelSolver()
     d_rel_residual_tol = 1.0e-5;
     d_initial_guess_nonzero = true;
     d_enable_logging = false;
-    d_box_size = 2;
-    d_overlap_size = 1;
 
     // Setup Timers.
     IBTK_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::solveSystem()");
@@ -725,7 +723,7 @@ PETScLevelSolver::deallocateSolverState()
         d_prolongation.clear();
         d_sub_ksp.clear();
         d_sub_x.clear();
-        d_sub_x.clear();
+        d_sub_y.clear();
     }
 
     d_petsc_ksp = nullptr;
@@ -758,10 +756,6 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("shell_pc_type")) d_shell_pc_type = input_db->getString("shell_pc_type");
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("subdomain_box_size"))
-            input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
-        if (input_db->keyExists("subdomain_overlap_size"))
-            input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
     return;
 } // init

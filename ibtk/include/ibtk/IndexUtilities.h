@@ -26,23 +26,14 @@
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellIndex.h>
+#include <CoarseFineBoundary.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
+#include <PatchLevel.h>
 
 #include <functional>
 #include <vector>
-
-namespace SAMRAI
-{
-namespace pdat
-{
-template <int DIM>
-class CellIndex;
-template <int DIM>
-class SideIndex;
-} // namespace pdat
-} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -296,6 +287,14 @@ public:
                                                            const SAMRAI::hier::Box<NDIM>& patch_box,
                                                            const SAMRAI::hier::IntVector<NDIM>& box_size,
                                                            const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+
+    /*!
+     * \brief Return true when the patch level covers the entire physical
+     * domain.
+     */
+    static bool patchLevelCoversEntireDomain(int level_num,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 
 private:
     /*!

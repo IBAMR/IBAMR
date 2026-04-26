@@ -325,6 +325,69 @@ enum_to_string<TimeSteppingType>(TimeSteppingType val)
     return "UNKNOWN_TIME_STEPPING_TYPE";
 } // enum_to_string
 
+/*!
+ * \brief Enumerated type for delta functions used by implicit IB
+ * coupling.
+ */
+enum DeltaFunctionType
+{
+    PIECEWISE_LINEAR,
+    BSPLINE_3,
+    BSPLINE_4,
+    BSPLINE_5,
+    BSPLINE_6,
+    COMPOSITE_BSPLINE_32,
+    COMPOSITE_BSPLINE_43,
+    COMPOSITE_BSPLINE_54,
+    COMPOSITE_BSPLINE_65,
+    IB_3,
+    IB_4,
+    IB_5,
+    IB_6,
+    UNKNOWN_DELTA_FUNCTION_TYPE = -1
+};
+
+template <>
+inline DeltaFunctionType
+string_to_enum<DeltaFunctionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "PIECEWISE_LINEAR") == 0) return PIECEWISE_LINEAR;
+    if (strcasecmp(val.c_str(), "BSPLINE_2") == 0) return PIECEWISE_LINEAR;
+    if (strcasecmp(val.c_str(), "BSPLINE_3") == 0) return BSPLINE_3;
+    if (strcasecmp(val.c_str(), "BSPLINE_4") == 0) return BSPLINE_4;
+    if (strcasecmp(val.c_str(), "BSPLINE_5") == 0) return BSPLINE_5;
+    if (strcasecmp(val.c_str(), "BSPLINE_6") == 0) return BSPLINE_6;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_32") == 0) return COMPOSITE_BSPLINE_32;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_43") == 0) return COMPOSITE_BSPLINE_43;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_54") == 0) return COMPOSITE_BSPLINE_54;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_65") == 0) return COMPOSITE_BSPLINE_65;
+    if (strcasecmp(val.c_str(), "IB_3") == 0) return IB_3;
+    if (strcasecmp(val.c_str(), "IB_4") == 0) return IB_4;
+    if (strcasecmp(val.c_str(), "IB_5") == 0) return IB_5;
+    if (strcasecmp(val.c_str(), "IB_6") == 0) return IB_6;
+    return UNKNOWN_DELTA_FUNCTION_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<DeltaFunctionType>(DeltaFunctionType val)
+{
+    if (val == PIECEWISE_LINEAR) return "PIECEWISE_LINEAR";
+    if (val == BSPLINE_3) return "BSPLINE_3";
+    if (val == BSPLINE_4) return "BSPLINE_4";
+    if (val == BSPLINE_5) return "BSPLINE_5";
+    if (val == BSPLINE_6) return "BSPLINE_6";
+    if (val == COMPOSITE_BSPLINE_32) return "COMPOSITE_BSPLINE_32";
+    if (val == COMPOSITE_BSPLINE_43) return "COMPOSITE_BSPLINE_43";
+    if (val == COMPOSITE_BSPLINE_54) return "COMPOSITE_BSPLINE_54";
+    if (val == COMPOSITE_BSPLINE_65) return "COMPOSITE_BSPLINE_65";
+    if (val == IB_3) return "IB_3";
+    if (val == IB_4) return "IB_4";
+    if (val == IB_5) return "IB_5";
+    if (val == IB_6) return "IB_6";
+    return "UNKNOWN_DELTA_FUNCTION_TYPE";
+} // enum_to_string
+
 inline bool
 is_multistep_time_stepping_type(TimeSteppingType val)
 {
