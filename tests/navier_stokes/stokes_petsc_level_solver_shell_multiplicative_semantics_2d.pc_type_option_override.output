@@ -1,0 +1,10 @@
+expected_shell_pc_name = stokes_shell_sem_PC_MultiplicativeEigenReference
+actual_shell_pc_name = stokes_shell_sem_PC_MultiplicativeEigenReference
+solver_type = partial-piv-lu
+expected_inf_norm = 0.846628
+actual_inf_norm = 0.846628
+error_inf_norm = 0
+shell_pc_type = multiplicative-eigen-reference
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-10
+test_failures = 0
