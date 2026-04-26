@@ -154,6 +154,8 @@ SET(CXX_SRC
   solvers/impls/PETScLevelSolverPetscShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenFactorizedLocalSolveShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenReferenceShellBackend.cpp
+  solvers/impls/PETScLevelSolverEigenShellBackend.cpp
+  solvers/impls/PETScLevelSolverEigenPseudoinverseShellBackend.cpp
   solvers/impls/CCPoissonSolverManager.cpp
   solvers/impls/PoissonFACPreconditionerStrategy.cpp
   solvers/impls/BGaussSeidelPreconditioner.cpp
