@@ -1,0 +1,6 @@
+solver_type = default
+rhs_boundary_adjustment_detected = true
+shell_pc_type = multiplicative
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-11
+test_failures = 0
