@@ -172,6 +172,7 @@ SETUP_2D(navier_stokes stokes_ib_cav_reference_parity.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_cav_shell_semantics.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_shell_multiplicative_semantics.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
