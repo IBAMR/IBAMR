@@ -1,0 +1,3 @@
+New: Add a runtime-extensible shell smoother backend framework for PETSc level solvers and move the existing PETSc shell smoother implementation into a registered backend.
+<br>
+(Boyce Griffith, 2026/04/21)
