@@ -14,9 +14,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/PETScLevelSolverShellBackend.h>
 
 #include <tbox/Database.h>
 #include <tbox/PIO.h>
@@ -42,9 +42,15 @@
 #include <SAMRAIVectorReal.h>
 
 #include <algorithm>
+#include <cctype>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
 #include <limits>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -63,13 +69,15 @@ static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
+} // namespace
+
 void
 destroy_petsc_index_sets(std::vector<IS>& index_sets)
 {
     int ierr;
-    for (auto& is : index_sets)
+    for (auto& index_set : index_sets)
     {
-        ierr = ISDestroy(&is);
+        ierr = ISDestroy(&index_set);
         IBTK_CHKERRQ(ierr);
     }
     index_sets.clear();
@@ -77,46 +85,124 @@ destroy_petsc_index_sets(std::vector<IS>& index_sets)
 } // destroy_petsc_index_sets
 
 void
-build_petsc_subdomain_index_sets(std::vector<IS>& overlap_petsc,
-                                 std::vector<IS>& nonoverlap_petsc,
-                                 const std::vector<std::vector<int>>& overlap_dofs,
-                                 const std::vector<std::vector<int>>& nonoverlap_dofs)
+build_petsc_subdomain_index_sets(std::vector<IS>& subdomain_is,
+                                 std::vector<IS>& nonoverlap_subdomain_is,
+                                 const std::vector<std::vector<int>>& subdomain_dofs,
+                                 const std::vector<std::vector<int>>& nonoverlap_subdomain_dofs)
 {
     int ierr;
-    destroy_petsc_index_sets(overlap_petsc);
-    destroy_petsc_index_sets(nonoverlap_petsc);
+    destroy_petsc_index_sets(subdomain_is);
+    destroy_petsc_index_sets(nonoverlap_subdomain_is);
 
-    overlap_petsc.resize(overlap_dofs.size());
-    for (std::size_t k = 0; k < overlap_dofs.size(); ++k)
+    subdomain_is.resize(subdomain_dofs.size());
+    for (std::size_t subdomain_num = 0; subdomain_num < subdomain_dofs.size(); ++subdomain_num)
     {
-        PetscInt* overlap_dof_arr = nullptr;
-        const PetscInt n_overlap_dofs = static_cast<PetscInt>(overlap_dofs[k].size());
-        ierr = PetscMalloc1(n_overlap_dofs, &overlap_dof_arr);
+        PetscInt* dof_arr = nullptr;
+        const PetscInt n_dofs = static_cast<PetscInt>(subdomain_dofs[subdomain_num].size());
+        ierr = PetscMalloc1(n_dofs, &dof_arr);
         IBTK_CHKERRQ(ierr);
-        std::copy(overlap_dofs[k].begin(), overlap_dofs[k].end(), overlap_dof_arr);
-        ierr = ISCreateGeneral(PETSC_COMM_SELF, n_overlap_dofs, overlap_dof_arr, PETSC_OWN_POINTER, &overlap_petsc[k]);
+        std::copy(subdomain_dofs[subdomain_num].begin(), subdomain_dofs[subdomain_num].end(), dof_arr);
+        ierr = ISCreateGeneral(PETSC_COMM_SELF, n_dofs, dof_arr, PETSC_OWN_POINTER, &subdomain_is[subdomain_num]);
         IBTK_CHKERRQ(ierr);
     }
 
-    nonoverlap_petsc.resize(nonoverlap_dofs.size());
-    for (std::size_t k = 0; k < nonoverlap_dofs.size(); ++k)
+    nonoverlap_subdomain_is.resize(nonoverlap_subdomain_dofs.size());
+    for (std::size_t subdomain_num = 0; subdomain_num < nonoverlap_subdomain_dofs.size(); ++subdomain_num)
     {
-        PetscInt* nonoverlap_dof_arr = nullptr;
-        const PetscInt n_nonoverlap_dofs = static_cast<PetscInt>(nonoverlap_dofs[k].size());
-        ierr = PetscMalloc1(n_nonoverlap_dofs, &nonoverlap_dof_arr);
+        PetscInt* dof_arr = nullptr;
+        const PetscInt n_dofs = static_cast<PetscInt>(nonoverlap_subdomain_dofs[subdomain_num].size());
+        ierr = PetscMalloc1(n_dofs, &dof_arr);
         IBTK_CHKERRQ(ierr);
-        std::copy(nonoverlap_dofs[k].begin(), nonoverlap_dofs[k].end(), nonoverlap_dof_arr);
+        std::copy(
+            nonoverlap_subdomain_dofs[subdomain_num].begin(), nonoverlap_subdomain_dofs[subdomain_num].end(), dof_arr);
         ierr = ISCreateGeneral(
-            PETSC_COMM_SELF, n_nonoverlap_dofs, nonoverlap_dof_arr, PETSC_OWN_POINTER, &nonoverlap_petsc[k]);
+            PETSC_COMM_SELF, n_dofs, dof_arr, PETSC_OWN_POINTER, &nonoverlap_subdomain_is[subdomain_num]);
         IBTK_CHKERRQ(ierr);
     }
     return;
 } // build_petsc_subdomain_index_sets
-} // namespace
+
+PETScLevelSolverShellBackendManager* PETScLevelSolverShellBackendManager::s_shell_backend_manager_instance = nullptr;
+bool PETScLevelSolverShellBackendManager::s_registered_callback = false;
+unsigned char PETScLevelSolverShellBackendManager::s_shutdown_priority = 200;
+
+PETScLevelSolverShellBackendManager*
+PETScLevelSolverShellBackendManager::getManager()
+{
+    if (!s_shell_backend_manager_instance)
+    {
+        s_shell_backend_manager_instance = new PETScLevelSolverShellBackendManager();
+    }
+    if (!s_registered_callback)
+    {
+        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        s_registered_callback = true;
+    }
+    return s_shell_backend_manager_instance;
+}
+
+void
+PETScLevelSolverShellBackendManager::freeManager()
+{
+    delete s_shell_backend_manager_instance;
+    s_shell_backend_manager_instance = nullptr;
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+PETScLevelSolverShellBackendManager::allocateShellBackend(const std::string& type_key, PETScLevelSolver& solver) const
+{
+    const auto it = d_shell_backend_maker_map.find(type_key);
+    if (it == d_shell_backend_maker_map.end())
+    {
+        TBOX_ERROR("PETScLevelSolverShellBackendManager::allocateShellBackend():\n"
+                   << "  unrecognized shell backend type: " << type_key << "\n");
+    }
+    return (it->second)(solver);
+}
+
+bool
+PETScLevelSolverShellBackendManager::hasShellBackendFactoryFunction(const std::string& type_key) const
+{
+    return d_shell_backend_maker_map.find(type_key) != d_shell_backend_maker_map.end();
+}
+
+void
+PETScLevelSolverShellBackendManager::registerShellBackendFactoryFunction(const std::string& type_key,
+                                                                         ShellBackendMaker backend_maker)
+{
+    if (d_shell_backend_maker_map.find(type_key) != d_shell_backend_maker_map.end())
+    {
+        pout << "PETScLevelSolverShellBackendManager::registerShellBackendFactoryFunction():\n"
+             << "  NOTICE: overriding initialization function for shell backend type = " << type_key << "\n";
+    }
+    d_shell_backend_maker_map[type_key] = backend_maker;
+}
+
+std::vector<std::string>
+PETScLevelSolverShellBackendManager::getRegisteredShellBackendTypes() const
+{
+    std::vector<std::string> type_keys;
+    type_keys.reserve(d_shell_backend_maker_map.size());
+    for (const auto& entry : d_shell_backend_maker_map)
+    {
+        type_keys.push_back(entry.first);
+    }
+    return type_keys;
+}
+
+PETScLevelSolverShellBackendManager::PETScLevelSolverShellBackendManager() : d_shell_backend_maker_map()
+{
+}
+
+struct PETScLevelSolver::ShellBackendData
+{
+    std::unique_ptr<PETScLevelSolverShellBackend> active_backend;
+    PETScLevelSolverShellBackendState solver_state;
+};
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScLevelSolver::PETScLevelSolver()
+PETScLevelSolver::PETScLevelSolver() : d_shell_backend_data(std::make_unique<ShellBackendData>())
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -141,18 +227,7 @@ PETScLevelSolver::~PETScLevelSolver()
         TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
                                  << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
     }
-
-    int ierr;
-    for (auto& is : d_nonoverlap_is)
-    {
-        ierr = ISDestroy(&is);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (auto& is : d_overlap_is)
-    {
-        ierr = ISDestroy(&is);
-        IBTK_CHKERRQ(ierr);
-    }
+    destroy_petsc_index_sets(d_field_is);
     return;
 } // ~PETScLevelSolver
 
@@ -364,276 +439,30 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     ierr = PCGetType(ksp_pc, &pc_type);
     IBTK_CHKERRQ(ierr);
     d_pc_type = pc_type;
+    d_preconditioner_type = parsePreconditionerType(d_pc_type);
+    configureShellSmootherType();
 
     // Set the nullspace.
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullSpace();
 
     // Setup the preconditioner.
-    if (d_pc_type == "asm")
+    switch (d_preconditioner_type)
     {
-        // Generate user-defined subdomains.
-        generateASMSubdomains(d_subdomain_dofs, d_nonoverlap_subdomain_dofs);
-        build_petsc_subdomain_index_sets(d_overlap_is, d_nonoverlap_is, d_subdomain_dofs, d_nonoverlap_subdomain_dofs);
-
-        int num_subdomains = static_cast<int>(d_overlap_is.size());
-        if (num_subdomains == 0)
-        {
-            IS is;
-            ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, nullptr, PETSC_OWN_POINTER, &is);
-            IBTK_CHKERRQ(ierr);
-            ierr = PCASMSetLocalSubdomains(ksp_pc, 1, &is, &is);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISDestroy(&is);
-            IBTK_CHKERRQ(ierr);
-        }
-        else
-        {
-            ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, d_overlap_is.data(), d_nonoverlap_is.data());
-            IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    if (d_pc_type == "fieldsplit")
-    {
-        std::vector<std::set<int>> field_is;
-        std::vector<std::string> field_name;
-        generateFieldSplitSubdomains(field_name, field_is);
-        d_field_name = field_name;
-        const int n_fields = static_cast<int>(field_is.size());
-
-        // Destroy old IS'es and generate new ones.
-        for (auto& is : d_field_is)
-        {
-            ierr = ISDestroy(&is);
-            IBTK_CHKERRQ(ierr);
-        }
-        d_field_is.clear();
-
-        d_field_is.resize(n_fields);
-        for (int k = 0; k < n_fields; ++k)
-        {
-            PetscInt* field_dof_arr;
-            const int n_field_dofs = static_cast<int>(field_is[k].size());
-            ierr = PetscMalloc1(n_field_dofs, &field_dof_arr);
-            IBTK_CHKERRQ(ierr);
-            std::copy(field_is[k].begin(), field_is[k].end(), field_dof_arr);
-            ierr = ISCreateGeneral(PETSC_COMM_WORLD, n_field_dofs, field_dof_arr, PETSC_OWN_POINTER, &d_field_is[k]);
-            IBTK_CHKERRQ(ierr);
-            ierr = PCFieldSplitSetIS(ksp_pc, d_field_name[k].c_str(), d_field_is[k]);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    if (d_pc_type == "shell")
-    {
-        Mat diagonal_mat_block;
-        ierr = MatGetDiagonalBlock(d_petsc_mat, &diagonal_mat_block);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateVecs(diagonal_mat_block, &d_local_x, &d_local_y);
-        IBTK_CHKERRQ(ierr);
-
-        // Generate user-defined subdomains.
-        generateASMSubdomains(d_subdomain_dofs, d_nonoverlap_subdomain_dofs);
-        build_petsc_subdomain_index_sets(d_overlap_is, d_nonoverlap_is, d_subdomain_dofs, d_nonoverlap_subdomain_dofs);
-        d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
-        d_n_subdomains_max = IBTK_MPI::maxReduction(d_n_local_subdomains);
-
-        // Get the local submatrices.
-#if PETSC_VERSION_GE(3, 8, 0)
-        ierr = MatCreateSubMatrices(d_petsc_mat,
-                                    d_n_local_subdomains,
-                                    d_overlap_is.data(),
-                                    d_overlap_is.data(),
-                                    MAT_INITIAL_MATRIX,
-                                    &d_sub_mat);
-#else
-        ierr = MatGetSubMatrices(d_petsc_mat,
-                                 d_n_local_subdomains,
-                                 d_overlap_is.data(),
-                                 d_overlap_is.data(),
-                                 MAT_INITIAL_MATRIX,
-                                 &d_sub_mat);
-#endif
-        IBTK_CHKERRQ(ierr);
-
-        // Setup data for communicating values between local and global representations.
-        d_local_overlap_is.resize(d_n_subdomains_max);
-        d_local_nonoverlap_is.resize(d_n_subdomains_max);
-        d_restriction.resize(d_n_subdomains_max);
-        d_prolongation.resize(d_n_subdomains_max);
-        d_sub_x.resize(d_n_subdomains_max);
-        d_sub_y.resize(d_n_subdomains_max);
-#if !defined(NDEBUG)
-        std::set<int> idxs;
-#endif
-        for (int i = 0; i < d_n_subdomains_max; ++i)
-        {
-            int overlap_is_size = 0, nonoverlap_is_size = 0;
-            PetscInt *overlap_indices = nullptr, *nonoverlap_indices = nullptr;
-            if (i < d_n_local_subdomains)
-            {
-                ierr = ISGetLocalSize(d_overlap_is[i], &overlap_is_size);
-                IBTK_CHKERRQ(ierr);
-                const int* overlap_is_arr;
-                ierr = ISGetIndices(d_overlap_is[i], &overlap_is_arr);
-
-                ierr = ISGetLocalSize(d_nonoverlap_is[i], &nonoverlap_is_size);
-                IBTK_CHKERRQ(ierr);
-                const int* nonoverlap_is_arr;
-                ierr = ISGetIndices(d_nonoverlap_is[i], &nonoverlap_is_arr);
-
-                PetscMalloc(overlap_is_size * sizeof(PetscInt), &overlap_indices);
-                PetscMalloc(nonoverlap_is_size * sizeof(PetscInt), &nonoverlap_indices);
-                int ii = 0, jj = 0;
-                for (; ii < overlap_is_size; ++ii)
-                {
-                    overlap_indices[ii] = ii;
-
-                    // Keep the local indices of nonoverlap DOFs in an array.
-                    // Since we have sorted IS'es, it is easier to locate contigous nonoverlap DOFs.
-                    if (jj < nonoverlap_is_size && overlap_is_arr[ii] == nonoverlap_is_arr[jj])
-                    {
-#if !defined(NDEBUG)
-                        TBOX_ASSERT(idxs.find(overlap_is_arr[ii]) == idxs.end());
-                        idxs.insert(overlap_is_arr[ii]);
-#endif
-                        nonoverlap_indices[jj] = ii;
-                        ++jj;
-                    }
-                }
-                TBOX_ASSERT(ii == overlap_is_size);
-                TBOX_ASSERT(jj == nonoverlap_is_size);
-
-                ierr = ISRestoreIndices(d_overlap_is[i], &overlap_is_arr);
-                IBTK_CHKERRQ(ierr);
-                ierr = ISRestoreIndices(d_nonoverlap_is[i], &nonoverlap_is_arr);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatCreateVecs(d_sub_mat[i], &d_sub_x[i], &d_sub_y[i]);
-                IBTK_CHKERRQ(ierr);
-            }
-            else
-            {
-                ierr = VecCreateSeq(PETSC_COMM_SELF, 0, &d_sub_x[i]);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCreateSeq(PETSC_COMM_SELF, 0, &d_sub_y[i]);
-                IBTK_CHKERRQ(ierr);
-            }
-
-            ierr = ISCreateGeneral(
-                PETSC_COMM_WORLD, overlap_is_size, overlap_indices, PETSC_OWN_POINTER, &d_local_overlap_is[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISCreateGeneral(
-                PETSC_COMM_WORLD, nonoverlap_is_size, nonoverlap_indices, PETSC_OWN_POINTER, &d_local_nonoverlap_is[i]);
-            IBTK_CHKERRQ(ierr);
-
-            IS& overlap_is = (i < d_n_local_subdomains ? d_overlap_is[i] : d_local_overlap_is[i]);
-            IS& nonoverlap_is = (i < d_n_local_subdomains ? d_nonoverlap_is[i] : d_local_nonoverlap_is[i]);
-            ierr = VecScatterCreate(d_petsc_x, overlap_is, d_sub_x[i], d_local_overlap_is[i], &d_restriction[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterCreate(d_sub_y[i], d_local_nonoverlap_is[i], d_petsc_b, nonoverlap_is, &d_prolongation[i]);
-            IBTK_CHKERRQ(ierr);
-        }
-#if !defined(NDEBUG)
-        int n_local_dofs;
-        VecGetSize(d_local_x, &n_local_dofs);
-        TBOX_ASSERT(n_local_dofs == static_cast<int>(idxs.size()));
-#endif
-        if (d_shell_pc_type == "multiplicative")
-        {
-            PetscInt n_lo, n_hi;
-            ierr = VecGetOwnershipRange(d_petsc_x, &n_lo, &n_hi);
-            IBTK_CHKERRQ(ierr);
-            IS local_idx;
-            ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
-            IBTK_CHKERRQ(ierr);
-            std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-#if PETSC_VERSION_GE(3, 8, 0)
-            ierr = MatCreateSubMatrices(d_petsc_mat,
-                                        d_n_local_subdomains,
-                                        get_data_or_null(d_overlap_is),
-                                        get_data_or_null(local_idxs),
-                                        MAT_INITIAL_MATRIX,
-                                        &d_sub_bc_mat);
-#else
-            ierr = MatGetSubMatrices(d_petsc_mat,
-                                     d_n_local_subdomains,
-                                     get_data_or_null(d_overlap_is),
-                                     get_data_or_null(local_idxs),
-                                     MAT_INITIAL_MATRIX,
-                                     &d_sub_bc_mat);
-#endif
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < d_n_local_subdomains; ++i)
-            {
-                ierr = MatScale(d_sub_bc_mat[i], -1.0);
-                IBTK_CHKERRQ(ierr);
-            }
-            ierr = ISDestroy(&local_idx);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        // Set up subdomain KSPs
-        d_sub_ksp.resize(d_n_local_subdomains);
-        for (int i = 0; i < d_n_local_subdomains; ++i)
-        {
-            KSP& sub_ksp = d_sub_ksp[i];
-            Mat& sub_mat = d_sub_mat[i];
-            ierr = KSPCreate(PETSC_COMM_SELF, &sub_ksp);
-            IBTK_CHKERRQ(ierr);
-            std::string sub_prefix = d_options_prefix + "_sub";
-            ierr = KSPSetOptionsPrefix(sub_ksp, sub_prefix.c_str());
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(sub_ksp, sub_mat, sub_mat);
-            IBTK_CHKERRQ(ierr);
-
-            // Set default configuraiton.
-            ierr = KSPSetReusePreconditioner(sub_ksp, PETSC_TRUE);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetType(sub_ksp, KSPPREONLY);
-            IBTK_CHKERRQ(ierr);
-            PC sub_pc;
-            ierr = KSPGetPC(sub_ksp, &sub_pc);
-            IBTK_CHKERRQ(ierr);
-            ierr = PCSetType(sub_pc, PCLU);
-            IBTK_CHKERRQ(ierr);
-            ierr = PCFactorReorderForNonzeroDiagonal(sub_pc, std::numeric_limits<double>::epsilon());
-            IBTK_CHKERRQ(ierr);
-
-            // Set from options.
-            ierr = KSPSetFromOptions(sub_ksp);
-            IBTK_CHKERRQ(ierr);
-
-            // Always use a zero initial guess.
-            ierr = KSPSetInitialGuessNonzero(sub_ksp, PETSC_FALSE);
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = PCSetType(ksp_pc, PCSHELL);
-        IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
-        IBTK_CHKERRQ(ierr);
-        if (d_shell_pc_type == "additive")
-        {
-            ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Additive);
-            IBTK_CHKERRQ(ierr);
-            std::string pc_name = d_options_prefix + "PC_Additive";
-            ierr = PCShellSetName(ksp_pc, pc_name.c_str());
-            IBTK_CHKERRQ(ierr);
-        }
-        else if (d_shell_pc_type == "multiplicative")
-        {
-            ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Multiplicative);
-            IBTK_CHKERRQ(ierr);
-            std::string pc_name = d_options_prefix + "PC_Multiplicative";
-            ierr = PCShellSetName(ksp_pc, pc_name.c_str());
-            IBTK_CHKERRQ(ierr);
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeSolverState()\n"
-                                     << "Unknown PCSHELL specified. Supported PCSHELL types are additive and "
-                                        "multiplicative."
-                                     << std::endl);
-        }
+    case PreconditionerType::ASM:
+        configureASMPreconditioner(ksp_pc);
+        break;
+    case PreconditionerType::FIELDSPLIT:
+        configureFieldSplitPreconditioner(ksp_pc);
+        break;
+    case PreconditionerType::SHELL:
+        configureShellPreconditioner(ksp_pc);
+        break;
+    case PreconditionerType::UNKNOWN:
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
+                                 << "  unsupported preconditioner type = " << enum_to_string(d_preconditioner_type)
+                                 << ".\n");
     }
 
     // Indicate that the solver is initialized.
@@ -674,60 +503,24 @@ PETScLevelSolver::deallocateSolverState()
     ierr = VecDestroy(&d_petsc_b);
     IBTK_CHKERRQ(ierr);
 
-    // Deallocate PETSc objects for shell preconditioner.
-    if (d_pc_type == "shell")
+    switch (d_preconditioner_type)
     {
-        for (int i = 0; i < d_n_local_subdomains; ++i)
-        {
-            ierr = KSPDestroy(&d_sub_ksp[i]);
-            IBTK_CHKERRQ(ierr);
-        }
-        for (int i = 0; i < d_n_subdomains_max; ++i)
-        {
-            ierr = ISDestroy(&d_local_overlap_is[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISDestroy(&d_local_nonoverlap_is[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterDestroy(&d_prolongation[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterDestroy(&d_restriction[i]);
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_mat);
-        IBTK_CHKERRQ(ierr);
-        if (d_shell_pc_type == "multiplicative" && d_n_local_subdomains > 0)
-        {
-            ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_bc_mat);
-            IBTK_CHKERRQ(ierr);
-        }
-        d_sub_mat = nullptr;
-        ierr = VecDestroy(&d_local_x);
-        IBTK_CHKERRQ(ierr);
-        d_local_x = nullptr;
-        ierr = VecDestroy(&d_local_y);
-        IBTK_CHKERRQ(ierr);
-        d_local_y = nullptr;
-        d_n_local_subdomains = 0;
-        d_n_subdomains_max = 0;
-
-        d_local_overlap_is.clear();
-        d_local_nonoverlap_is.clear();
-        d_restriction.clear();
-        d_prolongation.clear();
-        d_sub_ksp.clear();
-        d_sub_x.clear();
-        d_sub_y.clear();
+    case PreconditionerType::ASM:
+        deallocateASMPreconditioner();
+        break;
+    case PreconditionerType::FIELDSPLIT:
+        deallocateFieldSplitPreconditioner();
+        break;
+    case PreconditionerType::SHELL:
+        deallocateShellPreconditioner();
+        break;
+    case PreconditionerType::UNKNOWN:
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::deallocateSolverState()\n"
+                                 << "  unsupported preconditioner type = " << enum_to_string(d_preconditioner_type)
+                                 << ".\n");
     }
-    destroy_petsc_index_sets(d_nonoverlap_is);
-    destroy_petsc_index_sets(d_overlap_is);
-    d_subdomain_dofs.clear();
-    d_nonoverlap_subdomain_dofs.clear();
-
-    d_petsc_ksp = nullptr;
-    d_petsc_mat = nullptr;
-    d_petsc_x = nullptr;
-    d_petsc_b = nullptr;
-
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
@@ -754,6 +547,9 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
     }
+    d_input_db = input_db;
+    d_preconditioner_type = parsePreconditionerType(d_pc_type);
+    configureShellSmootherType();
     return;
 } // init
 
@@ -781,8 +577,273 @@ PETScLevelSolver::move_is_to_subdomain_dofs(std::vector<std::vector<int>>& subdo
 } // move_is_to_subdomain_dofs
 
 void
-PETScLevelSolver::generateASMSubdomains(std::vector<std::vector<int>>& /*overlap_dofs*/,
-                                        std::vector<std::vector<int>>& /*nonoverlap_dofs*/)
+PETScLevelSolver::configureShellSmootherType()
+{
+    if (d_preconditioner_type != PreconditionerType::SHELL)
+    {
+        d_shell_smoother_backend_key = "petsc";
+        d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+        d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+        return;
+    }
+
+    const std::string normalized_shell_pc_type = normalizeShellSmootherType(d_shell_pc_type);
+    if (normalized_shell_pc_type.empty())
+    {
+        d_shell_smoother_backend_key = "petsc";
+        d_shell_smoother_composition = ShellSmootherComposition::MULTIPLICATIVE;
+        d_shell_smoother_partition = ShellSmootherPartition::BASIC;
+        return;
+    }
+
+    const std::string type_key = extractShellSmootherTypeKey(normalized_shell_pc_type);
+    d_shell_smoother_backend_key = parseShellSmootherBackendKey(type_key);
+    d_shell_smoother_composition = parseShellSmootherComposition(normalized_shell_pc_type);
+    d_shell_smoother_partition = parseShellSmootherPartition(normalized_shell_pc_type, d_shell_smoother_composition);
+    return;
+} // configureShellSmootherType
+
+std::string
+PETScLevelSolver::normalizeShellSmootherType(const std::string& type) const
+{
+    if (type == "additive-petsc") return "additive";
+    if (type == "multiplicative-petsc") return "multiplicative";
+    return type;
+} // normalizeShellSmootherType
+
+std::string
+PETScLevelSolver::extractShellSmootherTypeKey(const std::string& type) const
+{
+    std::string key = type;
+    if (key.rfind("additive", 0) == 0)
+    {
+        key.erase(0, std::strlen("additive"));
+    }
+    else if (key.rfind("multiplicative", 0) == 0)
+    {
+        key.erase(0, std::strlen("multiplicative"));
+    }
+    if (!key.empty() && key.front() == '-') key.erase(0, 1);
+    if (key.size() >= std::strlen("-restrict") &&
+        key.compare(key.size() - std::strlen("-restrict"), std::strlen("-restrict"), "-restrict") == 0)
+    {
+        key.erase(key.size() - std::strlen("-restrict"));
+    }
+    else if (key.size() >= std::strlen("-basic") &&
+             key.compare(key.size() - std::strlen("-basic"), std::strlen("-basic"), "-basic") == 0)
+    {
+        key.erase(key.size() - std::strlen("-basic"));
+    }
+    return key;
+}
+
+PETScLevelSolver::PreconditionerType
+PETScLevelSolver::parsePreconditionerType(const std::string& type) const
+{
+    if (type == "asm") return PreconditionerType::ASM;
+    if (type == "fieldsplit") return PreconditionerType::FIELDSPLIT;
+    if (type == "shell") return PreconditionerType::SHELL;
+    return PreconditionerType::UNKNOWN;
+} // parsePreconditionerType
+
+std::string
+PETScLevelSolver::parseShellSmootherBackendKey(const std::string& type_key) const
+{
+    const std::string normalized_key = type_key.empty() ? "petsc" : type_key;
+    auto* manager = PETScLevelSolverShellBackendManager::getManager();
+    if (manager->hasShellBackendFactoryFunction(normalized_key)) return normalized_key;
+
+    std::ostringstream supported_types;
+    bool first = true;
+    for (const auto& registered_type : manager->getRegisteredShellBackendTypes())
+    {
+        if (!first) supported_types << ", ";
+        supported_types << registered_type;
+        first = false;
+    }
+    TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::parseShellSmootherBackendKey()\n"
+                             << "Unknown shell smoother backend key: " << normalized_key << "\n"
+                             << "Available shell backend keys: " << supported_types.str() << std::endl);
+    return "petsc";
+} // parseShellSmootherBackendKey
+
+PETScLevelSolver::ShellSmootherComposition
+PETScLevelSolver::parseShellSmootherComposition(const std::string& type) const
+{
+    return type.find("additive") == 0 ? ShellSmootherComposition::ADDITIVE : ShellSmootherComposition::MULTIPLICATIVE;
+} // parseShellSmootherComposition
+
+PETScLevelSolver::ShellSmootherPartition
+PETScLevelSolver::parseShellSmootherPartition(const std::string& type, ShellSmootherComposition composition) const
+{
+    if (type.find("-restrict") != std::string::npos) return ShellSmootherPartition::RESTRICT;
+    if (type.find("-basic") != std::string::npos) return ShellSmootherPartition::BASIC;
+    return composition == ShellSmootherComposition::ADDITIVE ? ShellSmootherPartition::RESTRICT :
+                                                               ShellSmootherPartition::BASIC;
+} // parseShellSmootherPartition
+
+void
+PETScLevelSolver::cacheASMSubdomains(const std::vector<std::vector<int>>& subdomain_dofs,
+                                     const std::vector<std::vector<int>>& nonoverlap_subdomain_dofs)
+{
+    d_subdomain_dofs = subdomain_dofs;
+    d_nonoverlap_subdomain_dofs = nonoverlap_subdomain_dofs;
+    return;
+} // cacheASMSubdomains
+
+void
+PETScLevelSolver::cacheGeneratedASMSubdomains()
+{
+    std::vector<std::vector<int>> subdomain_dofs, nonoverlap_subdomain_dofs;
+    generateASMSubdomains(subdomain_dofs, nonoverlap_subdomain_dofs);
+    cacheASMSubdomains(subdomain_dofs, nonoverlap_subdomain_dofs);
+    return;
+} // cacheGeneratedASMSubdomains
+
+void
+PETScLevelSolver::configureASMPreconditioner(PC ksp_pc)
+{
+    int ierr;
+    std::vector<IS> subdomain_is, nonoverlap_subdomain_is;
+    cacheGeneratedASMSubdomains();
+    build_petsc_subdomain_index_sets(
+        subdomain_is, nonoverlap_subdomain_is, d_subdomain_dofs, d_nonoverlap_subdomain_dofs);
+    const int num_subdomains = static_cast<int>(subdomain_is.size());
+    if (num_subdomains == 0)
+    {
+        IS index_set = nullptr;
+        ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, nullptr, PETSC_OWN_POINTER, &index_set);
+        IBTK_CHKERRQ(ierr);
+        ierr = PCASMSetLocalSubdomains(ksp_pc, 1, &index_set, &index_set);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&index_set);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, subdomain_is.data(), nonoverlap_subdomain_is.data());
+        IBTK_CHKERRQ(ierr);
+    }
+    destroy_petsc_index_sets(nonoverlap_subdomain_is);
+    destroy_petsc_index_sets(subdomain_is);
+    return;
+} // configureASMPreconditioner
+
+void
+PETScLevelSolver::deallocateASMPreconditioner()
+{
+    d_subdomain_dofs.clear();
+    d_nonoverlap_subdomain_dofs.clear();
+    return;
+} // deallocateASMPreconditioner
+
+void
+PETScLevelSolver::configureFieldSplitPreconditioner(PC ksp_pc)
+{
+    std::vector<std::set<int>> field_is;
+    std::vector<std::string> field_name;
+    generateFieldSplitSubdomains(field_name, field_is);
+    d_field_name = field_name;
+    const int n_fields = static_cast<int>(field_is.size());
+
+    destroy_petsc_index_sets(d_field_is);
+    d_field_is.resize(n_fields);
+    int ierr;
+    for (int field_num = 0; field_num < n_fields; ++field_num)
+    {
+        PetscInt* field_dof_arr = nullptr;
+        const int n_field_dofs = static_cast<int>(field_is[field_num].size());
+        ierr = PetscMalloc1(n_field_dofs, &field_dof_arr);
+        IBTK_CHKERRQ(ierr);
+        std::copy(field_is[field_num].begin(), field_is[field_num].end(), field_dof_arr);
+        ierr =
+            ISCreateGeneral(PETSC_COMM_WORLD, n_field_dofs, field_dof_arr, PETSC_OWN_POINTER, &d_field_is[field_num]);
+        IBTK_CHKERRQ(ierr);
+        ierr = PCFieldSplitSetIS(ksp_pc, d_field_name[field_num].c_str(), d_field_is[field_num]);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // configureFieldSplitPreconditioner
+
+void
+PETScLevelSolver::deallocateFieldSplitPreconditioner()
+{
+    destroy_petsc_index_sets(d_field_is);
+    d_field_name.clear();
+    return;
+} // deallocateFieldSplitPreconditioner
+
+void
+PETScLevelSolver::configureShellPreconditioner(PC ksp_pc)
+{
+    int ierr;
+    cacheGeneratedASMSubdomains();
+    auto* manager = PETScLevelSolverShellBackendManager::getManager();
+    d_shell_backend_data->active_backend = manager->allocateShellBackend(d_shell_smoother_backend_key, *this);
+    if (!d_shell_backend_data->active_backend)
+    {
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellPreconditioner()\n"
+                                 << "Selected shell backend key has no allocated backend: "
+                                 << d_shell_smoother_backend_key << std::endl);
+    }
+    d_shell_backend_data->solver_state.object_name = d_object_name;
+    d_shell_backend_data->solver_state.options_prefix = d_options_prefix;
+    d_shell_backend_data->solver_state.input_db = d_input_db;
+    d_shell_backend_data->solver_state.use_multiplicative =
+        d_shell_smoother_composition == ShellSmootherComposition::MULTIPLICATIVE;
+    d_shell_backend_data->solver_state.use_restrict_partition =
+        d_shell_smoother_partition == ShellSmootherPartition::RESTRICT;
+    d_shell_backend_data->solver_state.petsc_mat = d_petsc_mat;
+    d_shell_backend_data->solver_state.petsc_x = d_petsc_x;
+    d_shell_backend_data->solver_state.petsc_b = d_petsc_b;
+    d_shell_backend_data->solver_state.subdomain_dofs = &d_subdomain_dofs;
+    d_shell_backend_data->solver_state.nonoverlap_subdomain_dofs = &d_nonoverlap_subdomain_dofs;
+    d_shell_backend_data->solver_state.postprocess_result = [this](Vec y) { postprocessShellResult(y); };
+    d_shell_backend_data->active_backend->initializeSolverState(d_shell_backend_data->solver_state);
+
+    ierr = PCSetType(ksp_pc, PCSHELL);
+    IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
+    IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Shell);
+    IBTK_CHKERRQ(ierr);
+
+    const char* composition_name = nullptr;
+    switch (d_shell_smoother_composition)
+    {
+    case ShellSmootherComposition::ADDITIVE:
+        composition_name = "Additive";
+        break;
+    case ShellSmootherComposition::MULTIPLICATIVE:
+        composition_name = "Multiplicative";
+        break;
+    default:
+        TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::configureShellPreconditioner()\n"
+                                 << "Unsupported shell smoother composition for shell_pc_type = " << d_shell_pc_type
+                                 << ".\n");
+    }
+    const std::string pc_name =
+        d_options_prefix + "PC_" + composition_name + d_shell_backend_data->active_backend->getName();
+    ierr = PCShellSetName(ksp_pc, pc_name.c_str());
+    IBTK_CHKERRQ(ierr);
+    return;
+} // configureShellPreconditioner
+
+void
+PETScLevelSolver::deallocateShellPreconditioner()
+{
+    if (d_shell_backend_data->active_backend)
+    {
+        d_shell_backend_data->active_backend->deallocateSolverState();
+        d_shell_backend_data->active_backend.reset();
+    }
+    deallocateASMPreconditioner();
+    return;
+} // deallocateShellPreconditioner
+
+void
+PETScLevelSolver::generateASMSubdomains(std::vector<std::vector<int>>& subdomain_dofs,
+                                        std::vector<std::vector<int>>& nonoverlap_subdomain_dofs)
 {
     TBOX_ERROR("PETScLevelSolver::generateASMSubdomains(): Subclasses need to generate ASM subdomains. \n");
 
@@ -841,7 +902,7 @@ PETScLevelSolver::setupNullSpace()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 PetscErrorCode
-PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
+PETScLevelSolver::PCApply_Shell(PC pc, Vec x, Vec y)
 {
     PetscFunctionBeginUser;
     int ierr;
@@ -852,96 +913,13 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-    const int n_local_subdomains = solver->d_n_local_subdomains;
-    const int n_subdomains_max = solver->d_n_subdomains_max;
-    std::vector<VecScatter>& restriction = solver->d_restriction;
-    std::vector<VecScatter>& prolongation = solver->d_prolongation;
-    std::vector<KSP>& sub_ksp = solver->d_sub_ksp;
-    std::vector<Vec>& sub_x = solver->d_sub_x;
-    std::vector<Vec>& sub_y = solver->d_sub_y;
-
-    // Restrict the global vector to the local vectors, solve the local systems, and
-    // prolong the data back into the global vector.
-    for (int i = 0; i < n_subdomains_max; ++i)
+    if (!solver->d_shell_backend_data->active_backend)
     {
-        ierr = VecScatterBegin(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        CHKERRQ(ierr);
+        TBOX_ERROR("PETScLevelSolver::PCApply_Shell(): no active shell backend." << std::endl);
     }
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
-        ierr = VecScatterEnd(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        CHKERRQ(ierr);
-        if (i < n_local_subdomains)
-        {
-            ierr = KSPSolve(sub_ksp[i], sub_x[i], sub_y[i]);
-            CHKERRQ(ierr);
-        }
-        ierr = VecScatterBegin(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        CHKERRQ(ierr);
-    }
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
-        ierr = VecScatterEnd(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        CHKERRQ(ierr);
-    }
-    solver->postprocessShellResult(y);
+    solver->d_shell_backend_data->active_backend->apply(x, y);
     PetscFunctionReturn(0);
-} // PCApply_Additive
-
-PetscErrorCode
-PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
-{
-    PetscFunctionBeginUser;
-    int ierr;
-    void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
-    CHKERRQ(ierr);
-    auto solver = static_cast<PETScLevelSolver*>(ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(solver);
-#endif
-    ierr = VecZeroEntries(y);
-    CHKERRQ(ierr);
-    Vec residual;
-    ierr = VecDuplicate(y, &residual);
-    CHKERRQ(ierr);
-    const int n_local_subdomains = solver->d_n_local_subdomains;
-    const int n_subdomains_max = solver->d_n_subdomains_max;
-    std::vector<VecScatter>& restriction = solver->d_restriction;
-    std::vector<KSP>& sub_ksp = solver->d_sub_ksp;
-    std::vector<Vec>& sub_x = solver->d_sub_x;
-    std::vector<Vec>& sub_y = solver->d_sub_y;
-
-    // Recompute the current residual before each subdomain solve so this
-    // matches the reference multiplicative sweep semantics.
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
-        ierr = MatMult(solver->d_petsc_mat, y, residual);
-        CHKERRQ(ierr);
-        ierr = VecAYPX(residual, -1.0, x);
-        CHKERRQ(ierr);
-        if (i < n_local_subdomains)
-        {
-            ierr = VecScatterBegin(restriction[i], residual, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            CHKERRQ(ierr);
-            ierr = VecScatterEnd(restriction[i], residual, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            CHKERRQ(ierr);
-            ierr = KSPSolve(sub_ksp[i], sub_x[i], sub_y[i]);
-            CHKERRQ(ierr);
-            Vec y_sub = nullptr;
-            ierr = VecGetSubVector(y, solver->d_overlap_is[i], &y_sub);
-            CHKERRQ(ierr);
-            ierr = VecAXPY(y_sub, 1.0, sub_y[i]);
-            CHKERRQ(ierr);
-            ierr = VecRestoreSubVector(y, solver->d_overlap_is[i], &y_sub);
-            CHKERRQ(ierr);
-        }
-    }
-    ierr = VecDestroy(&residual);
-    CHKERRQ(ierr);
-    solver->postprocessShellResult(y);
-    PetscFunctionReturn(0);
-} // PCApply_Multiplicative
+} // PCApply_Shell
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

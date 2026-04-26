@@ -123,7 +123,8 @@ public:
 
 protected:
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate overlapping subdomain DOF lists for Schwarz type
+     * preconditioners.
      */
     void generateASMSubdomains(std::vector<std::vector<int>>& overlap_dofs,
                                std::vector<std::vector<int>>& nonoverlap_dofs) override;
