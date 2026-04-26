@@ -72,6 +72,18 @@ static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
 
+std::size_t
+find_field_index(const std::vector<std::string>& field_names, const std::string& field_name, const char* caller)
+{
+    const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
+    if (field_name_it == field_names.end())
+    {
+        TBOX_ERROR(caller << ":\n"
+                          << "  unable to locate " << field_name << " field DOFs.\n");
+    }
+    return static_cast<std::size_t>(std::distance(field_names.begin(), field_name_it));
+}
+
 void
 construct_cached_field_is(const std::vector<std::set<int>>& field_is,
                           const std::vector<std::string>& field_names,
@@ -80,14 +92,7 @@ construct_cached_field_is(const std::vector<std::set<int>>& field_is,
 {
     if (local_is) return;
 
-    const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
-    if (field_name_it == field_names.end())
-    {
-        TBOX_ERROR("construct_cached_field_is():\n"
-                   << "  unable to locate " << field_name << " field DOFs.\n");
-    }
-
-    const std::size_t field_idx = static_cast<std::size_t>(std::distance(field_names.begin(), field_name_it));
+    const std::size_t field_idx = find_field_index(field_names, field_name, "construct_cached_field_is()");
     std::vector<PetscInt> field_dofs(field_is[field_idx].begin(), field_is[field_idx].end());
     int ierr = ISCreateGeneral(PETSC_COMM_WORLD,
                                static_cast<PetscInt>(field_dofs.size()),
@@ -321,6 +326,18 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
     return;
 } // ~StaggeredStokesPETScLevelSolver
 
+bool
+StaggeredStokesPETScLevelSolver::isVelocityDOF(const int dof) const
+{
+    return std::binary_search(d_velocity_dofs.begin(), d_velocity_dofs.end(), static_cast<PetscInt>(dof));
+}
+
+bool
+StaggeredStokesPETScLevelSolver::isPressureDOF(const int dof) const
+{
+    return std::binary_search(d_pressure_dofs.begin(), d_pressure_dofs.end(), static_cast<PetscInt>(dof));
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -453,6 +470,12 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
         field_is, field_names, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
     construct_cached_field_is(field_is, field_names, "velocity", d_velocity_field_is_local);
     construct_cached_field_is(field_is, field_names, "pressure", d_pressure_is_local);
+    const std::size_t velocity_field_idx = find_field_index(
+        field_names, "velocity", "StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized()");
+    const std::size_t pressure_field_idx = find_field_index(
+        field_names, "pressure", "StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized()");
+    d_velocity_dofs.assign(field_is[velocity_field_idx].begin(), field_is[velocity_field_idx].end());
+    d_pressure_dofs.assign(field_is[pressure_field_idx].begin(), field_is[pressure_field_idx].end());
 
     if (d_augmented_operator_mat)
     {
@@ -600,6 +623,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     }
     d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
     d_coupling_aware_asm_map_data_is_initialized = false;
+    d_velocity_dofs.clear();
+    d_pressure_dofs.clear();
     return;
 } // deallocateSolverStateSpecialized
 

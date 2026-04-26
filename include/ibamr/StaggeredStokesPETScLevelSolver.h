@@ -119,6 +119,18 @@ public:
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
+    /*!
+     * \brief Return whether \p dof is classified as a velocity DOF in the
+     * current cached level state.
+     */
+    bool isVelocityDOF(int dof) const;
+
+    /*!
+     * \brief Return whether \p dof is classified as a pressure DOF in the
+     * current cached level state.
+     */
+    bool isPressureDOF(int dof) const;
+
 protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
@@ -232,6 +244,8 @@ private:
     double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
+    std::vector<PetscInt> d_velocity_dofs;
+    std::vector<PetscInt> d_pressure_dofs;
 
     //\}
 };
