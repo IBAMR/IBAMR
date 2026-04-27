@@ -166,6 +166,8 @@ protected:
     template <class SVDType>
     static Eigen::MatrixXd buildSVDPseudoinverse(const Eigen::MatrixXd& matrix, double threshold);
 
+    static void checkSerialEigenShellBackend(const PETScLevelSolverShellBackendState& solver_state, const char* caller);
+
     static Eigen::MatrixXd buildCompleteOrthogonalDecompositionPseudoinverse(const Eigen::MatrixXd& matrix,
                                                                              double threshold)
     {

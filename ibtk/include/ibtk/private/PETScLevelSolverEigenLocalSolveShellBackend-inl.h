@@ -22,13 +22,7 @@ inline void
 PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState(
     const PETScLevelSolverShellBackendState& solver_state)
 {
-    if (IBTK_MPI::getNodes() != 1)
-    {
-        TBOX_ERROR(solver_state.object_name
-                   << " " << solver_state.options_prefix
-                   << " PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState():\n"
-                   << "  Eigen shell smoother backends are currently serial-only.\n");
-    }
+    checkSerialEigenShellBackend(solver_state, "PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState()");
     setSolverState(solver_state);
     configureFromInputDatabase(getSolverState().input_db);
     initializeAdditionalSolverState();
@@ -121,9 +115,9 @@ PETScLevelSolverEigenLocalSolveShellBackend::applyMultiplicative(Vec x, Vec y)
         y_map.setZero();
         residual = x_map;
         const std::size_t n_subdomains = common_subdomains.size();
-        for (std::size_t subdomain_num = 0; subdomain_num + 1 < n_subdomains; ++subdomain_num)
+        auto apply_subdomain_correction =
+            [&](CommonSubdomainCache& cache, const std::size_t subdomain_num, const bool update_residual)
         {
-            auto& cache = common_subdomains[subdomain_num];
             std::size_t rhs_idx = 0;
             for (const int dof : cache.overlap_dofs)
             {
@@ -137,7 +131,7 @@ PETScLevelSolverEigenLocalSolveShellBackend::applyMultiplicative(Vec x, Vec y)
                 y_map[dof] +=
                     cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
             }
-            if (cache.active_residual_update_mat.rows() > 0)
+            if (update_residual && cache.active_residual_update_mat.rows() > 0)
             {
                 std::size_t residual_input_idx = 0;
                 for (const int local_pos : cache.update_local_positions)
@@ -153,23 +147,11 @@ PETScLevelSolverEigenLocalSolveShellBackend::applyMultiplicative(Vec x, Vec y)
                     residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
                 }
             }
-        }
-        if (n_subdomains > 0)
+        };
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
         {
-            auto& cache = common_subdomains.back();
-            std::size_t rhs_idx = 0;
-            for (const int dof : cache.overlap_dofs)
-            {
-                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-            cache.delta_workspace = solveLocalSubdomainSystem(cache.rhs_workspace, n_subdomains - 1);
-
-            std::size_t update_idx = 0;
-            for (const int dof : cache.update_dofs)
-            {
-                y_map[dof] +=
-                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
-            }
+            apply_subdomain_correction(
+                common_subdomains[subdomain_num], subdomain_num, subdomain_num + 1 < n_subdomains);
         }
     }
     getSolverState().postprocess_result(y);
