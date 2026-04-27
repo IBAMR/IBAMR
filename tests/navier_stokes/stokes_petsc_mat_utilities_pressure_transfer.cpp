@@ -12,15 +12,16 @@
 // ---------------------------------------------------------------------
 
 /*
- * This test checks linear cell-centered pressure prolongation parity between
- * the PETSc transfer operators and the corresponding SAMRAI transfer schedules
- * on periodic analytic profiles.
+ * This test checks linear cell-centered pressure prolongation and restriction
+ * parity between the PETSc transfer operators and the corresponding SAMRAI
+ * transfer schedules on periodic analytic profiles.
  */
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartCellDoubleLinearCoarsen.h>
 #include <ibtk/CartCellDoubleLinearRefine.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -35,6 +36,8 @@
 #include <CartesianGridGeometry.h>
 #include <CellData.h>
 #include <CellGeometry.h>
+#include <CoarsenAlgorithm.h>
+#include <CoarsenSchedule.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
@@ -403,6 +406,156 @@ main(int argc, char* argv[])
         fine_level->deallocatePatchData(p_fine_mat_idx);
         fine_level->deallocatePatchData(u_fine_mf_idx);
         fine_level->deallocatePatchData(p_fine_mf_idx);
+    }
+    else if (test_mode == "restriction")
+    {
+        Pointer<SideVariable<NDIM, double>> u_fine_var = new SideVariable<NDIM, double>("u_fine");
+        Pointer<SideVariable<NDIM, double>> u_coarse_mat_var = new SideVariable<NDIM, double>("u_coarse_mat");
+        Pointer<SideVariable<NDIM, double>> u_coarse_mf_var = new SideVariable<NDIM, double>("u_coarse_mf");
+        Pointer<CellVariable<NDIM, double>> p_fine_var = new CellVariable<NDIM, double>("p_fine");
+        Pointer<CellVariable<NDIM, double>> p_coarse_mat_var = new CellVariable<NDIM, double>("p_coarse_mat");
+        Pointer<CellVariable<NDIM, double>> p_coarse_mf_var = new CellVariable<NDIM, double>("p_coarse_mf");
+
+        const int u_fine_idx = var_db->registerVariableAndContext(u_fine_var, ctx, IntVector<NDIM>(1));
+        const int u_coarse_mat_idx = var_db->registerVariableAndContext(u_coarse_mat_var, ctx, IntVector<NDIM>(1));
+        const int u_coarse_mf_idx = var_db->registerVariableAndContext(u_coarse_mf_var, ctx, IntVector<NDIM>(1));
+        const int p_fine_idx = var_db->registerVariableAndContext(p_fine_var, ctx, IntVector<NDIM>(1));
+        const int p_coarse_mat_idx = var_db->registerVariableAndContext(p_coarse_mat_var, ctx, IntVector<NDIM>(1));
+        const int p_coarse_mf_idx = var_db->registerVariableAndContext(p_coarse_mf_var, ctx, IntVector<NDIM>(1));
+
+        fine_level->allocatePatchData(u_fine_idx);
+        fine_level->allocatePatchData(p_fine_idx);
+        coarse_level->allocatePatchData(u_coarse_mat_idx);
+        coarse_level->allocatePatchData(p_coarse_mat_idx);
+        coarse_level->allocatePatchData(u_coarse_mf_idx);
+        coarse_level->allocatePatchData(p_coarse_mf_idx);
+
+        TBOX_ASSERT(coarse_level->getNumberOfPatches() == 1);
+        TBOX_ASSERT(fine_level->getNumberOfPatches() == 1);
+        Pointer<Patch<NDIM>> coarse_patch = coarse_level->getPatch(0);
+        Pointer<Patch<NDIM>> fine_patch = fine_level->getPatch(0);
+
+        Pointer<SideData<NDIM, double>> u_fine_data = fine_patch->getPatchData(u_fine_idx);
+        Pointer<SideData<NDIM, double>> u_coarse_mat_data = coarse_patch->getPatchData(u_coarse_mat_idx);
+        Pointer<SideData<NDIM, double>> u_coarse_mf_data = coarse_patch->getPatchData(u_coarse_mf_idx);
+        Pointer<CellData<NDIM, double>> p_fine_data = fine_patch->getPatchData(p_fine_idx);
+        Pointer<CellData<NDIM, double>> p_coarse_mat_data = coarse_patch->getPatchData(p_coarse_mat_idx);
+        Pointer<CellData<NDIM, double>> p_coarse_mf_data = coarse_patch->getPatchData(p_coarse_mf_idx);
+
+        u_fine_data->fillAll(0.0);
+        u_coarse_mat_data->fillAll(0.0);
+        u_coarse_mf_data->fillAll(0.0);
+        p_coarse_mat_data->fillAll(0.0);
+        p_coarse_mf_data->fillAll(0.0);
+        set_pressure_profile(p_fine_data, fine_patch, profile_type, profile_coeffs, profile_constant);
+        const double nontrivial_tol = 1.0e-14;
+        const double norm_match_tol = 1.0e-12;
+
+        Vec fine_vec = nullptr, coarse_vec_mat = nullptr, coarse_vec_mf = nullptr, diff_vec = nullptr;
+        int ierr = MatCreateVecs(prolong_mat, &coarse_vec_mat, &fine_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(coarse_vec_mat, &coarse_vec_mf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(coarse_vec_mat, &diff_vec);
+        IBTK_CHKERRQ(ierr);
+
+        IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            fine_vec, u_fine_idx, u_dof_index_idx, p_fine_idx, p_dof_index_idx, fine_level);
+        const double fine_samrai_norm = fine_cell_ops.maxNorm(p_fine_idx, IBTK::invalid_index);
+        double fine_vec_norm = 0.0;
+        ierr = VecNorm(fine_vec, NORM_INFINITY, &fine_vec_norm);
+        IBTK_CHKERRQ(ierr);
+        check_nontrivial("input fine pressure field", fine_samrai_norm, fine_vec_norm, nontrivial_tol, test_failures);
+        check_max_norm_consistency(
+            "input fine pressure field", fine_samrai_norm, fine_vec_norm, norm_match_tol, test_failures);
+
+        Vec restriction_scale = nullptr;
+        PETScMatUtilities::constructRestrictionScalingOp(prolong_mat, restriction_scale);
+        Mat restrict_mat = nullptr;
+        ierr = MatTranspose(prolong_mat, MAT_INITIAL_MATRIX, &restrict_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDiagonalScale(restrict_mat, restriction_scale, nullptr);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(restrict_mat, fine_vec, coarse_vec_mat);
+        IBTK_CHKERRQ(ierr);
+
+        Pointer<RefineSchedule<NDIM>> coarse_data_synch_sched =
+            IBAMR::StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(
+                u_coarse_mat_idx, p_coarse_mat_idx, coarse_level);
+        Pointer<RefineSchedule<NDIM>> coarse_ghost_fill_sched =
+            IBAMR::StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(
+                u_coarse_mat_idx, p_coarse_mat_idx, coarse_level);
+        IBAMR::StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(coarse_vec_mat,
+                                                                       u_coarse_mat_idx,
+                                                                       u_dof_index_idx,
+                                                                       p_coarse_mat_idx,
+                                                                       p_dof_index_idx,
+                                                                       coarse_level,
+                                                                       coarse_data_synch_sched,
+                                                                       coarse_ghost_fill_sched);
+
+        Pointer<CoarsenOperator<NDIM>> p_coarsen_op = new IBTK::CartCellDoubleLinearCoarsen();
+        Pointer<CoarsenAlgorithm<NDIM>> p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        p_coarsen_alg->registerCoarsen(p_coarse_mf_idx, p_fine_idx, p_coarsen_op, IntVector<NDIM>(0));
+        Pointer<CoarsenSchedule<NDIM>> p_coarsen_sched = p_coarsen_alg->createSchedule(coarse_level, fine_level);
+        p_coarsen_sched->coarsenData();
+
+        IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            coarse_vec_mf, u_coarse_mf_idx, u_dof_index_idx, p_coarse_mf_idx, p_dof_index_idx, coarse_level);
+        const double coarse_mat_samrai_norm = coarse_cell_ops.maxNorm(p_coarse_mat_idx, IBTK::invalid_index);
+        const double coarse_mf_samrai_norm = coarse_cell_ops.maxNorm(p_coarse_mf_idx, IBTK::invalid_index);
+        double coarse_vec_mat_norm = 0.0, coarse_vec_mf_norm = 0.0;
+        ierr = VecNorm(coarse_vec_mat, NORM_INFINITY, &coarse_vec_mat_norm);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(coarse_vec_mf, NORM_INFINITY, &coarse_vec_mf_norm);
+        IBTK_CHKERRQ(ierr);
+        check_nontrivial("output coarse matrix pressure field",
+                         coarse_mat_samrai_norm,
+                         coarse_vec_mat_norm,
+                         nontrivial_tol,
+                         test_failures);
+        check_nontrivial("output coarse matrix-free pressure field",
+                         coarse_mf_samrai_norm,
+                         coarse_vec_mf_norm,
+                         nontrivial_tol,
+                         test_failures);
+        check_max_norm_consistency("output coarse matrix pressure field",
+                                   coarse_mat_samrai_norm,
+                                   coarse_vec_mat_norm,
+                                   norm_match_tol,
+                                   test_failures);
+        check_max_norm_consistency("output coarse matrix-free pressure field",
+                                   coarse_mf_samrai_norm,
+                                   coarse_vec_mf_norm,
+                                   norm_match_tol,
+                                   test_failures);
+
+        ierr = VecWAXPY(diff_vec, -1.0, coarse_vec_mf, coarse_vec_mat);
+        IBTK_CHKERRQ(ierr);
+        double max_err = 0.0;
+        ierr = VecNorm(diff_vec, NORM_INFINITY, &max_err);
+        IBTK_CHKERRQ(ierr);
+        if (max_err > equivalence_tol) ++test_failures;
+
+        ierr = MatDestroy(&restrict_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&restriction_scale);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&fine_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&coarse_vec_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&coarse_vec_mf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&diff_vec);
+        IBTK_CHKERRQ(ierr);
+
+        fine_level->deallocatePatchData(u_fine_idx);
+        fine_level->deallocatePatchData(p_fine_idx);
+        coarse_level->deallocatePatchData(u_coarse_mat_idx);
+        coarse_level->deallocatePatchData(p_coarse_mat_idx);
+        coarse_level->deallocatePatchData(u_coarse_mf_idx);
+        coarse_level->deallocatePatchData(p_coarse_mf_idx);
     }
     else
     {
