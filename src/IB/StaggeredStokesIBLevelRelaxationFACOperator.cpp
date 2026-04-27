@@ -239,6 +239,62 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
                                                              int coarsest_level_num,
                                                              int finest_level_num)
 {
+    const int rank = IBTK_MPI::getRank();
+    const auto apply_level_residual_op =
+        [&](const int ln,
+            const int U_res_idx,
+            const int U_sol_idx,
+            const int U_rhs_idx,
+            const int P_res_idx,
+            const int P_sol_idx,
+            const int P_rhs_idx,
+            const bool use_rhs_vec,
+            const auto& residual_op)
+    {
+        Vec solution_vec = nullptr;
+        Vec residual_vec = nullptr;
+        Vec rhs_vec = nullptr;
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+
+        int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
+        IBTK_CHKERRQ(ierr);
+
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
+        if (use_rhs_vec)
+        {
+            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &rhs_vec);
+            IBTK_CHKERRQ(ierr);
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+                rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx, d_p_dof_index_idx, level);
+        }
+        else
+        {
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level);
+        }
+
+        residual_op(ln, solution_vec, residual_vec, rhs_vec);
+
+        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
+            residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
+        xeqScheduleDataSynch(U_res_idx, ln);
+        xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
+
+        ierr = VecDestroy(&solution_vec);
+        IBTK_CHKERRQ(ierr);
+        if (rhs_vec)
+        {
+            ierr = VecDestroy(&rhs_vec);
+            IBTK_CHKERRQ(ierr);
+        }
+        ierr = VecDestroy(&residual_vec);
+        IBTK_CHKERRQ(ierr);
+        return;
+    };
+
     if (d_res_rediscretized_stokes)
     {
         StaggeredStokesFACPreconditionerStrategy::computeResidual(
@@ -251,38 +307,27 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_sol_idx = solution.getComponentDescriptorIndex(1);
 
         // Update the residual, r = f - A*u, to include the IB part of the operator.
-        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
-            Vec solution_vec, residual_vec;
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-
-            int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
-            IBTK_CHKERRQ(ierr);
-
-            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-                solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
-            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level);
-
-            ierr = VecScale(residual_vec, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(d_SAJ_mat[ln], solution_vec, residual_vec, residual_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScale(residual_vec, -1.0);
-            IBTK_CHKERRQ(ierr);
-
-            StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
-            xeqScheduleDataSynch(U_res_idx, ln);
-            xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
-
-            ierr = VecDestroy(&solution_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&residual_vec);
-            IBTK_CHKERRQ(ierr);
+            apply_level_residual_op(
+                ln,
+                U_res_idx,
+                U_sol_idx,
+                IBTK::invalid_index,
+                P_res_idx,
+                P_sol_idx,
+                IBTK::invalid_index,
+                false,
+                [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec /*rhs_vec*/)
+                {
+                    int ierr = VecScale(residual_vec, -1.0);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = MatMultAdd(d_SAJ_mat[level_num], solution_vec, residual_vec, residual_vec);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecScale(residual_vec, -1.0);
+                    IBTK_CHKERRQ(ierr);
+                    return;
+                });
         }
     }
     else
@@ -296,46 +341,29 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
         // Compute the residual, r = f - A*u.
-        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
-            Vec solution_vec;
-            Vec residual_vec;
-            Vec rhs_vec;
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-
-            int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &rhs_vec);
-            IBTK_CHKERRQ(ierr);
-
-            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-                solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
-            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-                rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx, d_p_dof_index_idx, level);
-
-            const KSP& level_ksp = d_level_solvers[ln]->getPETScKSP();
-            Mat A;
-            ierr = KSPGetOperators(level_ksp, &A, nullptr);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMult(A, solution_vec, residual_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
-            IBTK_CHKERRQ(ierr);
-
-            StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
-            xeqScheduleDataSynch(U_res_idx, ln);
-            xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
-
-            ierr = VecDestroy(&solution_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&rhs_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&residual_vec);
-            IBTK_CHKERRQ(ierr);
+            apply_level_residual_op(
+                ln,
+                U_res_idx,
+                U_sol_idx,
+                U_rhs_idx,
+                P_res_idx,
+                P_sol_idx,
+                P_rhs_idx,
+                true,
+                [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec rhs_vec)
+                {
+                    const KSP& level_ksp = d_level_solvers[level_num]->getPETScKSP();
+                    Mat A;
+                    int ierr = KSPGetOperators(level_ksp, &A, nullptr);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = MatMult(A, solution_vec, residual_vec);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
+                    IBTK_CHKERRQ(ierr);
+                    return;
+                });
         }
     }
     return;
