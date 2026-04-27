@@ -53,7 +53,6 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
-#include <cstring>
 #include <set>
 #include <string>
 #include <vector>
@@ -692,9 +691,7 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 void
 StaggeredStokesPETScLevelSolver::postprocessShellResult(Vec& y)
 {
-    const bool is_multiplicative_shell =
-        d_shell_pc_type.compare(0, std::strlen("multiplicative"), "multiplicative") == 0;
-    if (!is_multiplicative_shell || !d_pressure_is_local) return;
+    if (!usesMultiplicativeShellSmoother() || !d_pressure_is_local) return;
 
     PetscInt n_pressure_dofs = 0;
     int ierr = ISGetLocalSize(d_pressure_is_local, &n_pressure_dofs);

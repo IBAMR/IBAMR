@@ -866,6 +866,18 @@ PETScLevelSolver::postprocessShellResult(Vec& /*y*/)
     return;
 } // postprocessShellResult
 
+bool
+PETScLevelSolver::usesMultiplicativeShellSmoother() const
+{
+    return d_shell_smoother_composition == ShellSmootherComposition::MULTIPLICATIVE;
+} // usesMultiplicativeShellSmoother
+
+bool
+PETScLevelSolver::usesRestrictShellSmootherPartition() const
+{
+    return d_shell_smoother_partition == ShellSmootherPartition::RESTRICT;
+} // usesRestrictShellSmootherPartition
+
 void
 PETScLevelSolver::setupNullSpace()
 {
