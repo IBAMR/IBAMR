@@ -294,12 +294,8 @@ compute_linear_cell_prolongation_row_entries(const CellIndex<NDIM>& i_fine,
             CellIndex<NDIM> i_stencil;
             i_stencil(0) = coarse_stencil[0][i0];
             i_stencil(1) = coarse_stencil[1][i1];
-            entries.cols[entry] =
-                IndexUtilities::mapIndexToInteger(i_stencil,
-                                                  coarse_domain_lower,
-                                                  coarse_num_cells,
-                                                  depth_idx,
-                                                  coarse_ao_offset);
+            entries.cols[entry] = IndexUtilities::mapIndexToInteger(
+                i_stencil, coarse_domain_lower, coarse_num_cells, depth_idx, coarse_ao_offset);
             entries.vals[entry] = weights[0][i0] * weights[1][i1];
         }
     }
@@ -315,18 +311,15 @@ compute_linear_cell_prolongation_row_entries(const CellIndex<NDIM>& i_fine,
                 i_stencil(0) = coarse_stencil[0][i0];
                 i_stencil(1) = coarse_stencil[1][i1];
                 i_stencil(2) = coarse_stencil[2][i2];
-                entries.cols[entry] =
-                    IndexUtilities::mapIndexToInteger(i_stencil,
-                                                      coarse_domain_lower,
-                                                      coarse_num_cells,
-                                                      depth_idx,
-                                                      coarse_ao_offset);
+                entries.cols[entry] = IndexUtilities::mapIndexToInteger(
+                    i_stencil, coarse_domain_lower, coarse_num_cells, depth_idx, coarse_ao_offset);
                 entries.vals[entry] = weights[0][i0] * weights[1][i1] * weights[2][i2];
             }
         }
     }
 #endif
-    PetscErrorCode ierr = AOApplicationToPetsc(coarse_level_ao, static_cast<int>(entries.cols.size()), entries.cols.data());
+    PetscErrorCode ierr =
+        AOApplicationToPetsc(coarse_level_ao, static_cast<int>(entries.cols.size()), entries.cols.data());
     IBTK_CHKERRQ(ierr);
     return entries;
 }
@@ -499,18 +492,20 @@ compute_linear_side_prolongation_row_entries(const CellIndex<NDIM>& i,
         w[0] = 1.0 - (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
                          SCD(fine_coarse_ratio(0));
 
-        w[1] = 1.0 - (0.5 + SCD(i(1)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                 fine_coarse_ratio)(1)) -
-                      SCD(fine_coarse_ratio(1) / 2.0)) /
-                         SCD(fine_coarse_ratio(1));
+        w[1] =
+            1.0 -
+            (0.5 + SCD(i(1)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]), fine_coarse_ratio)(1)) -
+             SCD(fine_coarse_ratio(1) / 2.0)) /
+                SCD(fine_coarse_ratio(1));
 #if (NDIM == 3)
 
-        w[2] = 1.0 - (0.5 + SCD(i(2)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                 fine_coarse_ratio)(2)) -
-                      SCD(fine_coarse_ratio(2) / 2.0)) /
-                         SCD(fine_coarse_ratio(2));
+        w[2] =
+            1.0 -
+            (0.5 + SCD(i(2)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]), fine_coarse_ratio)(2)) -
+             SCD(fine_coarse_ratio(2) / 2.0)) /
+                SCD(fine_coarse_ratio(2));
 #endif
     }
     else if (axis == 1)
@@ -518,18 +513,20 @@ compute_linear_side_prolongation_row_entries(const CellIndex<NDIM>& i,
         w[1] = 1.0 - (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
                          SCD(fine_coarse_ratio(1));
 
-        w[0] = 1.0 - (0.5 + SCD(i(0)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                 fine_coarse_ratio)(0)) -
-                      SCD(fine_coarse_ratio(0) / 2.0)) /
-                         SCD(fine_coarse_ratio(0));
+        w[0] =
+            1.0 -
+            (0.5 + SCD(i(0)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]), fine_coarse_ratio)(0)) -
+             SCD(fine_coarse_ratio(0) / 2.0)) /
+                SCD(fine_coarse_ratio(0));
 #if (NDIM == 3)
 
-        w[2] = 1.0 - (0.5 + SCD(i(2)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                 fine_coarse_ratio)(2)) -
-                      SCD(fine_coarse_ratio(2) / 2.0)) /
-                         SCD(fine_coarse_ratio(2));
+        w[2] =
+            1.0 -
+            (0.5 + SCD(i(2)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]), fine_coarse_ratio)(2)) -
+             SCD(fine_coarse_ratio(2) / 2.0)) /
+                SCD(fine_coarse_ratio(2));
 #endif
     }
 #if (NDIM == 3)
@@ -538,17 +535,19 @@ compute_linear_side_prolongation_row_entries(const CellIndex<NDIM>& i,
         w[2] = 1.0 - (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
                          SCD(fine_coarse_ratio(2));
 
-        w[0] = 1.0 - (0.5 + SCD(i(0)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                 fine_coarse_ratio)(0)) -
-                      SCD(fine_coarse_ratio(0) / 2.0)) /
-                         SCD(fine_coarse_ratio(0));
+        w[0] =
+            1.0 -
+            (0.5 + SCD(i(0)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]), fine_coarse_ratio)(0)) -
+             SCD(fine_coarse_ratio(0) / 2.0)) /
+                SCD(fine_coarse_ratio(0));
 
-        w[1] = 1.0 - (0.5 + SCD(i(1)) -
-                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                 fine_coarse_ratio)(1)) -
-                      SCD(fine_coarse_ratio(1) / 2.0)) /
-                         SCD(fine_coarse_ratio(1));
+        w[1] =
+            1.0 -
+            (0.5 + SCD(i(1)) -
+             SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]), fine_coarse_ratio)(1)) -
+             SCD(fine_coarse_ratio(1) / 2.0)) /
+                SCD(fine_coarse_ratio(1));
     }
 #endif
 
