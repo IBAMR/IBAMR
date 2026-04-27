@@ -15,13 +15,14 @@
  * This test targets the implicit Stokes-IB solver components directly rather
  * than the full hierarchy integrator. It builds the nonlinear residual,
  * compares the Jacobian against a matrix-free finite-difference action, and
- * checks the FAC-level Eulerian elasticity operator on controlled single-level
- * and multilevel configurations.
+ * exercises the FAC-preconditioned linear solve on controlled single-level and
+ * multilevel configurations.
  */
 
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
+#include <ibamr/StaggeredStokesIBJacobianFACPreconditioner.h>
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
@@ -34,6 +35,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LData.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/ibtk_utilities.h>
@@ -580,19 +582,22 @@ main(int argc, char* argv[])
 
         Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
             "stokes_ib_solver_components::fac_op", stokes_ib_precond_db, "stokes_ib_pc_");
+        Pointer<StaggeredStokesIBJacobianFACPreconditioner> fac_pc = new StaggeredStokesIBJacobianFACPreconditioner(
+            "stokes_ib_solver_components::fac_pc", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
 
-        fac_op->setVelocityPoissonSpecifications(U_problem_coefs);
-        fac_op->setPhysicalBcCoefs(u_bc_coefs, nullptr);
-        fac_op->setPhysicalBoundaryHelper(bc_helper);
-        fac_op->setTimeInterval(current_time, new_time);
-        fac_op->setSolutionTime(new_time);
-        fac_op->setHomogeneousBc(true);
-        fac_op->setComponentsHaveNullSpace(false, true);
-        fac_op->setIBTimeSteppingType(ctx.time_stepping_type);
-        fac_op->setIBForceJacobian(A);
-        fac_op->setIBInterpOp(J);
-        fac_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
+        fac_pc->setVelocityPoissonSpecifications(U_problem_coefs);
+        fac_pc->setPhysicalBcCoefs(u_bc_coefs, nullptr);
+        fac_pc->setPhysicalBoundaryHelper(bc_helper);
+        fac_pc->setTimeInterval(current_time, new_time);
+        fac_pc->setSolutionTime(new_time);
+        fac_pc->setHomogeneousBc(true);
+        fac_pc->setComponentsHaveNullSpace(false, true);
+        fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
+        fac_pc->setIBForceJacobian(A);
+        fac_pc->setIBInterpOp(J);
+        fac_pc->setIBImplicitStrategy(ib_method_ops);
+        fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         jac_op->setIBCouplingJacobian(SAJ);
 
@@ -655,7 +660,91 @@ main(int argc, char* argv[])
             IBTK_CHKERRQ(ierr);
         }
 
-        fac_op->deallocateOperatorState();
+        const bool run_saj_vector_compare = input_db->getBoolWithDefault("RUN_SAJ_VECTOR_COMPARE", false);
+        if (run_saj_vector_compare)
+        {
+            Pointer<SAMRAIVectorReal<NDIM, double>> saj_jv = eul_rhs_vec->cloneVector("saj_jv");
+            saj_jv->allocateVectorData();
+            saj_jv->setToScalar(0.0);
+            jac_op->apply(*v, *saj_jv);
+
+            Pointer<SAMRAIVectorReal<NDIM, double>> saj_diff = eul_rhs_vec->cloneVector("saj_diff");
+            saj_diff->allocateVectorData();
+            saj_diff->subtract(saj_jv, jv);
+
+            double saj_jv_side_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_jv_cell_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_diff_side_norm = std::numeric_limits<double>::quiet_NaN();
+            double saj_diff_cell_norm = std::numeric_limits<double>::quiet_NaN();
+            const bool saj_jv_finite =
+                side_l2_norm_is_finite(
+                    hier_velocity_data_ops, saj_jv->getComponentDescriptorIndex(0), wgt_sc_idx, saj_jv_side_norm) &&
+                cell_l2_norm_is_finite(
+                    hier_pressure_data_ops, saj_jv->getComponentDescriptorIndex(1), wgt_cc_idx, saj_jv_cell_norm);
+            const bool saj_diff_finite =
+                side_l2_norm_is_finite(
+                    hier_velocity_data_ops, saj_diff->getComponentDescriptorIndex(0), wgt_sc_idx, saj_diff_side_norm) &&
+                cell_l2_norm_is_finite(
+                    hier_pressure_data_ops, saj_diff->getComponentDescriptorIndex(1), wgt_cc_idx, saj_diff_cell_norm);
+            if (!saj_jv_finite || !saj_diff_finite)
+            {
+                ++test_failures;
+                pout << "saj jacobian comparison norms are non-finite" << std::endl;
+            }
+            else
+            {
+                const double saj_rel_error =
+                    std::sqrt(saj_diff_side_norm * saj_diff_side_norm + saj_diff_cell_norm * saj_diff_cell_norm) /
+                    std::max(std::sqrt(saj_jv_side_norm * saj_jv_side_norm + saj_jv_cell_norm * saj_jv_cell_norm),
+                             1.0e-14);
+                pout << "saj_relative_error = " << saj_rel_error << std::endl;
+                const double saj_rel_tol = input_db->getDoubleWithDefault("SAJ_REL_TOL", 5.0e-12);
+                if (!(saj_rel_error <= saj_rel_tol))
+                {
+                    ++test_failures;
+                    pout << "saj_relative_error exceeds tolerance: " << saj_rel_tol << std::endl;
+                }
+            }
+        }
+
+        Pointer<PETScKrylovLinearSolver> linear_solver =
+            new PETScKrylovLinearSolver("stokes_ib_solver_components::linear_solver", nullptr, "ib_");
+        linear_solver->setOperator(jac_op);
+        linear_solver->setPreconditioner(fac_pc);
+        linear_solver->setTimeInterval(current_time, new_time);
+        linear_solver->setSolutionTime(new_time);
+        linear_solver->setInitialGuessNonzero(false);
+
+        Pointer<SAMRAIVectorReal<NDIM, double>> linear_sol = eul_sol_vec->cloneVector("linear_sol");
+        linear_sol->allocateVectorData();
+        linear_sol->setToScalar(0.0);
+        const bool linear_success = linear_solver->solveSystem(*linear_sol, *jv);
+        if (!linear_success)
+        {
+            ++test_failures;
+            pout << "krylov linear solve failed" << std::endl;
+        }
+        pout << "krylov_linear_iterations = " << linear_solver->getNumIterations() << std::endl;
+        pout << "krylov_linear_residual_norm = " << linear_solver->getResidualNorm() << std::endl;
+
+        double linear_side_norm = std::numeric_limits<double>::quiet_NaN();
+        double linear_cell_norm = std::numeric_limits<double>::quiet_NaN();
+        if (!side_l2_norm_is_finite(
+                hier_velocity_data_ops, linear_sol->getComponentDescriptorIndex(0), wgt_sc_idx, linear_side_norm) ||
+            !cell_l2_norm_is_finite(
+                hier_pressure_data_ops, linear_sol->getComponentDescriptorIndex(1), wgt_cc_idx, linear_cell_norm))
+        {
+            ++test_failures;
+            pout << "krylov linear solve produced non-finite norm" << std::endl;
+        }
+        else if (linear_side_norm <= 1.0e-14 && linear_cell_norm <= 1.0e-14)
+        {
+            ++test_failures;
+            pout << "krylov linear solve action is trivial" << std::endl;
+        }
+
+        fac_pc->deallocateSolverState();
+
         jac_op->deallocateOperatorState();
         nonlinear_op.deallocateOperatorState();
 

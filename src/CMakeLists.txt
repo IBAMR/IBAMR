@@ -161,6 +161,7 @@ SET(CXX_SRC
   IB/IBImplicitStaggeredHierarchyIntegrator.cpp
   IB/StaggeredStokesIBOperator.cpp
   IB/StaggeredStokesIBJacobianOperator.cpp
+  IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
   IB/IBRedundantInitializer.cpp
   IB/IBAnchorPointSpecFactory.cpp
   IB/CIBStrategy.cpp
