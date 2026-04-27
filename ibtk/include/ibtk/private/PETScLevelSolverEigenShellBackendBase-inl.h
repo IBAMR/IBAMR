@@ -133,6 +133,64 @@ PETScLevelSolverEigenShellBackendBase::checkSerialEigenShellBackend(
     }
 }
 
+inline Eigen::MatrixXd
+PETScLevelSolverEigenShellBackendBase::buildDenseEigenSolveMatrix(const EigenSubdomainSolverType solver_type,
+                                                                  const Eigen::MatrixXd& matrix,
+                                                                  const double threshold,
+                                                                  const char* caller) const
+{
+    Eigen::MatrixXd solve_matrix;
+    dispatchEigenSolverType(
+        solver_type,
+        [this, &matrix, threshold, caller, &solve_matrix](auto solver_tag)
+        {
+            using SolverType = typename decltype(solver_tag)::type;
+            if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildLLTSolveMatrix(matrix);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildLDLTSolveMatrix(matrix);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::PartialPivLU<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildPartialPivLUSolveMatrix(matrix);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivLU<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildFullPivLUSolveMatrix(matrix, threshold);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::HouseholderQR<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildHouseholderQRSolveMatrix(matrix);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::ColPivHouseholderQR<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildQRSolveMatrix<SolverType>(matrix, threshold);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildCompleteOrthogonalDecompositionPseudoinverse(matrix, threshold);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildQRSolveMatrix<SolverType>(matrix, threshold);
+            }
+            else if constexpr (std::is_same_v<SolverType, Eigen::JacobiSVD<Eigen::MatrixXd>> ||
+                               std::is_same_v<SolverType, Eigen::BDCSVD<Eigen::MatrixXd>>)
+            {
+                solve_matrix = buildSVDPseudoinverse<SolverType>(matrix, threshold);
+            }
+            else
+            {
+                TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix << " " << caller << ":\n"
+                                                      << "Unsupported Eigen subdomain solver type.\n");
+            }
+        });
+    return solve_matrix;
+}
+
 template <class InitializeSubdomainSolver>
 inline void
 PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook(
