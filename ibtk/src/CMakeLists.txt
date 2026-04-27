@@ -22,6 +22,7 @@ SET(FORTRAN_SRC_BASE
   boundary/physical_boundary/fortran/cartphysbdryop
 
   coarsen_ops/fortran/cubiccoarsen
+  coarsen_ops/fortran/cart_cell_coarsen
   coarsen_ops/fortran/rt0coarsen
   lagrangian/fortran/lagrangian_interaction
 
@@ -91,6 +92,7 @@ SET(CXX_SRC
 
   # coarsen ops
   coarsen_ops/CartCellDoubleCubicCoarsen.cpp
+  coarsen_ops/CartCellDoubleLinearCoarsen.cpp
   coarsen_ops/CartSideDoubleRT0Coarsen.cpp
   coarsen_ops/CartSideDoubleCubicCoarsen.cpp
 
