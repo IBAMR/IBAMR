@@ -231,7 +231,8 @@ StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec 
         y_map.setZero();
         residual = x_map;
         const std::size_t n_subdomains = d_subdomain_caches.size();
-        for (std::size_t subdomain_num = 0; subdomain_num + 1 < n_subdomains; ++subdomain_num)
+        auto apply_subdomain_correction =
+            [this, &typed_storage, &y_map, &residual](const std::size_t subdomain_num, const bool update_residual)
         {
             auto& custom_cache = d_subdomain_caches[subdomain_num];
             const auto& a00_solver = typed_storage.solvers[subdomain_num];
@@ -254,7 +255,7 @@ StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec 
                 y_map[dof] +=
                     custom_cache.delta_workspace[static_cast<Eigen::Index>(update_local_positions[update_idx++])];
             }
-            if (active_residual_update_mat.rows() > 0)
+            if (update_residual && active_residual_update_mat.rows() > 0)
             {
                 std::size_t residual_input_idx = 0;
                 for (const int local_pos : update_local_positions)
@@ -270,28 +271,11 @@ StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec 
                     residual[row] -= custom_cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
                 }
             }
-        }
-        if (n_subdomains > 0)
+        };
+
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
         {
-            auto& custom_cache = d_subdomain_caches.back();
-            const auto& a00_solver = typed_storage.solvers.back();
-            const auto& overlap_dofs = *custom_cache.overlap_dofs;
-            const auto& update_dofs = *custom_cache.update_dofs;
-            const auto& update_local_positions = *custom_cache.update_local_positions;
-            std::size_t rhs_idx = 0;
-            for (const int dof : overlap_dofs)
-            {
-                custom_cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-
-            solveCustomEigenSubdomain(custom_cache, a00_solver);
-
-            std::size_t update_idx = 0;
-            for (const int dof : update_dofs)
-            {
-                y_map[dof] +=
-                    custom_cache.delta_workspace[static_cast<Eigen::Index>(update_local_positions[update_idx++])];
-            }
+            apply_subdomain_correction(subdomain_num, subdomain_num + 1 < n_subdomains);
         }
     }
     d_solver_state.postprocess_result(y);
