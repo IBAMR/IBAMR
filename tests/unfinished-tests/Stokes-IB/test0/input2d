@@ -96,7 +96,6 @@ IBHierarchyIntegrator {
    max_integrator_steps = 1
 
    // Setting for implicit integrator
-    eliminate_eulerian_vars  = TRUE
     jacobian_delta_fcn       = "IB_4"
 }
 

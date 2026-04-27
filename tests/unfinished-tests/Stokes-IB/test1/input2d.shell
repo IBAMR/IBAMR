@@ -93,7 +93,6 @@ IBHierarchyIntegrator {
    max_integrator_steps = 1
 
    // Setting for implicit integrator
-   eliminate_eulerian_vars    = FALSE
    jacobian_delta_fcn         = "IB_4"
    stokes_ib_precond_db
    {
@@ -129,7 +128,7 @@ IBHierarchyIntegrator {
             use_ksp_as_smoother   = FALSE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "preonly"
-	    pc_type               = "lu"
+	    pc_type               = "svd"
 
             subdomain_box_size      = N , N
             subdomain_overlap_size  = 0, 0

@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2020 by the IBAMR developers
+## Copyright (c) 2026 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,5 +11,18 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_SUBDIRECTORY(explicit)
-ADD_SUBDIRECTORY(implicit)
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IB-implicit-ex0"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IB/implicit/ex0"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IB
+  SOURCES
+    example.cpp
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d petsc_options.dat)
