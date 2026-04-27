@@ -14,8 +14,6 @@
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/private/StaggeredStokesEigenSchurComplementShellBackend.h>
 
-#include <ibtk/IBTK_CHKERRQ.h>
-
 #include <tbox/Database.h>
 
 #include <petscvec.h>
@@ -180,8 +178,7 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
                 if (cache.A00.rows() > 0)
                 {
                     auto& solver = getCustomEigenA00SolveStorage<SolverType>().solvers[subdomain_num];
-                    StaggeredStokesEigenSchurComplementShellBackendDetail::initialize_custom_a00_solver(
-                        solver, cache.A00, d_a00_solver_threshold, subdomain_num);
+                    initializeCustomEigenA00Solver(solver, cache.A00, subdomain_num);
                 }
 
                 if (cache.A11.rows() > 0)

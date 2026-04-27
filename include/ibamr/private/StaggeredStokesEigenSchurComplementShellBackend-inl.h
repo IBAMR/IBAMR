@@ -14,9 +14,6 @@
 #ifndef included_IBAMR_private_StaggeredStokesEigenSchurComplementShellBackend_inl
 #define included_IBAMR_private_StaggeredStokesEigenSchurComplementShellBackend_inl
 
-#include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/IBTK_MPI.h>
-
 #include <type_traits>
 
 namespace IBAMR
@@ -39,54 +36,6 @@ insert_subvector(Eigen::VectorXd& vector, const std::vector<int>& positions, con
     for (std::size_t k = 0; k < positions.size(); ++k)
     {
         vector(positions[k]) = subvector(static_cast<Eigen::Index>(k));
-    }
-}
-
-template <class SolverType>
-inline void
-initialize_custom_a00_solver(SolverType& solver,
-                             const Eigen::MatrixXd& matrix,
-                             const double threshold,
-                             const std::size_t subdomain_num)
-{
-    if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>>)
-    {
-        solver.compute(matrix);
-        if (solver.info() != Eigen::Success)
-        {
-            TBOX_ERROR("initialize_custom_a00_solver():\n"
-                       << "  LLT factorization failed for the local A00 block on subdomain " << subdomain_num << ".\n");
-        }
-    }
-    else if constexpr (std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
-    {
-        solver.compute(matrix);
-        if (solver.info() != Eigen::Success)
-        {
-            TBOX_ERROR("initialize_custom_a00_solver():\n"
-                       << "  LDLT factorization failed for the local A00 block on subdomain " << subdomain_num
-                       << ".\n");
-        }
-    }
-    else
-    {
-        if constexpr (std::is_same_v<SolverType, Eigen::JacobiSVD<Eigen::MatrixXd>> ||
-                      std::is_same_v<SolverType, Eigen::BDCSVD<Eigen::MatrixXd>>)
-        {
-            solver.compute(matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
-            if (threshold >= 0.0) solver.setThreshold(threshold);
-        }
-        else
-        {
-            solver.compute(matrix);
-            if constexpr (std::is_same_v<SolverType, Eigen::FullPivLU<Eigen::MatrixXd>> ||
-                          std::is_same_v<SolverType, Eigen::ColPivHouseholderQR<Eigen::MatrixXd>> ||
-                          std::is_same_v<SolverType, Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>> ||
-                          std::is_same_v<SolverType, Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>)
-            {
-                if (threshold >= 0.0) solver.setThreshold(threshold);
-            }
-        }
     }
 }
 
@@ -123,6 +72,48 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00SolveSt
     auto storage = std::make_unique<CustomEigenA00TypedSolveStorage<SolverType>>();
     storage->solvers.resize(n_subdomains);
     d_a00_solver_storage = std::move(storage);
+}
+
+inline IBTK::PETScLevelSolverEigenShellBackendBase::SubdomainSweepView
+StaggeredStokesEigenSchurComplementShellBackend::getCustomSubdomainSweepView(
+    CustomEigenSchurSubdomainCache& custom_cache) const
+{
+    TBOX_ASSERT(custom_cache.overlap_dofs);
+    TBOX_ASSERT(custom_cache.update_dofs);
+    TBOX_ASSERT(custom_cache.update_local_positions);
+    TBOX_ASSERT(custom_cache.active_residual_update_rows);
+    TBOX_ASSERT(custom_cache.active_residual_update_mat);
+    return { *custom_cache.overlap_dofs,
+             *custom_cache.update_dofs,
+             *custom_cache.update_local_positions,
+             *custom_cache.active_residual_update_rows,
+             *custom_cache.active_residual_update_mat,
+             custom_cache.rhs_workspace,
+             custom_cache.delta_workspace,
+             custom_cache.residual_input_workspace,
+             custom_cache.residual_delta_workspace };
+}
+
+template <class SolverType>
+inline void
+StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver(
+    SolverType& solver,
+    const Eigen::MatrixXd& matrix,
+    const std::size_t subdomain_num) const
+{
+    initializeEigenSolver(solver, matrix, d_a00_solver_threshold);
+    if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>> ||
+                  std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
+    {
+        const char* const factorization =
+            std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>> ? "LLT" : "LDLT";
+        if (solver.info() != Eigen::Success)
+        {
+            TBOX_ERROR("StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver():\n"
+                       << "  " << factorization << " factorization failed for the local A00 block on subdomain "
+                       << subdomain_num << ".\n");
+        }
+    }
 }
 
 template <class SolverType>
@@ -170,115 +161,34 @@ template <class SolverType>
 inline void
 StaggeredStokesEigenSchurComplementShellBackend::applyAdditive(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK::IBTK_MPI::getNodes() == 1);
     auto& typed_storage = getCustomEigenA00SolveStorage<SolverType>();
-    PetscInt n_local = 0;
-    int ierr = VecGetLocalSize(x, &n_local);
-    IBTK_CHKERRQ(ierr);
-    const Eigen::Index n = static_cast<Eigen::Index>(n_local);
-    TBOX_ASSERT(n > 0);
-
-    {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        y_map.setZero();
-        for (std::size_t subdomain_num = 0; subdomain_num < d_subdomain_caches.size(); ++subdomain_num)
+    applyAdditiveSubdomainSweep(
+        x,
+        y,
+        d_subdomain_caches.size(),
+        [this](const std::size_t subdomain_num)
+        { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
+        [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
         {
-            auto& custom_cache = d_subdomain_caches[subdomain_num];
-            const auto& a00_solver = typed_storage.solvers[subdomain_num];
-            const auto& overlap_dofs = *custom_cache.overlap_dofs;
-            const auto& update_dofs = *custom_cache.update_dofs;
-            const auto& update_local_positions = *custom_cache.update_local_positions;
-            std::size_t rhs_idx = 0;
-            for (const int dof : overlap_dofs)
-            {
-                custom_cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
-            }
-
-            solveCustomEigenSubdomain(custom_cache, a00_solver);
-
-            std::size_t update_idx = 0;
-            for (const int dof : update_dofs)
-            {
-                y_map[dof] +=
-                    custom_cache.delta_workspace[static_cast<Eigen::Index>(update_local_positions[update_idx++])];
-            }
-        }
-    }
-    d_solver_state.postprocess_result(y);
+            solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]);
+        });
 }
 
 template <class SolverType>
 inline void
 StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK::IBTK_MPI::getNodes() == 1);
     auto& typed_storage = getCustomEigenA00SolveStorage<SolverType>();
-    PetscInt n_local = 0;
-    int ierr = VecGetLocalSize(x, &n_local);
-    IBTK_CHKERRQ(ierr);
-    const Eigen::Index n = static_cast<Eigen::Index>(n_local);
-    TBOX_ASSERT(n > 0);
-
-    {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        Eigen::VectorXd residual(n);
-        y_map.setZero();
-        residual = x_map;
-        const std::size_t n_subdomains = d_subdomain_caches.size();
-        auto apply_subdomain_correction =
-            [this, &typed_storage, &y_map, &residual](const std::size_t subdomain_num, const bool update_residual)
+    applyMultiplicativeSubdomainSweep(
+        x,
+        y,
+        d_subdomain_caches.size(),
+        [this](const std::size_t subdomain_num)
+        { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
+        [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
         {
-            auto& custom_cache = d_subdomain_caches[subdomain_num];
-            const auto& a00_solver = typed_storage.solvers[subdomain_num];
-            const auto& overlap_dofs = *custom_cache.overlap_dofs;
-            const auto& update_dofs = *custom_cache.update_dofs;
-            const auto& update_local_positions = *custom_cache.update_local_positions;
-            const auto& active_residual_update_rows = *custom_cache.active_residual_update_rows;
-            const auto& active_residual_update_mat = *custom_cache.active_residual_update_mat;
-            std::size_t rhs_idx = 0;
-            for (const int dof : overlap_dofs)
-            {
-                custom_cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-
-            solveCustomEigenSubdomain(custom_cache, a00_solver);
-
-            std::size_t update_idx = 0;
-            for (const int dof : update_dofs)
-            {
-                y_map[dof] +=
-                    custom_cache.delta_workspace[static_cast<Eigen::Index>(update_local_positions[update_idx++])];
-            }
-            if (update_residual && active_residual_update_mat.rows() > 0)
-            {
-                std::size_t residual_input_idx = 0;
-                for (const int local_pos : update_local_positions)
-                {
-                    custom_cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
-                        custom_cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
-                }
-                custom_cache.residual_delta_workspace.noalias() =
-                    active_residual_update_mat * custom_cache.residual_input_workspace;
-                std::size_t row_idx = 0;
-                for (const int row : active_residual_update_rows)
-                {
-                    residual[row] -= custom_cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
-                }
-            }
-        };
-
-        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
-        {
-            apply_subdomain_correction(subdomain_num, subdomain_num + 1 < n_subdomains);
-        }
-    }
-    d_solver_state.postprocess_result(y);
+            solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]);
+        });
 }
 } // namespace IBAMR
 
