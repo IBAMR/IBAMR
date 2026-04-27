@@ -16,6 +16,7 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 
@@ -24,7 +25,6 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
-#include <limits>
 #include <utility>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -91,7 +91,8 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
-    const double half_time = current_time + 0.5 * getDt();
+    const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
+        d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
     const int u_current_idx = d_ctx.u_current_idx;
     const int u_new_idx = x.getComponentDescriptorIndex(0);
@@ -101,20 +102,16 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_ctx.stokes_op->setHomogeneousBc(true);
     d_ctx.stokes_op->apply(x, y);
 
-    double velocity_time = std::numeric_limits<double>::quiet_NaN();
-    switch (d_ctx.time_stepping_type)
+    switch (schedule.velocity_state)
     {
-    case BACKWARD_EULER:
-    case TRAPEZOIDAL_RULE:
+    case StaggeredStokesIBVelocityState::NEW:
         d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        velocity_time = new_time;
         break;
-    case MIDPOINT_RULE:
+    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
         d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
-        velocity_time = half_time;
         break;
     default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported time stepping type\n");
+        TBOX_ERROR(d_object_name << "::apply(): unsupported velocity state\n");
     }
 
     if (d_ctx.u_phys_bdry_op)
@@ -123,51 +120,21 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
         d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
     }
     d_ctx.ib_implicit_ops->interpolateVelocity(
-        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, velocity_time);
+        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
 
-    switch (d_ctx.time_stepping_type)
-    {
-    case BACKWARD_EULER:
-        d_ctx.ib_implicit_ops->backwardEulerStep(current_time, new_time);
-        break;
-    case TRAPEZOIDAL_RULE:
-        d_ctx.ib_implicit_ops->trapezoidalStep(current_time, new_time);
-        break;
-    case MIDPOINT_RULE:
-        d_ctx.ib_implicit_ops->midpointStep(current_time, new_time);
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported time stepping type\n");
-    }
-    double force_time = std::numeric_limits<double>::quiet_NaN();
-    double kappa = std::numeric_limits<double>::quiet_NaN();
-    switch (d_ctx.time_stepping_type)
-    {
-    case BACKWARD_EULER:
-        force_time = new_time;
-        kappa = 1.0;
-        break;
-    case TRAPEZOIDAL_RULE:
-        force_time = new_time;
-        kappa = 0.5;
-        break;
-    case MIDPOINT_RULE:
-        force_time = half_time;
-        kappa = 1.0;
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported time stepping type\n");
-    }
+    advance_staggered_stokes_ib_strategy(
+        *d_ctx.ib_implicit_ops, d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
-    d_ctx.ib_implicit_ops->computeLagrangianForce(force_time);
+    d_ctx.ib_implicit_ops->computeLagrangianForce(schedule.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)
     {
         d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.f_idx);
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
-    d_ctx.ib_implicit_ops->spreadForce(d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, force_time);
-    d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_ctx.f_idx, f_u_idx);
+    d_ctx.ib_implicit_ops->spreadForce(
+        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, schedule.force_time);
+    d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -schedule.nonlinear_force_scale, d_ctx.f_idx, f_u_idx);
 
     return;
 } // apply
