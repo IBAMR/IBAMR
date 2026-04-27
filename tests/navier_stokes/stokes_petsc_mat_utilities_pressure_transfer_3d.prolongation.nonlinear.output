@@ -1,0 +1,54 @@
+Input database:
+input_db {
+   N  = 6                                                   // input used
+   RR = 2                                                   // input used
+   test {
+      test_mode       = "prolongation"                      // input used
+      profile_type    = "nonlinear"                         // input used
+      equivalence_tol = 1e-12                               // input used
+      n_components    = 1                                   // from default
+      f_data_type     = "CELL"                              // from default
+      ghost_width     = 3                                   // from default
+   }
+   Main {
+      log_file_name               = "output"                // input used
+      log_all_nodes               = FALSE                   // input used
+      viz_writer                  = "VisIt"                 // input used
+      viz_dump_dirname            = "viz3d"                 // input used
+      visit_number_procs_per_file = 1                       // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0,0),(5,5,5)]                // input used
+      x_lo               = 0, 0, 0                          // input used
+      x_up               = 1, 1, 1                          // input used
+      periodic_dimension = 1, 1, 1                          // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 2                         // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2, 2                                  // input used
+      }
+      largest_patch_size {
+         level_0 = 12, 12, 12                               // input used
+      }
+      smallest_patch_size {
+         level_0 = 6, 6, 6                                  // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "REFINE_BOXES"                       // input used
+      RefineBoxes {
+         level_0 = [(0,0,0),(5,5,5)]                        // input used
+         level_1 = [(0,0,0),(11,11,11)]                     // input used
+      }
+   }
+   LoadBalancer {
+      bin_pack_method                      = "SPATIAL"      // input used
+      max_workload_factor                  = 1              // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+}
+test_failures = 0
