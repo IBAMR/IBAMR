@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -25,7 +26,6 @@
 
 #include <SAMRAIVectorReal.h>
 
-#include <limits>
 #include <utility>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -116,25 +116,22 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
 
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
-    const double half_time = current_time + 0.5 * getDt();
+    const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
+        d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::formJacobian()");
 
     const int u_current_idx = d_ctx.u_current_idx;
     const int u_new_idx = x.getComponentDescriptorIndex(0);
 
-    double velocity_time = std::numeric_limits<double>::quiet_NaN();
-    switch (d_ctx.time_stepping_type)
+    switch (schedule.velocity_state)
     {
-    case BACKWARD_EULER:
-    case TRAPEZOIDAL_RULE:
+    case StaggeredStokesIBVelocityState::NEW:
         d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        velocity_time = new_time;
         break;
-    case MIDPOINT_RULE:
+    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
         d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
-        velocity_time = half_time;
         break;
     default:
-        TBOX_ERROR(d_object_name << "::formJacobian(): unsupported time stepping type\n");
+        TBOX_ERROR(d_object_name << "::formJacobian(): unsupported velocity state\n");
     }
 
     if (!d_solver_X || !d_solver_X0)
@@ -150,9 +147,9 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
-        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, velocity_time);
+        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
-    d_ctx.ib_implicit_ops->setLinearizedPosition(d_solver_X, velocity_time);
+    d_ctx.ib_implicit_ops->setLinearizedPosition(d_solver_X, schedule.velocity_time);
     return;
 } // formJacobian
 
@@ -233,7 +230,8 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
 
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
-    const double half_time = current_time + 0.5 * getDt();
+    const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
+        d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int f_u_idx = y.getComponentDescriptorIndex(0);
@@ -242,47 +240,23 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
     d_ctx.stokes_op->setHomogeneousBc(true);
     d_ctx.stokes_op->apply(x, y);
 
-    double force_time = std::numeric_limits<double>::quiet_NaN();
-    double velocity_time = std::numeric_limits<double>::quiet_NaN();
-    double kappa = std::numeric_limits<double>::quiet_NaN();
-    switch (d_ctx.time_stepping_type)
-    {
-    case BACKWARD_EULER:
-        force_time = new_time;
-        velocity_time = new_time;
-        kappa = 1.0;
-        break;
-    case TRAPEZOIDAL_RULE:
-        force_time = new_time;
-        velocity_time = new_time;
-        kappa = 0.5;
-        break;
-    case MIDPOINT_RULE:
-        force_time = half_time;
-        velocity_time = half_time;
-        kappa = 0.5;
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported time stepping type\n");
-    }
-
     if (!d_solver_X || !d_solver_X0)
     {
         d_ctx.ib_implicit_ops->createSolverVecs(&d_solver_X, &d_solver_X0);
     }
     d_ctx.ib_implicit_ops->setupSolverVecs(nullptr, &d_solver_X0);
 
-    d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -kappa, u_idx);
+    d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -schedule.jacobian_force_scale, u_idx);
     if (d_ctx.u_phys_bdry_op)
     {
         d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
-        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, velocity_time);
+        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
 
-    d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, force_time);
+    d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, schedule.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)
     {
@@ -290,8 +264,8 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->spreadLinearizedForce(
-        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, force_time);
-    d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_ctx.f_idx, f_u_idx);
+        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, schedule.force_time);
+    d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -schedule.jacobian_force_scale, d_ctx.f_idx, f_u_idx);
 
     return;
 } // apply
