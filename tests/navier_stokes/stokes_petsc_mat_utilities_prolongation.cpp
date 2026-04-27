@@ -25,6 +25,8 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <petscmat.h>
@@ -55,6 +57,54 @@
 #include <ibtk/app_namespaces.h>
 
 using namespace StokesPETScMatUtilitiesSideTransferTests;
+
+namespace
+{
+void
+construct_depth_side_dof_indices(std::vector<int>& num_dofs_per_proc,
+                                 const int dof_index_idx,
+                                 Pointer<PatchLevel<NDIM>> patch_level)
+{
+    int local_dof_count = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, int>> dof_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_data->getDepth();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            local_dof_count += SideGeometry<NDIM>::toSideBox(patch_box, axis).size() * depth;
+        }
+    }
+
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
+    num_dofs_per_proc.resize(mpi_size);
+    std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+    IBTK_MPI::allGather(local_dof_count, num_dofs_per_proc.data());
+    int dof_counter = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, int>> dof_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_data->getDepth();
+        dof_data->fillAll(-1);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            {
+                const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                for (int depth_idx = 0; depth_idx < depth; ++depth_idx)
+                {
+                    (*dof_data)(i_s, depth_idx) = dof_counter++;
+                }
+            }
+        }
+    }
+}
+} // namespace
 
 int
 main(int argc, char* argv[])
@@ -98,6 +148,66 @@ main(int argc, char* argv[])
     Pointer<PatchLevel<NDIM>> fine_level = patch_hierarchy->getPatchLevel(fine_ln);
     HierarchySideDataOpsReal<NDIM, double> coarse_side_ops(patch_hierarchy, coarse_ln, coarse_ln);
     HierarchySideDataOpsReal<NDIM, double> fine_side_ops(patch_hierarchy, fine_ln, fine_ln);
+
+    if (test_mode == "rt0_depth_preallocation")
+    {
+        const int data_depth = test_db->getIntegerWithDefault("data_depth", 1);
+        Pointer<SideVariable<NDIM, int>> dof_var = new SideVariable<NDIM, int>("depth_dof", data_depth);
+        const int dof_idx = var_db->registerVariableAndContext(dof_var, ctx, IntVector<NDIM>(1));
+        coarse_level->allocatePatchData(dof_idx);
+        fine_level->allocatePatchData(dof_idx);
+
+        std::vector<int> num_coarse_dofs_per_proc, num_fine_dofs_per_proc;
+        construct_depth_side_dof_indices(num_coarse_dofs_per_proc, dof_idx, coarse_level);
+        construct_depth_side_dof_indices(num_fine_dofs_per_proc, dof_idx, fine_level);
+
+        AO coarse_level_ao = nullptr;
+        IBTK::PETScVecUtilities::constructPatchLevelAO(
+            coarse_level_ao, num_coarse_dofs_per_proc, dof_idx, coarse_level, 0);
+
+        Mat prolong_mat = nullptr;
+        IBTK::PETScMatUtilities::constructProlongationOp(prolong_mat,
+                                                         "RT0",
+                                                         dof_idx,
+                                                         num_fine_dofs_per_proc,
+                                                         num_coarse_dofs_per_proc,
+                                                         fine_level,
+                                                         coarse_level,
+                                                         coarse_level_ao,
+                                                         0);
+        PetscInt nrows = 0, ncols = 0;
+        int ierr = MatGetSize(prolong_mat, &nrows, &ncols);
+        IBTK_CHKERRQ(ierr);
+        const int n_fine = std::accumulate(num_fine_dofs_per_proc.begin(), num_fine_dofs_per_proc.end(), 0);
+        const int n_coarse = std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.end(), 0);
+        if (nrows != static_cast<PetscInt>(n_fine) || ncols != static_cast<PetscInt>(n_coarse)) ++test_failures;
+
+        PetscInt first_local_row = 0, one_past_local_row = 0;
+        ierr = MatGetOwnershipRange(prolong_mat, &first_local_row, &one_past_local_row);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt row = first_local_row; row < one_past_local_row; ++row)
+        {
+            PetscInt n_row_cols = 0;
+            const PetscInt* cols = nullptr;
+            const PetscScalar* vals = nullptr;
+            ierr = MatGetRow(prolong_mat, row, &n_row_cols, &cols, &vals);
+            IBTK_CHKERRQ(ierr);
+            if (n_row_cols < 1 || n_row_cols > 2) ++test_failures;
+            ierr = MatRestoreRow(prolong_mat, row, &n_row_cols, &cols, &vals);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        ierr = MatDestroy(&prolong_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = AODestroy(&coarse_level_ao);
+        IBTK_CHKERRQ(ierr);
+        plog << "Input database:\n";
+        input_db->printClassData(plog);
+        pout << "data_depth = " << data_depth << "\n";
+        pout << "test_failures = " << test_failures << std::endl;
+        return test_failures > 0 ? 1 : 0;
+    }
+
     coarse_level->allocatePatchData(u_dof_index_idx);
     coarse_level->allocatePatchData(p_dof_index_idx);
     fine_level->allocatePatchData(u_dof_index_idx);
