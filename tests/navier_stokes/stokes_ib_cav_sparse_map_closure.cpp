@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -97,7 +98,7 @@ main(int argc, char* argv[])
     IBTK_CHKERRQ(ierr);
 
     std::set<int> involved_cell_dofs;
-    IBAMR::StaggeredStokesPETScMatUtilities::findCoupledCellDofsFromA00(
+    IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess::findCoupledCellDofsFromA00(
         involved_cell_dofs, SAJ_mat, std::set<int>{ 0 }, velocity_dof_to_adjacent_cell_dofs, cell_dof_to_closure_dofs);
     if (!check_set("coupled cell DOFs", std::set<int>{ 10, 11 }, involved_cell_dofs)) ++test_failures;
 

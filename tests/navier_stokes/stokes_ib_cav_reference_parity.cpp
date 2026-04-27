@@ -13,6 +13,7 @@
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -244,7 +245,7 @@ main(int argc, char* argv[])
         level_mat, u_problem_coefs, u_bc_coefs, 0.0, num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, level);
 
     std::vector<int> seed_velocity_dofs;
-    IBAMR::StaggeredStokesPETScMatUtilities::computePatchLevelCouplingAwareASMSeedVelocityDofs(
+    IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess::computePatchLevelCouplingAwareASMSeedVelocityDofs(
         seed_velocity_dofs, u_dof_index_idx, level, map_data, 0, 1, IBAMR::CouplingAwareASMSeedTraversalOrder::I_J);
 
     std::vector<std::vector<int>> overlap_relaxed, nonoverlap_relaxed;
