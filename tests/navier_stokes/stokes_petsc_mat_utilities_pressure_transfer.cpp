@@ -59,28 +59,14 @@
 #include <string>
 
 #include "../tests.h"
+#include "stokes_petsc_mat_utilities_side_transfer_test_helpers.h"
 
 #include <ibtk/app_namespaces.h>
 
+using namespace StokesPETScMatUtilitiesSideTransferTests;
+
 namespace
 {
-enum class ProfileType
-{
-    TRIGONOMETRIC,
-    NONLINEAR,
-    UNKNOWN
-};
-
-ProfileType
-string_to_profile_type(const std::string& profile)
-{
-    if (profile == "trigonometric") return ProfileType::TRIGONOMETRIC;
-    if (profile == "nonlinear") return ProfileType::NONLINEAR;
-    if (profile == "unknown") return ProfileType::UNKNOWN;
-    TBOX_ERROR("Unknown profile_type = " << profile << "\n");
-    return ProfileType::UNKNOWN;
-}
-
 double
 compute_trigonometric_cell_value(const VectorNd& X, const std::array<double, NDIM>& coeffs, const double constant)
 {
@@ -136,36 +122,6 @@ set_pressure_profile(Pointer<CellData<NDIM, double>> p_data,
             TBOX_ERROR("Unknown profile_type.\n");
         }
         (*p_data)(i) = val;
-    }
-}
-
-void
-check_nontrivial(const std::string& label,
-                 const double samrai_max_norm,
-                 const double petsc_max_norm,
-                 const double tol,
-                 int& test_failures)
-{
-    if (samrai_max_norm <= tol || petsc_max_norm <= tol)
-    {
-        ++test_failures;
-        pout << "nontriviality check failed for " << label << ": SAMRAI max norm = " << samrai_max_norm
-             << ", PETSc max norm = " << petsc_max_norm << ", tolerance = " << tol << "\n";
-    }
-}
-
-void
-check_max_norm_consistency(const std::string& label,
-                           const double samrai_max_norm,
-                           const double petsc_max_norm,
-                           const double tol,
-                           int& test_failures)
-{
-    if (!IBTK::rel_equal_eps(samrai_max_norm, petsc_max_norm, tol))
-    {
-        ++test_failures;
-        pout << "max-norm consistency check failed for " << label << ": SAMRAI max norm = " << samrai_max_norm
-             << ", PETSc max norm = " << petsc_max_norm << ", tolerance = " << tol << "\n";
     }
 }
 } // namespace

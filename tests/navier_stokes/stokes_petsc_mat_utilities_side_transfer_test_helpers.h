@@ -34,6 +34,7 @@ enum class ProfileType
 {
     AFFINE,
     PIECEWISE_RT0,
+    TRIGONOMETRIC,
     NONLINEAR,
     UNKNOWN
 };
@@ -44,7 +45,9 @@ string_to_profile_type(const std::string& profile)
     ProfileType profile_type = ProfileType::UNKNOWN;
     if (profile == "affine") profile_type = ProfileType::AFFINE;
     if (profile == "piecewise_rt0") profile_type = ProfileType::PIECEWISE_RT0;
+    if (profile == "trigonometric") profile_type = ProfileType::TRIGONOMETRIC;
     if (profile == "nonlinear") profile_type = ProfileType::NONLINEAR;
+    if (profile == "unknown") profile_type = ProfileType::UNKNOWN;
     if (profile_type == ProfileType::UNKNOWN) TBOX_ERROR("Unknown profile_type = " << profile << "\n");
     return profile_type;
 }
@@ -152,6 +155,9 @@ set_test_profile_side_field(Pointer<SideData<NDIM, double>> u_data,
         break;
     case ProfileType::PIECEWISE_RT0:
         set_piecewise_rt0_side_field(u_data, patch);
+        break;
+    case ProfileType::TRIGONOMETRIC:
+        TBOX_ERROR("TRIGONOMETRIC profile type is not supported for side-centered fields.\n");
         break;
     case ProfileType::NONLINEAR:
         set_nonlinear_side_field(u_data, patch);
