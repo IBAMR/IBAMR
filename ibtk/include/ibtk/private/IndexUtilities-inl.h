@@ -47,6 +47,16 @@ IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse, const SAMRAI::
     return i_coarse * ratio;
 } // refine
 
+inline int
+IndexUtilities::wrapPeriodicIndex(const int idx, const int domain_lower, const int domain_upper)
+{
+    const int width = domain_upper - domain_lower + 1;
+    if (width <= 0) return idx;
+    int offset = (idx - domain_lower) % width;
+    if (offset < 0) offset += width;
+    return domain_lower + offset;
+} // wrapPeriodicIndex
+
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(const DoubleArray& X,
