@@ -138,6 +138,40 @@ construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_bloc
     return;
 }
 
+void
+copy_velocity_block_to_full_space(Mat dst_mat, Mat velocity_block_mat, AO velocity_field_ao)
+{
+    PetscInt row_start = 0;
+    PetscInt row_end = 0;
+    int ierr = MatGetOwnershipRange(velocity_block_mat, &row_start, &row_end);
+    IBTK_CHKERRQ(ierr);
+
+    std::vector<PetscInt> mapped_cols;
+    for (PetscInt row = row_start; row < row_end; ++row)
+    {
+        PetscInt ncols = 0;
+        const PetscInt* cols = nullptr;
+        const PetscScalar* vals = nullptr;
+        ierr = MatGetRow(velocity_block_mat, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+
+        mapped_cols.resize(static_cast<std::size_t>(ncols));
+        for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+        ierr = AOApplicationToPetsc(velocity_field_ao, ncols, mapped_cols.data());
+        IBTK_CHKERRQ(ierr);
+
+        PetscInt full_row = row;
+        ierr = AOApplicationToPetsc(velocity_field_ao, 1, &full_row);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = MatSetValues(dst_mat, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatRestoreRow(velocity_block_mat, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -450,10 +484,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             construct_cached_velocity_field_ao(
                 d_velocity_field_is_local, d_augmented_operator_mat, d_velocity_field_ao);
 
-            PetscInt row_start = 0, row_end = 0;
-            ierr = MatGetOwnershipRange(d_augmented_operator_mat, &row_start, &row_end);
-            IBTK_CHKERRQ(ierr);
-            PetscInt full_m_local = 0, full_n_local = 0;
+            PetscInt full_m_local = 0;
+            PetscInt full_n_local = 0;
             ierr = MatGetLocalSize(d_petsc_mat, &full_m_local, &full_n_local);
             IBTK_CHKERRQ(ierr);
 
@@ -467,29 +499,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             ierr = MatSetUp(preallocator);
             IBTK_CHKERRQ(ierr);
 
-            std::vector<PetscInt> mapped_cols;
-            for (PetscInt row = row_start; row < row_end; ++row)
-            {
-                PetscInt ncols = 0;
-                const PetscInt* cols = nullptr;
-                const PetscScalar* vals = nullptr;
-                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-
-                mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
-                IBTK_CHKERRQ(ierr);
-
-                PetscInt full_row = row;
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
-                IBTK_CHKERRQ(ierr);
-
-                ierr = MatSetValues(preallocator, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-            }
+            copy_velocity_block_to_full_space(preallocator, d_augmented_operator_mat, d_velocity_field_ao);
             ierr = MatAssemblyBegin(preallocator, MAT_FINAL_ASSEMBLY);
             IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(preallocator, MAT_FINAL_ASSEMBLY);
@@ -507,29 +517,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             ierr = MatDestroy(&preallocator);
             IBTK_CHKERRQ(ierr);
 
-            for (PetscInt row = row_start; row < row_end; ++row)
-            {
-                PetscInt ncols = 0;
-                const PetscInt* cols = nullptr;
-                const PetscScalar* vals = nullptr;
-                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-
-                mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
-                IBTK_CHKERRQ(ierr);
-
-                PetscInt full_row = row;
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
-                IBTK_CHKERRQ(ierr);
-
-                ierr = MatSetValues(
-                    embedded_augmented_operator_mat, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-            }
+            copy_velocity_block_to_full_space(
+                embedded_augmented_operator_mat, d_augmented_operator_mat, d_velocity_field_ao);
             ierr = MatAssemblyBegin(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
             IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
