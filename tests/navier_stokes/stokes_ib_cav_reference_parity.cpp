@@ -234,6 +234,11 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData map_data;
     IBAMR::StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
         map_data, u_dof_index_idx, p_dof_index_idx, level);
+    using MapAccess = IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess;
+    const auto& velocity_dof_to_adjacent_cell_dofs = MapAccess::getVelocityDofToAdjacentCellDofs(map_data);
+    const auto& cell_dof_to_closure_dofs = MapAccess::getCellDofToClosureDofs(map_data);
+    const auto& velocity_dof_to_component_axis = MapAccess::getVelocityDofToComponentAxis(map_data);
+    const auto& velocity_dof_to_paired_seed_velocity_dofs = MapAccess::getVelocityDofToPairedSeedVelocityDofs(map_data);
 
     std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
     PoissonSpecifications u_problem_coefs("reference_parity_poisson");
@@ -296,16 +301,16 @@ main(int argc, char* argv[])
         const std::set<int> expected_relaxed =
             reference_extract_coupled_dofs_relaxed(seed_velocity_dof,
                                                    level_mat,
-                                                   map_data.velocity_dof_to_adjacent_cell_dofs,
-                                                   map_data.cell_dof_to_closure_dofs,
+                                                   velocity_dof_to_adjacent_cell_dofs,
+                                                   cell_dof_to_closure_dofs,
                                                    relative_numerical_zero_tol);
         const std::set<int> expected_strict =
             reference_extract_coupled_dofs_strict(seed_velocity_dof,
                                                   level_mat,
-                                                  map_data.velocity_dof_to_adjacent_cell_dofs,
-                                                  map_data.cell_dof_to_closure_dofs,
-                                                  map_data.velocity_dof_to_component_axis,
-                                                  map_data.velocity_dof_to_paired_seed_velocity_dofs,
+                                                  velocity_dof_to_adjacent_cell_dofs,
+                                                  cell_dof_to_closure_dofs,
+                                                  velocity_dof_to_component_axis,
+                                                  velocity_dof_to_paired_seed_velocity_dofs,
                                                   relative_numerical_zero_tol);
 
         if (!check_set("live relaxed CAV overlap for seed " + std::to_string(seed_velocity_dof),

@@ -71,17 +71,6 @@ public:
      */
     struct PatchLevelCellClosureMapData
     {
-        std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs;
-        std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs;
-        std::unordered_map<int, int> velocity_dof_to_component_axis;
-        std::unordered_map<int, std::vector<int>> velocity_dof_to_paired_seed_velocity_dofs;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> source_patch_level;
-        int source_u_dof_index_idx = IBTK::invalid_index;
-        int source_p_dof_index_idx = IBTK::invalid_index;
-        bool velocity_maps_are_built = false;
-        bool cell_closure_map_is_built = false;
-        bool velocity_seed_pair_map_is_built = false;
-
         void clear()
         {
             velocity_dof_to_adjacent_cell_dofs.clear();
@@ -95,6 +84,26 @@ public:
             cell_closure_map_is_built = false;
             velocity_seed_pair_map_is_built = false;
         }
+
+    private:
+        friend class StaggeredStokesPETScMatUtilities;
+        friend class StaggeredStokesPETScMatUtilitiesPrivateAccess;
+
+        void validateOrRecordSource(int u_dof_index_idx,
+                                    int p_dof_index_idx,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                    const std::string& where);
+
+        std::unordered_map<int, std::vector<int>> velocity_dof_to_adjacent_cell_dofs;
+        std::unordered_map<int, std::vector<int>> cell_dof_to_closure_dofs;
+        std::unordered_map<int, int> velocity_dof_to_component_axis;
+        std::unordered_map<int, std::vector<int>> velocity_dof_to_paired_seed_velocity_dofs;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> source_patch_level;
+        int source_u_dof_index_idx = IBTK::invalid_index;
+        int source_p_dof_index_idx = IBTK::invalid_index;
+        bool velocity_maps_are_built = false;
+        bool cell_closure_map_is_built = false;
+        bool velocity_seed_pair_map_is_built = false;
     };
 
     /*!

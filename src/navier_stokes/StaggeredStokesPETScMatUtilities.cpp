@@ -305,55 +305,6 @@ move_set_subdomains_to_dofs(std::vector<std::vector<int>>& subdomain_dofs,
     return;
 }
 
-void
-validate_or_record_patch_level_map_source(StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data,
-                                          const int u_dof_index_idx,
-                                          const int p_dof_index_idx,
-                                          Pointer<PatchLevel<NDIM>> patch_level,
-                                          const std::string& where)
-{
-    if (!map_data.source_patch_level)
-    {
-        map_data.source_patch_level = patch_level;
-    }
-    else if (map_data.source_patch_level != patch_level)
-    {
-        TBOX_ERROR(where << ":\n"
-                         << "  cached patch-level map data was built for a different patch level.\n"
-                         << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
-    }
-
-    if (map_data.source_u_dof_index_idx == IBTK::invalid_index)
-    {
-        map_data.source_u_dof_index_idx = u_dof_index_idx;
-    }
-    else if (map_data.source_u_dof_index_idx != u_dof_index_idx)
-    {
-        TBOX_ERROR(where << ":\n"
-                         << "  cached patch-level map data was built for u_dof_index_idx = "
-                         << map_data.source_u_dof_index_idx
-                         << ", but reuse requested u_dof_index_idx = " << u_dof_index_idx << ".\n"
-                         << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
-    }
-
-    if (p_dof_index_idx != IBTK::invalid_index)
-    {
-        if (map_data.source_p_dof_index_idx == IBTK::invalid_index)
-        {
-            map_data.source_p_dof_index_idx = p_dof_index_idx;
-        }
-        else if (map_data.source_p_dof_index_idx != p_dof_index_idx)
-        {
-            TBOX_ERROR(where << ":\n"
-                             << "  cached patch-level map data was built for p_dof_index_idx = "
-                             << map_data.source_p_dof_index_idx
-                             << ", but reuse requested p_dof_index_idx = " << p_dof_index_idx << ".\n"
-                             << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
-        }
-    }
-    return;
-}
-
 /*!
  * Construct `is_nonoverlap` by assigning each locally owned DOF to the first
  * overlap subdomain that contains it.
@@ -656,6 +607,54 @@ build_cell_dof_to_closure_map_from_velocity_maps(
     finalize_sorted_unique_map_values(cell_dof_to_closure_dofs);
 }
 } // namespace
+
+void
+StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData::validateOrRecordSource(
+    const int u_dof_index_idx,
+    const int p_dof_index_idx,
+    Pointer<PatchLevel<NDIM>> patch_level,
+    const std::string& where)
+{
+    if (!source_patch_level)
+    {
+        source_patch_level = patch_level;
+    }
+    else if (source_patch_level != patch_level)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  cached patch-level map data was built for a different patch level.\n"
+                         << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
+    }
+
+    if (source_u_dof_index_idx == IBTK::invalid_index)
+    {
+        source_u_dof_index_idx = u_dof_index_idx;
+    }
+    else if (source_u_dof_index_idx != u_dof_index_idx)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  cached patch-level map data was built for u_dof_index_idx = " << source_u_dof_index_idx
+                         << ", but reuse requested u_dof_index_idx = " << u_dof_index_idx << ".\n"
+                         << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
+    }
+
+    if (p_dof_index_idx != IBTK::invalid_index)
+    {
+        if (source_p_dof_index_idx == IBTK::invalid_index)
+        {
+            source_p_dof_index_idx = p_dof_index_idx;
+        }
+        else if (source_p_dof_index_idx != p_dof_index_idx)
+        {
+            TBOX_ERROR(where << ":\n"
+                             << "  cached patch-level map data was built for p_dof_index_idx = "
+                             << source_p_dof_index_idx << ", but reuse requested p_dof_index_idx = " << p_dof_index_idx
+                             << ".\n"
+                             << "  call PatchLevelCellClosureMapData::clear() before reusing the cache.\n");
+        }
+    }
+    return;
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -1258,12 +1257,10 @@ StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocityMapDataIsBuilt(PatchLe
                                                                          const int p_dof_index_idx,
                                                                          Pointer<PatchLevel<NDIM>> patch_level)
 {
-    validate_or_record_patch_level_map_source(
-        map_data,
-        u_dof_index_idx,
-        p_dof_index_idx,
-        patch_level,
-        "StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocityMapDataIsBuilt()");
+    map_data.validateOrRecordSource(u_dof_index_idx,
+                                    p_dof_index_idx,
+                                    patch_level,
+                                    "StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocityMapDataIsBuilt()");
     if (map_data.velocity_maps_are_built) return;
     build_coupling_aware_velocity_dof_maps(map_data.velocity_dof_to_adjacent_cell_dofs,
                                            map_data.velocity_dof_to_component_axis,
@@ -1279,12 +1276,10 @@ StaggeredStokesPETScMatUtilities::ensurePatchLevelCellClosureMapIsBuilt(PatchLev
                                                                         const int p_dof_index_idx,
                                                                         Pointer<PatchLevel<NDIM>> patch_level)
 {
-    validate_or_record_patch_level_map_source(
-        map_data,
-        u_dof_index_idx,
-        p_dof_index_idx,
-        patch_level,
-        "StaggeredStokesPETScMatUtilities::ensurePatchLevelCellClosureMapIsBuilt()");
+    map_data.validateOrRecordSource(u_dof_index_idx,
+                                    p_dof_index_idx,
+                                    patch_level,
+                                    "StaggeredStokesPETScMatUtilities::ensurePatchLevelCellClosureMapIsBuilt()");
     if (map_data.cell_closure_map_is_built) return;
     ensurePatchLevelVelocityMapDataIsBuilt(map_data, u_dof_index_idx, p_dof_index_idx, patch_level);
     build_cell_dof_to_closure_map_from_velocity_maps(map_data.cell_dof_to_closure_dofs,
@@ -1301,12 +1296,10 @@ StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt(Pat
                                                                              const int u_dof_index_idx,
                                                                              Pointer<PatchLevel<NDIM>> patch_level)
 {
-    validate_or_record_patch_level_map_source(
-        map_data,
-        u_dof_index_idx,
-        IBTK::invalid_index,
-        patch_level,
-        "StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt()");
+    map_data.validateOrRecordSource(u_dof_index_idx,
+                                    IBTK::invalid_index,
+                                    patch_level,
+                                    "StaggeredStokesPETScMatUtilities::ensurePatchLevelVelocitySeedPairMapIsBuilt()");
     if (map_data.velocity_seed_pair_map_is_built) return;
     build_coupling_aware_velocity_seed_pair_map(
         map_data.velocity_dof_to_paired_seed_velocity_dofs, u_dof_index_idx, patch_level);

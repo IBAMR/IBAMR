@@ -13,6 +13,7 @@
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -113,14 +114,16 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData map_data;
     IBAMR::StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
         map_data, u_dof_index_idx, p_dof_index_idx, level);
-    if (map_data.source_patch_level != level || map_data.source_u_dof_index_idx != u_dof_index_idx ||
-        map_data.source_p_dof_index_idx != p_dof_index_idx)
+    using MapAccess = IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess;
+    if (MapAccess::getSourcePatchLevel(map_data) != level ||
+        MapAccess::getSourceUDofIndex(map_data) != u_dof_index_idx ||
+        MapAccess::getSourcePDofIndex(map_data) != p_dof_index_idx)
     {
         std::cerr << "FAILED: map cache source identity was not recorded." << std::endl;
         ++test_failures;
     }
-    const auto& velocity_dof_to_adjacent_cell_dofs = map_data.velocity_dof_to_adjacent_cell_dofs;
-    const auto& cell_dof_to_closure_dofs = map_data.cell_dof_to_closure_dofs;
+    const auto& velocity_dof_to_adjacent_cell_dofs = MapAccess::getVelocityDofToAdjacentCellDofs(map_data);
+    const auto& cell_dof_to_closure_dofs = MapAccess::getCellDofToClosureDofs(map_data);
     int seed_velocity_dof = IBTK::invalid_index;
     int lower_cell_dof = IBTK::invalid_index;
     int upper_cell_dof = IBTK::invalid_index;
@@ -200,11 +203,7 @@ main(int argc, char* argv[])
     }
 
     map_data.clear();
-    if (map_data.source_patch_level || map_data.source_u_dof_index_idx != IBTK::invalid_index ||
-        map_data.source_p_dof_index_idx != IBTK::invalid_index || map_data.velocity_maps_are_built ||
-        map_data.cell_closure_map_is_built || map_data.velocity_seed_pair_map_is_built ||
-        !map_data.velocity_dof_to_adjacent_cell_dofs.empty() || !map_data.cell_dof_to_closure_dofs.empty() ||
-        !map_data.velocity_dof_to_component_axis.empty() || !map_data.velocity_dof_to_paired_seed_velocity_dofs.empty())
+    if (!MapAccess::isEmpty(map_data))
     {
         std::cerr << "FAILED: map cache clear() did not reset source identity and cached maps." << std::endl;
         ++test_failures;
