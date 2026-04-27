@@ -64,6 +64,19 @@ protected:
         Eigen::VectorXd residual_delta_workspace;
     };
 
+    struct SubdomainSweepView
+    {
+        const std::vector<int>& overlap_dofs;
+        const std::vector<int>& update_dofs;
+        const std::vector<int>& update_local_positions;
+        const std::vector<int>& active_residual_update_rows;
+        const Eigen::SparseMatrix<double, Eigen::RowMajor>& active_residual_update_mat;
+        Eigen::VectorXd& rhs_workspace;
+        Eigen::VectorXd& delta_workspace;
+        Eigen::VectorXd& residual_input_workspace;
+        Eigen::VectorXd& residual_delta_workspace;
+    };
+
     class ConstPetscVecArrayMap
     {
     public:
@@ -199,6 +212,22 @@ protected:
 
     template <class InitializeSubdomainSolver>
     void initializeCommonDataWithLocalOperatorHook(InitializeSubdomainSolver initialize_subdomain_solver);
+
+    static SubdomainSweepView getCommonSubdomainSweepView(CommonSubdomainCache& cache);
+
+    template <class GetSubdomainSweepView, class SolveSubdomain>
+    void applyAdditiveSubdomainSweep(Vec x,
+                                     Vec y,
+                                     std::size_t n_subdomains,
+                                     GetSubdomainSweepView get_subdomain_sweep_view,
+                                     SolveSubdomain solve_subdomain);
+
+    template <class GetSubdomainSweepView, class SolveSubdomain>
+    void applyMultiplicativeSubdomainSweep(Vec x,
+                                           Vec y,
+                                           std::size_t n_subdomains,
+                                           GetSubdomainSweepView get_subdomain_sweep_view,
+                                           SolveSubdomain solve_subdomain);
 
     void setSolverState(const PETScLevelSolverShellBackendState& solver_state)
     {

@@ -241,6 +241,116 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
         }
     }
 }
+
+inline PETScLevelSolverEigenShellBackendBase::SubdomainSweepView
+PETScLevelSolverEigenShellBackendBase::getCommonSubdomainSweepView(CommonSubdomainCache& cache)
+{
+    return { cache.overlap_dofs,
+             cache.update_dofs,
+             cache.update_local_positions,
+             cache.active_residual_update_rows,
+             cache.active_residual_update_mat,
+             cache.rhs_workspace,
+             cache.delta_workspace,
+             cache.residual_input_workspace,
+             cache.residual_delta_workspace };
+}
+
+template <class GetSubdomainSweepView, class SolveSubdomain>
+inline void
+PETScLevelSolverEigenShellBackendBase::applyAdditiveSubdomainSweep(Vec x,
+                                                                   Vec y,
+                                                                   const std::size_t n_subdomains,
+                                                                   GetSubdomainSweepView get_subdomain_sweep_view,
+                                                                   SolveSubdomain solve_subdomain)
+{
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+    const Eigen::Index n = getNumDofs();
+    TBOX_ASSERT(n > 0);
+
+    {
+        ConstPetscVecArrayMap x_array(x, n);
+        PetscVecArrayMap y_array(y, n);
+        const auto x_map = x_array.getMap();
+        auto y_map = y_array.getMap();
+        y_map.setZero();
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+        {
+            SubdomainSweepView view = get_subdomain_sweep_view(subdomain_num);
+            std::size_t rhs_idx = 0;
+            for (const int dof : view.overlap_dofs)
+            {
+                view.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
+            }
+            solve_subdomain(view, subdomain_num);
+            std::size_t update_idx = 0;
+            for (const int dof : view.update_dofs)
+            {
+                y_map[dof] +=
+                    view.delta_workspace[static_cast<Eigen::Index>(view.update_local_positions[update_idx++])];
+            }
+        }
+    }
+    getSolverState().postprocess_result(y);
+}
+
+template <class GetSubdomainSweepView, class SolveSubdomain>
+inline void
+PETScLevelSolverEigenShellBackendBase::applyMultiplicativeSubdomainSweep(
+    Vec x,
+    Vec y,
+    const std::size_t n_subdomains,
+    GetSubdomainSweepView get_subdomain_sweep_view,
+    SolveSubdomain solve_subdomain)
+{
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+    const Eigen::Index n = getNumDofs();
+    TBOX_ASSERT(n > 0);
+
+    {
+        ConstPetscVecArrayMap x_array(x, n);
+        PetscVecArrayMap y_array(y, n);
+        const auto x_map = x_array.getMap();
+        auto y_map = y_array.getMap();
+        Eigen::VectorXd residual(n);
+        y_map.setZero();
+        residual = x_map;
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+        {
+            SubdomainSweepView view = get_subdomain_sweep_view(subdomain_num);
+            std::size_t rhs_idx = 0;
+            for (const int dof : view.overlap_dofs)
+            {
+                view.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
+            }
+            solve_subdomain(view, subdomain_num);
+
+            std::size_t update_idx = 0;
+            for (const int dof : view.update_dofs)
+            {
+                y_map[dof] +=
+                    view.delta_workspace[static_cast<Eigen::Index>(view.update_local_positions[update_idx++])];
+            }
+            if (subdomain_num + 1 < n_subdomains && view.active_residual_update_mat.rows() > 0)
+            {
+                std::size_t residual_input_idx = 0;
+                for (const int local_pos : view.update_local_positions)
+                {
+                    view.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
+                        view.delta_workspace[static_cast<Eigen::Index>(local_pos)];
+                }
+                view.residual_delta_workspace.noalias() =
+                    view.active_residual_update_mat * view.residual_input_workspace;
+                std::size_t row_idx = 0;
+                for (const int row : view.active_residual_update_rows)
+                {
+                    residual[row] -= view.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
+                }
+            }
+        }
+    }
+    getSolverState().postprocess_result(y);
+}
 } // namespace IBTK
 
 #endif
