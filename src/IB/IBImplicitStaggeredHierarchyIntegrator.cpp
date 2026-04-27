@@ -22,6 +22,7 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StokesSpecifications.h>
 #include <ibamr/ibamr_enums.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -53,7 +54,6 @@
 #include <VariableContext.h>
 
 #include <cmath>
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -148,28 +148,6 @@ get_jacobian_kernel_spec(const DeltaFunctionType delta_fcn_type)
     default:
         return {};
     }
-}
-
-double
-get_half_time(const double current_time, const double new_time)
-{
-    return current_time + 0.5 * (new_time - current_time);
-}
-
-double
-get_ib_operator_time(const TimeSteppingType time_stepping_type, const double current_time, const double new_time)
-{
-    switch (time_stepping_type)
-    {
-    case BACKWARD_EULER:
-    case TRAPEZOIDAL_RULE:
-        return new_time;
-    case MIDPOINT_RULE:
-        return get_half_time(current_time, new_time);
-    default:
-        TBOX_ERROR("get_ib_operator_time(): unsupported time stepping type\n");
-    }
-    return std::numeric_limits<double>::quiet_NaN();
 }
 
 void
@@ -456,7 +434,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
-    const double half_time = get_half_time(current_time, new_time);
+    const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
+        d_time_stepping_type, current_time, new_time, d_object_name + "::integrateHierarchy()");
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
@@ -503,42 +482,26 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_
                 "Eulerian velocity to the Lagrangian mesh\n";
     }
     const int u_new_idx = eul_sol_vec->getComponentDescriptorIndex(0);
-    double velocity_time = std::numeric_limits<double>::quiet_NaN();
-    switch (d_time_stepping_type)
+    switch (schedule.velocity_state)
     {
-    case BACKWARD_EULER:
-    case TRAPEZOIDAL_RULE:
+    case StaggeredStokesIBVelocityState::NEW:
         d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-        velocity_time = new_time;
         break;
-    case MIDPOINT_RULE:
+    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
         d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-        velocity_time = half_time;
         break;
     default:
-        TBOX_ERROR("unsupported time stepping type\n");
+        TBOX_ERROR(d_object_name << "::integrateHierarchy(): unsupported velocity state\n");
     }
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           velocity_time);
+                                           schedule.velocity_time);
 
-    switch (d_time_stepping_type)
-    {
-    case BACKWARD_EULER:
-        d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
-        break;
-    case TRAPEZOIDAL_RULE:
-        d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
-        break;
-    case MIDPOINT_RULE:
-        d_ib_implicit_ops->midpointStep(current_time, new_time);
-        break;
-    default:
-        TBOX_ERROR("unsupported time stepping type\n");
-    }
+    advance_staggered_stokes_ib_strategy(
+        *d_ib_implicit_ops, d_time_stepping_type, current_time, new_time, d_object_name + "::integrateHierarchy()");
     return;
 } // integrateHierarchy
 
@@ -640,8 +603,9 @@ IBImplicitStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const do
     d_ib_op->setOperatorContext(ctx);
     if (d_ib_jac_op) d_ib_jac_op->setOperatorContext(ctx);
 
-    const double data_time = get_ib_operator_time(d_time_stepping_type, current_time, new_time);
-    d_ib_implicit_ops->constructLagrangianForceJacobian(d_ib_force_jac, MATAIJ, data_time);
+    const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
+        d_time_stepping_type, current_time, new_time, d_object_name + "::reinitializeOperatorsAndSolvers()");
+    d_ib_implicit_ops->constructLagrangianForceJacobian(d_ib_force_jac, MATAIJ, schedule.force_time);
 
     const DeltaFunctionType delta_fcn_type = string_to_enum<DeltaFunctionType>(d_jac_delta_fcn);
     const JacobianKernelSpec kernel_spec = get_jacobian_kernel_spec(delta_fcn_type);
@@ -663,7 +627,7 @@ IBImplicitStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const do
                                          kernel_spec.transverse_interp_stencil,
                                          d_num_dofs_per_proc[finest_ln],
                                          d_u_dof_index_idx,
-                                         data_time);
+                                         schedule.force_time);
 
     d_ib_jac_pc->setVelocityPoissonSpecifications(U_problem_coefs);
     d_ib_jac_pc->setPhysicalBcCoefs(ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
