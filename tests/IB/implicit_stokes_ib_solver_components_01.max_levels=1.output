@@ -1,4 +1,5 @@
 IBRedundantInitializer:  Deallocating initialization data.
+fd_relative_error = 1.62155e-08
 Input database:
 input_db {
    MU                     = 0.01                            // input used
@@ -19,6 +20,7 @@ input_db {
    DELTA_FUNCTION         = "IB_4"                          // input used
    IB_TIME_STEPPING       = "BACKWARD_EULER"                // input used
    TAG_BUFFER             = 2                               // input used
+   FD_REL_TOL             = 1e-06                           // input used
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
    RR                     = 2                               // input used
    IBMethod {
