@@ -14,17 +14,20 @@
 /*
  * This test targets the implicit Stokes-IB solver components directly rather
  * than the full hierarchy integrator. It builds the nonlinear residual,
- * compares the Jacobian against a matrix-free finite-difference action on
- * controlled single-level and multilevel configurations.
+ * compares the Jacobian against a matrix-free finite-difference action, and
+ * checks the FAC-level Eulerian elasticity operator on controlled single-level
+ * and multilevel configurations.
  */
 
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
+#include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -572,6 +575,87 @@ main(int argc, char* argv[])
         }
         mffd_jac_op->deallocateOperatorState();
 
+        Pointer<Database> stokes_ib_precond_db =
+            input_db->isDatabase("stokes_ib_precond_db") ? input_db->getDatabase("stokes_ib_precond_db") : nullptr;
+
+        Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
+            "stokes_ib_solver_components::fac_op", stokes_ib_precond_db, "stokes_ib_pc_");
+        Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+
+        fac_op->setVelocityPoissonSpecifications(U_problem_coefs);
+        fac_op->setPhysicalBcCoefs(u_bc_coefs, nullptr);
+        fac_op->setPhysicalBoundaryHelper(bc_helper);
+        fac_op->setTimeInterval(current_time, new_time);
+        fac_op->setSolutionTime(new_time);
+        fac_op->setHomogeneousBc(true);
+        fac_op->setComponentsHaveNullSpace(false, true);
+        fac_op->setIBTimeSteppingType(ctx.time_stepping_type);
+        fac_op->setIBForceJacobian(A);
+        fac_op->setIBInterpOp(J);
+        fac_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
+        Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
+        jac_op->setIBCouplingJacobian(SAJ);
+
+        {
+            PetscErrorCode ierr = 0;
+            Mat saj_unscaled = nullptr;
+            ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, 1.0, &saj_unscaled);
+            IBTK_CHKERRQ(ierr);
+            Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+            Pointer<CartesianGridGeometry<NDIM>> finest_grid_geom = patch_hierarchy->getGridGeometry();
+            const double* const dx0 = finest_grid_geom->getDx();
+            const IntVector<NDIM>& ratio = finest_level->getRatio();
+            double cell_volume = 1.0;
+            for (unsigned d = 0; d < NDIM; ++d)
+            {
+                cell_volume *= dx0[d] / static_cast<double>(ratio(d));
+            }
+            const double theta_ds = 2.0 * M_PI / static_cast<double>(structure_spec.num_curve_points);
+
+            Mat saj_cell_scaled = nullptr;
+            ierr = MatDuplicate(saj_unscaled, MAT_COPY_VALUES, &saj_cell_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatScale(saj_cell_scaled, -dt / cell_volume);
+            IBTK_CHKERRQ(ierr);
+
+            Mat saj_theta_scaled = nullptr;
+            ierr = MatDuplicate(saj_unscaled, MAT_COPY_VALUES, &saj_theta_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatScale(saj_theta_scaled, -dt * theta_ds / cell_volume);
+            IBTK_CHKERRQ(ierr);
+
+            auto compute_rel_mat_error = [](Mat lhs, Mat rhs) -> double
+            {
+                Mat diff = nullptr;
+                PetscErrorCode ierr_local = MatDuplicate(lhs, MAT_COPY_VALUES, &diff);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatAXPY(diff, -1.0, rhs, DIFFERENT_NONZERO_PATTERN);
+                IBTK_CHKERRQ(ierr_local);
+                PetscReal diff_norm = 0.0;
+                PetscReal rhs_norm = 0.0;
+                ierr_local = MatNorm(diff, NORM_FROBENIUS, &diff_norm);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatNorm(lhs, NORM_FROBENIUS, &rhs_norm);
+                IBTK_CHKERRQ(ierr_local);
+                ierr_local = MatDestroy(&diff);
+                IBTK_CHKERRQ(ierr_local);
+                return static_cast<double>(diff_norm) / std::max(static_cast<double>(rhs_norm), 1.0e-14);
+            };
+
+            const double saj_cell_scaled_rel_error = compute_rel_mat_error(SAJ, saj_cell_scaled);
+            const double saj_theta_scaled_rel_error = compute_rel_mat_error(SAJ, saj_theta_scaled);
+            pout << "saj_cell_scaled_relative_error = " << saj_cell_scaled_rel_error << std::endl;
+            pout << "saj_theta_scaled_relative_error = " << saj_theta_scaled_rel_error << std::endl;
+
+            ierr = MatDestroy(&saj_unscaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&saj_cell_scaled);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&saj_theta_scaled);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        fac_op->deallocateOperatorState();
         jac_op->deallocateOperatorState();
         nonlinear_op.deallocateOperatorState();
 

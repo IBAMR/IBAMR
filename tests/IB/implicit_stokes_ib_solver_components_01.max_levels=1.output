@@ -1,5 +1,7 @@
 IBRedundantInitializer:  Deallocating initialization data.
 fd_relative_error = 1.62155e-08
+saj_cell_scaled_relative_error = 0
+saj_theta_scaled_relative_error = 0.256637
 Input database:
 input_db {
    MU                     = 0.01                            // input used
@@ -23,6 +25,36 @@ input_db {
    FD_REL_TOL             = 1e-06                           // input used
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
    RR                     = 2                               // input used
+   stokes_ib_precond_db {
+      num_pre_sweeps                 = 1                    // input not used
+      num_post_sweeps                = 1                    // input not used
+      rediscretize_stokes            = TRUE                 // input used
+      res_rediscretized_stokes       = TRUE                 // input used
+      level_solver_type              = "PETSC_LEVEL_SOLVER" // input used
+      level_solver_rel_residual_tol  = 1e-10                // input used
+      level_solver_abs_residual_tol  = 1e-50                // input used
+      level_solver_max_iterations    = 1                    // input used
+      coarse_solver_type             = "PETSC_LEVEL_SOLVER" // input used
+      coarse_solver_rel_residual_tol = 1e-10                // input used
+      coarse_solver_abs_residual_tol = 1e-50                // input used
+      coarse_solver_max_iterations   = 1                    // input used
+      level_solver_db {
+         use_ksp_as_smoother    = TRUE                      // input not used
+         initial_guess_nonzero  = TRUE                      // input not used
+         ksp_type               = "richardson"              // input not used
+         pc_type                = "asm"                     // input not used
+         subdomain_box_size     = 8, 8                      // input not used
+         subdomain_overlap_size = 0, 0                      // input not used
+      }
+      coarse_solver_db {
+         use_ksp_as_smoother    = FALSE                     // input not used
+         initial_guess_nonzero  = TRUE                      // input used
+         ksp_type               = "preonly"                 // input used
+         pc_type                = "lu"                      // input used
+         subdomain_box_size     = 4, 4                      // input used
+         subdomain_overlap_size = 0, 0                      // input used
+      }
+   }
    IBMethod {
       delta_fcn = "IB_4"                                    // input used
    }
