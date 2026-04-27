@@ -24,6 +24,37 @@ TAG_BUFFER             = 2
 FD_REL_TOL             = 1.0e-6
 USE_FIXED_LE_OPERATORS = TRUE
 
+// FAC operator setup used by the solver-components checks.
+stokes_ib_precond_db {
+   num_pre_sweeps = 1
+   num_post_sweeps = 1
+   rediscretize_stokes = TRUE
+   res_rediscretized_stokes = TRUE
+   level_solver_type = "PETSC_LEVEL_SOLVER"
+   level_solver_rel_residual_tol = 1.0e-10
+   level_solver_abs_residual_tol = 1.0e-50
+   level_solver_max_iterations = 1
+   level_solver_db {
+      use_ksp_as_smoother = TRUE
+      initial_guess_nonzero = TRUE
+      ksp_type = "richardson"
+      pc_type = "asm"
+      subdomain_box_size = 8, 8
+      subdomain_overlap_size = 0, 0
+   }
+   coarse_solver_type = "PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-10
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      use_ksp_as_smoother = FALSE
+      initial_guess_nonzero = TRUE
+      ksp_type = "preonly"
+      pc_type = "lu"
+      subdomain_box_size = N, N
+      subdomain_overlap_size = 0, 0
+   }
+}
 // Lagrangian structure and coupling configuration.
 IBMethod {
    delta_fcn = DELTA_FUNCTION
