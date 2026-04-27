@@ -1,32 +1,32 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fd_relative_error = 1.62155e-08
+fd_relative_error = 4.29249e-09
 saj_cell_scaled_relative_error = 0
-saj_theta_scaled_relative_error = 0.256637
-krylov_linear_iterations = 2
-krylov_linear_residual_norm = 4.49449e-06
+saj_theta_scaled_relative_error = 0.371681
+krylov_linear_iterations = 1
+krylov_linear_residual_norm = 1.0739e-07
 Input database:
 input_db {
    MU                     = 0.01                            // input used
    RHO                    = 1                               // input used
-   MAX_LEVELS             = 1                               // input used
+   MAX_LEVELS             = 2                               // input used
    REF_RATIO              = 2                               // input used
    N                      = 4                               // input used
    L                      = 1                               // input used
-   DX                     = 0.25                            // input used
+   DX                     = 0.125                           // input used
    DT                     = 0.005                           // input used
    NUM_CYCLES             = 1                               // input not used
    X_CENTER               = 0.5                             // input used
    Y_CENTER               = 0.5                             // input used
    X_RADIUS               = 0.2                             // input used
    Y_RADIUS               = 0.2                             // input used
-   DS                     = 0.25                            // input used
+   DS                     = 0.125                           // input used
    SPRING_STIFFNESS       = 200                             // input used
    DELTA_FUNCTION         = "IB_4"                          // input used
    IB_TIME_STEPPING       = "BACKWARD_EULER"                // input used
    TAG_BUFFER             = 2                               // input used
    FD_REL_TOL             = 1e-06                           // input used
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
-   PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=1.dat" // input used
+   PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat" // input used
    RR                     = 2                               // input used
    RUN_SAJ_VECTOR_COMPARE = FALSE                           // from default
    stokes_ib_precond_db {
@@ -44,11 +44,11 @@ input_db {
       coarse_solver_max_iterations   = 1                    // input used
       level_solver_db {
          use_ksp_as_smoother    = TRUE                      // input not used
-         initial_guess_nonzero  = TRUE                      // input not used
-         ksp_type               = "richardson"              // input not used
-         pc_type                = "asm"                     // input not used
-         subdomain_box_size     = 8, 8                      // input not used
-         subdomain_overlap_size = 0, 0                      // input not used
+         initial_guess_nonzero  = TRUE                      // input used
+         ksp_type               = "richardson"              // input used
+         pc_type                = "asm"                     // input used
+         subdomain_box_size     = 8, 8                      // input used
+         subdomain_overlap_size = 0, 0                      // input used
       }
       coarse_solver_db {
          use_ksp_as_smoother    = FALSE                     // input not used
@@ -63,8 +63,9 @@ input_db {
       delta_fcn = "IB_4"                                    // input used
    }
    IBRedundantInitializer {
-      max_levels       = 1                                  // input used
+      max_levels       = 2                                  // input used
       base_filenames_0 = "x"                                // input used
+      base_filenames_1 = "x"                                // input used
    }
    Main {
       log_file_name         = "output"                      // input used
@@ -84,14 +85,14 @@ input_db {
       periodic_dimension = 1, 1                             // input used
    }
    GriddingAlgorithm {
-      max_levels                = 1                         // input used
+      max_levels                = 2                         // input used
       efficiency_tolerance      = 0.85                      // input used
       combine_efficiency        = 0.85                      // input used
       check_nonrefined_tags     = 'w'                       // from default
       check_overlapping_patches = 'i'                       // from default
       extend_tags_to_bdry       = FALSE                     // from default
       ratio_to_coarser {
-         level_1 = 2, 2                                     // input not used
+         level_1 = 2, 2                                     // input used
          level_2 = 2, 2                                     // input not used
          level_3 = 2, 2                                     // input not used
          level_4 = 2, 2                                     // input not used

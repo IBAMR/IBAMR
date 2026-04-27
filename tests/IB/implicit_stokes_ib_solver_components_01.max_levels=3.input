@@ -1,29 +1,28 @@
-// Single-level solver-components case.
-// This input is used by implicit_stokes_ib_solver_components_01.cpp to
-// exercise the nonlinear residual, Jacobian, and FAC-preconditioned linear
-// solve on the coarsest hierarchy only.
+// Three-level solver-components case.
+// This is the deepest hierarchy variant of the operator/Jacobian/linear-solve
+// checks and is intended to stress the multilevel assembly path.
 
-MU                     = 0.01
-RHO                    = 1.0
-MAX_LEVELS             = 1
-REF_RATIO              = 2
-N                      = 4
-L                      = 1.0
-DX                     = L / (N * REF_RATIO^(MAX_LEVELS - 1))
-DT                     = 0.005
-NUM_CYCLES             = 1
-X_CENTER               = 0.5
-Y_CENTER               = 0.5
-X_RADIUS               = 0.2
-Y_RADIUS               = 0.2
-DS                     = DX
-SPRING_STIFFNESS       = 2.0e2
-DELTA_FUNCTION         = "IB_4"
-IB_TIME_STEPPING       = "BACKWARD_EULER"
-TAG_BUFFER             = 2
-FD_REL_TOL             = 1.0e-6
-USE_FIXED_LE_OPERATORS = TRUE
-PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=1.dat"
+MU                         = 0.01
+RHO                        = 1.0
+MAX_LEVELS                 = 3
+REF_RATIO                  = 2
+N                          = 4
+L                          = 1.0
+DX                         = L / (N * REF_RATIO^(MAX_LEVELS - 1))
+DT                         = 0.005
+NUM_CYCLES                 = 1
+X_CENTER                   = 0.5
+Y_CENTER                   = 0.5
+X_RADIUS                   = 0.2
+Y_RADIUS                   = 0.2
+DS                         = DX
+SPRING_STIFFNESS           = 2.0e2
+DELTA_FUNCTION             = "IB_4"
+IB_TIME_STEPPING           = "BACKWARD_EULER"
+TAG_BUFFER                 = 2
+FD_REL_TOL                 = 1.0e-6
+USE_FIXED_LE_OPERATORS     = TRUE
+PETSC_OPTIONS_FILE         = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=3.dat"
 
 // FAC preconditioner setup used by the solver-components checks.
 stokes_ib_precond_db {
@@ -63,6 +62,8 @@ IBMethod {
 IBRedundantInitializer {
    max_levels = MAX_LEVELS
    base_filenames_0 = "x"
+   base_filenames_1 = "x"
+   base_filenames_2 = "x"
 }
 Main {
    log_file_name = "output"
