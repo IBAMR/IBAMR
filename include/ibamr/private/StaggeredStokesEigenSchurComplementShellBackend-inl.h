@@ -96,17 +96,15 @@ StaggeredStokesEigenSchurComplementShellBackend::getCustomSubdomainSweepView(
 
 template <class SolverType>
 inline void
-StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver(
-    SolverType& solver,
-    const Eigen::MatrixXd& matrix,
-    const std::size_t subdomain_num) const
+StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver(SolverType& solver,
+                                                                                const Eigen::MatrixXd& matrix,
+                                                                                const std::size_t subdomain_num) const
 {
     initializeEigenSolver(solver, matrix, d_a00_solver_threshold);
     if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>> ||
                   std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
     {
-        const char* const factorization =
-            std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>> ? "LLT" : "LDLT";
+        const char* const factorization = std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>> ? "LLT" : "LDLT";
         if (solver.info() != Eigen::Success)
         {
             TBOX_ERROR("StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver():\n"
@@ -169,9 +167,7 @@ StaggeredStokesEigenSchurComplementShellBackend::applyAdditive(Vec x, Vec y)
         [this](const std::size_t subdomain_num)
         { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
         [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
-        {
-            solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]);
-        });
+        { solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]); });
 }
 
 template <class SolverType>
@@ -186,9 +182,7 @@ StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec 
         [this](const std::size_t subdomain_num)
         { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
         [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
-        {
-            solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]);
-        });
+        { solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]); });
 }
 } // namespace IBAMR
 

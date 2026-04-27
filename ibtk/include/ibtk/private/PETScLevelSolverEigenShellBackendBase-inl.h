@@ -354,12 +354,11 @@ PETScLevelSolverEigenShellBackendBase::applyAdditiveSubdomainSweep(Vec x,
 
 template <class GetSubdomainSweepView, class SolveSubdomain>
 inline void
-PETScLevelSolverEigenShellBackendBase::applyMultiplicativeSubdomainSweep(
-    Vec x,
-    Vec y,
-    const std::size_t n_subdomains,
-    GetSubdomainSweepView get_subdomain_sweep_view,
-    SolveSubdomain solve_subdomain)
+PETScLevelSolverEigenShellBackendBase::applyMultiplicativeSubdomainSweep(Vec x,
+                                                                         Vec y,
+                                                                         const std::size_t n_subdomains,
+                                                                         GetSubdomainSweepView get_subdomain_sweep_view,
+                                                                         SolveSubdomain solve_subdomain)
 {
     TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
     const Eigen::Index n = getNumDofs();

@@ -240,16 +240,15 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
                                                              int finest_level_num)
 {
     const int rank = IBTK_MPI::getRank();
-    const auto apply_level_residual_op =
-        [&](const int ln,
-            const int U_res_idx,
-            const int U_sol_idx,
-            const int U_rhs_idx,
-            const int P_res_idx,
-            const int P_sol_idx,
-            const int P_rhs_idx,
-            const bool use_rhs_vec,
-            const auto& residual_op)
+    const auto apply_level_residual_op = [&](const int ln,
+                                             const int U_res_idx,
+                                             const int U_sol_idx,
+                                             const int U_rhs_idx,
+                                             const int P_res_idx,
+                                             const int P_sol_idx,
+                                             const int P_rhs_idx,
+                                             const bool use_rhs_vec,
+                                             const auto& residual_op)
     {
         Vec solution_vec = nullptr;
         Vec residual_vec = nullptr;
@@ -309,25 +308,25 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         // Update the residual, r = f - A*u, to include the IB part of the operator.
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
-            apply_level_residual_op(
-                ln,
-                U_res_idx,
-                U_sol_idx,
-                IBTK::invalid_index,
-                P_res_idx,
-                P_sol_idx,
-                IBTK::invalid_index,
-                false,
-                [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec /*rhs_vec*/)
-                {
-                    int ierr = VecScale(residual_vec, -1.0);
-                    IBTK_CHKERRQ(ierr);
-                    ierr = MatMultAdd(d_SAJ_mat[level_num], solution_vec, residual_vec, residual_vec);
-                    IBTK_CHKERRQ(ierr);
-                    ierr = VecScale(residual_vec, -1.0);
-                    IBTK_CHKERRQ(ierr);
-                    return;
-                });
+            apply_level_residual_op(ln,
+                                    U_res_idx,
+                                    U_sol_idx,
+                                    IBTK::invalid_index,
+                                    P_res_idx,
+                                    P_sol_idx,
+                                    IBTK::invalid_index,
+                                    false,
+                                    [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec /*rhs_vec*/)
+                                    {
+                                        int ierr = VecScale(residual_vec, -1.0);
+                                        IBTK_CHKERRQ(ierr);
+                                        ierr =
+                                            MatMultAdd(d_SAJ_mat[level_num], solution_vec, residual_vec, residual_vec);
+                                        IBTK_CHKERRQ(ierr);
+                                        ierr = VecScale(residual_vec, -1.0);
+                                        IBTK_CHKERRQ(ierr);
+                                        return;
+                                    });
         }
     }
     else
@@ -343,27 +342,26 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         // Compute the residual, r = f - A*u.
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
-            apply_level_residual_op(
-                ln,
-                U_res_idx,
-                U_sol_idx,
-                U_rhs_idx,
-                P_res_idx,
-                P_sol_idx,
-                P_rhs_idx,
-                true,
-                [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec rhs_vec)
-                {
-                    const KSP& level_ksp = d_level_solvers[level_num]->getPETScKSP();
-                    Mat A;
-                    int ierr = KSPGetOperators(level_ksp, &A, nullptr);
-                    IBTK_CHKERRQ(ierr);
-                    ierr = MatMult(A, solution_vec, residual_vec);
-                    IBTK_CHKERRQ(ierr);
-                    ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
-                    IBTK_CHKERRQ(ierr);
-                    return;
-                });
+            apply_level_residual_op(ln,
+                                    U_res_idx,
+                                    U_sol_idx,
+                                    U_rhs_idx,
+                                    P_res_idx,
+                                    P_sol_idx,
+                                    P_rhs_idx,
+                                    true,
+                                    [&](const int level_num, Vec solution_vec, Vec residual_vec, Vec rhs_vec)
+                                    {
+                                        const KSP& level_ksp = d_level_solvers[level_num]->getPETScKSP();
+                                        Mat A;
+                                        int ierr = KSPGetOperators(level_ksp, &A, nullptr);
+                                        IBTK_CHKERRQ(ierr);
+                                        ierr = MatMult(A, solution_vec, residual_vec);
+                                        IBTK_CHKERRQ(ierr);
+                                        ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
+                                        IBTK_CHKERRQ(ierr);
+                                        return;
+                                    });
         }
     }
     return;
