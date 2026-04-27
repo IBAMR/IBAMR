@@ -178,6 +178,159 @@ struct LinearSideProlongationStencil
     std::vector<int> petsc_cols;
 };
 
+struct LinearProlongationRowEntries
+{
+    std::vector<int> cols;
+    std::vector<PetscScalar> vals;
+};
+
+inline void
+count_row_nnz(const std::vector<int>& cols,
+              const int local_row,
+              const int j_coarse_lower,
+              const int j_coarse_upper,
+              const int n_local,
+              const int n_total,
+              std::vector<int>& d_nnz,
+              std::vector<int>& o_nnz)
+{
+    std::vector<int> unique_cols = cols;
+    std::sort(unique_cols.begin(), unique_cols.end());
+    unique_cols.erase(std::unique(unique_cols.begin(), unique_cols.end()), unique_cols.end());
+    for (const int col : unique_cols)
+    {
+        if (col < 0) continue;
+        if (col >= j_coarse_lower && col < j_coarse_upper)
+        {
+            ++d_nnz[local_row];
+        }
+        else
+        {
+            ++o_nnz[local_row];
+        }
+    }
+    d_nnz[local_row] = std::min(n_local, d_nnz[local_row]);
+    o_nnz[local_row] = std::min(n_total - n_local, o_nnz[local_row]);
+    return;
+}
+
+inline int
+compute_side_data_offset(const unsigned depth,
+                         const int axis,
+                         const std::array<hier::Index<NDIM>, NDIM>& coarse_num_cells)
+{
+    int data_offset = 0;
+    for (int side = 0; side < axis; ++side)
+    {
+        int side_offset = depth;
+        for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
+        data_offset += side_offset;
+    }
+    return data_offset;
+}
+
+inline bool
+get_owned_side_dof_rows(std::vector<int>& rows,
+                        Pointer<SideData<NDIM, int>> dof_data,
+                        const SideIndex<NDIM>& i_s,
+                        const unsigned depth,
+                        const int i_fine_lower,
+                        const int i_fine_upper,
+                        const bool localize_rows)
+{
+    rows.resize(depth);
+    bool on_proc_fine_loc = true;
+    for (unsigned d = 0; d < depth; ++d)
+    {
+        rows[d] = (*dof_data)(i_s, d);
+        on_proc_fine_loc = on_proc_fine_loc && rows[d] >= i_fine_lower && rows[d] < i_fine_upper;
+        if (localize_rows) rows[d] -= i_fine_lower;
+    }
+    return on_proc_fine_loc;
+}
+
+inline LinearProlongationRowEntries
+compute_linear_cell_prolongation_row_entries(const CellIndex<NDIM>& i_fine,
+                                             const unsigned depth_idx,
+                                             const IntVector<NDIM>& fine_coarse_ratio,
+                                             const hier::Index<NDIM>& coarse_domain_lower,
+                                             const hier::Index<NDIM>& coarse_domain_upper,
+                                             const hier::Index<NDIM>& coarse_num_cells,
+                                             const IntVector<NDIM>& periodic_shift,
+                                             const AO& coarse_level_ao,
+                                             const int coarse_ao_offset)
+{
+#if (NDIM == 2)
+    static const int n_stencil = 4;
+#endif
+#if (NDIM == 3)
+    static const int n_stencil = 8;
+#endif
+    const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
+    std::array<std::array<int, 2>, NDIM> coarse_stencil;
+    std::array<std::array<double, 2>, NDIM> weights;
+
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        compute_linear_axis_stencil(i_fine(axis),
+                                    i_coarse(axis),
+                                    coarse_domain_lower(axis),
+                                    coarse_domain_upper(axis),
+                                    fine_coarse_ratio(axis),
+                                    periodic_shift(axis) != 0,
+                                    coarse_stencil[axis].data(),
+                                    weights[axis].data());
+    }
+
+    LinearProlongationRowEntries entries;
+    entries.cols.resize(n_stencil);
+    entries.vals.resize(n_stencil);
+    int entry = 0;
+#if (NDIM == 2)
+    for (int i1 = 0; i1 < 2; ++i1)
+    {
+        for (int i0 = 0; i0 < 2; ++i0, ++entry)
+        {
+            CellIndex<NDIM> i_stencil;
+            i_stencil(0) = coarse_stencil[0][i0];
+            i_stencil(1) = coarse_stencil[1][i1];
+            entries.cols[entry] =
+                IndexUtilities::mapIndexToInteger(i_stencil,
+                                                  coarse_domain_lower,
+                                                  coarse_num_cells,
+                                                  depth_idx,
+                                                  coarse_ao_offset);
+            entries.vals[entry] = weights[0][i0] * weights[1][i1];
+        }
+    }
+#endif
+#if (NDIM == 3)
+    for (int i2 = 0; i2 < 2; ++i2)
+    {
+        for (int i1 = 0; i1 < 2; ++i1)
+        {
+            for (int i0 = 0; i0 < 2; ++i0, ++entry)
+            {
+                CellIndex<NDIM> i_stencil;
+                i_stencil(0) = coarse_stencil[0][i0];
+                i_stencil(1) = coarse_stencil[1][i1];
+                i_stencil(2) = coarse_stencil[2][i2];
+                entries.cols[entry] =
+                    IndexUtilities::mapIndexToInteger(i_stencil,
+                                                      coarse_domain_lower,
+                                                      coarse_num_cells,
+                                                      depth_idx,
+                                                      coarse_ao_offset);
+                entries.vals[entry] = weights[0][i0] * weights[1][i1] * weights[2][i2];
+            }
+        }
+    }
+#endif
+    PetscErrorCode ierr = AOApplicationToPetsc(coarse_level_ao, static_cast<int>(entries.cols.size()), entries.cols.data());
+    IBTK_CHKERRQ(ierr);
+    return entries;
+}
+
 inline void
 set_linear_side_prolongation_offsets(std::vector<IntVector<NDIM>>& offsets, const int axis, const int upperlower[NDIM])
 {
@@ -326,6 +479,170 @@ compute_linear_side_prolongation_stencil(const CellIndex<NDIM>& i,
     }
     AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, stencil.petsc_cols.data());
     return stencil;
+}
+
+inline LinearProlongationRowEntries
+compute_linear_side_prolongation_row_entries(const CellIndex<NDIM>& i,
+                                             const int axis,
+                                             const unsigned depth_idx,
+                                             const LinearSideProlongationStencil& stencil,
+                                             const IntVector<NDIM>& fine_coarse_ratio)
+{
+    static const int n_interpolants = 4 * (NDIM - 1);
+    const auto& interpolants = stencil.interpolants;
+    const auto& samrai_petsc_map = stencil.petsc_cols;
+
+    double w[NDIM];
+    std::fill(std::begin(w), std::end(w), std::numeric_limits<double>::signaling_NaN());
+    if (axis == 0)
+    {
+        w[0] = 1.0 - (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
+                         SCD(fine_coarse_ratio(0));
+
+        w[1] = 1.0 - (0.5 + SCD(i(1)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                 fine_coarse_ratio)(1)) -
+                      SCD(fine_coarse_ratio(1) / 2.0)) /
+                         SCD(fine_coarse_ratio(1));
+#if (NDIM == 3)
+
+        w[2] = 1.0 - (0.5 + SCD(i(2)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                 fine_coarse_ratio)(2)) -
+                      SCD(fine_coarse_ratio(2) / 2.0)) /
+                         SCD(fine_coarse_ratio(2));
+#endif
+    }
+    else if (axis == 1)
+    {
+        w[1] = 1.0 - (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
+                         SCD(fine_coarse_ratio(1));
+
+        w[0] = 1.0 - (0.5 + SCD(i(0)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                 fine_coarse_ratio)(0)) -
+                      SCD(fine_coarse_ratio(0) / 2.0)) /
+                         SCD(fine_coarse_ratio(0));
+#if (NDIM == 3)
+
+        w[2] = 1.0 - (0.5 + SCD(i(2)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                 fine_coarse_ratio)(2)) -
+                      SCD(fine_coarse_ratio(2) / 2.0)) /
+                         SCD(fine_coarse_ratio(2));
+#endif
+    }
+#if (NDIM == 3)
+    else if (axis == 2)
+    {
+        w[2] = 1.0 - (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
+                         SCD(fine_coarse_ratio(2));
+
+        w[0] = 1.0 - (0.5 + SCD(i(0)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                 fine_coarse_ratio)(0)) -
+                      SCD(fine_coarse_ratio(0) / 2.0)) /
+                         SCD(fine_coarse_ratio(0));
+
+        w[1] = 1.0 - (0.5 + SCD(i(1)) -
+                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                 fine_coarse_ratio)(1)) -
+                      SCD(fine_coarse_ratio(1) / 2.0)) /
+                         SCD(fine_coarse_ratio(1));
+    }
+#endif
+
+    std::array<double, 8> values;
+    double w0 = 0.0, w1 = 0.0, w2 = 1.0;
+    if (axis == 0)
+    {
+        w0 = w[0];
+        w1 = interpolants[0](1) < interpolants[2](1) ? w[1] : 1.0 - w[1];
+#if (NDIM == 3)
+        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
+#endif
+
+        values[0] = w0 * w1 * w2;
+        values[1] = (1.0 - w0) * w1 * w2;
+        values[2] = w0 * (1.0 - w1) * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 2] < 0) values[0] += values[2];
+        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 3] < 0) values[1] += values[3];
+
+#if (NDIM == 3)
+        values[4] = w0 * w1 * (1.0 - w2);
+        values[5] = (1.0 - w0) * w1 * (1.0 - w2);
+        values[6] = w0 * (1.0 - w1) * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 6] < 0) values[4] += values[6];
+        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 7] < 0) values[5] += values[7];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 4] < 0) values[0] += values[4];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 5] < 0) values[1] += values[5];
+#endif
+        if (samrai_petsc_map[depth_idx * n_interpolants + 1] < 0) values[0] += values[1];
+    }
+    else if (axis == 1)
+    {
+        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
+        w1 = w[1];
+#if (NDIM == 3)
+        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
+#endif
+
+        values[0] = w0 * w1 * w2;
+        values[1] = w0 * (1.0 - w1) * w2;
+        values[2] = (1.0 - w0) * w1 * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 2] < 0) values[0] += values[2];
+        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 3] < 0) values[1] += values[3];
+
+#if (NDIM == 3)
+        values[4] = w0 * w1 * (1.0 - w2);
+        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
+        values[6] = (1.0 - w0) * w1 * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 6] < 0) values[4] += values[6];
+        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 7] < 0) values[5] += values[7];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 4] < 0) values[0] += values[4];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 5] < 0) values[1] += values[5];
+#endif
+        if (samrai_petsc_map[depth_idx * n_interpolants + 1] < 0) values[0] += values[1];
+    }
+#if (NDIM == 3)
+    else if (axis == 2)
+    {
+        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
+        w1 = interpolants[0](1) < interpolants[4](1) ? w[1] : 1.0 - w[1];
+        w2 = w[2];
+
+        values[0] = w0 * w1 * w2;
+        values[1] = w0 * w1 * (1.0 - w2);
+        values[2] = (1.0 - w0) * w1 * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 2] < 0) values[0] += values[2];
+        values[3] = (1.0 - w0) * w1 * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 3] < 0) values[1] += values[3];
+
+        values[4] = w0 * (1.0 - w1) * w2;
+        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
+        values[6] = (1.0 - w0) * (1.0 - w1) * w2;
+        if (samrai_petsc_map[depth_idx * n_interpolants + 6] < 0) values[4] += values[6];
+        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+        if (samrai_petsc_map[depth_idx * n_interpolants + 7] < 0) values[5] += values[7];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 4] < 0) values[0] += values[4];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 5] < 0) values[1] += values[5];
+        if (samrai_petsc_map[depth_idx * n_interpolants + 1] < 0) values[0] += values[1];
+    }
+#endif
+
+    LinearProlongationRowEntries entries;
+    for (int ip = 0; ip < n_interpolants; ++ip)
+    {
+        const int col = samrai_petsc_map[depth_idx * n_interpolants + ip];
+        if (col < 0) continue;
+        entries.cols.push_back(col);
+        entries.vals.push_back(values[ip]);
+    }
+    return entries;
 }
 
 } // namespace
@@ -1684,40 +2001,17 @@ PETScMatUtilities::constructLinearProlongationOp_cell(Mat& mat,
     const int n_total = std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.end(), 0);
 
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
-#if (NDIM == 2)
-    const int n_stencil = 4;
-#endif
-#if (NDIM == 3)
-    const int n_stencil = 8;
-#endif
     for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
     {
         Pointer<Patch<NDIM>> fine_patch = fine_patch_level->getPatch(p());
         const Box<NDIM>& fine_patch_box = fine_patch->getBox();
         Pointer<CellData<NDIM, int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = dof_fine_data->getDepth();
-        std::vector<int> samrai_petsc_map(depth * n_stencil);
         std::vector<int> local_row(depth);
 
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(fine_patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i_fine = b();
-            const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
-            std::array<std::array<int, 2>, NDIM> coarse_stencil;
-            std::array<std::array<double, 2>, NDIM> weights;
-
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                compute_linear_axis_stencil(i_fine(axis),
-                                            i_coarse(axis),
-                                            coarse_domain_lower(axis),
-                                            coarse_domain_upper(axis),
-                                            fine_coarse_ratio(axis),
-                                            periodic_shift(axis) != 0,
-                                            coarse_stencil[axis].data(),
-                                            weights[axis].data());
-            }
-
             for (unsigned d = 0; d < depth; ++d)
             {
                 local_row[d] = (*dof_fine_data)(i_fine, d);
@@ -1729,67 +2023,19 @@ PETScMatUtilities::constructLinearProlongationOp_cell(Mat& mat,
                 local_row[d] -= i_fine_lower;
             }
 
-            int entry = 0;
-#if (NDIM == 2)
-            for (int i1 = 0; i1 < 2; ++i1)
-            {
-                for (int i0 = 0; i0 < 2; ++i0, ++entry)
-                {
-                    CellIndex<NDIM> i_stencil;
-                    i_stencil(0) = coarse_stencil[0][i0];
-                    i_stencil(1) = coarse_stencil[1][i1];
-                    for (unsigned d = 0; d < depth; ++d)
-                    {
-                        samrai_petsc_map[entry * depth + d] = IndexUtilities::mapIndexToInteger(
-                            i_stencil, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
-                    }
-                }
-            }
-#endif
-#if (NDIM == 3)
-            for (int i2 = 0; i2 < 2; ++i2)
-            {
-                for (int i1 = 0; i1 < 2; ++i1)
-                {
-                    for (int i0 = 0; i0 < 2; ++i0, ++entry)
-                    {
-                        CellIndex<NDIM> i_stencil;
-                        i_stencil(0) = coarse_stencil[0][i0];
-                        i_stencil(1) = coarse_stencil[1][i1];
-                        i_stencil(2) = coarse_stencil[2][i2];
-                        for (unsigned d = 0; d < depth; ++d)
-                        {
-                            samrai_petsc_map[entry * depth + d] = IndexUtilities::mapIndexToInteger(
-                                i_stencil, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
-                        }
-                    }
-                }
-            }
-#endif
-            ierr = AOApplicationToPetsc(
-                coarse_level_ao, static_cast<int>(samrai_petsc_map.size()), samrai_petsc_map.data());
-            IBTK_CHKERRQ(ierr);
-
             for (unsigned d = 0; d < depth; ++d)
             {
-                std::vector<int> cols;
-                cols.reserve(n_stencil);
-                for (int entry = 0; entry < n_stencil; ++entry) cols.push_back(samrai_petsc_map[entry * depth + d]);
-                std::sort(cols.begin(), cols.end());
-                cols.erase(std::unique(cols.begin(), cols.end()), cols.end());
-                for (const int col : cols)
-                {
-                    if (col >= j_coarse_lower && col < j_coarse_upper)
-                    {
-                        ++d_nnz[local_row[d]];
-                    }
-                    else
-                    {
-                        ++o_nnz[local_row[d]];
-                    }
-                }
-                d_nnz[local_row[d]] = std::min(n_local, d_nnz[local_row[d]]);
-                o_nnz[local_row[d]] = std::min(n_total - n_local, o_nnz[local_row[d]]);
+                const auto entries = compute_linear_cell_prolongation_row_entries(i_fine,
+                                                                                  d,
+                                                                                  fine_coarse_ratio,
+                                                                                  coarse_domain_lower,
+                                                                                  coarse_domain_upper,
+                                                                                  coarse_num_cells,
+                                                                                  periodic_shift,
+                                                                                  coarse_level_ao,
+                                                                                  coarse_ao_offset);
+                count_row_nnz(
+                    entries.cols, local_row[d], j_coarse_lower, j_coarse_upper, n_local, n_total, d_nnz, o_nnz);
             }
         }
     }
@@ -1804,90 +2050,29 @@ PETScMatUtilities::constructLinearProlongationOp_cell(Mat& mat,
         const Box<NDIM>& fine_patch_box = fine_patch->getBox();
         Pointer<CellData<NDIM, int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = dof_fine_data->getDepth();
-        std::vector<int> rows(depth), cols(depth * n_stencil);
-        std::vector<PetscScalar> vals(depth * n_stencil);
+        std::vector<int> rows(depth);
 
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(fine_patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i_fine = b();
-            const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
-            std::array<std::array<int, 2>, NDIM> coarse_stencil;
-            std::array<std::array<double, 2>, NDIM> weights;
-
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                compute_linear_axis_stencil(i_fine(axis),
-                                            i_coarse(axis),
-                                            coarse_domain_lower(axis),
-                                            coarse_domain_upper(axis),
-                                            fine_coarse_ratio(axis),
-                                            periodic_shift(axis) != 0,
-                                            coarse_stencil[axis].data(),
-                                            weights[axis].data());
-            }
-
             for (unsigned d = 0; d < depth; ++d) rows[d] = (*dof_fine_data)(i_fine, d);
-            int entry = 0;
-#if (NDIM == 2)
-            for (int i1 = 0; i1 < 2; ++i1)
-            {
-                for (int i0 = 0; i0 < 2; ++i0, ++entry)
-                {
-                    CellIndex<NDIM> i_stencil;
-                    i_stencil(0) = coarse_stencil[0][i0];
-                    i_stencil(1) = coarse_stencil[1][i1];
-                    const double w = weights[0][i0] * weights[1][i1];
-                    for (unsigned d = 0; d < depth; ++d)
-                    {
-                        cols[entry * depth + d] = IndexUtilities::mapIndexToInteger(
-                            i_stencil, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
-                        vals[entry * depth + d] = w;
-                    }
-                }
-            }
-#endif
-#if (NDIM == 3)
-            for (int i2 = 0; i2 < 2; ++i2)
-            {
-                for (int i1 = 0; i1 < 2; ++i1)
-                {
-                    for (int i0 = 0; i0 < 2; ++i0, ++entry)
-                    {
-                        CellIndex<NDIM> i_stencil;
-                        i_stencil(0) = coarse_stencil[0][i0];
-                        i_stencil(1) = coarse_stencil[1][i1];
-                        i_stencil(2) = coarse_stencil[2][i2];
-                        const double w = weights[0][i0] * weights[1][i1] * weights[2][i2];
-                        for (unsigned d = 0; d < depth; ++d)
-                        {
-                            cols[entry * depth + d] = IndexUtilities::mapIndexToInteger(
-                                i_stencil, coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
-                            vals[entry * depth + d] = w;
-                        }
-                    }
-                }
-            }
-#endif
-            ierr = AOApplicationToPetsc(coarse_level_ao, static_cast<int>(cols.size()), cols.data());
-            IBTK_CHKERRQ(ierr);
-
             for (unsigned d = 0; d < depth; ++d)
             {
-                std::vector<int> row_cols;
-                std::vector<PetscScalar> row_vals;
-                row_cols.reserve(n_stencil);
-                row_vals.reserve(n_stencil);
-                for (int entry = 0; entry < n_stencil; ++entry)
-                {
-                    row_cols.push_back(cols[entry * depth + d]);
-                    row_vals.push_back(vals[entry * depth + d]);
-                }
+                const auto entries = compute_linear_cell_prolongation_row_entries(i_fine,
+                                                                                  d,
+                                                                                  fine_coarse_ratio,
+                                                                                  coarse_domain_lower,
+                                                                                  coarse_domain_upper,
+                                                                                  coarse_num_cells,
+                                                                                  periodic_shift,
+                                                                                  coarse_level_ao,
+                                                                                  coarse_ao_offset);
                 ierr = MatSetValues(mat,
                                     1,
                                     &rows[d],
-                                    static_cast<int>(row_cols.size()),
-                                    row_cols.data(),
-                                    row_vals.data(),
+                                    static_cast<int>(entries.cols.size()),
+                                    entries.cols.data(),
+                                    entries.vals.data(),
                                     INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
@@ -2230,6 +2415,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     const int j_coarse_lower =
         std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_coarse_upper = j_coarse_lower + n_local;
+    const int n_total = std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.end(), 0);
 
     // Determine the non-zero matrix structure for the refine operator.
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
@@ -2244,28 +2430,14 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            int data_offset = 0;
-            for (int side = 0; side < axis; ++side)
-            {
-                int side_offset = depth;
-                for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
-                data_offset += side_offset;
-            }
+            const int data_offset = compute_side_data_offset(depth, axis, coarse_num_cells);
 
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                bool on_proc_fine_loc = true;
-                for (unsigned d = 0; d < depth; ++d)
-                {
-                    local_row[d] = (*fine_dof_data)(i_s, d);
-
-                    on_proc_fine_loc = on_proc_fine_loc && local_row[d] >= i_fine_lower && local_row[d] < i_fine_upper;
-
-                    local_row[d] -= i_fine_lower;
-                }
-                if (!on_proc_fine_loc) continue;
+                if (!get_owned_side_dof_rows(local_row, fine_dof_data, i_s, depth, i_fine_lower, i_fine_upper, true))
+                    continue;
 
                 const auto stencil = compute_linear_side_prolongation_stencil(i,
                                                                               axis,
@@ -2303,16 +2475,10 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
 
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    for (int ip = 0; ip < n_interpolants; ++ip)
-                    {
-                        const int idx = d * n_interpolants + ip;
-                        if (samrai_petsc_map[idx] < 0) continue;
-
-                        if (samrai_petsc_map[idx] >= j_coarse_lower && samrai_petsc_map[idx] < j_coarse_upper)
-                            d_nnz[local_row[d]] += 1;
-                        else
-                            o_nnz[local_row[d]] += 1;
-                    }
+                    const auto entries =
+                        compute_linear_side_prolongation_row_entries(i, axis, d, stencil, fine_coarse_ratio);
+                    count_row_nnz(
+                        entries.cols, local_row[d], j_coarse_lower, j_coarse_upper, n_local, n_total, d_nnz, o_nnz);
                 }
             }
         }
@@ -2338,29 +2504,18 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
         const Box<NDIM>& fine_patch_box = fine_patch->getBox();
         Pointer<SideData<NDIM, int>> fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
-        const int n_interpolants = 4 * (NDIM - 1);
+        std::vector<int> rows(depth);
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            int data_offset = 0;
-            for (int side = 0; side < axis; ++side)
-            {
-                int side_offset = depth;
-                for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
-                data_offset += side_offset;
-            }
+            const int data_offset = compute_side_data_offset(depth, axis, coarse_num_cells);
 
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                bool on_proc_fine_loc = true;
-                for (unsigned d = 0; d < depth; ++d)
-                {
-                    const int fine_dof_idx = (*fine_dof_data)(i_s, d);
-                    on_proc_fine_loc = on_proc_fine_loc && fine_dof_idx >= i_fine_lower && fine_dof_idx < i_fine_upper;
-                }
-                if (!on_proc_fine_loc) continue;
+                if (!get_owned_side_dof_rows(rows, fine_dof_data, i_s, depth, i_fine_lower, i_fine_upper, false))
+                    continue;
 
                 const auto stencil = compute_linear_side_prolongation_stencil(i,
                                                                               axis,
@@ -2372,268 +2527,18 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                                                                               data_offset,
                                                                               coarse_periodic_shift,
                                                                               coarse_level_ao);
-                const auto& interpolants = stencil.interpolants;
-                const auto& samrai_petsc_map = stencil.petsc_cols;
-
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    // Interpolation weights in Cartesian axis.
-                    double w[NDIM];
-                    std::fill(std::begin(w), std::end(w), std::numeric_limits<double>::signaling_NaN());
-                    if (axis == 0)
-                    {
-                        w[0] = 1.0 - (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
-                                         SCD(fine_coarse_ratio(0));
-
-                        w[1] = 1.0 - (0.5 + SCD(i(1)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                                 fine_coarse_ratio)(1)) -
-                                      SCD(fine_coarse_ratio(1) / 2.0)) /
-                                         SCD(fine_coarse_ratio(1));
-#if (NDIM == 3)
-
-                        w[2] = 1.0 - (0.5 + SCD(i(2)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                                 fine_coarse_ratio)(2)) -
-                                      SCD(fine_coarse_ratio(2) / 2.0)) /
-                                         SCD(fine_coarse_ratio(2));
-#endif
-                    }
-                    else if (axis == 1)
-                    {
-                        w[1] = 1.0 - (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
-                                         SCD(fine_coarse_ratio(1));
-
-                        w[0] = 1.0 - (0.5 + SCD(i(0)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                                 fine_coarse_ratio)(0)) -
-                                      SCD(fine_coarse_ratio(0) / 2.0)) /
-                                         SCD(fine_coarse_ratio(0));
-#if (NDIM == 3)
-
-                        w[2] = 1.0 - (0.5 + SCD(i(2)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                                 fine_coarse_ratio)(2)) -
-                                      SCD(fine_coarse_ratio(2) / 2.0)) /
-                                         SCD(fine_coarse_ratio(2));
-#endif
-                    }
-#if (NDIM == 3)
-                    else if (axis == 2)
-                    {
-                        w[2] = 1.0 - (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
-                                         SCD(fine_coarse_ratio(2));
-
-                        w[0] = 1.0 - (0.5 + SCD(i(0)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                                 fine_coarse_ratio)(0)) -
-                                      SCD(fine_coarse_ratio(0) / 2.0)) /
-                                         SCD(fine_coarse_ratio(0));
-
-                        w[1] = 1.0 - (0.5 + SCD(i(1)) -
-                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                                 fine_coarse_ratio)(1)) -
-                                      SCD(fine_coarse_ratio(1) / 2.0)) /
-                                         SCD(fine_coarse_ratio(1));
-                    }
-#endif
-
-                    int row = (*fine_dof_data)(i_s, d);
-                    std::vector<int> col;
-                    std::vector<double> col_val;
-                    int n_cols = 0;
-                    for (int ip = 0; ip < n_interpolants; ++ip)
-                    {
-                        if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
-                        {
-                            ++n_cols;
-                        }
-                    }
-                    col.resize(n_cols);
-                    col_val.resize(n_cols);
-
-                    // Find weights.
-                    double w0, w1, w2 = 1.0;
-                    double values[8];
-                    if (axis == 0)
-                    {
-                        w0 = w[0];
-                        w1 = interpolants[0](1) < interpolants[2](1) ? w[1] : 1.0 - w[1];
-#if (NDIM == 3)
-                        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
-#endif
-
-                        values[0] = w0 * w1 * w2;
-                        values[1] = (1.0 - w0) * w1 * w2;
-                        values[2] = w0 * (1.0 - w1) * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
-                        {
-                            values[0] += values[2];
-                        }
-                        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
-                        {
-                            values[1] += values[3];
-                        }
-
-#if (NDIM == 3)
-                        values[4] = w0 * w1 * (1.0 - w2);
-                        values[5] = (1.0 - w0) * w1 * (1.0 - w2);
-                        values[6] = w0 * (1.0 - w1) * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
-                        {
-                            values[4] += values[6];
-                        }
-                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
-                        {
-                            values[5] += values[7];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
-                        {
-                            values[0] += values[4];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
-                        {
-                            values[1] += values[5];
-                        }
-#endif
-                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
-                        {
-                            values[0] += values[1];
-                        }
-
-                        int k = 0;
-                        for (int ip = 0; ip < n_interpolants; ++ip)
-                        {
-                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
-                            {
-                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
-                                col_val[k] = values[ip];
-                                k = k + 1;
-                            }
-                        }
-                        TBOX_ASSERT(k == n_cols);
-                    }
-                    else if (axis == 1)
-                    {
-                        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
-                        w1 = w[1];
-#if (NDIM == 3)
-                        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
-#endif
-
-                        values[0] = w0 * w1 * w2;
-                        values[1] = w0 * (1.0 - w1) * w2;
-                        values[2] = (1.0 - w0) * w1 * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
-                        {
-                            values[0] += values[2];
-                        }
-                        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
-                        {
-                            values[1] += values[3];
-                        }
-
-#if (NDIM == 3)
-                        values[4] = w0 * w1 * (1.0 - w2);
-                        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
-                        values[6] = (1.0 - w0) * w1 * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
-                        {
-                            values[4] += values[6];
-                        }
-                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
-                        {
-                            values[5] += values[7];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
-                        {
-                            values[0] += values[4];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
-                        {
-                            values[1] += values[5];
-                        }
-#endif
-                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
-                        {
-                            values[0] += values[1];
-                        }
-
-                        int k = 0;
-                        for (int ip = 0; ip < n_interpolants; ++ip)
-                        {
-                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
-                            {
-                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
-                                col_val[k] = values[ip];
-                                k = k + 1;
-                            }
-                        }
-                        TBOX_ASSERT(k == n_cols);
-                    }
-#if (NDIM == 3)
-                    else if (axis == 2)
-                    {
-                        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
-                        w1 = interpolants[0](1) < interpolants[4](1) ? w[1] : 1.0 - w[1];
-                        w2 = w[2];
-
-                        values[0] = w0 * w1 * w2;
-                        values[1] = w0 * w1 * (1.0 - w2);
-                        values[2] = (1.0 - w0) * w1 * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
-                        {
-                            values[0] += values[2];
-                        }
-                        values[3] = (1.0 - w0) * w1 * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
-                        {
-                            values[1] += values[3];
-                        }
-
-                        values[4] = w0 * (1.0 - w1) * w2;
-                        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
-                        values[6] = (1.0 - w0) * (1.0 - w1) * w2;
-                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
-                        {
-                            values[4] += values[6];
-                        }
-                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
-                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
-                        {
-                            values[5] += values[7];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
-                        {
-                            values[0] += values[4];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
-                        {
-                            values[1] += values[5];
-                        }
-                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
-                        {
-                            values[0] += values[1];
-                        }
-
-                        int k = 0;
-                        for (int ip = 0; ip < n_interpolants; ++ip)
-                        {
-                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
-                            {
-                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
-                                col_val[k] = values[ip];
-                                k = k + 1;
-                            }
-                        }
-                        TBOX_ASSERT(k == n_cols);
-                    }
-#endif
-                    ierr = MatSetValues(mat, 1, &row, n_cols, col.data(), col_val.data(), INSERT_VALUES);
+                    const auto entries =
+                        compute_linear_side_prolongation_row_entries(i, axis, d, stencil, fine_coarse_ratio);
+                    const int row = rows[d];
+                    ierr = MatSetValues(mat,
+                                        1,
+                                        &row,
+                                        static_cast<int>(entries.cols.size()),
+                                        entries.cols.data(),
+                                        entries.vals.data(),
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
