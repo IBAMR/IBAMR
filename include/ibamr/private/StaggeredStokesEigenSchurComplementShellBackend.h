@@ -101,6 +101,13 @@ private:
     template <class SolverType>
     void initializeCustomEigenA00SolveStorage(std::size_t n_subdomains);
 
+    SubdomainSweepView getCustomSubdomainSweepView(CustomEigenSchurSubdomainCache& custom_cache) const;
+
+    template <class SolverType>
+    void initializeCustomEigenA00Solver(SolverType& solver,
+                                        const Eigen::MatrixXd& matrix,
+                                        std::size_t subdomain_num) const;
+
     template <class SolverType>
     void solveCustomEigenSubdomain(CustomEigenSchurSubdomainCache& custom_cache, const SolverType& a00_solver) const;
 
