@@ -15,7 +15,6 @@
 #include <ibamr/private/StaggeredStokesEigenSchurComplementShellBackend.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/IBTK_MPI.h>
 
 #include <tbox/Database.h>
 
@@ -115,64 +114,18 @@ StaggeredStokesEigenSchurComplementShellBackend::parseBuiltinSolverType(const st
 Eigen::MatrixXd
 StaggeredStokesEigenSchurComplementShellBackend::buildSchurSolveMatrix(const Eigen::MatrixXd& schur) const
 {
-    Eigen::MatrixXd solve_matrix;
-    dispatchEigenSolverType(
-        d_schur_solver_type,
-        [this, &schur, &solve_matrix](auto solver_tag)
-        {
-            using SolverType = typename decltype(solver_tag)::type;
-            if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildLLTSolveMatrix(schur);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildLDLTSolveMatrix(schur);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::PartialPivLU<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildPartialPivLUSolveMatrix(schur);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivLU<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildFullPivLUSolveMatrix(schur, d_schur_solver_threshold);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::HouseholderQR<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildHouseholderQRSolveMatrix(schur);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::ColPivHouseholderQR<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildQRSolveMatrix<SolverType>(schur, d_schur_solver_threshold);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildCompleteOrthogonalDecompositionPseudoinverse(schur, d_schur_solver_threshold);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildQRSolveMatrix<SolverType>(schur, d_schur_solver_threshold);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::JacobiSVD<Eigen::MatrixXd>> ||
-                               std::is_same_v<SolverType, Eigen::BDCSVD<Eigen::MatrixXd>>)
-            {
-                solve_matrix = buildSVDPseudoinverse<SolverType>(schur, d_schur_solver_threshold);
-            }
-            else
-            {
-                TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
-                                                      << " StaggeredStokesEigenSchurComplementShellBackend::"
-                                                      << "buildSchurSolveMatrix()\n"
-                                                      << "Unsupported Eigen subdomain solver type.\n");
-            }
-        });
-    return solve_matrix;
+    return buildDenseEigenSolveMatrix(d_schur_solver_type,
+                                      schur,
+                                      d_schur_solver_threshold,
+                                      "StaggeredStokesEigenSchurComplementShellBackend::buildSchurSolveMatrix()");
 }
 
 void
 StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
     const IBTK::PETScLevelSolverShellBackendState& solver_state)
 {
+    checkSerialEigenShellBackend(solver_state,
+                                 "StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState()");
     setSolverState(solver_state);
     configureFromInputDatabase(d_solver_state.input_db);
     const std::size_t n_subdomains = d_solver_state.subdomain_dofs->size();
