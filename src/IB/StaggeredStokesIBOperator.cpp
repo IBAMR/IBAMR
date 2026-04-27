@@ -16,6 +16,7 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/private/StaggeredStokesIBOperatorUtilities-inl.h>
 #include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -25,29 +26,12 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
-#include <utility>
-
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-void
-set_stokes_operator_times(const Pointer<StaggeredStokesOperator>& stokes_op,
-                          const std::pair<double, double>& time_interval,
-                          const double solution_time)
-{
-    if (!stokes_op) return;
-    stokes_op->setTimeInterval(time_interval.first, time_interval.second);
-    stokes_op->setSolutionTime(solution_time);
-}
-} // namespace
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBOperator::StaggeredStokesIBOperator(const std::string& object_name, const bool homogeneous_bc)
@@ -94,31 +78,14 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
         d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
-    const int u_current_idx = d_ctx.u_current_idx;
     const int u_new_idx = x.getComponentDescriptorIndex(0);
     const int f_u_idx = y.getComponentDescriptorIndex(0);
 
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(true);
-    d_ctx.stokes_op->apply(x, y);
+    apply_staggered_stokes_ib_stokes_operator(d_ctx, getTimeInterval(), getSolutionTime(), x, y);
+    copy_staggered_stokes_ib_velocity_state(
+        d_ctx, schedule, u_new_idx, d_ctx.u_current_idx, d_object_name + "::apply()");
 
-    switch (schedule.velocity_state)
-    {
-    case StaggeredStokesIBVelocityState::NEW:
-        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        break;
-    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
-        d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported velocity state\n");
-    }
-
-    if (d_ctx.u_phys_bdry_op)
-    {
-        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-        d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
-    }
+    set_staggered_stokes_ib_velocity_bdry_state(d_ctx, d_ctx.u_idx, false);
     d_ctx.ib_implicit_ops->interpolateVelocity(
         d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
 
@@ -127,11 +94,7 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 
     d_ctx.ib_implicit_ops->computeLagrangianForce(schedule.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
-    if (d_ctx.u_phys_bdry_op)
-    {
-        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.f_idx);
-        d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
-    }
+    set_staggered_stokes_ib_velocity_bdry_state(d_ctx, d_ctx.f_idx, true);
     d_ctx.ib_implicit_ops->spreadForce(
         d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, schedule.force_time);
     d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -schedule.nonlinear_force_scale, d_ctx.f_idx, f_u_idx);
@@ -176,12 +139,8 @@ StaggeredStokesIBOperator::deallocateOperatorState()
 void
 StaggeredStokesIBOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_ctx.stokes_op)
-    {
-        TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
-    }
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
+    prepare_staggered_stokes_ib_bc_forwarding(
+        d_ctx, getTimeInterval(), getSolutionTime(), getHomogeneousBc(), d_object_name + "::modifyRhsForBcs()");
     d_ctx.stokes_op->modifyRhsForBcs(y);
     return;
 } // modifyRhsForBcs
@@ -189,12 +148,8 @@ StaggeredStokesIBOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 void
 StaggeredStokesIBOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
-    if (!d_ctx.stokes_op)
-    {
-        TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
-    }
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
+    prepare_staggered_stokes_ib_bc_forwarding(
+        d_ctx, getTimeInterval(), getSolutionTime(), getHomogeneousBc(), d_object_name + "::imposeSolBcs()");
     d_ctx.stokes_op->imposeSolBcs(u);
     return;
 } // imposeSolBcs
