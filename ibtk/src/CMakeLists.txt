@@ -38,6 +38,7 @@ SET(FORTRAN_SRC_BASE
   math/fortran/vclaplace
 
   refine_ops/fortran/divpreservingrefine
+  refine_ops/fortran/cart_cell_refine
   refine_ops/fortran/cart_side_refine
 
   solvers/impls/fortran/patchsmoothers
@@ -122,6 +123,7 @@ SET(CXX_SRC
 
   # refine ops
   refine_ops/CartCellDoubleQuadraticRefine.cpp
+  refine_ops/CartCellDoubleLinearRefine.cpp
   refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
   refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
   refine_ops/CartSideDoubleDivPreservingRefine.cpp
