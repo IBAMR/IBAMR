@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -319,7 +320,7 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::vector<i
                        << "  coupling-aware ASM map data is not initialized.\n");
         }
         Mat A00_velocity_mat = nullptr;
-        StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(
+        StaggeredStokesPETScMatUtilitiesPrivateAccess::constructA00VelocitySubmatrix(
             A00_velocity_mat, d_petsc_mat, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
         StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
             overlap_dofs,

@@ -13,6 +13,7 @@
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -100,7 +101,7 @@ main(int argc, char* argv[])
     if (nrows <= 0 || ncols <= 0 || nrows != ncols) ++test_failures;
 
     Mat velocity_submat = nullptr;
-    IBAMR::StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(
+    IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess::constructA00VelocitySubmatrix(
         velocity_submat, level_mat, num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, level);
     PetscInt vel_rows = 0, vel_cols = 0;
     ierr = MatGetSize(velocity_submat, &vel_rows, &vel_cols);
