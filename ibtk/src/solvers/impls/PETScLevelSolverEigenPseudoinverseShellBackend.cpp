@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/private/PETScLevelSolverEigenPseudoinverseShellBackend.h>
 
@@ -85,58 +84,10 @@ PETScLevelSolverEigenPseudoinverseShellBackend::solveLocalSubdomainSystem(const 
 Eigen::MatrixXd
 PETScLevelSolverEigenPseudoinverseShellBackend::buildSubdomainPseudoinverse(const Eigen::MatrixXd& local_operator) const
 {
-    Eigen::MatrixXd pseudoinverse;
-    dispatchEigenSolverType(
-        getSolverType(),
-        [this, &local_operator, &pseudoinverse](auto solver_tag)
-        {
-            using SolverType = typename decltype(solver_tag)::type;
-            if constexpr (std::is_same_v<SolverType, Eigen::LLT<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildLLTSolveMatrix(local_operator);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::LDLT<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildLDLTSolveMatrix(local_operator);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::PartialPivLU<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildPartialPivLUSolveMatrix(local_operator);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivLU<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildFullPivLUSolveMatrix(local_operator, getSolverThreshold());
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::HouseholderQR<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildHouseholderQRSolveMatrix(local_operator);
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::ColPivHouseholderQR<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildQRSolveMatrix<SolverType>(local_operator, getSolverThreshold());
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildCompleteOrthogonalDecompositionPseudoinverse(local_operator, getSolverThreshold());
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildQRSolveMatrix<SolverType>(local_operator, getSolverThreshold());
-            }
-            else if constexpr (std::is_same_v<SolverType, Eigen::JacobiSVD<Eigen::MatrixXd>> ||
-                               std::is_same_v<SolverType, Eigen::BDCSVD<Eigen::MatrixXd>>)
-            {
-                pseudoinverse = buildSVDPseudoinverse<SolverType>(local_operator, getSolverThreshold());
-            }
-            else
-            {
-                TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
-                                                      << " PETScLevelSolverEigenPseudoinverseShellBackend::"
-                                                      << "buildSubdomainPseudoinverse()\n"
-                                                      << "Unsupported Eigen subdomain solver type.\n");
-            }
-        });
-    return pseudoinverse;
+    return buildDenseEigenSolveMatrix(getSolverType(),
+                                      local_operator,
+                                      getSolverThreshold(),
+                                      "PETScLevelSolverEigenPseudoinverseShellBackend::buildSubdomainPseudoinverse()");
 }
 
 PETScLevelSolverEigenPseudoinverseShellBackend::EigenSubdomainSolverType

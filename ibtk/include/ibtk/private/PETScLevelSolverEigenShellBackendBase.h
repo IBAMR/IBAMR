@@ -181,6 +181,11 @@ protected:
 
     static void checkSerialEigenShellBackend(const PETScLevelSolverShellBackendState& solver_state, const char* caller);
 
+    Eigen::MatrixXd buildDenseEigenSolveMatrix(EigenSubdomainSolverType solver_type,
+                                               const Eigen::MatrixXd& matrix,
+                                               double threshold,
+                                               const char* caller) const;
+
     static Eigen::MatrixXd buildCompleteOrthogonalDecompositionPseudoinverse(const Eigen::MatrixXd& matrix,
                                                                              double threshold)
     {
