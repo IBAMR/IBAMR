@@ -31,6 +31,72 @@ namespace IBAMR
 class StaggeredStokesPETScMatUtilitiesPrivateAccess
 {
 public:
+    static const std::unordered_map<int, std::vector<int>>&
+    getVelocityDofToAdjacentCellDofs(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.velocity_dof_to_adjacent_cell_dofs;
+    }
+
+    static const std::unordered_map<int, std::vector<int>>&
+    getCellDofToClosureDofs(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.cell_dof_to_closure_dofs;
+    }
+
+    static const std::unordered_map<int, int>&
+    getVelocityDofToComponentAxis(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.velocity_dof_to_component_axis;
+    }
+
+    static const std::unordered_map<int, std::vector<int>>& getVelocityDofToPairedSeedVelocityDofs(
+        const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.velocity_dof_to_paired_seed_velocity_dofs;
+    }
+
+    static SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>
+    getSourcePatchLevel(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.source_patch_level;
+    }
+
+    static int getSourceUDofIndex(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.source_u_dof_index_idx;
+    }
+
+    static int getSourcePDofIndex(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.source_p_dof_index_idx;
+    }
+
+    static bool velocityMapDataIsBuilt(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.velocity_maps_are_built;
+    }
+
+    static bool cellClosureMapIsBuilt(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.cell_closure_map_is_built;
+    }
+
+    static bool
+    velocitySeedPairMapIsBuilt(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return map_data.velocity_seed_pair_map_is_built;
+    }
+
+    static bool isEmpty(const StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData& map_data)
+    {
+        return !map_data.source_patch_level && map_data.source_u_dof_index_idx == IBTK::invalid_index &&
+               map_data.source_p_dof_index_idx == IBTK::invalid_index && !map_data.velocity_maps_are_built &&
+               !map_data.cell_closure_map_is_built && !map_data.velocity_seed_pair_map_is_built &&
+               map_data.velocity_dof_to_adjacent_cell_dofs.empty() && map_data.cell_dof_to_closure_dofs.empty() &&
+               map_data.velocity_dof_to_component_axis.empty() &&
+               map_data.velocity_dof_to_paired_seed_velocity_dofs.empty();
+    }
+
     static void computePatchLevelCouplingAwareASMSeedVelocityDofs(
         std::vector<int>& seed_velocity_dofs,
         int u_dof_index_idx,

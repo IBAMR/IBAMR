@@ -74,14 +74,16 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData map_data;
     IBAMR::StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
         map_data, u_dof_index_idx, p_dof_index_idx, level);
+    using MapAccess = IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess;
 
-    if (map_data.velocity_dof_to_adjacent_cell_dofs.empty() || map_data.cell_dof_to_closure_dofs.empty() ||
-        map_data.velocity_dof_to_component_axis.empty())
+    if (MapAccess::getVelocityDofToAdjacentCellDofs(map_data).empty() ||
+        MapAccess::getCellDofToClosureDofs(map_data).empty() ||
+        MapAccess::getVelocityDofToComponentAxis(map_data).empty())
     {
         ++test_failures;
     }
     int axis0_velocity_count = 0;
-    for (const auto& axis_pair : map_data.velocity_dof_to_component_axis)
+    for (const auto& axis_pair : MapAccess::getVelocityDofToComponentAxis(map_data))
     {
         if (axis_pair.second == 0) ++axis0_velocity_count;
     }
