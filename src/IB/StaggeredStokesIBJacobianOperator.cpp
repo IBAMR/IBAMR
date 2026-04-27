@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesIBOperatorUtilities-inl.h>
 #include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -26,29 +27,12 @@
 
 #include <SAMRAIVectorReal.h>
 
-#include <utility>
-
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-void
-set_stokes_operator_times(const Pointer<StaggeredStokesOperator>& stokes_op,
-                          const std::pair<double, double>& time_interval,
-                          const double solution_time)
-{
-    if (!stokes_op) return;
-    stokes_op->setTimeInterval(time_interval.first, time_interval.second);
-    stokes_op->setSolutionTime(solution_time);
-}
-} // namespace
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBJacobianOperator::StaggeredStokesIBJacobianOperator(const std::string& object_name)
@@ -119,20 +103,10 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
     const auto schedule = get_staggered_stokes_ib_time_stepping_schedule(
         d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::formJacobian()");
 
-    const int u_current_idx = d_ctx.u_current_idx;
     const int u_new_idx = x.getComponentDescriptorIndex(0);
 
-    switch (schedule.velocity_state)
-    {
-    case StaggeredStokesIBVelocityState::NEW:
-        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        break;
-    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
-        d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::formJacobian(): unsupported velocity state\n");
-    }
+    copy_staggered_stokes_ib_velocity_state(
+        d_ctx, schedule, u_new_idx, d_ctx.u_current_idx, d_object_name + "::formJacobian()");
 
     if (!d_solver_X || !d_solver_X0)
     {
@@ -141,11 +115,7 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
     d_ctx.ib_implicit_ops->setupSolverVecs(&d_solver_X0, nullptr);
 
     d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -1.0, d_ctx.u_idx);
-    if (d_ctx.u_phys_bdry_op)
-    {
-        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-        d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
-    }
+    set_staggered_stokes_ib_velocity_bdry_state(d_ctx, d_ctx.u_idx, true);
     d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
         d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
@@ -197,9 +167,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                               x.getComponentDescriptorIndex(1),
                                                               d_ctx.p_dof_index_idx,
                                                               d_ctx.patch_level);
-        set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-        d_ctx.stokes_op->setHomogeneousBc(true);
-        d_ctx.stokes_op->apply(x, y);
+        apply_staggered_stokes_ib_stokes_operator(d_ctx, getTimeInterval(), getSolutionTime(), x, y);
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(d_output_vec,
                                                               y.getComponentDescriptorIndex(0),
                                                               d_ctx.u_dof_index_idx,
@@ -236,9 +204,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int f_u_idx = y.getComponentDescriptorIndex(0);
 
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(true);
-    d_ctx.stokes_op->apply(x, y);
+    apply_staggered_stokes_ib_stokes_operator(d_ctx, getTimeInterval(), getSolutionTime(), x, y);
 
     if (!d_solver_X || !d_solver_X0)
     {
@@ -247,22 +213,14 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
     d_ctx.ib_implicit_ops->setupSolverVecs(nullptr, &d_solver_X0);
 
     d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -schedule.jacobian_force_scale, u_idx);
-    if (d_ctx.u_phys_bdry_op)
-    {
-        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-        d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
-    }
+    set_staggered_stokes_ib_velocity_bdry_state(d_ctx, d_ctx.u_idx, true);
     d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
         d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, schedule.velocity_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
 
     d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, schedule.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
-    if (d_ctx.u_phys_bdry_op)
-    {
-        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.f_idx);
-        d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
-    }
+    set_staggered_stokes_ib_velocity_bdry_state(d_ctx, d_ctx.f_idx, true);
     d_ctx.ib_implicit_ops->spreadLinearizedForce(
         d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, schedule.force_time);
     d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -schedule.jacobian_force_scale, d_ctx.f_idx, f_u_idx);
@@ -338,12 +296,8 @@ StaggeredStokesIBJacobianOperator::deallocateOperatorState()
 void
 StaggeredStokesIBJacobianOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_ctx.stokes_op)
-    {
-        TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
-    }
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
+    prepare_staggered_stokes_ib_bc_forwarding(
+        d_ctx, getTimeInterval(), getSolutionTime(), getHomogeneousBc(), d_object_name + "::modifyRhsForBcs()");
     d_ctx.stokes_op->modifyRhsForBcs(y);
     return;
 } // modifyRhsForBcs
@@ -351,12 +305,8 @@ StaggeredStokesIBJacobianOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double
 void
 StaggeredStokesIBJacobianOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
-    if (!d_ctx.stokes_op)
-    {
-        TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
-    }
-    set_stokes_operator_times(d_ctx.stokes_op, getTimeInterval(), getSolutionTime());
-    d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
+    prepare_staggered_stokes_ib_bc_forwarding(
+        d_ctx, getTimeInterval(), getSolutionTime(), getHomogeneousBc(), d_object_name + "::imposeSolBcs()");
     d_ctx.stokes_op->imposeSolBcs(u);
     return;
 } // imposeSolBcs
