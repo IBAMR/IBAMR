@@ -14,8 +14,6 @@
 #ifndef included_IBTK_private_PETScLevelSolverEigenLocalSolveShellBackend_inl
 #define included_IBTK_private_PETScLevelSolverEigenLocalSolveShellBackend_inl
 
-#include <ibtk/IBTK_MPI.h>
-
 namespace IBTK
 {
 inline void
@@ -67,94 +65,29 @@ PETScLevelSolverEigenLocalSolveShellBackend::deallocateAdditionalSolverState()
 inline void
 PETScLevelSolverEigenLocalSolveShellBackend::applyAdditive(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
     auto& common_subdomains = getCommonSubdomains();
-    const Eigen::Index n = getNumDofs();
-    TBOX_ASSERT(n > 0);
-
-    {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        y_map.setZero();
-        for (std::size_t subdomain_num = 0; subdomain_num < common_subdomains.size(); ++subdomain_num)
-        {
-            auto& cache = common_subdomains[subdomain_num];
-            std::size_t rhs_idx = 0;
-            for (const int dof : cache.overlap_dofs)
-            {
-                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
-            }
-            cache.delta_workspace = solveLocalSubdomainSystem(cache.rhs_workspace, subdomain_num);
-            std::size_t update_idx = 0;
-            for (const int dof : cache.update_dofs)
-            {
-                y_map[dof] +=
-                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
-            }
-        }
-    }
-    getSolverState().postprocess_result(y);
+    applyAdditiveSubdomainSweep(
+        x,
+        y,
+        common_subdomains.size(),
+        [&common_subdomains](const std::size_t subdomain_num)
+        { return getCommonSubdomainSweepView(common_subdomains[subdomain_num]); },
+        [this](SubdomainSweepView& view, const std::size_t subdomain_num)
+        { view.delta_workspace = solveLocalSubdomainSystem(view.rhs_workspace, subdomain_num); });
 }
 
 inline void
 PETScLevelSolverEigenLocalSolveShellBackend::applyMultiplicative(Vec x, Vec y)
 {
-    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
     auto& common_subdomains = getCommonSubdomains();
-    const Eigen::Index n = getNumDofs();
-    TBOX_ASSERT(n > 0);
-
-    {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        Eigen::VectorXd residual(n);
-        y_map.setZero();
-        residual = x_map;
-        const std::size_t n_subdomains = common_subdomains.size();
-        auto apply_subdomain_correction =
-            [&](CommonSubdomainCache& cache, const std::size_t subdomain_num, const bool update_residual)
-        {
-            std::size_t rhs_idx = 0;
-            for (const int dof : cache.overlap_dofs)
-            {
-                cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-            cache.delta_workspace = solveLocalSubdomainSystem(cache.rhs_workspace, subdomain_num);
-
-            std::size_t update_idx = 0;
-            for (const int dof : cache.update_dofs)
-            {
-                y_map[dof] +=
-                    cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
-            }
-            if (update_residual && cache.active_residual_update_mat.rows() > 0)
-            {
-                std::size_t residual_input_idx = 0;
-                for (const int local_pos : cache.update_local_positions)
-                {
-                    cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
-                        cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
-                }
-                cache.residual_delta_workspace.noalias() =
-                    cache.active_residual_update_mat * cache.residual_input_workspace;
-                std::size_t row_idx = 0;
-                for (const int row : cache.active_residual_update_rows)
-                {
-                    residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
-                }
-            }
-        };
-        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
-        {
-            apply_subdomain_correction(
-                common_subdomains[subdomain_num], subdomain_num, subdomain_num + 1 < n_subdomains);
-        }
-    }
-    getSolverState().postprocess_result(y);
+    applyMultiplicativeSubdomainSweep(
+        x,
+        y,
+        common_subdomains.size(),
+        [&common_subdomains](const std::size_t subdomain_num)
+        { return getCommonSubdomainSweepView(common_subdomains[subdomain_num]); },
+        [this](SubdomainSweepView& view, const std::size_t subdomain_num)
+        { view.delta_workspace = solveLocalSubdomainSystem(view.rhs_workspace, subdomain_num); });
 }
 } // namespace IBTK
 
