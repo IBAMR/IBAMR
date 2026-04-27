@@ -61,6 +61,16 @@ public:
     {
         setupKSPVecs(d_petsc_x, petsc_b, x, b);
     }
+
+    bool usesMultiplicativeShellSmootherForTest() const
+    {
+        return usesMultiplicativeShellSmoother();
+    }
+
+    bool usesRestrictShellSmootherPartitionForTest() const
+    {
+        return usesRestrictShellSmootherPartition();
+    }
 };
 
 void
@@ -250,19 +260,6 @@ vec_norm_inf(Vec x)
     return static_cast<double>(norm);
 }
 
-bool
-shell_pc_type_is_additive(const std::string& shell_pc_type)
-{
-    return shell_pc_type.find("additive") == 0;
-}
-
-bool
-shell_pc_type_uses_restrict_partition(const std::string& shell_pc_type)
-{
-    if (shell_pc_type.find("-restrict") != std::string::npos) return true;
-    if (shell_pc_type.find("-basic") != std::string::npos) return false;
-    return shell_pc_type_is_additive(shell_pc_type);
-}
 } // namespace
 
 int
@@ -277,7 +274,8 @@ main(int argc, char* argv[])
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
-    const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
+    const bool has_shell_pc_type = test_db->keyExists("shell_pc_type");
+    const std::string shell_pc_type = has_shell_pc_type ? test_db->getString("shell_pc_type") : "";
     const bool test_all_eigen_reference_solver_types =
         test_db->getBoolWithDefault("test_all_eigen_reference_solver_types", false);
     const bool test_all_blas_lapack_solver_types =
@@ -286,21 +284,12 @@ main(int argc, char* argv[])
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
     const std::string configured_pc_type = test_db->getStringWithDefault("configured_pc_type", "shell");
     const std::string expected_shell_pc_name = test_db->getStringWithDefault("expected_shell_pc_name", "");
-    const bool use_multiplicative = !shell_pc_type_is_additive(shell_pc_type);
-    const bool use_restrict_partition = shell_pc_type_uses_restrict_partition(shell_pc_type);
     const double velocity_poisson_c = test_db->getDoubleWithDefault("velocity_poisson_c", 1.0);
     const double velocity_poisson_d = test_db->getDoubleWithDefault("velocity_poisson_d", -1.0);
 
     std::vector<std::string> solver_types;
     const bool is_eigen_reference_case = shell_pc_type.find("eigen-reference") != std::string::npos;
     const bool is_blas_lapack_case = shell_pc_type.find("blas-lapack") != std::string::npos;
-    if (is_eigen_reference_case && !use_multiplicative)
-    {
-        pout << "unsupported shell_pc_type = " << shell_pc_type << "\n";
-        pout << "reason = eigen-reference backend only supports multiplicative mode\n";
-        pout << "suggested shell_pc_type = multiplicative-eigen-reference\n";
-        return 1;
-    }
     if (is_eigen_reference_case && test_all_eigen_reference_solver_types)
     {
         solver_types = { "partial-piv-lu",
@@ -413,7 +402,7 @@ main(int argc, char* argv[])
         Pointer<MemoryDatabase> solver_db = new MemoryDatabase("solver_db");
         solver_db->putString("ksp_type", "preonly");
         solver_db->putString("pc_type", configured_pc_type);
-        solver_db->putString("shell_pc_type", shell_pc_type);
+        if (has_shell_pc_type) solver_db->putString("shell_pc_type", shell_pc_type);
         solver_db->putInteger("max_iterations", 1);
         solver_db->putBool("initial_guess_nonzero", false);
         solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
@@ -444,6 +433,14 @@ main(int argc, char* argv[])
 
         Pointer<TestableStaggeredStokesPETScLevelSolver> solver = new TestableStaggeredStokesPETScLevelSolver(
             "solver_shell_multiplicative_semantics", solver_db, "stokes_shell_sem_");
+        const bool configured_use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
+        if (is_eigen_reference_case && !configured_use_multiplicative)
+        {
+            pout << "unsupported shell_pc_type = " << shell_pc_type << "\n";
+            pout << "reason = eigen-reference backend only supports multiplicative mode\n";
+            pout << "suggested shell_pc_type = multiplicative-eigen-reference\n";
+            return 1;
+        }
         PoissonSpecifications problem_coefs("stokes_shell_sem_poisson");
         problem_coefs.setCConstant(velocity_poisson_c);
         problem_coefs.setDConstant(velocity_poisson_d);
@@ -471,6 +468,8 @@ main(int argc, char* argv[])
             solver->setPhysicalBoundaryHelper(bc_helper);
         }
         solver->initializeSolverState(x_vec, b_vec);
+        const bool use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
+        const bool use_restrict_partition = solver->usesRestrictShellSmootherPartitionForTest();
         const KSP& petsc_ksp = solver->getPETScKSP();
         if (!expected_shell_pc_name.empty())
         {
@@ -578,7 +577,7 @@ main(int argc, char* argv[])
         level->deallocatePatchData(data_idx);
     }
 
-    pout << "shell_pc_type = " << shell_pc_type << "\n";
+    pout << "shell_pc_type = " << (has_shell_pc_type ? shell_pc_type : std::string("<default>")) << "\n";
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
     pout << "parity_tol = " << tol << "\n";
     pout << "test_failures = " << test_failures << "\n";

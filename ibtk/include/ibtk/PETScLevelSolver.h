@@ -300,6 +300,16 @@ protected:
     virtual void postprocessShellResult(Vec& y);
 
     /*!
+     * \brief Whether the configured shell smoother uses multiplicative composition.
+     */
+    bool usesMultiplicativeShellSmoother() const;
+
+    /*!
+     * \brief Whether the configured shell smoother uses the restricted nonoverlap partition for updates.
+     */
+    bool usesRestrictShellSmootherPartition() const;
+
+    /*!
      * \brief Setup the solver nullspace (if any).
      */
     virtual void setupNullSpace();
