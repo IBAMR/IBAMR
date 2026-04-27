@@ -14,6 +14,8 @@
 #ifndef included_IBTK_private_PETScLevelSolverEigenShellBackendBase_inl
 #define included_IBTK_private_PETScLevelSolverEigenShellBackendBase_inl
 
+#include <ibtk/IBTK_MPI.h>
+
 namespace IBTK
 {
 template <class SolverType>
@@ -117,6 +119,18 @@ PETScLevelSolverEigenShellBackendBase::buildSVDPseudoinverse(const Eigen::Matrix
     }
 
     return svd.matrixV() * inv_singular_values.asDiagonal() * svd.matrixU().adjoint();
+}
+
+inline void
+PETScLevelSolverEigenShellBackendBase::checkSerialEigenShellBackend(
+    const PETScLevelSolverShellBackendState& solver_state,
+    const char* caller)
+{
+    if (IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR(solver_state.object_name << " " << solver_state.options_prefix << " " << caller << ":\n"
+                                            << "  Eigen shell smoother backends are currently serial-only.\n");
+    }
 }
 
 template <class InitializeSubdomainSolver>
