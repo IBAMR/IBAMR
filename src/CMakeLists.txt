@@ -160,6 +160,7 @@ SET(CXX_SRC
   IB/IBAnchorPointSpec.cpp
   IB/IBImplicitStaggeredHierarchyIntegrator.cpp
   IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
   IB/IBRedundantInitializer.cpp
   IB/IBAnchorPointSpecFactory.cpp
   IB/CIBStrategy.cpp
