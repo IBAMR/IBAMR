@@ -96,7 +96,7 @@ ENDIF()
 
 IF(NOT @IBAMR_USE_BUNDLED_EIGEN3@)
   SET(Eigen3_ROOT "@EIGEN3_ROOT@")
-  FIND_PACKAGE(Eigen3 3.2.5 REQUIRED)
+  FIND_PACKAGE(Eigen3 REQUIRED)
 ENDIF()
 
 # non-bundled muParser is not handled as a package so we don't set it up again
