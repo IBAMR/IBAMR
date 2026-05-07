@@ -97,10 +97,12 @@ SET(CXX_SRC
   navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
   navier_stokes/StokesSpecifications.cpp
   navier_stokes/INSStaggeredStochasticForcing.cpp
+  navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
   navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
   navier_stokes/StaggeredStokesSolverManager.cpp
   navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp
   navier_stokes/INSCollocatedHierarchyIntegrator.cpp
+  navier_stokes/VCCollocatedStokesOperator.cpp
   navier_stokes/VCStaggeredStokesOperator.cpp
   navier_stokes/StaggeredStokesPETScVecUtilities.cpp
   navier_stokes/INSCollocatedVelocityBcCoef.cpp

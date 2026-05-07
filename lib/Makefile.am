@@ -183,6 +183,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
 ../src/navier_stokes/StokesSpecifications.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
+../src/navier_stokes/VCCollocatedStokesOperator.cpp \
+../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
@@ -367,6 +369,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
+../include/ibamr/VCCollocatedStokesOperator.h \
+../include/ibamr/VCCollocatedStokesProjectionPreconditioner.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \

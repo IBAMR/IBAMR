@@ -1,0 +1,229 @@
+
+N = 32
+h = 1.0/N
+
+u_fcn = "sin(Pi*X0)^2*sin(2*Pi*X1)"
+v_fcn = "-(sin(2*Pi*X0)*sin(Pi*X1)^2)"
+p_fcn = "cos(2*Pi*X0) + cos(2*Pi*X1)"
+
+EPS = h^2
+
+u {
+   function_0 = u_fcn   // x-component
+   function_1 = v_fcn   // y-component
+}
+
+p {
+   function = p_fcn
+}
+
+
+mu {
+   function = "2 + (sin(Pi*X0)*sin(Pi*X1))/2"
+}
+
+lambda {
+   function = "0"
+}
+
+C {
+    function_0 = "0.0"
+    function_1 = "0.0"
+}
+
+fu  {
+   function_0 = "Pi*(-(Pi*cos(3*Pi*X1)*sin(Pi*X0)) - 2*sin(2*Pi*X0) + (Pi*cos(Pi*X1)*(sin(Pi*X0) + (-5 + 6*cos(2*Pi*X1))*sin(3*Pi*X0)))/4 + 4*Pi*(1 - 2*cos(2*Pi*X0))*sin(2*Pi*X1))"
+   function_1 = "Pi*(-2*sin(2*Pi*X1) + (Pi*(16*(-1 + 2*cos(2*Pi*X1))*sin(2*Pi*X0) + cos(Pi*X0)*(-3 + 8*cos(2*Pi*X0) + 4*cos(2*Pi*X1))*sin(Pi*X1) - 3*cos(3*Pi*X0)*sin(3*Pi*X1)))/4)"
+}
+
+fp {
+    eps = 0
+    function = "-4*Pi^2*eps*(cos(2*Pi*X0) + cos(2*Pi*X1))"
+}
+
+
+// u velocity
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = u_fcn
+   gcoef_function_1 = u_fcn
+   gcoef_function_2 = u_fcn
+   gcoef_function_3 = u_fcn
+
+}
+
+// v velocity
+VelocityBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = v_fcn
+   gcoef_function_1 = v_fcn
+   gcoef_function_2 = v_fcn
+   gcoef_function_3 = v_fcn
+
+}
+
+PressureBcCoefs {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+vc_cc_stokes_db {
+
+   ksp_type          = "fgmres"
+   pc_type           = "shell"
+   rel_residual_tol  = 1.0e-12
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = TRUE
+   pressure_stabilization_coef = EPS
+   velocity_correction_coef = EPS
+
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-6
+   }
+
+   velocity_precond_db {
+      num_pre_sweeps  = 3
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "VC_CC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 100
+      coarse_solver_db {
+         ksp_type       = "gmres"
+         pc_type        = "bjacobi"
+         rel_residual_tol  = 1.0e-14
+         abs_residual_tol  = 1.0e-15
+      }
+   }
+
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-6
+    }
+
+   pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 100
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+      }
+   }
+
+}
+
+
+Main {
+// log file parameters
+   log_file_name = "VCCCStokesSolver2d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//     level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//     level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//     level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+       level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}

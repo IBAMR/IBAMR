@@ -326,6 +326,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
+	../src/navier_stokes/VCCollocatedStokesOperator.cpp \
+	../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
@@ -534,6 +536,8 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-StokesBcCoefStrategy.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-StokesSpecifications.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
@@ -715,6 +719,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
+	../src/navier_stokes/VCCollocatedStokesOperator.cpp \
+	../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
@@ -923,6 +929,8 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-StokesBcCoefStrategy.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-StokesSpecifications.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
@@ -1243,6 +1251,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po \
@@ -1293,6 +1303,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
@@ -1546,6 +1558,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StokesSpecifications.h \
 	../include/ibamr/StokesWaveGeneratorStrategy.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
+	../include/ibamr/VCCollocatedStokesOperator.h \
+	../include/ibamr/VCCollocatedStokesProjectionPreconditioner.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
@@ -1992,6 +2006,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StokesSpecifications.h \
 	../include/ibamr/StokesWaveGeneratorStrategy.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
+	../include/ibamr/VCCollocatedStokesOperator.h \
+	../include/ibamr/VCCollocatedStokesProjectionPreconditioner.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
@@ -2131,6 +2147,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
+	../src/navier_stokes/VCCollocatedStokesOperator.cpp \
+	../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
@@ -2674,6 +2692,12 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT):  \
@@ -3254,6 +3278,12 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -3707,6 +3737,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
@@ -3757,6 +3789,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
@@ -5739,6 +5773,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/SurfaceTensionForceFunction.cpp' object='../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/SurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/SurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/SurfaceTensionForceFunction.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.o: ../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.o `test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesOperator.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.o `test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesOperator.cpp
+
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.obj: ../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.obj `if test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesOperator.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesOperator.obj `if test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesOperator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.o: ../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+
+../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.obj: ../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.o: ../src/navier_stokes/VCStaggeredStokesOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.o `test -f '../src/navier_stokes/VCStaggeredStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesOperator.cpp
@@ -8204,6 +8266,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/SurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/SurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/SurfaceTensionForceFunction.cpp'; fi`
 
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.o: ../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.o `test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesOperator.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.o `test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesOperator.cpp
+
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.obj: ../src/navier_stokes/VCCollocatedStokesOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.obj `if test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesOperator.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesOperator.obj `if test -f '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesOperator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.o: ../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+
+../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.obj: ../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCCollocatedStokesProjectionPreconditioner.cpp'; fi`
+
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.o: ../src/navier_stokes/VCStaggeredStokesOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.o `test -f '../src/navier_stokes/VCStaggeredStokesOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
@@ -9218,6 +9308,8 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
@@ -9268,6 +9360,8 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
@@ -9616,6 +9710,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCCollocatedStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
@@ -9666,6 +9762,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCCollocatedStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po

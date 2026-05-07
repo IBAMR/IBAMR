@@ -88,7 +88,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = vc_navier_stokes_01_2d$(EXEEXT) \
-	vc_navier_stokes_01_3d$(EXEEXT)
+	vc_navier_stokes_01_3d$(EXEEXT) \
+	vc_cc_stokes_solver_2d$(EXEEXT)
 subdir = tests/vc_navier_stokes
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -120,14 +121,22 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_vc_navier_stokes_01_2d_OBJECTS =  \
-	vc_navier_stokes_01_2d-vc_navier_stokes_01.$(OBJEXT)
-vc_navier_stokes_01_2d_OBJECTS = $(am_vc_navier_stokes_01_2d_OBJECTS)
-vc_navier_stokes_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+am_vc_cc_stokes_solver_2d_OBJECTS =  \
+	vc_cc_stokes_solver_2d-vc_cc_stokes_solver.$(OBJEXT)
+vc_cc_stokes_solver_2d_OBJECTS = $(am_vc_cc_stokes_solver_2d_OBJECTS)
+vc_cc_stokes_solver_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+vc_cc_stokes_solver_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(vc_cc_stokes_solver_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_vc_navier_stokes_01_2d_OBJECTS =  \
+	vc_navier_stokes_01_2d-vc_navier_stokes_01.$(OBJEXT)
+vc_navier_stokes_01_2d_OBJECTS = $(am_vc_navier_stokes_01_2d_OBJECTS)
+vc_navier_stokes_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 vc_navier_stokes_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -156,6 +165,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
+	./$(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po \
 	./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po \
 	./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 am__mv = mv -f
@@ -177,9 +187,11 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(vc_navier_stokes_01_2d_SOURCES) \
+SOURCES = $(vc_cc_stokes_solver_2d_SOURCES) \
+	$(vc_navier_stokes_01_2d_SOURCES) \
 	$(vc_navier_stokes_01_3d_SOURCES)
-DIST_SOURCES = $(vc_navier_stokes_01_2d_SOURCES) \
+DIST_SOURCES = $(vc_cc_stokes_solver_2d_SOURCES) \
+	$(vc_navier_stokes_01_2d_SOURCES) \
 	$(vc_navier_stokes_01_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -472,6 +484,9 @@ vc_navier_stokes_01_2d_SOURCES = vc_navier_stokes_01.cpp
 vc_navier_stokes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3 -DSOURCE_DIR=\"$(abs_srcdir)\"
 vc_navier_stokes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_navier_stokes_01_3d_SOURCES = vc_navier_stokes_01.cpp
+vc_cc_stokes_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+vc_cc_stokes_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+vc_cc_stokes_solver_2d_SOURCES = vc_cc_stokes_solver.cpp
 all: all-am
 
 .SUFFIXES:
@@ -507,6 +522,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+vc_cc_stokes_solver_2d$(EXEEXT): $(vc_cc_stokes_solver_2d_OBJECTS) $(vc_cc_stokes_solver_2d_DEPENDENCIES) $(EXTRA_vc_cc_stokes_solver_2d_DEPENDENCIES) 
+	@rm -f vc_cc_stokes_solver_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(vc_cc_stokes_solver_2d_LINK) $(vc_cc_stokes_solver_2d_OBJECTS) $(vc_cc_stokes_solver_2d_LDADD) $(LIBS)
+
 vc_navier_stokes_01_2d$(EXEEXT): $(vc_navier_stokes_01_2d_OBJECTS) $(vc_navier_stokes_01_2d_DEPENDENCIES) $(EXTRA_vc_navier_stokes_01_2d_DEPENDENCIES) 
 	@rm -f vc_navier_stokes_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(vc_navier_stokes_01_2d_LINK) $(vc_navier_stokes_01_2d_OBJECTS) $(vc_navier_stokes_01_2d_LDADD) $(LIBS)
@@ -521,6 +540,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po@am__quote@ # am--include-marker
 
@@ -553,6 +573,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+vc_cc_stokes_solver_2d-vc_cc_stokes_solver.o: vc_cc_stokes_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_stokes_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_cc_stokes_solver_2d-vc_cc_stokes_solver.o -MD -MP -MF $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Tpo -c -o vc_cc_stokes_solver_2d-vc_cc_stokes_solver.o `test -f 'vc_cc_stokes_solver.cpp' || echo '$(srcdir)/'`vc_cc_stokes_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Tpo $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_cc_stokes_solver.cpp' object='vc_cc_stokes_solver_2d-vc_cc_stokes_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_stokes_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_cc_stokes_solver_2d-vc_cc_stokes_solver.o `test -f 'vc_cc_stokes_solver.cpp' || echo '$(srcdir)/'`vc_cc_stokes_solver.cpp
+
+vc_cc_stokes_solver_2d-vc_cc_stokes_solver.obj: vc_cc_stokes_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_stokes_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_cc_stokes_solver_2d-vc_cc_stokes_solver.obj -MD -MP -MF $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Tpo -c -o vc_cc_stokes_solver_2d-vc_cc_stokes_solver.obj `if test -f 'vc_cc_stokes_solver.cpp'; then $(CYGPATH_W) 'vc_cc_stokes_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_cc_stokes_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Tpo $(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_cc_stokes_solver.cpp' object='vc_cc_stokes_solver_2d-vc_cc_stokes_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_cc_stokes_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_cc_stokes_solver_2d-vc_cc_stokes_solver.obj `if test -f 'vc_cc_stokes_solver.cpp'; then $(CYGPATH_W) 'vc_cc_stokes_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_cc_stokes_solver.cpp'; fi`
 
 vc_navier_stokes_01_2d-vc_navier_stokes_01.o: vc_navier_stokes_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_2d-vc_navier_stokes_01.o -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Tpo -c -o vc_navier_stokes_01_2d-vc_navier_stokes_01.o `test -f 'vc_navier_stokes_01.cpp' || echo '$(srcdir)/'`vc_navier_stokes_01.cpp
@@ -713,7 +747,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
+		-rm -f ./$(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po
+	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -760,7 +795,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
+		-rm -f ./$(DEPDIR)/vc_cc_stokes_solver_2d-vc_cc_stokes_solver.Po
+	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
