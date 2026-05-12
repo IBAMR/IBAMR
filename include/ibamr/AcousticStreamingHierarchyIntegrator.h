@@ -1100,6 +1100,13 @@ private:
                                     double time);
 
     /*!
+     * Compute the first-order hydrodynamic force using smeared representation of the interface.
+     */
+    void
+    computeSmoothedFOHydrodynamicForce(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                       double time);
+
+    /*!
      * Compute the first-order hydrodynamic force.
      */
     void computeFOHydrodynamicForceViaContourIntegral(

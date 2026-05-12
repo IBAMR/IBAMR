@@ -4329,6 +4329,241 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(Pointer<SAMRAIV
 } // computeFOHydrodynamicForce
 
 void
+AcousticStreamingHierarchyIntegrator::computeSmoothedFOHydrodynamicForce(
+    Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+    double time)
+{
+    const unsigned num_bodies = d_brinkman_scratch_idx.size();
+    if (num_bodies == 0) return;
+
+    const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
+    const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
+
+    copy_to_comps_side(U1_sol_idx, d_U1_real_idx, d_U1_imag_idx, d_hierarchy);
+    copy_to_comps_cell(p1_sol_idx, d_p1_real_idx, d_p1_imag_idx, d_hierarchy);
+
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+
+    std::vector<InterpolationTransactionComponent> comp_transactions(4);
+
+    comp_transactions[0] = InterpolationTransactionComponent(d_U1_real_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[REAL]);
+
+    comp_transactions[1] = InterpolationTransactionComponent(d_U1_imag_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[IMAG]);
+
+    comp_transactions[2] = InterpolationTransactionComponent(
+        d_p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+
+    comp_transactions[3] = InterpolationTransactionComponent(
+        d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+
+    Pointer<HierarchyGhostCellInterpolation> comp_fill_op = new HierarchyGhostCellInterpolation();
+    comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
+    comp_fill_op->fillData(time);
+
+    for (unsigned k = 0; k < num_bodies; ++k)
+    {
+        auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
+        auto& phi_new_idx = d_brinkman_new_idx[k];
+        auto& phi_bc_coef = d_brinkman_bcs[k];
+
+        InterpolationTransactionComponent phi_transaction(phi_scratch_idx,
+                                                          phi_new_idx,
+                                                          "CONSERVATIVE_LINEAR_REFINE",
+                                                          false,
+                                                          "CONSERVATIVE_COARSEN",
+                                                          "LINEAR",
+                                                          false,
+                                                          phi_bc_coef);
+
+        Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
+        phi_fill_op->initializeOperatorState(phi_transaction, d_hierarchy);
+        phi_fill_op->fillData(time);
+
+        IBTK::Vector3d hydro_real_force = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_imag_force = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_real_torque = IBTK::Vector3d::Zero();
+        IBTK::Vector3d hydro_imag_torque = IBTK::Vector3d::Zero();
+
+        IBTK::Vector3d X0 = IBTK::Vector3d::Zero();
+        std::copy(d_brinkman_center[k].data(), d_brinkman_center[k].data() + NDIM, X0.data());
+
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+        for (int ln = finest_ln; ln >= 0; --ln)
+        {
+            // Structure is assumed on the finest mesh level
+            if (ln < finest_ln) continue;
+
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* const dx = patch_geom->getDx();
+
+                double cell_vol = 1.0;
+                for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= dx[d];
+
+                const double h = std::pow(cell_vol, 1.0 / static_cast<double>(NDIM));
+                const double eps = 1.5 * h;
+
+                // Change contour level here.
+                const double contour_val = 0.0;
+
+                Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+                Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(d_U1_real_idx);
+                Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(d_U1_imag_idx);
+                Pointer<CellData<NDIM, double> > p1_real_data = patch->getPatchData(d_p1_real_idx);
+                Pointer<CellData<NDIM, double> > p1_imag_data = patch->getPatchData(d_p1_imag_idx);
+                Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(d_mu_scratch_idx);
+                Pointer<CellData<NDIM, double> > lambda_data = nullptr;
+                if (d_lambda_var)
+                {
+                    lambda_data = patch->getPatchData(d_lambda_scratch_idx);
+                }
+
+                auto side_value = [](Pointer<SideData<NDIM, double> > U_data,
+                                     const CellIndex<NDIM>& c,
+                                     const int comp,
+                                     const int side) -> double { return (*U_data)(SideIndex<NDIM>(c, comp, side)); };
+
+                auto cell_centered_velocity = [&side_value](Pointer<SideData<NDIM, double> > U_data,
+                                                            const CellIndex<NDIM>& c,
+                                                            const int comp) -> double
+                {
+                    return 0.5 * (side_value(U_data, c, comp, SideIndex<NDIM>::Lower) +
+                                  side_value(U_data, c, comp, SideIndex<NDIM>::Upper));
+                };
+
+                auto velocity_derivative =
+                    [&side_value, &cell_centered_velocity, dx](Pointer<SideData<NDIM, double> > U_data,
+                                                               const CellIndex<NDIM>& c,
+                                                               const int comp,
+                                                               const int dir) -> double
+                {
+                    if (comp == dir)
+                    {
+                        return (side_value(U_data, c, comp, SideIndex<NDIM>::Upper) -
+                                side_value(U_data, c, comp, SideIndex<NDIM>::Lower)) /
+                               dx[dir];
+                    }
+
+                    CellIndex<NDIM> cp = c;
+                    CellIndex<NDIM> cm = c;
+
+                    cp(dir) += 1;
+                    cm(dir) -= 1;
+
+                    return (cell_centered_velocity(U_data, cp, comp) - cell_centered_velocity(U_data, cm, comp)) /
+                           (2.0 * dx[dir]);
+                };
+
+                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                {
+                    const CellIndex<NDIM>& c = it();
+
+                    const double phi = (*phi_data)(c)-contour_val;
+                    const double delta = IBTK::smooth_delta(phi, eps);
+
+                    if (IBTK::abs_equal_eps(delta, 0.0)) continue;
+
+                    IBTK::VectorNd grad_phi = IBTK::VectorNd::Zero();
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        CellIndex<NDIM> cp = c;
+                        CellIndex<NDIM> cm = c;
+
+                        cp(d) += 1;
+                        cm(d) -= 1;
+
+                        grad_phi(d) = ((*phi_data)(cp) - (*phi_data)(cm)) / (2.0 * dx[d]);
+                    }
+
+                    // grad_H = delta(phi) grad_phi.
+                    // Assumes phi > 0 in fluid and phi < 0 in solid, so grad_H
+                    // points with the outward normal of the body.
+                    const IBTK::VectorNd grad_H = delta * grad_phi;
+
+                    IBTK::MatrixNd grad_u_real = IBTK::MatrixNd::Zero();
+                    IBTK::MatrixNd grad_u_imag = IBTK::MatrixNd::Zero();
+
+                    for (int i = 0; i < NDIM; ++i)
+                    {
+                        for (int j = 0; j < NDIM; ++j)
+                        {
+                            grad_u_real(i, j) = velocity_derivative(U1_real_data, c, i, j);
+                            grad_u_imag(i, j) = velocity_derivative(U1_imag_data, c, i, j);
+                        }
+                    }
+
+                    const double p_real = (*p1_real_data)(c);
+                    const double p_imag = (*p1_imag_data)(c);
+                    const double mu = (*mu_data)(c);
+                    const double lambda = d_lambda_var ? (*lambda_data)(c) : 0.0;
+
+                    const IBTK::MatrixNd I = IBTK::MatrixNd::Identity();
+
+                    const IBTK::MatrixNd sigma_real =
+                        -p_real * I + mu * (grad_u_real + grad_u_real.transpose()) + lambda * grad_u_real.trace() * I;
+
+                    const IBTK::MatrixNd sigma_imag =
+                        -p_imag * I + mu * (grad_u_imag + grad_u_imag.transpose()) + lambda * grad_u_imag.trace() * I;
+
+                    // Hydrodynamic force density on the body = sigma * grad_H
+                    // when grad_H points along the outward normal of the body.
+                    const IBTK::VectorNd force_real = sigma_real * grad_H;
+                    const IBTK::VectorNd force_imag = sigma_imag * grad_H;
+
+                    IBTK::Vector3d real_force_density = IBTK::Vector3d::Zero();
+                    IBTK::Vector3d imag_force_density = IBTK::Vector3d::Zero();
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        real_force_density(d) = force_real(d);
+                        imag_force_density(d) = force_imag(d);
+                    }
+
+                    const IBTK::Vector3d r_vec = IBTK::IndexUtilities::getCellCenter<IBTK::Vector3d>(*patch, c) - X0;
+
+                    hydro_real_force += real_force_density * cell_vol;
+                    hydro_imag_force += imag_force_density * cell_vol;
+
+                    hydro_real_torque += r_vec.cross(real_force_density * cell_vol);
+                    hydro_imag_torque += r_vec.cross(imag_force_density * cell_vol);
+                }
+            }
+        }
+
+        IBTK_MPI::sumReduction(hydro_real_force.data(), hydro_real_force.size());
+        IBTK_MPI::sumReduction(hydro_imag_force.data(), hydro_imag_force.size());
+        IBTK_MPI::sumReduction(hydro_real_torque.data(), hydro_real_torque.size());
+        IBTK_MPI::sumReduction(hydro_imag_torque.data(), hydro_imag_torque.size());
+
+        std::copy(hydro_real_force.data(), hydro_real_force.data() + NDIM, d_fo_real_hydro_force[k].begin());
+        std::copy(hydro_imag_force.data(), hydro_imag_force.data() + NDIM, d_fo_imag_hydro_force[k].begin());
+        std::copy(hydro_real_torque.data(), hydro_real_torque.data() + 3, d_fo_real_hydro_torque[k].begin());
+        std::copy(hydro_imag_torque.data(), hydro_imag_torque.data() + 3, d_fo_imag_hydro_torque[k].begin());
+    }
+
+    return;
+} // computeSmoothedFOHydrodynamicForce
+
+void
 AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegral(
     Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
     double time)
