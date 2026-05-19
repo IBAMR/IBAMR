@@ -33,6 +33,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/VCSCViscousDilatationalOperator.h"
 #include "ibtk/VCSCViscousDilatationalPETScLevelSolver.h"
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
@@ -1381,6 +1382,9 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_mu_interp_idx =
         var_db->registerVariableAndContext(d_mu_interp_var, getCurrentContext(), NDIM == 2 ? node_ghosts : edge_ghosts);
 
+    d_patch_num_var = new SideVariable<NDIM, int>(d_object_name + "::patch_num_var", /*depth*/ 1);
+    d_patch_num_idx = var_db->registerVariableAndContext(d_patch_num_var, getScratchContext(), no_ghosts);
+
     // Register persistent variables to be used for boundary conditions and other
     // applications.
     // Note: these will not be deallocated.
@@ -1515,6 +1519,7 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         level->allocatePatchData(d_mu_interp_idx, current_time);
         level->allocatePatchData(d_temp_sc_idx, current_time);
         level->allocatePatchData(d_theta_cc_idx, current_time);
+        level->allocatePatchData(d_patch_num_idx, current_time);
 
         // These variables should persist even after integrateHierarchy(). We do not deallocate them explicitly.
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
@@ -1556,6 +1561,23 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     for (unsigned k = 0; k < num_bodies; ++k)
     {
         d_hier_cc_data_ops->copyData(d_brinkman_new_idx[k], d_brinkman_current_idx[k]);
+    }
+
+    // Determine the master degrees of freedom for the side centered variables.
+    RefineAlgorithm<NDIM> bdry_synch_alg;
+    bdry_synch_alg.registerRefine(
+        d_patch_num_idx, d_patch_num_idx, d_patch_num_idx, nullptr, new SideSynchCopyFillPattern());
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const int patch_num = patch->getPatchNumber();
+            Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(d_patch_num_idx);
+            patch_num_data->fillAll(patch_num);
+        }
+        bdry_synch_alg.createSchedule(patch_level)->fillData(current_time);
     }
 
     // Cache BC data.
@@ -1654,6 +1676,7 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_temp_sc_idx);
         level->deallocatePatchData(d_theta_cc_idx);
+        level->deallocatePatchData(d_patch_num_idx);
     }
 
     // Postprocess Brinkman penalization objects.
@@ -3854,6 +3877,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
+                const int patch_num = patch->getPatchNumber();
                 const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 double cell_vol = 1.0;
@@ -3874,6 +3898,8 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
                 Pointer<CellData<NDIM, double> > lambda_data = nullptr;
                 if (d_lambda_var) lambda_data = patch->getPatchData(d_lambda_scratch_idx);
 
+                Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(d_patch_num_idx);
+
                 auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
 
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -3891,6 +3917,11 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 
                         // If not within a band near the body, do not use this cell in the force calculation
                         if ((phi_lower - contour_val) * (phi_upper - contour_val) >= 0.0) continue;
+
+                        // If this face does not represent a master degree of freedom, do not use it in the force
+                        // calculation
+                        const bool master_loc = ((*patch_num_data)(s_i) == patch_num);
+                        if (!master_loc) continue;
 
                         // Compute the required unit normal
                         IBTK::Vector3d n = IBTK::Vector3d::Zero();
@@ -4653,6 +4684,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
+                const int patch_num = patch->getPatchNumber();
                 const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 double cell_vol = 1.0;
@@ -4672,6 +4704,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
                 Pointer<CellData<NDIM, double> > lambda_data = nullptr;
                 if (d_lambda_var) lambda_data = patch->getPatchData(d_lambda_scratch_idx);
 
+                Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(d_patch_num_idx);
                 Pointer<CellData<NDIM, double> > cc_wgt_data = patch->getPatchData(cc_wgt_idx);
 
                 auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
@@ -4692,6 +4725,11 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
 
                         // If not within a band near the outer contour, do not use this cell in the force calculation
                         if ((S_lower - contour_val) * (S_upper - contour_val) >= 0.0) continue;
+
+                        // If this face does not represent a master degree of freedom, do not use it in the force
+                        // calculation
+                        const bool master_loc = ((*patch_num_data)(s_i) == patch_num);
+                        if (!master_loc) continue;
 
                         // Compute the required unit normal
                         IBTK::Vector3d n = IBTK::Vector3d::Zero();
@@ -4797,7 +4835,6 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> c_i(it());
-                    const double phi_cell = (*phi_data)(c_i);
                     const double S_cell = (*S_data)(c_i);
 
                     // Get the relative coordinate from X0
@@ -4805,8 +4842,8 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
                     std::copy(d_brinkman_center[k].data(), d_brinkman_center[k].data() + NDIM, X0.data());
                     const IBTK::Vector3d r_vec = IBTK::IndexUtilities::getCellCenter<IBTK::Vector3d>(*patch, c_i) - X0;
 
-                    // Integrate momentum within the volume bounded by two contours
-                    if (S_cell - contour_val <= 0.0 && phi_cell >= 0.0)
+                    // Integrate momentum within the volume bounded by the outer contour
+                    if (S_cell - contour_val <= 0.0)
                     {
                         const double& vol_cell = (*cc_wgt_data)(c_i);
 
@@ -4838,6 +4875,23 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
         IBTK_MPI::sumReduction(hydro_imag_force.data(), hydro_imag_force.size());
         IBTK_MPI::sumReduction(hydro_real_torque.data(), hydro_real_torque.size());
         IBTK_MPI::sumReduction(hydro_imag_torque.data(), hydro_imag_torque.size());
+
+        // Subtract the contribution of the rigid body momentum inside the particle domain
+        for (int d = 0; d < NDIM; ++d)
+        {
+            hydro_real_force[d] -= d_acoustic_freq * d_brinkman_mass[k] * d_brinkman_fo_imag_vel[k](d);
+            hydro_imag_force[d] += d_acoustic_freq * d_brinkman_mass[k] * d_brinkman_fo_real_vel[k](d);
+        }
+
+        const auto& inertia_tensor = d_brinkman_inertia_tensor_initial[k];
+#if (NDIM == 2)
+        hydro_real_torque[2] -= d_acoustic_freq * inertia_tensor(2, 2) * d_brinkman_fo_imag_vel[k](2);
+        hydro_imag_torque[2] += d_acoustic_freq * inertia_tensor(2, 2) * d_brinkman_fo_real_vel[k](2);
+#elif (NDIM == 3)
+        TBOX_ERROR(
+            "AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegral() is not implemented "
+            "yet \n.");
+#endif
 
         std::copy(hydro_real_force.data(), hydro_real_force.data() + NDIM, d_fo_real_hydro_force[k].begin());
         std::copy(hydro_imag_force.data(), hydro_imag_force.data() + NDIM, d_fo_imag_hydro_force[k].begin());
