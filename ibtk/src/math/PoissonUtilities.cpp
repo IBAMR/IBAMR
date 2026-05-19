@@ -1163,7 +1163,7 @@ PoissonUtilities::computeVCCCViscousDilatationalOpMatrixCoefficients(
         case VC_HARMONIC_INTERP:
             return IBTK::abs_equal_eps(q0 + q1, 0.0) ? 0.0 : 2.0 * q0 * q1 / (q0 + q1);
         default:
-            TBOX_ERROR("PoissonUtilities::computeCCVCViscousDilatationalOpMatrixCoefficients():\n"
+            TBOX_ERROR("PoissonUtilities::computeVCCCViscousDilatationalOpMatrixCoefficients():\n"
                        << "  unsupported interpolation type for shear viscosity.\n");
             return 0.0;
         }

@@ -68,8 +68,8 @@ public:
     //\{
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to a MAC
-     * discretization of the first order acoustic streaming equations on a
+     * \brief Construct a parallel PETSc Mat object corresponding to a cell-centered
+     * or MAC discretization of the first order acoustic streaming equations on a
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelFOAcousticStreamingOp(
@@ -81,6 +81,7 @@ public:
         int lambda_idx,
         int chi_idx,
         const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
+        const std::array<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*, 2>& p_bc_coefs,
         double data_time,
         const std::vector<int>& num_dofs_per_proc,
         int u_dof_index_idx,
@@ -118,6 +119,49 @@ private:
      * \return A reference to this object.
      */
     AcousticStreamingPETScMatUtilities& operator=(const AcousticStreamingPETScMatUtilities& that) = delete;
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to a MAC
+     * discretization of the first order acoustic streaming equations on a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void constructPatchLevelFOAcousticStreamingOp_MAC(
+        Mat& mat,
+        double omega,
+        double sound_speed,
+        int rho_idx,
+        int mu_idx,
+        int lambda_idx,
+        int chi_idx,
+        const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+        IBTK::VCInterpType mu_interp_type = IBTK::VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to a cell-centered
+     * discretization of the first order acoustic streaming equations on a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void constructPatchLevelFOAcousticStreamingOp_cell(
+        Mat& mat,
+        double omega,
+        double sound_speed,
+        int rho_idx,
+        int mu_idx,
+        int lambda_idx,
+        int chi_idx,
+        const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
+        const std::array<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*, 2>& p_bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+        IBTK::VCInterpType mu_interp_type = IBTK::VC_HARMONIC_INTERP);
 };
 } // namespace IBAMR
 

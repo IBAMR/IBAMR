@@ -163,6 +163,17 @@ private:
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
+     * \brief Implementation of copyToPatchLevelVec() for the cell-centered
+     * discretization.
+     */
+    static void copyToPatchLevelVec_cell(Vec& vec,
+                                         int u_data_idx,
+                                         int u_dof_index_idx,
+                                         int p_data_idx,
+                                         int p_dof_index_idx,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
      * \brief Implementation of copyFromPatchLevelVec() for a standard MAC
      * discretization.
      */
@@ -174,6 +185,17 @@ private:
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
+     * \brief Implementation of copyFromPatchLevelVec() for the cell-centered
+     * discretization.
+     */
+    static void copyFromPatchLevelVec_cell(Vec& vec,
+                                           int u_data_idx,
+                                           int u_dof_index_idx,
+                                           int p_data_idx,
+                                           int p_dof_index_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
      * \brief Implementation of constructPatchLevelDOFIndices() for a standard
      * MAC discretization.
      */
@@ -181,6 +203,15 @@ private:
                                                   int u_dof_index_idx,
                                                   int p_dof_index_idx,
                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Implementation of constructPatchLevelDOFIndices() for cell-centered
+     * discretization.
+     */
+    static void constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_proc,
+                                                   int u_dof_index_idx,
+                                                   int p_dof_index_idx,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
 } // namespace IBAMR
 

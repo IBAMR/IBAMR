@@ -252,6 +252,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -462,6 +463,7 @@ am__objects_2 =  \
 	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
@@ -645,6 +647,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -855,6 +858,7 @@ am__objects_4 =  \
 	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
@@ -1143,12 +1147,14 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
@@ -1458,6 +1464,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
+	../include/ibamr/FOAcousticStreamingSCPETScLevelSolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -1905,6 +1912,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
+	../include/ibamr/FOAcousticStreamingSCPETScLevelSolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -2073,6 +2081,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -2440,6 +2449,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
@@ -3056,6 +3068,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
@@ -3629,12 +3644,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -4737,6 +4754,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.o: ../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.obj: ../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; fi`
 
 ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
@@ -7230,6 +7261,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
 
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.o: ../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.obj: ../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp'; fi`
+
 ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
@@ -9200,12 +9245,14 @@ distclean: distclean-am
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
@@ -9602,12 +9649,14 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingSCPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingSCPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po

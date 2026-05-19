@@ -66,8 +66,7 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
-static const int SIDEG = 1;
+static const int GCW = 1;
 
 static const int REAL = 0;
 static const int IMAG = 1;
@@ -75,9 +74,20 @@ static const int IMAG = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+FOAcousticStreamingPETScLevelSolver::~FOAcousticStreamingPETScLevelSolver()
+{
+    if (d_is_initialized) deallocateSolverState();
+    return;
+} // ~FOAcousticStreamingPETScLevelSolver
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 FOAcousticStreamingPETScLevelSolver::FOAcousticStreamingPETScLevelSolver(const std::string& object_name,
                                                                          Pointer<Database> input_db,
+                                                                         Pointer<Variable<NDIM> > u_dof_idx_var,
+                                                                         Pointer<Variable<NDIM> > p_dof_idx_var,
                                                                          const std::string& default_options_prefix)
+    : d_u_dof_index_var(u_dof_idx_var), d_p_dof_index_var(p_dof_idx_var)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
@@ -96,36 +106,26 @@ FOAcousticStreamingPETScLevelSolver::FOAcousticStreamingPETScLevelSolver(const s
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
 
-    d_u_dof_index_var = new SideVariable<NDIM, int>(object_name + "::u_dof_index", /*depth*/ 2);
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
-    const int u_gcw = std::max(d_overlap_size.max(), SIDEG);
+    const int u_gcw = std::max(d_overlap_size.max(), GCW);
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, u_gcw);
 
-    d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index", /*depth*/ 2);
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
-    const int p_gcw = std::max(d_overlap_size.max(), CELLG);
+    const int p_gcw = std::max(d_overlap_size.max(), GCW);
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, p_gcw);
 
     return;
 } // FOAcousticStreamingPETScLevelSolver
-
-FOAcousticStreamingPETScLevelSolver::~FOAcousticStreamingPETScLevelSolver()
-{
-    if (d_is_initialized) deallocateSolverState();
-    return;
-} // ~FOAcousticStreamingPETScLevelSolver
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 FOAcousticStreamingPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
@@ -153,6 +153,7 @@ FOAcousticStreamingPETScLevelSolver::initializeSolverStateSpecialized(const SAMR
                                                                                  d_lambda_idx,
                                                                                  d_chi_idx,
                                                                                  d_U_bc_coefs,
+                                                                                 d_P_bc_coefs,
                                                                                  d_new_time,
                                                                                  d_num_dofs_per_proc,
                                                                                  d_u_dof_index_idx,
@@ -197,127 +198,6 @@ FOAcousticStreamingPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVector
         petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, d_level, d_data_synch_sched, d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
-
-void
-FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                                  Vec& petsc_b,
-                                                  SAMRAIVectorReal<NDIM, double>& x,
-                                                  SAMRAIVectorReal<NDIM, double>& b)
-{
-    if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
-    const bool level_zero = (d_level_num == 0);
-    const int u_idx = x.getComponentDescriptorIndex(0);
-    const int f_idx = b.getComponentDescriptorIndex(0);
-    const int h_idx = b.getComponentDescriptorIndex(1);
-    const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
-    const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_idx);
-        Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
-        Pointer<SideData<NDIM, double> > f_adj_data = patch->getPatchData(f_adj_idx);
-        Pointer<CellData<NDIM, double> > h_adj_data = patch->getPatchData(h_adj_idx);
-        f_adj_data->copy(*f_data);
-        h_adj_data->copy(*h_data);
-        const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
-        if (at_physical_bdry)
-        {
-            for (int comp = 0; comp < 2; ++comp)
-            {
-                const int other_comp = (comp == REAL ? IMAG : REAL);
-
-                PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(*f_adj_data,
-                                                                                       comp,
-                                                                                       patch,
-                                                                                       d_mu_idx,
-                                                                                       d_lambda_idx,
-                                                                                       d_U_bc_coefs[other_comp],
-                                                                                       d_solution_time,
-                                                                                       d_homogeneous_bc,
-                                                                                       d_mu_interp_type);
-
-                enforceNormalVelocityBoundaryConditions(
-                    f_adj_idx, comp, patch, d_U_bc_coefs[comp], d_solution_time, d_homogeneous_bc);
-            }
-        }
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
-        if (at_cf_bdry)
-        {
-            for (int comp = 0; comp < 2; ++comp)
-            {
-                PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
-                    *f_adj_data, *u_data, comp, patch, d_mu_idx, d_lambda_idx, type_1_cf_bdry, d_mu_interp_type);
-            }
-        }
-    }
-
-    AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(
-        petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
-
-    return;
-} // setupKSPVecs
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-FOAcousticStreamingPETScLevelSolver::enforceNormalVelocityBoundaryConditions(
-    const int u_data_idx,
-    const int data_depth,
-    Pointer<Patch<NDIM> > patch,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-    const double fill_time,
-    const bool homogeneous_bc)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
-#endif
-
-    Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-
-    // Data structures required to set physical boundary conditions.
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const unsigned int location_index = bdry_box.getLocationIndex();
-        const unsigned int bdry_normal_axis = location_index / 2;
-
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        u_bc_coefs[bdry_normal_axis]->setBcCoefs(
-            acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM> >(), *patch, trimmed_bdry_box, fill_time);
-        auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
-        if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-
-        for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
-        {
-            const hier::Index<NDIM>& i = it();
-            const double& alpha = (*acoef_data)(i, 0);
-            const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
-#if !defined(NDEBUG)
-            const double& beta = (*bcoef_data)(i, 0);
-            TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
-            TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
-#endif
-            if (IBTK::rel_equal_eps(alpha, 1.0))
-                (*u_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower), data_depth) = gamma;
-        }
-    }
-    return;
-} // enforceNormalVelocityBoundaryConditions
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

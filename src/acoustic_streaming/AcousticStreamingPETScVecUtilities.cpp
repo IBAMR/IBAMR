@@ -152,6 +152,7 @@ AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     Pointer<Variable<NDIM> > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
+    Pointer<CellVariable<NDIM, double> > u_data_cc_var = u_data_var;
     Pointer<Variable<NDIM> > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
@@ -168,6 +169,20 @@ AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
+    }
+    else if (u_data_cc_var && p_data_cc_var)
+    {
+#if !defined(NDEBUG)
+        Pointer<Variable<NDIM> > u_dof_index_var;
+        var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
+        Pointer<CellVariable<NDIM, int> > u_dof_index_cc_var = u_dof_index_var;
+        TBOX_ASSERT(u_dof_index_cc_var);
+        Pointer<Variable<NDIM> > p_dof_index_var;
+        var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
+        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        TBOX_ASSERT(p_dof_index_cc_var);
+#endif
+        copyToPatchLevelVec_cell(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
     }
     else
     {
@@ -192,6 +207,7 @@ AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     Pointer<Variable<NDIM> > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
+    Pointer<CellVariable<NDIM, double> > u_data_cc_var = u_data_var;
     Pointer<Variable<NDIM> > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
@@ -217,6 +233,20 @@ AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
         }
+    }
+    else if (u_data_cc_var && p_data_cc_var)
+    {
+#if !defined(NDEBUG)
+        Pointer<Variable<NDIM> > u_dof_index_var;
+        var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
+        Pointer<CellVariable<NDIM, int> > u_dof_index_cc_var = u_dof_index_var;
+        TBOX_ASSERT(u_dof_index_cc_var);
+        Pointer<Variable<NDIM> > p_dof_index_var;
+        var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
+        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        TBOX_ASSERT(p_dof_index_cc_var);
+#endif
+        copyFromPatchLevelVec_cell(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
     }
     else
     {
@@ -246,6 +276,7 @@ AcousticStreamingPETScVecUtilities::constructDataSynchSchedule(const int u_data_
     Pointer<Variable<NDIM> > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
+    Pointer<CellVariable<NDIM, double> > u_data_cc_var = u_data_var;
     Pointer<Variable<NDIM> > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
@@ -255,6 +286,10 @@ AcousticStreamingPETScVecUtilities::constructDataSynchSchedule(const int u_data_
         RefineAlgorithm<NDIM> data_synch_alg;
         data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
+    }
+    else if (u_data_cc_var && p_data_cc_var)
+    {
+        data_synch_sched = nullptr;
     }
     else
     {
@@ -286,18 +321,29 @@ AcousticStreamingPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<in
     Pointer<Variable<NDIM> > u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
     Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
+    Pointer<CellVariable<NDIM, int> > u_dof_index_cc_var = u_dof_index_var;
     Pointer<Variable<NDIM> > p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
     Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<SideDataFactory<NDIM, int> > sc_factory = u_dof_index_sc_var->getPatchDataFactory();
-        Pointer<CellDataFactory<NDIM, int> > cc_factory = p_dof_index_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(sc_factory->getDefaultDepth() == 2);
-        TBOX_ASSERT(cc_factory->getDefaultDepth() == 2);
+        Pointer<SideDataFactory<NDIM, int> > u_sc_factory = u_dof_index_sc_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, int> > p_cc_factory = p_dof_index_cc_var->getPatchDataFactory();
+        TBOX_ASSERT(u_sc_factory->getDefaultDepth() == 2);
+        TBOX_ASSERT(p_cc_factory->getDefaultDepth() == 2);
 #endif
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
+    }
+    else if (u_dof_index_cc_var && p_dof_index_cc_var)
+    {
+#if !defined(NDEBUG)
+        Pointer<CellDataFactory<NDIM, int> > u_cc_factory = u_dof_index_cc_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, int> > p_cc_factory = p_dof_index_cc_var->getPatchDataFactory();
+        TBOX_ASSERT(u_cc_factory->getDefaultDepth() == 2 * NDIM);
+        TBOX_ASSERT(p_cc_factory->getDefaultDepth() == 2);
+#endif
+        constructPatchLevelDOFIndices_cell(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
     }
     else
     {
@@ -395,6 +441,63 @@ AcousticStreamingPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
 } // copyToPatchLevelVec_MAC
 
 void
+AcousticStreamingPETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
+                                                             int u_data_idx,
+                                                             int u_dof_index_idx,
+                                                             int p_data_idx,
+                                                             int p_dof_index_idx,
+                                                             Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
+    IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
+        const int u_depth = u_data->getDepth();
+        Pointer<CellData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
+        const int p_depth = p_data->getDepth();
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(u_depth == u_dof_index_data->getDepth());
+        TBOX_ASSERT(p_depth == p_dof_index_data->getDepth());
+#endif
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < u_depth; ++d)
+            {
+                const int u_dof_index = (*u_dof_index_data)(i, d);
+                if (LIKELY(i_lower <= u_dof_index && u_dof_index < i_upper))
+                {
+                    ierr = VecSetValues(vec, 1, &u_dof_index, &(*u_data)(i, d), INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            for (int d = 0; d < p_depth; ++d)
+            {
+                const int p_dof_index = (*p_dof_index_data)(i, d);
+                if (LIKELY(i_lower <= p_dof_index && p_dof_index < i_upper))
+                {
+                    ierr = VecSetValues(vec, 1, &p_dof_index, &(*p_data)(i, d), INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+    }
+    ierr = VecAssemblyBegin(vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(vec);
+    IBTK_CHKERRQ(ierr);
+    return;
+
+} // copyToPatchLevelVec_cell
+
+void
 AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                               const int u_data_idx,
                                                               const int u_dof_index_idx,
@@ -475,6 +578,59 @@ AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 
     return;
 } // copyFromPatchLevelVec_MAC
+
+void
+AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
+                                                               const int u_data_idx,
+                                                               const int u_dof_index_idx,
+                                                               const int p_data_idx,
+                                                               const int p_dof_index_idx,
+                                                               Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
+    IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
+        const int u_depth = u_data->getDepth();
+        Pointer<CellData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
+        const int p_depth = p_data->getDepth();
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(u_depth == u_dof_index_data->getDepth());
+        TBOX_ASSERT(p_depth == p_dof_index_data->getDepth());
+#endif
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < u_depth; ++d)
+            {
+                const int u_dof_index = (*u_dof_index_data)(i, d);
+                if (LIKELY(i_lower <= u_dof_index && u_dof_index < i_upper))
+                {
+                    ierr = VecGetValues(vec, 1, &u_dof_index, &(*u_data)(i, d));
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            for (int d = 0; d < p_depth; ++d)
+            {
+                const int p_dof_index = (*p_dof_index_data)(i, d);
+                if (LIKELY(i_lower <= p_dof_index && p_dof_index < i_upper))
+                {
+                    ierr = VecGetValues(vec, 1, &p_dof_index, &(*p_data)(i, d));
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+    }
+    return;
+
+} // copyFromPatchLevelVec_cell
 
 void
 AcousticStreamingPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
@@ -643,6 +799,72 @@ AcousticStreamingPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vecto
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_MAC
+
+void
+AcousticStreamingPETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
+                                                                       const int u_dof_index_idx,
+                                                                       const int p_dof_index_idx,
+                                                                       Pointer<PatchLevel<NDIM> > patch_level)
+{
+    // Determine the number of local DOFs.
+    int local_dof_count = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        const int u_depth = u_dof_index_data->getDepth();
+        const int p_depth = p_dof_index_data->getDepth();
+        local_dof_count += (u_depth + p_depth) * CellGeometry<NDIM>::toCellBox(patch_box).size();
+    }
+
+    // Determine the number of DOFs local to each MPI process and compute the
+    // local DOF index offset.
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
+    num_dofs_per_proc.resize(mpi_size);
+    std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+    IBTK_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+
+    // Assign local DOF indices.
+    int counter = local_dof_offset;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        u_dof_index_data->fillAll(-1);
+        p_dof_index_data->fillAll(-1);
+        const int u_depth = u_dof_index_data->getDepth();
+        const int p_depth = p_dof_index_data->getDepth();
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < u_depth; ++d)
+            {
+                (*u_dof_index_data)(i, d) = counter++;
+            }
+            for (int d = 0; d < p_depth; ++d)
+            {
+                (*p_dof_index_data)(i, d) = counter++;
+            }
+        }
+    }
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter - local_dof_offset == num_dofs_per_proc[mpi_rank]);
+#endif
+
+    // Communicate ghost DOF indices.
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, nullptr);
+    ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, nullptr);
+    ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
+    return;
+
+} // constructPatchLevelDOFIndices_cell
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

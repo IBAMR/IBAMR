@@ -109,6 +109,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+../src/acoustic_streaming/FOAcousticStreamingSCPETScLevelSolver.cpp \
 ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 ../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -267,6 +268,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/EnthalpyHierarchyIntegrator.h \
 ../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
+../include/ibamr/FOAcousticStreamingSCPETScLevelSolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \

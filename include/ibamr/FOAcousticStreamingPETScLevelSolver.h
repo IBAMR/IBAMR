@@ -54,78 +54,60 @@ class SAMRAIVectorReal;
 namespace IBAMR
 {
 /*!
- * \brief Class FOAcousticStreamingPETScLevelSolver is a concrete PETScLevelSolver for
+ * \brief Class FOAcousticStreamingPETScLevelSolver is a parent PETScLevelSolver for
  * solving the first order acoustic streaming equations on a \em single SAMRAI::hier::PatchLevel
  * using <A HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
  * This solver class uses the PETSc library to solve linear equations for
- * side-centered velocity and cell-centered pressure. Both velocity and pressure fields are complex
- * valued functions, and have two components (real and imaginary) each.
+ * both cell- and side-centered velocity and cell-centered pressure. Both velocity and pressure
+ * fields are complex valued functions, and have two components (real and imaginary) each.
  * The discretization is second-order accurate.
  */
 class FOAcousticStreamingPETScLevelSolver : public IBTK::PETScLevelSolver
 {
 public:
     /*!
-     * \brief Constructor.
-     */
-    FOAcousticStreamingPETScLevelSolver(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                        const std::string& default_options_prefix);
-
-    /*!
      * \brief Destructor.
      */
     ~FOAcousticStreamingPETScLevelSolver();
 
     /*!
-     * \brief Static function to construct a FOAcousticStreamingPETScLevelSolver.
+     * \brief Set mass density patch data index.
      */
-    static SAMRAI::tbox::Pointer<PETScLevelSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
-    {
-        return new FOAcousticStreamingPETScLevelSolver(object_name, input_db, default_options_prefix);
-    } // allocate_solver
-
-    /*!
-     * \brief Set side-centered mass density patch data index.
-     */
-    void setMassDensityPatchDataIndex(int rho_idx)
+    virtual void setMassDensityPatchDataIndex(int rho_idx)
     {
         d_rho_idx = rho_idx;
         return;
     } // registerMassDensityPatchDataIndex
 
     /*!
-     * \brief Set node-centered (2D)/edge-centered (3D) shear/first coefficient of viscosity patch data index.
+     * \brief Set shear/first coefficient of viscosity patch data index.
      */
-    void setShearViscosityPatchDataIndex(int mu_idx)
+    virtual void setShearViscosityPatchDataIndex(int mu_idx)
     {
         d_mu_idx = mu_idx;
         return;
     } // setShearViscosityPatchDataIndex
 
     /*!
-     * \brief Set cell-centered bulk/second coefficient of viscosity patch data index.
+     * \brief Set bulk/second coefficient of viscosity patch data index.
      */
-    void setBulkViscosityPatchDataIndex(int lambda_idx)
+    virtual void setBulkViscosityPatchDataIndex(int lambda_idx)
     {
         d_lambda_idx = lambda_idx;
         return;
     } // setBulkViscosityPatchDataIndex
 
-    void setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
+    virtual void setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
     {
         d_mu_interp_type = mu_interp_type;
         return;
     } // setViscosityInterpolationType
 
     /*!
-     * \brief Set side-centered Brinkman penalization coefficient of velocity patch data index.
+     * \brief Set Brinkman penalization coefficient of velocity patch data index.
      */
-    void setBrinkmanPenalizationPatchDataIndex(int chi_idx)
+    virtual void setBrinkmanPenalizationPatchDataIndex(int chi_idx)
     {
         d_chi_idx = chi_idx;
         return;
@@ -134,7 +116,7 @@ public:
     /*!
      * \brief Set acoustic angular frequency
      */
-    void setAcousticAngularFrequency(double omega)
+    virtual void setAcousticAngularFrequency(double omega)
     {
         d_omega = omega;
         return;
@@ -143,7 +125,7 @@ public:
     /*!
      * \brief Set the speed of sound in the fluid medium
      */
-    void setSoundSpeed(double c0)
+    virtual void setSoundSpeed(double c0)
     {
         d_sound_speed = c0;
         return;
@@ -152,14 +134,36 @@ public:
     /*!
      * \brief Set boundary conditions for the velocity components
      */
-    void setBoundaryConditionCoefficients(
+    virtual void setBoundaryConditionCoefficients(
         const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& U_bc_coefs)
     {
         d_U_bc_coefs = U_bc_coefs;
+        d_P_bc_coefs = { nullptr, nullptr };
+        return;
+    } // setBoundaryConditionCoefficients
+
+    /*!
+     * \brief Set boundary conditions for the velocity and pressure components
+     */
+    virtual void setBoundaryConditionCoefficients(
+        const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& U_bc_coefs,
+        const std::array<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*, 2>& P_bc_coefs)
+    {
+        d_U_bc_coefs = U_bc_coefs;
+        d_P_bc_coefs = P_bc_coefs;
         return;
     } // setBoundaryConditionCoefficients
 
 protected:
+    /*!
+     * \brief Constructor.
+     */
+    FOAcousticStreamingPETScLevelSolver(const std::string& object_name,
+                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_dof_idx_var,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > p_dof_idx_var,
+                                        const std::string& default_options_prefix);
+
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
@@ -183,34 +187,13 @@ protected:
     void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
 
     /*!
-     * \brief Copy solution and right-hand-side data to the PETSc
-     * representation, including any modifications to account for boundary
-     * conditions.
-     */
-    void setupKSPVecs(Vec& petsc_x,
-                      Vec& petsc_b,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
-
-    /*!
-     * \brief Enforce Dirichlet condition on the normal component of velocity.
-     */
-    void
-    enforceNormalVelocityBoundaryConditions(const int u_data_idx,
-                                            const int data_depth,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                            const double fill_time,
-                                            const bool homogeneous_bc);
-
-    /*!
      * \name PETSc objects.
      */
     //\{
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
     //\}
@@ -235,6 +218,11 @@ protected:
      * Velocity boundary conditions for the real and imaginary components
      */
     std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2> d_U_bc_coefs;
+
+    /*!
+     * Pressure boundary conditions for the real and imaginary components
+     */
+    std::array<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*, 2> d_P_bc_coefs;
 
     /*!
      * Interpolation type for shear viscosity

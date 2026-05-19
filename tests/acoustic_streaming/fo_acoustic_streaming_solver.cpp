@@ -28,7 +28,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AcousticStreamingPETScMatUtilities.h>
 #include <ibamr/AcousticStreamingPETScVecUtilities.h>
-#include <ibamr/FOAcousticStreamingPETScLevelSolver.h>
+#include <ibamr/FOAcousticStreamingSCPETScLevelSolver.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
@@ -383,7 +383,7 @@ main(int argc, char* argv[])
         hier_bdry_fill->fillData(/*time*/ 0.0);
 
         // Setup the PETScLevelSolver.
-        FOAcousticStreamingPETScLevelSolver petsc_solver(
+        FOAcousticStreamingSCPETScLevelSolver petsc_solver(
             "FOAcousticStreamingPETScLevelSolver",
             app_initializer->getComponentDatabase("FOAcousticStreamingPETScLevelSolver"),
             "fo_acoustic_");

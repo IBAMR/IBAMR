@@ -15,7 +15,7 @@
 
 #include "ibamr/AcousticStreamingHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationMethod.h"
-#include "ibamr/FOAcousticStreamingPETScLevelSolver.h"
+#include "ibamr/FOAcousticStreamingSCPETScLevelSolver.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
@@ -938,7 +938,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     const int max_levels = gridding_alg->getMaxLevels();
 
     // Setup solver for the first-order system
-    d_first_order_solver = new FOAcousticStreamingPETScLevelSolver(
+    d_first_order_solver = new FOAcousticStreamingSCPETScLevelSolver(
         d_object_name + "::first_order_solver", d_first_order_solver_db, "fo_solver_");
     d_first_order_solver_needs_init = true;
 
@@ -3812,7 +3812,7 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 void
 AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 {
-    unsigned unsigned num_contours = d_contour_vars.size();
+    unsigned num_contours = d_contour_vars.size();
     if (num_contours == 0) return;
 
     // Perform contour integrations to determine acoustic radiation force.

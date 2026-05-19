@@ -20,6 +20,7 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ProblemSpecification.h"
 
 #include "CellVariable.h"
 #include "HierarchyDataOpsManager.h"
@@ -199,6 +200,8 @@ VCCollocatedStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, d
 {
     IBAMR_TIMER_START(t_solve_system);
 
+    auto& vc_op_spec = static_cast<const VCViscousDilatationalOpSpec&>(*d_problem_spec);
+
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x, b);
@@ -290,7 +293,13 @@ VCCollocatedStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, d
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
 
     // P = Phi
-    d_pressure_data_ops->copyData(P_idx, d_Phi_scratch_idx);
+    // d_pressure_data_ops->copyData(P_idx, d_Phi_scratch_idx);
+
+    // Use more accurate pressure estimation for variable viscosity
+    // P = Phi - 2 mu (F_P + D U^*)
+    // vc_op_spec.d_D_idx = -mu
+    d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_op_spec.d_D_idx);
+    d_pressure_data_ops->linearSum(P_idx, 1.0, d_Phi_scratch_idx, -2.0 / fac, d_F_Phi_idx);
 
     // (3) Evaluate U in terms of U^* and Phi.
 
