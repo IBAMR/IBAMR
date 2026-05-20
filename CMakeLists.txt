@@ -306,8 +306,16 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   int main() {}
   "
     BOOST_WITH_ROOTS)
+
+  CHECK_CXX_SOURCE_COMPILES(
+    "
+  #include <boost/geometry/index/rtree.hpp>
+  int main() {}
+  "
+    BOOST_WITH_RTREE)
+
   SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
-  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}")
+  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}" OR NOT "${BOOST_WITH_RTREE}")
     MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
   ENDIF()
 ELSE()
