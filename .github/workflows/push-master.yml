@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2023 - 2023 by the IBAMR developers
+## Copyright (c) 2023 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Compile and deploy doxygen documentation
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.18-dependencies-ubuntu'
+      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-ubuntu'
     steps:
       - name: Checkout Source
         uses: actions/checkout@v6
@@ -70,23 +70,23 @@ jobs:
   # build IBAMR with CMake and update the cache
   build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR (0.18 dependencies ${{ matrix.name }})
+    name: Build IBAMR (0.19 dependencies ${{ matrix.name }})
     strategy:
       matrix:
         include:
-          - name: "Arch Linux 2025, with libMesh"
+          - name: "Arch Linux 2026, with libMesh"
             key: "arch-cmake-libmesh"
             ccache_eviction_flags: "--evict-older-than 1d"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
-          - name: "Arch Linux 2025, without libMesh"
+          - name: "Arch Linux 2026, without libMesh"
             key: "arch-cmake-no-libmesh"
             ccache_eviction_flags: "--evict-older-than 1d"
             cmake_flags: ""
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
-          - name: "Ubuntu 20.04, with libMesh"
+          - name: "Ubuntu 24.04, with libMesh"
             key: "ubuntu-cmake-libmesh"
             # no-op since this version of ccache does not support --evict-older-than
             ccache_eviction_flags: "--version"
@@ -95,7 +95,7 @@ jobs:
             os: "ubuntu"
 
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.18-dependencies-${{ matrix.os }}'
+      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-${{ matrix.os }}'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
@@ -202,7 +202,7 @@ jobs:
         run: |
           mkdir -p ~/unpack-samrai
           cd ~/unpack-samrai
-          export SAMRAI_VERSION=2025.10.29
+          export SAMRAI_VERSION=2026.06.21
           curl -LO "https://github.com/IBAMR/IBSAMRAI2/archive/refs/tags/$SAMRAI_VERSION.tar.gz"
           tar xf "$SAMRAI_VERSION.tar.gz"
           cd "IBSAMRAI2-$SAMRAI_VERSION"
