@@ -1346,6 +1346,81 @@ LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
 } // scatterToZero
 
 void
+LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int finest_ln_in)
+{
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
+    TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
+#endif
+
+    const int num_procs = IBTK_MPI::getNodes();
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        if (!d_level_contains_lag_data[level_number]) continue;
+
+        const Pointer<LMesh> mesh = getLMesh(level_number);
+        if (!mesh) continue;
+
+        using LNodeTransactionComponent = LNodeTransaction::LTransactionComponent;
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        const std::vector<LNode*>& ghost_nodes = mesh->getGhostNodes();
+
+        std::map<int, std::vector<LNode*>> ghost_node_map;
+        for (LNode* ghost_node : ghost_nodes)
+        {
+            ghost_node_map[ghost_node->getLagrangianIndex()].push_back(ghost_node);
+        }
+
+        std::vector<LNodeTransactionComponent> local_node_data;
+        local_node_data.reserve(local_nodes.size());
+        for (LNode* local_node : local_nodes)
+        {
+            local_node_data.emplace_back(Pointer<LNode>(local_node, false), Point::Zero());
+        }
+
+        Schedule lnode_data_mover;
+        std::vector<std::vector<Pointer<Transaction>>> transactions(num_procs,
+                                                                    std::vector<Pointer<Transaction>>(num_procs));
+        for (int src_proc = 0; src_proc < num_procs; ++src_proc)
+        {
+            for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+            {
+                if (src_proc == IBTK_MPI::getRank())
+                {
+                    transactions[src_proc][dst_proc] = new LNodeTransaction(src_proc, dst_proc, local_node_data);
+                }
+                else
+                {
+                    transactions[src_proc][dst_proc] = new LNodeTransaction(src_proc, dst_proc);
+                }
+                lnode_data_mover.appendTransaction(transactions[src_proc][dst_proc]);
+            }
+        }
+        lnode_data_mover.communicate();
+
+        for (int src_proc = 0; src_proc < num_procs; ++src_proc)
+        {
+            Pointer<LNodeTransaction> transaction = transactions[src_proc][IBTK_MPI::getRank()];
+            const std::vector<LNodeTransactionComponent>& received_node_data = transaction->getDestinationData();
+            for (const auto& transaction_comp : received_node_data)
+            {
+                const int lag_idx = transaction_comp.item->getLagrangianIndex();
+                auto ghost_it = ghost_node_map.find(lag_idx);
+                if (ghost_it == ghost_node_map.end()) continue;
+                for (LNode* ghost_node : ghost_it->second)
+                {
+                    ghost_node->setNodeData(transaction_comp.item->getNodeData());
+                }
+            }
+        }
+    }
+    return;
+} // synchronizeExistingGhostNodes
+
+void
 LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_begin_data_redistribution);
@@ -1369,6 +1444,10 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
                          << "\tLagrangian node position data is probably invalid!\n");
         }
     }
+
+    // Refresh payloads on the currently known ghost nodes before ownership is
+    // rebuilt from ghost-region LNode copies.
+    synchronizeExistingGhostNodes(coarsest_ln, finest_ln);
 
     // Ensure that no IB points manage to escape the computational domain.
     const double* const domain_x_lower = d_grid_geom->getXLower();
@@ -1658,6 +1737,23 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         d_displaced_strct_bounding_boxes[level_number].clear();
         d_displaced_strct_lnode_idxs[level_number].clear();
         d_displaced_strct_lnode_posns[level_number].clear();
+    }
+
+    // Fill the ghost cells of each level.
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        if (!d_level_contains_lag_data[level_number]) continue;
+
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_number);
+        level->allocatePatchData(d_scratch_data);
+
+        const double current_time = 0.0;
+        level->setTime(current_time, d_current_data);
+        level->setTime(current_time, d_scratch_data);
+
+        d_lag_node_index_bdry_fill_scheds[level_number]->fillData(current_time);
+
+        level->deallocatePatchData(d_scratch_data);
     }
 
     // Define the PETSc data needed to communicate the LData from its

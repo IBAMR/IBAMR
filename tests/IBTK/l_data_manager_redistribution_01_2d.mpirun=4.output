@@ -17,7 +17,7 @@ step 3: begin redistribution
 step 3: end redistribution
 after step 3 rank = 0 local_nodes = 1
 patch = [(0,0),(15,15)]
-  index = 3 X = 0.495, 0.495 U = -0.005, -0.005 X_target = 0.5, 0.5 X_target_exact = 0.495, 0.495
+  index = 3 X = 0.495, 0.495 U = -0.005, -0.005 X_target = 0.495, 0.495 X_target_exact = 0.495, 0.495
   count = 1
 step 4: begin redistribution
 step 4: end redistribution
