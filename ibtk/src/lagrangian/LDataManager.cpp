@@ -1660,23 +1660,6 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         d_displaced_strct_lnode_posns[level_number].clear();
     }
 
-    // Fill the ghost cells of each level.
-    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
-    {
-        if (!d_level_contains_lag_data[level_number]) continue;
-
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_number);
-        level->allocatePatchData(d_scratch_data);
-
-        const double current_time = 0.0;
-        level->setTime(current_time, d_current_data);
-        level->setTime(current_time, d_scratch_data);
-
-        d_lag_node_index_bdry_fill_scheds[level_number]->fillData(current_time);
-
-        level->deallocatePatchData(d_scratch_data);
-    }
-
     // Define the PETSc data needed to communicate the LData from its
     // old configuration to its new configuration.
     int ierr;
