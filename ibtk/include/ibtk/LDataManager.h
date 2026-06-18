@@ -856,8 +856,7 @@ public:
      * This routine updates the node data stored on existing ghost LNodes
      * without changing ghost topology or PETSc indexing.
      */
-    void synchronizeExistingGhostNodes(int coarsest_ln = invalid_level_number,
-                                       int finest_ln = invalid_level_number);
+    void synchronizeGhostLNodes(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * \brief Start the process of redistributing the Lagrangian data.

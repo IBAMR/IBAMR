@@ -1346,7 +1346,7 @@ LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
 } // scatterToZero
 
 void
-LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int finest_ln_in)
+LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
@@ -1368,10 +1368,16 @@ LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int 
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         const std::vector<LNode*>& ghost_nodes = mesh->getGhostNodes();
 
-        std::vector<int> num_local_nodes_proc(num_procs, 0);
-        IBTK_MPI::allGather(static_cast<int>(local_nodes.size()), &num_local_nodes_proc[0]);
-        std::vector<int> node_offsets(num_procs + 1, 0);
-        std::partial_sum(num_local_nodes_proc.begin(), num_local_nodes_proc.end(), node_offsets.begin() + 1);
+        const Vec position_vec = d_lag_mesh_data[level_number][POSN_DATA_NAME]->getVec();
+        const PetscInt* ownership_ranges = nullptr;
+        int ierr = VecGetOwnershipRanges(position_vec, &ownership_ranges);
+        IBTK_CHKERRQ(ierr);
+        // Position vector has NIMD * (num_lag_points) entries. Convert position ranges to LNode index ranges.
+        std::vector<PetscInt> node_ownership_ranges(num_procs + 1, 0);
+        for (int rank = 0; rank <= num_procs; ++rank)
+        {
+            node_ownership_ranges[rank] = ownership_ranges[rank] / NDIM;
+        }
 
         std::map<int, std::vector<LNode*>> ghost_node_map;
         std::map<int, std::set<int>> requested_lag_indices;
@@ -1380,46 +1386,61 @@ LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int 
             const int lag_idx = ghost_node->getLagrangianIndex();
             ghost_node_map[lag_idx].push_back(ghost_node);
 
-            // The current PETSc ownership range identifies the rank that own the authoritative local copy of this ghost
-            // node.
+            // The current node-wise PETSc ownership range identifies the rank
+            // that owns the authoritative local copy of this ghost node.
             const int global_petsc_idx = ghost_node->getGlobalPETScIndex();
-            const int owner_rank =
-                static_cast<int>(std::upper_bound(node_offsets.begin(), node_offsets.end(), global_petsc_idx) -
-                                 node_offsets.begin()) -
-                1;
+            const int owner_rank = static_cast<int>(std::upper_bound(node_ownership_ranges.begin(),
+                                                                     node_ownership_ranges.end(),
+                                                                     static_cast<PetscInt>(global_petsc_idx)) -
+                                                    node_ownership_ranges.begin()) -
+                                   1;
             requested_lag_indices[owner_rank].insert(lag_idx);
         }
 
-        std::vector<int> request_data;
+        std::vector<std::pair<int, int>> owned_requests;
+        std::vector<int> send_counts(num_procs, 0), recv_counts(num_procs, 0);
+        for (const auto& owner_requests : requested_lag_indices)
+        {
+            send_counts[owner_requests.first] = static_cast<int>(owner_requests.second.size());
+        }
+
+        // Exchange request counts to preallocate send and receive buffers.
+        ierr =
+            MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
+
+        std::vector<int> send_displs(num_procs + 1, 0), recv_displs(num_procs + 1, 0);
+        std::partial_sum(send_counts.begin(), send_counts.end(), send_displs.begin() + 1);
+        std::partial_sum(recv_counts.begin(), recv_counts.end(), recv_displs.begin() + 1);
+
+        std::vector<int> send_lag_indices(send_displs.back()), recv_lag_indices(recv_displs.back());
         for (const auto& owner_requests : requested_lag_indices)
         {
             const int owner_rank = owner_requests.first;
-            for (const int lag_idx : owner_requests.second)
-            {
-                request_data.push_back(owner_rank);
-                request_data.push_back(IBTK_MPI::getRank());
-                request_data.push_back(lag_idx);
-            }
+            std::copy(owner_requests.second.begin(),
+                      owner_requests.second.end(),
+                      send_lag_indices.begin() + send_displs[owner_rank]);
         }
 
-        const int request_data_size = static_cast<int>(request_data.size());
-        const int all_request_data_size = IBTK_MPI::sumReduction(request_data_size);
-        std::vector<int> all_request_data(all_request_data_size);
-        // Share only request data globally; LNode payloads are sent later only by the ranks that own the requested
-        // ghost nodes.
-        IBTK_MPI::allGather(request_data_size > 0 ? &request_data[0] : nullptr,
-                            request_data_size,
-                            all_request_data_size > 0 ? &all_request_data[0] : nullptr,
-                            all_request_data_size);
+        // Ship only the requested lag indices to each owner rank; payloads are
+        // still sent later through the existing LNodeTransaction path.
+        ierr = MPI_Alltoallv(send_lag_indices.empty() ? nullptr : send_lag_indices.data(),
+                             send_counts.data(),
+                             send_displs.data(),
+                             MPI_INT,
+                             recv_lag_indices.empty() ? nullptr : recv_lag_indices.data(),
+                             recv_counts.data(),
+                             recv_displs.data(),
+                             MPI_INT,
+                             IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
 
-        std::vector<std::pair<int, int>> owned_requests;
-        for (int k = 0; k < all_request_data_size; k += 3)
+        for (int requester_rank = 0; requester_rank < num_procs; ++requester_rank)
         {
-            const int owner_rank = all_request_data[k + 0];
-            const int dst_rank = all_request_data[k + 1];
-            const int lag_idx = all_request_data[k + 2];
-            if (owner_rank != IBTK_MPI::getRank()) continue;
-            owned_requests.emplace_back(dst_rank, lag_idx);
+            for (int k = recv_displs[requester_rank]; k < recv_displs[requester_rank + 1]; ++k)
+            {
+                owned_requests.emplace_back(requester_rank, recv_lag_indices[k]);
+            }
         }
 
         std::vector<int> owned_request_petsc_indices(owned_requests.size());
@@ -1429,9 +1450,11 @@ LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int 
         }
         if (!owned_request_petsc_indices.empty())
         {
-            int ierr = AOApplicationToPetsc(d_ao[level_number],
-                                            static_cast<int>(owned_request_petsc_indices.size()),
-                                            &owned_request_petsc_indices[0]);
+            // Convert all requested Lagrangian indices for this owner rank to
+            // PETSc indices in one AO lookup before indexing local_nodes.
+            ierr = AOApplicationToPetsc(d_ao[level_number],
+                                        static_cast<int>(owned_request_petsc_indices.size()),
+                                        &owned_request_petsc_indices[0]);
             IBTK_CHKERRQ(ierr);
         }
 
@@ -1485,7 +1508,7 @@ LDataManager::synchronizeExistingGhostNodes(const int coarsest_ln_in, const int 
         }
     }
     return;
-} // synchronizeExistingGhostNodes
+} // synchronizeGhostLNodes
 
 void
 LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
@@ -1515,7 +1538,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
     // Refresh payloads on the currently known ghost nodes before ownership is
     // rebuilt from ghost-region LNode copies. This updates attached Streamable
     // data without changing the current ghost-node topology.
-    synchronizeExistingGhostNodes(coarsest_ln, finest_ln);
+    synchronizeGhostLNodes(coarsest_ln, finest_ln);
 
     // Ensure that no IB points manage to escape the computational domain.
     const double* const domain_x_lower = d_grid_geom->getXLower();
