@@ -901,13 +901,11 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_D_var;
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_patch_num_var;
 
     int d_U2_regrid_idx, d_U2_src_idx, d_indicator2_idx;
     int d_Omega2_Norm_idx;
     int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx, d_projection_D_idx;
     int d_mu_interp_idx;
-    int d_patch_num_idx;
 
     /*
      * Persistent patch data indices for the density and viscosity used in the linear operators
