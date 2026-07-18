@@ -728,9 +728,10 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;
     string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
+    std::ostringstream oss;
+    oss << std::setw(5) << std::setfill('0') << iteration_num << ".samrai." << std::setw(5) << std::setfill('0')
+        << SAMRAI_MPI::getRank();
+    file_name += oss.str();
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

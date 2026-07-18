@@ -938,9 +938,9 @@ compute_T_profile(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
     // Write out the result in a file.
     string file_name = data_dump_dirname + "/" + "temperature_angle_";
-    char temp_buf[128];
-    std::snprintf(temp_buf, sizeof(temp_buf), "%.8f", data_time);
-    file_name += temp_buf;
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(8) << data_time;
+    file_name += oss.str();
     MPI_Status status;
     MPI_Offset mpi_offset;
     MPI_File file;
