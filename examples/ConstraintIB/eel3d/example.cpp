@@ -308,9 +308,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
-    file_name += temp_buf;
+    file_name += generateSAMRAIName(iteration_num);
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -332,8 +330,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     VecDuplicate(X_petsc_vec, &X_lag_vec);
     l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
     file_name = data_dump_dirname + "/" + "X.";
-    std::snprintf(temp_buf, sizeof(temp_buf), "%05d", iteration_num);
-    file_name += temp_buf;
+    file_name += generateIterationName(iteration_num);
     PetscViewer viewer;
     PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
     VecView(X_lag_vec, viewer);
