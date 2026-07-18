@@ -517,9 +517,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     {
         // Output files
         string file_name = data_dump_dirname + "/hier_data.";
-        char temp_buf[128];
-        std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
-        file_name += temp_buf;
+        file_name += generateSAMRAIName(iteration_num);
         Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
         hier_db->create(file_name);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

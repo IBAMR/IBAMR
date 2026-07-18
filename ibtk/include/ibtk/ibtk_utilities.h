@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBTK_MPI.h>
+
 #include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -35,6 +37,9 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
@@ -406,6 +411,28 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
     TBOX_ASSERT(p);
 #endif
     return *p;
+}
+
+/*!
+ * Generate a name for SAMRAI data files.
+ */
+inline std::string
+generateSAMRAIName(const int iteration_num)
+{
+    std::ostringstream oss;
+    oss << std::setw(5) << std::setfill('0') << iteration_num << ".samrai." << std::setw(5) << IBTK_MPI::getRank();
+    return oss.str();
+}
+
+/*!
+ * Generate a name for iteration data files.
+ */
+inline std::string
+generateIterationName(const int iteration_num)
+{
+    std::ostringstream oss;
+    oss << std::setw(5) << std::setfill('0') << iteration_num;
+    return oss.str();
 }
 
 } // namespace IBTK
