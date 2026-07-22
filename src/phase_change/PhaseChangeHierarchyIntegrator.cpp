@@ -835,6 +835,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("latent_heat", d_latent_heat);
     db->putDouble("rho_liquid", d_rho_liquid);
     db->putDouble("rho_solid", d_rho_solid);
+    db->putDouble("rho_gas", d_rho_gas);
     db->putDouble("T_melt", d_T_melt);
     db->putBool("solve_mass_conservation", d_solve_mass_conservation);
     db->putBool("output_Div_U_F", d_output_Div_U_F);
@@ -1070,6 +1071,7 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
     {
         d_latent_heat = input_db->getDouble("latent_heat");
         d_rho_liquid = input_db->getDouble("rho_liquid");
+        d_rho_gas = input_db->getDouble("rho_gas");
         d_rho_solid = input_db->getDouble("rho_solid");
         d_T_melt = input_db->getDouble("T_melt");
 
@@ -1149,6 +1151,7 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
 
     d_latent_heat = db->getDouble("latent_heat");
     d_rho_liquid = db->getDouble("rho_liquid");
+    d_rho_gas = db->getDouble("rho_gas");
     d_rho_solid = db->getDouble("rho_solid");
     d_T_melt = db->getDouble("T_melt");
     d_solve_mass_conservation = db->getBool("solve_mass_conservation");

@@ -491,7 +491,7 @@ protected:
     /*!
      * Phase change parameters.
      */
-    double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat;
+    double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat, d_rho_gas;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.

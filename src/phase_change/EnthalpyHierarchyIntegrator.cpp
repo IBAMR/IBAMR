@@ -1038,26 +1038,51 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= H_LIM)
-                {
+                double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+                // if ((*H_data)(ci) >= H_LIM)
+                // {
                     if ((*T_data)(ci) < d_solidus_temperature)
                     {
-                        (*h_data)(ci) = d_specific_heat_solid * ((*T_data)(ci)-d_reference_temperature);
+                        (*h_data)(ci) =  ((*T_data)(ci)-d_reference_temperature)*C_SG;
                     }
-                    else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                    else if ((*T_data)(ci) > d_liquidus_temperature)
                     {
-                    (*h_data)(ci) = (d_rho_liquid/(*rho_data)(ci))*d_specific_heat_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
-			                                            (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
-		    }
+                    (*h_data)(ci) = hl_cell + C_LG*((*T_data)(ci)-d_liquidus_temperature);
+                    
+                    // (d_rho_liquid/(*rho_data)(ci))*d_specific_heat_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
+			        //                                     (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
+		            }
                     else
                     {
-                        (*h_data)(ci) = d_specific_heat_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                        (*h_data)(ci) = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas*((*T_data)(ci)-d_reference_temperature) + 
+                        ((*H_data)(ci) - (*lf_data)(ci))*d_rho_solid*h_s + 
+                        (*lf_data)(ci)*d_rho_liquid*(h_s + d_latent_heat + d_specific_heat_mushy*(d_liquidus_temperature - d_solidus_temperature)))/( (*rho_data)(ci));
                     }
-                }
-                else
-                {
-                    (*h_data)(ci) = d_specific_heat_gas * ((*T_data)(ci)-d_reference_temperature);
-                }
+                // }
+                // else
+                // {
+                //     (*h_data)(ci) = d_specific_heat_gas * ((*T_data)(ci)-d_reference_temperature);
+                // }
             }
         }
     }
@@ -1087,26 +1112,47 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= H_LIM)
-                {
-                    if ((*h_data)(ci) < h_s)
+                 double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+                // if ((*H_data)(ci) >= H_LIM)
+                // {
+                    if ((*h_data)(ci) < hs_cell)
                     {
-                        (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_solid + d_reference_temperature;
+                        (*T_data)(ci) = d_reference_temperature + ((*h_data)(ci))/C_SG;
                     }
-                    else if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l)
+                    else if ((*h_data)(ci) > hl_cell)
                     {
-                    (*T_data)(ci) = (d_solidus_temperature*d_rho_liquid*(h_l - (*h_data)(ci)) + d_liquidus_temperature*d_rho_solid*((*h_data)(ci)-h_s))/
-			                                            (d_rho_liquid*h_l - d_rho_solid*h_s + (*h_data)(ci)*(d_rho_solid - d_rho_liquid)); 
-		    }
+                        (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-hl_cell) / C_LG;
+		            }
                     else
                     {
-                        (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-h_l) / d_specific_heat_liquid;
+                        (*T_data)(ci) = d_solidus_temperature + (d_liquidus_temperature - d_solidus_temperature)*(((*h_data)(ci)*R0 - H0)/(H1 - (*h_data)(ci)*R1));
                     }
-                }
-                else
-                {
-                    (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_gas + d_reference_temperature;
-                }
+                // }
+                // else
+                // {
+                //     (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_gas + d_reference_temperature;
+                // }
             }
         }
     }
@@ -1166,26 +1212,53 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= H_LIM)
-                {
+                double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+                // if ((*H_data)(ci) >= H_LIM)
+                // {
                     if ((*T_data)(ci) < d_solidus_temperature)
                     {
-                        (*dh_dT_data)(ci) = d_specific_heat_solid;
+                        (*dh_dT_data)(ci) = C_SG;
                     }
-                    else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                    else if ((*T_data)(ci) > d_liquidus_temperature)
                     {
-                     (*dh_dT_data)(ci) =d_rho_liquid*d_rho_solid*(h_l - h_s)*(d_liquidus_temperature - d_solidus_temperature)/
-			                                             (std::pow(((*T_data)(ci)*(d_rho_liquid - d_rho_solid) +d_liquidus_temperature*d_rho_solid - d_solidus_temperature*d_rho_liquid ),2.0)); 
-		    }
+                        (*dh_dT_data)(ci) =  C_LG;
+                    }
+                    
+            //         else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+            //         {
+            //          (*dh_dT_data)(ci) =d_rho_liquid*d_rho_solid*(h_l - h_s)*(d_liquidus_temperature - d_solidus_temperature)/
+			//                                              (std::pow(((*T_data)(ci)*(d_rho_liquid - d_rho_solid) +d_liquidus_temperature*d_rho_solid - d_solidus_temperature*d_rho_liquid ),2.0)); 
+		    // }
                     else
                     {
-                        (*dh_dT_data)(ci) = d_specific_heat_liquid;
+                        (*dh_dT_data)(ci) =  (H1*R0 - H0*R1)/((d_liquidus_temperature - d_solidus_temperature)*std::pow(Rho_T ,2.0)); 
                     }
-                }
-                else
-                {
-                    (*dh_dT_data)(ci) = d_specific_heat_gas;
-                }
+                // }
+                // else
+                // {
+                //     (*dh_dT_data)(ci) = d_specific_heat_gas;
+                // }
             }
         }
     }
@@ -1200,6 +1273,8 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
 
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+
+    
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1211,32 +1286,45 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
             Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
 
+
+
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= H_LIM)
-                {
-                    if ((*h_data)(ci) < h_s)
+                 double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+                // if ((*H_data)(ci) >= H_LIM)
+                // {
+                    if ((*h_data)(ci) < hs_cell)
                     {
                         (*lf_data)(ci) = 0.0;
                     }
-                    else if ((*h_data)(ci) > h_l)
+                    else if ((*h_data)(ci) > hl_cell)
                     {
-                        (*lf_data)(ci) = 1.0;
+                        (*lf_data)(ci) = (*H_data)(ci);
                     }
                     else
                     {
-                        (*lf_data)(ci) =
-                            d_rho_solid * (h_s - (*h_data)(ci)) /
-                            ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
+                        (*lf_data)(ci) = (*H_data)(ci)*(((*h_data)(ci)*R0 - H0)/(H1 - (*h_data)(ci)*R1));
+                            // d_rho_solid * (h_s - (*h_data)(ci)) /
+                            // ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
                     }
-                }
-                else
-                {
-                    (*lf_data)(ci) = d_gas_liquid_fraction;
-                }
-		 (*lf_data)(ci) = clamp((*lf_data)(ci),0.0,1.0);
+                // }
+                // else
+                // {
+                //     (*lf_data)(ci) = d_gas_liquid_fraction;
+                // }
+		 (*lf_data)(ci) = clamp((*lf_data)(ci),0.0,(*H_data)(ci));
             }
         }
     }

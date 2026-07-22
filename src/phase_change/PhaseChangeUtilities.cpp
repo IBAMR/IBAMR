@@ -253,8 +253,10 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                     const double heaviside = (*H_data)(ci);
                     const double liquid_fraction = (*lf_data)(ci);
 
-                    (*rho_data)(ci) = d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
-                                      (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
+                    (*rho_data)(ci) = (1.0-heaviside)*d_rho_gas + liquid_fraction*d_rho_liquid + (heaviside - liquid_fraction)*d_rho_solid;
+                    
+                    // d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
+                    //                   (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
                 }
             }
         }
@@ -322,8 +324,10 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                         const double liquid_fraction_upper = (*lf_data)(si.toCell(1));
                         const double liquid_fraction = 0.5 * (liquid_fraction_lower + liquid_fraction_upper);
 
-                        (*rho_data)(si) = d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
-                                          (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
+                        (*rho_data)(si) = (1.0-heaviside)*d_rho_gas + liquid_fraction*d_rho_liquid + (heaviside - liquid_fraction)*d_rho_solid;
+                        
+                        // d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
+                        //                   (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
                     }
                 }
             }
@@ -401,8 +405,10 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
 
-                (*kappa_data)(ci) = d_kappa_gas + (d_kappa_solid - d_kappa_gas) * heaviside +
-                                      (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
+                (*kappa_data)(ci) = (1.0-heaviside)*d_kappa_gas + liquid_fraction*d_kappa_liquid + (heaviside - liquid_fraction)*d_kappa_solid;
+                
+                // d_kappa_gas + (d_kappa_solid - d_kappa_gas) * heaviside +
+                //                       (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
             }
         }
     }
