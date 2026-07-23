@@ -165,7 +165,7 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double alpha_s = H * (1.0 - liquid_fraction);
+                const double alpha_s = (H- liquid_fraction);
 
                 double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
                 if (d_use_rho_scale)
@@ -275,7 +275,7 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double alpha_s = H * (1.0 - liquid_fraction);
+                const double alpha_s = (H  - liquid_fraction);
                 double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
                 if (d_use_rho_scale)
                 {

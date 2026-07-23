@@ -25,6 +25,7 @@ namespace IBAMR
 
 namespace PhaseChangeUtilities
 {
+    
 void
 callSetDensityCallbackFunction(int rho_idx,
                                Pointer<Variable<NDIM>> rho_var,
@@ -476,8 +477,10 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
 
-                (*specific_heat_data)(ci) = d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
-                (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
+                (*specific_heat_data)(ci) = (1.0-heaviside)*d_specific_heat_gas + liquid_fraction*d_specific_heat_liquid + (heaviside - liquid_fraction)*d_specific_heat_solid;
+                
+                // d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
+                // (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
                 
             }
         }
@@ -545,8 +548,10 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
-                (*mu_data)(ci) = d_mu_gas + (d_mu_solid - d_mu_gas) * heaviside +
-                                 (d_mu_liquid - d_mu_solid) * liquid_fraction * heaviside;
+                (*mu_data)(ci) = (1.0-heaviside)*d_mu_gas + liquid_fraction*d_mu_liquid + (heaviside - liquid_fraction)*d_mu_solid;
+                
+                // d_mu_gas + (d_mu_solid - d_mu_gas) * heaviside +
+                //                  (d_mu_liquid - d_mu_solid) * liquid_fraction * heaviside;
             }
         }
     }

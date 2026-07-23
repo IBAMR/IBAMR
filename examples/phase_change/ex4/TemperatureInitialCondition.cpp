@@ -18,18 +18,18 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-TemperatureInitialCondition::TemperatureInitialCondition(const std::string& object_name,
-                                                         const double initial_liquid_solid_interface_position,
-                                                         const double initial_liquid_temperature,
-                                                         const double initial_solid_temperature)
+TemperatureInitialCondition::TemperatureInitialCondition(
+    const std::string& object_name,
+    const double initial_liquid_solid_interface_position,
+    const double initial_liquid_temperature,
+    const double initial_solid_temperature)
     : d_object_name(object_name),
       d_initial_liquid_solid_interface_position(initial_liquid_solid_interface_position),
       d_initial_liquid_temperature(initial_liquid_temperature),
       d_initial_solid_temperature(initial_solid_temperature)
 {
-    // intentionally blank
     return;
-} // TemperatureInitialCondition
+}
 
 bool
 TemperatureInitialCondition::isTimeDependent() const

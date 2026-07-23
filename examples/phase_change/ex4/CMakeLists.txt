@@ -21,7 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-phase_change
   SOURCES
-    example.cpp LSLocateInterface.cpp LevelSetInitialCondition.cpp LiquidFractionInitialCondition.cpp TemperatureInitialCondition.cpp
+    example.cpp LSLocateInterface.cpp LevelSetInitialCondition.cpp LiquidFractionInitialCondition.cpp TemperatureInitialCondition.cpp vc_ins_vof_utilities.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

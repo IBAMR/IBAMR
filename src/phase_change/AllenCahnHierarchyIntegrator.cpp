@@ -1044,7 +1044,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
             d_hier_cc_data_ops->setToScalar(d_T_F_scratch_idx, 0.0);
 
         // Add Allen-Cahn temporal term.
-        addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, dt);
+        // addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, dt);
         d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
 
         // Solve for T(n+1).
@@ -1259,40 +1259,40 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     return;
 } // putToDatabaseSpecialized
 
-void
-AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-    int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellData<NDIM, double>> H_new_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double>> lf_current_data = patch->getPatchData(d_lf_current_idx);
-            Pointer<CellData<NDIM, double>> H_current_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_scratch_idx);
+// void
+// AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt)
+// {
+//     const int coarsest_ln = 0;
+//     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+//     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+//     int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+//     int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
+//     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+//     {
+//         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+//         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+//         {
+//             Pointer<Patch<NDIM>> patch = level->getPatch(p());
+//             const Box<NDIM>& patch_box = patch->getBox();
+//             Pointer<CellData<NDIM, double>> lf_new_data = patch->getPatchData(d_lf_new_idx);
+//             Pointer<CellData<NDIM, double>> H_new_data = patch->getPatchData(H_new_idx);
+//             Pointer<CellData<NDIM, double>> lf_current_data = patch->getPatchData(d_lf_current_idx);
+//             Pointer<CellData<NDIM, double>> H_current_data = patch->getPatchData(H_current_idx);
+//             Pointer<CellData<NDIM, double>> F_data = patch->getPatchData(F_scratch_idx);
 
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
+//             for (Box<NDIM>::Iterator it(patch_box); it; it++)
+//             {
+//                 CellIndex<NDIM> ci(it());
 
-                (*F_data)(ci) +=
-                    -d_rho_liquid * d_latent_heat *
-                    ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
-                     dt);
-            }
-        }
-    }
-    return;
-} // addTemporalAndLinearTermstoRHSOfEnergyEquation
+//                 (*F_data)(ci) +=
+//                     -d_rho_liquid * d_latent_heat *
+//                     ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
+//                      dt);
+//             }
+//         }
+//     }
+//     return;
+// } // addTemporalAndLinearTermstoRHSOfEnergyEquation
 
 void
 AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)

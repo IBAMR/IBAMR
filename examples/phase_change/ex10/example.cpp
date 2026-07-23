@@ -51,6 +51,7 @@
 #include "LevelSetInitialCondition.h"
 #include "LiquidFractionInitialCondition.h"
 #include "TemperatureInitialCondition.h"
+#include "vc_ins_vof_utilities.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -187,6 +188,105 @@ mask_surface_tension_force(int F_idx,
         }
     }
 }
+
+struct SynchronizePCMVOFWithLSCtx
+{
+    IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer* vof_from_ls = nullptr;
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+    Pointer<CellVariable<NDIM, double>> pcm_vof_var;
+    Pointer<CellVariable<NDIM, double>> liquid_fraction_var;
+};
+
+void
+clamp_liquid_fraction_to_pcm_vof(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                  const int pcm_vof_idx,
+                                  const int liquid_fraction_idx)
+{
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<CellData<NDIM, double>> pcm_vof_data = patch->getPatchData(pcm_vof_idx);
+            Pointer<CellData<NDIM, double>> liquid_fraction_data = patch->getPatchData(liquid_fraction_idx);
+
+#if !defined(NDEBUG)
+            TBOX_ASSERT(!pcm_vof_data.isNull());
+            TBOX_ASSERT(!liquid_fraction_data.isNull());
+#endif
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                const CellIndex<NDIM> ci(it());
+                const double C = std::max(0.0, std::min(1.0, (*pcm_vof_data)(ci)));
+                const double L = std::max(0.0, std::min(C, (*liquid_fraction_data)(ci)));
+                (*pcm_vof_data)(ci) = C;
+                (*liquid_fraction_data)(ci) = L;
+            }
+        }
+    }
+}
+
+
+void
+synchronize_pcm_vof_with_level_set(int pcm_vof_current_idx,
+                                    Pointer<HierarchyMathOps> hier_math_ops,
+                                    int /*integrator_step*/,
+                                    double time,
+                                    bool /*initial_time*/,
+                                    bool /*regrid_time*/,
+                                    void* ctx)
+{
+    auto* sync_ctx = static_cast<SynchronizePCMVOFWithLSCtx*>(ctx);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(sync_ctx);
+    TBOX_ASSERT(sync_ctx->vof_from_ls);
+    TBOX_ASSERT(!sync_ctx->adv_diff_integrator.isNull());
+    TBOX_ASSERT(!sync_ctx->pcm_vof_var.isNull());
+    TBOX_ASSERT(!sync_ctx->liquid_fraction_var.isNull());
+    TBOX_ASSERT(hier_math_ops);
+#endif
+
+    // Reset priority guarantees that ls_var has already been reset/reinitialized.
+    sync_ctx->vof_from_ls->computeVOFFromLevelSet(time, /*use_new_context=*/false);
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int mapped_pcm_vof_current_idx = var_db->mapVariableAndContextToIndex(
+        sync_ctx->pcm_vof_var,
+        sync_ctx->adv_diff_integrator->getCurrentContext());
+    const int liquid_fraction_current_idx = var_db->mapVariableAndContextToIndex(
+        sync_ctx->liquid_fraction_var,
+        sync_ctx->adv_diff_integrator->getCurrentContext());
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(mapped_pcm_vof_current_idx == pcm_vof_current_idx);
+#endif
+
+    // liquid_fraction is a whole-cell liquid PCM fraction: enforce 0 <= L <= C.
+    clamp_liquid_fraction_to_pcm_vof(hier_math_ops->getPatchHierarchy(),
+                                     pcm_vof_current_idx,
+                                     liquid_fraction_current_idx);
+}
+
+void
+compute_pcm_vof_new_from_ls(double /*current_time*/,
+                            double new_time,
+                            int /*cycle_num*/,
+                            void* ctx)
+{
+    auto* vof_from_ls =
+        static_cast<IBAMR::VCINSVOFUtilities::
+                        VOFFromLevelSetInitializer*>(ctx);
+
+    vof_from_ls->computeVOFFromLevelSet(
+        new_time,
+        /*use_new_context=*/true);
+}
+
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -319,6 +419,7 @@ main(int argc, char* argv[])
         // register liquid fraction
         Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
+        // enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
         // register liquid fraction gradient
@@ -334,15 +435,15 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
         // register Heaviside
-        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
-        adv_diff_integrator->registerTransportedQuantity(H_var, true);
-        adv_diff_integrator->setDiffusionCoefficient(H_var, 0.0);
+        Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
+        adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
+        adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
 
         // set Level set
         enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
 
         // set Heaviside
-        enthalpy_hier_integrator->registerHeavisideVariable(H_var);
+        enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
@@ -350,20 +451,20 @@ main(int argc, char* argv[])
 
         // set Advection velocity.
         adv_diff_integrator->setAdvectionVelocity(ls_var, time_integrator->getAdvectionVelocityVariable());
-        adv_diff_integrator->setAdvectionVelocity(H_var, time_integrator->getAdvectionVelocityVariable());
+        // adv_diff_integrator->setAdvectionVelocity(pcm_vof_var, time_integrator->getAdvectionVelocityVariable());
         enthalpy_hier_integrator->setAdvectionVelocity(time_integrator->getAdvectionVelocityVariable());
 
         const ConvectiveDifferencingType ls_difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("LS_CONVECTIVE_FORM"));
         adv_diff_integrator->setConvectiveDifferencingType(ls_var, ls_difference_form);
 
-        const ConvectiveDifferencingType H_difference_form =
-            IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("H_CONVECTIVE_FORM"));
-        adv_diff_integrator->setConvectiveDifferencingType(H_var, H_difference_form);
+        // const ConvectiveDifferencingType H_difference_form =
+        //     IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("H_CONVECTIVE_FORM"));
+        // adv_diff_integrator->setConvectiveDifferencingType(H_var, H_difference_form);
 
         // set priority.
         adv_diff_integrator->setResetPriority(ls_var, 0);
-        adv_diff_integrator->setResetPriority(H_var, 1);
+        adv_diff_integrator->setResetPriority(pcm_vof_var, 1);
 
         // set initial conditions for the variables.
         Pointer<CartGridFunction> ls_init = new LevelSetInitialCondition(
@@ -379,6 +480,10 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> T_init = new TemperatureInitialCondition(
             "T_init", initial_liquid_solid_interface_position, initial_liquid_temperature, initial_solid_temperature);
         enthalpy_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
+
+        Pointer<CartGridFunction> pcm_vof_init =
+        new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("pcm_vof_init", ls_init);
+        adv_diff_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);  
 
         Pointer<CartGridFunction> lf_init =
             new LiquidFractionInitialCondition("lf_init", initial_liquid_solid_interface_position);
@@ -398,14 +503,29 @@ main(int argc, char* argv[])
             time_integrator->registerPressureInitialConditions(p_init);
         }
 
-        SynchronizeLevelSetCtx sync_ls_ctx;
-        sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        sync_ls_ctx.ls_var = ls_var;
-        sync_ls_ctx.H_var = H_var;
-        sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
+        // SynchronizeLevelSetCtx sync_ls_ctx;
+        // sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
+        // sync_ls_ctx.ls_var = ls_var;
+        // sync_ls_ctx.H_var = H_var;
+        // sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
+
+        IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
+                        "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
+                    
+                    enthalpy_hier_integrator->registerUpdateVOFFromLevelSetFcn(
+                        &compute_pcm_vof_new_from_ls, static_cast<void*>(&pcm_vof_from_ls)
+                    );
+
+        SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
+                pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
+                pcm_vof_sync_ctx.adv_diff_integrator = adv_diff_integrator;
+                pcm_vof_sync_ctx.pcm_vof_var = pcm_vof_var;
+                pcm_vof_sync_ctx.liquid_fraction_var = lf_var;
+
+
 
         adv_diff_integrator->registerResetFunction(
-            H_var, &synchronize_levelset_with_heaviside_fcn, static_cast<void*>(&sync_ls_ctx));
+            pcm_vof_var, &synchronize_pcm_vof_with_level_set, static_cast<void*>(&pcm_vof_sync_ctx));
 
         // Setup the INS maintained material properties.
         Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
@@ -441,12 +561,12 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> H_bc_coef;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> pcm_vof_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
         {
-            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
+            pcm_vof_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
+            adv_diff_integrator->setPhysicalBcCoef(pcm_vof_var, pcm_vof_bc_coef.get());
         }
 
         std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef;
@@ -548,8 +668,8 @@ main(int argc, char* argv[])
         // the advection-diffusion integrator
         IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                               adv_diff_integrator,
-                                                                              H_var,
-                                                                              H_bc_coef.get(),
+                                                                              pcm_vof_var,
+                                                                              pcm_vof_bc_coef.get(),
                                                                               lf_var,
                                                                               lf_bc_coef.get(),
                                                                               rho_liquid,
@@ -581,13 +701,13 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                           static_cast<void*>(&setSetFluidProperties));
 
-        // Register H Div U term in the Heaviside equation.
-        Pointer<CellVariable<NDIM, double>> F_var = new CellVariable<NDIM, double>(H_var->getName() + "_F");
-        adv_diff_integrator->registerSourceTerm(F_var, true);
-        Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
-            "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
-        adv_diff_integrator->setSourceTermFunction(F_var, H_forcing_fcn);
-        adv_diff_integrator->setSourceTerm(H_var, F_var);
+        // Register H Div U term in the Heaviside equation. // Is this needed? I do not think so
+        // Pointer<CellVariable<NDIM, double>> pcm_vof_F_var = new CellVariable<NDIM, double>(pcm_vof_var->getName() + "_F");
+        // adv_diff_integrator->registerSourceTerm(pcm_vof_F_var, true);
+        // Pointer<CartGridFunction> pcm_vof_forcing_fcn = new HeavisideForcingFunction(
+        //     "pcm_vof_forcing_fcn", adv_diff_integrator, pcm_vof_var, time_integrator->getAdvectionVelocityVariable());
+        // adv_diff_integrator->setSourceTermFunction(pcm_vof_F_var, pcm_vof_forcing_fcn);
+        // adv_diff_integrator->setSourceTerm(pcm_vof_var, pcm_vof_F_var);
 
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
@@ -627,7 +747,7 @@ main(int argc, char* argv[])
         // Configure the drag force object to enforce solid velocity to be zero.
         Pointer<CarmanKozenyDragForce> drag_force =
             new CarmanKozenyDragForce("drag_force",
-                                      H_var,
+                                      pcm_vof_var,
                                       lf_var,
                                       adv_diff_integrator,
                                       time_integrator,
@@ -644,6 +764,23 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+
+        pcm_vof_from_ls.computeVOFFromLevelSet(time_integrator->getIntegratorTime(), /*use_new_context=*/false);
+        
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                const int pcm_vof_current_idx = var_db->mapVariableAndContextToIndex(
+                    pcm_vof_var,
+                    adv_diff_integrator->getCurrentContext());
+                const int lf_current_idx = var_db->mapVariableAndContextToIndex(
+                    lf_var,
+                    adv_diff_integrator->getCurrentContext());
+        
+                
+                clamp_liquid_fraction_to_pcm_vof(
+                    patch_hierarchy,
+                    pcm_vof_current_idx,
+                    lf_current_idx);
 
         // Remove the AppInitializer
         app_initializer.setNull();
@@ -663,10 +800,10 @@ main(int argc, char* argv[])
         }
 
         // Tracking the mass of the PCM.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        // VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
-        const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
-        const int pcm_mass_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
+        const int pcm_vof_idx = var_db->mapVariableAndContextToIndex(pcm_vof_var, adv_diff_integrator->getCurrentContext());
+        const int pcm_mass_idx = var_db->registerClonedPatchDataIndex(pcm_vof_var, pcm_vof_idx);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -736,7 +873,7 @@ main(int argc, char* argv[])
                     const double* patch_X_lower = patch_geom->getXLower();
                     const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
-                    Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+                    Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(pcm_vof_idx);
                     Pointer<CellData<NDIM, double>> wgt_data = patch->getPatchData(wgt_cc_idx);
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {
@@ -762,7 +899,7 @@ main(int argc, char* argv[])
             std::vector<double> bubble_integrals{ left_bubble_volume, right_bubble_volume };
             IBTK_MPI::sumReduction(&bubble_integrals[0], bubble_integrals.size());
 
-            hier_cc_data_ops->multiply(pcm_mass_idx, rho_idx, H_idx);
+            hier_cc_data_ops->multiply(pcm_mass_idx, rho_idx, pcm_vof_idx);
             const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
 
             if (SAMRAI_MPI::getRank() == 0)

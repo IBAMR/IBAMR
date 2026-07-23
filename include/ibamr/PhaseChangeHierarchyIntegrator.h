@@ -236,7 +236,7 @@ public:
     /*!
      *  \brief Add the temporal and linear terms to the RHS of the energy equation.
      */
-    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) = 0;
+    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, int rho_h_n_idx, int H_new_idx,  double dt) = 0;
 
     /*!
      * \brief Get the solver of the energy equation.

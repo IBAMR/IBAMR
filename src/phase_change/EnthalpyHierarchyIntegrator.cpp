@@ -240,6 +240,7 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
     return;
 } // EnthalpyHierarchyIntegrator
 
+
 void
 EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
@@ -324,8 +325,15 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
     d_T_pre_var = new CellVariable<NDIM, double>(d_object_name + "::T_pre_var");
     d_T_pre_idx = var_db->registerVariableAndContext(d_T_pre_var, getCurrentContext());
 
+    d_drhoh_dT_var = new CellVariable<NDIM, double>(d_object_name + "::drhoh_dT_var");
+    d_drhoh_dT_scratch_idx = var_db->registerVariableAndContext(d_drhoh_dT_var, getCurrentContext(), no_ghosts);
+
+
     d_dh_dT_var = new CellVariable<NDIM, double>(d_object_name + "::dh_dT_var");
     d_dh_dT_scratch_idx = var_db->registerVariableAndContext(d_dh_dT_var, getCurrentContext(), no_ghosts);
+
+    d_d2h_dT_var = new CellVariable<NDIM, double>(d_object_name + "::d2h_dT_var");
+    d_d2h_dT_scratch_idx = var_db->registerVariableAndContext(d_d2h_dT_var, getCurrentContext(), no_ghosts);
 
     d_grad_T_var = new SideVariable<NDIM, double>(d_object_name + "::grad_T");
     d_grad_T_idx =
@@ -363,7 +371,9 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_drhoh_dT_scratch_idx)) level->allocatePatchData(d_drhoh_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_dh_dT_scratch_idx)) level->allocatePatchData(d_dh_dT_scratch_idx, current_time);
+        if (!level->checkAllocated(d_d2h_dT_scratch_idx)) level->allocatePatchData(d_d2h_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
         if (d_lf_extrap_var)
@@ -381,10 +391,10 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
     const int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
 
-    // Initialize enthalpy h only at the start of the simulation.
+
     if (initial_time)
-        computeEnthalpyBasedOnTemperature(
-            d_h_current_idx, d_T_current_idx, d_rho_current_idx, d_lf_current_idx, H_current_idx);
+    computeEnthalpyBasedOnTemperature(
+        d_h_current_idx, d_T_current_idx, d_rho_current_idx, d_lf_current_idx, H_current_idx);
 
     if (d_solve_mass_conservation)
     {
@@ -518,7 +528,10 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
                                                            const double new_time,
                                                            const int cycle_num)
 {
+    // First advance all quantities managed by the base advection-diffusion
+    // integrator. In particular, this produces ls^{n+1} in the new context.
     AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
+
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -535,7 +548,17 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     }
 
     // Perform a single step of fixed point iteration.
+
+    
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+
+    // computeEnthalpyBasedOnTemperature(
+        // d_h_new_idx, d_T_new_idx, d_rho_new_idx, d_lf_new_idx, H_new_idx);
+
+        // computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
+
+        // Find lf^n+1, m+1 based on h^n+1, m+1.
+        // computeLiquidFraction(d_lf_new_idx, d_h_new_idx, H_new_idx);
 
     // In the special case of conservative discretization, the updated
     // density is calculated by the mass and convective integrator.
@@ -580,13 +603,34 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         d_rho_p_integrator->integrate(dt);
     }
 
-    d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx;
+    d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx; // this is the sts mass flux integrator density; 
     d_hier_cc_data_ops->copyData(d_rho_new_idx,
                                  d_updated_rho_idx,
                                  /*interior_only*/ true);
 
+    // Heaviside is H^n+1, calculate temperautre and liquid fraction for this heaviside. 
+    // computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx); // T(h^n, H^n+1); 
+    // computeLiquidFraction(d_lf_new_idx, d_h_new_idx, H_new_idx); // lf(h^n, H^n+1); 
+
+    // similarly need to update thermal conductivity 
+const double StateApplyTime = new_time; 
+    for (unsigned k =0; k< d_reset_kappa_fcns.size(); ++k)
+    {
+        d_reset_kappa_fcns[k](
+            d_T_diffusion_coef_cc_new_idx, 
+            d_T_diffusion_coef_cc_var, 
+            d_hier_math_ops, 
+            -1, 
+            StateApplyTime, 
+            current_time, 
+            new_time, 
+            d_reset_kappa_fcns_ctx[k]
+        );
+    }
+
     // Account for the convective acceleration term N_full.
-    if (d_u_adv_var) d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
+    if (d_solve_mass_conservation && d_u_adv_var)
+        d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
     PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
 
@@ -597,8 +641,36 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     double lf_relative_iteration_error = 1.0;
     double inner_iterations = 1.0;
 
+    // I can create rho^n h^n here. 
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex(); 
+    
+    Pointer<SAMRAIVectorReal<NDIM, double>> h_current_vec = 
+        new SAMRAIVectorReal<NDIM, double > (
+            d_object_name + "::h_current_wrapper",
+            d_hierarchy, 
+            coarsest_ln, 
+            finest_ln
+        );
+
+    h_current_vec->addComponent(
+        d_h_var, 
+        d_h_current_idx, 
+        wgt_idx, 
+        d_hier_cc_data_ops
+    ); 
+
+    Pointer<SAMRAIVectorReal<NDIM, double>> rho_h_n_vec = h_current_vec->cloneVector(d_object_name + "::rho_h_n");
+
+    rho_h_n_vec->allocateVectorData(current_time); 
+    const int rho_h_n_idx = rho_h_n_vec->getComponentDescriptorIndex(0);
+
+    d_hier_cc_data_ops->multiply(rho_h_n_idx,d_rho_current_idx,d_h_current_idx); // now rho h is present before the newton iteration loop starts
+    double T_relative_iteration_error = 1.0; 
     // Inner iterations for the Newton-Ralphson scheme.
-    while (lf_relative_iteration_error >= d_lf_iteration_error_tolerance && inner_iterations <= d_max_inner_iterations)
+    while ((lf_relative_iteration_error >= d_lf_iteration_error_tolerance || T_relative_iteration_error >= d_lf_iteration_error_tolerance )&& inner_iterations <= d_max_inner_iterations)
     {
         // Setup the problem coefficients for the linear solve
         double alpha = 0.0;
@@ -651,11 +723,18 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         d_hier_sc_data_ops->scale(d_T_diffusion_coef_scratch_idx, -alpha, d_T_diffusion_coef_new_idx);
         T_solver_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);
 
+        computeRhoEnthalpyDerivative(d_drhoh_dT_scratch_idx, d_T_new_idx, H_new_idx);
+
         computeEnthalpyDerivative(d_dh_dT_scratch_idx, d_T_new_idx, H_new_idx);
 
+        computeEnthalpySecondDerivative(d_d2h_dT_scratch_idx, d_T_new_idx, H_new_idx);
+
         // Set rho*Cp/dt.
+        // d_hier_cc_data_ops->multiply(d_C_new_idx, d_rho_new_idx, d_dh_dT_scratch_idx); // THis does not need to happen now
+        // d_hier_cc_data_ops->copyData(d_T_C_idx, d_drhoh_dT_scratch_idx);
         d_hier_cc_data_ops->multiply(d_C_new_idx, d_rho_new_idx, d_dh_dT_scratch_idx);
         d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
+
         d_hier_cc_data_ops->scale(d_T_C_idx, 1.0 / dt, d_T_C_idx);
         T_solver_spec.setCPatchDataId(d_T_C_idx);
 
@@ -683,11 +762,12 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
             d_hier_cc_data_ops->setToScalar(d_T_F_scratch_idx, 0.0);
 
         // Compute and add temporal and linearized terms to the RHS of the energy equation.
-        addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, dt);
+        addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, rho_h_n_idx, H_new_idx, dt);
         d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
 
         // Storing T^n+1,m.
         d_hier_cc_data_ops->copyData(d_T_pre_idx, d_T_new_idx);
+        // d_hier_cc_data_ops->copyData(d_lf_pre_idx, d_lf_new_idx); 
 
         // Solve for T(n+1, m+1).
         T_solver->solveSystem(*d_T_sol, *d_T_rhs);
@@ -709,6 +789,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
 
         // Find h^n+1, m+1.
         updateEnthalpy(d_h_new_idx, d_T_new_idx, d_T_pre_idx);
+
+        // computeEnthalpyBasedOnTemperatureOnly(d_T_new_idx,d_h_new_idx , H_new_idx); 
 
         // Find T^n+1,m+1 based on h^n+1, m+1.
         computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
@@ -748,6 +830,12 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
         lf_relative_iteration_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx);
 
+        const double T_old_norm = d_hier_cc_data_ops->L2Norm(d_T_pre_idx, wgt_cc_idx); 
+        d_hier_cc_data_ops->subtract(d_T_pre_idx, d_T_new_idx, d_T_pre_idx); 
+        T_relative_iteration_error = d_hier_cc_data_ops->L2Norm(d_T_pre_idx, wgt_cc_idx)/(1.0+T_old_norm); 
+
+
+
         // Finding lf^m - lf^m-1.
         d_hier_cc_data_ops->subtract(d_lf_pre_idx, d_lf_new_idx, d_lf_pre_idx);
 
@@ -757,6 +845,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
              << "L2 : " << d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_relative_iteration_error)
              << " || "
              << "L_oo : " << d_hier_cc_data_ops->maxNorm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_relative_iteration_error)
+             << " || "
+             << "L_2T : " << T_relative_iteration_error
              << "\n";
 
         lf_relative_iteration_error =
@@ -767,8 +857,14 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         d_hier_cc_data_ops->copyData(d_T_F_new_idx, d_T_F_scratch_idx);
     }
 
+    rho_h_n_vec->freeVectorComponents(); 
+    rho_h_n_vec.setNull(); 
+    h_current_vec.setNull(); 
+
+
     // Reset the right-hand side vector.
-    if (d_u_adv_var) d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
+    if (d_solve_mass_conservation && d_u_adv_var)
+        d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
     // Compute the source term for Div U equation.
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
@@ -793,7 +889,9 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_T_pre_idx);
+        level->deallocatePatchData(d_drhoh_dT_scratch_idx);
         level->deallocatePatchData(d_dh_dT_scratch_idx);
+        level->deallocatePatchData(d_d2h_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
         if (d_lf_extrap_var)
         {
@@ -813,6 +911,7 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     return;
 } // postprocessIntegrateHierarchy
 
+
 void
 EnthalpyHierarchyIntegrator::registerSpecificEnthalpyVariable(Pointer<CellVariable<NDIM, double> > h_var,
                                                               const bool output_h_var)
@@ -829,6 +928,14 @@ EnthalpyHierarchyIntegrator::setEnthalpyBcCoef(RobinBcCoefStrategy<NDIM>* h_bc_c
     d_h_bc_coef = h_bc_coef;
     return;
 } // setEnthalpyBcCoef
+
+void
+EnthalpyHierarchyIntegrator::registerUpdateVOFFromLevelSetFcn(UpdateVOFFromLevelSetFcnPtr callback, void* ctx)
+{
+    d_update_vof_from_ls_fcn = callback;
+    d_update_vof_from_ls_ctx = ctx;
+    return; 
+}
 
 void
 EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
@@ -910,7 +1017,7 @@ EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt)
+EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, int rho_h_n_idx, int H_new_idx, const double dt)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -923,24 +1030,88 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
             const Box<NDIM>& patch_box = patch->getBox();
             Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_new_idx);
             Pointer<CellData<NDIM, double> > h_new_data = patch->getPatchData(d_h_new_idx);
+            Pointer<CellData<NDIM, double> > H_new_data = patch->getPatchData(H_new_idx);
             Pointer<CellData<NDIM, double> > h_current_data = patch->getPatchData(d_h_current_idx);
             Pointer<CellData<NDIM, double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
             Pointer<CellData<NDIM, double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
             Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double> > d2h_dT_data = patch->getPatchData(d_d2h_dT_scratch_idx);
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
+            Pointer<CellData<NDIM, double> > rho_h_n_data = patch->getPatchData(rho_h_n_idx);
+            Pointer<CellData<NDIM, double> > drhoh_dT_data = patch->getPatchData(d_drhoh_dT_scratch_idx);
+            
+
+
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
+                const double T = (*T_new_data)(ci); 
+                const double H = (*H_new_data)(ci); 
+
+                const double rho = (*rho_new_data)(ci);
+const double dhdT = (*dh_dT_data)(ci);
+const double d2hdT2 = (*d2h_dT_data)(ci);
+
+                double rho_thermo = 0.0; 
+                double rho_h_m = 0.0;
+                double rhoT; 
+                
+                
+                const double delta_T =
+                d_liquidus_temperature -
+                d_solidus_temperature;
+            
+            
+            
+            if (T < d_solidus_temperature)
+            {
+                rho_thermo =(1.0 - H) *d_rho_gas +H *d_rho_solid; 
+                rhoT = 0.0; 
+                   
+            }
+            else if (T > d_liquidus_temperature)
+            {
+                rho_thermo =(1.0 - H) *d_rho_gas +H *d_rho_liquid; 
+                rhoT = 0.0; 
+            
+            }
+            else
+            {
+                const double theta =(T - d_solidus_temperature) /delta_T;
+                const double R0 = (1.0 - H)*d_rho_gas + H*d_rho_solid; 
+                const double R1 = H* ( d_rho_liquid - d_rho_solid); 
+                rho_thermo = R0 + R1*theta; 
+                rhoT = H*(d_rho_liquid - d_rho_solid)/delta_T; 
+
+            }   
+
+            // Actually I shoudl only construct rho^n+1 not rho h here. h new data is already present. 
+                // (*F_data)(ci) +=  -1.0 / dt *
+                //                     (rho_thermo*(*h_new_data)(ci) -  (*drhoh_dT_data)(ci)*(*T_new_data)(ci) - (*rho_h_n_data)(ci));
+                
+                
+                // (*F_data)(ci) += -1.0 / dt *
+                //                  ((*rho_new_data)(ci) * (*h_new_data)(ci) - (*drhoh_dT_data)(ci) * (*T_new_data)(ci) -
+                //                   (*rho_h_n_data)(ci));//using rho breve in new method
 
                 (*F_data)(ci) += -1.0 / dt *
-                                 ((*rho_new_data)(ci) * ((*h_new_data)(ci) - (*dh_dT_data)(ci) * (*T_new_data)(ci)) -
-                                  (*rho_current_data)(ci) * (*h_current_data)(ci));
+                                 ((*rho_new_data)(ci) * (*h_new_data)(ci) - (*rho_new_data)(ci) *(*dh_dT_data)(ci) * (*T_new_data)(ci) -
+                                  (*rho_h_n_data)(ci)); //original method using dh/dT
+
+
+                // (*F_data)(ci) += -1.0 / dt *
+                //                  ((*rho_new_data)(ci) * (*h_new_data)(ci) - (*rho_new_data)(ci) *(*dh_dT_data)(ci) * (*T_new_data)(ci) 
+                //                         - (*h_new_data)(ci) * rhoT * (*T_new_data)(ci) - 
+                //                   (*rho_h_n_data)(ci)); //original method using dh/dT multiplying with rho breve with splitting derivative. 
+
+
             }
         }
     }
     return;
 } // addTemporalAndLinearTermstoRHSOfEnergyEquation
+
 
 void
 EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
@@ -977,6 +1148,8 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
 
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+    const double delta_T_m = d_liquidus_temperature - d_solidus_temperature;
+    const double delta_rho = d_rho_liquid - d_rho_solid;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -988,19 +1161,84 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
             Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
             Pointer<CellData<NDIM, double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
+
+
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
+                double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                // double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                // (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+
+
                 double material_derivative = 0.0;
-                if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l && (*H_data)(ci) >= H_LIM)
-                {
+        //         if ((*h_data)(ci) >= hs_cell && (*h_data)(ci) <= hl_cell )
+        //         {
 
-                 material_derivative = (*Div_U_F_data)(ci)*(-d_rho_solid + d_rho_liquid)/(d_rho_solid*d_rho_liquid*(h_l-h_s));
-		}
+        //             // material_derivative
+        //             material_derivative = (*Div_U_F_data)(ci)*(-d_rho_solid + d_rho_liquid)/(H1*R0 - H0*R1);
+        //         //  material_derivative = (*Div_U_F_data)(ci)*(-d_rho_solid + d_rho_liquid)/(d_rho_solid*d_rho_liquid*(h_l-h_s));
+		// }
 
-            (*Div_U_F_data)(ci) =-material_derivative*(*H_data)(ci);
+            // (*Div_U_F_data)(ci) =-material_derivative*(*H_data)(ci);
+
+
+        const double Qmix = (*Div_U_F_data)(ci);
+
+double H = clamp((*H_data)(ci), 0.0, 1.0);
+const double alpha_p = H;
+const double alpha_g = 1.0 - H;
+
+const double T = (*T_data)(ci);
+const double DelT = d_liquidus_temperature - d_solidus_temperature;
+
+if (T >= d_solidus_temperature && T <= d_liquidus_temperature)
+{
+    double phi = (T - d_solidus_temperature) / DelT;
+    phi = clamp(phi, 0.0, 1.0);
+
+    const double rho_p =
+        d_rho_solid*(1.0 - phi) + d_rho_liquid*phi;
+
+    const double Cv_pm =
+        d_rho_liquid*d_rho_solid*
+        (d_specific_heat_mushy + d_latent_heat/DelT) / rho_p;
+
+    const double Cv_mix =
+        alpha_g*d_rho_gas*d_specific_heat_gas
+      + alpha_p*Cv_pm;
+
+    (*Div_U_F_data)(ci) =
+        -alpha_p*(d_rho_liquid - d_rho_solid) /
+        (rho_p*DelT*Cv_mix) * Qmix;
+}
+else
+{
+    (*Div_U_F_data)(ci) = 0.0;
+}
+
 
 	    }
         }
@@ -1089,6 +1327,200 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
     return;
 } // computeEnthalpyBasedOnTemperature
 
+
+
+void
+EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperatureOnly(const int T_idx,
+                                                                int h_idx,
+                                                               const int H_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+   
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+                const double H = (*H_data)(ci); 
+                const double T = (*T_data)(ci); 
+
+                const double theta =(T - d_solidus_temperature) / (d_liquidus_temperature -d_solidus_temperature);
+            
+                const double R0 =(1.0 - H) * d_rho_gas + H * d_rho_solid;
+            
+                const double R1 =H * (d_rho_liquid - d_rho_solid);
+            
+                // const double rho =R0 + R1 * theta;
+
+                const double delta_T = d_liquidus_temperature - d_solidus_temperature; 
+
+                const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+                const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+
+                 
+                //  double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                //  double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                        //  (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+                double rho; 
+                double rho_h; 
+                if (T < d_solidus_temperature)
+                {
+                    rho =
+                        (1.0 - H) * d_rho_gas +
+                        H * d_rho_solid;
+                
+                    rho_h =
+                        (1.0 - H) *
+                            d_rho_gas *
+                            d_specific_heat_gas *
+                            (T - d_reference_temperature)
+                        +
+                        H *
+                            d_rho_solid *
+                            d_specific_heat_solid *
+                            (T - d_reference_temperature);
+                }
+                else if (T > d_liquidus_temperature)
+                {
+                    rho =
+                        (1.0 - H) * d_rho_gas +
+                        H * d_rho_liquid;
+                
+                    // rho*h evaluated exactly at T_liquidus.
+                    const double rho_h_liquidus =
+                        (1.0 - H) *
+                            d_rho_gas *
+                            d_specific_heat_gas *
+                            (d_liquidus_temperature -
+                             d_reference_temperature)
+                        +
+                        H *
+                            d_rho_liquid *
+                            h_l;
+                
+                    // volumetric heat capacity of the liquid/gas mixture.
+                    const double rho_cp_LG =
+                        (1.0 - H) *
+                            d_rho_gas *
+                            d_specific_heat_gas
+                        +
+                        H *
+                            d_rho_liquid *
+                            d_specific_heat_liquid;
+                
+                    rho_h =
+                        rho_h_liquidus +
+                        rho_cp_LG *
+                            (T - d_liquidus_temperature);
+                }
+                else
+                {
+                    const double theta =
+                        (T - d_solidus_temperature) /
+                        delta_T;
+                
+                    // rho = R0 + R1*theta
+                    const double R0 =
+                        (1.0 - H) * d_rho_gas +
+                        H * d_rho_solid;
+                
+                    const double R1 =
+                        H * (d_rho_liquid - d_rho_solid);
+                
+                    rho =
+                        R0 + R1 * theta;
+                
+                
+                    // rho*h = H0 + H1*theta
+                    const double H0 =
+                        (1.0 - H) *
+                            d_rho_gas *
+                            d_specific_heat_gas *
+                            (d_solidus_temperature -
+                             d_reference_temperature)
+                        +
+                        H *
+                            d_rho_solid *
+                            h_s;
+                
+                    const double H1 =
+                        (1.0 - H) *
+                            d_rho_gas *
+                            d_specific_heat_gas *
+                            delta_T
+                        +
+                        H *
+                            (
+                                (d_rho_liquid - d_rho_solid) * h_s
+                                +
+                                d_rho_liquid *
+                                    (
+                                        d_latent_heat +
+                                        d_specific_heat_mushy * delta_T
+                                    )
+                            );
+                
+                    rho_h =
+                        H0 + H1 * theta;
+                }
+
+            
+                (*h_data)(ci) = rho_h / rho;
+                // // double rho_h = H0 + H1*theta;
+
+                // // if ((*H_data)(ci) >= H_LIM)
+                // // {
+                //     if ((*T_data)(ci) < d_solidus_temperature)
+                //     {
+                //         (*h_data)(ci) =  ((*T_data)(ci)-d_reference_temperature)*C_SG;
+                //     }
+                //     else if ((*T_data)(ci) > d_liquidus_temperature)
+                //     {
+                //     (*h_data)(ci) = hl_cell + C_LG*((*T_data)(ci)-d_liquidus_temperature);
+                    
+                //     // (d_rho_liquid/(*rho_data)(ci))*d_specific_heat_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
+			    //     //                                     (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
+		        //     }
+                //     else
+                //     {
+                //         (*h_data)(ci) = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas*((*T_data)(ci)-d_reference_temperature) + 
+                //         ((*H_data)(ci) - (*lf_data)(ci))*d_rho_solid*h_s + 
+                //         (*lf_data)(ci)*d_rho_liquid*(h_s + d_latent_heat + d_specific_heat_mushy*(d_liquidus_temperature - d_solidus_temperature)))/( (*rho_data)(ci));
+                //     }
+                // // }
+                // // else
+                // // {
+                // //     (*h_data)(ci) = d_specific_heat_gas * ((*T_data)(ci)-d_reference_temperature);
+                // // }
+            }
+        }
+    }
+    return;
+} // computeEnthalpyBasedOnTemperature
+
+
 void
 EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const int h_idx, const int H_idx)
 {
@@ -1134,7 +1566,7 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
                 ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
 
 
-                // if ((*H_data)(ci) >= H_LIM)
+                // if ((*H_data)(ci) > 0.0)
                 // {
                     if ((*h_data)(ci) < hs_cell)
                     {
@@ -1149,10 +1581,10 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
                         (*T_data)(ci) = d_solidus_temperature + (d_liquidus_temperature - d_solidus_temperature)*(((*h_data)(ci)*R0 - H0)/(H1 - (*h_data)(ci)*R1));
                     }
                 // }
-                // else
-                // {
-                //     (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_gas + d_reference_temperature;
-                // }
+                // // else
+                // // {
+                // //     (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_gas + d_reference_temperature;
+                // // }
             }
         }
     }
@@ -1176,17 +1608,143 @@ EnthalpyHierarchyIntegrator::updateEnthalpy(int h_new_idx, const int T_new_idx, 
             Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(T_new_idx);
             Pointer<CellData<NDIM, double> > T_pre_data = patch->getPatchData(T_pre_idx);
             Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double> > drhoh_dT_data = patch->getPatchData(d_drhoh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double> > d2h_dT_data = patch->getPatchData(d_d2h_dT_scratch_idx);
+            // Pointer<CellData<NDIM, double> > rho_h_n_data = patch->getPatchData(rho_h_n_idx);
+            // Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
-                (*h_new_data)(ci) += (*dh_dT_data)(ci) * ((*T_new_data)(ci) - (*T_pre_data)(ci));
+                
+                 (*h_new_data)(ci) +=  (*dh_dT_data)(ci) * ((*T_new_data)(ci) - (*T_pre_data)(ci)) ; //+  0.5*(*d2h_dT_data)(ci) * ((*T_new_data)(ci) - (*T_pre_data)(ci)) * ((*T_new_data)(ci) - (*T_pre_data)(ci)) ;
+                // (*rho_h_n_data)(ci) +=  (*drhoh_dT_data)(ci) * ((*T_new_data)(ci) - (*T_pre_data)(ci)) ; 
+                // (*h_new_data)(ci) = (*rho_h_n_data)(ci)/(*d_rho_new_data);
+
             }
+
         }
     }
     return;
 } // updateEnthalpy
+
+void
+EnthalpyHierarchyIntegrator::computeRhoEnthalpyDerivative(int drhoh_dT_idx, const int T_idx, const int H_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+     double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+         const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double> > drhoh_dT_data = patch->getPatchData(drhoh_dT_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                const double T = (*T_data)(ci); 
+                const double H = (*H_data)(ci); 
+
+                const double delta_T = d_liquidus_temperature - d_solidus_temperature; 
+                
+
+                double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+            //     // if ((*H_data)(ci) >= H_LIM)
+            //     // {
+            //         if ((*T_data)(ci) < d_solidus_temperature)
+            //         {
+            //             (*dh_dT_data)(ci) = //C_SG;
+            //         }
+            //         else if ((*T_data)(ci) > d_liquidus_temperature)
+            //         {
+            //             (*dh_dT_data)(ci) =  C_LG;
+            //         }
+                    
+            // //         else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+            // //         {
+            // //          (*dh_dT_data)(ci) =d_rho_liquid*d_rho_solid*(h_l - h_s)*(d_liquidus_temperature - d_solidus_temperature)/
+			// //                                              (std::pow(((*T_data)(ci)*(d_rho_liquid - d_rho_solid) +d_liquidus_temperature*d_rho_solid - d_solidus_temperature*d_rho_liquid ),2.0)); 
+		    // // }
+            //         else
+            //         {
+            //             (*dh_dT_data)(ci) =  (H1*R0 - H0*R1)/((d_liquidus_temperature - d_solidus_temperature)*std::pow(Rho_T ,2.0)); 
+            //         }
+            //     // }
+            //     // else
+            //     // {
+            //     //     (*dh_dT_data)(ci) = d_specific_heat_gas;
+            //     // }
+
+            
+            if (T < d_solidus_temperature)
+{
+    (*drhoh_dT_data)(ci) =
+        (1.0 - H) * d_rho_gas * d_specific_heat_gas +
+        H * d_rho_solid * d_specific_heat_solid;
+}
+else if (T > d_liquidus_temperature)
+{
+    (*drhoh_dT_data)(ci) =
+        (1.0 - H) * d_rho_gas * d_specific_heat_gas +
+        H * d_rho_liquid * d_specific_heat_liquid;
+}
+else
+{
+    const double H1 =
+        (1.0 - H) *
+            d_rho_gas *
+            d_specific_heat_gas *
+            delta_T
+        +
+        H *
+            ((d_rho_liquid - d_rho_solid) * h_s +
+             d_rho_liquid *
+                 (d_latent_heat +
+                  d_specific_heat_mushy * delta_T));
+
+    (*drhoh_dT_data)(ci) = H1 / delta_T;
+}
+
+            }
+        }
+    }
+    return;
+} // computeRhoEnthalpyDerivative
+
+
 
 void
 EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int T_idx, const int H_idx)
@@ -1211,6 +1769,12 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
+
+                const double T = (*T_data)(ci); 
+                const double H = (*H_data)(ci); 
+
+                const double delta_T = d_liquidus_temperature - d_solidus_temperature; 
+                
 
                 double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
                                         ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
@@ -1259,11 +1823,108 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
                 // {
                 //     (*dh_dT_data)(ci) = d_specific_heat_gas;
                 // }
+
+            
+        
+
             }
         }
     }
     return;
-} // computeEnthalpyDerivative
+} // computeRhoEnthalpyDerivative
+
+
+
+void
+EnthalpyHierarchyIntegrator::computeEnthalpySecondDerivative(int d2h_dT_idx, const int T_idx, const int H_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+     double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+         const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double> > d2h_dT_data = patch->getPatchData(d2h_dT_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                const double T = (*T_data)(ci); 
+                const double H = (*H_data)(ci); 
+
+                const double delta_T = d_liquidus_temperature - d_solidus_temperature; 
+                
+
+                double hs_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_solid * h_s)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+                 double hl_cell = ((1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_liquidus_temperature - d_reference_temperature) +  (*H_data)(ci)*d_rho_liquid * h_l)/
+                                        ((1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                 double R0 = (1.0 - (*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid; 
+                 double R1 = (*H_data)(ci)*(d_rho_liquid - d_rho_solid); 
+
+                 double H0 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas* (d_solidus_temperature - d_reference_temperature) + (*H_data)(ci)*d_rho_solid * h_s; 
+                 double H1 = (1.0 - (*H_data)(ci))*d_specific_heat_gas*d_rho_gas*(d_liquidus_temperature - d_solidus_temperature) + 
+                         (*H_data)(ci)*((d_rho_liquid - d_rho_solid)*h_s + d_rho_liquid*( d_latent_heat + d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature)));
+
+                double Rho_T = (((*H_data)(ci) - 1.0)*d_solidus_temperature*d_rho_gas - (*H_data)(ci)* d_solidus_temperature*d_rho_liquid + (*H_data)(ci)*(*T_data)(ci)*(d_rho_liquid - d_rho_solid) + d_liquidus_temperature*(d_rho_gas - (*H_data)(ci)*d_rho_gas + (*H_data)(ci)*d_rho_solid))/ 
+                (d_liquidus_temperature - d_solidus_temperature); 
+
+                double C_LG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_liquid*d_specific_heat_liquid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_liquid);
+
+                double C_SG = ((1.0 - (*H_data)(ci))*d_rho_gas*d_specific_heat_gas + (*H_data)(ci)*d_rho_solid*d_specific_heat_solid)/
+                ((1.0-(*H_data)(ci))*d_rho_gas + (*H_data)(ci)*d_rho_solid);
+
+
+                // if ((*H_data)(ci) >= H_LIM)
+                // {
+                    if ((*T_data)(ci) < d_solidus_temperature)
+                    {
+                        (*d2h_dT_data)(ci) = 0.0;
+                    }
+                    else if ((*T_data)(ci) > d_liquidus_temperature)
+                    {
+                        (*d2h_dT_data)(ci) =  0.0;
+                    }
+                    
+            //         else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+            //         {
+            //          (*dh_dT_data)(ci) =d_rho_liquid*d_rho_solid*(h_l - h_s)*(d_liquidus_temperature - d_solidus_temperature)/
+			//                                              (std::pow(((*T_data)(ci)*(d_rho_liquid - d_rho_solid) +d_liquidus_temperature*d_rho_solid - d_solidus_temperature*d_rho_liquid ),2.0)); 
+		    // }
+                    else
+                    {
+                        (*d2h_dT_data)(ci) =
+                        -2.0 * R1 * (H1 * R0 - H0 * R1) /
+                        (delta_T * delta_T * std::pow(Rho_T, 3.0));
+                    }
+                // }
+                // else
+                // {
+                //     (*dh_dT_data)(ci) = d_specific_heat_gas;
+                // }
+
+            
+        
+
+            }
+        }
+    }
+    return;
+} // computeRhoEnthalpyDerivative
+
+
 
 void
 EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx)
@@ -1519,7 +2180,7 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
         d_specific_heat_gas = input_db->getDouble("specific_heat_gas");
         d_liquidus_temperature = input_db->getDouble("liquidus_temperature");
         d_solidus_temperature = input_db->getDouble("solidus_temperature");
-        d_reference_temperature = input_db->getDouble("solidus_temperature");
+        d_reference_temperature = input_db->getDouble("reference_temperature");
 
         if (input_db->keyExists("specific_heat_mushy"))
             d_specific_heat_mushy = input_db->getDouble("specific_heat_mushy");

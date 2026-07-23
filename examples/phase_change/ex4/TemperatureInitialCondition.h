@@ -34,10 +34,9 @@ public:
      * \brief Class constructor.
      */
     TemperatureInitialCondition(const std::string& object_name,
-                                const double initial_liquid_solid_interface_position,
-                                const double initial_liquid_temperature,
-                                const double initial_solid_temperature);
-
+        const double initial_liquid_solid_interface_position,
+        const double initial_liquid_temperature,
+        const double initial_solid_temperature);
     /*!
      * \brief Empty destructor.
      */
