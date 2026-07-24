@@ -125,9 +125,14 @@ namespace IBAMR
 
 VelocityCartGridFunction::VelocityCartGridFunction(const std::string& object_name,
                                                    Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
-                                                   int velocity_index)
-    : CartGridFunction(object_name), d_grid_geometry(grid_geometry), d_velocity_index(velocity_index)
+                                                   int velocity_index,
+                                                   const std::string& db_base_name)
+    : CartGridFunction(object_name),
+      d_grid_geometry(grid_geometry),
+      d_velocity_index(velocity_index),
+      d_db_base_name(db_base_name)
 {
+    ensureDirectoryExists(d_db_base_name);
 }
 
 bool
@@ -159,33 +164,21 @@ VelocityCartGridFunction::setDataOnPatch(const int /*data_idx*/,
 }
 
 void
-VelocityCartGridFunction::save_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                             const std::string& base_folder,
-                                             double data_time,
-                                             int iteration)
+VelocityCartGridFunction::saveVelocity(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                       int iteration_num,
+                                       double loop_time)
 {
+    // create <base_name>/<iteration_num>/
+    ensureDirectoryExists(getIterationDir(iteration_num));
+
+    const std::string filename = getIterationFilename(iteration_num);
+
+    Pointer<HDFDatabase> hdf_db = new HDFDatabase(d_object_name + "::hdf_db");
+    hdf_db->create(filename);
+
+    hdf_db->putDouble("time", loop_time);
+
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    // create base folder and iteration subfolder on rank 0
-    const std::string iter_folder = base_folder + "/" + std::to_string(iteration);
-    if (rank == 0)
-    {
-        mkdir(base_folder.c_str(), 0755);
-        mkdir(iter_folder.c_str(), 0755);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    const std::string filename = iter_folder + "/proc." + std::to_string(rank);
-    std::ofstream ofs(filename, std::ios::binary);
-
-    const int ndim = NDIM;
-    ofs.write(reinterpret_cast<const char*>(&data_time), sizeof(double));
-    ofs.write(reinterpret_cast<const char*>(&ndim), sizeof(int));
-    ofs.write(reinterpret_cast<const char*>(&rank), sizeof(int));
-    ofs.write(reinterpret_cast<const char*>(&iteration), sizeof(int));
 
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
@@ -193,53 +186,27 @@ VelocityCartGridFunction::save_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier:
         for (PatchLevel<NDIM>::Iterator p(*level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> sd = patch->getPatchData(d_velocity_index);
 
-            auto box = patch->getBox();
-            auto lo = box.lower();
-            auto hi = box.upper();
-
-            for (int d = 0; d < NDIM; ++d)
-            {
-                const int lo_d = lo(d);
-                const int hi_d = hi(d);
-                ofs.write(reinterpret_cast<const char*>(&lo_d), sizeof(int));
-                ofs.write(reinterpret_cast<const char*>(&hi_d), sizeof(int));
-            }
-
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                for (SideIterator<NDIM> s(box, axis); s; s++)
-                {
-                    double val = (*sd)(*s, 0);
-                    ofs.write(reinterpret_cast<const char*>(&val), sizeof(double));
-                }
-            }
+            const std::string key = "patch_data_" + std::to_string(ln) + "_" + std::to_string(p());
+            patch->getPatchData(d_velocity_index)->putToDatabase(hdf_db->putDatabase(key));
         }
     }
+
+    hdf_db->close();
 }
 
 double
-VelocityCartGridFunction::read_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                             const std::string& base_folder,
-                                             int iteration)
+VelocityCartGridFunction::readVelocity(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                       int iteration_num)
 {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const std::string filename = getIterationFilename(iteration_num);
+    TBOX_ASSERT(fileExists(filename) &&
+                "VelocityCartGridFunction: cannot read, file does not exist for this iteration");
 
-    const std::string filename = base_folder + "/" + std::to_string(iteration) + "/proc." + std::to_string(rank);
-    std::ifstream ifs(filename, std::ios::binary);
-    if (!ifs.is_open())
-    {
-        TBOX_ERROR("read_side_data: cannot open file: " + filename);
-    }
+    Pointer<HDFDatabase> hdf_db = new HDFDatabase(d_object_name + "::hdf_db");
+    hdf_db->open(filename);
 
-    double data_time;
-    int ndim, file_rank, file_iter;
-    ifs.read(reinterpret_cast<char*>(&data_time), sizeof(double));
-    ifs.read(reinterpret_cast<char*>(&ndim), sizeof(int));
-    ifs.read(reinterpret_cast<char*>(&file_rank), sizeof(int));
-    ifs.read(reinterpret_cast<char*>(&file_iter), sizeof(int));
+    const double loop_time = hdf_db->getDouble("time");
 
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = 0; ln <= finest_ln; ++ln)
@@ -248,37 +215,52 @@ VelocityCartGridFunction::read_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier:
         for (PatchLevel<NDIM>::Iterator p(*level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> sd = patch->getPatchData(d_velocity_index);
-
-            auto box = patch->getBox();
-
-            // Read (and discard) the box bounds written by save_side_data.
-            int file_lo, file_hi;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                ifs.read(reinterpret_cast<char*>(&file_lo), sizeof(int));
-                ifs.read(reinterpret_cast<char*>(&file_hi), sizeof(int));
-            }
-
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                for (SideIterator<NDIM> s(box, axis); s; s++)
-                {
-                    double val;
-                    ifs.read(reinterpret_cast<char*>(&val), sizeof(double));
-                    (*sd)(*s, 0) = val;
-                }
-            }
+            const std::string key = "patch_data_" + std::to_string(ln) + "_" + std::to_string(p());
+            TBOX_ASSERT(hdf_db->keyExists(key));
+            patch->getPatchData(d_velocity_index)->getFromDatabase(hdf_db->getDatabase(key));
         }
     }
 
-    return data_time;
+    hdf_db->close();
+    return loop_time;
 }
 
 void
 VelocityCartGridFunction::setVelocityIndex(const int velocity_index)
 {
     d_velocity_index = velocity_index;
+}
+
+void
+VelocityCartGridFunction::ensureDirectoryExists(const std::string& dir_path)
+{
+    if (!fileExists(dir_path))
+    {
+        // mode 0755: rwxr-xr-x
+        int status = mkdir(dir_path.c_str(), 0755);
+        TBOX_ASSERT(status == 0 && "VelocityCartGridFunction: failed to create directory");
+    }
+}
+
+bool
+VelocityCartGridFunction::fileExists(const std::string& filename)
+{
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
+}
+
+std::string
+VelocityCartGridFunction::getIterationDir(int iteration_num) const
+{
+    std::ostringstream oss;
+    oss << d_db_base_name << "/velocity." << std::setfill('0') << std::setw(6) << iteration_num;
+    return oss.str();
+}
+
+std::string
+VelocityCartGridFunction::getIterationFilename(int iteration_num) const
+{
+    return getIterationDir(iteration_num) + "/velocity.hdf5";
 }
 
 //////////////////////////////////////////////////////////////////////////////

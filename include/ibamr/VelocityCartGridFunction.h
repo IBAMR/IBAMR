@@ -20,6 +20,8 @@
 
 #include <ibtk/CartGridFunction.h>
 
+#include <tbox/HDFDatabase.h>
+
 #include <CartesianGridGeometry.h>
 
 #include <string>
@@ -52,7 +54,8 @@ public:
      */
     VelocityCartGridFunction(const std::string& object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry,
-                             const int velocity_index);
+                             const int velocity_index,
+                             const std::string& db_base_name);
 
     ~VelocityCartGridFunction() override = default;
 
@@ -78,20 +81,25 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
 
-    void save_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                            const std::string& base_folder,
-                            double data_time,
-                            int iteration);
+    void saveVelocity(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                      int iteration_num,
+                      double loop_time);
 
-    double read_velocity_data(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                              const std::string& base_folder,
-                              int iteration);
+    double readVelocity(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy, int iteration_num);
 
     void setVelocityIndex(const int velocity_index);
 
+private:
+    std::string getIterationDir(int iteration_num) const;
+    std::string getIterationFilename(int iteration_num) const;
+    static void ensureDirectoryExists(const std::string& dir_path);
+    static bool fileExists(const std::string& filename);
+
 protected:
+    std::string d_object_name;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
     int d_velocity_index;
+    std::string d_db_base_name;
 };
 
 } // namespace IBAMR

@@ -152,7 +152,7 @@ main(int argc, char* argv[])
 
         // Tim
         Pointer<VelocityCartGridFunction> velocity_function =
-            new VelocityCartGridFunction("velocity", grid_geometry, -1);
+            new VelocityCartGridFunction("velocity", grid_geometry, -1, "saveVelocityDB");
 
         Pointer<FaceVariable<NDIM, double>> u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
@@ -197,14 +197,14 @@ main(int argc, char* argv[])
         double loop_time = time_integrator->getIntegratorTime();
         const double dt = time_integrator->getMaximumTimeStepSize(); // fix time step
         double loop_time_end = time_integrator->getEndTime();
+
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end))
         {
             u_init->setDataOnPatchHierarchy(u_side_index, u_side_adv_var, patch_hierarchy, loop_time);
-            velocity_function->save_velocity_data(patch_hierarchy, save_dir, loop_time, iteration_num);
+            velocity_function->saveVelocity(patch_hierarchy, iteration_num, loop_time);
             loop_time += dt;
             iteration_num += 1;
         }
-
         // Deallocate initialization objects.
         app_initializer.setNull();
 
@@ -233,8 +233,8 @@ main(int argc, char* argv[])
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            auto vel_time = velocity_function->read_velocity_data(patch_hierarchy, save_dir, iteration_num);
-            TBOX_ASSERT(loop_time == vel_time);
+            auto vel_time_db = velocity_function->readVelocity(patch_hierarchy, iteration_num);
+            TBOX_ASSERT(loop_time == vel_time_db);
 
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
