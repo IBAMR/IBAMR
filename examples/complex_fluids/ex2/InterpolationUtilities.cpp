@@ -89,7 +89,6 @@ InterpolationUtilities::interpolate(const vector<double>& X,
                 CellData<NDIM, double> si_data(box, NDIM + 1, IntVector<NDIM>(0));
                 si_data.fillAll(std::numeric_limits<double>::signaling_NaN());
                 const CellIndex<NDIM> ci_l = patch_box.lower();
-                int num = 0;
                 for (CellIterator<NDIM> i(box); i; i++)
                 {
                     CellIndex<NDIM> ci = i();
@@ -99,7 +98,6 @@ InterpolationUtilities::interpolate(const vector<double>& X,
                     {
                         i_data(ci) = 1;
                         si_data(ci, NDIM) = (*S_data)(ci, depth);
-                        num++;
                     }
                     else
                     {
@@ -177,7 +175,6 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                 std::vector<double> x(NDIM);
                 CellData<NDIM, int> i_data(box, 1, IntVector<NDIM>(0));
                 const CellIndex<NDIM> ci_l = patch_box.lower();
-                int num = 0;
                 for (CellIterator<NDIM> i(box); i; i++)
                 {
                     CellIndex<NDIM> ci = i();
@@ -186,7 +183,6 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                     if (r > 1.0)
                     {
                         i_data(ci) = 1;
-                        num++;
                     }
                 }
                 // Moving least squares

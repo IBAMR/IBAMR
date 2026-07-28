@@ -19,11 +19,13 @@
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
 #include <libmesh/elem.h>
 #include <libmesh/enum_preconditioner_type.h>
 #include <libmesh/enum_solver_type.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 

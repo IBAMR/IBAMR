@@ -74,27 +74,28 @@
 
 // The first four warnings here should be left in that order: new warnings
 // should be placed at the end.
-#define IBTK_DISABLE_EXTRA_WARNINGS                             \
-_Pragma("GCC diagnostic push")                                  \
-_Pragma("GCC diagnostic ignored \"-Wunknown-pragmas\"")         \
-_Pragma("GCC diagnostic ignored \"-Wpragmas\"")                 \
-_Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")  \
-_Pragma("GCC diagnostic ignored \"-Wunknown-warning\"")         \
-_Pragma("GCC diagnostic ignored \"-Wunused-variable\"")         \
-_Pragma("GCC diagnostic ignored \"-Wignored-attributes\"")      \
-_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"") \
-_Pragma("GCC diagnostic ignored \"-Wmisleading-indentation\"")  \
-_Pragma("GCC diagnostic ignored \"-Wint-in-bool-context\"")     \
-_Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")     \
-_Pragma("GCC diagnostic ignored \"-Wunused-local-typedefs\"")   \
-_Pragma("GCC diagnostic ignored \"-Wdeprecated-copy\"")         \
-_Pragma("GCC diagnostic ignored \"-Wunused-function\"")         \
-_Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")        \
-_Pragma("GCC diagnostic ignored \"-Wparentheses\"")             \
-_Pragma("GCC diagnostic ignored \"-Wdangling-reference\"")      \
-_Pragma("GCC diagnostic ignored \"-Warray-bounds\"")            \
-_Pragma("GCC diagnostic ignored \"-Wnested-anon-types\"")       \
-_Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
+#define IBTK_DISABLE_EXTRA_WARNINGS                                   \
+_Pragma("GCC diagnostic push")                                        \
+_Pragma("GCC diagnostic ignored \"-Wunknown-pragmas\"")               \
+_Pragma("GCC diagnostic ignored \"-Wpragmas\"")                       \
+_Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")        \
+_Pragma("GCC diagnostic ignored \"-Wunknown-warning\"")               \
+_Pragma("GCC diagnostic ignored \"-Wunused-variable\"")               \
+_Pragma("GCC diagnostic ignored \"-Wignored-attributes\"")            \
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")       \
+_Pragma("GCC diagnostic ignored \"-Wmisleading-indentation\"")        \
+_Pragma("GCC diagnostic ignored \"-Wint-in-bool-context\"")           \
+_Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")           \
+_Pragma("GCC diagnostic ignored \"-Wunused-local-typedefs\"")         \
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-copy\"")               \
+_Pragma("GCC diagnostic ignored \"-Wunused-function\"")               \
+_Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")              \
+_Pragma("GCC diagnostic ignored \"-Wparentheses\"")                   \
+_Pragma("GCC diagnostic ignored \"-Wdangling-reference\"")            \
+_Pragma("GCC diagnostic ignored \"-Warray-bounds\"")                  \
+_Pragma("GCC diagnostic ignored \"-Wnested-anon-types\"")             \
+_Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"") \
+_Pragma("GCC diagnostic ignored \"-Wunnecessary-virtual-specifier\"")
 
 #define IBTK_ENABLE_EXTRA_WARNINGS _Pragma("GCC diagnostic pop")
 
