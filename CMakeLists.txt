@@ -66,21 +66,32 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
 FortranCInterface_VERIFY(CXX QUIET)
-IF("${FortranCInterface_GLOBAL_CASE}" STREQUAL "LOWER")
-  SET(_name "name")
-ELSE()
-  SET(_name "NAME")
-ENDIF()
-STRING(JOIN " ## " IBTK_FC_FUNC ${FortranCInterface_GLOBAL_PREFIX} ${_name}
-  ${FortranCInterface_GLOBAL_SUFFIX})
 
-IF("${FortranCInterface_GLOBAL__CASE}" STREQUAL "LOWER")
-  SET(_name "name")
+# If CMake can't determine mangling for Fortran then default to what GCC does
+IF("${FortranCInterface_GLOBAL_CASE}" STREQUAL "")
+  MESSAGE(WARNING "Unable to determine the Fortran mangling interface: defaulting to GCC's")
+  SET(IBTK_FC_FUNC "name ## _")
 ELSE()
-  SET(_name "NAME")
+  IF("${FortranCInterface_GLOBAL_CASE}" STREQUAL "LOWER")
+    SET(_name "name")
+  ELSE()
+    SET(_name "NAME")
+  ENDIF()
+  STRING(JOIN " ## " IBTK_FC_FUNC ${FortranCInterface_GLOBAL_PREFIX} ${_name}
+    ${FortranCInterface_GLOBAL_SUFFIX})
 ENDIF()
-STRING(JOIN " ## " IBTK_FC_FUNC_ ${FortranCInterface_GLOBAL__PREFIX} ${_name}
-  ${FortranCInterface_GLOBAL__SUFFIX})
+
+IF("${FortranCInterface_GLOBAL_CASE}" STREQUAL "")
+  SET(IBTK_FC_FUNC_ "name ## _")
+ELSE()
+  IF("${FortranCInterface_GLOBAL__CASE}" STREQUAL "LOWER")
+    SET(_name "name")
+  ELSE()
+    SET(_name "NAME")
+  ENDIF()
+  STRING(JOIN " ## " IBTK_FC_FUNC_ ${FortranCInterface_GLOBAL__PREFIX} ${_name}
+    ${FortranCInterface_GLOBAL__SUFFIX})
+ENDIF()
 
 # also look for a compatible _Pragma implementation:
 INCLUDE(CheckCXXSourceCompiles)
