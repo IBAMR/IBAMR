@@ -337,11 +337,14 @@ IF (${IBAMR_FORCE_BUNDLED_EIGEN3})
 ELSE()
   # set up the root with the proper package name too
   SET(Eigen3_ROOT ${EIGEN3_ROOT})
-  FIND_PACKAGE(Eigen3 3.4 QUIET)
+  FIND_PACKAGE(Eigen3 QUIET)
+  SET(IBAMR_USE_BUNDLED_EIGEN3 TRUE)
+  # we can't combine these if statements since Eigen3_VERSION won't be defined
+  # if Eigen is not found
   IF(${Eigen3_FOUND})
-    SET(IBAMR_USE_BUNDLED_EIGEN3 FALSE)
-  ELSE()
-    SET(IBAMR_USE_BUNDLED_EIGEN3 TRUE)
+    IF((${Eigen3_VERSION} VERSION_GREATER_EQUAL 3.4))
+      SET(IBAMR_USE_BUNDLED_EIGEN3 FALSE)
+    ENDIF()
   ENDIF()
 ENDIF()
 IF(NOT ${IBAMR_USE_BUNDLED_EIGEN3})
