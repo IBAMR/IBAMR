@@ -208,7 +208,7 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
                         g_tangential -= (V1Re(d) + W1RexR(d)) * ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
                     }
                     double stokes_drift = -(g_normal + g_tangential);
-                    stokes_drift += (W1RexV1Im(axis) - W1ImxV1Re(axis));
+                    // stokes_drift += (W1RexV1Im(axis) - W1ImxV1Re(axis));
                     stokes_drift += (W1RexW1ImxR(axis) - W1ImxW1RexR(axis));
                     stokes_drift /= (2.0 * d_acoustic_freq);
 

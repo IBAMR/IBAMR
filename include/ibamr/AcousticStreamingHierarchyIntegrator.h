@@ -468,6 +468,7 @@ public:
                                          const std::array<double, NDIM>& center,
                                          const IBTK::FreeRigidDOFVector& free_dofs,
                                          double mass = 0.0,
+                                         double density_ratio = 1.0,
                                          const Eigen::Matrix3d& J_com = Eigen::Matrix3d::Zero(),
                                          double contour_val = 0.0);
 
@@ -936,6 +937,7 @@ protected:
     std::vector<IBTK::RigidDOFVector> d_brinkman_so_vel;
     std::vector<IBTK::FreeRigidDOFVector> d_brinkman_free_dofs;
     std::vector<double> d_brinkman_mass;
+    std::vector<double> d_brinkman_density_ratio; // rho_fluid/rho_solid
     std::vector<Eigen::Matrix3d> d_brinkman_inertia_tensor_initial;
     std::vector<Eigen::Quaterniond> d_brinkman_quaternion;
 

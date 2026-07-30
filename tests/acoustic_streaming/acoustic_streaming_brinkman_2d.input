@@ -1,5 +1,6 @@
 // Scalar parameters
 
+PII = 3.1415926535
 LENGTH = 150e-6
 WIDTH  = 40e-6
 LAMBDA0 = 1.876e-3
@@ -18,8 +19,15 @@ PERIODIC_BC = 0
 XCOM = LENGTH/4.0
 YCOM = WIDTH/2.0
 Radius = 5.0e-6
+RHOS = RHO0
+DENSITY_RATIO = RHO0/RHOS
 FREE_DOFS = 0, 0, 0              // locked x, y and wz
+MajorAxis = Radius             // for ellipse geometry
+MinorAxis = Radius/2
 MASS = 0.0
+I_ZZ = 0.0
+THETA_INI = 0.0
+
 Contour_Radius = 10.0e-6
 
 FOVelocityInitialConditions {

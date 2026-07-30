@@ -68,6 +68,8 @@ struct XCOM
     // "CYLINDER" geometry
     Pointer<AcousticStreamingHierarchyIntegrator> time_integrator;
     std::array<double, NDIM> center;
+    double theta;
+    double theta_old;
     double dt;
 };
 
@@ -103,6 +105,7 @@ reset_center_of_mass_callback_fcn(double /*current_time*/, double /*new_time*/, 
     }
     resetter->center = X_com_new;
     resetter->time_integrator->updateCenterOfMass(X_com_new, part);
+    resetter->theta = resetter->theta_old + resetter->dt * so_vel[part](2);
 
     return;
 }
@@ -386,6 +389,7 @@ main(int argc, char* argv[])
         s_resetter.time_integrator = time_integrator;
         s_resetter.center[0] = input_db->getDouble("XCOM");
         s_resetter.center[1] = input_db->getDouble("YCOM");
+        s_resetter.theta = input_db->getDouble("THETA_INI");
         time_integrator->registerIntegrateHierarchyCallback(&reset_center_of_mass_callback_fcn,
                                                             static_cast<void*>(&s_resetter));
 
@@ -416,6 +420,9 @@ main(int argc, char* argv[])
         IBTK::FreeRigidDOFVector cylinder_dofs;
         input_db->getIntegerArray("FREE_DOFS", cylinder_dofs.data(), IBTK::s_max_free_dofs);
         const double cylinder_mass = input_db->getDouble("MASS");
+        const double cylinder_density_ratio = input_db->getDoubleWithDefault("DENSITY_RATIO", 1.0);
+        Eigen::Matrix3d cylinder_inertia = Eigen::Matrix3d::Zero();
+        cylinder_inertia(2, 2) = input_db->getDouble("I_ZZ");
         time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman,
                                                               so_brinkman,
                                                               phi_var_solid,
@@ -425,7 +432,8 @@ main(int argc, char* argv[])
                                                               s_resetter.center,
                                                               cylinder_dofs,
                                                               cylinder_mass,
-                                                              Eigen::Matrix3d::Zero(),
+                                                              cylinder_density_ratio,
+                                                              cylinder_inertia,
                                                               /*contour_value*/ 0.0);
 
         // Reset the position of the contour variable
@@ -478,6 +486,8 @@ main(int argc, char* argv[])
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
         const auto& arf = time_integrator->getAcousticRadiationForce();
+        std::ofstream out_file("output", std::ios::trunc);
+        out_file.close();
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -490,6 +500,7 @@ main(int argc, char* argv[])
 
             dt = time_integrator->getMaximumTimeStepSize();
             s_resetter.dt = dt;
+            s_resetter.theta_old = s_resetter.theta;
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -520,12 +531,17 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-        }
-
-        if (IBTK_MPI::getRank() == 0)
-        {
-            std::ofstream out_file("output");
-            out_file << loop_time << '\t' << arf[0][0] << '\t' << arf[0][1] << '\t' << 0.0 << std::endl;
+            if (IBTK_MPI::getRank() == 0)
+            {
+                auto& so_vel = time_integrator->getSORigidBodyVelocity();
+                std::ofstream out_file("output", std::ios::app);
+                const double tol = 1e-12;
+                out_file << std::setprecision(10) << loop_time << "\t" << s_resetter.center[0] << "\t"
+                         << s_resetter.center[1] << "\t" << s_resetter.theta << "\t" << so_vel[0](0) << "\t"
+                         << so_vel[0](1) << "\t" << so_vel[0](2) << "\t"
+                         << (std::abs(arf[0][0]) < tol ? 0.0 : arf[0][0]) << "\t"
+                         << (std::abs(arf[0][1]) < tol ? 0.0 : arf[0][1]) << std::endl;
+            }
         }
 
         if (dump_viz_data && uses_visit)
