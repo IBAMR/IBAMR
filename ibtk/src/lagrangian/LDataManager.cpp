@@ -1471,29 +1471,38 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
         }
 
         Schedule lnode_data_mover;
-        std::vector<std::vector<Pointer<Transaction>>> transactions(num_procs,
-                                                                    std::vector<Pointer<Transaction>>(num_procs));
+        const int rank = IBTK_MPI::getRank();
+        std::vector<Pointer<LNodeTransaction>> receive_transactions(num_procs);
+
+        // Each entry in recv_counts represents a request received from that
+        // rank, and hence a payload that this rank must send.  Conversely,
+        // each entry in send_counts represents a request issued by this rank,
+        // and hence a payload that this rank must receive.  Only create
+        // transactions for these active communication links.
+        for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+        {
+            if (recv_counts[dst_proc] > 0)
+            {
+                Pointer<LNodeTransaction> transaction =
+                    new LNodeTransaction(rank, dst_proc, requested_node_data[dst_proc]);
+                lnode_data_mover.appendTransaction(transaction);
+                if (dst_proc == rank) receive_transactions[rank] = transaction;
+            }
+        }
         for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
-            for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+            if (send_counts[src_proc] > 0 && src_proc != rank)
             {
-                if (src_proc == IBTK_MPI::getRank())
-                {
-                    transactions[src_proc][dst_proc] =
-                        new LNodeTransaction(src_proc, dst_proc, requested_node_data[dst_proc]);
-                }
-                else
-                {
-                    transactions[src_proc][dst_proc] = new LNodeTransaction(src_proc, dst_proc);
-                }
-                lnode_data_mover.appendTransaction(transactions[src_proc][dst_proc]);
+                receive_transactions[src_proc] = new LNodeTransaction(src_proc, rank);
+                lnode_data_mover.appendTransaction(receive_transactions[src_proc]);
             }
         }
         lnode_data_mover.communicate();
 
         for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
-            Pointer<LNodeTransaction> transaction = transactions[src_proc][IBTK_MPI::getRank()];
+            Pointer<LNodeTransaction> transaction = receive_transactions[src_proc];
+            if (!transaction) continue;
             const std::vector<LNodeTransactionComponent>& received_node_data = transaction->getDestinationData();
             for (const auto& transaction_comp : received_node_data)
             {
