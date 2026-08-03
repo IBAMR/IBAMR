@@ -1348,6 +1348,10 @@ LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
 void
 LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_ln_in)
 {
+    // All requests complete before another such exchange or a Schedule
+    // communication is initiated.
+    static const int ghost_request_tag = 0;
+
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
@@ -1372,7 +1376,7 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
         const PetscInt* ownership_ranges = nullptr;
         int ierr = VecGetOwnershipRanges(position_vec, &ownership_ranges);
         IBTK_CHKERRQ(ierr);
-        // Position vector has NIMD * (num_lag_points) entries. Convert position ranges to LNode index ranges.
+        // Position vector has NDIM * (num_lag_points) entries. Convert position ranges to LNode index ranges.
         std::vector<PetscInt> node_ownership_ranges(num_procs + 1, 0);
         for (int rank = 0; rank <= num_procs; ++rank)
         {
@@ -1380,6 +1384,7 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
         }
 
         std::map<int, std::vector<LNode*>> ghost_node_map;
+        // Maps each owner rank to the distinct ghost-node indices requested from that owner.
         std::map<int, std::set<int>> requested_lag_indices;
         for (LNode* ghost_node : ghost_nodes)
         {
@@ -1397,7 +1402,7 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
             requested_lag_indices[owner_rank].insert(lag_idx);
         }
 
-        std::vector<std::pair<int, int>> owned_requests;
+        // send_counts records requests sent to other ranks; recv_counts records requests received from each requester.
         std::vector<int> send_counts(num_procs, 0), recv_counts(num_procs, 0);
         for (const auto& owner_requests : requested_lag_indices)
         {
@@ -1409,10 +1414,12 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
             MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
         TBOX_ASSERT(ierr == MPI_SUCCESS);
 
+        // Per-rank offsets into the packed outbound and inbound request-index buffers.
         std::vector<int> send_displs(num_procs + 1, 0), recv_displs(num_procs + 1, 0);
         std::partial_sum(send_counts.begin(), send_counts.end(), send_displs.begin() + 1);
         std::partial_sum(recv_counts.begin(), recv_counts.end(), recv_displs.begin() + 1);
 
+        // Request indices sent to owners and received from requesters, respectively.
         std::vector<int> send_lag_indices(send_displs.back()), recv_lag_indices(recv_displs.back());
         for (const auto& owner_requests : requested_lag_indices)
         {
@@ -1422,56 +1429,81 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
                       send_lag_indices.begin() + send_displs[owner_rank]);
         }
 
-        // Ship only the requested lag indices to each owner rank; payloads are
-        // still sent later through the existing LNodeTransaction path.
-        ierr = MPI_Alltoallv(send_lag_indices.empty() ? nullptr : send_lag_indices.data(),
-                             send_counts.data(),
-                             send_displs.data(),
-                             MPI_INT,
-                             recv_lag_indices.empty() ? nullptr : recv_lag_indices.data(),
-                             recv_counts.data(),
-                             recv_displs.data(),
-                             MPI_INT,
-                             IBTK_MPI::getCommunicator());
-        TBOX_ASSERT(ierr == MPI_SUCCESS);
-
-        for (int requester_rank = 0; requester_rank < num_procs; ++requester_rank)
+        // Send requested indices only along active rank-pairings. The preceding count exchange identifies every
+        // positive-count send and receive. Note the use of non-blocking calls is not strictly necessary, but greatly
+        // simplifies the communication strategy.
+        const int rank = IBTK_MPI::getRank();
+        std::vector<MPI_Request> request_exchange_requests;
+        request_exchange_requests.reserve(2 * num_procs);
+        for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
-            for (int k = recv_displs[requester_rank]; k < recv_displs[requester_rank + 1]; ++k)
+            if (recv_counts[src_proc] == 0) continue;
+            if (src_proc == rank)
             {
-                owned_requests.emplace_back(requester_rank, recv_lag_indices[k]);
+                std::copy(send_lag_indices.begin() + send_displs[rank],
+                          send_lag_indices.begin() + send_displs[rank + 1],
+                          recv_lag_indices.begin() + recv_displs[rank]);
+                continue;
             }
+            request_exchange_requests.emplace_back();
+            ierr = MPI_Irecv(recv_lag_indices.data() + recv_displs[src_proc],
+                             recv_counts[src_proc],
+                             MPI_INT,
+                             src_proc,
+                             ghost_request_tag,
+                             IBTK_MPI::getCommunicator(),
+                             &request_exchange_requests.back());
+            TBOX_ASSERT(ierr == MPI_SUCCESS);
+        }
+        for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+        {
+            if (send_counts[dst_proc] == 0 || dst_proc == rank) continue;
+            request_exchange_requests.emplace_back();
+            ierr = MPI_Isend(send_lag_indices.data() + send_displs[dst_proc],
+                             send_counts[dst_proc],
+                             MPI_INT,
+                             dst_proc,
+                             ghost_request_tag,
+                             IBTK_MPI::getCommunicator(),
+                             &request_exchange_requests.back());
+            TBOX_ASSERT(ierr == MPI_SUCCESS);
+        }
+        // Need to wait for sends and recv calls to finish before proceeding.
+        if (!request_exchange_requests.empty())
+        {
+            ierr = MPI_Waitall(static_cast<int>(request_exchange_requests.size()),
+                               request_exchange_requests.data(),
+                               MPI_STATUSES_IGNORE);
+            TBOX_ASSERT(ierr == MPI_SUCCESS);
         }
 
-        std::vector<int> owned_request_petsc_indices(owned_requests.size());
-        for (std::size_t k = 0; k < owned_requests.size(); ++k)
+        if (!recv_lag_indices.empty())
         {
-            owned_request_petsc_indices[k] = owned_requests[k].second;
-        }
-        if (!owned_request_petsc_indices.empty())
-        {
-            // Convert all requested Lagrangian indices for this owner rank to
-            // PETSc indices in one AO lookup before indexing local_nodes.
-            ierr = AOApplicationToPetsc(d_ao[level_number],
-                                        static_cast<int>(owned_request_petsc_indices.size()),
-                                        &owned_request_petsc_indices[0]);
+            // Convert the packed received Lagrangian indices to PETSc indices
+            // in one AO lookup before indexing local_nodes.
+            ierr = AOApplicationToPetsc(
+                d_ao[level_number], static_cast<int>(recv_lag_indices.size()), recv_lag_indices.data());
             IBTK_CHKERRQ(ierr);
         }
 
         std::vector<std::vector<LNodeTransactionComponent>> requested_node_data(num_procs);
-        for (std::size_t k = 0; k < owned_requests.size(); ++k)
+        for (int requester_rank = 0; requester_rank < num_procs; ++requester_rank)
         {
-            const int dst_rank = owned_requests[k].first;
-            const int local_idx = owned_request_petsc_indices[k] - static_cast<int>(d_node_offset[level_number]);
-            if (local_idx < 0 || local_idx >= static_cast<int>(local_nodes.size())) continue;
+            for (int k = recv_displs[requester_rank]; k < recv_displs[requester_rank + 1]; ++k)
+            {
+                // Note rcv_lag_indices now contains the PETSc index.
+                const int local_idx = recv_lag_indices[k] - static_cast<int>(d_node_offset[level_number]);
+                if (local_idx < 0 || local_idx >= static_cast<int>(local_nodes.size())) continue;
 
-            // Reuse the existing transaction path, but only populate it with payloads that were actually requested by
-            // ghost-node holders.
-            requested_node_data[dst_rank].emplace_back(Pointer<LNode>(local_nodes[local_idx], false), Point::Zero());
+                // Reuse the existing transaction path, but only populate it with payloads that were actually requested
+                // by ghost-node holders.
+                requested_node_data[requester_rank].emplace_back(Pointer<LNode>(local_nodes[local_idx], false),
+                                                                 Point::Zero());
+            }
         }
 
         Schedule lnode_data_mover;
-        const int rank = IBTK_MPI::getRank();
+        // Incoming payload transactions, indexed by the owner rank.
         std::vector<Pointer<LNodeTransaction>> receive_transactions(num_procs);
 
         // Each entry in recv_counts represents a request received from that
@@ -1508,7 +1540,13 @@ LDataManager::synchronizeGhostLNodes(const int coarsest_ln_in, const int finest_
             {
                 const int lag_idx = transaction_comp.item->getLagrangianIndex();
                 auto ghost_it = ghost_node_map.find(lag_idx);
-                if (ghost_it == ghost_node_map.end()) continue;
+                if (ghost_it == ghost_node_map.end())
+                {
+                    TBOX_ERROR("LDataManager::synchronizeGhostLNodes():\n"
+                               << "\tReceived an unexpected ghost-node payload.\n"
+                               << "\tLagrangian index = " << lag_idx << "\n"
+                               << "\tsource rank = " << src_proc << "\n");
+                }
                 for (LNode* ghost_node : ghost_it->second)
                 {
                     ghost_node->setNodeData(transaction_comp.item->getNodeData());
