@@ -84,9 +84,9 @@ IBAMR requires
 
 Of these, Eigen3 and muParser are also bundled with IBAMR and IBAMR will build
 its own copies of those libraries if it cannot find working externally available
-versions. Boost must be installed separately. If you wish to use the bundled
-version of Eigen3 or muParser instead of one found at either system or specified
-search locations, then you can specify that as well by passing either
+versions. If you wish to use the bundled version of Eigen3 or muParser instead
+of one found at either system or specified search locations, then you can specify
+that as well by passing either
 - `-DIBAMR_FORCE_BUNDLED_EIGEN3=ON`
 - `-DIBAMR_FORCE_BUNDLED_MUPARSER=ON`
 as options to CMake.
