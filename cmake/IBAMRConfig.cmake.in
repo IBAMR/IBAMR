@@ -64,34 +64,32 @@ IF(NOT "@MPI_ROOT@" STREQUAL "")
 ENDIF()
 FIND_PACKAGE(MPI REQUIRED COMPONENTS C CXX)
 
-IF(NOT @IBAMR_USE_BUNDLED_BOOST@)
-  SET(BOOST_ROOT "@BOOST_ROOT@")
-  IF(@USER_PROVIDED_BOOST_ROOT@)
-    SET(Boost_NO_SYSTEM_PATHS ON)
-    # Modern versions of Boost install some extra files which we want to ignore
-    # since they are incompatible with Boost_NO_SYSTEM_PATHS. If we don't set
-    # this then CMake will set us up with a system copy of boost even when
-    # BOOST_ROOT is something else
-    #
-    # This was fixed in CMake in 3.19: see
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21200
-    IF(${CMAKE_VERSION} VERSION_LESS "3.19.0")
-      SET(Boost_NO_BOOST_CMAKE ON)
-    ENDIF()
+SET(BOOST_ROOT "@BOOST_ROOT@")
+IF(@USER_PROVIDED_BOOST_ROOT@)
+  SET(Boost_NO_SYSTEM_PATHS ON)
+  # Modern versions of Boost install some extra files which we want to ignore
+  # since they are incompatible with Boost_NO_SYSTEM_PATHS. If we don't set
+  # this then CMake will set us up with a system copy of boost even when
+  # BOOST_ROOT is something else
+  #
+  # This was fixed in CMake in 3.19: see
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/21200
+  IF(${CMAKE_VERSION} VERSION_LESS "3.19.0")
+    SET(Boost_NO_BOOST_CMAKE ON)
   ENDIF()
-  FIND_PACKAGE(Boost 1.57 REQUIRED)
+ENDIF()
+FIND_PACKAGE(Boost 1.66 REQUIRED)
 
-  # We do not want to set BOOST_ALL_NO_LIB in case IBAMR is linked to other
-  # libraries that *do* link against boost libraries
-  GET_TARGET_PROPERTY(_boost_definitions Boost::headers
-    INTERFACE_COMPILE_DEFINITIONS)
-  # Deal with both cases of _boost_definitions not being found
-  IF(NOT "${_boost_definitions}" STREQUAL "_boost_definitions-NOTFOUND" AND
-     NOT "${_boost_definitions}" STREQUAL "")
-    LIST(REMOVE_ITEM _boost_definitions "BOOST_ALL_NO_LIB")
-    SET_TARGET_PROPERTIES(Boost::headers PROPERTIES INTERFACE_COMPILE_DEFINITIONS
-      "${_boost_definitions}")
-  ENDIF()
+# We do not want to set BOOST_ALL_NO_LIB in case IBAMR is linked to other
+# libraries that *do* link against boost libraries
+GET_TARGET_PROPERTY(_boost_definitions Boost::headers
+  INTERFACE_COMPILE_DEFINITIONS)
+# Deal with both cases of _boost_definitions not being found
+IF(NOT "${_boost_definitions}" STREQUAL "_boost_definitions-NOTFOUND" AND
+   NOT "${_boost_definitions}" STREQUAL "")
+  LIST(REMOVE_ITEM _boost_definitions "BOOST_ALL_NO_LIB")
+  SET_TARGET_PROPERTIES(Boost::headers PROPERTIES INTERFACE_COMPILE_DEFINITIONS
+    "${_boost_definitions}")
 ENDIF()
 
 IF(NOT @IBAMR_USE_BUNDLED_EIGEN3@)
@@ -113,13 +111,6 @@ INCLUDE(${CMAKE_CURRENT_LIST_DIR}/IBAMRTargets.cmake)
 # Attempt to avoid conflicts between potential system copies of bundled
 # dependencies and the actual bundled dependencies by putting their include
 # directories at the front:
-
-IF(@IBAMR_USE_BUNDLED_BOOST@)
-  GET_TARGET_PROPERTY(_boost_includes IBAMR::BUNDLED_BOOST
-    INTERFACE_INCLUDE_DIRECTORIES)
-  TARGET_INCLUDE_DIRECTORIES(IBAMR::IBTK2d BEFORE INTERFACE "${_boost_includes}")
-  TARGET_INCLUDE_DIRECTORIES(IBAMR::IBTK3d BEFORE INTERFACE "${_boost_includes}")
-ENDIF()
 
 IF(@IBAMR_USE_BUNDLED_EIGEN3@)
   GET_TARGET_PROPERTY(_eigen3_includes IBAMR::BUNDLED_EIGEN3
@@ -144,7 +135,7 @@ IF(@IBAMR_HAVE_LIBMESH@)
 ENDIF()
 SET(IBAMR_HAVE_SILO "@IBAMR_HAVE_SILO@")
 
-SET(IBAMR_HAVE_BUNDLED_BOOST "@IBAMR_USE_BUNDLED_BOOST@")
+SET(IBAMR_HAVE_BUNDLED_BOOST FALSE)
 SET(IBAMR_BOOST_VERSION "@Boost_VERSION@")
 
 SET(IBAMR_HAVE_BUNDLED_EIGEN3 "@IBAMR_USE_BUNDLED_EIGEN3@")

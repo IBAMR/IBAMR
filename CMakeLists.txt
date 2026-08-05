@@ -121,8 +121,8 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Permit some names to have lower-case letters (e.g., should users write PETSc
 # or PETSC?), but for use in this script convert everything to upper case
 SET(_lower_args "Boost_ROOT" "Eigen3_ROOT" "muParser_ROOT" "libMesh_ROOT"
-  "PETSc_ROOT" "libMesh_METHOD" "IBAMR_FORCE_BUNDLED_Boost"
-  "IBAMR_FORCE_BUNDLED_Eigen3" "IBAMR_FORCE_BUNDLED_muParser")
+  "PETSc_ROOT" "libMesh_METHOD" "IBAMR_FORCE_BUNDLED_Eigen3"
+  "IBAMR_FORCE_BUNDLED_muParser")
 FOREACH(_lower_arg ${_lower_args})
   STRING(TOUPPER "${_lower_arg}" _upper_arg)
   IF((NOT "${${_lower_arg}}" STREQUAL "") AND (NOT "${${_upper_arg}}" STREQUAL ""))
@@ -167,9 +167,6 @@ ENDFOREACH()
 
 
 # Make sure that other possible command line arguments have values set
-IF("${IBAMR_FORCE_BUNDLED_BOOST}" STREQUAL "")
-  SET(IBAMR_FORCE_BUNDLED_BOOST "OFF")
-ENDIF()
 IF("${IBAMR_FORCE_BUNDLED_EIGEN3}" STREQUAL "")
   SET(IBAMR_FORCE_BUNDLED_EIGEN3 "OFF")
 ENDIF()
@@ -253,93 +250,58 @@ MESSAGE(STATUS "MPI_C_INCLUDE_DIRS: ${MPI_C_INCLUDE_DIRS}")
 MESSAGE(STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
 
 #
-# Boost, which may be bundled:
+# Boost:
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up Boost")
-# Set up an interface library which either resolves to the bundled or external
-# version of boost. We may also depend on this later for things that depend just
-# on boost but not IBAMR.
+# Set up an interface library for things that depend just on Boost but not
+# IBAMR.
 ADD_LIBRARY(BOOST_INTERFACE INTERFACE)
-IF(${IBAMR_FORCE_BUNDLED_BOOST})
-  SET(IBAMR_USE_BUNDLED_BOOST TRUE)
+# Disable default search paths if we have an explicitly provided path
+IF("${BOOST_ROOT}" STREQUAL "")
+  SET(USER_PROVIDED_BOOST_ROOT OFF)
+  SET(Boost_NO_SYSTEM_PATHS OFF)
 ELSE()
-  # Disable default search paths if we have an explicitly provided path
-  IF("${BOOST_ROOT}" STREQUAL "")
-    SET(USER_PROVIDED_BOOST_ROOT OFF)
-    SET(Boost_NO_SYSTEM_PATHS OFF)
-  ELSE()
-    SET(USER_PROVIDED_BOOST_ROOT ON)
-    SET(Boost_NO_SYSTEM_PATHS ON)
-    # Modern versions of Boost install some extra files which we want to ignore
-    # since they are incompatible with Boost_NO_SYSTEM_PATHS. Disabling this has
-    # the added bonus of letting us find incomplete boost installations (e.g.,
-    # header-only installed by copy and paste)
-    #
-    # This was fixed in CMake in 3.19: see
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21200
-    IF(${CMAKE_VERSION} VERSION_LESS "3.19.0")
-      SET(Boost_NO_BOOST_CMAKE ON)
-    ENDIF()
-  ENDIF()
-
-  FIND_PACKAGE(Boost 1.66)
-
-  IF(${USER_PROVIDED_BOOST_ROOT})
-    IF(${Boost_FOUND})
-      SET(IBAMR_USE_BUNDLED_BOOST FALSE)
-    ELSE()
-      MESSAGE(FATAL_ERROR "Unable to find a valid Boost installation.")
-    ENDIF()
-  ELSE()
-    IF(${Boost_FOUND})
-      SET(IBAMR_USE_BUNDLED_BOOST FALSE)
-    ELSE()
-      SET(IBAMR_USE_BUNDLED_BOOST TRUE)
-    ENDIF()
+  SET(USER_PROVIDED_BOOST_ROOT ON)
+  SET(Boost_NO_SYSTEM_PATHS ON)
+  # Modern versions of Boost install some extra files which we want to ignore
+  # since they are incompatible with Boost_NO_SYSTEM_PATHS. Disabling this has
+  # the added bonus of letting us find incomplete boost installations (e.g.,
+  # header-only installed by copy and paste)
+  #
+  # This was fixed in CMake in 3.19: see
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/21200
+  IF(${CMAKE_VERSION} VERSION_LESS "3.19.0")
+    SET(Boost_NO_BOOST_CMAKE ON)
   ENDIF()
 ENDIF()
 
-# Now that we have boost, set up the interface library to point to the correct version
-IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
-  MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
-  TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
+FIND_PACKAGE(Boost 1.66 REQUIRED)
+MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
+TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 
-  # Verify that we can compile some basic Boost headers
-  SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
-  # Do not use -Werror at this point, even if the user requested it for IBAMR
-  SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
-  STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+# Verify that we can compile some basic Boost headers
+SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
+# Do not use -Werror at this point, even if the user requested it for IBAMR
+SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
+STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-  SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
-  CHECK_CXX_SOURCE_COMPILES(
-    "
+SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
+CHECK_CXX_SOURCE_COMPILES(
+  "
   #include <boost/multi_array.hpp>
   int main() {}
   "
-    BOOST_WITH_MULTI_ARRAY)
-  CHECK_CXX_SOURCE_COMPILES(
-    "
+  BOOST_WITH_MULTI_ARRAY)
+CHECK_CXX_SOURCE_COMPILES(
+  "
   #include <boost/math/tools/roots.hpp>
   int main() {}
   "
-    BOOST_WITH_ROOTS)
-  SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
-  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}")
-    MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
-  ENDIF()
-ELSE()
-  MESSAGE(STATUS "Setting up boost as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_BOOST INTERFACE)
-  SET(Boost_INCLUDE_DIRS
-    $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
-  TARGET_INCLUDE_DIRECTORIES(BUNDLED_BOOST INTERFACE ${Boost_INCLUDE_DIRS})
-  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
-  INSTALL(TARGETS BUNDLED_BOOST EXPORT IBAMRTargets)
-  # The bundled version doesn't compile anything so always set the no-lib mode
-  SET_TARGET_PROPERTIES(BUNDLED_BOOST PROPERTIES INTERFACE_COMPILE_DEFINITIONS "BOOST_ALL_NO_LIB")
-  TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE BUNDLED_BOOST)
+  BOOST_WITH_ROOTS)
+SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
+IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}")
+  MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
 ENDIF()
 
 SET(CMAKE_REQUIRED_INCLUDES "")
@@ -1317,11 +1279,7 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   # other package
 
   # Boost (we only need headers):
-  IF(${IBAMR_USE_BUNDLED_BOOST})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_BOOST)
-  ELSE()
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC Boost::headers)
-  ENDIF()
+  TARGET_LINK_LIBRARIES(${target_library} PUBLIC Boost::headers)
   # Eigen3:
   IF(${IBAMR_USE_BUNDLED_EIGEN3})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_EIGEN3)
