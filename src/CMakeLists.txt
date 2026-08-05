@@ -241,6 +241,8 @@ IF(${IBAMR_HAVE_LIBMESH})
     # IB/IBFEPatchRecoveryPostProcessor.cpp
     IB/IBFEPostProcessor.cpp
     IB/IBFESurfaceMethod.cpp
+    IB/IBPDMethod.cpp
+    IB/IBPDForceGen.cpp
     IB/IIMethod.cpp
     IB/IMPInitializer.cpp
     IB/IMPMethod.cpp
