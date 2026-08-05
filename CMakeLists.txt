@@ -32,6 +32,13 @@ STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR
 SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
 SET(IBAMR_VERSION ${IBTK_VERSION})
 
+# CMake configuration:
+
+if(POLICY CMP0219)
+  # Preserve backslashes in macro arguments.
+  cmake_policy(SET CMP0219 OLD)
+endif()
+
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
   VERSION ${IBAMR_VERSION}
