@@ -37,6 +37,8 @@
 #include <PatchHierarchy.h>
 #include <SideIndex.h>
 
+#include <ibtk/libmesh_rtree_wrappers.h>
+
 #include <limits>
 #include <memory>
 #include <set>
@@ -108,6 +110,7 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string COORDS_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
+    static const std::string SMOOTHED_NORMAL_SYSTEM_NAME;
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
     static const std::string PRESSURE_IN_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
@@ -172,9 +175,40 @@ public:
     };
 
     /*!
-     * Register relevant part to use discontinuous element type family
-     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp
-     * corners. The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     * Returns either the current configuration (at possibly different times in the timestep)
+     * or the reference configuration with a numeric vector
+     * 
+     */
+    libMesh::NumericVector<double>* 
+    getMeshCoordinatesNumeric(bool isCurrentConfiguration,std::string time,unsigned int part);
+    
+    /*!
+     * Returns either the current configuration (at possibly different times in the timestep)
+     * or the reference configuration using a petsc vector instead of a numeric vector
+     * 
+     */
+    libMesh::PetscVector<double>* 
+    getMeshCoordinatesPetsc(bool isCurrentConfiguration,std::string time,unsigned int part);
+
+    /*!
+     * Evaluates the normal vector at a given quadrature point using either the element normal (old way)
+     * or using phong vectors, which reconstructs the geometry curvature linearly between nodes
+     * 
+     */
+    libMesh::VectorValue<double>
+    evaluateNormalVectors(bool isCurrentConfiguration,unsigned int qp, bool USE_PHONG_NORMALS, libMesh::Elem* const elem, boost::multi_array<double, 2> x_node,const std::vector<std::vector<double> >& phi_X,std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi_X, unsigned int part);
+    /*!
+     * Constructs the nodal normal vectors to be later used by evaluateNormalVectors using a weighted average of 
+     * side lengths or face area. Works for both current configuration and reference configuration.
+     * 
+     */
+    //libMesh::DenseMatrix<double> 
+    void
+    setupPhongNormalVectors(bool isCurrentConfiguration, unsigned int part,libMesh::NumericVector<double> *x_current_vec);
+    /*!
+     * Register relevant part to use discontinuous element type family (L2_LAGRANGE or MONOMIAL)
+     * for the calculation of jump/traction quantities. This option should be used for geometries with
+     * sharp corners.
      *
      *
      * \note The relveant FE family is provided while registering a part in the application code.
@@ -624,16 +658,22 @@ protected:
     std::vector<bool> d_use_discon_elem_for_jumps = { false };
     std::vector<bool> d_use_tangential_velocity = { false };
     std::vector<bool> d_normalize_pressure_jump = { false };
+    bool d_use_phong_normals = false;
+    bool d_use_current_mesh_configuration = true;
+    double d_handfilled_jc = 0;
+    bool d_use_handfilled_jc_for_interpolation = false;
+    bool d_use_handfilled_jc_for_force_spreading = false;
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
-        d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
-    std::vector<std::array<libMesh::System*, NDIM>> d_DU_jump_systems;
+        d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems,d_smoothed_normal_systems;
+    std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_smoothed_normal, d_smoothed_normal_ghost;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<std::array<libMesh::PetscVector<double>*, NDIM>> d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
@@ -659,6 +699,10 @@ protected:
     bool d_use_velocity_jump_conditions = false;
     bool d_use_u_interp_correction = false;
     bool d_compute_fluid_traction = false;
+    libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
+    libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
+    libMesh::FEFamily d_smoothed_normal_fe_family = libMesh::LAGRANGE;
+    libMesh::Order d_smoothed_normal_fe_order = libMesh::FIRST;
     bool d_perturb_fe_mesh_nodes = true;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::FEFamily> d_viscous_jump_fe_family;
@@ -672,11 +716,26 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    bool d_use_smoothed_normal = false;
     double d_exterior_calc_coef = 1.0;
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
     double d_fuzzy_tol = 1e-5;
     double d_mesh_perturb_tol = 1e-4;
+    std::vector<libMesh::DenseMatrix<double>> d_reference_nodal_normals;
+    std::vector<libMesh::DenseMatrix<double>> d_current_nodal_normals;
+    std::vector<libMesh::DenseMatrix<double>> d_weights;
+    std::vector<libMesh::DenseMatrix<double>> d_elem_normals;
+    
+
+    std::vector<std::vector<libMesh::BoundingBox>> d_bounding_boxes; 
+    using RTreeType = decltype(IBTK::pack_rtree_of_indices(d_bounding_boxes[0]));
+    std::vector<std::unique_ptr<RTreeType>> d_rtrees;
+        
+    
+
+
+    bool d_use_second_velocity_correction = false; //for 2 cut problem
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
