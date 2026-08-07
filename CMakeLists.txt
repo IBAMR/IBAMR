@@ -654,9 +654,9 @@ something is wrong with the PETSc installation.")
 
   SET(PETSC_VERSION
     "${PETSC_VERSION_MAJOR}.${PETSC_VERSION_MINOR}.${PETSC_VERSION_SUBMINOR}")
-  IF(${PETSC_VERSION} VERSION_LESS 3.7.0)
+  IF(${PETSC_VERSION} VERSION_LESS 3.13.0)
     MESSAGE(FATAL_ERROR
-      "IBAMR requires PETSc version 3.7.0 or newer but the version provided at
+      "IBAMR requires PETSc version 3.13.0 or newer but the version provided at
 ${PETSC_ROOT} is version ${PETSC_VERSION}")
   ENDIF()
 ENDIF()
