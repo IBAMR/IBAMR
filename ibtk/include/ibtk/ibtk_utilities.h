@@ -414,23 +414,29 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
 }
 
 /*!
- * Generate a name for SAMRAI data files.
+ * Generate a filename for a SAMRAI data file using the output directory,
+ * data prefix, iteration number, and MPI rank. This removes the need for duplicated
+ * filename-generation code.
  */
 inline std::string
-generateSAMRAIName(const int iteration_num)
+formatSAMRAIOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
 {
     std::ostringstream oss;
+    oss << data_dump_dirname << "/" << prefix << ".";
     oss << std::setw(5) << std::setfill('0') << iteration_num << ".samrai." << std::setw(5) << IBTK_MPI::getRank();
     return oss.str();
 }
 
 /*!
- * Generate a name for iteration data files.
+ * Generate a filename for an iteration data file using the output directory,
+ * data prefix, and iteration number. This removes the need for duplicated
+ * filename-generation code.
  */
 inline std::string
-generateIterationName(const int iteration_num)
+formatIterationOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
 {
     std::ostringstream oss;
+    oss << data_dump_dirname << "/" << prefix << ".";
     oss << std::setw(5) << std::setfill('0') << iteration_num;
     return oss.str();
 }
