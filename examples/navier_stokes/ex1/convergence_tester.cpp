@@ -120,11 +120,10 @@ main(int argc, char* argv[])
     for (; files_exist;
          coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
     {
-        string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
-        coarse_file_name += generateSAMRAIName(coarse_iteration_num);
+        string coarse_file_name =
+            formatSAMRAIOutputFilename(coarse_iteration_num, coarse_hier_dump_dirname, "hier_data");
 
-        string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
-        fine_file_name += generateSAMRAIName(fine_iteration_num);
+        string fine_file_name = formatSAMRAIOutputFilename(fine_iteration_num, fine_hier_dump_dirname, "hier_data");
 
         for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
         {

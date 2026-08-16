@@ -473,10 +473,9 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     plog << "simulation time is " << loop_time << endl;
 
     // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    file_name += generateSAMRAIName(iteration_num);
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
+    hier_db->create(formatSAMRAIOutputFilename(iteration_num, data_dump_dirname, "hier_data"));
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
@@ -489,12 +488,10 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     hier_db->close();
 
     // Write Lagrangian data.
-    file_name = data_dump_dirname + "/" + "fe_mesh.";
-    file_name += generateIterationName(iteration_num);
+    file_name = formatIterationOutputFilename(iteration_num, data_dump_dirname, "fe_mesh");
     file_name += ".xda";
     mesh.write(file_name);
-    file_name = data_dump_dirname + "/" + "fe_equation_systems.";
-    file_name += generateIterationName(iteration_num);
-    equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
+    equation_systems->write(formatIterationOutputFilename(iteration_num, data_dump_dirname, "fe_equation_systems"),
+                            (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
 } // output_data
