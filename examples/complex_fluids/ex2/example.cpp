@@ -516,10 +516,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     pout << "Outputting data at time: " << loop_time << "\n And iteration num : " << iteration_num << "\n";
     {
         // Output files
-        string file_name = data_dump_dirname + "/hier_data.";
-        file_name += generateSAMRAIName(iteration_num);
         Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-        hier_db->create(file_name);
+        hier_db->create(formatSAMRAIOutputFilename(iteration_num, data_dump_dirname, "hier_data"));
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         ComponentSelector hier_data;
         if (polymericStressForcing)
