@@ -107,6 +107,43 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > lambda_cc_var = new CellVariable<NDIM, double>("lambda_cc");
         const int lambda_cc_idx = var_db->registerVariableAndContext(lambda_cc_var, ctx, IntVector<NDIM>(1));
 
+        // Elasticity shear modulus coefficient
+#if (NDIM == 2)
+        Pointer<NodeVariable<NDIM, double> > gamma_nc_var = new NodeVariable<NDIM, double>("gamma_node");
+        const int gamma_nc_idx = var_db->registerVariableAndContext(gamma_nc_var, ctx, IntVector<NDIM>(1));
+#elif (NDIM == 3)
+        Pointer<EdgeVariable<NDIM, double> > gamma_ec_var = new EdgeVariable<NDIM, double>("gamma_edge");
+        const int gamma_ec_idx = var_db->registerVariableAndContext(gamma_ec_var, ctx, IntVector<NDIM>(1));
+        Pointer<CellVariable<NDIM, double> > gamma_cc_var = new CellVariable<NDIM, double>("gamma_cc");
+        const int gamma_cc_idx = var_db->registerVariableAndContext(gamma_cc_var, ctx, IntVector<NDIM>(0));
+#endif
+
+        // Elasticity bulk modulus coefficient
+        Pointer<CellVariable<NDIM, double> > zeta_cc_var = new CellVariable<NDIM, double>("zeta_cc");
+        const int zeta_cc_idx = var_db->registerVariableAndContext(zeta_cc_var, ctx, IntVector<NDIM>(1));
+
+        // Acoustic-region indicator function
+        Pointer<CellVariable<NDIM, double> > chi_a_cc_var = new CellVariable<NDIM, double>("chi_a_cc");
+        const int chi_a_cc_idx = var_db->registerVariableAndContext(chi_a_cc_var, ctx, IntVector<NDIM>(1));
+#if (NDIM == 2)
+        Pointer<NodeVariable<NDIM, double> > chi_a_nc_var = new NodeVariable<NDIM, double>("chi_a_nc");
+        const int chi_a_nc_idx = var_db->registerVariableAndContext(chi_a_nc_var, ctx, IntVector<NDIM>(1));
+#elif (NDIM == 3)
+        Pointer<EdgeVariable<NDIM, double> > chi_a_ec_var = new EdgeVariable<NDIM, double>("chi_a_ec");
+        const int chi_a_ec_idx = var_db->registerVariableAndContext(chi_a_ec_var, ctx, IntVector<NDIM>(1));
+#endif
+
+        // Elastic-region indicator function
+        Pointer<CellVariable<NDIM, double> > chi_e_cc_var = new CellVariable<NDIM, double>("chi_e_cc");
+        const int chi_e_cc_idx = var_db->registerVariableAndContext(chi_e_cc_var, ctx, IntVector<NDIM>(1));
+#if (NDIM == 2)
+        Pointer<NodeVariable<NDIM, double> > chi_e_nc_var = new NodeVariable<NDIM, double>("chi_e_nc");
+        const int chi_e_nc_idx = var_db->registerVariableAndContext(chi_e_nc_var, ctx, IntVector<NDIM>(1));
+#elif (NDIM == 3)
+        Pointer<EdgeVariable<NDIM, double> > chi_e_ec_var = new EdgeVariable<NDIM, double>("chi_e_ec");
+        const int chi_e_ec_idx = var_db->registerVariableAndContext(chi_e_ec_var, ctx, IntVector<NDIM>(1));
+#endif
+
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
         const int p_cc_idx = var_db->registerVariableAndContext(p_cc_var, ctx, IntVector<NDIM>(1));
         const int fu_sc_idx = var_db->registerVariableAndContext(fu_sc_var, ctx, IntVector<NDIM>(1));
@@ -176,6 +213,18 @@ main(int argc, char* argv[])
         // Register bulk viscosity with VisIt
         visit_data_writer->registerPlotQuantity(lambda_cc_var->getName(), "SCALAR", lambda_cc_idx);
 
+        // Register elastic shear and dilatational moduli with VisIt
+#if (NDIM == 2)
+        visit_data_writer->registerPlotQuantity(gamma_nc_var->getName(), "SCALAR", gamma_nc_idx);
+#elif (NDIM == 3)
+        visit_data_writer->registerPlotQuantity(gamma_cc_var->getName(), "SCALAR", gamma_cc_idx);
+#endif
+        visit_data_writer->registerPlotQuantity(zeta_cc_var->getName(), "SCALAR", zeta_cc_idx);
+
+        // Register acoustic- and elastic-region indicator functions with VisIt
+        visit_data_writer->registerPlotQuantity(chi_a_cc_var->getName(), "SCALAR", chi_a_cc_idx);
+        visit_data_writer->registerPlotQuantity(chi_e_cc_var->getName(), "SCALAR", chi_e_cc_idx);
+
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -200,13 +249,25 @@ main(int argc, char* argv[])
             level->allocatePatchData(ep_cc_idx, 0.0);
 #if (NDIM == 2)
             level->allocatePatchData(mu_nc_idx, 0.0);
+            level->allocatePatchData(gamma_nc_idx, 0.0);
 #elif (NDIM == 3)
             level->allocatePatchData(mu_ec_idx, 0.0);
             level->allocatePatchData(mu_cc_idx, 0.0);
+            level->allocatePatchData(gamma_ec_idx, 0.0);
+            level->allocatePatchData(gamma_cc_idx, 0.0);
 #endif
             level->allocatePatchData(rho_sc_idx, 0.0);
             level->allocatePatchData(lambda_cc_idx, 0.0);
-
+            level->allocatePatchData(zeta_cc_idx, 0.0);
+            level->allocatePatchData(chi_a_cc_idx, 0.0);
+            level->allocatePatchData(chi_e_cc_idx, 0.0);
+#if (NDIM == 2)
+            level->allocatePatchData(chi_a_nc_idx, 0.0);
+            level->allocatePatchData(chi_e_nc_idx, 0.0);
+#elif (NDIM == 3)
+            level->allocatePatchData(chi_a_ec_idx, 0.0);
+            level->allocatePatchData(chi_e_ec_idx, 0.0);
+#endif
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(fu_cc_idx, 0.0);
             level->allocatePatchData(eu_cc_idx, 0.0);
@@ -304,14 +365,50 @@ main(int argc, char* argv[])
                 "mu_bc_coef", app_initializer->getComponentDatabase("BulkViscosityBcCoefs"), grid_geometry);
         }
 
+        RobinBcCoefStrategy<NDIM>* gamma_bc_coef = nullptr;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ElasticShearModulusBcCoefs"))
+        {
+            gamma_bc_coef = new muParserRobinBcCoefs(
+                "gamma_bc_coef", app_initializer->getComponentDatabase("ElasticShearModulusBcCoefs"), grid_geometry);
+        }
+
+        RobinBcCoefStrategy<NDIM>* zeta_bc_coef = nullptr;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ElasticDilationalModulusBcCoefs"))
+        {
+            zeta_bc_coef =
+                new muParserRobinBcCoefs("zeta_bc_coef",
+                                         app_initializer->getComponentDatabase("ElasticDilationalModulusBcCoefs"),
+                                         grid_geometry);
+        }
+
+        RobinBcCoefStrategy<NDIM>* chi_a_bc_coef = nullptr;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ChiABcCoefs"))
+        {
+            chi_a_bc_coef = new muParserRobinBcCoefs(
+                "chi_a_bc_coef", app_initializer->getComponentDatabase("ChiABcCoefs"), grid_geometry);
+        }
+
+        RobinBcCoefStrategy<NDIM>* chi_e_bc_coef = nullptr;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ChiEBcCoefs"))
+        {
+            chi_e_bc_coef = new muParserRobinBcCoefs(
+                "chi_e_bc_coef", app_initializer->getComponentDatabase("ChiEBcCoefs"), grid_geometry);
+        }
+
         // Setup exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         muParserCartGridFunction p_fcn("p", app_initializer->getComponentDatabase("p"), grid_geometry);
         muParserCartGridFunction fu_fcn("fu", app_initializer->getComponentDatabase("fu"), grid_geometry);
         muParserCartGridFunction fp_fcn("fp", app_initializer->getComponentDatabase("fp"), grid_geometry);
+
         muParserCartGridFunction mu_fcn("mu", app_initializer->getComponentDatabase("mu"), grid_geometry);
         muParserCartGridFunction rho_fcn("rho", app_initializer->getComponentDatabase("rho"), grid_geometry);
         muParserCartGridFunction lambda_fcn("lambda", app_initializer->getComponentDatabase("lambda"), grid_geometry);
+
+        muParserCartGridFunction gamma_fcn("gamma", app_initializer->getComponentDatabase("gamma"), grid_geometry);
+        muParserCartGridFunction zeta_fcn("zeta", app_initializer->getComponentDatabase("zeta"), grid_geometry);
+        muParserCartGridFunction chi_e_fcn("chi_e", app_initializer->getComponentDatabase("chi_e"), grid_geometry);
+        muParserCartGridFunction chi_a_fcn("chi_a", app_initializer->getComponentDatabase("chi_a"), grid_geometry);
 
         u_fcn.setDataOnPatchHierarchy(eu_sc_idx, eu_sc_var, patch_hierarchy, 0.0);
         p_fcn.setDataOnPatchHierarchy(ep_cc_idx, ep_cc_var, patch_hierarchy, 0.0);
@@ -324,21 +421,81 @@ main(int argc, char* argv[])
 #endif
         rho_fcn.setDataOnPatchHierarchy(rho_sc_idx, rho_sc_var, patch_hierarchy, 0.0);
         lambda_fcn.setDataOnPatchHierarchy(lambda_cc_idx, lambda_cc_var, patch_hierarchy, 0.0);
+#if (NDIM == 2)
+        gamma_fcn.setDataOnPatchHierarchy(gamma_nc_idx, gamma_nc_var, patch_hierarchy, 0.0);
+#elif (NDIM == 3)
+        gamma_fcn.setDataOnPatchHierarchy(gamma_ec_idx, gamma_ec_var, patch_hierarchy, 0.0);
+#endif
 
-        // Negate the shear and bulk viscosity values as we need to move the viscous operator to the left hand side
+        zeta_fcn.setDataOnPatchHierarchy(zeta_cc_idx, zeta_cc_var, patch_hierarchy, 0.0);
+        chi_e_fcn.setDataOnPatchHierarchy(chi_e_cc_idx, chi_e_cc_var, patch_hierarchy, 0.0);
+        chi_a_fcn.setDataOnPatchHierarchy(chi_a_cc_idx, chi_a_cc_var, patch_hierarchy, 0.0);
+
+        // Fill ghost cells of indicator functions first
+        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        std::vector<InterpolationTransactionComponent> chi_transaction_comps(2);
+        chi_transaction_comps[0] = InterpolationTransactionComponent(chi_a_cc_idx,
+                                                                     "CONSERVATIVE_LINEAR_REFINE",
+                                                                     false,
+                                                                     "CONSERVATIVE_COARSEN",
+                                                                     "LINEAR",
+                                                                     false,
+                                                                     chi_a_bc_coef,
+                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
+        chi_transaction_comps[1] = InterpolationTransactionComponent(chi_e_cc_idx,
+                                                                     "CONSERVATIVE_LINEAR_REFINE",
+                                                                     false,
+                                                                     "CONSERVATIVE_COARSEN",
+                                                                     "LINEAR",
+                                                                     false,
+                                                                     chi_e_bc_coef,
+                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
+
+        Pointer<HierarchyGhostCellInterpolation> chi_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        chi_hier_bdry_fill->initializeOperatorState(chi_transaction_comps, patch_hierarchy);
+        chi_hier_bdry_fill->setHomogeneousBc(false);
+        chi_hier_bdry_fill->fillData(/*time*/ 0.0);
+
+        hier_math_ops.interp(chi_e_nc_idx,
+                             chi_e_nc_var,
+                             false,
+                             chi_e_cc_idx,
+                             chi_e_cc_var,
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                             0.0);
+        hier_math_ops.interp(chi_a_nc_idx,
+                             chi_a_nc_var,
+                             false,
+                             chi_a_cc_idx,
+                             chi_a_cc_var,
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                             0.0);
+
+        // Negate the shear and bulk viscosity/modolus values as we need to move the viscous and elasticity operators to
+        // the left hand side
 #if (NDIM == 2)
         HierarchyNodeDataOpsReal<NDIM, double> hier_nc_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
         hier_nc_ops.scale(mu_nc_idx, -1.0, mu_nc_idx);
+        hier_nc_ops.scale(gamma_nc_idx, -1.0, gamma_nc_idx);
+        hier_nc_ops.multiply(mu_nc_idx, mu_nc_idx, chi_a_nc_idx);
+        hier_nc_ops.multiply(gamma_nc_idx, gamma_nc_idx, chi_e_nc_idx);
 #elif (NDIM == 3)
         HierarchyEdgeDataOpsReal<NDIM, double> hier_ec_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
         hier_ec_ops.scale(mu_ec_idx, -1.0, mu_ec_idx);
+        hier_ec_ops.scale(gamma_ec_idx, -1.0, gamma_ec_idx);
+        hier_ec_ops.multiply(mu_ec_idx, mu_ec_idx, chi_a_ec_idx);
+        hier_ec_ops.multiply(gamma_ec_idx, gamma_ec_idx, chi_e_ec_idx);
 #endif
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
         hier_cc_ops.scale(lambda_cc_idx, -1.0, lambda_cc_idx);
+        hier_cc_ops.scale(zeta_cc_idx, -1.0, zeta_cc_idx);
 
-        // Fill ghost cells of viscosity.
+        hier_cc_ops.multiply(lambda_cc_idx, lambda_cc_idx, chi_a_cc_idx);
+        hier_cc_ops.multiply(zeta_cc_idx, zeta_cc_idx, chi_e_cc_idx);
+
+        // Fill ghost cells of all material properties
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> transaction_comp(3);
+        std::vector<InterpolationTransactionComponent> transaction_comp(5);
 #if (NDIM == 2)
         transaction_comp[0] = InterpolationTransactionComponent(mu_nc_idx,
                                                                 /*DATA_REFINE_TYPE*/ "LINEAR_REFINE",
@@ -377,6 +534,34 @@ main(int argc, char* argv[])
                                                                 lambda_bc_coef,
                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
 
+#if (NDIM == 2)
+        transaction_comp[3] = InterpolationTransactionComponent(gamma_nc_idx,
+                                                                "LINEAR_REFINE",
+                                                                false,
+                                                                "CONSTANT_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                gamma_bc_coef,
+                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+#elif (NDIM == 3)
+        transaction_comp[3] = InterpolationTransactionComponent(gamma_ec_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                gamma_bc_coef,
+                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+#endif
+        transaction_comp[4] = InterpolationTransactionComponent(zeta_cc_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                zeta_bc_coef,
+                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
@@ -398,6 +583,10 @@ main(int argc, char* argv[])
         petsc_solver.setShearViscosityPatchDataIndex(mu_ec_idx);
 #endif
         petsc_solver.setBulkViscosityPatchDataIndex(lambda_cc_idx);
+        petsc_solver.setElasticShearModulusPatchDataIndex(gamma_nc_idx);
+        petsc_solver.setElasticDilatationalModulusPatchDataIndex(zeta_cc_idx);
+        petsc_solver.setAcousticRegionIndicatorPatchDataIndex(chi_a_cc_idx);
+        petsc_solver.setElasticRegionIndicatorPatchDataIndex(chi_e_cc_idx);
         petsc_solver.initializeSolverState(x_vec, f_vec);
         petsc_solver.solveSystem(x_vec, f_vec);
 
@@ -466,6 +655,10 @@ main(int argc, char* argv[])
 
         delete mu_bc_coef;
         delete lambda_bc_coef;
+        delete gamma_bc_coef;
+        delete zeta_bc_coef;
+        delete chi_a_bc_coef;
+        delete chi_e_bc_coef;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

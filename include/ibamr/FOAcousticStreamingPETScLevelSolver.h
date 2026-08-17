@@ -116,6 +116,59 @@ public:
         return;
     } // setBulkViscosityPatchDataIndex
 
+    /*!
+     * \brief Set the node-centered (2D)/edge-centered (3D) patch data index containing
+     * the elastic shear modulus coefficient Gamma.
+     */
+    void setElasticShearModulusPatchDataIndex(int gamma_idx)
+    {
+        d_gamma_idx = gamma_idx;
+        return;
+    } // setElasticShearModulusPatchDataIndex
+
+    /*!
+     * \brief Set the cell-centered patch data index containing the elastic dilatational (Lame)
+     * coefficient zeta.
+     */
+    void setElasticDilatationalModulusPatchDataIndex(int zeta_idx)
+    {
+        d_zeta_idx = zeta_idx;
+        return;
+    } // setElasticDilatationalModulusPatchDataIndex
+
+    /*!
+     * \brief Set the cell-centered acoustic-region indicator chi_a.
+     *
+     * chi_a is used by the elastic version of the first-order operator for
+     *
+     *     grad(chi_a p)
+     *
+     * and for the selected pressure-equation extension
+     *
+     *     chi_a D_{rho_0}(v) + omega/c_0^2 p = 0.
+     *
+     * Typically,
+     *
+     *     chi_a = 1 - chi_e,
+     *
+     * where chi_e is the elastic-solid indicator.
+     */
+    void setAcousticRegionIndicatorPatchDataIndex(int acoustic_indicator_idx)
+    {
+        d_acoustic_indicator_idx = acoustic_indicator_idx;
+        return;
+    } // setAcousticRegionIndicatorPatchDataIndex
+
+    /*!
+     * \brief Set the cell-centered elastic-region indicator chi_e.
+     *
+     */
+    void setElasticRegionIndicatorPatchDataIndex(int elastic_indicator_idx)
+    {
+        d_elastic_indicator_idx = elastic_indicator_idx;
+        return;
+    } // setElasticRegionIndicatorPatchDataIndex
+
     void setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
     {
         d_mu_interp_type = mu_interp_type;
@@ -224,8 +277,30 @@ protected:
     /*!
      * \name Patch data indices for material parameters.
      */
-    int d_rho_idx = IBTK::invalid_index, d_lambda_idx = IBTK::invalid_index, d_mu_idx = IBTK::invalid_index;
+    //\{
 
+    // Fluid/acoustic material parameters.
+    int d_rho_idx = IBTK::invalid_index;
+    int d_lambda_idx = IBTK::invalid_index;
+    int d_mu_idx = IBTK::invalid_index;
+
+    // Elastic material parameters.
+    //
+    // Gamma : elastic shear modulus.
+    // zeta  : elastic dilatational modulus.
+    //
+    // If both are IBTK::invalid_index, elasticity is disabled.
+    int d_gamma_idx = IBTK::invalid_index;
+    int d_zeta_idx = IBTK::invalid_index;
+
+    // Cell-centered acoustic- and elastic-region indicator functions chi_a and chi_e.
+    // Note: chi_a = 1 - chi_e.
+    //
+    // These indices are required only when elasticity is enabled.
+    int d_acoustic_indicator_idx = IBTK::invalid_index;
+    int d_elastic_indicator_idx = IBTK::invalid_index;
+
+    //\}
     /*!
      * \name Patch data index for the Brinkman penalization coefficient.
      */

@@ -92,6 +92,7 @@ ENDMACRO()
 
 #acoustic_streaming
 SETUP_2D(acoustic_streaming fo_acoustic_streaming_solver.cpp)
+SETUP_2D(acoustic_streaming fo_elastic_acoustic_streaming_solver.cpp)
 SETUP_3D(acoustic_streaming fo_acoustic_streaming_solver.cpp)
 SETUP_2D(acoustic_streaming acoustic_streaming_hier_integrator.cpp)
 SETUP_2D(acoustic_streaming acoustic_streaming_brinkman.cpp)

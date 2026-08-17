@@ -95,6 +95,25 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     return extended_box;
 } // compute_tangential_extension
 
+inline void
+increment_nnz(const int col,
+              const int local_row,
+              const int proc_lower,
+              const int proc_upper,
+              std::vector<int>& d_nnz,
+              std::vector<int>& o_nnz)
+{
+    if (col >= proc_lower && col < proc_upper)
+    {
+        ++d_nnz[local_row];
+    }
+    else
+    {
+        ++o_nnz[local_row];
+    }
+    return;
+} // increment_nnz
+
 void
 compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
                                    Pointer<Patch<NDIM> > patch,
@@ -198,6 +217,136 @@ compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
 
 } // compute_grad_p_matrix_coefficients
 
+/*!
+ * \brief Compute the pressure-gradient stencil for grad(chi_a p).
+ *
+ * At a side between cells i-1 and i,
+ *
+ *   grad(chi_a p)
+ *
+ * is discretized as
+ *
+ *   [chi_a(i) p(i) - chi_a(i-1) p(i-1)] / dx.
+ *
+ * Therefore the pressure coefficients are
+ *
+ *   -chi_a(i-1)/dx,
+ *   +chi_a(i)/dx.
+ */
+void
+compute_masked_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
+                                          Pointer<Patch<NDIM> > patch,
+                                          Pointer<CellData<NDIM, double> > acoustic_indicator_data,
+                                          const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                          double data_time)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(!acoustic_indicator_data.isNull());
+    TBOX_ASSERT(acoustic_indicator_data->getDepth() >= 1);
+#endif
+
+    static const int stencil_sz = 2;
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(matrix_coefs.getDepth() == stencil_sz);
+#endif
+
+    matrix_coefs.fillAll(0.0);
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    /*
+     * Interior stencil.
+     */
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        {
+            const CellIndex<NDIM> ic = b();
+            const SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+
+            const double chi_lo = (*acoustic_indicator_data)(ic + shift_axis_minus, 0);
+            const double chi_hi = (*acoustic_indicator_data)(ic, 0);
+
+            matrix_coefs(is, 0) = -chi_lo / dx[axis];
+            matrix_coefs(is, 1) = +chi_hi / dx[axis];
+        }
+    }
+
+    /*
+     * Physical-boundary treatment.
+     *
+     * If the normal velocity is strongly prescribed, the corresponding
+     * momentum row will later be replaced by a unit Dirichlet row.
+     * Hence pressure coupling on that row is suppressed here.
+     */
+    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+
+    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data;
+
+            static const bool homogeneous_bc = true;
+            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+
+            u_bc_coefs[axis]->setBcCoefs(
+                acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+
+            if (gcoef_data && homogeneous_bc && !extended_bc_coef)
+            {
+                gcoef_data->fillAll(0.0);
+            }
+
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const hier::Index<NDIM>& i = bc();
+                const SideIndex<NDIM> is(i, axis, SideIndex<NDIM>::Lower);
+
+                const double a = (*acoef_data)(i, 0);
+                const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
+
+#if !defined(NDEBUG)
+                TBOX_ASSERT(velocity_bc);
+#endif
+
+                for (int k = 0; k < stencil_sz; ++k)
+                {
+                    matrix_coefs(is, k) = 0.0;
+                }
+            }
+        }
+    }
+    return;
+} // compute_masked_grad_p_matrix_coefficients
+
 static const int REAL = 0;
 static const int IMAG = 1;
 
@@ -244,9 +393,9 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+#if !defined(NDEBUG)
         const int u_dof_index_depth = u_dof_index_data->getDepth();
         const int p_dof_index_depth = p_dof_index_data->getDepth();
-#if !defined(NDEBUG)
         TBOX_ASSERT(u_dof_index_depth == 2);
         TBOX_ASSERT(p_dof_index_depth == 2);
 #endif
@@ -823,6 +972,856 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     const int num_dirichlet_rows = dirichlet_rows.size();
     ierr = MatZeroRows(mat, num_dirichlet_rows, &dirichlet_rows[0], /*diag_value*/ 1.0, NULL, NULL);
     IBTK_CHKERRQ(ierr);
+    return;
+} // constructPatchLevelFOAcousticStreamingOp
+
+void
+AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
+    Mat& mat,
+    double omega,
+    double sound_speed,
+    int rho_idx,
+    int acoustic_mu_idx,
+    int acoustic_lambda_idx,
+    int elastic_gamma_idx,
+    int elastic_zeta_idx,
+    int rigid_penalty_idx,
+    int acoustic_indicator_idx,
+    const std::array<std::vector<RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    int u_dof_index_idx,
+    int p_dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level,
+    IBTK::VCInterpType coeff_interp_type)
+{
+    int ierr;
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(rho_idx != IBTK::invalid_index);
+    TBOX_ASSERT(acoustic_mu_idx != IBTK::invalid_index);
+    TBOX_ASSERT(acoustic_lambda_idx != IBTK::invalid_index);
+    TBOX_ASSERT(elastic_gamma_idx != IBTK::invalid_index);
+    TBOX_ASSERT(elastic_zeta_idx != IBTK::invalid_index);
+    TBOX_ASSERT(acoustic_indicator_idx != IBTK::invalid_index);
+
+    TBOX_ASSERT(u_bc_coefs[REAL].size() == NDIM);
+    TBOX_ASSERT(u_bc_coefs[IMAG].size() == NDIM);
+#endif
+
+    /*
+     * Destroy an existing PETSc matrix before rebuilding.
+     */
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    /*
+     * MPI/global numbering information.
+     */
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int proc_upper = proc_lower + n_local;
+    const int n_total = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+
+    /*
+     * PETSc AIJ preallocation arrays.
+     */
+    std::vector<int> d_nnz(n_local, 0);
+    std::vector<int> o_nnz(n_local, 0);
+
+    /*
+     * ===============================================================
+     * PREALLOCATION
+     * ===============================================================
+     */
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+
+#if !defined(NDEBUG)
+        TBOX_ASSERT(!u_dof_index_data.isNull());
+        TBOX_ASSERT(!p_dof_index_data.isNull());
+        const int u_dof_index_depth = u_dof_index_data->getDepth();
+        const int p_dof_index_depth = p_dof_index_data->getDepth();
+        TBOX_ASSERT(u_dof_index_depth == 2);
+        TBOX_ASSERT(p_dof_index_depth == 2);
+#endif
+
+        /*
+         * Velocity rows.
+         */
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            {
+                const hier::Index<NDIM>& cc = b();
+                const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
+
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    const int row = (*u_dof_index_data)(i, comp);
+
+                    if (row < proc_lower || row >= proc_upper)
+                    {
+                        continue;
+                    }
+
+                    const int local_row = row - proc_lower;
+                    const int other_comp = (comp == REAL ? IMAG : REAL);
+
+                    auto preallocate_stress_stencil = [&](const int velocity_comp)
+                    {
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis)
+                            {
+                                /*
+                                 * Center.
+                                 */
+                                increment_nnz((*u_dof_index_data)(i, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+
+                                /*
+                                 * +/- axis neighbors.
+                                 */
+                                const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                                const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                                increment_nnz((*u_dof_index_data)(i + shift_axis_plus, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                                increment_nnz((*u_dof_index_data)(i + shift_axis_minus, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                            }
+                            else
+                            {
+                                /*
+                                 * Direct transverse neighbors.
+                                 */
+                                const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                                const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                                const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                                increment_nnz((*u_dof_index_data)(i + shift_d_plus, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                                increment_nnz((*u_dof_index_data)(i + shift_d_minus, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+
+                                /*
+                                 * Four staggered cross-component
+                                 * locations.
+                                 */
+                                const SideIndex<NDIM> se(cc, d, SideIndex<NDIM>::Lower);
+                                const SideIndex<NDIM> sw(cc + shift_axis_minus, d, SideIndex<NDIM>::Lower);
+                                const SideIndex<NDIM> ne(cc, d, SideIndex<NDIM>::Upper);
+                                const SideIndex<NDIM> nw(cc + shift_axis_minus, d, SideIndex<NDIM>::Upper);
+
+                                increment_nnz((*u_dof_index_data)(se, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                                increment_nnz((*u_dof_index_data)(sw, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                                increment_nnz((*u_dof_index_data)(ne, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                                increment_nnz((*u_dof_index_data)(nw, velocity_comp),
+                                              local_row,
+                                              proc_lower,
+                                              proc_upper,
+                                              d_nnz,
+                                              o_nnz);
+                            }
+                        }
+                    };
+
+                    /*
+                     * Full elastic stencil on same component.
+                     */
+                    preallocate_stress_stencil(comp);
+
+                    /*
+                     * Full acoustic/VP stencil on opposite component.
+                     */
+                    preallocate_stress_stencil(other_comp);
+
+                    /*
+                     * Two adjacent pressure DOFs.
+                     */
+                    for (int side = 0; side <= 1; ++side)
+                    {
+                        const hier::Index<NDIM> shift_axis = get_shift(axis, side - 1);
+                        const int p_col = (*p_dof_index_data)(cc + shift_axis, other_comp);
+                        increment_nnz(p_col, local_row, proc_lower, proc_upper, d_nnz, o_nnz);
+                    }
+
+                    d_nnz[local_row] = std::min(n_local, d_nnz[local_row]);
+                    o_nnz[local_row] = std::min(n_total - n_local, o_nnz[local_row]);
+                }
+            }
+        }
+
+        /*
+         * Pressure rows.
+         */
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& ic = b();
+
+            for (int comp = 0; comp < 2; ++comp)
+            {
+                const int row = (*p_dof_index_data)(ic, comp);
+
+                if (row < proc_lower || row >= proc_upper)
+                {
+                    continue;
+                }
+
+                const int local_row = row - proc_lower;
+                const int other_comp = (comp == REAL ? IMAG : REAL);
+
+                /*
+                 * Pressure diagonal.
+                 */
+                increment_nnz(row, local_row, proc_lower, proc_upper, d_nnz, o_nnz);
+
+                /*
+                 * 2*NDIM divergence velocities.
+                 */
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (int side = 0; side <= 1; ++side)
+                    {
+                        const hier::Index<NDIM> shift_axis = get_shift(axis, side);
+
+                        const SideIndex<NDIM> is(ic + shift_axis, axis, SideIndex<NDIM>::Lower);
+
+                        const int u_col = (*u_dof_index_data)(is, other_comp);
+
+                        increment_nnz(u_col, local_row, proc_lower, proc_upper, d_nnz, o_nnz);
+                    }
+                }
+
+                d_nnz[local_row] = std::min(n_local, d_nnz[local_row]);
+                o_nnz[local_row] = std::min(n_total - n_local, o_nnz[local_row]);
+            }
+        }
+    }
+
+    /*
+     * Create PETSc AIJ matrix.
+     */
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        n_local ? d_nnz.data() : nullptr,
+                        0,
+                        n_local ? o_nnz.data() : nullptr,
+                        &mat);
+
+    IBTK_CHKERRQ(ierr);
+
+#if !defined(NDEBUG)
+    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
+#endif
+
+    /*
+     * ===============================================================
+     * STENCIL MAPS
+     * ===============================================================
+     */
+    using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
+
+    static std::vector<StencilMapType> stencil_map_vec;
+
+    static const int uu_stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    static const int up_stencil_sz = 2;
+    static const int pu_stencil_sz = 2 * NDIM;
+
+    static const hier::Index<NDIM> ORIGIN(0);
+
+#if (NDIM == 2)
+
+    enum DIRECTIONS
+    {
+        CENTER = 0,
+        EAST = 1,
+        WEST = 2,
+        NORTH = 3,
+        SOUTH = 4,
+        NORTHEAST = 5,
+        NORTHWEST = 6,
+        SOUTHEAST = 7,
+        SOUTHWEST = 8,
+
+        X = 0,
+        Y = 1
+    };
+
+    IBTK_DO_ONCE(static StencilMapType sm;
+
+                 sm[ORIGIN] = CENTER;
+                 sm[get_shift(X, 1)] = EAST;
+                 sm[get_shift(X, -1)] = WEST;
+                 sm[get_shift(Y, 1)] = NORTH;
+                 sm[get_shift(Y, -1)] = SOUTH;
+                 sm[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
+                 sm[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
+                 sm[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
+                 sm[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
+                 stencil_map_vec.push_back(sm););
+
+#elif (NDIM == 3)
+
+    enum COMMONDIRECTIONS
+    {
+        CENTER = 0,
+        EAST = 1,
+        WEST = 2,
+        NORTH = 3,
+        SOUTH = 4,
+        TOP = 5,
+        BOTTOM = 6,
+
+        X = 0,
+        Y = 1,
+        Z = 2
+    };
+
+    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis) {
+        StencilMapType sm;
+        sm[ORIGIN] = CENTER;
+        sm[get_shift(X, 1)] = EAST;
+        sm[get_shift(X, -1)] = WEST;
+        sm[get_shift(Y, 1)] = NORTH;
+        sm[get_shift(Y, -1)] = SOUTH;
+        sm[get_shift(Z, 1)] = TOP;
+        sm[get_shift(Z, -1)] = BOTTOM;
+
+        int idx = BOTTOM;
+
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (d == axis) continue;
+
+            sm[get_shift(axis, 1) + get_shift(d, 1)] = ++idx;
+            sm[get_shift(axis, -1) + get_shift(d, 1)] = ++idx;
+            sm[get_shift(axis, 1) + get_shift(d, -1)] = ++idx;
+            sm[get_shift(axis, -1) + get_shift(d, -1)] = ++idx;
+        }
+
+        stencil_map_vec.push_back(sm);
+    });
+
+#endif
+
+    /*
+     * ===============================================================
+     * MATRIX ASSEMBLY
+     * ===============================================================
+     */
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+
+        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+        Pointer<CellData<NDIM, double> > acoustic_indicator_data = patch->getPatchData(acoustic_indicator_idx);
+
+        Pointer<SideData<NDIM, double> > rigid_penalty_data = nullptr;
+
+        if (rigid_penalty_idx != IBTK::invalid_index)
+        {
+            rigid_penalty_data = patch->getPatchData(rigid_penalty_idx);
+        }
+
+#if !defined(NDEBUG)
+        TBOX_ASSERT(!u_dof_index_data.isNull());
+        TBOX_ASSERT(!p_dof_index_data.isNull());
+        TBOX_ASSERT(!rho_data.isNull());
+        TBOX_ASSERT(!acoustic_indicator_data.isNull());
+#endif
+
+        const IntVector<NDIM> no_ghosts(0);
+
+        /*
+         * Acoustic-fluid operator stencils:
+         *
+         *   -div[chi_a {mu (grad v + grad v^T) + lambda div(v) I}].
+         */
+        SideData<NDIM, double> acoustic_r_coefs(patch_box, uu_stencil_sz, no_ghosts);
+        SideData<NDIM, double> acoustic_i_coefs(patch_box, uu_stencil_sz, no_ghosts);
+
+        /*
+         * Elastic operator stencils.
+         *
+         *   -div[chi_e {Gamma (grad v + grad v^T) + zeta div(v) I}].
+         */
+        SideData<NDIM, double> elastic_r_coefs(patch_box, uu_stencil_sz, no_ghosts);
+        SideData<NDIM, double> elastic_i_coefs(patch_box, uu_stencil_sz, no_ghosts);
+
+        /*
+         * grad(chi_a p) stencils.
+         */
+        SideData<NDIM, double> upr_matrix_coefs(patch_box, up_stencil_sz, no_ghosts);
+        SideData<NDIM, double> upi_matrix_coefs(patch_box, up_stencil_sz, no_ghosts);
+
+        /*
+         * Acoustic operator.
+         *
+         * These indices contain:
+         *
+         *   chi_a * mu
+         *   chi_a * lambda.
+         */
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(acoustic_r_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[REAL],
+                                                                             data_time,
+                                                                             acoustic_mu_idx,
+                                                                             acoustic_lambda_idx,
+                                                                             coeff_interp_type,
+                                                                             /*consider_dirichlet_bcs*/ false);
+
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(acoustic_i_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[IMAG],
+                                                                             data_time,
+                                                                             acoustic_mu_idx,
+                                                                             acoustic_lambda_idx,
+                                                                             coeff_interp_type,
+                                                                             /*consider_dirichlet_bcs*/ false);
+
+        /*
+         * Elastic operator.
+         *
+         * These indices contain:
+         *
+         *   chi_e * Gamma
+         *   chi_e * zeta.
+         */
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(elastic_r_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[REAL],
+                                                                             data_time,
+                                                                             elastic_gamma_idx,
+                                                                             elastic_zeta_idx,
+                                                                             coeff_interp_type,
+                                                                             false);
+
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(elastic_i_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[IMAG],
+                                                                             data_time,
+                                                                             elastic_gamma_idx,
+                                                                             elastic_zeta_idx,
+                                                                             coeff_interp_type,
+                                                                             false);
+
+        /*
+         * Pressure coupling:
+         *
+         *   grad(chi_a p).
+         */
+        compute_masked_grad_p_matrix_coefficients(
+            upr_matrix_coefs, patch, acoustic_indicator_data, u_bc_coefs[IMAG], data_time);
+
+        compute_masked_grad_p_matrix_coefficients(
+            upi_matrix_coefs, patch, acoustic_indicator_data, u_bc_coefs[REAL], data_time);
+
+#if (NDIM == 2)
+        StencilMapType& stencil_map = stencil_map_vec[0];
+#endif
+
+        /*
+         * ===========================================================
+         * VELOCITY / MOMENTUM ROWS
+         * ===========================================================
+         */
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+#if (NDIM == 3)
+            StencilMapType& stencil_map = stencil_map_vec[axis];
+#endif
+
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            {
+                const CellIndex<NDIM>& ic = b();
+                const SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+
+                const double rigid_penalty = rigid_penalty_data.isNull() ? 0.0 : (*rigid_penalty_data)(is, 0);
+
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    const int other_comp = (comp == REAL ? IMAG : REAL);
+
+                    const double inertia_sign = (comp == REAL ? +1.0 : -1.0);
+
+                    /*
+                     * Coefficients passed to PoissonUtilities will produce
+                     *
+                     *   -div(elastic stress).
+                     *
+                     * Desired elastic operator:
+                     *
+                     *   L_e = +(1/omega) div(elastic stress).
+                     *
+                     * Therefore:
+                     *
+                     *   real row  -> -1/omega
+                     *   imag row  -> +1/omega.
+                     */
+                    const double elastic_scale = (comp == REAL ? -1.0 / omega : +1.0 / omega);
+
+                    SideData<NDIM, double>& acoustic_coefs = (other_comp == REAL ? acoustic_r_coefs : acoustic_i_coefs);
+                    SideData<NDIM, double>& elastic_coefs = (comp == REAL ? elastic_r_coefs : elastic_i_coefs);
+                    SideData<NDIM, double>& pressure_coefs = (comp == REAL ? upi_matrix_coefs : upr_matrix_coefs);
+
+                    const int row = (*u_dof_index_data)(is, comp);
+
+                    if (row < proc_lower || row >= proc_upper)
+                    {
+                        continue;
+                    }
+
+                    const int u_stencil_sz = 2 * uu_stencil_sz + up_stencil_sz;
+                    std::vector<double> vals(u_stencil_sz, 0.0);
+                    std::vector<int> cols(u_stencil_sz, -1);
+                    int idx = -1;
+
+                    auto append_stress_stencil = [&](SideData<NDIM, double>& coefs,
+                                                     const int velocity_comp,
+                                                     const double scale,
+                                                     const double add_center_value)
+                    {
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis)
+                            {
+                                /*
+                                 * Center.
+                                 */
+                                ++idx;
+                                vals[idx] = scale * coefs(is, stencil_map[ORIGIN]);
+                                vals[idx] += add_center_value;
+                                cols[idx] = (*u_dof_index_data)(is, velocity_comp);
+
+                                /*
+                                 * +axis.
+                                 */
+                                ++idx;
+                                const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_axis_plus]);
+                                cols[idx] = (*u_dof_index_data)(is + shift_axis_plus, velocity_comp);
+
+                                /*
+                                 * -axis.
+                                 */
+                                ++idx;
+                                const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_axis_minus]);
+                                cols[idx] = (*u_dof_index_data)(is + shift_axis_minus, velocity_comp);
+                            }
+                            else
+                            {
+                                const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                                const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                                const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                                const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                                /*
+                                 * Direct +d neighbor.
+                                 */
+                                ++idx;
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_plus]);
+                                cols[idx] = (*u_dof_index_data)(is + shift_d_plus, velocity_comp);
+
+                                /*
+                                 * Direct -d neighbor.
+                                 */
+                                ++idx;
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_minus]);
+                                cols[idx] = (*u_dof_index_data)(is + shift_d_minus, velocity_comp);
+
+                                /*
+                                 * Cross-coupled staggered locations.
+                                 */
+                                ++idx;
+                                const SideIndex<NDIM> ne(ic, d, SideIndex<NDIM>::Upper);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_plus + shift_axis_plus]);
+                                cols[idx] = (*u_dof_index_data)(ne, velocity_comp);
+
+                                ++idx;
+                                const SideIndex<NDIM> nw(ic + shift_axis_minus, d, SideIndex<NDIM>::Upper);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_plus + shift_axis_minus]);
+                                cols[idx] = (*u_dof_index_data)(nw, velocity_comp);
+
+                                ++idx;
+                                const SideIndex<NDIM> se(ic, d, SideIndex<NDIM>::Lower);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_minus + shift_axis_plus]);
+                                cols[idx] = (*u_dof_index_data)(se, velocity_comp);
+
+                                ++idx;
+                                const SideIndex<NDIM> sw(ic + shift_axis_minus, d, SideIndex<NDIM>::Lower);
+                                vals[idx] = scale * coefs(is, stencil_map[shift_d_minus + shift_axis_minus]);
+                                cols[idx] = (*u_dof_index_data)(sw, velocity_comp);
+                            }
+                        }
+                    };
+
+                    /*
+                     * Same component:
+                     *
+                     *   real:
+                     *      +omega rho v_r + L_e(v_r)
+                     *
+                     *   imag:
+                     *      -omega rho v_i - L_e(v_i)
+                     */
+                    append_stress_stencil(
+                        elastic_coefs, comp, elastic_scale, inertia_sign * omega * (*rho_data)(is, 0));
+
+                    /*
+                     * Opposite component:
+                     *
+                     *   L_a(v_other)
+                     *     + chi_r/kappa v_other.
+                     */
+                    append_stress_stencil(acoustic_coefs, other_comp, 1.0, rigid_penalty);
+
+                    /*
+                     * grad(chi_a p_other).
+                     */
+                    for (int side = 0; side <= 1; ++side)
+                    {
+                        ++idx;
+                        const hier::Index<NDIM> shift_axis = get_shift(axis, side - 1);
+                        vals[idx] = pressure_coefs(is, side);
+                        cols[idx] = (*p_dof_index_data)(ic + shift_axis, other_comp);
+                    }
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(idx == u_stencil_sz - 1);
+#endif
+                    ierr = MatSetValues(mat, 1, &row, u_stencil_sz, cols.data(), vals.data(), INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+
+        /*
+         * ===========================================================
+         * PRESSURE / MASS ROWS
+         * ===========================================================
+         *
+         * Selected algebraic equation:
+         *
+         *     chi_a D_rho(v)
+         *       +/- omega/c^2 p = 0.
+         *
+         * The pressure diagonal is not masked.
+         *
+         * Thus chi_a = 0 gives p = 0 rather than a structurally
+         * singular zero row.
+         */
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& ic = b();
+            const double chi_a = (*acoustic_indicator_data)(ic, 0);
+
+            for (int comp = 0; comp < 2; ++comp)
+            {
+                const int row = (*p_dof_index_data)(ic, comp);
+                if (row < proc_lower || row >= proc_upper)
+                {
+                    continue;
+                }
+
+                const int other_comp = (comp == REAL ? IMAG : REAL);
+                const double p_coef = (comp == REAL ? +omega : -omega) / (sound_speed * sound_speed);
+                const int p_stencil_sz = pu_stencil_sz + 1;
+                std::vector<double> vals(p_stencil_sz, 0.0);
+                std::vector<int> cols(p_stencil_sz, -1);
+
+                int idx = 0;
+
+                /*
+                 * Pressure diagonal.
+                 */
+                vals[idx] = p_coef;
+                cols[idx] = row;
+
+                /*
+                 * chi_a div(rho_0 v_other).
+                 */
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (int side = 0; side <= 1; ++side)
+                    {
+                        const hier::Index<NDIM> shift_axis = get_shift(axis, side);
+                        const SideIndex<NDIM> is(ic + shift_axis, axis, SideIndex<NDIM>::Lower);
+                        const double sgn = (side == 0 ? -1.0 : +1.0);
+
+                        ++idx;
+                        vals[idx] = chi_a * sgn * (*rho_data)(is, 0) / dx[axis];
+                        cols[idx] = (*u_dof_index_data)(is, other_comp);
+                    }
+                }
+#if !defined(NDEBUG)
+                TBOX_ASSERT(idx == p_stencil_sz - 1);
+#endif
+                ierr = MatSetValues(mat, 1, &row, p_stencil_sz, cols.data(), vals.data(), INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    /*
+     * Final matrix assembly.
+     */
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+
+    /*
+     * ===============================================================
+     * STRONG DIRICHLET VELOCITY ROWS
+     * ===============================================================
+     */
+    std::vector<int> dirichlet_rows;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+
+        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+
+        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+
+        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const unsigned int location_index = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+
+                if (bdry_normal_axis != axis) continue;
+
+                const BoundaryBox<NDIM> trimmed_bdry_box =
+                    PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                static const bool homogeneous_bc = true;
+
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[comp][axis]);
+                    if (extended_bc_coef)
+                    {
+                        extended_bc_coef->clearTargetPatchDataIndex();
+                        extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                    }
+
+                    u_bc_coefs[comp][axis]->setBcCoefs(
+                        acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+
+                    if (homogeneous_bc && !extended_bc_coef)
+                    {
+                        gcoef_data->fillAll(0.0);
+                    }
+
+                    for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                    {
+                        const hier::Index<NDIM>& i = bc();
+                        const SideIndex<NDIM> is(i, axis, SideIndex<NDIM>::Lower);
+                        const int row = (*u_dof_index_data)(is, comp);
+                        if (row < proc_lower || row >= proc_upper)
+                        {
+                            continue;
+                        }
+
+                        const double bcoef = (*bcoef_data)(i, 0);
+
+                        if (IBTK::abs_equal_eps(bcoef, 0.0))
+                        {
+#if !defined(NDEBUG)
+                            const double acoef = (*acoef_data)(i, 0);
+                            TBOX_ASSERT(IBTK::rel_equal_eps(acoef, 1.0));
+#endif
+                            dirichlet_rows.push_back(row);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Replace strongly prescribed velocity rows by identity rows.
+     */
+    if (!dirichlet_rows.empty())
+    {
+        ierr = MatZeroRows(
+            mat, static_cast<int>(dirichlet_rows.size()), dirichlet_rows.data(), /*diag_value*/ 1.0, nullptr, nullptr);
+        IBTK_CHKERRQ(ierr);
+    }
+
     return;
 } // constructPatchLevelFOAcousticStreamingOp
 

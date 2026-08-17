@@ -145,20 +145,59 @@ FOAcousticStreamingPETScLevelSolver::initializeSolverStateSpecialized(const SAMR
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
 
-    AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(d_petsc_mat,
-                                                                                 d_omega,
-                                                                                 d_sound_speed,
-                                                                                 d_rho_idx,
-                                                                                 d_mu_idx,
-                                                                                 d_lambda_idx,
-                                                                                 d_chi_idx,
-                                                                                 d_U_bc_coefs,
-                                                                                 d_new_time,
-                                                                                 d_num_dofs_per_proc,
-                                                                                 d_u_dof_index_idx,
-                                                                                 d_p_dof_index_idx,
-                                                                                 d_level,
-                                                                                 d_mu_interp_type);
+    // Determine whether this solve contains an elastic body.
+    const bool gamma_is_valid = d_gamma_idx != IBTK::invalid_index;
+    const bool zeta_is_valid = d_zeta_idx != IBTK::invalid_index;
+    if (gamma_is_valid != zeta_is_valid)
+    {
+        TBOX_ERROR(d_object_name << "::initializeSolverStateSpecialized():\n"
+                                 << "Elasticity is only partially configured.\n"
+                                 << "Both the elastic shear-modulus index (Gamma) and the elastic dilatational "
+                                    "coefficient must be valid or both must be IBTK::invalid_index.\n");
+    }
+    const bool use_elasticity = gamma_is_valid && zeta_is_valid;
+
+    if (use_elasticity)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_acoustic_indicator_idx != IBTK::invalid_index);
+#endif
+
+        AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(d_petsc_mat,
+                                                                                     d_omega,
+                                                                                     d_sound_speed,
+                                                                                     d_rho_idx,
+                                                                                     d_mu_idx,
+                                                                                     d_lambda_idx,
+                                                                                     d_gamma_idx,
+                                                                                     d_zeta_idx,
+                                                                                     d_chi_idx,
+                                                                                     d_acoustic_indicator_idx,
+                                                                                     d_U_bc_coefs,
+                                                                                     d_new_time,
+                                                                                     d_num_dofs_per_proc,
+                                                                                     d_u_dof_index_idx,
+                                                                                     d_p_dof_index_idx,
+                                                                                     d_level,
+                                                                                     d_mu_interp_type);
+    }
+    else
+    {
+        AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(d_petsc_mat,
+                                                                                     d_omega,
+                                                                                     d_sound_speed,
+                                                                                     d_rho_idx,
+                                                                                     d_mu_idx,
+                                                                                     d_lambda_idx,
+                                                                                     d_chi_idx,
+                                                                                     d_U_bc_coefs,
+                                                                                     d_new_time,
+                                                                                     d_num_dofs_per_proc,
+                                                                                     d_u_dof_index_idx,
+                                                                                     d_p_dof_index_idx,
+                                                                                     d_level,
+                                                                                     d_mu_interp_type);
+    }
 
     d_petsc_pc = d_petsc_mat;
 
@@ -211,6 +250,51 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const int h_idx = b.getComponentDescriptorIndex(1);
     const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
     const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
+
+    // Determine whether elasticity is active.
+    const bool use_elasticity = (d_gamma_idx != IBTK::invalid_index) && (d_zeta_idx != IBTK::invalid_index);
+
+    /*
+     * The elastic matrix block is generated from the native
+     * PoissonUtilities operator
+     *
+     *     -div[chi_e {Gamma (grad v + grad v^T) + zeta div(v) I}].
+     *
+     * The first-order frequency-domain matrix multiplies this native
+     * operator by
+     *
+     *       -1/omega  in the real momentum equation,
+     *       +1/omega  in the imaginary momentum equation.
+     *
+     * Consequently, boundary corrections generated by
+     * PoissonUtilities must be multiplied by exactly the same factors
+     * before being added to the final RHS.
+     */
+    const double elastic_scale[2] = {
+        -1.0 / d_omega, // REAL
+        +1.0 / d_omega  // IMAG
+    };
+
+    // Helper used below to add a scaled side-centered correction field
+    // to one depth of the adjusted momentum RHS.
+    auto add_scaled_side_correction = [](SideData<NDIM, double>& dst,
+                                         const SideData<NDIM, double>& correction,
+                                         const int depth,
+                                         const double scale,
+                                         Pointer<Patch<NDIM> > patch)
+    {
+        const Box<NDIM>& patch_box = patch->getBox();
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+            for (Box<NDIM>::Iterator b(side_box); b; b++)
+            {
+                const SideIndex<NDIM> is(b(), axis, SideIndex<NDIM>::Lower);
+                dst(is, depth) += scale * correction(is, depth);
+            }
+        }
+    };
+
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -229,6 +313,26 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             {
                 const int other_comp = (comp == REAL ? IMAG : REAL);
 
+                /*
+                 * ---------------------------------------------------
+                 * Acoustic/fluid operator.
+                 * ---------------------------------------------------
+                 *
+                 * The viscous/dilatational acoustic block is
+                 *
+                 *     L_a(v_other),
+                 *
+                 * so the momentum equation of depth "comp" uses
+                 * boundary conditions belonging to "other_comp".
+                 *
+                 * Coefficient naming:
+                 *
+                 *     d_mu_idx     : chi_a * mu
+                 *     d_lambda_idx : chi_a * lambda
+                 *
+                 * when the constitutive coefficients have already been
+                 * masked prior to matrix/RHS construction.
+                 */
                 PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(*f_adj_data,
                                                                                        comp,
                                                                                        patch,
@@ -239,6 +343,48 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                                                        d_homogeneous_bc,
                                                                                        d_mu_interp_type);
 
+                /*
+                 * ---------------------------------------------------
+                 * Elastic operator.
+                 * ---------------------------------------------------
+                 *
+                 * Elasticity acts on the same real/imaginary velocity
+                 * component:
+                 *
+                 *     real row : +L_e(v_r),
+                 *     imag row : -L_e(v_i).
+                 *
+                 * PoissonUtilities, however, computes the correction
+                 * corresponding to its native operator
+                 *
+                 *     -div(elastic stress).
+                 *
+                 * We therefore compute that correction separately and
+                 * multiply it by elastic_scale[comp] before adding it
+                 * to the actual momentum RHS.
+                 */
+                if (use_elasticity)
+                {
+                    const IntVector<NDIM> no_ghosts(0);
+                    SideData<NDIM, double> elastic_rhs_correction(patch->getBox(), /*depth*/ 2, no_ghosts);
+                    elastic_rhs_correction.fillAll(0.0);
+                    PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(elastic_rhs_correction,
+                                                                                           comp,
+                                                                                           patch,
+                                                                                           d_gamma_idx,
+                                                                                           d_zeta_idx,
+                                                                                           d_U_bc_coefs[comp],
+                                                                                           d_solution_time,
+                                                                                           d_homogeneous_bc,
+                                                                                           d_mu_interp_type);
+                    add_scaled_side_correction(*f_adj_data, elastic_rhs_correction, comp, elastic_scale[comp], patch);
+                }
+                /*
+                 * Strong normal velocity conditions are imposed after
+                 * all operator-related RHS corrections. This is
+                 * important because these rows are replaced by
+                 * Dirichlet values in the matrix.
+                 */
                 enforceNormalVelocityBoundaryConditions(
                     f_adj_idx, comp, patch, d_U_bc_coefs[comp], d_solution_time, d_homogeneous_bc);
             }
@@ -251,8 +397,28 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         {
             for (int comp = 0; comp < 2; ++comp)
             {
+                // Acoustic/fluid coarse-fine correction.
                 PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
                     *f_adj_data, *u_data, comp, patch, d_mu_idx, d_lambda_idx, type_1_cf_bdry, d_mu_interp_type);
+
+                // Elastic coarse-fine correction.
+                if (use_elasticity)
+                {
+                    const IntVector<NDIM> no_ghosts(0);
+                    SideData<NDIM, double> elastic_rhs_correction(patch->getBox(),
+                                                                  /*depth*/ 2,
+                                                                  no_ghosts);
+                    elastic_rhs_correction.fillAll(0.0);
+                    PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(elastic_rhs_correction,
+                                                                                             *u_data,
+                                                                                             comp,
+                                                                                             patch,
+                                                                                             d_gamma_idx,
+                                                                                             d_zeta_idx,
+                                                                                             type_1_cf_bdry,
+                                                                                             d_mu_interp_type);
+                    add_scaled_side_correction(*f_adj_data, elastic_rhs_correction, comp, elastic_scale[comp], patch);
+                }
             }
         }
     }
