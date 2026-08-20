@@ -1,6 +1,8 @@
 IBRedundantInitializer:  Deallocating initialization data.
 saj_fine_inf_norm = 12.1106
 saj_nontrivial_tol = 1e-14
+cav_patch_count = 1024
+cav_enlarged_patch_count = 240
 coarse_saj_matrix_vs_samrai_inf_norm = 8.88178e-16
 coarse_saj_parity_tol = 1e-12
 test_failures = 0

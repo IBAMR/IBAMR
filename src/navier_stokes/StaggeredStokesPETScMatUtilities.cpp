@@ -156,8 +156,7 @@ get_seed_traversal_axis_order(const CouplingAwareASMSeedTraversalOrder seed_trav
     }
     else
     {
-        TBOX_ERROR("get_seed_traversal_axis_order():\n"
-                   << "  unsupported NDIM = " << NDIM << ".\n");
+        TBOX_ERROR("get_seed_traversal_axis_order():\n" << "  unsupported NDIM = " << NDIM << ".\n");
     }
     return axis_order;
 }
@@ -477,6 +476,90 @@ build_initial_velocity_set_from_seed_components(std::set<int>& initial_velocity_
         }
         ierr = MatRestoreRow(A00_mat, row, &ncols, &cols, &vals);
         IBTK_CHKERRQ(ierr);
+    }
+}
+
+/*!
+ * Build undirected velocity adjacency from the row-or-column numerical graph
+ * of a full-space Eulerian elasticity matrix.
+ *
+ * The outer vector is indexed directly by global Stokes DOF number. A single
+ * setup scan avoids both velocity-block extraction and a materialized matrix
+ * transpose. Numerically nonzero pressure entries are rejected since the
+ * construction matrix must contain only the embedded elasticity contribution.
+ */
+void
+build_full_space_velocity_adjacency(std::vector<std::vector<int>>& velocity_adjacency,
+                                    Mat eulerian_elasticity_mat,
+                                    const std::unordered_map<int, int>& velocity_dof_to_component_axis,
+                                    const double relative_numerical_zero_tol,
+                                    const std::string& where)
+{
+    PetscInt nrows = -1, ncols = -1;
+    int ierr = MatGetSize(eulerian_elasticity_mat, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+    if (nrows != ncols)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  the full-space Eulerian elasticity matrix must be square; got " << nrows << " x "
+                         << ncols << ".\n");
+    }
+    velocity_adjacency.assign(static_cast<std::size_t>(nrows), std::vector<int>());
+
+    PetscInt first_local_row = -1, one_past_local_row = -1;
+    ierr = MatGetOwnershipRange(eulerian_elasticity_mat, &first_local_row, &one_past_local_row);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt row = first_local_row; row < one_past_local_row; ++row)
+    {
+        PetscInt row_ncols = 0;
+        const PetscInt* cols = nullptr;
+        const PetscScalar* vals = nullptr;
+        ierr = MatGetRow(eulerian_elasticity_mat, row, &row_ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+
+        double row_max_abs = 0.0;
+        for (PetscInt col_idx = 0; col_idx < row_ncols; ++col_idx)
+        {
+            row_max_abs = std::max(row_max_abs, static_cast<double>(PetscAbsScalar(vals[col_idx])));
+        }
+        const double numerical_zero_tol =
+            std::max(static_cast<double>(row_ncols) * std::numeric_limits<double>::epsilon() * row_max_abs,
+                     relative_numerical_zero_tol * row_max_abs);
+
+        PetscInt invalid_column = -1;
+        for (PetscInt col_idx = 0; col_idx < row_ncols; ++col_idx)
+        {
+            if (static_cast<double>(PetscAbsScalar(vals[col_idx])) <= numerical_zero_tol) continue;
+            const PetscInt column = cols[col_idx];
+            const bool row_is_velocity =
+                row <= static_cast<PetscInt>(std::numeric_limits<int>::max()) &&
+                velocity_dof_to_component_axis.find(static_cast<int>(row)) != velocity_dof_to_component_axis.end();
+            const bool column_is_velocity =
+                column >= 0 && column <= static_cast<PetscInt>(std::numeric_limits<int>::max()) &&
+                velocity_dof_to_component_axis.find(static_cast<int>(column)) != velocity_dof_to_component_axis.end();
+            if (!row_is_velocity || !column_is_velocity)
+            {
+                invalid_column = column;
+                break;
+            }
+            velocity_adjacency[static_cast<std::size_t>(row)].push_back(static_cast<int>(column));
+            velocity_adjacency[static_cast<std::size_t>(column)].push_back(static_cast<int>(row));
+        }
+        ierr = MatRestoreRow(eulerian_elasticity_mat, row, &row_ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+        if (invalid_column >= 0)
+        {
+            TBOX_ERROR(where << ":\n"
+                             << "  the construction matrix has a numerically nonzero entry involving a "
+                                "nonvelocity DOF at ("
+                             << row << ", " << invalid_column << ").\n"
+                             << "  pressure rows and columns must be structurally or numerically zero.\n");
+        }
+    }
+    for (std::vector<int>& adjacent_dofs : velocity_adjacency)
+    {
+        std::sort(adjacent_dofs.begin(), adjacent_dofs.end());
+        adjacent_dofs.erase(std::unique(adjacent_dofs.begin(), adjacent_dofs.end()), adjacent_dofs.end());
     }
 }
 
@@ -1651,6 +1734,196 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     move_set_subdomains_to_dofs(nonoverlap_dofs, nonoverlap_dof_sets);
     return;
 } // constructPatchLevelCouplingAwareASMSubdomains
+
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelPressureCellSeededCAVPatches(
+    std::vector<std::vector<int>>& patch_dofs,
+    std::vector<int>& pressure_seed_dofs,
+    const std::vector<int>& num_dofs_per_proc,
+    const int p_dof_index_idx,
+    Pointer<PatchLevel<NDIM>> patch_level,
+    Mat eulerian_elasticity_mat,
+    const PatchLevelCellClosureMapData& map_data,
+    const int seed_stride,
+    const CouplingAwareASMSeedTraversalOrder seed_traversal_order,
+    const CouplingAwareASMClosurePolicy closure_policy,
+    const double relative_numerical_zero_tol)
+{
+    const std::string where = "StaggeredStokesPETScMatUtilities::constructPatchLevelPressureCellSeededCAVPatches()";
+    if (IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  pressure-cell-seeded CAV construction currently supports one MPI rank; got "
+                         << IBTK_MPI::getNodes() << ".\n");
+    }
+    if (!eulerian_elasticity_mat)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  a full-space Eulerian elasticity matrix is required.\n");
+    }
+    if (seed_stride < 1)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  invalid seed_stride = " << seed_stride << "; expected a value >= 1.\n");
+    }
+    if (closure_policy != CouplingAwareASMClosurePolicy::RELAXED &&
+        closure_policy != CouplingAwareASMClosurePolicy::STRICT)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  unsupported closure policy " << enum_to_string(closure_policy) << ".\n");
+    }
+    if (!map_data.velocity_maps_are_built || !map_data.cell_closure_map_is_built)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  velocity and cell-closure maps must be built before constructing patches.\n");
+    }
+
+    PetscInt n_global_rows = -1, n_global_cols = -1;
+    int ierr = MatGetSize(eulerian_elasticity_mat, &n_global_rows, &n_global_cols);
+    IBTK_CHKERRQ(ierr);
+    const PetscInt expected_global_size =
+        static_cast<PetscInt>(std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0));
+    if (n_global_rows != expected_global_size || n_global_cols != expected_global_size)
+    {
+        TBOX_ERROR(where << ":\n"
+                         << "  the construction matrix must use the full global velocity-pressure DOF space.\n"
+                         << "  expected " << expected_global_size << " x " << expected_global_size << " but got "
+                         << n_global_rows << " x " << n_global_cols << ".\n");
+    }
+
+    std::vector<std::vector<int>> velocity_adjacency;
+    build_full_space_velocity_adjacency(velocity_adjacency,
+                                        eulerian_elasticity_mat,
+                                        map_data.velocity_dof_to_component_axis,
+                                        relative_numerical_zero_tol,
+                                        where);
+
+    struct PressureSeedRecord
+    {
+        int dof = -1;
+        std::array<int, NDIM> logical_index{};
+    };
+    std::vector<PressureSeedRecord> pressure_seed_records;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        Pointer<CellData<NDIM, int>> p_dof_data = patch->getPatchData(p_dof_index_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            const CellIndex<NDIM>& cell = b();
+            const int pressure_dof = (*p_dof_data)(cell);
+            if (pressure_dof < 0) continue;
+            PressureSeedRecord record;
+            record.dof = pressure_dof;
+            for (unsigned int d = 0; d < NDIM; ++d) record.logical_index[d] = cell(static_cast<int>(d));
+            pressure_seed_records.push_back(record);
+        }
+    }
+
+    const std::array<int, NDIM> axis_order = get_seed_traversal_axis_order(seed_traversal_order);
+    std::sort(pressure_seed_records.begin(),
+              pressure_seed_records.end(),
+              [&axis_order](const PressureSeedRecord& lhs, const PressureSeedRecord& rhs)
+              {
+                  for (unsigned int q = 0; q < NDIM; ++q)
+                  {
+                      const int d = axis_order[q];
+                      if (lhs.logical_index[d] < rhs.logical_index[d]) return true;
+                      if (lhs.logical_index[d] > rhs.logical_index[d]) return false;
+                  }
+                  return lhs.dof < rhs.dof;
+              });
+
+    pressure_seed_dofs.clear();
+    std::set<int> seen_pressure_dofs;
+    int unique_pressure_counter = 0;
+    for (const PressureSeedRecord& record : pressure_seed_records)
+    {
+        if (!seen_pressure_dofs.insert(record.dof).second) continue;
+        if ((unique_pressure_counter % seed_stride) == 0) pressure_seed_dofs.push_back(record.dof);
+        ++unique_pressure_counter;
+    }
+
+    std::vector<std::set<int>> patch_dof_sets(pressure_seed_dofs.size());
+    for (std::size_t k = 0; k < pressure_seed_dofs.size(); ++k)
+    {
+        const int pressure_seed_dof = pressure_seed_dofs[k];
+        const auto closure_it = map_data.cell_dof_to_closure_dofs.find(pressure_seed_dof);
+        if (closure_it == map_data.cell_dof_to_closure_dofs.end())
+        {
+            TBOX_ERROR(where << ":\n"
+                             << "  no standard Vanka closure exists for pressure seed " << pressure_seed_dof << ".\n");
+        }
+
+        std::set<int> standard_velocity_dofs;
+        for (const int dof : closure_it->second)
+        {
+            if (map_data.velocity_dof_to_component_axis.find(dof) != map_data.velocity_dof_to_component_axis.end())
+            {
+                standard_velocity_dofs.insert(dof);
+            }
+        }
+        if (standard_velocity_dofs.size() != static_cast<std::size_t>(2 * NDIM))
+        {
+            TBOX_ERROR(where << ":\n"
+                             << "  pressure seed " << pressure_seed_dof << " has " << standard_velocity_dofs.size()
+                             << " incident velocity DOFs; expected " << 2 * NDIM << ".\n");
+        }
+
+        std::set<int> expanded_velocity_dofs = standard_velocity_dofs;
+        for (const int velocity_dof : standard_velocity_dofs)
+        {
+            const std::vector<int>& adjacent_velocity_dofs = velocity_adjacency[static_cast<std::size_t>(velocity_dof)];
+            expanded_velocity_dofs.insert(adjacent_velocity_dofs.begin(), adjacent_velocity_dofs.end());
+        }
+
+        // With no elasticity-induced expansion both policies reduce exactly to
+        // the standard Vanka patch, not to a broader fluid-operator closure.
+        if (expanded_velocity_dofs == standard_velocity_dofs)
+        {
+            patch_dof_sets[k].insert(closure_it->second.begin(), closure_it->second.end());
+            continue;
+        }
+
+        std::set<int> involved_cell_dofs;
+        find_involved_cells_from_velocity_set(
+            involved_cell_dofs, expanded_velocity_dofs, map_data.velocity_dof_to_adjacent_cell_dofs);
+        involved_cell_dofs.insert(pressure_seed_dof);
+        if (closure_policy == CouplingAwareASMClosurePolicy::STRICT)
+        {
+            std::set<int> strict_involved_cell_dofs;
+            for (const int cell_dof : involved_cell_dofs)
+            {
+                const auto candidate_closure_it = map_data.cell_dof_to_closure_dofs.find(cell_dof);
+                if (candidate_closure_it == map_data.cell_dof_to_closure_dofs.end()) continue;
+                bool complete_velocity_stencil = true;
+                for (const int dof : candidate_closure_it->second)
+                {
+                    if (map_data.velocity_dof_to_component_axis.find(dof) ==
+                        map_data.velocity_dof_to_component_axis.end())
+                    {
+                        continue;
+                    }
+                    if (expanded_velocity_dofs.find(dof) == expanded_velocity_dofs.end())
+                    {
+                        complete_velocity_stencil = false;
+                        break;
+                    }
+                }
+                if (complete_velocity_stencil) strict_involved_cell_dofs.insert(cell_dof);
+            }
+            involved_cell_dofs.swap(strict_involved_cell_dofs);
+        }
+        find_cell_closure_dofs_from_map(patch_dof_sets[k], involved_cell_dofs, map_data.cell_dof_to_closure_dofs);
+        if (closure_policy == CouplingAwareASMClosurePolicy::RELAXED)
+        {
+            patch_dof_sets[k].insert(expanded_velocity_dofs.begin(), expanded_velocity_dofs.end());
+        }
+    }
+
+    move_set_subdomains_to_dofs(patch_dofs, patch_dof_sets);
+    return;
+} // constructPatchLevelPressureCellSeededCAVPatches
 
 void
 StaggeredStokesPETScMatUtilities::constructA00VelocitySubmatrix(

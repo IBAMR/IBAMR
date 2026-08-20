@@ -21,6 +21,7 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesPETScMatUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
@@ -61,6 +62,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -502,6 +504,69 @@ main(int argc, char* argv[])
     int test_failures = 0;
     if (IBTK::abs_equal_eps(saj_inf_norm, 0.0, saj_nontrivial_tol)) ++test_failures;
 
+    StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData cav_map_data;
+    StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
+        cav_map_data, u_full_dof_index_idx, p_full_dof_index_idx, fine_level);
+    std::vector<std::vector<int>> relaxed_cav_patches, strict_cav_patches;
+    std::vector<int> relaxed_pressure_seeds, strict_pressure_seeds;
+    StaggeredStokesPETScMatUtilities::constructPatchLevelPressureCellSeededCAVPatches(
+        relaxed_cav_patches,
+        relaxed_pressure_seeds,
+        full_num_dofs_fine,
+        p_full_dof_index_idx,
+        fine_level,
+        SAJ_full,
+        cav_map_data,
+        1,
+        CouplingAwareASMSeedTraversalOrder::I_J,
+        CouplingAwareASMClosurePolicy::RELAXED);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelPressureCellSeededCAVPatches(
+        strict_cav_patches,
+        strict_pressure_seeds,
+        full_num_dofs_fine,
+        p_full_dof_index_idx,
+        fine_level,
+        SAJ_full,
+        cav_map_data,
+        1,
+        CouplingAwareASMSeedTraversalOrder::I_J,
+        CouplingAwareASMClosurePolicy::STRICT);
+
+    int enlarged_cav_patch_count = 0;
+    const auto& cell_dof_to_closure_dofs =
+        StaggeredStokesPETScMatUtilitiesPrivateAccess::getCellDofToClosureDofs(cav_map_data);
+    if (relaxed_pressure_seeds != strict_pressure_seeds ||
+        relaxed_cav_patches.size() != relaxed_pressure_seeds.size() ||
+        strict_cav_patches.size() != strict_pressure_seeds.size())
+    {
+        ++test_failures;
+    }
+    for (std::size_t k = 0;
+         k < std::min({ relaxed_pressure_seeds.size(), relaxed_cav_patches.size(), strict_cav_patches.size() });
+         ++k)
+    {
+        const int pressure_seed_dof = relaxed_pressure_seeds[k];
+        const auto standard_patch_it = cell_dof_to_closure_dofs.find(pressure_seed_dof);
+        if (standard_patch_it == cell_dof_to_closure_dofs.end())
+        {
+            ++test_failures;
+            continue;
+        }
+        const std::set<int> standard_patch(standard_patch_it->second.begin(), standard_patch_it->second.end());
+        const std::set<int> relaxed_patch(relaxed_cav_patches[k].begin(), relaxed_cav_patches[k].end());
+        const std::set<int> strict_patch(strict_cav_patches[k].begin(), strict_cav_patches[k].end());
+        if (!std::is_sorted(relaxed_cav_patches[k].begin(), relaxed_cav_patches[k].end()) ||
+            !std::is_sorted(strict_cav_patches[k].begin(), strict_cav_patches[k].end()) ||
+            !std::includes(relaxed_patch.begin(), relaxed_patch.end(), standard_patch.begin(), standard_patch.end()) ||
+            !std::includes(relaxed_patch.begin(), relaxed_patch.end(), strict_patch.begin(), strict_patch.end()) ||
+            !std::includes(strict_patch.begin(), strict_patch.end(), standard_patch.begin(), standard_patch.end()))
+        {
+            ++test_failures;
+        }
+        if (relaxed_patch.size() > standard_patch.size()) ++enlarged_cav_patch_count;
+    }
+    if (relaxed_pressure_seeds.empty() || enlarged_cav_patch_count == 0) ++test_failures;
+
     std::vector<int> num_u_dofs_coarse;
     std::vector<int> num_u_dofs_fine;
     Pointer<PatchLevel<NDIM>> coarse_level = patch_hierarchy->getPatchLevel(coarsest_ln);
@@ -567,6 +632,8 @@ main(int argc, char* argv[])
 
     pout << "saj_fine_inf_norm = " << saj_inf_norm << std::endl;
     pout << "saj_nontrivial_tol = " << saj_nontrivial_tol << std::endl;
+    pout << "cav_patch_count = " << relaxed_cav_patches.size() << std::endl;
+    pout << "cav_enlarged_patch_count = " << enlarged_cav_patch_count << std::endl;
     pout << "coarse_saj_matrix_vs_samrai_inf_norm = " << inf_norm << std::endl;
     pout << "coarse_saj_parity_tol = " << parity_tol << std::endl;
     pout << "test_failures = " << test_failures << std::endl;

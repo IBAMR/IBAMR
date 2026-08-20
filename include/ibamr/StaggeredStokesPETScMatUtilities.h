@@ -178,6 +178,48 @@ public:
         double relative_numerical_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL);
 
     /*!
+     * \brief Construct ordered pressure-cell-seeded CAV patches from the
+     * row-or-column numerical graph of a full-space Eulerian elasticity
+     * matrix.
+     *
+     * Each seed begins with its standard MAC Vanka velocity stencil. RELAXED
+     * construction closes all cells incident to the expanded velocity set and
+     * retains every expanded velocity. STRICT construction retains only cells
+     * whose complete incident-velocity stencil belongs to the expanded set.
+     * Pressure seeds are de-duplicated in the requested logical traversal
+     * order before applying \p seed_stride. Each returned patch is sorted in
+     * increasing global DOF order and corresponds to the seed at the same
+     * position in \p pressure_seed_dofs.
+     *
+     * \p eulerian_elasticity_mat uses the full global velocity-pressure
+     * numbering and has numerically zero pressure rows and columns. It is
+     * borrowed and scanned once without extracting a velocity block or
+     * materializing a transpose. Local patch matrices remain the
+     * responsibility of the solver backend and are not constructed here.
+     * Ownership partitions, restricted-update sets, and correction application
+     * are likewise outside this construction routine.
+     *
+     * This implementation supports one MPI rank. Distributed construction is
+     * a separate recovery milestone.
+     */
+    static void constructPatchLevelPressureCellSeededCAVPatches(
+        std::vector<std::vector<int>>& patch_dofs,
+        std::vector<int>& pressure_seed_dofs,
+        const std::vector<int>& num_dofs_per_proc,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        Mat eulerian_elasticity_mat,
+        const PatchLevelCellClosureMapData& map_data,
+        int seed_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J,
+#else
+        CouplingAwareASMSeedTraversalOrder seed_traversal_order = CouplingAwareASMSeedTraversalOrder::I_J_K,
+#endif
+        CouplingAwareASMClosurePolicy closure_policy = CouplingAwareASMClosurePolicy::RELAXED,
+        double relative_numerical_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL);
+
+    /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * PCFieldSplit preconditioner.
      */
