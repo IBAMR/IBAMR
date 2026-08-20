@@ -173,6 +173,11 @@ SETUP_2D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_3D(navier_stokes stokes_petsc_level_solver_asm_modes.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_cav_shell_semantics.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_shell_multiplicative_semantics.cpp)
+SETUP_2D(navier_stokes cav_raw_operator_comparator_driver.cpp)
+TARGET_SOURCES(tests-navier_stokes_stokes_petsc_level_solver_shell_multiplicative_semantics_2d
+  PRIVATE navier_stokes/cav_raw_operator_comparator.cpp)
+TARGET_SOURCES(tests-navier_stokes_cav_raw_operator_comparator_driver_2d
+  PRIVATE navier_stokes/cav_raw_operator_comparator.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)

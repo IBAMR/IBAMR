@@ -48,6 +48,7 @@
 #include <vector>
 
 #include "../tests.h"
+#include "cav_raw_operator_comparator.h"
 
 #include <ibtk/app_namespaces.h>
 
@@ -284,6 +285,8 @@ main(int argc, char* argv[])
     const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
+    const bool verify_raw_export_comparator_contract =
+        test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
     const std::string configured_pc_type = test_db->getStringWithDefault("configured_pc_type", "shell");
     const std::string expected_shell_pc_name = test_db->getStringWithDefault("expected_shell_pc_name", "");
     const double velocity_poisson_c = test_db->getDoubleWithDefault("velocity_poisson_c", 1.0);
@@ -442,7 +445,11 @@ main(int argc, char* argv[])
         bool live_view_provenance_valid = true;
         bool live_view_nullspace_gauge_valid = true;
         bool live_view_post_deallocate_empty = true;
-        if (verify_live_operator_state_view)
+        bool raw_export_round_trip = true;
+        bool raw_export_global_dof_mapping = true;
+        bool raw_export_pressure_row_minus_div = true;
+        double raw_export_matrix_max_abs_error = 0.0;
+        if (verify_live_operator_state_view || verify_raw_export_comparator_contract)
         {
             const auto view = solver->getLiveOperatorStateView();
             live_view_preinit_empty = !view.initialized && !view.operator_mat && !view.num_dofs_per_proc &&
@@ -488,7 +495,7 @@ main(int argc, char* argv[])
         const bool use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
         const bool use_restrict_partition = solver->usesRestrictShellSmootherPartitionForTest();
         const KSP& petsc_ksp = solver->getPETScKSP();
-        if (verify_live_operator_state_view)
+        if (verify_live_operator_state_view || verify_raw_export_comparator_contract)
         {
             const auto view = solver->getLiveOperatorStateView();
             Mat ksp_operator = nullptr;
@@ -528,6 +535,67 @@ main(int argc, char* argv[])
                 !live_view_provenance_valid || !live_view_nullspace_gauge_valid)
             {
                 ++test_failures;
+            }
+
+            if (verify_raw_export_comparator_contract)
+            {
+                using namespace IBAMR::TestSupport;
+                const CAVRawOperatorBundle raw_bundle =
+                    captureCAVRawOperatorBundle(view, level, u_dof_index_idx, p_dof_index_idx, b_petsc);
+                const std::string raw_prefix = "cav_raw_live_operator";
+                writeCAVRawOperatorBundle(raw_bundle, raw_prefix);
+                const CAVRawOperatorBundle reread_bundle = readCAVRawOperatorBundle(raw_prefix);
+                CAVRawMappingSpec identity_mapping;
+                identity_mapping.coordinate_tolerance = 0.0;
+                identity_mapping.comparison_tolerance = 0.0;
+                const CAVRawComparison raw_comparison =
+                    compareCAVRawOperatorBundles(reread_bundle, raw_bundle, identity_mapping);
+                raw_export_round_trip = raw_comparison.matched;
+                raw_export_matrix_max_abs_error = raw_comparison.matrix_max_abs_error;
+
+                std::vector<PetscInt> exported_velocity_dofs;
+                std::vector<PetscInt> exported_pressure_dofs;
+                for (const CAVRawDofRecord& record : raw_bundle.dofs)
+                {
+                    if (record.kind == CAVRawDofKind::VELOCITY)
+                        exported_velocity_dofs.push_back(record.dof);
+                    else
+                        exported_pressure_dofs.push_back(record.dof);
+                }
+                raw_export_global_dof_mapping = raw_bundle.nrows == 48 && raw_bundle.ncols == 48 &&
+                                                raw_bundle.dofs.size() == 48 && view.locally_owned_velocity_dofs &&
+                                                view.locally_owned_pressure_dofs &&
+                                                exported_velocity_dofs == *view.locally_owned_velocity_dofs &&
+                                                exported_pressure_dofs == *view.locally_owned_pressure_dofs;
+
+                std::array<int, NDIM> pressure_index = {};
+                pressure_index[0] = 1;
+                pressure_index[1] = 1;
+                std::array<int, NDIM> lower_x_index = pressure_index;
+                std::array<int, NDIM> upper_x_index = pressure_index;
+                std::array<int, NDIM> lower_y_index = pressure_index;
+                std::array<int, NDIM> upper_y_index = pressure_index;
+                ++upper_x_index[0];
+                ++upper_y_index[1];
+                const PetscInt pressure_dof = findCAVRawDof(raw_bundle, CAVRawDofKind::PRESSURE, -1, pressure_index);
+                const PetscInt lower_x_dof = findCAVRawDof(raw_bundle, CAVRawDofKind::VELOCITY, 0, lower_x_index);
+                const PetscInt upper_x_dof = findCAVRawDof(raw_bundle, CAVRawDofKind::VELOCITY, 0, upper_x_index);
+                const PetscInt lower_y_dof = findCAVRawDof(raw_bundle, CAVRawDofKind::VELOCITY, 1, lower_y_index);
+                const PetscInt upper_y_dof = findCAVRawDof(raw_bundle, CAVRawDofKind::VELOCITY, 1, upper_y_index);
+                // The Stokes saddle-point operator uses -Div in its pressure equation. For h=1/4, the lower
+                // x/y faces therefore have coefficient +4 and the upper faces coefficient -4.
+                raw_export_pressure_row_minus_div =
+                    pressure_dof >= 0 && lower_x_dof >= 0 && upper_x_dof >= 0 && lower_y_dof >= 0 && upper_y_dof >= 0 &&
+                    countCAVRawMatrixRowNonzeros(raw_bundle, pressure_dof) == 4 &&
+                    getCAVRawMatrixValue(raw_bundle, pressure_dof, lower_x_dof) == 4.0 &&
+                    getCAVRawMatrixValue(raw_bundle, pressure_dof, upper_x_dof) == -4.0 &&
+                    getCAVRawMatrixValue(raw_bundle, pressure_dof, lower_y_dof) == 4.0 &&
+                    getCAVRawMatrixValue(raw_bundle, pressure_dof, upper_y_dof) == -4.0;
+
+                if (!raw_export_round_trip || !raw_export_global_dof_mapping || !raw_export_pressure_row_minus_div)
+                {
+                    ++test_failures;
+                }
             }
         }
         if (!expected_shell_pc_name.empty())
@@ -638,6 +706,14 @@ main(int argc, char* argv[])
                  << "\n";
             pout << "live_view_post_deallocate_empty = " << (live_view_post_deallocate_empty ? "true" : "false")
                  << "\n";
+        }
+        if (verify_raw_export_comparator_contract)
+        {
+            pout << "raw_export_round_trip = " << (raw_export_round_trip ? "true" : "false") << "\n";
+            pout << "raw_export_global_dof_mapping = " << (raw_export_global_dof_mapping ? "true" : "false") << "\n";
+            pout << "raw_export_pressure_row_minus_div = " << (raw_export_pressure_row_minus_div ? "true" : "false")
+                 << "\n";
+            pout << "raw_export_matrix_max_abs_error = " << raw_export_matrix_max_abs_error << "\n";
         }
     }
 

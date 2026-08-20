@@ -1,0 +1,12 @@
+exact_control = true
+declared_permutation_sign_gauge = true
+undeclared_permutation_detected = true
+velocity_sign_detected = true
+pressure_sign_detected = true
+legal_pressure_gauge = true
+illegal_velocity_shift_detected = true
+omitted_dof_detected = true
+omitted_row_detected = true
+ordered_omission_detected = true
+ordered_reordering_detected = true
+test_failures = 0
