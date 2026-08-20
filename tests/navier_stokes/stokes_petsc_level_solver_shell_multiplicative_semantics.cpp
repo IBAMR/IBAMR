@@ -117,6 +117,28 @@ zero_solution_fields(const Pointer<PatchLevel<NDIM>>& level, const int u_idx, co
 }
 
 void
+normalize_pressure_gauge(Vec y, IS pressure_is)
+{
+    Vec p_sub = nullptr;
+    int ierr = VecGetSubVector(y, pressure_is, &p_sub);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar p_sum = 0.0;
+    ierr = VecSum(p_sub, &p_sum);
+    IBTK_CHKERRQ(ierr);
+    PetscInt n_p = 0;
+    ierr = VecGetSize(p_sub, &n_p);
+    IBTK_CHKERRQ(ierr);
+    if (n_p > 0)
+    {
+        const PetscScalar p_mean = p_sum / static_cast<PetscScalar>(n_p);
+        ierr = VecShift(p_sub, -p_mean);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecRestoreSubVector(y, pressure_is, &p_sub);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
 apply_reference_shell_action(Vec y,
                              Vec b,
                              Mat A,
@@ -233,26 +255,7 @@ apply_reference_shell_action(Vec y,
 
     // Match StaggeredStokesPETScLevelSolver: only multiplicative shell
     // corrections receive an explicit zero-mean pressure gauge.
-    if (use_multiplicative)
-    {
-        Vec p_sub = nullptr;
-        ierr = VecGetSubVector(y, pressure_is, &p_sub);
-        IBTK_CHKERRQ(ierr);
-        PetscScalar p_sum = 0.0;
-        ierr = VecSum(p_sub, &p_sum);
-        IBTK_CHKERRQ(ierr);
-        PetscInt n_p = 0;
-        ierr = VecGetSize(p_sub, &n_p);
-        IBTK_CHKERRQ(ierr);
-        if (n_p > 0)
-        {
-            const PetscScalar p_mean = p_sum / static_cast<PetscScalar>(n_p);
-            ierr = VecShift(p_sub, -p_mean);
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecRestoreSubVector(y, pressure_is, &p_sub);
-        IBTK_CHKERRQ(ierr);
-    }
+    if (use_multiplicative) normalize_pressure_gauge(y, pressure_is);
 
     ierr = VecDestroy(&r);
     IBTK_CHKERRQ(ierr);
@@ -293,8 +296,9 @@ main(int argc, char* argv[])
     const bool report_actual_inf_norm = test_db->getBoolWithDefault("report_actual_inf_norm", false);
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
     const bool verify_reinitialize = test_db->getBoolWithDefault("verify_reinitialize", false);
-    const bool verify_local_solve_observer =
-        test_db->getBoolWithDefault("verify_local_solve_observer", false);
+    const bool verify_local_solve_observer = test_db->getBoolWithDefault("verify_local_solve_observer", false);
+    const bool verify_stagewise_original_residual =
+        test_db->getBoolWithDefault("verify_stagewise_original_residual", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
     const bool verify_raw_export_comparator_contract =
         test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
@@ -654,14 +658,108 @@ main(int argc, char* argv[])
 
         int observer_call_count = 0;
         bool observer_data_valid = !verify_local_solve_observer;
-        if (verify_local_solve_observer)
+        int stagewise_observer_call_count = 0;
+        bool stagewise_patch_order_valid = !verify_stagewise_original_residual;
+        double stagewise_local_rhs_max_error = 0.0;
+        double stagewise_original_residual_max_error = 0.0;
+        double stagewise_final_state_error_inf_norm = 0.0;
+        Vec stagewise_iterate = nullptr;
+        Vec stagewise_fresh_residual = nullptr;
+        Vec stagewise_difference = nullptr;
+        if (verify_stagewise_original_residual)
         {
+            if (!use_multiplicative || !is_blas_lapack_case)
+            {
+                TBOX_ERROR(
+                    "Stagewise original-residual verification requires a multiplicative BLAS/LAPACK "
+                    "shell backend.\n");
+            }
+            ierr = VecDuplicate(b_petsc, &stagewise_iterate);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(b_petsc, &stagewise_fresh_residual);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(b_petsc, &stagewise_difference);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecZeroEntries(stagewise_iterate);
+            IBTK_CHKERRQ(ierr);
+            stagewise_patch_order_valid = true;
+            // Maintain an independent full-space iterate so every observed
+            // pre-update residual can be checked against a fresh b - A x.
             solver->setShellSubdomainSolveObserver(
                 [&](const int ordinal,
-                    Mat local_matrix,
+                    Mat /*local_matrix*/,
                     Vec local_rhs,
                     Vec local_solution,
-                    Vec current_global_source) {
+                    Vec current_global_source)
+                {
+                    const std::size_t expected_ordinal = static_cast<std::size_t>(stagewise_observer_call_count++);
+                    if (ordinal < 0 || static_cast<std::size_t>(ordinal) != expected_ordinal ||
+                        expected_ordinal >= overlap_is.size())
+                    {
+                        stagewise_patch_order_valid = false;
+                        return;
+                    }
+
+                    int observer_ierr = MatMult(A_mat, stagewise_iterate, stagewise_fresh_residual);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecAYPX(stagewise_fresh_residual, -1.0, b_petsc);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecCopy(current_global_source, stagewise_difference);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecAXPY(stagewise_difference, -1.0, stagewise_fresh_residual);
+                    IBTK_CHKERRQ(observer_ierr);
+                    stagewise_original_residual_max_error =
+                        std::max(stagewise_original_residual_max_error, vec_norm_inf(stagewise_difference));
+
+                    const PetscScalar* source_values = nullptr;
+                    const PetscScalar* rhs_values = nullptr;
+                    observer_ierr = VecGetArrayRead(current_global_source, &source_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecGetArrayRead(local_rhs, &rhs_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    const auto& overlap_dofs = overlap_is[expected_ordinal];
+                    for (std::size_t local_dof = 0; local_dof < overlap_dofs.size(); ++local_dof)
+                    {
+                        stagewise_local_rhs_max_error =
+                            std::max(stagewise_local_rhs_max_error,
+                                     static_cast<double>(PetscAbsScalar(rhs_values[local_dof] -
+                                                                        source_values[overlap_dofs[local_dof]])));
+                    }
+                    observer_ierr = VecRestoreArrayRead(local_rhs, &rhs_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecRestoreArrayRead(current_global_source, &source_values);
+                    IBTK_CHKERRQ(observer_ierr);
+
+                    const auto& update_dofs = use_restrict_partition ? nonoverlap_is[expected_ordinal] : overlap_dofs;
+                    const PetscScalar* solution_values = nullptr;
+                    PetscScalar* iterate_values = nullptr;
+                    observer_ierr = VecGetArrayRead(local_solution, &solution_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecGetArray(stagewise_iterate, &iterate_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    for (const int update_dof : update_dofs)
+                    {
+                        const auto position = std::find(overlap_dofs.begin(), overlap_dofs.end(), update_dof);
+                        if (position == overlap_dofs.end())
+                        {
+                            stagewise_patch_order_valid = false;
+                            continue;
+                        }
+                        const std::size_t local_position =
+                            static_cast<std::size_t>(std::distance(overlap_dofs.begin(), position));
+                        iterate_values[update_dof] += solution_values[local_position];
+                    }
+                    observer_ierr = VecRestoreArray(stagewise_iterate, &iterate_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecRestoreArrayRead(local_solution, &solution_values);
+                    IBTK_CHKERRQ(observer_ierr);
+                });
+        }
+        else if (verify_local_solve_observer)
+        {
+            solver->setShellSubdomainSolveObserver(
+                [&](const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source)
+                {
                     ++observer_call_count;
                     PetscInt rows = 0, cols = 0, rhs_size = 0, solution_size = 0, global_source_size = 0;
                     int observer_ierr = MatGetSize(local_matrix, &rows, &cols);
@@ -688,16 +786,15 @@ main(int argc, char* argv[])
                     IBTK_CHKERRQ(observer_ierr);
                     observer_ierr = VecNorm(local_rhs, NORM_INFINITY, &rhs_inf);
                     IBTK_CHKERRQ(observer_ierr);
-                    const double backward_error =
-                        defect_inf / (matrix_inf * solution_inf + rhs_inf + 1.0e-30);
+                    const double backward_error = defect_inf / (matrix_inf * solution_inf + rhs_inf + 1.0e-30);
                     const PetscInt expected_size = static_cast<PetscInt>(overlap_is.front().size());
                     PetscInt expected_global_size = 0;
                     observer_ierr = VecGetSize(b_petsc, &expected_global_size);
                     IBTK_CHKERRQ(observer_ierr);
                     observer_data_valid = ordinal == 0 && rows == expected_size && cols == expected_size &&
                                           rhs_size == expected_size && solution_size == expected_size &&
-                                          global_source_size == expected_global_size &&
-                                          std::isfinite(backward_error) && backward_error <= tol;
+                                          global_source_size == expected_global_size && std::isfinite(backward_error) &&
+                                          backward_error <= tol;
                     observer_ierr = VecDestroy(&defect);
                     IBTK_CHKERRQ(observer_ierr);
                 },
@@ -723,10 +820,37 @@ main(int argc, char* argv[])
             if (observer_call_count != 1 || !observer_data_valid) ++test_failures;
             solver->setShellSubdomainSolveObserver({});
         }
+        if (verify_stagewise_original_residual)
+        {
+            if (stagewise_observer_call_count != static_cast<int>(overlap_is.size()) || !stagewise_patch_order_valid ||
+                !(stagewise_local_rhs_max_error <= tol) || !(stagewise_original_residual_max_error <= tol))
+            {
+                ++test_failures;
+            }
+            solver->setShellSubdomainSolveObserver({});
+        }
         IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
         const double actual_inf_norm = vec_norm_inf(x_petsc);
         if (!(actual_inf_norm > 0.0)) ++test_failures;
+        if (verify_stagewise_original_residual)
+        {
+            // The shell normalizes only the pressure state after completing
+            // the sweep; it does not project intermediate residuals.
+            normalize_pressure_gauge(stagewise_iterate, pressure_is);
+            ierr = VecCopy(x_petsc, stagewise_difference);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(stagewise_difference, -1.0, stagewise_iterate);
+            IBTK_CHKERRQ(ierr);
+            stagewise_final_state_error_inf_norm = vec_norm_inf(stagewise_difference);
+            if (!(stagewise_final_state_error_inf_norm <= tol)) ++test_failures;
+            ierr = VecDestroy(&stagewise_difference);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&stagewise_fresh_residual);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&stagewise_iterate);
+            IBTK_CHKERRQ(ierr);
+        }
 
         ierr = VecCopy(x_petsc, x_diff);
         IBTK_CHKERRQ(ierr);
@@ -793,6 +917,18 @@ main(int argc, char* argv[])
         {
             pout << "observer_call_count = " << observer_call_count << "\n";
             pout << "observer_data_valid = " << (observer_data_valid ? "true" : "false") << "\n";
+        }
+        if (verify_stagewise_original_residual)
+        {
+            pout << "stagewise_observer_call_count = " << stagewise_observer_call_count << "\n";
+            pout << "stagewise_patch_order_valid = " << (stagewise_patch_order_valid ? "true" : "false") << "\n";
+            pout << "stagewise_local_rhs_max_error = "
+                 << (stagewise_local_rhs_max_error <= tol ? 0.0 : stagewise_local_rhs_max_error) << "\n";
+            pout << "stagewise_original_residual_max_error = "
+                 << (stagewise_original_residual_max_error <= tol ? 0.0 : stagewise_original_residual_max_error)
+                 << "\n";
+            pout << "stagewise_final_state_error_inf_norm = "
+                 << (stagewise_final_state_error_inf_norm <= tol ? 0.0 : stagewise_final_state_error_inf_norm) << "\n";
         }
         if (verify_live_operator_state_view)
         {
