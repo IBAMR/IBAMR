@@ -1,4 +1,4 @@
-# Finest-level pressure-cell-seeded multiplicative CAV smoother.
+# End-to-end pressure-seeded multiplicative CAV solve.
 -ib_ksp_type fgmres
 -ib_ksp_rtol 1.0e-10
 -ib_ksp_atol 1.0e-50
@@ -8,6 +8,5 @@
 -stokes_ib_pc_level_ksp_type preonly
 -stokes_ib_pc_level_pc_type shell
 
-# Level-zero direct solve.
 -stokes_ib_pc_level_0_ksp_type preonly
 -stokes_ib_pc_level_0_pc_type svd

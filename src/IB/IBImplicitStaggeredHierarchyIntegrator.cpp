@@ -455,12 +455,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_
     if (d_ib_solver_needs_init)
     {
         d_ib_solver->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
-        if (d_ib_jac_op)
-        {
-            const int finest_ln = d_hierarchy->getFinestLevelNumber();
-            Mat SAJ = d_ib_fac_op->getEulerianElasticityLevelOp(finest_ln);
-            d_ib_jac_op->setIBCouplingJacobian(SAJ);
-        }
+        // Keep the outer hierarchy operator matrix-free. The FAC strategy
+        // owns and applies its assembled per-level coupling matrices.
         d_ib_solver_needs_init = false;
     }
     d_ib_solver->solveSystem(*eul_sol_vec, *eul_rhs_vec);

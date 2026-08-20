@@ -52,6 +52,7 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <cmath>
+#include <limits>
 
 #include <ibamr/app_namespaces.h>
 
@@ -64,6 +65,24 @@ constexpr double X_RADIUS = 0.1785714285714286;
 constexpr double Y_RADIUS = 0.35;
 constexpr double SPRING_STIFFNESS = 1.9353241079974475e+02;
 int s_finest_ln = 0;
+
+struct RegridObservation
+{
+    int callback_count = 0;
+    int finest_ln = -1;
+    bool initial_time = true;
+    double data_time = std::numeric_limits<double>::quiet_NaN();
+};
+
+void
+observe_regrid(Pointer<BasePatchHierarchy<NDIM>> hierarchy, double data_time, bool initial_time, void* ctx)
+{
+    auto* observation = static_cast<RegridObservation*>(ctx);
+    ++observation->callback_count;
+    observation->finest_ln = hierarchy->getFinestLevelNumber();
+    observation->initial_time = initial_time;
+    observation->data_time = data_time;
+}
 } // namespace
 
 void
@@ -132,11 +151,10 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    int test_failures = 0;
 
-#ifndef IBTK_HAVE_SILO
-    // Suppress warnings caused by running without silo.
+    // Suppress warnings so expected output does not contain build paths.
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
-#endif
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -158,6 +176,14 @@ main(int argc, char* argv[])
                                                        app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                                        ib_method_ops,
                                                        navier_stokes_integrator);
+        const bool verify_cav_regrid =
+            input_db->keyExists("VERIFY_CAV_REGRID") ? input_db->getBool("VERIFY_CAV_REGRID") : false;
+        const int expected_regrid_count = verify_cav_regrid ? input_db->getInteger("EXPECTED_REGRID_COUNT") : 0;
+        RegridObservation regrid_observation;
+        if (verify_cav_regrid)
+        {
+            time_integrator->registerRegridHierarchyCallback(observe_regrid, &regrid_observation);
+        }
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
@@ -290,8 +316,26 @@ main(int argc, char* argv[])
             patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
             patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        pout << "final_velocity_l2_norm = " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n";
-        pout << "final_pressure_l2_norm = " << hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx) << "\n";
+        const double final_velocity_l2_norm = hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx);
+        const double final_pressure_l2_norm = hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx);
+        pout << "final_velocity_l2_norm = " << final_velocity_l2_norm << "\n";
+        pout << "final_pressure_l2_norm = " << final_pressure_l2_norm << "\n";
+        if (verify_cav_regrid)
+        {
+            const bool regrid_callback_valid = regrid_observation.callback_count == expected_regrid_count &&
+                                               regrid_observation.finest_ln == s_finest_ln &&
+                                               !regrid_observation.initial_time &&
+                                               std::isfinite(regrid_observation.data_time);
+            const bool regridded_state_finite = std::isfinite(final_velocity_l2_norm) &&
+                                                std::isfinite(final_pressure_l2_norm) &&
+                                                final_velocity_l2_norm > 1.0e-14;
+            if (!regrid_callback_valid || !regridded_state_finite) ++test_failures;
+
+            pout << "cav_regrid_callback_count = " << regrid_observation.callback_count << "\n";
+            pout << "cav_regrid_finest_level = " << regrid_observation.finest_ln << "\n";
+            pout << "cav_regrid_callback_valid = " << (regrid_callback_valid ? "true" : "false") << "\n";
+            pout << "cav_regridded_state_finite = " << (regridded_state_finite ? "true" : "false") << "\n";
+        }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -299,5 +343,5 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    return 0;
+    return test_failures == 0 ? 0 : 1;
 } // main
