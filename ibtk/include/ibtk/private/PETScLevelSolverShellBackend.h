@@ -59,6 +59,8 @@ struct PETScLevelSolverShellBackendState
     Vec petsc_b = nullptr;
     const std::vector<std::vector<int>>* subdomain_dofs = nullptr;
     const std::vector<std::vector<int>>* nonoverlap_subdomain_dofs = nullptr;
+    const std::function<void(int, Mat, Vec, Vec, Vec)>* subdomain_solve_observer = nullptr;
+    const std::function<bool(int)>* subdomain_solve_observer_predicate = nullptr;
     std::function<void(Vec)> postprocess_result;
 };
 

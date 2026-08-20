@@ -52,6 +52,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -268,6 +269,15 @@ PETScLevelSolver::getASMNonoverlapSubdomains() const
 #endif
     return d_nonoverlap_subdomain_dofs;
 } // getASMNonoverlapSubdomains
+
+void
+PETScLevelSolver::setShellSubdomainSolveObserver(ShellSubdomainSolveObserver observer,
+                                                 ShellSubdomainSolveObserverPredicate predicate)
+{
+    d_shell_subdomain_solve_observer = std::move(observer);
+    d_shell_subdomain_solve_observer_predicate = std::move(predicate);
+    return;
+} // setShellSubdomainSolveObserver
 
 void
 PETScLevelSolver::setNullSpace(bool contains_constant_vec,
@@ -798,6 +808,9 @@ PETScLevelSolver::configureShellPreconditioner(PC ksp_pc)
     d_shell_backend_data->solver_state.petsc_b = d_petsc_b;
     d_shell_backend_data->solver_state.subdomain_dofs = &d_subdomain_dofs;
     d_shell_backend_data->solver_state.nonoverlap_subdomain_dofs = &d_nonoverlap_subdomain_dofs;
+    d_shell_backend_data->solver_state.subdomain_solve_observer = &d_shell_subdomain_solve_observer;
+    d_shell_backend_data->solver_state.subdomain_solve_observer_predicate =
+        &d_shell_subdomain_solve_observer_predicate;
     d_shell_backend_data->solver_state.postprocess_result = [this](Vec y) { postprocessShellResult(y); };
     d_shell_backend_data->active_backend->initializeSolverState(d_shell_backend_data->solver_state);
 

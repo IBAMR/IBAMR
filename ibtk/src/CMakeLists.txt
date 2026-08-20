@@ -151,6 +151,7 @@ SET(CXX_SRC
   solvers/impls/NewtonKrylovSolverManager.cpp
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
+  solvers/impls/PETScLevelSolverBlasLapackLUShellBackend.cpp
   solvers/impls/PETScLevelSolverPetscShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenFactorizedLocalSolveShellBackend.cpp
   solvers/impls/PETScLevelSolverEigenReferenceShellBackend.cpp

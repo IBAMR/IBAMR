@@ -1,0 +1,13 @@
+expected_shell_pc_name = stokes_shell_sem_PC_MultiplicativeBlasLapackLU
+actual_shell_pc_name = stokes_shell_sem_PC_MultiplicativeBlasLapackLU
+solver_type = default
+expected_inf_norm = 0.846628
+actual_inf_norm = 0.846628
+error_inf_norm = 0
+reinitialize_error_inf_norm = 0
+observer_call_count = 1
+observer_data_valid = true
+shell_pc_type = multiplicative-blas-lapack-lu
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-10
+test_failures = 0

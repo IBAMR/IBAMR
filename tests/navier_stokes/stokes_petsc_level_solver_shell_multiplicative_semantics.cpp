@@ -231,23 +231,28 @@ apply_reference_shell_action(Vec y,
         IBTK_CHKERRQ(ierr);
     }
 
-    Vec p_sub = nullptr;
-    ierr = VecGetSubVector(y, pressure_is, &p_sub);
-    IBTK_CHKERRQ(ierr);
-    PetscScalar p_sum = 0.0;
-    ierr = VecSum(p_sub, &p_sum);
-    IBTK_CHKERRQ(ierr);
-    PetscInt n_p = 0;
-    ierr = VecGetSize(p_sub, &n_p);
-    IBTK_CHKERRQ(ierr);
-    if (n_p > 0)
+    // Match StaggeredStokesPETScLevelSolver: only multiplicative shell
+    // corrections receive an explicit zero-mean pressure gauge.
+    if (use_multiplicative)
     {
-        const PetscScalar p_mean = p_sum / static_cast<PetscScalar>(n_p);
-        ierr = VecShift(p_sub, -p_mean);
+        Vec p_sub = nullptr;
+        ierr = VecGetSubVector(y, pressure_is, &p_sub);
+        IBTK_CHKERRQ(ierr);
+        PetscScalar p_sum = 0.0;
+        ierr = VecSum(p_sub, &p_sum);
+        IBTK_CHKERRQ(ierr);
+        PetscInt n_p = 0;
+        ierr = VecGetSize(p_sub, &n_p);
+        IBTK_CHKERRQ(ierr);
+        if (n_p > 0)
+        {
+            const PetscScalar p_mean = p_sum / static_cast<PetscScalar>(n_p);
+            ierr = VecShift(p_sub, -p_mean);
+            IBTK_CHKERRQ(ierr);
+        }
+        ierr = VecRestoreSubVector(y, pressure_is, &p_sub);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = VecRestoreSubVector(y, pressure_is, &p_sub);
-    IBTK_CHKERRQ(ierr);
 
     ierr = VecDestroy(&r);
     IBTK_CHKERRQ(ierr);
@@ -268,6 +273,8 @@ int
 main(int argc, char* argv[])
 {
     IBTK::IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
     Pointer<Database> input_db = app_initializer->getInputDatabase();
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
@@ -284,6 +291,9 @@ main(int argc, char* argv[])
         test_db->getBoolWithDefault("test_all_blas_lapack_solver_types", false);
     const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
+    const bool verify_reinitialize = test_db->getBoolWithDefault("verify_reinitialize", false);
+    const bool verify_local_solve_observer =
+        test_db->getBoolWithDefault("verify_local_solve_observer", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
     const bool verify_raw_export_comparator_contract =
         test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
@@ -641,6 +651,58 @@ main(int argc, char* argv[])
         ierr = KSPGetOperators(petsc_ksp, &A_mat, &pc_mat);
         IBTK_CHKERRQ(ierr);
 
+        int observer_call_count = 0;
+        bool observer_data_valid = !verify_local_solve_observer;
+        if (verify_local_solve_observer)
+        {
+            solver->setShellSubdomainSolveObserver(
+                [&](const int ordinal,
+                    Mat local_matrix,
+                    Vec local_rhs,
+                    Vec local_solution,
+                    Vec current_global_source) {
+                    ++observer_call_count;
+                    PetscInt rows = 0, cols = 0, rhs_size = 0, solution_size = 0, global_source_size = 0;
+                    int observer_ierr = MatGetSize(local_matrix, &rows, &cols);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecGetSize(local_rhs, &rhs_size);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecGetSize(local_solution, &solution_size);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecGetSize(current_global_source, &global_source_size);
+                    IBTK_CHKERRQ(observer_ierr);
+                    Vec defect = nullptr;
+                    observer_ierr = VecDuplicate(local_rhs, &defect);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = MatMult(local_matrix, local_solution, defect);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecAYPX(defect, -1.0, local_rhs);
+                    IBTK_CHKERRQ(observer_ierr);
+                    PetscReal defect_inf = 0.0, matrix_inf = 0.0, solution_inf = 0.0, rhs_inf = 0.0;
+                    observer_ierr = VecNorm(defect, NORM_INFINITY, &defect_inf);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = MatNorm(local_matrix, NORM_INFINITY, &matrix_inf);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecNorm(local_solution, NORM_INFINITY, &solution_inf);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_ierr = VecNorm(local_rhs, NORM_INFINITY, &rhs_inf);
+                    IBTK_CHKERRQ(observer_ierr);
+                    const double backward_error =
+                        defect_inf / (matrix_inf * solution_inf + rhs_inf + 1.0e-30);
+                    const PetscInt expected_size = static_cast<PetscInt>(overlap_is.front().size());
+                    PetscInt expected_global_size = 0;
+                    observer_ierr = VecGetSize(b_petsc, &expected_global_size);
+                    IBTK_CHKERRQ(observer_ierr);
+                    observer_data_valid = ordinal == 0 && rows == expected_size && cols == expected_size &&
+                                          rhs_size == expected_size && solution_size == expected_size &&
+                                          global_source_size == expected_global_size &&
+                                          std::isfinite(backward_error) && backward_error <= tol;
+                    observer_ierr = VecDestroy(&defect);
+                    IBTK_CHKERRQ(observer_ierr);
+                },
+                [](const int ordinal) { return ordinal == 0; });
+        }
+
         apply_reference_shell_action(x_expected,
                                      b_petsc,
                                      A_mat,
@@ -655,6 +717,11 @@ main(int argc, char* argv[])
 
         const bool converged = solver->solveSystem(x_vec, b_vec);
         if (!converged) ++test_failures;
+        if (verify_local_solve_observer)
+        {
+            if (observer_call_count != 1 || !observer_data_valid) ++test_failures;
+            solver->setShellSubdomainSolveObserver({});
+        }
         IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
         const double actual_inf_norm = vec_norm_inf(x_petsc);
@@ -678,6 +745,24 @@ main(int argc, char* argv[])
 
         solver->deallocateSolverState();
 
+        double reinitialize_error_inf_norm = std::numeric_limits<double>::quiet_NaN();
+        if (verify_reinitialize)
+        {
+            zero_solution_fields(level, u_idx, p_idx);
+            solver->initializeSolverState(x_vec, b_vec);
+            const bool reinitialize_converged = solver->solveSystem(x_vec, b_vec);
+            if (!reinitialize_converged) ++test_failures;
+            IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+                x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
+            ierr = VecCopy(x_petsc, x_diff);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(x_diff, -1.0, x_expected);
+            IBTK_CHKERRQ(ierr);
+            reinitialize_error_inf_norm = vec_norm_inf(x_diff);
+            if (!(reinitialize_error_inf_norm <= tol)) ++test_failures;
+            solver->deallocateSolverState();
+        }
+
         if (verify_live_operator_state_view)
         {
             const auto view = solver->getLiveOperatorStateView();
@@ -693,6 +778,16 @@ main(int argc, char* argv[])
             pout << "expected_inf_norm = " << expected_inf_norm << "\n";
             pout << "actual_inf_norm = " << actual_inf_norm << "\n";
             pout << "error_inf_norm = " << reported_error_inf_norm << "\n";
+        }
+        if (verify_reinitialize)
+        {
+            pout << "reinitialize_error_inf_norm = "
+                 << (reinitialize_error_inf_norm <= tol ? 0.0 : reinitialize_error_inf_norm) << "\n";
+        }
+        if (verify_local_solve_observer)
+        {
+            pout << "observer_call_count = " << observer_call_count << "\n";
+            pout << "observer_data_valid = " << (observer_data_valid ? "true" : "false") << "\n";
         }
         if (verify_live_operator_state_view)
         {

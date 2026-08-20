@@ -34,6 +34,7 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -80,6 +81,9 @@ namespace IBTK
 class PETScLevelSolver : public LinearSolver
 {
 public:
+    using ShellSubdomainSolveObserver = std::function<void(int, Mat, Vec, Vec, Vec)>;
+    using ShellSubdomainSolveObserverPredicate = std::function<bool(int)>;
+
     /*!
      * \brief Default constructor.
      */
@@ -120,6 +124,27 @@ public:
      * domain.
      */
     const std::vector<std::vector<int>>& getASMNonoverlapSubdomains() const;
+
+    /*!
+     * \brief Set a passive observer for selected shell subdomain solves.
+     *
+     * The observer receives the subdomain ordinal and borrowed handles to the
+     * local matrix, local right-hand side, local solution, and current global
+     * source. For multiplicative composition the global source is the
+     * pre-update residual; for additive composition it is the common input.
+     * The callback must not modify or retain any handle. If provided, the
+     * predicate is evaluated before the backend constructs diagnostic data.
+     *
+     * Calling this method does not change the local solve or correction. It is
+     * intended for narrowly selected live-operator diagnostics; normal shell
+     * application constructs no observer matrix.
+     *
+     * \note Observer support is backend-specific. The `blas-lapack-lu`
+     * backend invokes this callback; backends without observer support do not.
+     */
+    void setShellSubdomainSolveObserver(
+        ShellSubdomainSolveObserver observer,
+        ShellSubdomainSolveObserverPredicate predicate = ShellSubdomainSolveObserverPredicate());
 
     /*!
      * \name Linear solver functionality.
@@ -361,6 +386,8 @@ protected:
      * covers the local domain.
      */
     std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
+    ShellSubdomainSolveObserver d_shell_subdomain_solve_observer;
+    ShellSubdomainSolveObserverPredicate d_shell_subdomain_solve_observer_predicate;
 
 private:
     struct ShellBackendData;

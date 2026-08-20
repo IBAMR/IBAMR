@@ -1,0 +1,10 @@
+expected_shell_pc_name = stokes_shell_sem_PC_AdditiveBlasLapackLU
+actual_shell_pc_name = stokes_shell_sem_PC_AdditiveBlasLapackLU
+solver_type = default
+expected_inf_norm = 0.56633
+actual_inf_norm = 0.56633
+error_inf_norm = 0
+shell_pc_type = additive-blas-lapack-lu
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-10
+test_failures = 0
