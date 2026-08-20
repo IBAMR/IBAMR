@@ -600,6 +600,8 @@ main(int argc, char* argv[])
         fac_pc->setIBImplicitStrategy(ib_method_ops);
         const bool verify_pressure_cav =
             input_db->keyExists("VERIFY_PRESSURE_CAV") ? input_db->getBool("VERIFY_PRESSURE_CAV") : false;
+        const bool verify_fac_cycle_observer =
+            input_db->keyExists("VERIFY_FAC_CYCLE_OBSERVER") ? input_db->getBool("VERIFY_FAC_CYCLE_OBSERVER") : false;
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         if (verify_pressure_cav)
@@ -633,6 +635,76 @@ main(int argc, char* argv[])
         }
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         jac_op->setIBCouplingJacobian(SAJ);
+
+        using CycleStage = IBTK::FACPreconditioner::CycleStage;
+        std::vector<CycleStage> observed_fac_stages;
+        std::vector<int> observed_fac_levels;
+        bool fac_observer_views_valid = true;
+        IBTK::FACPreconditioner::CycleObserver fac_cycle_observer = [&](const CycleStage stage,
+                                                                        const int level_num,
+                                                                        const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                        const SAMRAIVectorReal<NDIM, double>& rhs)
+        {
+            observed_fac_stages.push_back(stage);
+            observed_fac_levels.push_back(level_num);
+            fac_observer_views_valid = fac_observer_views_valid && solution.getPatchHierarchy() == patch_hierarchy &&
+                                       rhs.getPatchHierarchy() == patch_hierarchy &&
+                                       solution.getCoarsestLevelNumber() == 0 && rhs.getCoarsestLevelNumber() == 0 &&
+                                       solution.getFinestLevelNumber() == finest_ln &&
+                                       rhs.getFinestLevelNumber() == finest_ln && std::isfinite(solution.L2Norm()) &&
+                                       std::isfinite(rhs.L2Norm());
+        };
+
+        const std::vector<CycleStage> expected_fac_stages = {
+            CycleStage::PRE_SMOOTH_INPUT,  CycleStage::PRE_SMOOTH_OUTPUT, CycleStage::COARSE_RHS,
+            CycleStage::COARSE_CORRECTION, CycleStage::POST_SMOOTH_INPUT, CycleStage::POST_SMOOTH_OUTPUT
+        };
+        const std::vector<int> expected_fac_levels = { finest_ln, finest_ln, 0, 0, finest_ln, finest_ln };
+        const std::vector<CycleStage> expected_fac_no_pre_stages = { CycleStage::COARSE_RHS,
+                                                                     CycleStage::COARSE_CORRECTION,
+                                                                     CycleStage::POST_SMOOTH_INPUT,
+                                                                     CycleStage::POST_SMOOTH_OUTPUT };
+        const std::vector<int> expected_fac_no_pre_levels = { 0, 0, finest_ln, finest_ln };
+        Pointer<SAMRAIVectorReal<NDIM, double>> fac_observer_sol;
+        bool fac_observer_first_cycle_valid = true;
+        bool fac_observer_disabled_silent = true;
+        bool fac_observer_no_pre_cycle_valid = true;
+        if (verify_fac_cycle_observer)
+        {
+            const int configured_num_pre_sweeps = fac_pc->getNumPreSmoothingSweeps();
+            fac_observer_sol = eul_sol_vec->cloneVector("fac_observer_sol");
+            fac_observer_sol->allocateVectorData();
+            fac_observer_sol->setToScalar(0.0);
+            fac_pc->setCycleObserver(fac_cycle_observer);
+            const bool observer_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_first_cycle_valid = observer_solve_success && observed_fac_stages == expected_fac_stages &&
+                                             observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
+                                             std::isfinite(fac_observer_sol->L2Norm()) &&
+                                             fac_observer_sol->L2Norm() > 1.0e-14;
+            if (!fac_observer_first_cycle_valid) ++test_failures;
+
+            const std::size_t observed_stage_count = observed_fac_stages.size();
+            fac_pc->setCycleObserver({});
+            fac_observer_sol->setToScalar(0.0);
+            const bool disabled_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_disabled_silent = disabled_solve_success && observed_fac_stages.size() == observed_stage_count;
+            if (!fac_observer_disabled_silent) ++test_failures;
+
+            observed_fac_stages.clear();
+            observed_fac_levels.clear();
+            fac_observer_views_valid = true;
+            fac_pc->setNumPreSmoothingSweeps(0);
+            fac_pc->setCycleObserver(fac_cycle_observer);
+            fac_observer_sol->setToScalar(0.0);
+            const bool no_pre_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_no_pre_cycle_valid =
+                no_pre_solve_success && observed_fac_stages == expected_fac_no_pre_stages &&
+                observed_fac_levels == expected_fac_no_pre_levels && fac_observer_views_valid &&
+                std::isfinite(fac_observer_sol->L2Norm()) && fac_observer_sol->L2Norm() > 1.0e-14;
+            if (!fac_observer_no_pre_cycle_valid) ++test_failures;
+            fac_pc->setCycleObserver({});
+            fac_pc->setNumPreSmoothingSweeps(configured_num_pre_sweeps);
+        }
 
         {
             PetscErrorCode ierr = 0;
@@ -776,7 +848,37 @@ main(int argc, char* argv[])
             pout << "krylov linear solve action is trivial" << std::endl;
         }
 
+        bool fac_observer_reinitialize_valid = true;
+        if (verify_fac_cycle_observer)
+        {
+            observed_fac_stages.clear();
+            observed_fac_levels.clear();
+            fac_observer_views_valid = true;
+            fac_pc->setCycleObserver(fac_cycle_observer);
+        }
         fac_pc->deallocateSolverState();
+        if (verify_fac_cycle_observer)
+        {
+            fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+            fac_observer_sol->setToScalar(0.0);
+            const bool reinitialized_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_reinitialize_valid =
+                reinitialized_solve_success && observed_fac_stages == expected_fac_stages &&
+                observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
+                std::isfinite(fac_observer_sol->L2Norm()) && fac_observer_sol->L2Norm() > 1.0e-14;
+            if (!fac_observer_reinitialize_valid) ++test_failures;
+            fac_pc->setCycleObserver({});
+            fac_pc->deallocateSolverState();
+
+            pout << "fac_cycle_observer_first_cycle_valid = " << (fac_observer_first_cycle_valid ? "true" : "false")
+                 << std::endl;
+            pout << "fac_cycle_observer_disabled_silent = " << (fac_observer_disabled_silent ? "true" : "false")
+                 << std::endl;
+            pout << "fac_cycle_observer_no_pre_cycle_valid = " << (fac_observer_no_pre_cycle_valid ? "true" : "false")
+                 << std::endl;
+            pout << "fac_cycle_observer_reinitialize_valid = " << (fac_observer_reinitialize_valid ? "true" : "false")
+                 << std::endl;
+        }
         if (verify_pressure_cav)
         {
             const bool state_cleared = pressure_cav_level_solver->getCouplingAwareASMPressureSeedDOFs().empty();

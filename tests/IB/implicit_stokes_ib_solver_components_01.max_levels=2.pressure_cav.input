@@ -23,6 +23,7 @@ TAG_BUFFER                        = 2
 FD_REL_TOL                        = 1.0e-6
 USE_FIXED_LE_OPERATORS            = TRUE
 VERIFY_PRESSURE_CAV               = TRUE
+VERIFY_FAC_CYCLE_OBSERVER         = TRUE
 EXPECTED_PRESSURE_CAV_PATCH_COUNT = 64
 PETSC_OPTIONS_FILE                = "PetscOptions.implicit_stokes_ib_solver_components_01.pressure_cav.dat"
 

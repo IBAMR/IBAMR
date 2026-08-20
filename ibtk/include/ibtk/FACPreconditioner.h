@@ -30,6 +30,7 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <functional>
 #include <string>
 
 namespace SAMRAI
@@ -74,6 +75,25 @@ namespace IBTK
 class FACPreconditioner : public LinearSolver
 {
 public:
+    /*!
+     * \brief Identifies an observed stage in a live FAC cycle.
+     */
+    enum class CycleStage
+    {
+        PRE_SMOOTH_INPUT,
+        PRE_SMOOTH_OUTPUT,
+        COARSE_RHS,
+        COARSE_CORRECTION,
+        POST_SMOOTH_INPUT,
+        POST_SMOOTH_OUTPUT
+    };
+
+    /*! Callback type used by setCycleObserver(). */
+    using CycleObserver = std::function<void(CycleStage,
+                                             int,
+                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>&,
+                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>&)>;
+
     /*!
      * Constructor.
      */
@@ -255,6 +275,22 @@ public:
      */
     int getNumPostSmoothingSweeps() const;
 
+    /*!
+     * \brief Set an optional passive observer for live FAC cycle stages.
+     *
+     * The callback receives the active level number and const views of the
+     * current solution and right-hand side. It is invoked synchronously and
+     * must not modify or retain either vector. Only data on the active level
+     * is guaranteed to represent the named stage. FAC does not make an
+     * additional vector copy for observation.
+     *
+     * The callback remains installed across solver-state deallocation and
+     * reinitialization until it is replaced or disabled. Objects captured by
+     * the callback must therefore outlive every observed solve. Passing an
+     * empty function disables observation.
+     */
+    void setCycleObserver(CycleObserver observer);
+
     //\}
 
     /*!
@@ -293,6 +329,11 @@ protected:
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
 
 private:
+    void observeCycleStage(CycleStage stage,
+                           int level_num,
+                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) const;
+
     /*!
      * \brief Default constructor.
      *
@@ -321,6 +362,8 @@ private:
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    CycleObserver d_cycle_observer;
 };
 } // namespace IBTK
 

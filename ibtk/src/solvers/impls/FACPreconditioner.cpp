@@ -254,6 +254,13 @@ FACPreconditioner::getNumPostSmoothingSweeps() const
     return d_num_post_sweeps;
 } // getNumPostSmoothingSweeps
 
+void
+FACPreconditioner::setCycleObserver(CycleObserver observer)
+{
+    d_cycle_observer = std::move(observer);
+    return;
+} // setCycleObserver
+
 Pointer<FACPreconditionerStrategy>
 FACPreconditioner::getFACPreconditionerStrategy() const
 {
@@ -270,7 +277,9 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
     if (level_num == d_coarsest_ln)
     {
         // Solve Au = f on the coarsest level.
+        observeCycleStage(CycleStage::COARSE_RHS, level_num, u, f);
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        observeCycleStage(CycleStage::COARSE_CORRECTION, level_num, u, f);
     }
     else
     {
@@ -288,7 +297,9 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
         // Smooth error on the current level.
         if (d_num_post_sweeps > 0)
         {
+            observeCycleStage(CycleStage::POST_SMOOTH_INPUT, level_num, u, f);
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            observeCycleStage(CycleStage::POST_SMOOTH_OUTPUT, level_num, u, f);
         }
     }
     return;
@@ -303,13 +314,17 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
 {
     if (level_num == d_coarsest_ln)
     {
+        observeCycleStage(CycleStage::COARSE_RHS, level_num, u, f);
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        observeCycleStage(CycleStage::COARSE_CORRECTION, level_num, u, f);
     }
     else
     {
         if (d_num_pre_sweeps > 0)
         {
+            observeCycleStage(CycleStage::PRE_SMOOTH_INPUT, level_num, u, f);
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            observeCycleStage(CycleStage::PRE_SMOOTH_OUTPUT, level_num, u, f);
         }
         d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
         d_fac_strategy->restrictResidual(r, f, level_num - 1);
@@ -318,7 +333,9 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
         if (d_num_post_sweeps > 0)
         {
+            observeCycleStage(CycleStage::POST_SMOOTH_INPUT, level_num, u, f);
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            observeCycleStage(CycleStage::POST_SMOOTH_OUTPUT, level_num, u, f);
         }
     }
     return;
@@ -332,13 +349,17 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
 {
     if (level_num == d_coarsest_ln)
     {
+        observeCycleStage(CycleStage::COARSE_RHS, level_num, u, f);
         d_fac_strategy->solveCoarsestLevel(u, f, level_num);
+        observeCycleStage(CycleStage::COARSE_CORRECTION, level_num, u, f);
     }
     else
     {
         if (d_num_pre_sweeps > 0)
         {
+            observeCycleStage(CycleStage::PRE_SMOOTH_INPUT, level_num, u, f);
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            observeCycleStage(CycleStage::PRE_SMOOTH_OUTPUT, level_num, u, f);
         }
         d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
         d_fac_strategy->restrictResidual(r, f, level_num - 1);
@@ -348,7 +369,9 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
         if (d_num_post_sweeps > 0)
         {
+            observeCycleStage(CycleStage::POST_SMOOTH_INPUT, level_num, u, f);
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            observeCycleStage(CycleStage::POST_SMOOTH_OUTPUT, level_num, u, f);
         }
     }
     return;
@@ -376,6 +399,16 @@ FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // FMGCycle
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+FACPreconditioner::observeCycleStage(const CycleStage stage,
+                                     const int level_num,
+                                     const SAMRAIVectorReal<NDIM, double>& solution,
+                                     const SAMRAIVectorReal<NDIM, double>& rhs) const
+{
+    if (d_cycle_observer) d_cycle_observer(stage, level_num, solution, rhs);
+    return;
+} // observeCycleStage
 
 void
 FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)

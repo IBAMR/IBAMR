@@ -8,6 +8,10 @@ saj_cell_scaled_relative_error = 0
 saj_theta_scaled_relative_error = 0.371681
 krylov_linear_iterations = 3
 krylov_linear_residual_norm = 3.67879e-06
+fac_cycle_observer_first_cycle_valid = true
+fac_cycle_observer_disabled_silent = true
+fac_cycle_observer_no_pre_cycle_valid = true
+fac_cycle_observer_reinitialize_valid = true
 pressure_cav_state_cleared = true
 Input database:
 input_db {
@@ -32,6 +36,7 @@ input_db {
    FD_REL_TOL                        = 1e-06                // input used
    USE_FIXED_LE_OPERATORS            = TRUE                 // input used
    VERIFY_PRESSURE_CAV               = TRUE                 // input used
+   VERIFY_FAC_CYCLE_OBSERVER         = TRUE                 // input used
    EXPECTED_PRESSURE_CAV_PATCH_COUNT = 64                   // input used
    PETSC_OPTIONS_FILE                = "PetscOptions.implicit_stokes_ib_solver_components_01.pressure_cav.dat" // input used
    RR                                = 2                    // input used
