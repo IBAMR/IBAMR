@@ -27,6 +27,7 @@
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
@@ -597,7 +598,39 @@ main(int argc, char* argv[])
         fac_pc->setIBForceJacobian(A);
         fac_pc->setIBInterpOp(J);
         fac_pc->setIBImplicitStrategy(ib_method_ops);
+        const bool verify_pressure_cav =
+            input_db->keyExists("VERIFY_PRESSURE_CAV") ? input_db->getBool("VERIFY_PRESSURE_CAV") : false;
+        Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+        if (verify_pressure_cav)
+        {
+            pressure_cav_level_solver = fac_op->getStaggeredStokesPETScLevelSolver(finest_ln);
+            const auto& overlap_dofs = pressure_cav_level_solver->getASMSubdomains();
+            const auto& nonoverlap_dofs = pressure_cav_level_solver->getASMNonoverlapSubdomains();
+            const auto& pressure_seeds = pressure_cav_level_solver->getCouplingAwareASMPressureSeedDOFs();
+            const int expected_patch_count = input_db->getInteger("EXPECTED_PRESSURE_CAV_PATCH_COUNT");
+
+            bool seed_order_valid = static_cast<int>(pressure_seeds.size()) == expected_patch_count &&
+                                    pressure_seeds.size() == overlap_dofs.size();
+            int enlarged_patch_count = 0;
+            for (std::size_t k = 0; k < std::min(pressure_seeds.size(), overlap_dofs.size()); ++k)
+            {
+                seed_order_valid =
+                    seed_order_valid &&
+                    std::binary_search(overlap_dofs[k].begin(), overlap_dofs[k].end(), pressure_seeds[k]);
+                if (overlap_dofs[k].size() > 2 * NDIM + 1) ++enlarged_patch_count;
+            }
+            const bool partition_absent = nonoverlap_dofs.size() == overlap_dofs.size() &&
+                                          std::all_of(nonoverlap_dofs.begin(),
+                                                      nonoverlap_dofs.end(),
+                                                      [](const auto& dofs) { return dofs.empty(); });
+            if (!seed_order_valid || enlarged_patch_count == 0 || !partition_absent) ++test_failures;
+
+            pout << "pressure_cav_patch_count = " << pressure_seeds.size() << std::endl;
+            pout << "pressure_cav_enlarged_patch_count = " << enlarged_patch_count << std::endl;
+            pout << "pressure_cav_seed_order_valid = " << (seed_order_valid ? "true" : "false") << std::endl;
+            pout << "pressure_cav_partition_absent = " << (partition_absent ? "true" : "false") << std::endl;
+        }
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         jac_op->setIBCouplingJacobian(SAJ);
 
@@ -744,6 +777,12 @@ main(int argc, char* argv[])
         }
 
         fac_pc->deallocateSolverState();
+        if (verify_pressure_cav)
+        {
+            const bool state_cleared = pressure_cav_level_solver->getCouplingAwareASMPressureSeedDOFs().empty();
+            if (!state_cleared) ++test_failures;
+            pout << "pressure_cav_state_cleared = " << (state_cleared ? "true" : "false") << std::endl;
+        }
 
         jac_op->deallocateOperatorState();
         nonlinear_op.deallocateOperatorState();

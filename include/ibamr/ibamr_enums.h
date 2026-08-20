@@ -79,6 +79,35 @@ enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for the seed family used to construct
+ * coupling-aware ASM/CAV patches.
+ */
+enum class CouplingAwareASMPatchSeedType
+{
+    VELOCITY_COMPONENT = 0,
+    PRESSURE_CELL = 1,
+    UNKNOWN = -1
+};
+
+template <>
+inline CouplingAwareASMPatchSeedType
+string_to_enum<CouplingAwareASMPatchSeedType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "VELOCITY_COMPONENT") == 0) return CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+    if (strcasecmp(val.c_str(), "PRESSURE_CELL") == 0) return CouplingAwareASMPatchSeedType::PRESSURE_CELL;
+    return CouplingAwareASMPatchSeedType::UNKNOWN;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMPatchSeedType>(CouplingAwareASMPatchSeedType val)
+{
+    if (val == CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT) return "VELOCITY_COMPONENT";
+    if (val == CouplingAwareASMPatchSeedType::PRESSURE_CELL) return "PRESSURE_CELL";
+    return "UNKNOWN";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for coupling-aware ASM seed traversal order.
  *
  * Names indicate the primary->secondary->tertiary logical index ordering.

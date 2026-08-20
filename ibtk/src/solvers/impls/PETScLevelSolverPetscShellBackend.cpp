@@ -178,7 +178,7 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(const PETScLevelSolverS
     int n_local_dofs = 0;
     ierr = VecGetLocalSize(d_solver_state.petsc_x, &n_local_dofs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(n_local_dofs == static_cast<int>(idxs.size()));
+    if (use_restrict_partition) TBOX_ASSERT(n_local_dofs == static_cast<int>(idxs.size()));
 #endif
 
     petsc.sub_ksp.resize(n_local_subdomains);

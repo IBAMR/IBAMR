@@ -646,6 +646,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                           "initializeSolverState().\n");
         }
         const bool use_galerkin_level_operator = !d_rediscretize_stokes && ln != d_finest_ln;
+        p_level_solver->setCouplingAwareASMConstructionMat(d_SAJ_mat[ln]);
         if (use_galerkin_level_operator)
         {
             p_level_solver->setOperatorMat(d_galerkin_stokesib_mat[ln]);
@@ -705,6 +706,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                           "Stokes+IB operators and SAJ-augmented rediscretized Stokes operators before "
                           "initializeSolverState().\n");
         }
+        p_coarse_petsc_solver->setCouplingAwareASMConstructionMat(d_SAJ_mat[d_coarsest_ln]);
         if (d_rediscretize_stokes)
         {
             p_coarse_petsc_solver->setOperatorMat(nullptr);

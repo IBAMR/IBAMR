@@ -1,0 +1,7 @@
+# Finest-level pressure-cell-seeded multiplicative CAV smoother.
+-stokes_ib_pc_level_ksp_type preonly
+-stokes_ib_pc_level_pc_type shell
+
+# Level-zero direct solve.
+-stokes_ib_pc_level_0_ksp_type preonly
+-stokes_ib_pc_level_0_pc_type svd

@@ -217,6 +217,18 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                        << "  expected value in [0, " << NDIM - 1 << "].\n");
         }
     }
+    if (input_db && input_db->keyExists("coupling_aware_asm_patch_seed_type"))
+    {
+        const std::string patch_seed_type = input_db->getString("coupling_aware_asm_patch_seed_type");
+        d_coupling_aware_asm_patch_seed_type = string_to_enum<CouplingAwareASMPatchSeedType>(patch_seed_type);
+        if (d_coupling_aware_asm_patch_seed_type == CouplingAwareASMPatchSeedType::UNKNOWN)
+        {
+            TBOX_ERROR("StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver():\n"
+                       << "  invalid coupling_aware_asm_patch_seed_type = " << patch_seed_type << "\n"
+                       << "  expected values are " << enum_to_string(CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT)
+                       << " and " << enum_to_string(CouplingAwareASMPatchSeedType::PRESSURE_CELL) << ".\n");
+        }
+    }
     if (input_db && input_db->keyExists("coupling_aware_asm_seed_stride"))
     {
         d_coupling_aware_asm_seed_stride = input_db->getInteger("coupling_aware_asm_seed_stride");
@@ -390,25 +402,60 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::vector<i
             TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
                        << "  coupling-aware ASM map data is not initialized.\n");
         }
-        Mat A00_velocity_mat = nullptr;
-        StaggeredStokesPETScMatUtilitiesPrivateAccess::constructA00VelocitySubmatrix(
-            A00_velocity_mat, d_petsc_mat, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
-        StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
-            overlap_dofs,
-            nonoverlap_dofs,
-            d_num_dofs_per_proc,
-            d_u_dof_index_idx,
-            d_level,
-            d_cf_boundary,
-            A00_velocity_mat,
-            d_coupling_aware_asm_map_data,
-            d_coupling_aware_asm_seed_axis,
-            d_coupling_aware_asm_seed_stride,
-            d_coupling_aware_asm_seed_traversal_order,
-            d_coupling_aware_asm_closure_policy,
-            d_coupling_aware_asm_relative_zero_tol);
-        int ierr = MatDestroy(&A00_velocity_mat);
-        IBTK_CHKERRQ(ierr);
+        if (d_coupling_aware_asm_patch_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+        {
+            if (d_pc_type != "shell" || !usesMultiplicativeShellSmoother() || usesRestrictShellSmootherPartition())
+            {
+                TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
+                           << "  pressure-cell-seeded CAV requires an unrestricted multiplicative shell smoother; "
+                              "flat additive or restricted patch composition is not CAV-RAS.\n");
+            }
+            if (!d_coupling_aware_asm_construction_mat)
+            {
+                TBOX_ERROR("StaggeredStokesPETScLevelSolver::generateASMSubdomains():\n"
+                           << "  pressure-cell-seeded CAV requires a live Eulerian elasticity construction "
+                              "matrix.\n");
+            }
+            StaggeredStokesPETScMatUtilities::constructPatchLevelPressureCellSeededCAVPatches(
+                overlap_dofs,
+                d_coupling_aware_asm_pressure_seed_dofs,
+                d_num_dofs_per_proc,
+                d_p_dof_index_idx,
+                d_level,
+                d_coupling_aware_asm_construction_mat,
+                d_coupling_aware_asm_map_data,
+                d_coupling_aware_asm_seed_stride,
+                d_coupling_aware_asm_seed_traversal_order,
+                d_coupling_aware_asm_closure_policy,
+                d_coupling_aware_asm_relative_zero_tol);
+            // The accepted global multiplicative policy updates each complete
+            // patch. Do not manufacture an unused ownership partition that
+            // could be mistaken for macro-subdomain CAV-RAS semantics.
+            nonoverlap_dofs.assign(overlap_dofs.size(), {});
+        }
+        else
+        {
+            d_coupling_aware_asm_pressure_seed_dofs.clear();
+            Mat A00_velocity_mat = nullptr;
+            StaggeredStokesPETScMatUtilitiesPrivateAccess::constructA00VelocitySubmatrix(
+                A00_velocity_mat, d_petsc_mat, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+            StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
+                overlap_dofs,
+                nonoverlap_dofs,
+                d_num_dofs_per_proc,
+                d_u_dof_index_idx,
+                d_level,
+                d_cf_boundary,
+                A00_velocity_mat,
+                d_coupling_aware_asm_map_data,
+                d_coupling_aware_asm_seed_axis,
+                d_coupling_aware_asm_seed_stride,
+                d_coupling_aware_asm_seed_traversal_order,
+                d_coupling_aware_asm_closure_policy,
+                d_coupling_aware_asm_relative_zero_tol);
+            int ierr = MatDestroy(&A00_velocity_mat);
+            IBTK_CHKERRQ(ierr);
+        }
         break;
     }
     case ASMSubdomainConstructionMode::UNKNOWN:
@@ -577,6 +624,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     d_petsc_pc = d_petsc_mat;
     d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
     d_coupling_aware_asm_map_data_is_initialized = false;
+    d_coupling_aware_asm_pressure_seed_dofs.clear();
     if (d_asm_subdomain_construction_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
     {
         StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
@@ -644,6 +692,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     }
     d_coupling_aware_asm_map_data = StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData();
     d_coupling_aware_asm_map_data_is_initialized = false;
+    d_coupling_aware_asm_construction_mat = nullptr;
+    d_coupling_aware_asm_pressure_seed_dofs.clear();
     d_velocity_dofs.clear();
     d_pressure_dofs.clear();
     return;
@@ -786,6 +836,19 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
     d_augmented_operator_mat = augmented_operator_mat;
     return;
 } // setAugmentedOperatorMat
+
+void
+StaggeredStokesPETScLevelSolver::setCouplingAwareASMConstructionMat(Mat construction_mat)
+{
+    d_coupling_aware_asm_construction_mat = construction_mat;
+    return;
+} // setCouplingAwareASMConstructionMat
+
+const std::vector<int>&
+StaggeredStokesPETScLevelSolver::getCouplingAwareASMPressureSeedDOFs() const
+{
+    return d_coupling_aware_asm_pressure_seed_dofs;
+} // getCouplingAwareASMPressureSeedDOFs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

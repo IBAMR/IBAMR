@@ -145,6 +145,27 @@ public:
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
     /*!
+     * \brief Set the live Eulerian elasticity contribution used only for
+     * pressure-cell-seeded CAV patch construction.
+     *
+     * The matrix must use the full coupled level's global velocity-pressure
+     * numbering, with numerically zero pressure rows and columns. The solver
+     * borrows it until deallocateSolverState() and does not copy or modify it.
+     * Local patch matrices and residual updates continue to use the full
+     * original level operator.
+     */
+    void setCouplingAwareASMConstructionMat(Mat construction_mat);
+
+    /*!
+     * \brief Return the ordered pressure seed DOFs used by the initialized
+     * pressure-cell-seeded CAV construction.
+     *
+     * The returned reference is invalidated by deallocateSolverState() or
+     * reinitialization. It is empty for the legacy velocity-seeded family.
+     */
+    const std::vector<int>& getCouplingAwareASMPressureSeedDOFs() const;
+
+    /*!
      * \brief Return a coherent nonowning view of the current live operator,
      * block partition, ownership, nullspace, and pressure-gauge declarations.
      *
@@ -263,6 +284,8 @@ private:
     IS d_pressure_is_local = nullptr;
     AO d_velocity_field_ao = nullptr;
     ASMSubdomainConstructionMode d_asm_subdomain_construction_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    CouplingAwareASMPatchSeedType d_coupling_aware_asm_patch_seed_type =
+        CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
     int d_coupling_aware_asm_seed_axis = 0;
     int d_coupling_aware_asm_seed_stride = 1;
 #if (NDIM == 2)
@@ -279,6 +302,8 @@ private:
     double d_coupling_aware_asm_relative_zero_tol = IBTK_RELATIVE_NUMERICAL_ZERO_TOL;
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
+    Mat d_coupling_aware_asm_construction_mat = nullptr;
+    std::vector<int> d_coupling_aware_asm_pressure_seed_dofs;
     std::vector<PetscInt> d_velocity_dofs;
     std::vector<PetscInt> d_pressure_dofs;
 

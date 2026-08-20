@@ -36,7 +36,9 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <array>
 #include <limits>
+#include <numeric>
 #include <set>
 #include <string>
 #include <tuple>
@@ -208,9 +210,14 @@ main(int argc, char* argv[])
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
 
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
+    const std::string patch_seed_type =
+        test_db->getStringWithDefault("coupling_aware_asm_patch_seed_type", "VELOCITY_COMPONENT");
     const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
+    const std::string seed_traversal_order = test_db->keyExists("coupling_aware_asm_seed_traversal_order") ?
+                                                 test_db->getString("coupling_aware_asm_seed_traversal_order") :
+                                                 "I_J";
     const double alpha = test_db->getDoubleWithDefault("shell_pc_relaxation_factor", 1.0);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
     const bool require_parity = test_db->getBoolWithDefault("require_parity", true);
@@ -269,12 +276,50 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
         field_is, field_names, num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, level);
     const auto pressure_name_it = std::find(field_names.begin(), field_names.end(), "pressure");
-    if (pressure_name_it == field_names.end())
+    const auto velocity_name_it = std::find(field_names.begin(), field_names.end(), "velocity");
+    if (pressure_name_it == field_names.end() || velocity_name_it == field_names.end())
     {
-        TBOX_ERROR("stokes_petsc_level_solver_cav_shell_semantics: pressure field not found.\n");
+        TBOX_ERROR("stokes_petsc_level_solver_cav_shell_semantics: velocity or pressure field not found.\n");
     }
     const std::size_t pressure_idx = static_cast<std::size_t>(std::distance(field_names.begin(), pressure_name_it));
+    const std::size_t velocity_idx = static_cast<std::size_t>(std::distance(field_names.begin(), velocity_name_it));
     std::vector<PetscInt> pressure_dofs(field_is[pressure_idx].begin(), field_is[pressure_idx].end());
+    std::vector<PetscInt> velocity_dofs(field_is[velocity_idx].begin(), field_is[velocity_idx].end());
+    struct PressureSeedRecord
+    {
+        std::array<int, NDIM> logical_index{};
+        int dof = -1;
+    };
+    std::vector<PressureSeedRecord> pressure_seed_records;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<CellData<NDIM, int>> p_dof_data = patch->getPatchData(p_dof_index_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            PressureSeedRecord record;
+            for (unsigned int d = 0; d < NDIM; ++d) record.logical_index[d] = b()(static_cast<int>(d));
+            record.dof = (*p_dof_data)(b());
+            pressure_seed_records.push_back(record);
+        }
+    }
+    std::sort(pressure_seed_records.begin(),
+              pressure_seed_records.end(),
+              [](const PressureSeedRecord& lhs, const PressureSeedRecord& rhs)
+              {
+                  for (unsigned int d = 0; d < NDIM; ++d)
+                  {
+                      if (lhs.logical_index[d] < rhs.logical_index[d]) return true;
+                      if (lhs.logical_index[d] > rhs.logical_index[d]) return false;
+                  }
+                  return lhs.dof < rhs.dof;
+              });
+    std::vector<int> expected_pressure_seed_dofs;
+    std::set<int> seen_pressure_dofs;
+    for (const PressureSeedRecord& record : pressure_seed_records)
+    {
+        if (seen_pressure_dofs.insert(record.dof).second) expected_pressure_seed_dofs.push_back(record.dof);
+    }
     IS pressure_is = nullptr;
     int ierr = ISCreateGeneral(PETSC_COMM_WORLD,
                                static_cast<PetscInt>(pressure_dofs.size()),
@@ -292,8 +337,10 @@ main(int argc, char* argv[])
     solver_db->putBool("initial_guess_nonzero", false);
     solver_db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
     solver_db->putString("coupling_aware_asm_closure_policy", closure_policy);
+    solver_db->putString("coupling_aware_asm_patch_seed_type", patch_seed_type);
     solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
     solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
+    solver_db->putString("coupling_aware_asm_seed_traversal_order", seed_traversal_order);
 
     Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
         new IBAMR::StaggeredStokesPETScLevelSolver("solver_cav_shell_semantics", solver_db, "stokes_shell_sem_");
@@ -301,9 +348,59 @@ main(int argc, char* argv[])
     problem_coefs.setCConstant(1.0);
     problem_coefs.setDConstant(-1.0);
     solver->setVelocityPoissonSpecifications(problem_coefs);
+    Mat construction_mat = nullptr;
+    if (patch_seed_type == "PRESSURE_CELL")
+    {
+        const int n_global_dofs = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+        ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                            PETSC_DECIDE,
+                            PETSC_DECIDE,
+                            n_global_dofs,
+                            n_global_dofs,
+                            2,
+                            nullptr,
+                            1,
+                            nullptr,
+                            &construction_mat);
+        IBTK_CHKERRQ(ierr);
+        if (velocity_dofs.size() >= 2)
+        {
+            const PetscInt coupled_velocity_dofs[2] = { velocity_dofs.front(), velocity_dofs.back() };
+            const PetscScalar coupling_values[4] = { 0.0, 0.25, 0.25, 0.0 };
+            ierr = MatSetValues(
+                construction_mat, 2, coupled_velocity_dofs, 2, coupled_velocity_dofs, coupling_values, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+        ierr = MatAssemblyBegin(construction_mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(construction_mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        solver->setCouplingAwareASMConstructionMat(construction_mat);
+    }
     solver->initializeSolverState(x_vec, b_vec);
 
     const auto& overlap_is = solver->getASMSubdomains();
+    const auto& nonoverlap_is = solver->getASMNonoverlapSubdomains();
+    const std::size_t pressure_seed_patch_count = overlap_is.size();
+    bool pressure_seed_order_valid = patch_seed_type != "PRESSURE_CELL";
+    bool pressure_seed_partition_absent = patch_seed_type != "PRESSURE_CELL";
+    if (patch_seed_type == "PRESSURE_CELL")
+    {
+        const auto& pressure_seeds = solver->getCouplingAwareASMPressureSeedDOFs();
+        pressure_seed_order_valid = pressure_seeds.size() == expected_pressure_seed_dofs.size() &&
+                                    pressure_seeds.size() == overlap_is.size() &&
+                                    pressure_seeds == expected_pressure_seed_dofs;
+        for (std::size_t k = 0; k < std::min(pressure_seeds.size(), overlap_is.size()); ++k)
+        {
+            pressure_seed_order_valid =
+                pressure_seed_order_valid &&
+                std::binary_search(overlap_is[k].begin(), overlap_is[k].end(), pressure_seeds[k]);
+        }
+        pressure_seed_partition_absent =
+            nonoverlap_is.size() == overlap_is.size() &&
+            std::all_of(nonoverlap_is.begin(), nonoverlap_is.end(), [](const auto& dofs) { return dofs.empty(); });
+        if (!pressure_seed_order_valid || !pressure_seed_partition_absent) ++test_failures;
+    }
 
     const KSP& petsc_ksp = solver->getPETScKSP();
     Mat A_mat = nullptr;
@@ -357,6 +454,9 @@ main(int argc, char* argv[])
     IBTK_CHKERRQ(ierr);
 
     solver->deallocateSolverState();
+    if (patch_seed_type == "PRESSURE_CELL" && !solver->getCouplingAwareASMPressureSeedDOFs().empty()) ++test_failures;
+    ierr = MatDestroy(&construction_mat);
+    IBTK_CHKERRQ(ierr);
 
     for (const int data_idx : { u_idx, p_idx, f_u_idx, f_p_idx, u_dof_index_idx, p_dof_index_idx })
     {
@@ -366,6 +466,13 @@ main(int argc, char* argv[])
     plog << "Input database:\n";
     input_db->printClassData(plog);
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
+    if (patch_seed_type == "PRESSURE_CELL")
+    {
+        pout << "coupling_aware_asm_patch_seed_type = " << patch_seed_type << "\n";
+        pout << "pressure_seed_patch_count = " << pressure_seed_patch_count << "\n";
+        pout << "pressure_seed_order_valid = " << (pressure_seed_order_valid ? "true" : "false") << "\n";
+        pout << "pressure_seed_partition_absent = " << (pressure_seed_partition_absent ? "true" : "false") << "\n";
+    }
     pout << "shell_pc_type = " << shell_pc_type << "\n";
     pout << "shell_pc_relaxation_factor = " << alpha << "\n";
     pout << "require_parity = " << require_parity << "\n";
