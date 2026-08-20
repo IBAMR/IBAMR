@@ -1,0 +1,15 @@
+solver_type = default
+expected_inf_norm = 0.846628
+actual_inf_norm = 0.846628
+error_inf_norm = 0
+live_view_preinit_empty = true
+live_view_operator_identity = true
+live_view_ownership_valid = true
+live_view_block_partition_valid = true
+live_view_provenance_valid = true
+live_view_nullspace_gauge_valid = true
+live_view_post_deallocate_empty = true
+shell_pc_type = multiplicative-petsc
+coupling_aware_asm_closure_policy = RELAXED
+parity_tol = 1e-10
+test_failures = 0

@@ -41,6 +41,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <string>
 #include <tuple>
@@ -282,6 +283,7 @@ main(int argc, char* argv[])
         test_db->getBoolWithDefault("test_all_blas_lapack_solver_types", false);
     const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
+    const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
     const std::string configured_pc_type = test_db->getStringWithDefault("configured_pc_type", "shell");
     const std::string expected_shell_pc_name = test_db->getStringWithDefault("expected_shell_pc_name", "");
     const double velocity_poisson_c = test_db->getDoubleWithDefault("velocity_poisson_c", 1.0);
@@ -433,6 +435,21 @@ main(int argc, char* argv[])
 
         Pointer<TestableStaggeredStokesPETScLevelSolver> solver = new TestableStaggeredStokesPETScLevelSolver(
             "solver_shell_multiplicative_semantics", solver_db, "stokes_shell_sem_");
+        bool live_view_preinit_empty = true;
+        bool live_view_operator_identity = true;
+        bool live_view_ownership_valid = true;
+        bool live_view_block_partition_valid = true;
+        bool live_view_provenance_valid = true;
+        bool live_view_nullspace_gauge_valid = true;
+        bool live_view_post_deallocate_empty = true;
+        if (verify_live_operator_state_view)
+        {
+            const auto view = solver->getLiveOperatorStateView();
+            live_view_preinit_empty = !view.initialized && !view.operator_mat && !view.num_dofs_per_proc &&
+                                      !view.locally_owned_velocity_dofs && !view.locally_owned_pressure_dofs;
+            if (!live_view_preinit_empty) ++test_failures;
+            solver->setComponentsHaveNullSpace(false, true);
+        }
         const bool configured_use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
         if (is_eigen_reference_case && !configured_use_multiplicative)
         {
@@ -471,6 +488,48 @@ main(int argc, char* argv[])
         const bool use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
         const bool use_restrict_partition = solver->usesRestrictShellSmootherPartitionForTest();
         const KSP& petsc_ksp = solver->getPETScKSP();
+        if (verify_live_operator_state_view)
+        {
+            const auto view = solver->getLiveOperatorStateView();
+            Mat ksp_operator = nullptr;
+            Mat ksp_preconditioner = nullptr;
+            ierr = KSPGetOperators(petsc_ksp, &ksp_operator, &ksp_preconditioner);
+            IBTK_CHKERRQ(ierr);
+            live_view_operator_identity = view.initialized && view.operator_mat == ksp_operator;
+
+            PetscInt global_rows = 0, global_cols = 0;
+            ierr = MatGetSize(view.operator_mat, &global_rows, &global_cols);
+            IBTK_CHKERRQ(ierr);
+            const int owned_dofs = view.num_dofs_per_proc ? (*view.num_dofs_per_proc)[rank] : -1;
+            const int partition_dofs = view.locally_owned_velocity_dofs && view.locally_owned_pressure_dofs ?
+                                           static_cast<int>(view.locally_owned_velocity_dofs->size() +
+                                                            view.locally_owned_pressure_dofs->size()) :
+                                           -1;
+            live_view_ownership_valid =
+                view.num_dofs_per_proc &&
+                std::accumulate(view.num_dofs_per_proc->begin(), view.num_dofs_per_proc->end(), 0) == global_rows &&
+                global_rows == global_cols;
+            live_view_block_partition_valid =
+                view.locally_owned_velocity_dofs && view.locally_owned_pressure_dofs &&
+                std::is_sorted(view.locally_owned_velocity_dofs->begin(), view.locally_owned_velocity_dofs->end()) &&
+                std::is_sorted(view.locally_owned_pressure_dofs->begin(), view.locally_owned_pressure_dofs->end()) &&
+                owned_dofs == partition_dofs &&
+                std::all_of(view.locally_owned_velocity_dofs->begin(),
+                            view.locally_owned_velocity_dofs->end(),
+                            [&](const PetscInt dof) { return solver->isVelocityDOF(static_cast<int>(dof)); }) &&
+                std::all_of(view.locally_owned_pressure_dofs->begin(),
+                            view.locally_owned_pressure_dofs->end(),
+                            [&](const PetscInt dof) { return solver->isPressureDOF(static_cast<int>(dof)); });
+            live_view_provenance_valid =
+                view.level_number == 0 && !view.operator_was_provided && !view.includes_augmented_operator;
+            live_view_nullspace_gauge_valid = !view.velocity_nullspace_declared && view.pressure_nullspace_declared &&
+                                              view.operator_nullspace_attached && view.zero_mean_pressure_correction;
+            if (!live_view_operator_identity || !live_view_ownership_valid || !live_view_block_partition_valid ||
+                !live_view_provenance_valid || !live_view_nullspace_gauge_valid)
+            {
+                ++test_failures;
+            }
+        }
         if (!expected_shell_pc_name.empty())
         {
             PC shell_pc = nullptr;
@@ -551,6 +610,14 @@ main(int argc, char* argv[])
 
         solver->deallocateSolverState();
 
+        if (verify_live_operator_state_view)
+        {
+            const auto view = solver->getLiveOperatorStateView();
+            live_view_post_deallocate_empty = !view.initialized && !view.operator_mat && !view.num_dofs_per_proc &&
+                                              !view.locally_owned_velocity_dofs && !view.locally_owned_pressure_dofs;
+            if (!live_view_post_deallocate_empty) ++test_failures;
+        }
+
         const std::string solver_label = solver_type.empty() ? std::string("default") : solver_type;
         pout << "solver_type = " << solver_label << "\n";
         if (verify_reference_parity)
@@ -558,6 +625,19 @@ main(int argc, char* argv[])
             pout << "expected_inf_norm = " << expected_inf_norm << "\n";
             pout << "actual_inf_norm = " << actual_inf_norm << "\n";
             pout << "error_inf_norm = " << reported_error_inf_norm << "\n";
+        }
+        if (verify_live_operator_state_view)
+        {
+            pout << "live_view_preinit_empty = " << (live_view_preinit_empty ? "true" : "false") << "\n";
+            pout << "live_view_operator_identity = " << (live_view_operator_identity ? "true" : "false") << "\n";
+            pout << "live_view_ownership_valid = " << (live_view_ownership_valid ? "true" : "false") << "\n";
+            pout << "live_view_block_partition_valid = " << (live_view_block_partition_valid ? "true" : "false")
+                 << "\n";
+            pout << "live_view_provenance_valid = " << (live_view_provenance_valid ? "true" : "false") << "\n";
+            pout << "live_view_nullspace_gauge_valid = " << (live_view_nullspace_gauge_valid ? "true" : "false")
+                 << "\n";
+            pout << "live_view_post_deallocate_empty = " << (live_view_post_deallocate_empty ? "true" : "false")
+                 << "\n";
         }
     }
 

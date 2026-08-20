@@ -74,6 +74,31 @@ class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public St
 {
 public:
     /*!
+     * \brief Nonowning read-only view of an initialized level operator state.
+     *
+     * The PETSc matrix handle and DOF containers remain owned by the solver and
+     * are valid only until deallocateSolverState() or reinitialization. PETSc's
+     * C API does not provide const matrix handles: callers must not modify or
+     * retain the matrix. DOF values use the full coupled velocity-pressure
+     * global numbering; the referenced vectors contain the locally owned DOFs.
+     */
+    struct LiveOperatorStateView
+    {
+        bool initialized = false;
+        Mat operator_mat = nullptr;
+        const std::vector<int>* num_dofs_per_proc = nullptr;
+        const std::vector<PetscInt>* locally_owned_velocity_dofs = nullptr;
+        const std::vector<PetscInt>* locally_owned_pressure_dofs = nullptr;
+        int level_number = IBTK::invalid_level_number;
+        bool operator_was_provided = false;
+        bool includes_augmented_operator = false;
+        bool velocity_nullspace_declared = false;
+        bool pressure_nullspace_declared = false;
+        bool operator_nullspace_attached = false;
+        bool zero_mean_pressure_correction = false;
+    };
+
+    /*!
      * \brief Constructor.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
@@ -118,6 +143,16 @@ public:
      *    coupled matrix by velocity DOF mapping.
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
+
+    /*!
+     * \brief Return a coherent nonowning view of the current live operator,
+     * block partition, ownership, nullspace, and pressure-gauge declarations.
+     *
+     * Before initialization and after deallocation this returns an empty view
+     * with \c initialized equal to false. This function does not allocate,
+     * extract matrix blocks, translate indices, or copy algebraic objects.
+     */
+    LiveOperatorStateView getLiveOperatorStateView() const;
 
     /*!
      * \brief Return whether \p dof is classified as a velocity DOF in the

@@ -326,6 +326,27 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
     return;
 } // ~StaggeredStokesPETScLevelSolver
 
+StaggeredStokesPETScLevelSolver::LiveOperatorStateView
+StaggeredStokesPETScLevelSolver::getLiveOperatorStateView() const
+{
+    LiveOperatorStateView view;
+    if (!d_is_initialized || !d_petsc_mat) return view;
+
+    view.initialized = true;
+    view.operator_mat = d_petsc_mat;
+    view.num_dofs_per_proc = &d_num_dofs_per_proc;
+    view.locally_owned_velocity_dofs = &d_velocity_dofs;
+    view.locally_owned_pressure_dofs = &d_pressure_dofs;
+    view.level_number = d_level_num;
+    view.operator_was_provided = d_operator_mat != nullptr;
+    view.includes_augmented_operator = d_augmented_operator_mat != nullptr;
+    view.velocity_nullspace_declared = d_has_velocity_nullspace;
+    view.pressure_nullspace_declared = d_has_pressure_nullspace;
+    view.operator_nullspace_attached = d_petsc_nullsp != nullptr;
+    view.zero_mean_pressure_correction = usesMultiplicativeShellSmoother() && d_pressure_is_local;
+    return view;
+} // getLiveOperatorStateView
+
 bool
 StaggeredStokesPETScLevelSolver::isVelocityDOF(const int dof) const
 {
