@@ -1549,8 +1549,9 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             for (int d = 0; d < NDIM; ++d)
             {
                 const int i = stencil_box_lower(d);
+                const double x_lower_centering = x_lower[d] - (d == axis ? 0.5 * dx[d] : 0.0);
                 const double X_stencil_lower =
-                    (static_cast<double>(i - domain_lower(d)) + (d == axis ? 0.0 : 0.5)) * dx[d] + x_lower[d];
+                    x_lower_centering + (static_cast<double>(i - domain_lower(d)) + 0.5) * dx[d];
                 if (d == axis)
                 {
                     component_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);

@@ -2153,6 +2153,7 @@ c
                do i1 = istart1,istop1
                   ic1 = ic_lower(1)+i1
                   do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w0(i0)*w1(i1)*w2(i2)*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))

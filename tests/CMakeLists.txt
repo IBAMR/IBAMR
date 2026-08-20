@@ -273,6 +273,8 @@ IF(${IBAMR_HAVE_LIBMESH})
 ENDIF()
 
 # IBTK:
+SETUP_2D(IBTK sc_interp_matrix_live_kernel_consistency.cpp)
+SETUP_3D(IBTK sc_interp_matrix_live_kernel_consistency.cpp)
 SETUP(IBTK equal_eps.cpp IBAMR2d)
 SETUP(IBTK hierarchy_callbacks.cpp IBAMR2d)
 SETUP(IBTK ibtk_init.cpp IBAMR2d)

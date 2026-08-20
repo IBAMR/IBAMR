@@ -1,0 +1,14 @@
+PIECEWISE_LINEAR interpolation_max_abs = 8.8817841970012523e-16 spreading_max_abs = 8.8817841970012523e-16 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+BSPLINE_3 interpolation_max_abs = 1.0547118733938987e-15 spreading_max_abs = 1.0547118733938987e-15 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+BSPLINE_4 interpolation_max_abs = 3.8719027983802334e-15 spreading_max_abs = 3.8719027983802334e-15 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+BSPLINE_5 interpolation_max_abs = 1.7368051441479793e-14 spreading_max_abs = 1.7368051441479793e-14 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+BSPLINE_6 interpolation_max_abs = 6.2607037609740956e-14 spreading_max_abs = 6.2607037609740956e-14 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+COMPOSITE_BSPLINE_32 interpolation_max_abs = 6.6613381477509392e-16 spreading_max_abs = 6.6613381477509392e-16 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+COMPOSITE_BSPLINE_43 interpolation_max_abs = 3.9412917374193057e-15 spreading_max_abs = 3.9412917374193057e-15 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+COMPOSITE_BSPLINE_54 interpolation_max_abs = 2.0920765120280294e-14 spreading_max_abs = 2.0920765120280294e-14 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+COMPOSITE_BSPLINE_65 interpolation_max_abs = 7.2344040480398775e-14 spreading_max_abs = 7.2344040480398775e-14 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+IB_3 interpolation_max_abs = 6.744604874597826e-15 spreading_max_abs = 6.744604874597826e-15 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+IB_4 interpolation_max_abs = 1.3877787807814457e-16 spreading_max_abs = 1.5265566588595902e-16 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+IB_5 interpolation_max_abs = 1.9428902930940239e-16 spreading_max_abs = 1.8041124150158794e-16 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+IB_6 interpolation_max_abs = 1.1102230246251565e-16 spreading_max_abs = 1.1102230246251565e-16 boundary_wrap_exercised = 1 formula_mutation_detected = 1 weight_order_mutation_detected = 1
+test_failures = 0
