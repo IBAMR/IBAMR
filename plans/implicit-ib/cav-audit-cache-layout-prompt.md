@@ -1,8 +1,10 @@
 # Audit Lane C: Cache and Data-Layout Efficiency
 
-**Prompt version:** `cav-audit-v3/C` (2026-08-18)
+**Prompt version:** `cav-audit-v5/C` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
+
+Use the common protocol and implementation-plan Section 7 for the canonical focused-versus-broad `attest` evidence contract; do not redefine or substitute those scopes in this lane.
 
 ## Question
 
@@ -19,6 +21,7 @@ Is the measured hot application path organized for reasonable locality and low a
 - Check forward/reverse/palindromic and RAS traversal for material layout effects.
 - Support D/N lifecycle checks with peak/retained memory, NaN/resource tooling where available, and cache invalidation observations.
 - Activate a disposable cache-disable, per-patch allocation/copy, or locality-degrading traversal challenge; prove activation and show that the selected measurements distinguish it from the unmutated control when the induced effect meets the material threshold.
+- Verify that comments identifying hot paths, cached representations, copying/allocation constraints, traversal, and invalidation accurately match measured production behavior.
 
 ## Exclusions
 

@@ -1,6 +1,6 @@
 # Post-Audit Synthesis and Reviewability Adjudication
 
-**Prompt version:** `cav-audit-v3/synthesis` (2026-08-18)
+**Prompt version:** `cav-audit-v5/synthesis` (2026-08-20)
 
 **Role policy:** permanently read-only with respect to candidate code, refs, prompts, lane reports, oracle, and comparator.
 
@@ -32,7 +32,7 @@ Findings can be cleared only by implementation work at a new candidate SHA follo
 
 1. Verify that all reports target the same exact SHA, their hashes match the manifest, and required lane coverage is complete.
 2. Preserve every lane finding and recommendation by stable ID; record agreement, conflict, scope gap, or dependency without silently overriding it.
-3. Assess reviewability: one coherent claim per review unit, focused same-unit tests, no hidden later-branch dependency, separate refactor/behavior changes, separate construction/application, and no canonical-ledger regression.
+3. Assess reviewability: one coherent claim per review unit; feature and focused native tests in the same commit/PR; focused and appropriate broad `-R IB/` `attest` discoverability/execution with required fixtures and expected status/exit semantics; exact selectors, commands, exclusions, CI-suitable budgets, and measured runtimes; no focused-for-broad substitution; deterministic meaningful sensitivity; justified executable/fixture reuse; no hidden later-branch dependency; separate refactor/behavior and construction/application; IBAMR-conforming non-misleading comments; and no canonical-ledger regression.
 4. Reconcile tensions explicitly, especially cache duplication versus simplicity and concrete extensibility versus overengineering. State evidence and dissent.
 5. Verify production-robustness ownership, mandatory numerical-matrix completion, fixed performance contracts, sensitivity controls, immutable report custody, and re-audit obligations.
 6. Recommend revised PR boundaries when a unit cannot be reviewed as one claim.
@@ -42,7 +42,9 @@ Findings can be cleared only by implementation work at a new candidate SHA follo
 
 - **PASS:** lane coverage and evidence are complete, every lane outcome is PASS, and no blocking finding remains.
 - **FAIL:** at least one frozen lane reports FAIL or a confirmed blocking cross-lane/reviewability defect exists.
-- **INCOMPLETE:** any required lane/report/hash/evidence/sensitivity/robustness/performance input is missing, invalid, or inconsistent.
+- **INCOMPLETE:** any required lane/report/hash/evidence/sensitivity/robustness/performance/native-CI registration-runtime input is missing, invalid, or inconsistent.
+
+An unlabeled `attest` scope, a focused result presented as the broad `-R IB/` result, or a missing required broad result without its explicit blocking/environment/budget record makes synthesis **INCOMPLETE**. The broad result is verified independently from focused-case evidence.
 
 The synthesizer may recommend priority or ownership but cannot downgrade a lane finding. A disagreement is retained for the user or subsequent independent process to decide.
 
@@ -51,7 +53,7 @@ The synthesizer may recommend priority or ownership but cannot downgrade a lane 
 - Candidate SHA, parent SHA, milestone, suite ID, and prompt/manifest hashes.
 - Lane coverage and frozen-report inventory with each lane outcome.
 - Finding adjudication table: ID, lane, original classification/severity/blocking status, relationship/conflict, unchanged original recommendation, synthesis disposition recommendation, required implementation owner, and re-audit lanes.
-- Reviewability assessment per review unit.
+- Reviewability assessment per review unit, including same-unit feature/test boundaries, focused/broad `attest` scopes, selectors, commands, discovered cases, fixtures, expected status, exclusions, runtime budgets/measurements, sensitivity, executable/fixture reuse, audit-hook scope, and comment conformance.
 - Production-robustness, numerical-matrix, performance-contract, and sensitivity readiness.
 - Explicit tension resolutions and dissent retained.
 - Recommended PR-boundary changes.

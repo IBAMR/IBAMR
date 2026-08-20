@@ -1,8 +1,10 @@
 # Audit Lane S: Simplicity and Minimality
 
-**Prompt version:** `cav-audit-v3/S` (2026-08-18)
+**Prompt version:** `cav-audit-v5/S` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent, deletion-oriented, and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
+
+Use the common protocol and implementation-plan Section 7 for the canonical focused-versus-broad `attest` evidence contract; do not redefine or substitute those scopes in this lane.
 
 ## Question
 
@@ -18,6 +20,8 @@ Is the candidate the smallest clear implementation that preserves required seman
 - Explicitly ask whether roughly 30% of the new code could be deleted while preserving requirements, tests, fixed performance criteria, and planned axes. The percentage is a challenge, not a quota.
 - Sketch the smallest credible alternative for every material complexity finding.
 - Assess a seeded redundant abstraction/state/option in a disposable review fixture or structured challenge and demonstrate that it is identified while the unmutated control is not falsely failed.
+- Challenge every new test executable, helper, fixture, and audit hook: prefer an existing common executable with separate cases unless a documented technical seam requires another target, and reject duplicated harness logic or production APIs that become a testing framework.
+- Challenge generated-looking, excessive, redundant, obvious, speculative, or drift-prone comments while distinguishing materially misleading statements from nonblocking comment-density preferences.
 
 ## Exclusions
 
@@ -29,8 +33,8 @@ Is the candidate the smallest clear implementation that preserves required seman
 
 ## Pass/fail
 
-**PASS** requires specific necessity for material complexity, no unjustified duplicate path or exposed option, completed per-unit and 30% challenges, canonical-ledger preservation, and a valid sensitivity control. Avoidable complexity that materially obscures review or creates parallel semantic paths is **FAIL**. Missing production-unit coverage, complexity inventory, deletion exercise, or active control is **INCOMPLETE**.
+**PASS** requires specific necessity for material complexity, no unjustified duplicate path, exposed option, test executable/helper, audit hook, or comment burden, completed per-unit and 30% challenges, canonical-ledger preservation, and a valid sensitivity control. Avoidable complexity that materially obscures review or creates parallel semantic/test paths is **FAIL**. Missing production-unit coverage, test/hook/comment inventory, deletion exercise, or active control is **INCOMPLETE**.
 
 ## Lane-specific report schema
 
-After the common schema, include: per-review-unit complexity inventory; deletion candidates with estimated lines/state/options removed; smallest alternatives; 30% challenge result; ledger-regression check; seeded-control result; blocking versus optional cleanup split; and exact-SHA `PASS`, `FAIL`, or `INCOMPLETE`.
+After the common schema, include: per-review-unit production/test/hook/comment complexity inventory; executable/fixture reuse assessment; deletion candidates with estimated lines/state/options removed; smallest alternatives; 30% challenge result; ledger-regression check; seeded-control result; blocking versus optional cleanup split; and exact-SHA `PASS`, `FAIL`, or `INCOMPLETE`.

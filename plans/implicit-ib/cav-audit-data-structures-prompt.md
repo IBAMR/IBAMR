@@ -1,8 +1,10 @@
 # Audit Lane D: Data-Structure Efficiency
 
-**Prompt version:** `cav-audit-v3/D` (2026-08-18)
+**Prompt version:** `cav-audit-v5/D` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
+
+Use the common protocol and implementation-plan Section 7 for the canonical focused-versus-broad `attest` evidence contract; do not redefine or substitute those scopes in this lane.
 
 ## Question
 
@@ -19,6 +21,7 @@ Are the candidate's data structures, ownership models, and lifecycle rules effic
 - Verify rank-local versus replicated data and advertised MPI ownership. For RAS, show that owned sets partition the global supported scope and that distributed design does not require repeated full-domain metadata or reconstruction.
 - Cover empty/tiny/boundary/no-IB and ownership-boundary cases where data cardinality or ownership changes.
 - Activate a disposable forced per-apply rebuild, duplicated full-domain ownership record, or equivalent recomputation/ownership sensitivity challenge and show that the audit detects it relative to an unmutated control.
+- Verify that ownership, borrowing, lifetime, invalidation, regrid, supported-scope, and representation comments match actual state transitions and do not conceal mutable or duplicated internals.
 
 ## Exclusions
 

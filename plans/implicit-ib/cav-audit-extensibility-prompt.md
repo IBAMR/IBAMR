@@ -1,8 +1,10 @@
 # Audit Lane E: Concrete Extensibility
 
-**Prompt version:** `cav-audit-v3/E` (2026-08-18)
+**Prompt version:** `cav-audit-v5/E` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
+
+Use the common protocol and implementation-plan Section 7 for the canonical focused-versus-broad `attest` evidence contract; do not redefine or substitute those scopes in this lane.
 
 ## Question
 
@@ -23,6 +25,8 @@ For each in-scope axis, identify its selection point, interface/data contract, s
 Perform a structured, no-code change exercise for each concrete axis: list the minimal files/interfaces/tests needed for the named next variant. Also assess a seeded cross-layer-entanglement example supplied in the disposable audit fixture or protocol exercise and require the lane to reject it. Record the exercise version, activation, unmutated control, and result.
 
 For serial/distributed evolution, inspect whether ownership and residual-gather contracts are explicit without requiring current implementation of a later distributed milestone.
+
+Verify that public API and nearby comments accurately document only the concrete supported seams, ownership/failure behavior, and extension boundaries; speculative framework commentary or a documented seam absent from code is a defect.
 
 ## Exclusions
 

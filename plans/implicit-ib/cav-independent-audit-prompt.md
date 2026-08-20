@@ -1,6 +1,6 @@
 # Common Independent Audit Protocol and Launch Index
 
-**Protocol version:** `cav-audit-v4` (2026-08-20)
+**Protocol version:** `cav-audit-v5` (2026-08-20)
 
 **Candidate policy:** permanently read-only
 
@@ -114,6 +114,12 @@ The numerical lane must independently validate the exporter, mapping, and compar
 
 A comparator or mapping that has not passed these controls makes the numerical lane **INCOMPLETE**.
 
+## Native CI and source-conformance evidence
+
+Section 7 of `cav-implementation-plan.md` is the canonical same-unit native-test, runtime-budget, executable/fixture reuse, audit-hook, and IBAMR comment/style contract. Lane N owns actually configuring/building the active checkout and running both the focused feature cases and the appropriate broad candidate-checkout regression through the repository-root `attest` workflow. The canonical broad form is `/path/to/attest --mpi-executable /opt/homebrew/bin/mpiexec --numdiff-executable /opt/homebrew/bin/numdiff --verbose -R IB/`; recorded commands use the checkout's actual runner path and preserve explicit tool paths required by the environment. For each scope, N records the selector, exact command, discovered cases, input/output fixtures, expected status/exit semantics, budget, measured wall time, deterministic rerun, unmutated result, meaningful failure sensitivity, and exclusions. A focused pass or built CMake target alone is not broad CI-integration evidence. External parity is separate evidence and cannot replace native `attest` runs. Assigned A/D/C/E lanes verify that comments accurately state their mathematical, ownership/invalidation, hot-path, and concrete-extension invariants. Lane S challenges unnecessary executables, duplicated harness/helper code, elaborate test APIs, and excessive or redundant comments. Synthesis verifies that feature and test were not split across PR boundaries and that the focused and broad `attest` sets are discoverable and CI-suitable.
+
+A missing, unregistered, nondeterministic, nonsensitive, or unjustifiably slow required native test is blocking or makes the responsible lane **INCOMPLETE** under the shared taxonomy. A materially misleading comment is a defect; optional comment-density preference is not.
+
 ## Standard finding taxonomy
 
 Classification and severity are separate fields.
@@ -160,6 +166,7 @@ Production robustness is mandatory cross-lane work, not an unowned seventh conce
 
 | Concern | Primary owner | Supporting lane(s) |
 |---|---|---|
+| Same-unit fast native test registration, execution, runtime, determinism, and sensitivity | N | S |
 | Debug and Release 2D/3D build and focused smoke tests | N | D |
 | Advertised MPI ranks and rank-consistent results | N | A, D |
 | initialization, deallocation, repeated reinitialization | D | N, C |

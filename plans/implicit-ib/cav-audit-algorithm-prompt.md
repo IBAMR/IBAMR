@@ -1,8 +1,10 @@
 # Audit Lane A: Algorithm Semantics
 
-**Prompt version:** `cav-audit-v3/A` (2026-08-18)
+**Prompt version:** `cav-audit-v5/A` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
+
+Use the common protocol and implementation-plan Section 7 for the canonical focused-versus-broad `attest` evidence contract; do not redefine or substitute those scopes in this lane.
 
 ## Question
 
@@ -21,6 +23,7 @@ Independently derive both algorithms before tracing code. The sandbox is executa
 - For RAS, verify macro geometry/order, solve and owned sets, exact ownership coverage, overlap, patch order within each macro, local residual/state traces, restricted completed correction, and common-state outer assembly.
 - Cover advertised MPI scope and boundary/no-IB cases where partitioning could alter semantics.
 - Exercise and detect activated stale-residual, patch-order, pressure-gauge, RAS restriction/ownership, overlap, and inner-additive-for-inner-multiplicative mutations, with unmutated controls.
+- Verify that comments on mathematical state transitions, ordering, restriction, residual evolution, and gauge/nullspace behavior accurately describe the implemented invariants; materially misleading statements are defects, not style preferences.
 
 ## Exclusions
 

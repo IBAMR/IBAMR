@@ -1,6 +1,6 @@
 # Audit Lane N: Numerical Reproduction and Parity
 
-**Prompt version:** `cav-audit-v4/N` (2026-08-20)
+**Prompt version:** `cav-audit-v5/N` (2026-08-20)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
 
@@ -110,6 +110,8 @@ Complete every raw-export, tiny live-case, comparator control, and permutation/s
 
 Own the numerical conclusions for Debug/Release 2D/3D build/smoke, supported MPI ranks, local-solver failure behavior, NaN/Inf checks, and boundary/periodic/tiny/no-IB cases. Use D/C evidence for lifecycle, cache, and resources. Unsupported scope must be rejected explicitly.
 
+Lane N is also the named execution owner for Section 7's fast native CI contract. For each assigned production unit, independently configure/build the active checkout, verify repository-root `attest` discovery, run the exact focused feature cases, and run the appropriate broad candidate-checkout `-R IB/` regression before review readiness. For each scope record selector, exact command with required explicit MPI/`numdiff` paths, discovered case names, input/output fixtures, expected result/exit semantics, budget, measured wall time, deterministic rerun, unmutated controls, meaningful failure sensitivity, and exclusions. A focused pass or built CMake target alone is not broad CI-integration evidence. Report external parity timing separately.
+
 ## Exclusions
 
 - Do not accept old logs as current validation.
@@ -123,8 +125,8 @@ Own the numerical conclusions for Debug/Release 2D/3D build/smoke, supported MPI
 
 ## Pass/fail
 
-**PASS** requires every mandatory-matrix row applicable to the milestone, both two-source common-arithmetic runs, the separate live-production run, validated mapping/comparator controls, exact structural agreement, Fortran-authoritative matrix/live kernel evidence, per-K targets, physical residual components, supported-scope robustness, and activated sensitivity detection. A reproduced semantic/structural/formula mismatch or criterion violation is **FAIL**. Missing/invalid common replay, live run, matrix rows, raw artifacts, comparator controls, environment, or mutation activation is **INCOMPLETE**.
+**PASS** requires every mandatory-matrix row applicable to the milestone, both two-source common-arithmetic runs, the separate live-production run, validated mapping/comparator controls, exact structural agreement, Fortran-authoritative matrix/live kernel evidence, per-K targets, physical residual components, supported-scope robustness, `attest`-discoverable and budget-compliant same-unit native CI evidence at both required scopes, and activated sensitivity detection. A reproduced semantic/structural/formula mismatch or criterion violation is **FAIL**. A missing required broad `-R IB/` run is **INCOMPLETE** unless its explicit blocking/environment/budget record itself establishes a required failure; an unlabeled or substituted focused scope is never a pass. Missing/invalid common replay, live run, matrix rows, raw artifacts, comparator controls, required native discovery/run/runtime/sensitivity evidence, environment, or mutation activation is **INCOMPLETE**.
 
 ## Lane-specific report schema
 
-After the common schema, provide: mandatory-matrix row status; configuration-by-layer artifact table; hashes for raw candidate/oracle exports, each mapped artifact, common-replay implementation, and comparator; separate results for live-input replay, oracle-input replay, and actual live execution; formulas and measured absolute/scaled errors; targets; local backward errors; earliest raw and common-arithmetic mismatches; original physical residual triplet; robustness results; sensitivity controls; highest layer reached; and exact-SHA `PASS`, `FAIL`, or `INCOMPLETE`.
+After the common schema, provide: mandatory-matrix row status; configuration-by-layer artifact table; hashes for raw candidate/oracle exports, each mapped artifact, common-replay implementation, and comparator; separate results for live-input replay, oracle-input replay, and actual live execution; formulas and measured absolute/scaled errors; targets; local backward errors; earliest raw and common-arithmetic mismatches; original physical residual triplet; native CI registration/cases/budget/measured runtime/determinism/sensitivity; robustness results; sensitivity controls; highest layer reached; and exact-SHA `PASS`, `FAIL`, or `INCOMPLETE`.
