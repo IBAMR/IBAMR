@@ -74,6 +74,15 @@ namespace IBTK
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
  *
+ * When `pc_type = "shell"`, `shell_pc_type` selects the composition and
+ * backend. The serial real-scalar `blas-lapack` backend accepts
+ * `blas_lapack_subdomain_solver_type = "svd"` (the default), `"lu"`,
+ * `"symmetric-indefinite"`, or `"qr"`. The optional
+ * `blas_lapack_subdomain_solver_rcond` sets the SVD rank cutoff and the QR
+ * diagonal rank check. The `blas-lapack-lu` backend is the fixed-LU
+ * compatibility name. Cholesky is not supported because Stokes subdomain
+ * matrices are indefinite.
+ *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
@@ -139,8 +148,9 @@ public:
      * intended for narrowly selected live-operator diagnostics; normal shell
      * application constructs no observer matrix.
      *
-     * \note Observer support is backend-specific. The `blas-lapack-lu`
-     * backend invokes this callback; backends without observer support do not.
+     * \note Observer support is backend-specific. The `blas-lapack` and
+     * `blas-lapack-lu` backends invoke this callback; backends without
+     * observer support do not.
      */
     void setShellSubdomainSolveObserver(
         ShellSubdomainSolveObserver observer,

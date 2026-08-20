@@ -1,0 +1,3 @@
+Program abort called with error message
+
+    solver_shell_multiplicative_semantics stokes_shell_sem_ BLAS/LAPACK QR factorization detected a rank-deficient subdomain 0 with blas_lapack_subdomain_solver_rcond = 1e-08.

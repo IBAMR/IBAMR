@@ -1,0 +1,3 @@
+Program abort called with error message
+
+    solver_shell_multiplicative_semantics stokes_shell_sem_ Cholesky is not supported for indefinite Stokes subdomain matrices; use 'symmetric-indefinite' when a symmetry-specific factorization is required.

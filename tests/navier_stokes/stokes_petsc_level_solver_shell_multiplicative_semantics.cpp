@@ -290,6 +290,7 @@ main(int argc, char* argv[])
     const bool test_all_blas_lapack_solver_types =
         test_db->getBoolWithDefault("test_all_blas_lapack_solver_types", false);
     const bool verify_reference_parity = test_db->getBoolWithDefault("verify_reference_parity", true);
+    const bool report_actual_inf_norm = test_db->getBoolWithDefault("report_actual_inf_norm", false);
     const bool verify_rhs_boundary_adjustment = test_db->getBoolWithDefault("verify_rhs_boundary_adjustment", false);
     const bool verify_reinitialize = test_db->getBoolWithDefault("verify_reinitialize", false);
     const bool verify_local_solve_observer =
@@ -322,7 +323,7 @@ main(int argc, char* argv[])
     }
     else if (is_blas_lapack_case && test_all_blas_lapack_solver_types)
     {
-        solver_types = { "svd", "lu", "symmetric-indefinite", "qr" };
+        solver_types = { "", "svd", "lu", "symmetric-indefinite", "qr" };
     }
     else if (test_db->keyExists("blas_lapack_subdomain_solver_type"))
     {
@@ -778,6 +779,10 @@ main(int argc, char* argv[])
             pout << "expected_inf_norm = " << expected_inf_norm << "\n";
             pout << "actual_inf_norm = " << actual_inf_norm << "\n";
             pout << "error_inf_norm = " << reported_error_inf_norm << "\n";
+        }
+        else if (report_actual_inf_norm)
+        {
+            pout << "actual_inf_norm = " << actual_inf_norm << "\n";
         }
         if (verify_reinitialize)
         {
