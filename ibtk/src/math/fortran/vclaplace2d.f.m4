@@ -159,3 +159,92 @@ c
       return
       end
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes (f0,f1) = alpha grad lambda (div (u0,u1)) + beta (v0,v1).
+c
+c     Computes the side-centered variable coefficient dilatational stress force, 
+c     with cell-centered bulk viscosity coefficient lambda and side-centered
+c     vector fields (u0,u1) and (v0,v1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stosvcdilatational2d(
+     &     f0,f1,f_gcw,
+     &     alpha,beta,
+     &     lambda,lambda_gcw,
+     &     u0,u1,u_gcw,
+     &     v0,v1,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER f_gcw,lambda_gcw,u_gcw,v_gcw
+
+      REAL alpha,beta
+
+      REAL lambda(CELL2d(ilower,iupper,lambda_gcw))
+      
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+
+      REAL v0(SIDE2d0(ilower,iupper,v_gcw))
+      REAL v1(SIDE2d1(ilower,iupper,v_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL f0(SIDE2d0(ilower,iupper,f_gcw))
+      REAL f1(SIDE2d1(ilower,iupper,f_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1
+      REAL    div_lower,div_upper
+c
+c     Compute alpha grad lambda (div (u0,u1)) + beta (v0,v1).
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0+1
+
+            div_upper = fac0*(u0(i0+1,i1) - u0(i0,i1))+
+     &            fac1*(u1(i0,i1+1) - u1(i0,i1))   
+      
+            div_lower = fac0*(u0(i0,i1) - u0(i0-1,i1))+
+     &            fac1*(u1(i0-1,i1+1) - u1(i0-1,i1)) 
+
+            f0(i0,i1) = alpha*fac0*(lambda(i0,i1)*div_upper -
+     &            lambda(i0-1,i1)*div_lower)+ beta*v0(i0,i1)       
+            
+         enddo
+      enddo
+
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0
+
+            div_upper = fac0*(u0(i0+1,i1) - u0(i0,i1))+
+     &            fac1*(u1(i0,i1+1) - u1(i0,i1))   
+      
+            div_lower = fac0*(u0(i0+1,i1-1) - u0(i0,i1-1))+
+     &            fac1*(u1(i0,i1) - u1(i0,i1-1)) 
+
+            f1(i0,i1) = alpha*fac1*(lambda(i0,i1)*div_upper -
+     &            lambda(i0,i1-1)*div_lower)+ beta*v1(i0,i1) 
+
+         enddo
+      enddo
+c
+      return
+      end
+c

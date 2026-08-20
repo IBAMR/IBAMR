@@ -1,5 +1,9 @@
 ### Generated autotools
 
+/Users/hrouhanitazangi/Code/IBAMR/intelliSense
+/Users/hrouhanitazangi/Code/IBAMR/build-exRMT
+/Users/hrouhanitazangi/Code/IBAMR/build-debug
+/Users/hrouhanitazangi/Code/IBAMR/BACKUP
 ibtk/contrib/autotools/bin
 ibtk/contrib/autotools/include
 ibtk/contrib/autotools/lib
@@ -179,3 +183,7 @@ build-*.sh
 objs-*
 *.py
 *.sh
+BACKUP/
+
+# Local CMake build directory
+/build-debug/

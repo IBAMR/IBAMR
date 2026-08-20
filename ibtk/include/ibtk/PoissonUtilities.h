@@ -101,20 +101,44 @@ public:
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the divergence of the viscous stress tensor.
      *
-     * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
-     * the PoissonSpecification object are passed separately and are denoted
-     * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
+     * @param impose_physical_bcs_normal_comp incidates to modify the coefficients of the
+     * stencil of the normal component of side-centered velocity due to phyical boundary conditions.
+     * This flag can be set to false if modifications to the matrix coefficients, particularly
+     * for the Dirichlet boundary condition, needs to performed at a later stage. One such case
+     * is making use of PETSc's MatZeroRows function, which can be called only after the matrix has
+     * been assembled.
      */
     static void computeVCSCViscousOpMatrixCoefficients(
         SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        double alpha,
-        double beta,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
-        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP,
+        bool impose_physical_bcs_normal_comp = true);
+
+    /*!
+     * \brief Compute the matrix coefficients corresponding to a side-centered
+     * discretization of the divergence of viscous and dilatational stress.
+     *
+     * @param impose_physical_bcs_normal_comp incidates to modify the coefficients of the
+     * stencil of the normal component of side-centered velocity due to phyical boundary conditions.
+     * This flag can be set to false if modifications to the matrix coefficients, particularly
+     * for the Dirichlet boundary condition, needs to performed at a later stage. One such case
+     * is making use of PETSc's MatZeroRows function, which can be called only after the matrix has
+     * been assembled.
+     */
+    static void computeVCSCViscousDilatationalOpMatrixCoefficients(
+        SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        int mu_idx,
+        int lambda_idx,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP,
+        bool impose_physical_bcs_normal_comp = true);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -156,19 +180,31 @@ public:
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a side-centered discretization of the
      * variable-coefficient viscous operator.
-     *
-     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
-     * is passed separately and is denoted \f$ \alpha \f$.
      */
     static void
     adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                             double alpha,
                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                              double data_time,
                                              bool homogeneous_bc,
                                              VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a side-centered discretization of the
+     * variable-coefficient viscous and dilatational stress tensor.
+     */
+    static void adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const int rhs_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        int mu_idx,
+        int lambda_idx,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        bool homogeneous_bc,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -216,7 +252,24 @@ public:
         const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        double alpha,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * side-centered discretization of the variable coefficient viscous and dilatational stress tensor.
+     *
+     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
+     * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
+     */
+    static void adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+        const int data_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const int mu_idx,
+        const int lambda_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 

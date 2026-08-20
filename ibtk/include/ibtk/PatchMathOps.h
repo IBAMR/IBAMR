@@ -227,6 +227,21 @@ public:
              int m = 0) const;
 
     /*!
+     * \brief Computes dst_l = alpha div (coef 1 src1) + beta src2_m.
+     *
+     * Uses centered differences.
+     */
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+             double alpha,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > coef1,
+             double beta,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             int l = 0,
+             int m = 0) const;
+
+    /*!
      * \brief Computes dst = alpha grad src1_l + beta src2.
      *
      * Uses centered differences.
@@ -500,6 +515,20 @@ public:
                     int l = 0,
                     int m = 0,
                     int n = 0) const;
+
+    /*!
+     * \brief Computes dst_l = alpha grad (coef1_m div src1_m) + beta src2_n.
+     */
+    void vc_dilational(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+                       double alpha,
+                       double beta_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       int l = 0,
+                       int m = 0,
+                       int n = 0) const;
 
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.

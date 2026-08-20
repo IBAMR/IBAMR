@@ -87,6 +87,10 @@ IndexUtilities::getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMR
     {
         x_c[d] = x_lower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
     }
+    for (int d = NDIM; d < x_c.size(); ++d)
+    {
+        x_c[d] = 0.0;
+    }
     return x_c;
 } // getCellCenter
 

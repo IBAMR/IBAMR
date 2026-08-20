@@ -18,9 +18,10 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
-  complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK acoustic_streaming
+  adv_diff advect coarsen complex_fluids external fe_mechanics interpolate
+  level_set multiphase_flow navier_stokes physical_boundary refine spread
+  vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -88,6 +89,15 @@ MACRO(SETUP_3D _dir _src)
   TARGET_LINK_LIBRARIES(${_target} PRIVATE IBAMR3d)
   ADD_DEPENDENCIES(tests-${_dir} ${_target})
 ENDMACRO()
+
+#acoustic_streaming
+SETUP_2D(acoustic_streaming fo_acoustic_streaming_solver.cpp)
+SETUP_3D(acoustic_streaming fo_acoustic_streaming_solver.cpp)
+SETUP_2D(acoustic_streaming acoustic_streaming_hier_integrator.cpp)
+SETUP_2D(acoustic_streaming acoustic_streaming_brinkman.cpp)
+SETUP_3D(acoustic_streaming acoustic_streaming_hier_integrator.cpp)
+SETUP_2D(acoustic_streaming so_boundary_conditions.cpp)
+SETUP_2D(acoustic_streaming sd_mass_src.cpp)
 
 # adv_diff:
 SETUP_2D(adv_diff adv_diff_02.cpp)

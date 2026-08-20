@@ -115,6 +115,11 @@ public:
     void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
 
 protected:
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
+
 private:
     /*!
      * \brief Default constructor.
@@ -142,11 +147,6 @@ private:
      * \return A reference to this object.
      */
     VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that) = delete;
-
-    /*
-     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
-     */
-    IBTK::VCInterpType d_D_interp_type;
 };
 } // namespace IBAMR
 

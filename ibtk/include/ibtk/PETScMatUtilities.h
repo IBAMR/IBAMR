@@ -23,6 +23,7 @@
 #include "ibtk/ibtk_enums.h"
 
 #include "PoissonSpecifications.h"
+#include "ProblemSpecification.h"
 #include "tbox/Pointer.h"
 
 #include "petscao.h"
@@ -110,15 +111,24 @@ public:
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered viscous operator of a side-centered velocity variable
      * restricted to a single SAMRAI::hier::PatchLevel.
-     *
-     * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
-     * the PoissonSpecification object are passed separately and are denoted
-     * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
      */
     static void constructPatchLevelVCSCViscousOp(Mat& mat,
                                                  const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                                 double alpha,
-                                                 double beta,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 double data_time,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                                 VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered viscous plus dilatational operator of a side-centered velocity variable
+     * restricted to a single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelVCSCViscousDilatationalOp(Mat& mat,
+                                                 const IBTK::ProblemSpecification* problem_spec,
                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                  double data_time,
                                                  const std::vector<int>& num_dofs_per_proc,

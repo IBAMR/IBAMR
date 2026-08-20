@@ -121,6 +121,18 @@ GeneralOperator::getHierarchyMathOps() const
 } // getHierarchyMathOps
 
 void
+GeneralOperator::setProblemSpecification(const ProblemSpecification* problem_spec)
+{
+    d_problem_spec = problem_spec;
+} //  setProblemSpecification
+
+const ProblemSpecification*
+GeneralOperator::getProblemSpecification() const
+{
+    return d_problem_spec;
+} // getProblemSpecification
+
+void
 GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAIVectorReal<NDIM, double>& y,
                           SAMRAIVectorReal<NDIM, double>& z)

@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_INSVCStaggeredPressureBcCoef
-#define included_IBAMR_INSVCStaggeredPressureBcCoef
+#ifndef included_IBAMR_VCStaggeredStokesPressureBcCoef
+#define included_IBAMR_VCStaggeredStokesPressureBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -30,9 +30,12 @@
 
 #include <vector>
 
+namespace IBTK
+{
+class HierarchyIntegrator;
+}
 namespace IBAMR
 {
-class INSVCStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
 namespace SAMRAI
@@ -63,9 +66,9 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class INSVCStaggeredPressureBcCoef is a concrete StokesBcCoefStrategy
+ * \brief Class VCStaggeredStokesPressureBcCoef is a concrete StokesBcCoefStrategy
  * that is used to specify pressure boundary conditions for the staggered grid
- * incompressible Navier-Stokes solver with variable coefficients.
+ * Navier-Stokes solver with variable coefficients.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
@@ -73,21 +76,21 @@ namespace IBAMR
  * conditions.  These are translated into Neumann and generalized Dirichlet
  * boundary conditions, respectively, for the pressure.
  */
-class INSVCStaggeredPressureBcCoef : public StokesBcCoefStrategy
+class VCStaggeredStokesPressureBcCoef : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    INSVCStaggeredPressureBcCoef(const INSVCStaggeredHierarchyIntegrator* fluid_solver,
-                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                 TractionBcType traction_bc_type,
-                                 bool homogeneous_bc = false);
+    VCStaggeredStokesPressureBcCoef(const IBTK::HierarchyIntegrator* fluid_solver,
+                                    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                    TractionBcType traction_bc_type,
+                                    bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredPressureBcCoef() = default;
+    ~VCStaggeredStokesPressureBcCoef() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -245,7 +248,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredPressureBcCoef() = delete;
+    VCStaggeredStokesPressureBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -254,7 +257,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from) = delete;
+    VCStaggeredStokesPressureBcCoef(const VCStaggeredStokesPressureBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -265,12 +268,12 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that) = delete;
+    VCStaggeredStokesPressureBcCoef& operator=(const VCStaggeredStokesPressureBcCoef& that) = delete;
 
     /*
      * The fluid solver.
      */
-    const INSVCStaggeredHierarchyIntegrator* d_fluid_solver;
+    const IBTK::HierarchyIntegrator* d_fluid_solver;
 
     /*
      * The boundary condition specification objects for the velocity.
@@ -286,4 +289,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSVCStaggeredPressureBcCoef
+#endif // #ifndef included_IBAMR_VCStaggeredStokesPressureBcCoef
