@@ -105,6 +105,13 @@ struct CAVLiveExportManifest
     std::string local_solver_backend;
 };
 
+struct CAVLocalSolveTraceRecord
+{
+    int sweep = -1;
+    int patch_ordinal = -1;
+    std::string artifact_stem;
+};
+
 struct CAVRawMappingSpec
 {
     double coordinate_tolerance = 1.0e-14;
@@ -195,6 +202,13 @@ void writeCAVLiveExportManifest(const CAVLiveExportManifest& manifest, const std
 CAVLiveExportManifest readCAVLiveExportManifest(const std::string& filename);
 
 bool sameCAVLiveExportManifest(const CAVLiveExportManifest& lhs, const CAVLiveExportManifest& rhs);
+
+void writeCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& records, const std::string& filename);
+
+std::vector<CAVLocalSolveTraceRecord> readCAVLocalSolveTraceIndex(const std::string& filename);
+
+bool sameCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& lhs,
+                                 const std::vector<CAVLocalSolveTraceRecord>& rhs);
 
 CAVRawComparison compareCAVRawOperatorBundles(const CAVRawOperatorBundle& candidate,
                                               const CAVRawOperatorBundle& reference,

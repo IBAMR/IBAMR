@@ -1018,6 +1018,12 @@ main(int argc, char* argv[])
 
         int observer_call_count = 0;
         bool observer_data_valid = !verify_local_solve_observer;
+        bool observer_disabled_silent = !verify_local_solve_observer;
+        bool local_trace_round_trip = !verify_local_solve_observer;
+        bool local_trace_selection_valid = !verify_local_solve_observer;
+        bool local_trace_mutation_detected = !verify_local_solve_observer;
+        int observer_call_count_after_clear = 0;
+        std::vector<IBAMR::TestSupport::CAVLocalSolveTraceRecord> local_trace_records;
         int stagewise_observer_call_count = 0;
         bool stagewise_patch_order_valid = !verify_stagewise_original_residual;
         double stagewise_local_rhs_max_error = 0.0;
@@ -1121,6 +1127,24 @@ main(int argc, char* argv[])
                 [&](const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source)
                 {
                     ++observer_call_count;
+                    const std::string trace_stem = "cav_local_solve_sweep0_patch" + std::to_string(ordinal);
+                    IBAMR::TestSupport::writeCAVRawMatrixMarket(local_matrix, trace_stem + "_A.mtx");
+                    IBAMR::TestSupport::writeCAVRawVectorMarket(local_rhs, trace_stem + "_rhs.mtx");
+                    IBAMR::TestSupport::writeCAVRawVectorMarket(local_solution, trace_stem + "_correction.mtx");
+                    IBAMR::TestSupport::writeCAVRawVectorMarket(current_global_source,
+                                                                trace_stem + "_pre_update_residual.mtx");
+                    local_trace_round_trip =
+                        IBAMR::TestSupport::sameCAVRawMatrixMarket(
+                            local_matrix, IBAMR::TestSupport::readCAVRawMatrixMarket(trace_stem + "_A.mtx")) &&
+                        IBAMR::TestSupport::sameCAVRawVectorMarket(
+                            local_rhs, IBAMR::TestSupport::readCAVRawVectorMarket(trace_stem + "_rhs.mtx")) &&
+                        IBAMR::TestSupport::sameCAVRawVectorMarket(
+                            local_solution,
+                            IBAMR::TestSupport::readCAVRawVectorMarket(trace_stem + "_correction.mtx")) &&
+                        IBAMR::TestSupport::sameCAVRawVectorMarket(
+                            current_global_source,
+                            IBAMR::TestSupport::readCAVRawVectorMarket(trace_stem + "_pre_update_residual.mtx"));
+                    local_trace_records.push_back({ 0, ordinal, trace_stem });
                     PetscInt rows = 0, cols = 0, rhs_size = 0, solution_size = 0, global_source_size = 0;
                     int observer_ierr = MatGetSize(local_matrix, &rows, &cols);
                     IBTK_CHKERRQ(observer_ierr);
@@ -1177,8 +1201,22 @@ main(int argc, char* argv[])
         if (!converged) ++test_failures;
         if (verify_local_solve_observer)
         {
-            if (observer_call_count != 1 || !observer_data_valid) ++test_failures;
+            IBAMR::TestSupport::writeCAVLocalSolveTraceIndex(local_trace_records, "cav_local_solve_trace.txt");
+            const auto reread_trace_records =
+                IBAMR::TestSupport::readCAVLocalSolveTraceIndex("cav_local_solve_trace.txt");
+            local_trace_round_trip = local_trace_round_trip && IBAMR::TestSupport::sameCAVLocalSolveTraceIndex(
+                                                                   local_trace_records, reread_trace_records);
+            local_trace_selection_valid = local_trace_records.size() == 1 && local_trace_records.front().sweep == 0 &&
+                                          local_trace_records.front().patch_ordinal == 0;
+            auto mutated_trace_records = reread_trace_records;
+            if (!mutated_trace_records.empty()) ++mutated_trace_records.front().patch_ordinal;
+            local_trace_mutation_detected =
+                !IBAMR::TestSupport::sameCAVLocalSolveTraceIndex(local_trace_records, mutated_trace_records);
+            if (observer_call_count != 1 || !observer_data_valid || !local_trace_round_trip ||
+                !local_trace_selection_valid || !local_trace_mutation_detected)
+                ++test_failures;
             solver->setShellSubdomainSolveObserver({});
+            observer_call_count_after_clear = observer_call_count;
         }
         if (verify_stagewise_original_residual)
         {
@@ -1237,6 +1275,11 @@ main(int argc, char* argv[])
             solver->initializeSolverState(x_vec, b_vec);
             const bool reinitialize_converged = solver->solveSystem(x_vec, b_vec);
             if (!reinitialize_converged) ++test_failures;
+            if (verify_local_solve_observer)
+            {
+                observer_disabled_silent = observer_call_count == observer_call_count_after_clear;
+                if (!observer_disabled_silent) ++test_failures;
+            }
             IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
                 x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
             ierr = VecCopy(x_petsc, x_diff);
@@ -1277,6 +1320,10 @@ main(int argc, char* argv[])
         {
             pout << "observer_call_count = " << observer_call_count << "\n";
             pout << "observer_data_valid = " << (observer_data_valid ? "true" : "false") << "\n";
+            pout << "observer_disabled_silent = " << (observer_disabled_silent ? "true" : "false") << "\n";
+            pout << "local_trace_round_trip = " << (local_trace_round_trip ? "true" : "false") << "\n";
+            pout << "local_trace_selection_valid = " << (local_trace_selection_valid ? "true" : "false") << "\n";
+            pout << "local_trace_mutation_detected = " << (local_trace_mutation_detected ? "true" : "false") << "\n";
         }
         if (verify_stagewise_original_residual)
         {

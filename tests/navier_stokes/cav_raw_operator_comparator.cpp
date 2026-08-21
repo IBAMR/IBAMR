@@ -829,6 +829,63 @@ sameCAVLiveExportManifest(const CAVLiveExportManifest& lhs, const CAVLiveExportM
 }
 
 void
+writeCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& records, const std::string& filename)
+{
+    for (const CAVLocalSolveTraceRecord& record : records)
+    {
+        if (record.sweep < 0 || record.patch_ordinal < 0 || !valid_manifest_token(record.artifact_stem))
+            throw std::runtime_error("invalid CAV local-solve trace record");
+    }
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-local-solve-trace-v1 " << records.size() << "\n";
+    for (std::size_t sequence = 0; sequence < records.size(); ++sequence)
+    {
+        out << sequence << " " << records[sequence].sweep << " " << records[sequence].patch_ordinal << " "
+            << records[sequence].artifact_stem << "\n";
+    }
+}
+
+std::vector<CAVLocalSolveTraceRecord>
+readCAVLocalSolveTraceIndex(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::size_t count = 0;
+    in >> schema >> count;
+    if (!in || schema != "ibamr-cav-local-solve-trace-v1")
+        throw std::runtime_error("invalid CAV local-solve trace metadata");
+    std::vector<CAVLocalSolveTraceRecord> records(count);
+    for (std::size_t expected_sequence = 0; expected_sequence < count; ++expected_sequence)
+    {
+        std::size_t sequence = 0;
+        in >> sequence >> records[expected_sequence].sweep >> records[expected_sequence].patch_ordinal >>
+            records[expected_sequence].artifact_stem;
+        if (!in || sequence != expected_sequence || records[expected_sequence].sweep < 0 ||
+            records[expected_sequence].patch_ordinal < 0 ||
+            !valid_manifest_token(records[expected_sequence].artifact_stem))
+            throw std::runtime_error("invalid CAV local-solve trace record");
+    }
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing CAV local-solve trace data");
+    return records;
+}
+
+bool
+sameCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& lhs,
+                            const std::vector<CAVLocalSolveTraceRecord>& rhs)
+{
+    return lhs.size() == rhs.size() &&
+           std::equal(lhs.begin(),
+                      lhs.end(),
+                      rhs.begin(),
+                      [](const CAVLocalSolveTraceRecord& left, const CAVLocalSolveTraceRecord& right)
+                      {
+                          return left.sweep == right.sweep && left.patch_ordinal == right.patch_ordinal &&
+                                 left.artifact_stem == right.artifact_stem;
+                      });
+}
+
+void
 writeCAVRawOperatorBundle(const CAVRawOperatorBundle& bundle, const std::string& prefix)
 {
     {
