@@ -4,8 +4,8 @@ set -euo pipefail
 
 readonly oracle_sha=5b77344db6746269f8c77695c99e9043907ba74b
 
-if [[ $# -lt 5 || $# -gt 6 ]]; then
-    echo "usage: $0 CANDIDATE_WORKTREE CANDIDATE_BUILD CANDIDATE_SHA ORACLE_WORKTREE MATLAB [OUTPUT_PARENT]" >&2
+if [[ $# -lt 5 || $# -gt 7 ]]; then
+    echo "usage: $0 CANDIDATE_WORKTREE CANDIDATE_BUILD CANDIDATE_SHA ORACLE_WORKTREE MATLAB [OUTPUT_PARENT] [N0|N1]" >&2
     exit 2
 fi
 
@@ -15,8 +15,13 @@ candidate_sha=$3
 oracle_worktree=$4
 matlab=$5
 output_parent=${6:-/private/tmp}
+scope=${7:-N1}
 tools_dir=$(cd "$(dirname "$0")" && pwd -P)
 
+if [[ $scope != N0 && $scope != N1 ]]; then
+    echo "scope must be N0 or N1" >&2
+    exit 2
+fi
 if [[ ! $candidate_sha =~ ^[0-9a-f]{40}$ ]]; then
     echo "candidate SHA must be a full lowercase 40-character Git SHA" >&2
     exit 2
@@ -46,11 +51,11 @@ fi
 
 cache_file="$candidate_build/CMakeCache.txt"
 candidate_executable="$candidate_build/tests/IB/implicit_stokes_ib_solver_components_01"
-candidate_input="$candidate_worktree/tests/IB/implicit_stokes_ib_solver_components_01.max_levels=2.pressure_cav_K=1.input"
+candidate_template="$candidate_worktree/tests/IB/implicit_stokes_ib_solver_components_01.max_levels=2.pressure_cav_K=1.input"
 candidate_petsc_options="$candidate_worktree/tests/IB/PetscOptions.implicit_stokes_ib_solver_components_01.pressure_cav.dat"
 
-if [[ ! -f $cache_file || ! -x $candidate_executable || ! -f $candidate_input || ! -f $candidate_petsc_options ]]; then
-    echo "candidate build or N0 fixture is incomplete" >&2
+if [[ ! -f $cache_file || ! -x $candidate_executable || ! -f $candidate_template || ! -f $candidate_petsc_options ]]; then
+    echo "candidate build or live pressure-CAV fixture is incomplete" >&2
     exit 1
 fi
 configured_source=$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "$cache_file")
@@ -63,47 +68,89 @@ if [[ ! -x $matlab ]]; then
     exit 1
 fi
 
+if [[ $scope == N0 ]]; then
+    stiffnesses=(1)
+else
+    stiffnesses=(1 1e2 1e4)
+fi
+
 mkdir -p "$output_parent"
-run_root=$(mktemp -d "$output_parent/cav-f2c-n0.XXXXXX")
-candidate_output="$run_root/candidate"
-oracle_output="$run_root/oracle"
-mkdir -p "$candidate_output" "$oracle_output"
+scope_lower=$(printf '%s' "$scope" | tr '[:upper:]' '[:lower:]')
+run_root=$(mktemp -d "$output_parent/cav-f2c-$scope_lower.XXXXXX")
+candidate_root="$run_root/candidate"
+oracle_root="$run_root/oracle"
+mkdir -p "$candidate_root" "$oracle_root"
 
-cp "$candidate_input" "$candidate_output/input"
-cp "$candidate_petsc_options" "$candidate_output/$(basename "$candidate_petsc_options")"
+for stiffness in "${stiffnesses[@]}"; do
+    case $stiffness in
+        1)
+            spring_stiffness=8.0e0
+            fd_tolerance=1.0e-6
+            ;;
+        1e2)
+            spring_stiffness=8.0e2
+            fd_tolerance=1.0e-6
+            ;;
+        1e4)
+            spring_stiffness=8.0e4
+            fd_tolerance=2.0e-6
+            ;;
+    esac
 
-(
-    cd "$candidate_output"
-    "$candidate_executable" input > candidate.stdout 2> candidate.stderr
-)
+    for policy in RELAXED STRICT; do
+        candidate_output="$candidate_root/K$stiffness/$policy"
+        mkdir -p "$candidate_output"
+        sed -e "s/SPRING_STIFFNESS                  = 8.0e0/SPRING_STIFFNESS                  = $spring_stiffness/" \
+            -e "s/FD_REL_TOL                        = 1.0e-6/FD_REL_TOL                        = $fd_tolerance/" \
+            -e "s/coupling_aware_asm_closure_policy = \"RELAXED\"/coupling_aware_asm_closure_policy = \"$policy\"/" \
+            "$candidate_template" > "$candidate_output/input"
+        cp "$candidate_petsc_options" "$candidate_output/$(basename "$candidate_petsc_options")"
+        (
+            cd "$candidate_output"
+            "$candidate_executable" input > candidate.stdout 2> candidate.stderr
+        )
+        if ! rg -q '^test_failures = 0$' "$candidate_output/candidate.stdout"; then
+            echo "candidate $policy K=$stiffness live diagnostic failed" >&2
+            exit 1
+        fi
+    done
 
-env CAV_N0_ORACLE_ROOT="$oracle_worktree" \
-    CAV_N0_ORACLE_OUTPUT="$oracle_output" \
-    "$matlab" -batch "addpath('$tools_dir'); export_oracle_n0" \
-    > "$run_root/oracle.stdout" 2> "$run_root/oracle.stderr"
+    oracle_output="$oracle_root/K$stiffness"
+    mkdir -p "$oracle_output"
+    env CAV_ORACLE_ROOT="$oracle_worktree" \
+        CAV_ORACLE_OUTPUT="$oracle_output" \
+        CAV_PHYSICAL_K="$stiffness" \
+        "$matlab" -batch "addpath('$tools_dir'); export_oracle_multiplicative" \
+        > "$run_root/oracle-K$stiffness.stdout" 2> "$run_root/oracle-K$stiffness.stderr"
+done
 
-env CAV_N0_CANDIDATE_OUTPUT="$candidate_output" \
-    CAV_N0_ORACLE_OUTPUT="$oracle_output" \
-    CAV_N0_REPORT="$run_root/n0-paired-replay-report.json" \
-    "$matlab" -batch "addpath('$tools_dir'); replay_n0_common_arithmetic" \
+env CAV_CANDIDATE_ROOT="$candidate_root" \
+    CAV_ORACLE_ROOT="$oracle_root" \
+    CAV_REPLAY_SCOPE="$scope" \
+    CAV_REPLAY_REPORT="$run_root/multiplicative-paired-replay-report.json" \
+    "$matlab" -batch "addpath('$tools_dir'); replay_multiplicative_common_arithmetic" \
     > "$run_root/replay.stdout" 2> "$run_root/replay.stderr"
 
 {
-    echo "schema cav-f2c-n0-provenance-v1"
+    echo "schema cav-f2c-multiplicative-provenance-v2"
+    echo "scope $scope"
     echo "candidate_sha $resolved_candidate_sha"
     echo "candidate_dirty $([[ -n $candidate_dirty ]] && echo 1 || echo 0)"
     echo "candidate_worktree $candidate_worktree"
     echo "candidate_build $candidate_build"
     echo "candidate_executable $candidate_executable"
+    echo "candidate_template $candidate_template"
     echo "oracle_sha $resolved_oracle_sha"
     echo "oracle_dirty 0"
     echo "oracle_worktree $oracle_worktree"
     echo "matlab $matlab"
+    echo "stiffnesses ${stiffnesses[*]}"
+    echo "closure_policies RELAXED STRICT"
 } > "$run_root/provenance.txt"
 
-find "$candidate_output" "$oracle_output" -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$run_root/RAW_ARTIFACTS.sha256"
-shasum -a 256 "$run_root/n0-paired-replay-report.json" "$run_root/provenance.txt" > "$run_root/REPORTS.sha256"
+find "$candidate_root" "$oracle_root" -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$run_root/RAW_ARTIFACTS.sha256"
+shasum -a 256 "$run_root/multiplicative-paired-replay-report.json" "$run_root/provenance.txt" > "$run_root/REPORTS.sha256"
 
-echo "cav_n0_run_root=$run_root"
-echo "cav_n0_report=$run_root/n0-paired-replay-report.json"
-echo "cav_n0_pass=true"
+echo "cav_replay_run_root=$run_root"
+echo "cav_replay_report=$run_root/multiplicative-paired-replay-report.json"
+echo "cav_replay_pass=true"

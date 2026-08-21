@@ -1,91 +1,169 @@
-function replay_n0_common_arithmetic()
-% Compare N0 construction and replay both patch sequences in one runtime.
+function replay_multiplicative_common_arithmetic()
+% Replay the N0/N1 multiplicative-CAV matrix in one arithmetic runtime.
 
-candidate_dir = getenv('CAV_N0_CANDIDATE_OUTPUT');
-oracle_dir = getenv('CAV_N0_ORACLE_OUTPUT');
-report_path = getenv('CAV_N0_REPORT');
-if isempty(candidate_dir) || isempty(oracle_dir) || isempty(report_path)
-    error(['CAV_N0_CANDIDATE_OUTPUT, CAV_N0_ORACLE_OUTPUT, and ' ...
-           'CAV_N0_REPORT are required.']);
+candidate_root = getenv('CAV_CANDIDATE_ROOT');
+oracle_root = getenv('CAV_ORACLE_ROOT');
+scope = getenv('CAV_REPLAY_SCOPE');
+report_path = getenv('CAV_REPLAY_REPORT');
+if isempty(candidate_root) || isempty(oracle_root) || isempty(scope) || isempty(report_path)
+    error(['CAV_CANDIDATE_ROOT, CAV_ORACLE_ROOT, CAV_REPLAY_SCOPE, and ' ...
+           'CAV_REPLAY_REPORT are required.']);
+end
+if strcmp(scope, 'N0')
+    stiffnesses = 1;
+    directions = {'forward'};
+elseif strcmp(scope, 'N1')
+    stiffnesses = [1, 1e2, 1e4];
+    directions = {'forward', 'reverse'};
+else
+    error('CAV_REPLAY_SCOPE must be N0 or N1.');
 end
 
-target = 1e-13;
-candidate_map = read_dof_map(fullfile(candidate_dir, ...
-    'cav_live_export_contract_dof_map.txt'));
-oracle_map = read_dof_map(fullfile(oracle_dir, 'oracle_dof_map.txt'));
-[mapping, mapping_report] = build_mapping(candidate_map, oracle_map);
-pressure = strcmp(oracle_map.kind, 'P');
+cases = struct([]);
+for k = 1:numel(stiffnesses)
+    current_case = replay_stiffness_case( ...
+        candidate_root, oracle_root, stiffnesses(k), directions);
+    if isempty(cases)
+        cases = current_case;
+    else
+        cases(k) = current_case;
+    end
+end
 
-candidate_A_raw = read_matrix_market(fullfile(candidate_dir, ...
-    'cav_live_export_contract_A.mtx'));
-candidate_E_raw = read_matrix_market(fullfile(candidate_dir, ...
-    'cav_live_export_contract_E_h.mtx'));
+report = struct();
+report.schema = 'cav-multiplicative-paired-common-arithmetic-v2';
+report.scope = scope;
+report.supported_geometry = ['live periodic 4x4-to-8x8 hierarchy; the finest live ' ...
+    '8x8 pressure-CAV level is replayed as the transfer-free N1 level'];
+report.strict_authority = ['independent IBAMR STRICT extension: retain candidate cells only when ' ...
+    'their complete incident-velocity stencil is contained in the E_h-expanded velocity set'];
+report.reverse_policy = ['reverse is a sensitivity replay of the exported patch sequence, not a ' ...
+    'production option or a second stored patch representation'];
+report.error_formula = ['E_inf=max(abs(x-y))/max(1,max(abs(x)),max(abs(y))); ' ...
+    'matrices use the same denominator floor and all entries'];
+report.runtime = struct('name', 'MATLAB', 'version', version, 'computer', computer);
+report.cases = num2cell(cases);
+report.pass = all([cases.pass]);
+
+write_json(report_path, report);
+for k = 1:numel(cases)
+    fprintf('%s_K=%.17g_operator_e_inf=%.17e\n', lower(scope), ...
+        cases(k).physical_stiffness_K, cases(k).operator.e_inf);
+    fprintf('%s_K=%.17g_relaxed_patch_exact=%d\n', lower(scope), ...
+        cases(k).physical_stiffness_K, cases(k).patches.relaxed_candidate_vs_oracle.pass);
+    fprintf('%s_K=%.17g_strict_patch_exact=%d\n', lower(scope), ...
+        cases(k).physical_stiffness_K, cases(k).patches.strict_candidate_vs_independent.pass);
+end
+fprintf('%s_paired_replay_pass=%d\n', lower(scope), report.pass);
+if ~report.pass
+    error('%s paired common-arithmetic replay failed; see %s.', scope, report_path);
+end
+end
+
+function result = replay_stiffness_case(candidate_root, oracle_root, stiffness, directions)
+label = stiffness_label(stiffness);
+target = fixed_target(stiffness);
+relaxed_dir = fullfile(candidate_root, label, 'RELAXED');
+strict_dir = fullfile(candidate_root, label, 'STRICT');
+oracle_dir = fullfile(oracle_root, label);
+
+relaxed_map = read_dof_map(fullfile(relaxed_dir, 'cav_live_export_contract_dof_map.txt'));
+strict_map = read_dof_map(fullfile(strict_dir, 'cav_live_export_contract_dof_map.txt'));
+oracle_map = read_dof_map(fullfile(oracle_dir, 'oracle_dof_map.txt'));
+[mapping, mapping_report] = build_mapping(relaxed_map, oracle_map);
+[strict_mapping, strict_mapping_report] = build_mapping(strict_map, oracle_map);
+mapping_report.strict_map_same = strict_mapping_report.pass && isequal(mapping, strict_mapping);
+mapping_report.pass = mapping_report.pass && mapping_report.strict_map_same;
+pressure = strcmp(oracle_map.kind, 'P');
+configuration = validate_configuration( ...
+    relaxed_dir, strict_dir, oracle_dir, stiffness, relaxed_map, oracle_map);
+
+relaxed_A_raw = read_matrix_market(fullfile(relaxed_dir, 'cav_live_export_contract_A.mtx'));
+strict_A_raw = read_matrix_market(fullfile(strict_dir, 'cav_live_export_contract_A.mtx'));
+relaxed_E_raw = read_matrix_market(fullfile(relaxed_dir, 'cav_live_export_contract_E_h.mtx'));
+strict_E_raw = read_matrix_market(fullfile(strict_dir, 'cav_live_export_contract_E_h.mtx'));
+candidate_A = map_matrix(relaxed_A_raw, mapping, pressure, true);
+candidate_E = map_matrix(relaxed_E_raw, mapping, pressure, false);
+strict_A = map_matrix(strict_A_raw, strict_mapping, pressure, true);
+strict_E = map_matrix(strict_E_raw, strict_mapping, pressure, false);
 oracle_A = read_matrix_market(fullfile(oracle_dir, 'oracle_A.mtx'));
 oracle_E = read_matrix_market(fullfile(oracle_dir, 'oracle_E_h.mtx'));
-candidate_A = map_matrix(candidate_A_raw, mapping, pressure, true);
-candidate_E = map_matrix(candidate_E_raw, mapping, pressure, false);
 
 operator_comparison = compare_matrices(candidate_A, oracle_A);
 elasticity_comparison = compare_matrices(candidate_E, oracle_E);
+policy_operator_control = compare_matrices(candidate_A, strict_A);
+policy_elasticity_control = compare_matrices(candidate_E, strict_E);
 
-candidate_seeds_raw = read_index_list(fullfile(candidate_dir, ...
-    'cav_live_export_contract_pressure_seeds.txt'));
-candidate_patches_raw = read_index_sets(fullfile(candidate_dir, ...
-    'cav_live_export_contract_patches.txt'));
+relaxed_seeds_raw = read_index_list(fullfile(relaxed_dir, 'cav_live_export_contract_pressure_seeds.txt'));
+strict_seeds_raw = read_index_list(fullfile(strict_dir, 'cav_live_export_contract_pressure_seeds.txt'));
+relaxed_patches_raw = read_index_sets(fullfile(relaxed_dir, 'cav_live_export_contract_patches.txt'));
+strict_patches_raw = read_index_sets(fullfile(strict_dir, 'cav_live_export_contract_patches.txt'));
+relaxed_seeds = mapping(relaxed_seeds_raw+1);
+strict_seeds = strict_mapping(strict_seeds_raw+1);
+relaxed_patches = map_sets(relaxed_patches_raw, mapping);
+strict_patches = map_sets(strict_patches_raw, strict_mapping);
 oracle_seeds = read_index_list(fullfile(oracle_dir, 'oracle_pressure_seeds.txt'))+1;
-oracle_patches = one_based_sets(read_index_sets(fullfile(oracle_dir, ...
-    'oracle_patches.txt')));
-candidate_seeds = mapping(candidate_seeds_raw+1);
-candidate_patches = map_sets(candidate_patches_raw, mapping);
-patch_comparison = compare_patch_data( ...
-    candidate_seeds, candidate_patches, oracle_seeds, oracle_patches);
+oracle_relaxed_patches = one_based_sets(read_index_sets(fullfile(oracle_dir, 'oracle_patches.txt')));
+independent_relaxed_patches = construct_reference_patches( ...
+    oracle_E, oracle_map, oracle_seeds, 'RELAXED');
+independent_strict_patches = construct_reference_patches( ...
+    oracle_E, oracle_map, oracle_seeds, 'STRICT');
 
-candidate_rhs = map_vector(read_vector_market(fullfile(candidate_dir, ...
-    'cav_fac_stage0_pre-smooth-input_level1_rhs.mtx')), mapping, pressure, true);
-candidate_initial = map_vector(read_vector_market(fullfile(candidate_dir, ...
-    'cav_fac_stage0_pre-smooth-input_level1_solution.mtx')), mapping, pressure, false);
-candidate_actual = map_vector(read_vector_market(fullfile(candidate_dir, ...
-    'cav_fac_stage1_pre-smooth-output_level1_solution.mtx')), mapping, pressure, false);
+patches = struct();
+patches.relaxed_candidate_vs_oracle = compare_patch_data( ...
+    relaxed_seeds, relaxed_patches, oracle_seeds, oracle_relaxed_patches);
+patches.relaxed_oracle_vs_independent = compare_patch_data( ...
+    oracle_seeds, oracle_relaxed_patches, oracle_seeds, independent_relaxed_patches);
+patches.strict_candidate_vs_independent = compare_patch_data( ...
+    strict_seeds, strict_patches, oracle_seeds, independent_strict_patches);
+
+candidate_rhs_relaxed = read_candidate_state(relaxed_dir, mapping, pressure, ...
+    'cav_fac_stage0_pre-smooth-input_level1_rhs.mtx', true);
+candidate_initial_relaxed = read_candidate_state(relaxed_dir, mapping, pressure, ...
+    'cav_fac_stage0_pre-smooth-input_level1_solution.mtx', false);
+candidate_actual_relaxed = read_candidate_state(relaxed_dir, mapping, pressure, ...
+    'cav_fac_stage1_pre-smooth-output_level1_solution.mtx', false);
+candidate_rhs_strict = read_candidate_state(strict_dir, strict_mapping, pressure, ...
+    'cav_fac_stage0_pre-smooth-input_level1_rhs.mtx', true);
+candidate_initial_strict = read_candidate_state(strict_dir, strict_mapping, pressure, ...
+    'cav_fac_stage0_pre-smooth-input_level1_solution.mtx', false);
+candidate_actual_strict = read_candidate_state(strict_dir, strict_mapping, pressure, ...
+    'cav_fac_stage1_pre-smooth-output_level1_solution.mtx', false);
 oracle_rhs = read_vector_market(fullfile(oracle_dir, 'oracle_rhs.mtx'));
 
-[live_candidate_w, live_candidate_r] = apply_sweep( ...
-    candidate_A, candidate_rhs, candidate_initial, candidate_patches, pressure);
-[live_oracle_w, live_oracle_r] = apply_sweep( ...
-    candidate_A, candidate_rhs, candidate_initial, oracle_patches, pressure);
-[oracle_candidate_w, oracle_candidate_r] = apply_sweep( ...
-    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), candidate_patches, pressure);
-[oracle_oracle_w, oracle_oracle_r, oracle_patch0] = apply_sweep( ...
-    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), oracle_patches, pressure);
+policy_input_control = struct( ...
+    'rhs', compare_vectors(candidate_rhs_relaxed, candidate_rhs_strict), ...
+    'initial', compare_vectors(candidate_initial_relaxed, candidate_initial_strict));
+policy_input_control.pass = policy_input_control.rhs.e_inf == 0 && ...
+                            policy_input_control.initial.e_inf == 0;
 
-live_common_replay = paired_result( ...
-    live_candidate_w, live_candidate_r, live_oracle_w, live_oracle_r, pressure, target);
-oracle_common_replay = paired_result( ...
-    oracle_candidate_w, oracle_candidate_r, oracle_oracle_w, oracle_oracle_r, pressure, target);
-actual_live_control = struct( ...
-    'correction', compare_vectors_gauged(live_candidate_w, candidate_actual, pressure), ...
-    'fresh_residual', compare_vectors(candidate_rhs-candidate_A*live_candidate_w, ...
-                                      candidate_rhs-candidate_A*candidate_actual));
-actual_live_control.within_fixed_target = ...
-    actual_live_control.correction.e_inf <= target && ...
-    actual_live_control.fresh_residual.e_inf <= target;
-actual_live_control.classification = ...
-    'reported cross-runtime backend/arithmetic diagnostic; not a common-arithmetic gate';
+relaxed = replay_policy(candidate_A, candidate_rhs_relaxed, candidate_initial_relaxed, ...
+    candidate_actual_relaxed, relaxed_patches, oracle_relaxed_patches, oracle_A, oracle_rhs, ...
+    pressure, target, directions);
+strict = replay_policy(candidate_A, candidate_rhs_strict, candidate_initial_strict, ...
+    candidate_actual_strict, strict_patches, independent_strict_patches, oracle_A, oracle_rhs, ...
+    pressure, target, directions);
+relaxed.native_all_patch_diagnostics = read_native_diagnostics(relaxed_dir, numel(relaxed_patches));
+strict.native_all_patch_diagnostics = read_native_diagnostics(strict_dir, numel(strict_patches));
+relaxed.candidate_selected_local_solve = check_candidate_local_trace( ...
+    relaxed_dir, relaxed_A_raw, relaxed_patches_raw{1}, target);
+strict.candidate_selected_local_solve = check_candidate_local_trace( ...
+    strict_dir, strict_A_raw, strict_patches_raw{1}, target);
 
-oracle_actual = read_vector_market(fullfile(oracle_dir, ...
-    'oracle_smoother_correction.mtx'));
-oracle_actual_r = read_vector_market(fullfile(oracle_dir, ...
-    'oracle_smoother_fresh_residual.mtx'));
+[~, ~, oracle_patch0] = apply_sweep( ...
+    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), oracle_relaxed_patches, pressure);
+[oracle_replay_w, oracle_replay_r] = apply_sweep( ...
+    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), oracle_relaxed_patches, pressure);
+oracle_actual = read_vector_market(fullfile(oracle_dir, 'oracle_smoother_correction.mtx'));
+oracle_actual_r = read_vector_market(fullfile(oracle_dir, 'oracle_smoother_fresh_residual.mtx'));
 oracle_pinned_control = struct( ...
-    'correction', compare_vectors_gauged(oracle_oracle_w, oracle_actual, pressure), ...
-    'fresh_residual', compare_vectors(oracle_oracle_r, oracle_actual_r));
+    'correction', compare_vectors_gauged(oracle_replay_w, oracle_actual, pressure), ...
+    'fresh_residual', compare_vectors(oracle_replay_r, oracle_actual_r));
 oracle_pinned_control.within_fixed_target = ...
     oracle_pinned_control.correction.e_inf <= target && ...
     oracle_pinned_control.fresh_residual.e_inf <= target;
 oracle_pinned_control.classification = ...
     'reported cross-runtime backend/arithmetic diagnostic; not a common-arithmetic gate';
-
-candidate_local_control = check_candidate_local_trace( ...
-    candidate_dir, candidate_A_raw, candidate_patches_raw{1});
 oracle_local_control = struct( ...
     'matrix', compare_matrices(oracle_patch0.A, read_matrix_market( ...
         fullfile(oracle_dir, 'oracle_patch0_A.mtx'))), ...
@@ -97,43 +175,398 @@ oracle_local_control.pass = oracle_local_control.matrix.e_inf <= target && ...
                             oracle_local_control.rhs.e_inf <= target && ...
                             oracle_local_control.correction.e_inf <= target;
 
-mutations = run_mutations(candidate_A_raw, candidate_A, oracle_A, candidate_map, ...
-                          oracle_map, mapping, pressure, candidate_patches, ...
-                          oracle_patches, live_candidate_w, target);
+mutations = run_mutations(relaxed_A_raw, candidate_A, oracle_A, relaxed_map, ...
+    oracle_map, mapping, pressure, relaxed_patches, oracle_relaxed_patches, ...
+    relaxed.forward_state, target);
 
-report = struct();
-report.schema = 'cav-n0-paired-common-arithmetic-v1';
-report.scope = ['supported 4x4-to-8x8 two-level 2D hierarchy; finest-level ' ...
-                'RELAXED pressure-seed multiplicative CAV'];
-report.physical_stiffness_K = 1;
-report.fixed_target = target;
-report.error_formula = ['E_inf=max(abs(x-y))/max(1,max(abs(x)),' ...
-                        'max(abs(y))); matrices use the same formula over all entries'];
-report.runtime = struct('name', 'MATLAB', 'version', version, 'computer', computer);
-report.mapping = mapping_report;
-report.operator = operator_comparison;
-report.elasticity = elasticity_comparison;
-report.patches = patch_comparison;
-report.live_operator_common_arithmetic = live_common_replay;
-report.oracle_operator_common_arithmetic = oracle_common_replay;
-report.actual_live_smoother_diagnostic_not_gate = actual_live_control;
-report.pinned_oracle_smoother_diagnostic_not_gate = oracle_pinned_control;
-report.candidate_selected_local_solve = candidate_local_control;
-report.oracle_selected_local_solve = oracle_local_control;
-report.mutations = mutations;
-report.pass = mapping_report.pass && operator_comparison.structure_exact && ...
-    elasticity_comparison.structure_exact && patch_comparison.pass && ...
-    live_common_replay.pass && oracle_common_replay.pass && ...
-    candidate_local_control.pass && oracle_local_control.pass && mutations.pass;
-
-write_json(report_path, report);
-fprintf('n0_operator_e_inf=%.17e\n', operator_comparison.e_inf);
-fprintf('n0_elasticity_e_inf=%.17e\n', elasticity_comparison.e_inf);
-fprintf('n0_patch_structure_exact=%d\n', patch_comparison.pass);
-fprintf('n0_paired_replay_pass=%d\n', report.pass);
-if ~report.pass
-    error('N0 paired common-arithmetic replay failed; see %s.', report_path);
+result = struct();
+result.physical_stiffness_K = stiffness;
+result.fixed_target = target;
+result.configuration = configuration;
+result.mapping = mapping_report;
+result.operator = operator_comparison;
+result.elasticity = elasticity_comparison;
+result.policy_operator_identity = policy_operator_control;
+result.policy_elasticity_identity = policy_elasticity_control;
+result.policy_input_identity = policy_input_control;
+result.patches = patches;
+result.relaxed = rmfield(relaxed, 'forward_state');
+result.strict = rmfield(strict, 'forward_state');
+result.pinned_oracle_forward_diagnostic_not_gate = oracle_pinned_control;
+result.oracle_selected_local_solve = oracle_local_control;
+result.mutations = mutations;
+result.pass = configuration.pass && mapping_report.pass && matrix_within(operator_comparison, target) && ...
+    matrix_within(elasticity_comparison, target) && matrix_exact(policy_operator_control) && ...
+    matrix_exact(policy_elasticity_control) && policy_input_control.pass && ...
+    patches.relaxed_candidate_vs_oracle.pass && patches.relaxed_oracle_vs_independent.pass && ...
+    patches.strict_candidate_vs_independent.pass && relaxed.pass && strict.pass && ...
+    relaxed.native_all_patch_diagnostics.pass && strict.native_all_patch_diagnostics.pass && ...
+    relaxed.candidate_selected_local_solve.pass && strict.candidate_selected_local_solve.pass && ...
+    oracle_local_control.pass && mutations.pass;
 end
+
+function result = replay_policy(candidate_A, candidate_rhs, candidate_initial, candidate_actual, ...
+                                candidate_patches, reference_patches, oracle_A, oracle_rhs, ...
+                                pressure, target, directions)
+direction_results = struct([]);
+forward_state = [];
+forward_fresh = [];
+reverse_state = [];
+reverse_fresh = [];
+for k = 1:numel(directions)
+    reverse = strcmp(directions{k}, 'reverse');
+    current_direction = compare_sweeps(candidate_A, candidate_rhs, candidate_initial, ...
+        candidate_patches, reference_patches, oracle_A, oracle_rhs, pressure, target, reverse);
+    if isempty(direction_results)
+        direction_results = current_direction;
+    else
+        direction_results(k) = current_direction;
+    end
+    if reverse
+        reverse_state = direction_results(k).candidate_operator_final_state;
+        reverse_fresh = direction_results(k).candidate_operator_final_residual;
+    else
+        forward_state = direction_results(k).candidate_operator_final_state;
+        forward_fresh = direction_results(k).candidate_operator_final_residual;
+    end
+end
+
+actual_live_control = struct( ...
+    'correction', compare_vectors_gauged(forward_state, candidate_actual, pressure), ...
+    'fresh_residual', compare_vectors(forward_fresh, candidate_rhs-candidate_A*candidate_actual));
+actual_live_control.within_fixed_target = actual_live_control.correction.e_inf <= target && ...
+                                          actual_live_control.fresh_residual.e_inf <= target;
+actual_live_control.classification = ...
+    'reported cross-runtime backend/arithmetic diagnostic; not a common-arithmetic gate';
+
+if isempty(reverse_state)
+    [reverse_state, reverse_fresh] = apply_sweep( ...
+        candidate_A, candidate_rhs, candidate_initial, candidate_patches(end:-1:1), pressure);
+end
+reverse_sensitivity = struct( ...
+    'correction', compare_vectors_gauged(forward_state, reverse_state, pressure), ...
+    'fresh_residual', compare_vectors(forward_fresh, reverse_fresh));
+reverse_sensitivity.detected = reverse_sensitivity.correction.e_inf > target || ...
+                               reverse_sensitivity.fresh_residual.e_inf > target;
+
+result = struct();
+result.direction_results = strip_final_states(direction_results);
+result.actual_live_forward_diagnostic_not_gate = actual_live_control;
+result.reverse_order_sensitivity = reverse_sensitivity;
+result.forward_state = forward_state;
+result.pass = all([direction_results.pass]) && reverse_sensitivity.detected;
+end
+
+function results = strip_final_states(results)
+results = rmfield(results, { ...
+    'candidate_operator_final_state', 'candidate_operator_final_residual'});
+end
+
+function result = compare_sweeps(candidate_A, candidate_rhs, candidate_initial, ...
+                                 candidate_patches, reference_patches, oracle_A, oracle_rhs, ...
+                                 pressure, target, reverse)
+if reverse
+    direction = 'reverse';
+    candidate_patches = candidate_patches(end:-1:1);
+    reference_patches = reference_patches(end:-1:1);
+else
+    direction = 'forward';
+end
+[candidate_w, candidate_r, ~, candidate_trace] = apply_sweep( ...
+    candidate_A, candidate_rhs, candidate_initial, candidate_patches, pressure);
+[live_reference_w, live_reference_r, ~, live_reference_trace] = apply_sweep( ...
+    candidate_A, candidate_rhs, candidate_initial, reference_patches, pressure);
+[oracle_candidate_w, oracle_candidate_r, ~, oracle_candidate_trace] = apply_sweep( ...
+    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), candidate_patches, pressure);
+[oracle_reference_w, oracle_reference_r, ~, oracle_reference_trace] = apply_sweep( ...
+    oracle_A, oracle_rhs, zeros(size(oracle_rhs)), reference_patches, pressure);
+
+result = struct();
+result.direction = direction;
+result.candidate_operator_every_patch = compare_sweep_traces( ...
+    candidate_trace, live_reference_trace, target);
+result.oracle_operator_every_patch = compare_sweep_traces( ...
+    oracle_candidate_trace, oracle_reference_trace, target);
+result.candidate_operator_final = paired_result( ...
+    candidate_w, candidate_r, live_reference_w, live_reference_r, pressure, target);
+result.oracle_operator_final = paired_result( ...
+    oracle_candidate_w, oracle_candidate_r, oracle_reference_w, oracle_reference_r, pressure, target);
+result.candidate_operator_final_state = candidate_w;
+result.candidate_operator_final_residual = candidate_r;
+result.pass = result.candidate_operator_every_patch.pass && ...
+              result.oracle_operator_every_patch.pass && ...
+              result.candidate_operator_final.pass && result.oracle_operator_final.pass;
+end
+
+function result = compare_sweep_traces(left, right, target)
+if numel(left) ~= numel(right)
+    error('Sweep traces have different patch counts.');
+end
+metrics = zeros(numel(left), 5);
+for k = 1:numel(left)
+    metrics(k, 1) = compare_matrices(left(k).A, right(k).A).e_inf;
+    metrics(k, 2) = compare_vectors(left(k).rhs, right(k).rhs).e_inf;
+    metrics(k, 3) = compare_vectors(left(k).delta, right(k).delta).e_inf;
+    metrics(k, 4) = compare_vectors(left(k).state, right(k).state).e_inf;
+    metrics(k, 5) = compare_vectors(left(k).residual, right(k).residual).e_inf;
+end
+first = find(any(metrics > target, 2), 1);
+if isempty(first)
+    first = -1;
+else
+    first = first-1;
+end
+result = struct( ...
+    'patch_count', int32(numel(left)), ...
+    'max_local_matrix_e_inf', max(metrics(:, 1)), ...
+    'max_local_rhs_e_inf', max(metrics(:, 2)), ...
+    'max_local_correction_e_inf', max(metrics(:, 3)), ...
+    'max_global_state_e_inf', max(metrics(:, 4)), ...
+    'max_residual_state_e_inf', max(metrics(:, 5)), ...
+    'first_mismatch_traversal_step', int32(first), ...
+    'pass', first < 0);
+end
+
+function value = read_candidate_state(directory, mapping, pressure, filename, equation_sign)
+value = map_vector(read_vector_market(fullfile(directory, filename)), ...
+                   mapping, pressure, equation_sign);
+end
+
+function result = read_native_diagnostics(directory, patch_count)
+contents = fileread(fullfile(directory, 'candidate.stdout'));
+result = struct( ...
+    'sweep_count', read_output_number(contents, 'fgmres_local_sweep_count'), ...
+    'solve_count', read_output_number(contents, 'fgmres_local_solve_count'), ...
+    'max_backward_error', read_output_number(contents, 'fgmres_local_backward_error_max'), ...
+    'max_incremental_fresh_error', read_output_number(contents, 'fgmres_incremental_fresh_error_max'), ...
+    'max_local_rhs_error', read_output_number(contents, 'fgmres_local_rhs_error_max'), ...
+    'diagnostics_valid', read_output_bool(contents, 'fgmres_local_diagnostics_valid'), ...
+    'selected_trace_valid', read_output_bool(contents, 'cav_local_trace_selection_valid'));
+result.expected_solve_count = result.sweep_count*patch_count;
+result.pass = result.diagnostics_valid && result.selected_trace_valid && ...
+              result.solve_count == result.expected_solve_count;
+end
+
+function result = validate_configuration(relaxed_dir, strict_dir, oracle_dir, ...
+                                         stiffness, candidate_map, oracle_map)
+relaxed_manifest = read_live_manifest(fullfile( ...
+    relaxed_dir, 'cav_live_export_contract_manifest.txt'));
+strict_manifest = read_live_manifest(fullfile( ...
+    strict_dir, 'cav_live_export_contract_manifest.txt'));
+oracle_metadata = jsondecode(fileread(fullfile(oracle_dir, 'oracle_metadata.json')));
+relaxed_stdout = fileread(fullfile(relaxed_dir, 'candidate.stdout'));
+strict_stdout = fileread(fullfile(strict_dir, 'candidate.stdout'));
+
+result = struct();
+result.dimension_2d = candidate_map.dimension == 2 && oracle_map.dimension == 2 && ...
+                      oracle_metadata.dimension == 2;
+result.global_dof_count = int32(candidate_map.count);
+result.global_dof_count_exact = candidate_map.count == 192 && oracle_map.count == 192;
+result.live_hierarchy_is_4_to_8 = oracle_metadata.base_grid_cells_per_axis == 4 && ...
+    oracle_metadata.refinement_ratio == 2 && oracle_metadata.finest_grid_cells_per_axis == 8;
+result.single_rank = str2double(relaxed_manifest.mpi_ranks) == 1 && ...
+                     str2double(strict_manifest.mpi_ranks) == 1;
+result.physical_stiffness_exact = ...
+    read_output_number(relaxed_stdout, 'physical_stiffness') == stiffness && ...
+    read_output_number(strict_stdout, 'physical_stiffness') == stiffness && ...
+    oracle_metadata.physical_stiffness_K == stiffness;
+result.relaxed_policy_exact = strcmp(relaxed_manifest.closure_policy, 'RELAXED');
+result.strict_policy_exact = strcmp(strict_manifest.closure_policy, 'STRICT');
+result.seed_and_order_exact = ...
+    strcmp(relaxed_manifest.patch_seed_type, 'PRESSURE_CELL') && ...
+    strcmp(strict_manifest.patch_seed_type, 'PRESSURE_CELL') && ...
+    strcmp(relaxed_manifest.seed_stride, '1') && strcmp(strict_manifest.seed_stride, '1') && ...
+    strcmp(relaxed_manifest.traversal_order, 'I_J') && strcmp(strict_manifest.traversal_order, 'I_J');
+result.composition_and_backend_exact = ...
+    strcmp(relaxed_manifest.composition, 'multiplicative') && ...
+    strcmp(strict_manifest.composition, 'multiplicative') && ...
+    strcmp(relaxed_manifest.local_solver_backend, 'blas-lapack-lu') && ...
+    strcmp(strict_manifest.local_solver_backend, 'blas-lapack-lu');
+result.sign_and_gauge_exact = ...
+    strcmp(relaxed_manifest.pressure_equation, 'minus-div') && ...
+    strcmp(strict_manifest.pressure_equation, 'minus-div') && ...
+    str2double(relaxed_manifest.pressure_equation_row_multiplier_to_oracle) == -1 && ...
+    str2double(strict_manifest.pressure_equation_row_multiplier_to_oracle) == -1 && ...
+    strcmp(relaxed_manifest.pressure_gauge, 'zero-mean-correction') && ...
+    strcmp(strict_manifest.pressure_gauge, 'zero-mean-correction') && ...
+    strcmp(oracle_metadata.pressure_equation, 'div') && ...
+    strcmp(oracle_metadata.pressure_gauge, 'zero-mean correction');
+result.oracle_contract_exact = ...
+    strcmp(oracle_metadata.oracle_sha, '5b77344db6746269f8c77695c99e9043907ba74b') && ...
+    strcmp(oracle_metadata.patch_strategy, 'targeted_ib') && ...
+    strcmp(oracle_metadata.composition, 'multiplicative') && ...
+    strcmp(oracle_metadata.delta_function, 'IB_4') && oracle_metadata.patch_count == 64;
+fields = fieldnames(result);
+logical_fields = fields(~ismember(fields, {'global_dof_count'}));
+result.pass = all(cellfun(@(name) logical(result.(name)), logical_fields));
+end
+
+function manifest = read_live_manifest(filename)
+contents = fileread(filename);
+if isempty(regexp(contents, '^ibamr-cav-live-export-v1$', 'once', 'lineanchors'))
+    error('Unsupported live manifest schema in %s.', filename);
+end
+names = {'mpi_ranks', 'pressure_equation', ...
+    'pressure_equation_row_multiplier_to_oracle', 'pressure_gauge', ...
+    'patch_seed_type', 'closure_policy', 'seed_stride', 'traversal_order', ...
+    'composition', 'local_solver_backend'};
+manifest = struct();
+for k = 1:numel(names)
+    name = names{k};
+    token = regexp(contents, ['^' name ' ([^\n]+)$'], ...
+                   'tokens', 'once', 'lineanchors');
+    if isempty(token)
+        error('Missing live manifest field %s in %s.', name, filename);
+    end
+    manifest.(name) = strtrim(token{1});
+end
+end
+
+function value = read_output_number(contents, name)
+token = regexp(contents, ['^' name ' = ([^\n]+)$'], 'tokens', 'once', 'lineanchors');
+if isempty(token)
+    error('Missing native diagnostic %s.', name);
+end
+value = str2double(strtrim(token{1}));
+end
+
+function value = read_output_bool(contents, name)
+token = regexp(contents, ['^' name ' = (true|false)$'], 'tokens', 'once', 'lineanchors');
+if isempty(token)
+    error('Missing native diagnostic %s.', name);
+end
+value = strcmp(token{1}, 'true');
+end
+
+function patches = construct_reference_patches(E_h, dof_map, pressure_seeds, policy)
+velocity = strcmp(dof_map.kind, 'V');
+pressure = strcmp(dof_map.kind, 'P');
+N = round(sqrt(sum(pressure)));
+if N^2 ~= sum(pressure)
+    error('Reference patch construction requires a square 2D pressure grid.');
+end
+
+dof_by_key = containers.Map('KeyType', 'char', 'ValueType', 'double');
+for k = 1:dof_map.count
+    dof_by_key(dof_key(dof_map, k)) = k;
+end
+adjacency = cell(dof_map.count, 1);
+for row = find(velocity(:))'
+    [~, columns, values] = find(E_h(row, :));
+    row_max = max([0; abs(values(:))]);
+    numerical_zero = max(numel(values)*eps*row_max, 1e-14*row_max);
+    for entry = 1:numel(columns)
+        column = columns(entry);
+        if abs(values(entry)) <= numerical_zero
+            continue;
+        end
+        if ~velocity(column)
+            error('Reference E_h graph contains a pressure coupling.');
+        end
+        adjacency{row}(end+1) = column;
+        adjacency{column}(end+1) = row;
+    end
+end
+for k = 1:numel(adjacency)
+    adjacency{k} = unique(adjacency{k});
+end
+
+patches = cell(numel(pressure_seeds), 1);
+for seed_ordinal = 1:numel(pressure_seeds)
+    seed = pressure_seeds(seed_ordinal);
+    i = dof_map.i(seed);
+    j = dof_map.j(seed);
+    standard = standard_velocity_closure(dof_by_key, i, j, N);
+    expanded = standard;
+    for velocity_dof = standard(:)'
+        expanded = union(expanded, adjacency{velocity_dof});
+    end
+    if isequal(expanded(:), standard(:))
+        patches{seed_ordinal} = sort([standard(:); seed]);
+        continue;
+    end
+
+    involved = seed;
+    for velocity_dof = expanded(:)'
+        axis = dof_map.axis(velocity_dof);
+        vi = dof_map.i(velocity_dof);
+        vj = dof_map.j(velocity_dof);
+        if axis == 0
+            involved(end+1, 1) = lookup_dof(dof_by_key, 'P', -1, mod(vi-1, N), vj); %#ok<AGROW>
+            involved(end+1, 1) = lookup_dof(dof_by_key, 'P', -1, vi, vj); %#ok<AGROW>
+        else
+            involved(end+1, 1) = lookup_dof(dof_by_key, 'P', -1, vi, mod(vj-1, N)); %#ok<AGROW>
+            involved(end+1, 1) = lookup_dof(dof_by_key, 'P', -1, vi, vj); %#ok<AGROW>
+        end
+    end
+    involved = unique(involved);
+    retained = [];
+    for cell_dof = involved(:)'
+        closure = standard_velocity_closure( ...
+            dof_by_key, dof_map.i(cell_dof), dof_map.j(cell_dof), N);
+        if strcmp(policy, 'RELAXED') || all(ismember(closure, expanded))
+            retained(end+1, 1) = cell_dof; %#ok<AGROW>
+        end
+    end
+    patch = retained;
+    for cell_dof = retained(:)'
+        patch = union(patch, standard_velocity_closure( ...
+            dof_by_key, dof_map.i(cell_dof), dof_map.j(cell_dof), N));
+    end
+    if strcmp(policy, 'RELAXED')
+        patch = union(patch, expanded);
+    end
+    patches{seed_ordinal} = sort(patch);
+end
+end
+
+function dofs = standard_velocity_closure(dof_by_key, i, j, N)
+dofs = [ ...
+    lookup_dof(dof_by_key, 'V', 0, i, j); ...
+    lookup_dof(dof_by_key, 'V', 0, mod(i+1, N), j); ...
+    lookup_dof(dof_by_key, 'V', 1, i, j); ...
+    lookup_dof(dof_by_key, 'V', 1, i, mod(j+1, N))];
+dofs = sort(dofs);
+end
+
+function dof = lookup_dof(dof_by_key, kind, axis, i, j)
+key = sprintf('%s:%d:%d:%d', kind, axis, i, j);
+if ~isKey(dof_by_key, key)
+    error('Missing reference DOF %s.', key);
+end
+dof = dof_by_key(key);
+end
+
+function label = stiffness_label(stiffness)
+if stiffness == 1
+    label = 'K1';
+elseif stiffness == 1e2
+    label = 'K1e2';
+elseif stiffness == 1e4
+    label = 'K1e4';
+else
+    error('Unsupported stiffness %.17g.', stiffness);
+end
+end
+
+function target = fixed_target(stiffness)
+if stiffness == 1
+    target = 1e-13;
+elseif stiffness == 1e2
+    target = 1e-12;
+elseif stiffness == 1e4
+    target = 2e-11;
+else
+    error('Unsupported stiffness %.17g.', stiffness);
+end
+end
+
+function pass = matrix_within(comparison, target)
+pass = comparison.structure_exact && comparison.e_inf <= target;
+end
+
+function pass = matrix_exact(comparison)
+pass = comparison.structure_exact && comparison.e_inf == 0;
 end
 
 function [mapping, result] = build_mapping(source, target)
@@ -221,9 +654,11 @@ result.pass = result.patch_count_exact && result.seed_order_exact && ...
               result.membership_and_order_exact;
 end
 
-function [w, fresh_residual, first_patch] = apply_sweep(A, b, w, patches, pressure)
+function [w, fresh_residual, first_patch, trace] = apply_sweep(A, b, w, patches, pressure)
 r = b-A*w;
 first_patch = struct();
+trace = repmat(struct('A', [], 'rhs', [], 'delta', [], 'state', [], 'residual', []), ...
+               numel(patches), 1);
 for patch = 1:numel(patches)
     dofs = patches{patch};
     local_A = full(A(dofs, dofs));
@@ -234,6 +669,8 @@ for patch = 1:numel(patches)
     end
     w(dofs) = w(dofs)+delta;
     r = r-A(:, dofs)*delta;
+    trace(patch) = struct('A', local_A, 'rhs', local_rhs, 'delta', delta, ...
+                          'state', w, 'residual', r);
 end
 w(pressure) = w(pressure)-mean(w(pressure));
 fresh_residual = b-A*w;
@@ -245,7 +682,7 @@ result = struct('correction', compare_vectors_gauged(left_w, right_w, pressure),
 result.pass = result.correction.e_inf <= target && result.fresh_residual.e_inf <= target;
 end
 
-function result = check_candidate_local_trace(candidate_dir, A, patch0_zero_based)
+function result = check_candidate_local_trace(candidate_dir, A, patch0_zero_based, target)
 prefix = fullfile(candidate_dir, 'cav_fgmres_local_sweep0_patch0');
 local_A = read_matrix_market([prefix '_A.mtx']);
 local_rhs = read_vector_market([prefix '_rhs.mtx']);
@@ -261,9 +698,9 @@ result = struct( ...
     'restricted_rhs', compare_vectors(extracted_rhs, local_rhs), ...
     'direct_solve', compare_vectors(local_A\local_rhs, local_correction), ...
     'backward_error', backward_numerator/backward_denominator);
-result.pass = result.matrix.e_inf <= 1e-13 && ...
-              result.restricted_rhs.e_inf <= 1e-13 && ...
-              result.direct_solve.e_inf <= 1e-13 && result.backward_error <= 1e-13;
+result.pass = result.matrix.e_inf <= target && ...
+              result.restricted_rhs.e_inf <= target && ...
+              result.direct_solve.e_inf <= target && result.backward_error <= target;
 end
 
 function result = run_mutations(raw_A, mapped_A, oracle_A, candidate_map, oracle_map, ...

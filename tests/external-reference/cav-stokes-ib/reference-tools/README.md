@@ -1,10 +1,10 @@
-# CAV N0 paired replay
+# CAV multiplicative paired replay
 
-This directory contains external-reference tooling for the mandatory N0
-multiplicative-CAV comparison. It is not part of the normal `attest` suite and
-does not replace the native CAV regressions.
+This directory contains external-reference tooling for the mandatory N0 and
+N1 multiplicative-CAV comparisons. It is not part of the normal `attest` suite
+and does not replace the native CAV regressions.
 
-`run_n0_paired_replay.sh` requires:
+`run_multiplicative_paired_replay.sh` requires:
 
 - a clean IBAMR worktree at the exact candidate commit;
 - a build configured from that same worktree;
@@ -12,14 +12,30 @@ does not replace the native CAV regressions.
   `5b77344db6746269f8c77695c99e9043907ba74b`; and
 - MATLAB with the pinned sandbox dependencies available.
 
-The runner regenerates both raw bundles. The candidate uses the live IBAMR
-objects from the supported periodic `4x4 -> 8x8` hierarchy and observes the
-finest `8x8` pressure-CAV level. The oracle exporter calls the pinned sandbox
-construction and multiplicative smoother without editing the oracle. The
-replay maps both bundles into the oracle's global velocity-pressure ordering
-and applies the declared IBAMR pressure-equation-row sign map. It then executes
-both exported patch sequences with one MATLAB arithmetic path on both the live
-candidate and independently constructed oracle operator/RHS inputs.
+The runner regenerates every raw bundle. The candidate uses live IBAMR objects
+from the supported periodic `4x4 -> 8x8` hierarchy and observes the finest
+`8x8` pressure-CAV level. N1 treats that live level as a transfer-free level;
+it does not add a special FAC path for a one-level hierarchy. The runner covers
+`K=1`, `1e2`, and `1e4`, RELAXED and STRICT construction, and forward and
+reverse common-arithmetic sweeps. Reverse order is a sensitivity replay, not a
+production option.
+
+The oracle exporter calls the pinned sandbox RELAXED construction and
+multiplicative smoother without editing the oracle. Since STRICT is an IBAMR
+extension rather than a sandbox algorithm, the consumer independently derives
+its patches from the canonical `E_h` row-or-column graph and the complete
+incident-velocity rule. It likewise derives RELAXED patches as a construction
+control. Candidate patches always come from the live production builder; the
+consumer never substitutes its reference construction for a candidate export.
+
+The replay maps all bundles into the oracle's global velocity-pressure
+ordering, applies the declared IBAMR pressure-equation-row sign map, and
+executes candidate and reference sequences with one MATLAB arithmetic path on
+both the live candidate and independently constructed oracle operator/RHS
+inputs. It compares local matrices, local right-hand sides, local corrections,
+global states, and residuals after every patch. Separately labeled candidate
+and oracle native-smoother comparisons remain cross-runtime diagnostics, not
+the common-arithmetic gate.
 
 The generated matrices, vectors, reports, logs, and hashes remain in the
 runner's temporary output directory and must not be committed.
@@ -27,14 +43,18 @@ runner's temporary output directory and must not be committed.
 Example:
 
 ```sh
-tests/external-reference/cav-stokes-ib/reference-tools/run_n0_paired_replay.sh \
+tests/external-reference/cav-stokes-ib/reference-tools/run_multiplicative_paired_replay.sh \
   /tmp/ibamr-cav-durable-6f2c \
   /tmp/ibamr-cav-durable-6f2c-build-dbg \
   CANDIDATE_COMMIT_SHA \
   /tmp/implicit-ib-sandbox-cav-oracle-5b77344 \
   /Applications/MATLAB_R2025b.app/bin/matlab \
-  /private/tmp
+  /private/tmp \
+  N1
 ```
 
-The final argument is an output parent. The runner creates a new directory
-inside it and never deletes or overwrites an existing evidence bundle.
+The optional output-parent argument defaults to `/private/tmp`. The final scope
+is `N0` or `N1` and defaults to `N1`; N0 runs `K=1`, both construction
+policies, and forward traversal, while N1 runs the complete matrix above. The
+runner creates a new directory and never deletes or overwrites an existing
+evidence bundle.

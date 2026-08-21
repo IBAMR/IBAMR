@@ -1,10 +1,12 @@
-function export_oracle_n0()
-% Export the pinned sandbox N0 operator, patches, and smoother control.
+function export_oracle_multiplicative()
+% Export one pinned-sandbox multiplicative-CAV level and native control.
 
-oracle_root = getenv('CAV_N0_ORACLE_ROOT');
-output_dir = getenv('CAV_N0_ORACLE_OUTPUT');
-if isempty(oracle_root) || isempty(output_dir)
-    error('CAV_N0_ORACLE_ROOT and CAV_N0_ORACLE_OUTPUT are required.');
+oracle_root = getenv('CAV_ORACLE_ROOT');
+output_dir = getenv('CAV_ORACLE_OUTPUT');
+physical_K = str2double(getenv('CAV_PHYSICAL_K'));
+if isempty(oracle_root) || isempty(output_dir) || ~isfinite(physical_K) || physical_K <= 0
+    error(['CAV_ORACLE_ROOT, CAV_ORACLE_OUTPUT, and a positive ' ...
+           'CAV_PHYSICAL_K are required.']);
 end
 
 restoredefaultpath();
@@ -18,7 +20,6 @@ dt = 0.005;
 rho = 1;
 mu = 0.01;
 ds = h;
-physical_K = 1;
 center = [0.5, 0.5];
 radius = [0.2, 0.2];
 marker_count = max(3, floor(2*pi*radius(1)/ds));
@@ -77,7 +78,7 @@ write_index_sets(fullfile(output_dir, 'oracle_patches.txt'), ...
                  smoother_data.coupled_dofs);
 
 metadata = struct();
-metadata.schema = 'sandbox-cav-n0-oracle-v1';
+metadata.schema = 'sandbox-cav-multiplicative-oracle-v2';
 metadata.oracle_sha = '5b77344db6746269f8c77695c99e9043907ba74b';
 metadata.dimension = int32(2);
 metadata.base_grid_cells_per_axis = int32(4);
@@ -103,8 +104,9 @@ metadata.standard_patch_count = int32(smoother_data.standard_patch_count);
 metadata.enlarged_patch_count = int32(smoother_data.enlarged_patch_count);
 write_json(fullfile(output_dir, 'oracle_metadata.json'), metadata);
 
-fprintf('oracle_n0_patch_count=%d\n', numel(smoother_data.coupled_dofs));
-fprintf('oracle_n0_enlarged_patch_count=%d\n', smoother_data.enlarged_patch_count);
+fprintf('oracle_physical_stiffness_K=%.17g\n', physical_K);
+fprintf('oracle_patch_count=%d\n', numel(smoother_data.coupled_dofs));
+fprintf('oracle_enlarged_patch_count=%d\n', smoother_data.enlarged_patch_count);
 end
 
 function write_dof_map(filename, N)
