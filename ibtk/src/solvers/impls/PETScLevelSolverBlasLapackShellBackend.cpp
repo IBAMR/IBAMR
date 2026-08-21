@@ -35,13 +35,7 @@ namespace
 std::unique_ptr<PETScLevelSolverShellBackend>
 allocate_blas_lapack_shell_backend(PETScLevelSolver& /*solver*/)
 {
-    return std::make_unique<PETScLevelSolverBlasLapackShellBackend>("BlasLapack", true);
-}
-
-std::unique_ptr<PETScLevelSolverShellBackend>
-allocate_blas_lapack_lu_shell_backend(PETScLevelSolver& /*solver*/)
-{
-    return std::make_unique<PETScLevelSolverBlasLapackShellBackend>("BlasLapackLU", false);
+    return std::make_unique<PETScLevelSolverBlasLapackShellBackend>();
 }
 
 class PETScLevelSolverBlasLapackShellBackendRegistrar
@@ -51,8 +45,6 @@ public:
     {
         PETScLevelSolverShellBackendManager::getManager()->registerShellBackendFactoryFunction(
             "blas-lapack", allocate_blas_lapack_shell_backend);
-        PETScLevelSolverShellBackendManager::getManager()->registerShellBackendFactoryFunction(
-            "blas-lapack-lu", allocate_blas_lapack_lu_shell_backend);
     }
 };
 
@@ -81,36 +73,18 @@ query_lapack_workspace_size(const PetscScalar query_value)
 }
 } // namespace
 
-PETScLevelSolverBlasLapackShellBackend::PETScLevelSolverBlasLapackShellBackend(std::string backend_name,
-                                                                               const bool configurable_solver_type)
-    : d_backend_name(std::move(backend_name)), d_configurable_solver_type(configurable_solver_type)
-{
-}
+const std::string PETScLevelSolverBlasLapackShellBackend::s_backend_name = "BlasLapack";
 
 const std::string&
 PETScLevelSolverBlasLapackShellBackend::getName() const
 {
-    return d_backend_name;
+    return s_backend_name;
 }
 
 void
 PETScLevelSolverBlasLapackShellBackend::configureFromInputDatabase()
 {
     d_subdomain_solver_rcond = -1.0;
-    if (!d_configurable_solver_type)
-    {
-        d_subdomain_solver_type = SubdomainSolverType::LU;
-        if (d_solver_state.input_db && d_solver_state.input_db->keyExists("blas_lapack_subdomain_solver_type") &&
-            to_lower(d_solver_state.input_db->getString("blas_lapack_subdomain_solver_type")) != "lu")
-        {
-            TBOX_ERROR(d_solver_state.object_name
-                       << " " << d_solver_state.options_prefix
-                       << " shell backend 'blas-lapack-lu' has a fixed LU local solver; "
-                       << "select shell backend 'blas-lapack' to configure another BLAS/LAPACK mode.");
-        }
-        return;
-    }
-
     d_subdomain_solver_type = SubdomainSolverType::SVD;
     if (!d_solver_state.input_db) return;
     if (d_solver_state.input_db->keyExists("blas_lapack_subdomain_solver_type"))

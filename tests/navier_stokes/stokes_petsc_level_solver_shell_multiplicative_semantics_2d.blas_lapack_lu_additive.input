@@ -5,8 +5,9 @@ test {
    coupling_aware_asm_closure_policy = "RELAXED"
    coupling_aware_asm_seed_axis = 0
    coupling_aware_asm_seed_stride = 1
-   shell_pc_type = "additive-blas-lapack-lu"
-   expected_shell_pc_name = "stokes_shell_sem_PC_AdditiveBlasLapackLU"
+   shell_pc_type = "additive-blas-lapack"
+   expected_shell_pc_name = "stokes_shell_sem_PC_AdditiveBlasLapack"
+   blas_lapack_subdomain_solver_type = "lu"
    parity_tol = 1.0e-10
 }
 Main {

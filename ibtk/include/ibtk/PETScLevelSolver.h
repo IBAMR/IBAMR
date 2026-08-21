@@ -79,8 +79,7 @@ namespace IBTK
  * `blas_lapack_subdomain_solver_type = "svd"` (the default), `"lu"`,
  * `"symmetric-indefinite"`, or `"qr"`. The optional
  * `blas_lapack_subdomain_solver_rcond` sets the SVD rank cutoff and the QR
- * diagonal rank check. The `blas-lapack-lu` backend is the fixed-LU
- * compatibility name. Cholesky is not supported because Stokes subdomain
+ * diagonal rank check. Cholesky is not supported because Stokes subdomain
  * matrices are indefinite.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
@@ -148,9 +147,8 @@ public:
      * intended for narrowly selected live-operator diagnostics; normal shell
      * application constructs no observer matrix.
      *
-     * \note Observer support is backend-specific. The `blas-lapack` and
-     * `blas-lapack-lu` backends invoke this callback; backends without
-     * observer support do not.
+     * \note Observer support is backend-specific. The `blas-lapack` backend
+     * invokes this callback; backends without observer support do not.
      */
     void setShellSubdomainSolveObserver(
         ShellSubdomainSolveObserver observer,

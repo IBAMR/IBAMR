@@ -5,7 +5,8 @@ test {
    coupling_aware_asm_closure_policy = "RELAXED"
    coupling_aware_asm_seed_axis = 0
    coupling_aware_asm_seed_stride = 1
-   shell_pc_type = "multiplicative-blas-lapack-lu"
+   shell_pc_type = "multiplicative-blas-lapack"
+   blas_lapack_subdomain_solver_type = "lu"
    velocity_poisson_c = 0.0
    velocity_poisson_d = 0.0
    verify_reference_parity = FALSE

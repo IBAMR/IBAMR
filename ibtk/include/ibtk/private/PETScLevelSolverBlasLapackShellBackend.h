@@ -34,15 +34,16 @@ namespace IBTK
  * operator, so this backend does not copy the full operator or build update
  * matrices.
  *
- * The configurable backend name uses SVD by default and also supports LU,
- * symmetric-indefinite, and QR local solvers. The legacy fixed-LU name shares
- * this implementation. Cholesky is rejected because these Stokes subdomain
- * matrices are indefinite.
+ * The backend uses SVD by default and also supports LU,
+ * symmetric-indefinite, and QR local solvers. Cholesky is rejected because
+ * these Stokes subdomain matrices are indefinite.
  */
 class PETScLevelSolverBlasLapackShellBackend : public PETScLevelSolverShellBackend
 {
 public:
-    PETScLevelSolverBlasLapackShellBackend(std::string backend_name, bool configurable_solver_type);
+    static const std::string s_backend_name;
+
+    PETScLevelSolverBlasLapackShellBackend() = default;
 
     const std::string& getName() const override;
     void initializeSolverState(const PETScLevelSolverShellBackendState& solver_state) override;
@@ -95,8 +96,6 @@ private:
     void copySubdomainCorrection(std::size_t subdomain_num, PetscScalar* correction_values) override;
 
     std::unique_ptr<Data> d_data;
-    std::string d_backend_name;
-    bool d_configurable_solver_type = false;
     SubdomainSolverType d_subdomain_solver_type = SubdomainSolverType::LU;
     PetscReal d_subdomain_solver_rcond = -1.0;
 };
