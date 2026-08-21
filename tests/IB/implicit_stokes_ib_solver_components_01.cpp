@@ -65,6 +65,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <string>
 #include <vector>
@@ -83,6 +84,163 @@ struct StructureSpec
     double y_radius = 0.2;
     double spring_stiffness = 2.0e2;
     int finest_ln = 0;
+};
+
+// This opt-in diagnostic follows the rank-one pressure-CAV fixture in its production patch order. Reconstructing each
+// residual from the live level operator independently checks the incremental update used by the smoother.
+struct LocalSolveDiagnostics
+{
+    Mat level_operator = nullptr;
+    const std::vector<std::vector<int>>* patch_dofs = nullptr;
+    Vec sweep_rhs = nullptr;
+    Vec accumulated_correction = nullptr;
+    Vec fresh_residual = nullptr;
+    Vec residual_difference = nullptr;
+    std::size_t expected_ordinal = 0;
+    int sweep_count = 0;
+    int solve_count = 0;
+    double max_backward_error = 0.0;
+    double max_incremental_fresh_error = 0.0;
+    double max_local_rhs_error = 0.0;
+    bool order_valid = true;
+    bool values_finite = true;
+
+    void initialize(Mat operator_mat, const std::vector<std::vector<int>>& patches)
+    {
+        level_operator = operator_mat;
+        patch_dofs = &patches;
+        PetscErrorCode ierr = MatCreateVecs(level_operator, &accumulated_correction, &sweep_rhs);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(sweep_rhs, &fresh_residual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(sweep_rhs, &residual_difference);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    void observe(const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source)
+    {
+        TBOX_ASSERT(level_operator);
+        TBOX_ASSERT(patch_dofs);
+        TBOX_ASSERT(!patch_dofs->empty());
+        TBOX_ASSERT(ordinal >= 0 && static_cast<std::size_t>(ordinal) < patch_dofs->size());
+
+        PetscErrorCode ierr = 0;
+        if (ordinal == 0)
+        {
+            order_valid = order_valid && expected_ordinal == 0;
+            expected_ordinal = 0;
+            ++sweep_count;
+            ierr = VecCopy(current_global_source, sweep_rhs);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecZeroEntries(accumulated_correction);
+            IBTK_CHKERRQ(ierr);
+        }
+        order_valid = order_valid && static_cast<std::size_t>(ordinal) == expected_ordinal;
+
+        ierr = MatMult(level_operator, accumulated_correction, fresh_residual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAYPX(fresh_residual, -1.0, sweep_rhs);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(current_global_source, residual_difference);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(residual_difference, -1.0, fresh_residual);
+        IBTK_CHKERRQ(ierr);
+        double difference_inf = 0.0;
+        double incremental_inf = 0.0;
+        double fresh_inf = 0.0;
+        ierr = VecNorm(residual_difference, NORM_INFINITY, &difference_inf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(current_global_source, NORM_INFINITY, &incremental_inf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(fresh_residual, NORM_INFINITY, &fresh_inf);
+        IBTK_CHKERRQ(ierr);
+        const double incremental_fresh_error = difference_inf / std::max({ 1.0, incremental_inf, fresh_inf });
+        max_incremental_fresh_error = std::max(max_incremental_fresh_error, incremental_fresh_error);
+
+        const std::vector<int>& dofs = (*patch_dofs)[static_cast<std::size_t>(ordinal)];
+        std::vector<PetscInt> petsc_dofs(dofs.begin(), dofs.end());
+        std::vector<PetscScalar> restricted_source(dofs.size());
+        ierr = VecGetValues(current_global_source,
+                            static_cast<PetscInt>(petsc_dofs.size()),
+                            petsc_dofs.data(),
+                            restricted_source.data());
+        IBTK_CHKERRQ(ierr);
+        const PetscScalar* local_rhs_values = nullptr;
+        ierr = VecGetArrayRead(local_rhs, &local_rhs_values);
+        IBTK_CHKERRQ(ierr);
+        for (std::size_t k = 0; k < dofs.size(); ++k)
+        {
+            max_local_rhs_error = std::max(
+                max_local_rhs_error, static_cast<double>(PetscAbsScalar(restricted_source[k] - local_rhs_values[k])));
+        }
+        ierr = VecRestoreArrayRead(local_rhs, &local_rhs_values);
+        IBTK_CHKERRQ(ierr);
+
+        Vec local_defect = nullptr;
+        ierr = VecDuplicate(local_rhs, &local_defect);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(local_matrix, local_solution, local_defect);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAYPX(local_defect, -1.0, local_rhs);
+        IBTK_CHKERRQ(ierr);
+        double matrix_inf = 0.0;
+        double solution_inf = 0.0;
+        double rhs_inf = 0.0;
+        double defect_inf = 0.0;
+        ierr = MatNorm(local_matrix, NORM_INFINITY, &matrix_inf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(local_solution, NORM_INFINITY, &solution_inf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(local_rhs, NORM_INFINITY, &rhs_inf);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecNorm(local_defect, NORM_INFINITY, &defect_inf);
+        IBTK_CHKERRQ(ierr);
+        const double backward_error = defect_inf / (matrix_inf * solution_inf + rhs_inf + 1.0e-30);
+        max_backward_error = std::max(max_backward_error, backward_error);
+        values_finite = values_finite && std::isfinite(incremental_fresh_error) && std::isfinite(backward_error) &&
+                        std::isfinite(max_local_rhs_error);
+        ierr = VecDestroy(&local_defect);
+        IBTK_CHKERRQ(ierr);
+
+        const PetscScalar* local_solution_values = nullptr;
+        ierr = VecGetArrayRead(local_solution, &local_solution_values);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecSetValues(accumulated_correction,
+                            static_cast<PetscInt>(petsc_dofs.size()),
+                            petsc_dofs.data(),
+                            local_solution_values,
+                            ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(local_solution, &local_solution_values);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(accumulated_correction);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(accumulated_correction);
+        IBTK_CHKERRQ(ierr);
+
+        ++solve_count;
+        expected_ordinal = (static_cast<std::size_t>(ordinal) + 1) % patch_dofs->size();
+    }
+
+    bool complete() const
+    {
+        return patch_dofs && sweep_count > 0 && expected_ordinal == 0 &&
+               solve_count == sweep_count * static_cast<int>(patch_dofs->size());
+    }
+
+    void deallocate()
+    {
+        PetscErrorCode ierr = VecDestroy(&residual_difference);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&fresh_residual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&accumulated_correction);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&sweep_rhs);
+        IBTK_CHKERRQ(ierr);
+        level_operator = nullptr;
+        patch_dofs = nullptr;
+    }
 };
 
 void
@@ -234,6 +392,9 @@ main(int argc, char* argv[])
         const bool verify_fgmres_physical_residuals = input_db->keyExists("VERIFY_FGMRES_PHYSICAL_RESIDUALS") ?
                                                           input_db->getBool("VERIFY_FGMRES_PHYSICAL_RESIDUALS") :
                                                           false;
+        const bool verify_fgmres_local_diagnostics = input_db->keyExists("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") ?
+                                                         input_db->getBool("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") :
+                                                         false;
         StructureSpec structure_spec;
         structure_spec.ds = input_db->getDoubleWithDefault("DS", 1.0 / 64.0);
         structure_spec.x_center = input_db->getDoubleWithDefault("X_CENTER", 0.5);
@@ -835,6 +996,7 @@ main(int argc, char* argv[])
         Pointer<SAMRAIVectorReal<NDIM, double>> linear_sol = eul_sol_vec->cloneVector("linear_sol");
         linear_sol->allocateVectorData();
         linear_sol->setToScalar(0.0);
+        LocalSolveDiagnostics local_solve_diagnostics;
         if (verify_fgmres_physical_residuals)
         {
             linear_solver->initializeSolverState(*linear_sol, *jv);
@@ -842,7 +1004,45 @@ main(int argc, char* argv[])
             PetscErrorCode ierr = KSPSetResidualHistory(linear_solver->getPETScKSP(), nullptr, 201, PETSC_TRUE);
             IBTK_CHKERRQ(ierr);
         }
+        if (verify_fgmres_local_diagnostics)
+        {
+            if (!verify_fgmres_physical_residuals || !pressure_cav_level_solver)
+            {
+                TBOX_ERROR("FGMRES local diagnostics require the pressure-CAV physical-residual case\n");
+            }
+            Mat level_operator = nullptr;
+            PetscErrorCode ierr = KSPGetOperators(pressure_cav_level_solver->getPETScKSP(), &level_operator, nullptr);
+            IBTK_CHKERRQ(ierr);
+            local_solve_diagnostics.initialize(level_operator, pressure_cav_level_solver->getASMSubdomains());
+            pressure_cav_level_solver->setShellSubdomainSolveObserver(
+                [&](const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source) {
+                    local_solve_diagnostics.observe(
+                        ordinal, local_matrix, local_rhs, local_solution, current_global_source);
+                });
+        }
         const bool linear_success = linear_solver->solveSystem(*linear_sol, *jv);
+        if (verify_fgmres_local_diagnostics)
+        {
+            pressure_cav_level_solver->setShellSubdomainSolveObserver({});
+            const double local_diagnostic_tol = input_db->getDouble("FGMRES_LOCAL_DIAGNOSTIC_TOL");
+            const bool local_diagnostics_valid =
+                local_solve_diagnostics.complete() && local_solve_diagnostics.order_valid &&
+                local_solve_diagnostics.values_finite &&
+                local_solve_diagnostics.max_backward_error <= local_diagnostic_tol &&
+                local_solve_diagnostics.max_incremental_fresh_error <= local_diagnostic_tol &&
+                local_solve_diagnostics.max_local_rhs_error <= local_diagnostic_tol;
+            if (!local_diagnostics_valid) ++test_failures;
+            pout << std::setprecision(16);
+            pout << "fgmres_local_sweep_count = " << local_solve_diagnostics.sweep_count << std::endl;
+            pout << "fgmres_local_solve_count = " << local_solve_diagnostics.solve_count << std::endl;
+            pout << "fgmres_local_backward_error_max = " << local_solve_diagnostics.max_backward_error << std::endl;
+            pout << "fgmres_incremental_fresh_error_max = " << local_solve_diagnostics.max_incremental_fresh_error
+                 << std::endl;
+            pout << "fgmres_local_rhs_error_max = " << local_solve_diagnostics.max_local_rhs_error << std::endl;
+            pout << "fgmres_local_diagnostics_valid = " << (local_diagnostics_valid ? "true" : "false") << std::endl;
+            pout << std::setprecision(6);
+            local_solve_diagnostics.deallocate();
+        }
         if (!linear_success)
         {
             ++test_failures;
@@ -875,6 +1075,10 @@ main(int argc, char* argv[])
             PetscErrorCode ierr = KSPGetType(linear_solver->getPETScKSP(), &ksp_type);
             IBTK_CHKERRQ(ierr);
             const bool fgmres_type_valid = ksp_type && std::string(ksp_type) == KSPFGMRES;
+            KSPConvergedReason converged_reason = KSP_CONVERGED_ITERATING;
+            ierr = KSPGetConvergedReason(linear_solver->getPETScKSP(), &converged_reason);
+            IBTK_CHKERRQ(ierr);
+            const bool fgmres_converged = converged_reason > 0;
 
             const PetscReal* residual_history = nullptr;
             PetscInt residual_history_size = 0;
@@ -1009,13 +1213,29 @@ main(int argc, char* argv[])
                                                  original_relative_residual <= original_relative_residual_tol;
             const bool ib_coupling_residual_valid = std::isfinite(ib_coupling_relative_residual) &&
                                                     ib_coupling_relative_residual <= ib_coupling_relative_residual_tol;
-            if (!fgmres_type_valid || !fgmres_history_valid || !original_residual_valid || !ib_coupling_residual_valid)
+            if (!fgmres_type_valid || !fgmres_converged || !fgmres_history_valid || !original_residual_valid ||
+                !ib_coupling_residual_valid)
             {
                 ++test_failures;
             }
 
             pout << "fgmres_type_valid = " << (fgmres_type_valid ? "true" : "false") << std::endl;
+            pout << "fgmres_converged_reason = " << static_cast<int>(converged_reason) << std::endl;
+            pout << "fgmres_converged = " << (fgmres_converged ? "true" : "false") << std::endl;
             pout << "fgmres_residual_history_size = " << residual_history_size << std::endl;
+            pout << std::setprecision(16);
+            for (PetscInt k = 0; k < residual_history_size; ++k)
+            {
+                pout << "fgmres_residual_history_" << k << " = " << residual_history[k] << std::endl;
+            }
+            pout << "physical_stiffness = " << structure_spec.spring_stiffness * structure_spec.ds << std::endl;
+            pout << "original_rhs_l2 = " << rhs_norm << std::endl;
+            pout << "original_rhs_momentum_l2 = " << rhs_momentum_norm << std::endl;
+            pout << "original_rhs_divergence_l2 = " << rhs_divergence_norm << std::endl;
+            pout << "original_residual_l2 = " << original_residual_norm << std::endl;
+            pout << "ib_matrix_free_action_l2 = " << ib_matrix_free_action_norm << std::endl;
+            pout << "ib_saj_action_l2 = " << ib_saj_action_norm << std::endl;
+            pout << std::setprecision(6);
             pout << "fgmres_history_final_relative = " << fgmres_history_final_relative << std::endl;
             pout << "fgmres_history_valid = " << (fgmres_history_valid ? "true" : "false") << std::endl;
             pout << "original_momentum_residual_l2 = " << momentum_residual_norm << std::endl;
