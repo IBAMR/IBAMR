@@ -35,6 +35,7 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
@@ -69,6 +70,8 @@
 #include <limits>
 #include <string>
 #include <vector>
+
+#include "../navier_stokes/cav_raw_operator_comparator.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -775,6 +778,11 @@ main(int argc, char* argv[])
             input_db->keyExists("VERIFY_PRESSURE_CAV") ? input_db->getBool("VERIFY_PRESSURE_CAV") : false;
         const bool verify_fac_cycle_observer =
             input_db->keyExists("VERIFY_FAC_CYCLE_OBSERVER") ? input_db->getBool("VERIFY_FAC_CYCLE_OBSERVER") : false;
+        const bool verify_cav_live_export_schema = input_db->keyExists("VERIFY_CAV_LIVE_EXPORT_SCHEMA") ?
+                                                       input_db->getBool("VERIFY_CAV_LIVE_EXPORT_SCHEMA") :
+                                                       false;
+        if (verify_cav_live_export_schema && !verify_pressure_cav)
+            TBOX_ERROR("The CAV live-export schema check requires VERIFY_PRESSURE_CAV = TRUE\n");
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         if (verify_pressure_cav)
@@ -807,6 +815,101 @@ main(int argc, char* argv[])
             pout << "pressure_cav_partition_absent = " << (partition_absent ? "true" : "false") << std::endl;
         }
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
+        if (verify_cav_live_export_schema)
+        {
+            using namespace IBAMR::TestSupport;
+            const auto live_view = pressure_cav_level_solver->getLiveOperatorStateView();
+            const auto& pressure_seeds = pressure_cav_level_solver->getCouplingAwareASMPressureSeedDOFs();
+            const auto& overlap_dofs = pressure_cav_level_solver->getASMSubdomains();
+            const auto& nonoverlap_dofs = pressure_cav_level_solver->getASMNonoverlapSubdomains();
+            const std::string prefix = "cav_live_export_contract";
+
+            writeCAVRawMatrixMarket(live_view.operator_mat, prefix + "_A.mtx");
+            writeCAVRawMatrixMarket(SAJ, prefix + "_E_h.mtx");
+            const CAVRawDofMapData dof_map =
+                captureCAVRawDofMap(patch_hierarchy->getPatchLevel(finest_ln), u_dof_index_idx, p_dof_index_idx);
+            writeCAVRawDofMap(dof_map, prefix + "_dof_map.txt");
+            writeCAVRawIndexList(pressure_seeds, prefix + "_pressure_seeds.txt");
+            writeCAVRawIndexSets(overlap_dofs, prefix + "_patches.txt");
+            writeCAVRawIndexSets(nonoverlap_dofs, prefix + "_nonoverlap.txt");
+
+            Pointer<Database> level_solver_db = stokes_ib_precond_db->getDatabase("level_solver_db");
+            if (level_solver_db->getString("shell_pc_type") != "multiplicative-blas-lapack" ||
+                level_solver_db->getString("blas_lapack_subdomain_solver_type") != "lu" ||
+                level_solver_db->getString("coupling_aware_asm_patch_seed_type") != "PRESSURE_CELL")
+            {
+                TBOX_ERROR("The native live-export contract requires pressure-cell multiplicative BLAS/LAPACK LU\n");
+            }
+            CAVLiveExportManifest manifest;
+            manifest.candidate_sha = "0123456789abcdef0123456789abcdef01234567";
+            manifest.oracle_sha = "5b77344db6746269f8c77695c99e9043907ba74b";
+            manifest.case_id = "native-live-construction-export";
+            manifest.mpi_ranks = IBTK_MPI::getNodes();
+            manifest.pressure_equation = "minus-div";
+            manifest.pressure_equation_row_multiplier_to_oracle = -1.0;
+            manifest.pressure_gauge = "zero-mean-correction";
+            manifest.patch_seed_type = "PRESSURE_CELL";
+            manifest.closure_policy = level_solver_db->getString("coupling_aware_asm_closure_policy");
+            manifest.seed_stride = level_solver_db->getInteger("coupling_aware_asm_seed_stride");
+            manifest.traversal_order = level_solver_db->getString("coupling_aware_asm_seed_traversal_order");
+            manifest.composition = "multiplicative";
+            manifest.local_solver_backend = "blas-lapack-lu";
+            writeCAVLiveExportManifest(manifest, prefix + "_manifest.txt");
+
+            const bool operator_round_trip =
+                sameCAVRawMatrixMarket(live_view.operator_mat, readCAVRawMatrixMarket(prefix + "_A.mtx"));
+            const bool elasticity_round_trip = sameCAVRawMatrixMarket(SAJ, readCAVRawMatrixMarket(prefix + "_E_h.mtx"));
+            const bool dof_map_round_trip = sameCAVRawDofMap(dof_map, readCAVRawDofMap(prefix + "_dof_map.txt"));
+            const bool pressure_seed_round_trip = pressure_seeds == readCAVRawIndexList(prefix + "_pressure_seeds.txt");
+            const bool patch_round_trip = overlap_dofs == readCAVRawIndexSets(prefix + "_patches.txt");
+            const bool nonoverlap_round_trip = nonoverlap_dofs == readCAVRawIndexSets(prefix + "_nonoverlap.txt");
+            const bool manifest_round_trip =
+                sameCAVLiveExportManifest(manifest, readCAVLiveExportManifest(prefix + "_manifest.txt"));
+
+            bool mutations_detected = !dof_map.dofs.empty() && pressure_seeds.size() >= 2 && !overlap_dofs.empty() &&
+                                      !overlap_dofs.front().empty() && !nonoverlap_dofs.empty();
+            if (mutations_detected)
+            {
+                CAVRawMatrixMarketData omitted_operator_entry = readCAVRawMatrixMarket(prefix + "_A.mtx");
+                mutations_detected = !omitted_operator_entry.entries.empty();
+                if (mutations_detected)
+                {
+                    omitted_operator_entry.entries.pop_back();
+                    CAVRawDofMapData altered_dof_map = dof_map;
+                    altered_dof_map.dofs.front().axis = altered_dof_map.dofs.front().axis == 0 ? 1 : 0;
+                    std::vector<int> reordered_seeds = pressure_seeds;
+                    std::swap(reordered_seeds[0], reordered_seeds[1]);
+                    std::vector<std::vector<int>> omitted_patch_dof = overlap_dofs;
+                    omitted_patch_dof.front().pop_back();
+                    std::vector<std::vector<int>> altered_nonoverlap = nonoverlap_dofs;
+                    altered_nonoverlap.front().push_back(pressure_seeds.front());
+                    CAVLiveExportManifest altered_manifest = manifest;
+                    altered_manifest.pressure_equation_row_multiplier_to_oracle = 1.0;
+                    mutations_detected = !sameCAVRawMatrixMarket(live_view.operator_mat, omitted_operator_entry) &&
+                                         !sameCAVRawDofMap(dof_map, altered_dof_map) &&
+                                         reordered_seeds != pressure_seeds && omitted_patch_dof != overlap_dofs &&
+                                         altered_nonoverlap != nonoverlap_dofs &&
+                                         !sameCAVLiveExportManifest(manifest, altered_manifest);
+                }
+            }
+
+            if (!operator_round_trip || !elasticity_round_trip || !dof_map_round_trip || !pressure_seed_round_trip ||
+                !patch_round_trip || !nonoverlap_round_trip || !manifest_round_trip || !mutations_detected)
+            {
+                ++test_failures;
+            }
+            pout << "cav_live_export_operator_round_trip = " << (operator_round_trip ? "true" : "false") << std::endl;
+            pout << "cav_live_export_elasticity_round_trip = " << (elasticity_round_trip ? "true" : "false")
+                 << std::endl;
+            pout << "cav_live_export_dof_map_round_trip = " << (dof_map_round_trip ? "true" : "false") << std::endl;
+            pout << "cav_live_export_pressure_seed_round_trip = " << (pressure_seed_round_trip ? "true" : "false")
+                 << std::endl;
+            pout << "cav_live_export_patch_round_trip = " << (patch_round_trip ? "true" : "false") << std::endl;
+            pout << "cav_live_export_nonoverlap_round_trip = " << (nonoverlap_round_trip ? "true" : "false")
+                 << std::endl;
+            pout << "cav_live_export_manifest_round_trip = " << (manifest_round_trip ? "true" : "false") << std::endl;
+            pout << "cav_live_export_mutations_detected = " << (mutations_detected ? "true" : "false") << std::endl;
+        }
         jac_op->setIBCouplingJacobian(SAJ);
 
         using CycleStage = IBTK::FACPreconditioner::CycleStage;

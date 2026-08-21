@@ -227,6 +227,8 @@ SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
+TARGET_SOURCES(tests-IB_implicit_stokes_ib_solver_components_01
+  PRIVATE navier_stokes/cav_raw_operator_comparator.cpp)
 SETUP(IB implicit_stokes_ib_coarse_saj_transfer_parity_01.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)

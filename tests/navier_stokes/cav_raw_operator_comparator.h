@@ -60,6 +60,20 @@ struct CAVRawMatrixEntry
     double value = 0.0;
 };
 
+struct CAVRawMatrixMarketData
+{
+    PetscInt nrows = 0;
+    PetscInt ncols = 0;
+    std::vector<CAVRawMatrixEntry> entries;
+};
+
+struct CAVRawDofMapData
+{
+    int dimension = NDIM;
+    PetscInt size = 0;
+    std::vector<CAVRawDofRecord> dofs;
+};
+
 struct CAVRawOperatorBundle
 {
     int dimension = NDIM;
@@ -70,6 +84,25 @@ struct CAVRawOperatorBundle
     std::vector<double> equation_values;
     std::vector<double> state_values;
     std::vector<PetscInt> ordered_dofs;
+};
+
+struct CAVLiveExportManifest
+{
+    std::string candidate_sha;
+    bool candidate_dirty = false;
+    std::string oracle_sha;
+    std::string case_id;
+    int dimension = NDIM;
+    int mpi_ranks = 1;
+    std::string pressure_equation;
+    double pressure_equation_row_multiplier_to_oracle = 1.0;
+    std::string pressure_gauge;
+    std::string patch_seed_type;
+    std::string closure_policy;
+    int seed_stride = 1;
+    std::string traversal_order;
+    std::string composition;
+    std::string local_solver_backend;
 };
 
 struct CAVRawMappingSpec
@@ -123,9 +156,45 @@ CAVRawOperatorBundle captureCAVRawOperatorBundle(const StaggeredStokesPETScLevel
                                                  Vec equation_values = nullptr,
                                                  Vec state_values = nullptr);
 
+CAVRawDofMapData captureCAVRawDofMap(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level,
+                                     int u_dof_index_idx,
+                                     int p_dof_index_idx);
+
+void writeCAVRawDofMap(const CAVRawDofMapData& dof_map, const std::string& filename);
+
+CAVRawDofMapData readCAVRawDofMap(const std::string& filename);
+
+bool sameCAVRawDofMap(const CAVRawDofMapData& lhs, const CAVRawDofMapData& rhs);
+
 void writeCAVRawOperatorBundle(const CAVRawOperatorBundle& bundle, const std::string& prefix);
 
 CAVRawOperatorBundle readCAVRawOperatorBundle(const std::string& prefix);
+
+void writeCAVRawMatrixMarket(Mat matrix, const std::string& filename);
+
+CAVRawMatrixMarketData readCAVRawMatrixMarket(const std::string& filename);
+
+bool sameCAVRawMatrixMarket(Mat matrix, const CAVRawMatrixMarketData& data);
+
+void writeCAVRawVectorMarket(Vec vector, const std::string& filename);
+
+std::vector<double> readCAVRawVectorMarket(const std::string& filename);
+
+bool sameCAVRawVectorMarket(Vec vector, const std::vector<double>& values);
+
+void writeCAVRawIndexList(const std::vector<int>& indices, const std::string& filename);
+
+std::vector<int> readCAVRawIndexList(const std::string& filename);
+
+void writeCAVRawIndexSets(const std::vector<std::vector<int>>& index_sets, const std::string& filename);
+
+std::vector<std::vector<int>> readCAVRawIndexSets(const std::string& filename);
+
+void writeCAVLiveExportManifest(const CAVLiveExportManifest& manifest, const std::string& filename);
+
+CAVLiveExportManifest readCAVLiveExportManifest(const std::string& filename);
+
+bool sameCAVLiveExportManifest(const CAVLiveExportManifest& lhs, const CAVLiveExportManifest& rhs);
 
 CAVRawComparison compareCAVRawOperatorBundles(const CAVRawOperatorBundle& candidate,
                                               const CAVRawOperatorBundle& reference,

@@ -24,6 +24,7 @@
 #include <SideIndex.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -73,20 +74,54 @@ find_dof_record(const CAVRawOperatorBundle& bundle, const PetscInt dof)
 }
 
 bool
-valid_dof_records(const CAVRawOperatorBundle& bundle)
+valid_dof_records(const int dimension, const PetscInt size, const std::vector<CAVRawDofRecord>& records)
 {
-    if (bundle.dimension != NDIM || bundle.nrows != bundle.ncols || bundle.nrows < 0 ||
-        bundle.dofs.size() != static_cast<std::size_t>(bundle.nrows))
+    if (dimension != NDIM || size < 0 || records.size() != static_cast<std::size_t>(size))
     {
         return false;
     }
-    std::vector<bool> found(static_cast<std::size_t>(bundle.nrows), false);
-    for (const CAVRawDofRecord& record : bundle.dofs)
+    std::vector<bool> found(static_cast<std::size_t>(size), false);
+    for (const CAVRawDofRecord& record : records)
     {
-        if (record.dof < 0 || record.dof >= bundle.nrows || found[static_cast<std::size_t>(record.dof)]) return false;
+        if (record.dof < 0 || record.dof >= size || found[static_cast<std::size_t>(record.dof)]) return false;
         found[static_cast<std::size_t>(record.dof)] = true;
     }
     return std::all_of(found.begin(), found.end(), [](const bool value) { return value; });
+}
+
+bool
+same_dof_record(const CAVRawDofRecord& lhs, const CAVRawDofRecord& rhs)
+{
+    return lhs.dof == rhs.dof && lhs.kind == rhs.kind && lhs.axis == rhs.axis && lhs.index == rhs.index &&
+           lhs.position == rhs.position;
+}
+
+bool
+valid_git_sha(const std::string& value)
+{
+    return value.size() == 40 &&
+           std::all_of(
+               value.begin(), value.end(), [](const unsigned char character) { return std::isxdigit(character) != 0; });
+}
+
+bool
+valid_manifest_token(const std::string& value)
+{
+    return !value.empty() && std::none_of(value.begin(),
+                                          value.end(),
+                                          [](const unsigned char character) { return std::isspace(character) != 0; });
+}
+
+bool
+valid_live_export_manifest(const CAVLiveExportManifest& manifest)
+{
+    return valid_git_sha(manifest.candidate_sha) && valid_git_sha(manifest.oracle_sha) &&
+           valid_manifest_token(manifest.case_id) && manifest.dimension == NDIM && manifest.mpi_ranks > 0 &&
+           manifest.pressure_equation == "minus-div" && manifest.pressure_equation_row_multiplier_to_oracle == -1.0 &&
+           manifest.pressure_gauge == "zero-mean-correction" && valid_manifest_token(manifest.patch_seed_type) &&
+           (manifest.closure_policy == "RELAXED" || manifest.closure_policy == "STRICT") && manifest.seed_stride > 0 &&
+           valid_manifest_token(manifest.traversal_order) && valid_manifest_token(manifest.composition) &&
+           valid_manifest_token(manifest.local_solver_backend);
 }
 
 EntryMap
@@ -129,7 +164,10 @@ build_candidate_to_reference_map(const CAVRawOperatorBundle& candidate,
                                  const CAVRawOperatorBundle& reference,
                                  const double coordinate_tolerance)
 {
-    if (!valid_dof_records(candidate) || !valid_dof_records(reference) || candidate.nrows != reference.nrows) return {};
+    if (candidate.nrows != candidate.ncols || reference.nrows != reference.ncols ||
+        !valid_dof_records(candidate.dimension, candidate.nrows, candidate.dofs) ||
+        !valid_dof_records(reference.dimension, reference.nrows, reference.dofs) || candidate.nrows != reference.nrows)
+        return {};
 
     std::vector<PetscInt> candidate_to_reference(static_cast<std::size_t>(candidate.nrows), -1);
     std::set<PetscInt> used_reference_dofs;
@@ -290,46 +328,11 @@ shift_state(CAVRawOperatorBundle& bundle, const CAVRawDofKind kind, const double
 }
 } // namespace
 
-CAVRawOperatorBundle
-captureCAVRawOperatorBundle(const StaggeredStokesPETScLevelSolver::LiveOperatorStateView& view,
-                            Pointer<PatchLevel<NDIM>> level,
-                            const int u_dof_index_idx,
-                            const int p_dof_index_idx,
-                            Vec equation_values,
-                            Vec state_values)
+CAVRawDofMapData
+captureCAVRawDofMap(Pointer<PatchLevel<NDIM>> level, const int u_dof_index_idx, const int p_dof_index_idx)
 {
-    // Export directly from the borrowed live matrix and the level's global velocity-pressure numbering. The
-    // production matrix is never duplicated or translated into subdomain-local algebraic indices here.
-    if (IBTK_MPI::getNodes() != 1) throw std::runtime_error("raw operator export currently requires one MPI rank");
-    if (!view.initialized || !view.operator_mat || !view.locally_owned_velocity_dofs ||
-        !view.locally_owned_pressure_dofs || !level)
-    {
-        throw std::runtime_error("raw operator export requires an initialized live operator view");
-    }
-
-    CAVRawOperatorBundle bundle;
-    int ierr = MatGetSize(view.operator_mat, &bundle.nrows, &bundle.ncols);
-    IBTK_CHKERRQ(ierr);
-    PetscInt first_row = 0, one_past_row = 0;
-    ierr = MatGetOwnershipRange(view.operator_mat, &first_row, &one_past_row);
-    IBTK_CHKERRQ(ierr);
-    if (first_row != 0 || one_past_row != bundle.nrows)
-        throw std::runtime_error("serial raw operator export does not own every matrix row");
-
-    for (PetscInt row = 0; row < bundle.nrows; ++row)
-    {
-        PetscInt ncols = 0;
-        const PetscInt* columns = nullptr;
-        const PetscScalar* values = nullptr;
-        ierr = MatGetRow(view.operator_mat, row, &ncols, &columns, &values);
-        IBTK_CHKERRQ(ierr);
-        for (PetscInt k = 0; k < ncols; ++k)
-        {
-            bundle.matrix_entries.push_back({ row, columns[k], static_cast<double>(PetscRealPart(values[k])) });
-        }
-        ierr = MatRestoreRow(view.operator_mat, row, &ncols, &columns, &values);
-        IBTK_CHKERRQ(ierr);
-    }
+    if (IBTK_MPI::getNodes() != 1) throw std::runtime_error("raw DOF-map export currently requires one MPI rank");
+    if (!level) throw std::runtime_error("raw DOF-map export requires a patch level");
 
     std::map<PetscInt, CAVRawDofRecord> records;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -382,8 +385,60 @@ captureCAVRawOperatorBundle(const StaggeredStokesPETScLevelSolver::LiveOperatorS
             records.emplace(dof, record);
         }
     }
-    for (const auto& record : records) bundle.dofs.push_back(record.second);
-    if (!valid_dof_records(bundle)) throw std::runtime_error("raw operator export found an invalid global DOF map");
+
+    CAVRawDofMapData dof_map;
+    if (!records.empty()) dof_map.size = records.rbegin()->first + 1;
+    for (const auto& record : records) dof_map.dofs.push_back(record.second);
+    if (!valid_dof_records(dof_map.dimension, dof_map.size, dof_map.dofs))
+        throw std::runtime_error("raw DOF-map export found an invalid global DOF map");
+    return dof_map;
+}
+
+CAVRawOperatorBundle
+captureCAVRawOperatorBundle(const StaggeredStokesPETScLevelSolver::LiveOperatorStateView& view,
+                            Pointer<PatchLevel<NDIM>> level,
+                            const int u_dof_index_idx,
+                            const int p_dof_index_idx,
+                            Vec equation_values,
+                            Vec state_values)
+{
+    // Export directly from the borrowed live matrix and the level's global velocity-pressure numbering. The
+    // production matrix is never duplicated or translated into subdomain-local algebraic indices here.
+    if (IBTK_MPI::getNodes() != 1) throw std::runtime_error("raw operator export currently requires one MPI rank");
+    if (!view.initialized || !view.operator_mat || !view.locally_owned_velocity_dofs ||
+        !view.locally_owned_pressure_dofs || !level)
+    {
+        throw std::runtime_error("raw operator export requires an initialized live operator view");
+    }
+
+    CAVRawOperatorBundle bundle;
+    int ierr = MatGetSize(view.operator_mat, &bundle.nrows, &bundle.ncols);
+    IBTK_CHKERRQ(ierr);
+    PetscInt first_row = 0, one_past_row = 0;
+    ierr = MatGetOwnershipRange(view.operator_mat, &first_row, &one_past_row);
+    IBTK_CHKERRQ(ierr);
+    if (first_row != 0 || one_past_row != bundle.nrows)
+        throw std::runtime_error("serial raw operator export does not own every matrix row");
+
+    for (PetscInt row = 0; row < bundle.nrows; ++row)
+    {
+        PetscInt ncols = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(view.operator_mat, row, &ncols, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < ncols; ++k)
+        {
+            bundle.matrix_entries.push_back({ row, columns[k], static_cast<double>(PetscRealPart(values[k])) });
+        }
+        ierr = MatRestoreRow(view.operator_mat, row, &ncols, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const CAVRawDofMapData dof_map = captureCAVRawDofMap(level, u_dof_index_idx, p_dof_index_idx);
+    if (dof_map.size != bundle.nrows)
+        throw std::runtime_error("raw operator export found a DOF-map/operator size mismatch");
+    bundle.dofs = dof_map.dofs;
 
     const auto copy_vec = [&](Vec vec, std::vector<double>& destination)
     {
@@ -405,6 +460,372 @@ captureCAVRawOperatorBundle(const StaggeredStokesPETScLevelSolver::LiveOperatorS
     bundle.ordered_dofs.reserve(bundle.dofs.size());
     for (const CAVRawDofRecord& record : bundle.dofs) bundle.ordered_dofs.push_back(record.dof);
     return bundle;
+}
+
+void
+writeCAVRawDofMap(const CAVRawDofMapData& dof_map, const std::string& filename)
+{
+    if (!valid_dof_records(dof_map.dimension, dof_map.size, dof_map.dofs))
+        throw std::runtime_error("invalid raw DOF map");
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-global-dof-map-v1 " << dof_map.dimension << " " << dof_map.size << "\n";
+    for (const CAVRawDofRecord& record : dof_map.dofs)
+    {
+        out << record.dof << " " << (record.kind == CAVRawDofKind::VELOCITY ? "V" : "P") << " " << record.axis;
+        for (const int index : record.index) out << " " << index;
+        for (const double position : record.position) out << " " << position;
+        out << "\n";
+    }
+}
+
+CAVRawDofMapData
+readCAVRawDofMap(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    CAVRawDofMapData dof_map;
+    in >> schema >> dof_map.dimension >> dof_map.size;
+    if (!in || schema != "ibamr-cav-global-dof-map-v1" || dof_map.size < 0)
+        throw std::runtime_error("invalid raw DOF-map metadata");
+    dof_map.dofs.resize(static_cast<std::size_t>(dof_map.size));
+    for (CAVRawDofRecord& record : dof_map.dofs)
+    {
+        std::string kind;
+        in >> record.dof >> kind >> record.axis;
+        if (kind == "V")
+            record.kind = CAVRawDofKind::VELOCITY;
+        else if (kind == "P")
+            record.kind = CAVRawDofKind::PRESSURE;
+        else
+            throw std::runtime_error("invalid raw DOF-map kind");
+        for (int& index : record.index) in >> index;
+        for (double& position : record.position) in >> position;
+    }
+    if (!in || !valid_dof_records(dof_map.dimension, dof_map.size, dof_map.dofs))
+        throw std::runtime_error("invalid raw DOF-map values");
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing raw DOF-map data");
+    return dof_map;
+}
+
+bool
+sameCAVRawDofMap(const CAVRawDofMapData& lhs, const CAVRawDofMapData& rhs)
+{
+    return lhs.dimension == rhs.dimension && lhs.size == rhs.size && lhs.dofs.size() == rhs.dofs.size() &&
+           std::equal(lhs.dofs.begin(), lhs.dofs.end(), rhs.dofs.begin(), same_dof_record);
+}
+
+void
+writeCAVRawMatrixMarket(Mat matrix, const std::string& filename)
+{
+    if (!matrix) throw std::runtime_error("raw MatrixMarket export requires a live matrix");
+    if (IBTK_MPI::getNodes() != 1) throw std::runtime_error("raw MatrixMarket export currently requires one MPI rank");
+
+    PetscInt nrows = 0, ncols = 0, first_row = 0, one_past_row = 0;
+    int ierr = MatGetSize(matrix, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(matrix, &first_row, &one_past_row);
+    IBTK_CHKERRQ(ierr);
+    if (first_row != 0 || one_past_row != nrows)
+        throw std::runtime_error("serial raw MatrixMarket export does not own every matrix row");
+
+    // MatrixMarket places the entry count before the entries. Walk the borrowed matrix twice so export does not
+    // materialize another matrix or an entry-sized staging buffer.
+    PetscInt stored_entries = 0;
+    for (PetscInt row = 0; row < nrows; ++row)
+    {
+        PetscInt row_entries = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        stored_entries += row_entries;
+        ierr = MatRestoreRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    std::ofstream out = open_output(filename);
+    out << "%%MatrixMarket matrix coordinate real general\n";
+    out << nrows << " " << ncols << " " << stored_entries << "\n";
+    for (PetscInt row = 0; row < nrows; ++row)
+    {
+        PetscInt row_entries = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < row_entries; ++k)
+        {
+            out << row + 1 << " " << columns[k] + 1 << " " << PetscRealPart(values[k]) << "\n";
+        }
+        ierr = MatRestoreRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+CAVRawMatrixMarketData
+readCAVRawMatrixMarket(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string header;
+    std::getline(in, header);
+    if (header != "%%MatrixMarket matrix coordinate real general")
+        throw std::runtime_error("invalid raw MatrixMarket matrix header");
+
+    CAVRawMatrixMarketData data;
+    std::size_t count = 0;
+    in >> data.nrows >> data.ncols >> count;
+    if (!in || data.nrows < 0 || data.ncols < 0) throw std::runtime_error("invalid raw MatrixMarket matrix size");
+    data.entries.resize(count);
+    for (CAVRawMatrixEntry& entry : data.entries)
+    {
+        in >> entry.row >> entry.column >> entry.value;
+        --entry.row;
+        --entry.column;
+        if (entry.row < 0 || entry.row >= data.nrows || entry.column < 0 || entry.column >= data.ncols)
+            throw std::runtime_error("invalid raw MatrixMarket matrix entry");
+    }
+    if (!in) throw std::runtime_error("invalid raw MatrixMarket matrix");
+    return data;
+}
+
+bool
+sameCAVRawMatrixMarket(Mat matrix, const CAVRawMatrixMarketData& data)
+{
+    if (!matrix || IBTK_MPI::getNodes() != 1) return false;
+    PetscInt nrows = 0, ncols = 0;
+    int ierr = MatGetSize(matrix, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+    if (data.nrows != nrows || data.ncols != ncols) return false;
+
+    std::size_t entry = 0;
+    for (PetscInt row = 0; row < nrows; ++row)
+    {
+        PetscInt row_entries = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < row_entries; ++k, ++entry)
+        {
+            if (entry >= data.entries.size() || data.entries[entry].row != row ||
+                data.entries[entry].column != columns[k] || data.entries[entry].value != PetscRealPart(values[k]))
+            {
+                ierr = MatRestoreRow(matrix, row, &row_entries, &columns, &values);
+                IBTK_CHKERRQ(ierr);
+                return false;
+            }
+        }
+        ierr = MatRestoreRow(matrix, row, &row_entries, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+    return entry == data.entries.size();
+}
+
+void
+writeCAVRawVectorMarket(Vec vector, const std::string& filename)
+{
+    if (!vector) throw std::runtime_error("raw MatrixMarket export requires a live vector");
+    PetscInt size = 0, local_size = 0;
+    int ierr = VecGetSize(vector, &size);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetLocalSize(vector, &local_size);
+    IBTK_CHKERRQ(ierr);
+    if (size != local_size) throw std::runtime_error("raw MatrixMarket vector export currently requires one MPI rank");
+
+    const PetscScalar* values = nullptr;
+    ierr = VecGetArrayRead(vector, &values);
+    IBTK_CHKERRQ(ierr);
+    std::ofstream out = open_output(filename);
+    out << "%%MatrixMarket matrix array real general\n";
+    out << size << " 1\n";
+    for (PetscInt k = 0; k < size; ++k) out << PetscRealPart(values[k]) << "\n";
+    ierr = VecRestoreArrayRead(vector, &values);
+    IBTK_CHKERRQ(ierr);
+}
+
+std::vector<double>
+readCAVRawVectorMarket(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string header;
+    std::getline(in, header);
+    if (header != "%%MatrixMarket matrix array real general")
+        throw std::runtime_error("invalid raw MatrixMarket vector header");
+    PetscInt size = 0, columns = 0;
+    in >> size >> columns;
+    if (size < 0 || columns != 1) throw std::runtime_error("invalid raw MatrixMarket vector size");
+    std::vector<double> values(static_cast<std::size_t>(size));
+    for (double& value : values) in >> value;
+    if (!in) throw std::runtime_error("invalid raw MatrixMarket vector");
+    return values;
+}
+
+bool
+sameCAVRawVectorMarket(Vec vector, const std::vector<double>& values)
+{
+    if (!vector || IBTK_MPI::getNodes() != 1) return false;
+    PetscInt size = 0;
+    int ierr = VecGetSize(vector, &size);
+    IBTK_CHKERRQ(ierr);
+    if (values.size() != static_cast<std::size_t>(size)) return false;
+    const PetscScalar* live_values = nullptr;
+    ierr = VecGetArrayRead(vector, &live_values);
+    IBTK_CHKERRQ(ierr);
+    const bool same = std::equal(values.begin(),
+                                 values.end(),
+                                 live_values,
+                                 [](const double lhs, const PetscScalar rhs) { return lhs == PetscRealPart(rhs); });
+    ierr = VecRestoreArrayRead(vector, &live_values);
+    IBTK_CHKERRQ(ierr);
+    return same;
+}
+
+void
+writeCAVRawIndexList(const std::vector<int>& indices, const std::string& filename)
+{
+    if (std::any_of(indices.begin(), indices.end(), [](const int index) { return index < 0; }))
+        throw std::runtime_error("invalid raw index list");
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-index-list-v1 " << indices.size() << "\n";
+    for (const int index : indices) out << index << "\n";
+}
+
+std::vector<int>
+readCAVRawIndexList(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::size_t count = 0;
+    in >> schema >> count;
+    if (!in || schema != "ibamr-cav-index-list-v1") throw std::runtime_error("invalid raw index-list metadata");
+    std::vector<int> indices(count);
+    for (int& index : indices) in >> index;
+    if (!in || std::any_of(indices.begin(), indices.end(), [](const int index) { return index < 0; }))
+        throw std::runtime_error("invalid raw index-list values");
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing raw index-list data");
+    return indices;
+}
+
+void
+writeCAVRawIndexSets(const std::vector<std::vector<int>>& index_sets, const std::string& filename)
+{
+    for (const std::vector<int>& index_set : index_sets)
+    {
+        if (std::any_of(index_set.begin(), index_set.end(), [](const int index) { return index < 0; }))
+            throw std::runtime_error("invalid raw index set");
+    }
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-index-sets-v1 " << index_sets.size() << "\n";
+    for (std::size_t ordinal = 0; ordinal < index_sets.size(); ++ordinal)
+    {
+        out << ordinal << " " << index_sets[ordinal].size();
+        for (const int index : index_sets[ordinal]) out << " " << index;
+        out << "\n";
+    }
+}
+
+std::vector<std::vector<int>>
+readCAVRawIndexSets(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::size_t count = 0;
+    in >> schema >> count;
+    if (!in || schema != "ibamr-cav-index-sets-v1") throw std::runtime_error("invalid raw index-set metadata");
+    std::vector<std::vector<int>> index_sets(count);
+    for (std::size_t expected_ordinal = 0; expected_ordinal < count; ++expected_ordinal)
+    {
+        std::size_t ordinal = 0, size = 0;
+        in >> ordinal >> size;
+        if (!in || ordinal != expected_ordinal) throw std::runtime_error("invalid raw index-set ordinal");
+        index_sets[ordinal].resize(size);
+        for (int& index : index_sets[ordinal]) in >> index;
+        if (!in || std::any_of(index_sets[ordinal].begin(),
+                               index_sets[ordinal].end(),
+                               [](const int index) { return index < 0; }))
+            throw std::runtime_error("invalid raw index-set values");
+    }
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing raw index-set data");
+    return index_sets;
+}
+
+void
+writeCAVLiveExportManifest(const CAVLiveExportManifest& manifest, const std::string& filename)
+{
+    if (!valid_live_export_manifest(manifest)) throw std::runtime_error("invalid CAV live export manifest value");
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-live-export-v1\n";
+    out << "candidate_sha " << manifest.candidate_sha << "\n";
+    out << "candidate_dirty " << (manifest.candidate_dirty ? 1 : 0) << "\n";
+    out << "oracle_sha " << manifest.oracle_sha << "\n";
+    out << "case_id " << manifest.case_id << "\n";
+    out << "dimension " << manifest.dimension << "\n";
+    out << "mpi_ranks " << manifest.mpi_ranks << "\n";
+    out << "pressure_equation " << manifest.pressure_equation << "\n";
+    out << "pressure_equation_row_multiplier_to_oracle " << manifest.pressure_equation_row_multiplier_to_oracle << "\n";
+    out << "pressure_gauge " << manifest.pressure_gauge << "\n";
+    out << "patch_seed_type " << manifest.patch_seed_type << "\n";
+    out << "closure_policy " << manifest.closure_policy << "\n";
+    out << "seed_stride " << manifest.seed_stride << "\n";
+    out << "traversal_order " << manifest.traversal_order << "\n";
+    out << "composition " << manifest.composition << "\n";
+    out << "local_solver_backend " << manifest.local_solver_backend << "\n";
+}
+
+CAVLiveExportManifest
+readCAVLiveExportManifest(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::getline(in, schema);
+    if (schema != "ibamr-cav-live-export-v1") throw std::runtime_error("invalid CAV live export manifest schema");
+
+    CAVLiveExportManifest manifest;
+    const auto read_value = [&](const std::string& expected_key, auto& value)
+    {
+        std::string key;
+        in >> key >> value;
+        if (!in || key != expected_key) throw std::runtime_error("invalid CAV live export manifest field");
+    };
+    read_value("candidate_sha", manifest.candidate_sha);
+    int candidate_dirty = 0;
+    read_value("candidate_dirty", candidate_dirty);
+    if (candidate_dirty != 0 && candidate_dirty != 1)
+        throw std::runtime_error("invalid CAV live export dirty-state field");
+    manifest.candidate_dirty = candidate_dirty == 1;
+    read_value("oracle_sha", manifest.oracle_sha);
+    read_value("case_id", manifest.case_id);
+    read_value("dimension", manifest.dimension);
+    read_value("mpi_ranks", manifest.mpi_ranks);
+    read_value("pressure_equation", manifest.pressure_equation);
+    read_value("pressure_equation_row_multiplier_to_oracle", manifest.pressure_equation_row_multiplier_to_oracle);
+    read_value("pressure_gauge", manifest.pressure_gauge);
+    read_value("patch_seed_type", manifest.patch_seed_type);
+    read_value("closure_policy", manifest.closure_policy);
+    read_value("seed_stride", manifest.seed_stride);
+    read_value("traversal_order", manifest.traversal_order);
+    read_value("composition", manifest.composition);
+    read_value("local_solver_backend", manifest.local_solver_backend);
+    if (!valid_live_export_manifest(manifest)) throw std::runtime_error("invalid CAV live export manifest value");
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing CAV live export manifest data");
+    return manifest;
+}
+
+bool
+sameCAVLiveExportManifest(const CAVLiveExportManifest& lhs, const CAVLiveExportManifest& rhs)
+{
+    return lhs.candidate_sha == rhs.candidate_sha && lhs.candidate_dirty == rhs.candidate_dirty &&
+           lhs.oracle_sha == rhs.oracle_sha && lhs.case_id == rhs.case_id && lhs.dimension == rhs.dimension &&
+           lhs.mpi_ranks == rhs.mpi_ranks && lhs.pressure_equation == rhs.pressure_equation &&
+           lhs.pressure_equation_row_multiplier_to_oracle == rhs.pressure_equation_row_multiplier_to_oracle &&
+           lhs.pressure_gauge == rhs.pressure_gauge && lhs.patch_seed_type == rhs.patch_seed_type &&
+           lhs.closure_policy == rhs.closure_policy && lhs.seed_stride == rhs.seed_stride &&
+           lhs.traversal_order == rhs.traversal_order && lhs.composition == rhs.composition &&
+           lhs.local_solver_backend == rhs.local_solver_backend;
 }
 
 void

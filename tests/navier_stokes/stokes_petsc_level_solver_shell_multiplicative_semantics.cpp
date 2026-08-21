@@ -764,6 +764,11 @@ main(int argc, char* argv[])
         bool raw_export_round_trip = true;
         bool raw_export_global_dof_mapping = true;
         bool raw_export_pressure_row_minus_div = true;
+        bool raw_export_borrowed_matrix_round_trip = true;
+        bool raw_export_borrowed_vector_round_trip = true;
+        bool raw_export_manifest_round_trip = true;
+        bool raw_export_manifest_mutation_detected = true;
+        bool raw_export_invalid_provenance_rejected = true;
         double raw_export_matrix_max_abs_error = 0.0;
         if (verify_live_operator_state_view || verify_raw_export_comparator_contract)
         {
@@ -869,6 +874,57 @@ main(int argc, char* argv[])
                 raw_export_round_trip = raw_comparison.matched;
                 raw_export_matrix_max_abs_error = raw_comparison.matrix_max_abs_error;
 
+                const std::string borrowed_matrix_filename = "cav_raw_live_borrowed_matrix.mtx";
+                writeCAVRawMatrixMarket(view.operator_mat, borrowed_matrix_filename);
+                const CAVRawMatrixMarketData borrowed_matrix = readCAVRawMatrixMarket(borrowed_matrix_filename);
+                raw_export_borrowed_matrix_round_trip =
+                    borrowed_matrix.nrows == raw_bundle.nrows && borrowed_matrix.ncols == raw_bundle.ncols &&
+                    borrowed_matrix.entries.size() == raw_bundle.matrix_entries.size() &&
+                    std::equal(borrowed_matrix.entries.begin(),
+                               borrowed_matrix.entries.end(),
+                               raw_bundle.matrix_entries.begin(),
+                               [](const CAVRawMatrixEntry& lhs, const CAVRawMatrixEntry& rhs)
+                               { return lhs.row == rhs.row && lhs.column == rhs.column && lhs.value == rhs.value; });
+
+                const std::string borrowed_vector_filename = "cav_raw_live_borrowed_vector.mtx";
+                writeCAVRawVectorMarket(b_petsc, borrowed_vector_filename);
+                raw_export_borrowed_vector_round_trip =
+                    readCAVRawVectorMarket(borrowed_vector_filename) == raw_bundle.equation_values;
+
+                CAVLiveExportManifest manifest;
+                manifest.candidate_sha = "0123456789abcdef0123456789abcdef01234567";
+                manifest.candidate_dirty = false;
+                manifest.oracle_sha = "5b77344db6746269f8c77695c99e9043907ba74b";
+                manifest.case_id = "native-raw-export-contract";
+                manifest.dimension = NDIM;
+                manifest.mpi_ranks = IBTK_MPI::getNodes();
+                manifest.pressure_equation = "minus-div";
+                manifest.pressure_equation_row_multiplier_to_oracle = -1.0;
+                manifest.pressure_gauge = "zero-mean-correction";
+                manifest.patch_seed_type = "VELOCITY_COMPONENT";
+                manifest.closure_policy = closure_policy;
+                manifest.seed_stride = seed_stride;
+                manifest.traversal_order = "I_J";
+                manifest.composition = use_multiplicative ? "multiplicative" : "additive";
+                manifest.local_solver_backend = shell_pc_type;
+                const std::string manifest_filename = "cav_raw_live_manifest.txt";
+                writeCAVLiveExportManifest(manifest, manifest_filename);
+                const CAVLiveExportManifest reread_manifest = readCAVLiveExportManifest(manifest_filename);
+                raw_export_manifest_round_trip = sameCAVLiveExportManifest(manifest, reread_manifest);
+                CAVLiveExportManifest mutated_manifest = reread_manifest;
+                mutated_manifest.pressure_equation_row_multiplier_to_oracle = 1.0;
+                raw_export_manifest_mutation_detected = !sameCAVLiveExportManifest(manifest, mutated_manifest);
+                CAVLiveExportManifest invalid_manifest = reread_manifest;
+                invalid_manifest.candidate_sha = "not-a-sha";
+                try
+                {
+                    writeCAVLiveExportManifest(invalid_manifest, "cav_raw_invalid_manifest.txt");
+                    raw_export_invalid_provenance_rejected = false;
+                }
+                catch (const std::runtime_error&)
+                {
+                }
+
                 std::vector<PetscInt> exported_velocity_dofs;
                 std::vector<PetscInt> exported_pressure_dofs;
                 for (const CAVRawDofRecord& record : raw_bundle.dofs)
@@ -908,7 +964,10 @@ main(int argc, char* argv[])
                     getCAVRawMatrixValue(raw_bundle, pressure_dof, lower_y_dof) == 4.0 &&
                     getCAVRawMatrixValue(raw_bundle, pressure_dof, upper_y_dof) == -4.0;
 
-                if (!raw_export_round_trip || !raw_export_global_dof_mapping || !raw_export_pressure_row_minus_div)
+                if (!raw_export_round_trip || !raw_export_global_dof_mapping || !raw_export_pressure_row_minus_div ||
+                    !raw_export_borrowed_matrix_round_trip || !raw_export_borrowed_vector_round_trip ||
+                    !raw_export_manifest_round_trip || !raw_export_manifest_mutation_detected ||
+                    !raw_export_invalid_provenance_rejected)
                 {
                     ++test_failures;
                 }
@@ -1250,6 +1309,15 @@ main(int argc, char* argv[])
             pout << "raw_export_global_dof_mapping = " << (raw_export_global_dof_mapping ? "true" : "false") << "\n";
             pout << "raw_export_pressure_row_minus_div = " << (raw_export_pressure_row_minus_div ? "true" : "false")
                  << "\n";
+            pout << "raw_export_borrowed_matrix_round_trip = "
+                 << (raw_export_borrowed_matrix_round_trip ? "true" : "false") << "\n";
+            pout << "raw_export_borrowed_vector_round_trip = "
+                 << (raw_export_borrowed_vector_round_trip ? "true" : "false") << "\n";
+            pout << "raw_export_manifest_round_trip = " << (raw_export_manifest_round_trip ? "true" : "false") << "\n";
+            pout << "raw_export_manifest_mutation_detected = "
+                 << (raw_export_manifest_mutation_detected ? "true" : "false") << "\n";
+            pout << "raw_export_invalid_provenance_rejected = "
+                 << (raw_export_invalid_provenance_rejected ? "true" : "false") << "\n";
             pout << "raw_export_matrix_max_abs_error = " << raw_export_matrix_max_abs_error << "\n";
         }
     }
