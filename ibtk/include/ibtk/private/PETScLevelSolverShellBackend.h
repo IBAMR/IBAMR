@@ -106,6 +106,29 @@ public:
     void apply(Vec x, Vec y);
 
 protected:
+    /*!
+     * \brief Initialize and finalize the representation shared by all
+     * correction-composition backends.
+     *
+     * Concrete backends call initializeCorrectionCompositionState() before
+     * constructing their local solver data and
+     * finalizeCorrectionCompositionState() after the correction DOF views
+     * returned below are valid. The views and the live level matrix must
+     * remain valid until deallocateCorrectionCompositionState() is called.
+     * As with the backend's local solve data, operator reassembly requires
+     * solver-state reinitialization; borrowing live values avoids an update-
+     * matrix copy but does not relax that lifecycle invariant.
+     */
+    void initializeCorrectionCompositionState(const PETScLevelSolverShellBackendState& solver_state);
+    void finalizeCorrectionCompositionState();
+    void deallocateCorrectionCompositionState();
+
+    /*!
+     * \brief Return the original right-hand side for additive composition or
+     * the current original residual for multiplicative composition.
+     */
+    Vec getSubdomainResidualSource(Vec original_rhs) const;
+
     virtual std::size_t getNumberOfSubdomains() const = 0;
     virtual void initializeSubdomainSweep(Vec x, Vec y) = 0;
     virtual void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) = 0;
@@ -113,12 +136,48 @@ protected:
     virtual void solveSubdomain(std::size_t subdomain_num) = 0;
     virtual void observeSubdomainSolve(std::size_t subdomain_num, Vec x, Vec y);
     virtual void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) = 0;
-    virtual void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) = 0;
+    virtual const std::vector<int>& getSubdomainCorrectionDofs(std::size_t subdomain_num) const = 0;
+    virtual void copySubdomainCorrection(std::size_t subdomain_num, PetscScalar* correction_values) = 0;
     virtual void finalizeSubdomainSweep(Vec x, Vec y);
 
     bool shouldObserveSubdomainSolve(std::size_t subdomain_num) const;
 
     PETScLevelSolverShellBackendState d_solver_state;
+
+private:
+    struct ResidualUpdateEntry
+    {
+        PetscInt matrix_entry = -1;
+        PetscInt correction_entry = -1;
+    };
+
+    struct ResidualUpdateRow
+    {
+        PetscInt global_row = -1;
+        std::vector<ResidualUpdateEntry> entries;
+    };
+
+    struct SubdomainResidualUpdate
+    {
+        const std::vector<int>* correction_dofs = nullptr;
+        std::vector<ResidualUpdateRow> rows;
+    };
+
+    void initializeAffectedRowResidualUpdates();
+    void initializeFullResidualUpdateFallback();
+    void updateSubdomainResidual(std::size_t subdomain_num);
+    void updateAffectedResidualRows(std::size_t subdomain_num);
+    void updateFullResidualFallback(std::size_t subdomain_num);
+
+    Vec d_sweep_residual = nullptr;
+    Vec d_full_correction = nullptr;
+    Vec d_full_residual_update = nullptr;
+    PetscInt d_local_row_begin = 0;
+    PetscInt d_local_row_end = 0;
+    std::vector<SubdomainResidualUpdate> d_subdomain_residual_updates;
+    std::vector<PetscScalar> d_correction_values;
+    bool d_use_affected_row_updates = false;
+    bool d_correction_composition_initialized = false;
 };
 
 /*!

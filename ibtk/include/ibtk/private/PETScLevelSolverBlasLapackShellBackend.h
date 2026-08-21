@@ -29,9 +29,10 @@ namespace IBTK
  *
  * The backend borrows the full PETSc operator in global numbering and stores
  * one dense, column-major factor or solve representation per subdomain. The
- * unfactored local matrices are not retained. Multiplicative residual updates
- * use the borrowed operator and reusable global vectors, so the application
- * path does not copy the full operator or build update matrices.
+ * unfactored local matrices are not retained. The shared composer applies
+ * multiplicative residual updates through affected rows of the borrowed live
+ * operator, so this backend does not copy the full operator or build update
+ * matrices.
  *
  * The configurable backend name uses SVD by default and also supports LU,
  * symmetric-indefinite, and QR local solvers. The legacy fixed-LU name shares
@@ -70,9 +71,6 @@ private:
 
     struct Data
     {
-        Vec residual = nullptr;
-        Vec patch_correction = nullptr;
-        Vec residual_update = nullptr;
         PetscInt n_dofs = 0;
         std::vector<SubdomainData> subdomains;
     };
@@ -93,7 +91,8 @@ private:
     void solveSubdomain(std::size_t subdomain_num) override;
     void observeSubdomainSolve(std::size_t subdomain_num, Vec x, Vec y) override;
     void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
-    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+    const std::vector<int>& getSubdomainCorrectionDofs(std::size_t subdomain_num) const override;
+    void copySubdomainCorrection(std::size_t subdomain_num, PetscScalar* correction_values) override;
 
     std::unique_ptr<Data> d_data;
     std::string d_backend_name;

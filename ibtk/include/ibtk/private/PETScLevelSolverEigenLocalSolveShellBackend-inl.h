@@ -21,7 +21,7 @@ PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState(
     const PETScLevelSolverShellBackendState& solver_state)
 {
     checkSerialEigenShellBackend(solver_state, "PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState()");
-    setSolverState(solver_state);
+    initializeCorrectionCompositionState(solver_state);
     configureFromInputDatabase(getSolverState().input_db);
     initializeAdditionalSolverState();
     initializeCommonDataWithLocalOperatorHook(
@@ -32,9 +32,9 @@ PETScLevelSolverEigenLocalSolveShellBackend::initializeSolverState(
 inline void
 PETScLevelSolverEigenLocalSolveShellBackend::deallocateSolverState()
 {
+    deallocateCorrectionCompositionState();
     deallocateAdditionalSolverState();
     clearCommonData();
-    setSolverState(PETScLevelSolverShellBackendState());
 }
 
 inline void

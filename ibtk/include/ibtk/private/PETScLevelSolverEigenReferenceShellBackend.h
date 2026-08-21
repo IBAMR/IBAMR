@@ -22,9 +22,9 @@ namespace IBTK
  * \brief Reference multiplicative Eigen shell smoother backend for
  * PETScLevelSolver.
  *
- * This backend recomputes the global residual on each multiplicative step to
- * provide a simple reference implementation for validating the optimized
- * shell smoother backends.
+ * This backend retains the reference Eigen local factorization choices while
+ * using the same live-operator correction-composition path as every other
+ * backend.
  */
 class PETScLevelSolverEigenReferenceShellBackend : public PETScLevelSolverEigenFactorizedLocalSolveShellBackend
 {
@@ -36,13 +36,7 @@ public:
     const std::string& getName() const override;
 
 private:
-    void initializeAdditionalSolverState() override;
-    void deallocateAdditionalSolverState() override;
     void initializeSubdomainSweep(Vec x, Vec y) override;
-    void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
-    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
-
-    Eigen::SparseMatrix<double, Eigen::RowMajor> d_level_mat;
 };
 } // namespace IBTK
 

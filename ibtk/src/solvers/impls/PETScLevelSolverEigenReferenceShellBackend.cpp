@@ -47,22 +47,6 @@ PETScLevelSolverEigenReferenceShellBackend::getName() const
 }
 
 void
-PETScLevelSolverEigenReferenceShellBackend::initializeAdditionalSolverState()
-{
-    d_level_mat = copyPETScMatToEigenSparse(getSolverState().petsc_mat);
-    PETScLevelSolverEigenFactorizedLocalSolveShellBackend::initializeAdditionalSolverState();
-    return;
-}
-
-void
-PETScLevelSolverEigenReferenceShellBackend::deallocateAdditionalSolverState()
-{
-    PETScLevelSolverEigenFactorizedLocalSolveShellBackend::deallocateAdditionalSolverState();
-    d_level_mat.resize(0, 0);
-    return;
-}
-
-void
 PETScLevelSolverEigenReferenceShellBackend::initializeSubdomainSweep(Vec x, Vec y)
 {
     if (!d_solver_state.use_multiplicative)
@@ -72,23 +56,6 @@ PETScLevelSolverEigenReferenceShellBackend::initializeSubdomainSweep(Vec x, Vec 
                    << "  choose shell_pc_type = multiplicative-eigen-reference (-basic/-restrict optional).\n");
     }
     PETScLevelSolverEigenShellBackendBase::initializeSubdomainSweep(x, y);
-}
-
-void
-PETScLevelSolverEigenReferenceShellBackend::beginSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec y)
-{
-    const auto x_map =
-        Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_x_values), getNumDofs());
-    const auto y_map =
-        Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_y_values), getNumDofs());
-    d_sweep_residual = x_map - d_level_mat * y_map;
-    PETScLevelSolverEigenShellBackendBase::beginSubdomainRhs(subdomain_num, x, y);
-}
-
-void
-PETScLevelSolverEigenReferenceShellBackend::updateSubdomainResidual(std::size_t /*subdomain_num*/, Vec /*x*/, Vec /*y*/)
-{
-    // The reference backend recomputes the original residual before each patch.
 }
 
 } // namespace IBTK

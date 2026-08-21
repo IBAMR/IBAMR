@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/PETScLevelSolverShellBackend.h>
@@ -126,8 +127,14 @@ build_petsc_subdomain_index_sets(std::vector<IS>& subdomain_is,
 void
 PETScLevelSolverShellBackend::apply(Vec x, Vec y)
 {
+    TBOX_ASSERT(d_correction_composition_initialized);
     int ierr = VecZeroEntries(y);
     IBTK_CHKERRQ(ierr);
+    if (d_solver_state.use_multiplicative)
+    {
+        ierr = VecCopy(x, d_sweep_residual);
+        IBTK_CHKERRQ(ierr);
+    }
     initializeSubdomainSweep(x, y);
 
     const std::size_t n_subdomains = getNumberOfSubdomains();
@@ -155,12 +162,272 @@ PETScLevelSolverShellBackend::apply(Vec x, Vec y)
             solveSubdomain(subdomain_num);
             if (shouldObserveSubdomainSolve(subdomain_num)) observeSubdomainSolve(subdomain_num, x, y);
             accumulateSubdomainCorrection(subdomain_num, y);
-            if (subdomain_num + 1 < n_subdomains) updateSubdomainResidual(subdomain_num, x, y);
+            if (subdomain_num + 1 < n_subdomains) updateSubdomainResidual(subdomain_num);
         }
     }
 
     finalizeSubdomainSweep(x, y);
     d_solver_state.postprocess_result(y);
+}
+
+void
+PETScLevelSolverShellBackend::initializeCorrectionCompositionState(
+    const PETScLevelSolverShellBackendState& solver_state)
+{
+    TBOX_ASSERT(!d_correction_composition_initialized);
+    TBOX_ASSERT(!d_sweep_residual);
+    d_solver_state = solver_state;
+    if (d_solver_state.use_multiplicative)
+    {
+        const int ierr = VecDuplicate(d_solver_state.petsc_b, &d_sweep_residual);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+void
+PETScLevelSolverShellBackend::finalizeCorrectionCompositionState()
+{
+    TBOX_ASSERT(!d_correction_composition_initialized);
+    if (d_solver_state.use_multiplicative)
+    {
+        PetscBool has_get_row = PETSC_FALSE;
+        int ierr = MatHasOperation(d_solver_state.petsc_mat, MATOP_GET_ROW, &has_get_row);
+        IBTK_CHKERRQ(ierr);
+        d_use_affected_row_updates = IBTK_MPI::getNodes() == 1 && has_get_row;
+        if (d_use_affected_row_updates)
+            initializeAffectedRowResidualUpdates();
+        else
+            initializeFullResidualUpdateFallback();
+    }
+    d_correction_composition_initialized = true;
+}
+
+void
+PETScLevelSolverShellBackend::deallocateCorrectionCompositionState()
+{
+    int ierr;
+    if (d_full_residual_update)
+    {
+        ierr = VecDestroy(&d_full_residual_update);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (d_full_correction)
+    {
+        ierr = VecDestroy(&d_full_correction);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (d_sweep_residual)
+    {
+        ierr = VecDestroy(&d_sweep_residual);
+        IBTK_CHKERRQ(ierr);
+    }
+    d_subdomain_residual_updates.clear();
+    d_correction_values.clear();
+    d_local_row_begin = 0;
+    d_local_row_end = 0;
+    d_use_affected_row_updates = false;
+    d_correction_composition_initialized = false;
+    d_solver_state = PETScLevelSolverShellBackendState();
+}
+
+Vec
+PETScLevelSolverShellBackend::getSubdomainResidualSource(Vec original_rhs) const
+{
+    return d_solver_state.use_multiplicative ? d_sweep_residual : original_rhs;
+}
+
+void
+PETScLevelSolverShellBackend::initializeAffectedRowResidualUpdates()
+{
+    struct MatrixEntryLocation
+    {
+        PetscInt column;
+        PetscInt row;
+        PetscInt entry;
+    };
+
+    PetscInt n_rows = 0, n_columns = 0;
+    int ierr = MatGetSize(d_solver_state.petsc_mat, &n_rows, &n_columns);
+    IBTK_CHKERRQ(ierr);
+    if (n_rows != n_columns)
+    {
+        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                              << " multiplicative shell composition requires a square operator.\n");
+    }
+    ierr = MatGetOwnershipRange(d_solver_state.petsc_mat, &d_local_row_begin, &d_local_row_end);
+    IBTK_CHKERRQ(ierr);
+
+    // Build the column-to-row relation once, at setup. Only structural entry
+    // offsets are retained below; every application reads current values from
+    // the borrowed live level matrix.
+    std::vector<MatrixEntryLocation> column_entries;
+    column_entries.reserve(static_cast<std::size_t>(d_local_row_end - d_local_row_begin) * 16);
+    for (PetscInt row = d_local_row_begin; row < d_local_row_end; ++row)
+    {
+        PetscInt row_nnz = 0;
+        const PetscInt* columns = nullptr;
+        ierr = MatGetRow(d_solver_state.petsc_mat, row, &row_nnz, &columns, nullptr);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt entry = 0; entry < row_nnz; ++entry)
+        {
+            if (columns[entry] >= 0 && columns[entry] < n_columns)
+            {
+                column_entries.push_back({ columns[entry], row, entry });
+            }
+        }
+        ierr = MatRestoreRow(d_solver_state.petsc_mat, row, &row_nnz, &columns, nullptr);
+        IBTK_CHKERRQ(ierr);
+    }
+    std::sort(column_entries.begin(),
+              column_entries.end(),
+              [](const auto& lhs, const auto& rhs)
+              {
+                  if (lhs.column != rhs.column) return lhs.column < rhs.column;
+                  if (lhs.row != rhs.row) return lhs.row < rhs.row;
+                  return lhs.entry < rhs.entry;
+              });
+
+    const std::size_t n_subdomains = getNumberOfSubdomains();
+    d_subdomain_residual_updates.resize(n_subdomains);
+    std::size_t max_correction_size = 0;
+    for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+    {
+        auto& update = d_subdomain_residual_updates[subdomain_num];
+        update.correction_dofs = &getSubdomainCorrectionDofs(subdomain_num);
+        const auto& correction_dofs = *update.correction_dofs;
+        max_correction_size = std::max(max_correction_size, correction_dofs.size());
+        std::map<PetscInt, ResidualUpdateRow> rows;
+        std::set<int> unique_correction_dofs;
+        for (std::size_t correction_entry = 0; correction_entry < correction_dofs.size(); ++correction_entry)
+        {
+            const int correction_dof = correction_dofs[correction_entry];
+            if (correction_dof < 0 || correction_dof >= n_columns ||
+                !unique_correction_dofs.insert(correction_dof).second)
+            {
+                TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix << " subdomain "
+                                                      << subdomain_num << " has invalid or duplicate correction DOF "
+                                                      << correction_dof << ".\n");
+            }
+            const auto first =
+                std::lower_bound(column_entries.begin(),
+                                 column_entries.end(),
+                                 correction_dof,
+                                 [](const auto& location, const PetscInt column) { return location.column < column; });
+            const auto last =
+                std::upper_bound(first,
+                                 column_entries.end(),
+                                 correction_dof,
+                                 [](const PetscInt column, const auto& location) { return column < location.column; });
+            for (auto location = first; location != last; ++location)
+            {
+                auto& row = rows[location->row];
+                row.global_row = location->row;
+                row.entries.push_back({ location->entry, static_cast<PetscInt>(correction_entry) });
+            }
+        }
+        update.rows.reserve(rows.size());
+        for (auto& row_entry : rows)
+        {
+            auto& row = row_entry.second;
+            std::sort(row.entries.begin(),
+                      row.entries.end(),
+                      [](const auto& lhs, const auto& rhs) { return lhs.matrix_entry < rhs.matrix_entry; });
+            update.rows.push_back(std::move(row));
+        }
+    }
+    d_correction_values.resize(max_correction_size);
+}
+
+void
+PETScLevelSolverShellBackend::initializeFullResidualUpdateFallback()
+{
+    // MatGetRow is not a collective distributed sparse action: an update
+    // whose columns are owned here may affect rows on another rank. Retain one
+    // correctness-preserving global fallback for distributed matrices and
+    // uncommon matrix types without row access. The serial production CAV
+    // path uses the affected-row representation above.
+    int ierr = VecDuplicate(d_solver_state.petsc_x, &d_full_correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(d_solver_state.petsc_b, &d_full_residual_update);
+    IBTK_CHKERRQ(ierr);
+    const std::size_t n_subdomains = getNumberOfSubdomains();
+    d_subdomain_residual_updates.resize(n_subdomains);
+    std::size_t max_correction_size = 0;
+    for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+    {
+        auto& update = d_subdomain_residual_updates[subdomain_num];
+        update.correction_dofs = &getSubdomainCorrectionDofs(subdomain_num);
+        max_correction_size = std::max(max_correction_size, update.correction_dofs->size());
+    }
+    d_correction_values.resize(max_correction_size);
+}
+
+void
+PETScLevelSolverShellBackend::updateSubdomainResidual(const std::size_t subdomain_num)
+{
+    copySubdomainCorrection(subdomain_num, d_correction_values.data());
+    if (d_use_affected_row_updates)
+        updateAffectedResidualRows(subdomain_num);
+    else
+        updateFullResidualFallback(subdomain_num);
+}
+
+void
+PETScLevelSolverShellBackend::updateAffectedResidualRows(const std::size_t subdomain_num)
+{
+    const auto& update = d_subdomain_residual_updates[subdomain_num];
+    const auto& correction_dofs = *update.correction_dofs;
+    PetscScalar* residual_values = nullptr;
+    int ierr = VecGetArray(d_sweep_residual, &residual_values);
+    IBTK_CHKERRQ(ierr);
+    for (const auto& row : update.rows)
+    {
+        PetscInt row_nnz = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(d_solver_state.petsc_mat, row.global_row, &row_nnz, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        PetscScalar residual_update = 0.0;
+        for (const auto& entry : row.entries)
+        {
+            const PetscInt correction_dof = correction_dofs[static_cast<std::size_t>(entry.correction_entry)];
+            if (entry.matrix_entry >= row_nnz || columns[entry.matrix_entry] != correction_dof)
+            {
+                TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                                      << " level-operator sparsity changed without shell-backend "
+                                                         "reinitialization.");
+            }
+            residual_update +=
+                values[entry.matrix_entry] * d_correction_values[static_cast<std::size_t>(entry.correction_entry)];
+        }
+        residual_values[row.global_row - d_local_row_begin] -= residual_update;
+        ierr = MatRestoreRow(d_solver_state.petsc_mat, row.global_row, &row_nnz, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecRestoreArray(d_sweep_residual, &residual_values);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverShellBackend::updateFullResidualFallback(const std::size_t subdomain_num)
+{
+    const auto& correction_dofs = *d_subdomain_residual_updates[subdomain_num].correction_dofs;
+    int ierr = VecZeroEntries(d_full_correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSetValues(d_full_correction,
+                        static_cast<PetscInt>(correction_dofs.size()),
+                        correction_dofs.data(),
+                        d_correction_values.data(),
+                        INSERT_VALUES);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(d_full_correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(d_full_correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_solver_state.petsc_mat, d_full_correction, d_full_residual_update);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAXPY(d_sweep_residual, -1.0, d_full_residual_update);
+    IBTK_CHKERRQ(ierr);
 }
 
 void

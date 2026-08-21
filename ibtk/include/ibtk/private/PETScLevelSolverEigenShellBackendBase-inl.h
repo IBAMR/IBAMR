@@ -196,12 +196,9 @@ inline void
 PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook(
     InitializeSubdomainSolver initialize_subdomain_solver)
 {
-    const bool use_multiplicative = d_solver_state.use_multiplicative;
     const bool use_restrict_partition = d_solver_state.use_restrict_partition;
     const Eigen::SparseMatrix<double, Eigen::RowMajor> eigen_level_mat =
         copyPETScMatToEigenSparse(d_solver_state.petsc_mat);
-    Eigen::SparseMatrix<double> eigen_level_mat_transpose;
-    if (use_multiplicative) eigen_level_mat_transpose = eigen_level_mat.transpose();
     d_n_dofs = eigen_level_mat.rows();
     d_common_subdomains.clear();
     d_common_subdomains.resize(d_solver_state.subdomain_dofs->size());
@@ -260,44 +257,8 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
         }
         cache.rhs_workspace.resize(overlap_size);
         cache.delta_workspace.resize(overlap_size);
-
-        if (use_multiplicative)
-        {
-            const std::vector<int>& active_update_dofs = cache.update_dofs;
-            const int active_num_cols = static_cast<int>(active_update_dofs.size());
-            std::vector<Eigen::Triplet<double>> triplets;
-            std::unordered_map<int, int> row_map;
-            row_map.reserve(static_cast<std::size_t>(active_num_cols));
-            for (int local_col = 0; local_col < active_num_cols; ++local_col)
-            {
-                const int global_col = active_update_dofs[static_cast<std::size_t>(local_col)];
-                for (auto it = Eigen::SparseMatrix<double>::InnerIterator(eigen_level_mat_transpose, global_col); it;
-                     ++it)
-                {
-                    const int row = static_cast<int>(it.row());
-                    const auto row_it = row_map.find(row);
-                    int local_row = -1;
-                    if (row_it == row_map.end())
-                    {
-                        local_row = static_cast<int>(cache.active_residual_update_rows.size());
-                        cache.active_residual_update_rows.push_back(row);
-                        row_map.emplace(row, local_row);
-                    }
-                    else
-                    {
-                        local_row = row_it->second;
-                    }
-                    triplets.emplace_back(local_row, local_col, it.value());
-                }
-            }
-
-            cache.active_residual_update_mat.resize(static_cast<int>(cache.active_residual_update_rows.size()),
-                                                    active_num_cols);
-            cache.active_residual_update_mat.setFromTriplets(triplets.begin(), triplets.end());
-            cache.residual_input_workspace.resize(active_num_cols);
-            cache.residual_delta_workspace.resize(static_cast<Eigen::Index>(cache.active_residual_update_rows.size()));
-        }
     }
+    finalizeCorrectionCompositionState();
 }
 
 inline std::size_t
@@ -311,29 +272,27 @@ PETScLevelSolverEigenShellBackendBase::initializeSubdomainSweep(Vec x, Vec y)
 {
     TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
     TBOX_ASSERT(getNumDofs() > 0);
-    int ierr = VecGetArrayRead(x, &d_sweep_x_values);
+    const int ierr = VecGetArray(y, &d_sweep_y_values);
     IBTK_CHKERRQ(ierr);
-    ierr = VecGetArray(y, &d_sweep_y_values);
-    IBTK_CHKERRQ(ierr);
-    if (d_solver_state.use_multiplicative)
-    {
-        d_sweep_residual =
-            Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_x_values), getNumDofs());
-    }
 }
 
 inline void
-PETScLevelSolverEigenShellBackendBase::beginSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/)
+PETScLevelSolverEigenShellBackendBase::beginSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec /*y*/)
 {
     auto& cache = d_common_subdomains[subdomain_num];
-    const auto x_map =
-        Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_x_values), getNumDofs());
+    Vec source = getSubdomainResidualSource(x);
+    const PetscScalar* source_values = nullptr;
+    int ierr = VecGetArrayRead(source, &source_values);
+    IBTK_CHKERRQ(ierr);
+    const auto source_map =
+        Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(source_values), getNumDofs());
     std::size_t rhs_idx = 0;
     for (const int dof : cache.overlap_dofs)
     {
-        cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] =
-            d_solver_state.use_multiplicative ? d_sweep_residual[dof] : x_map[dof];
+        cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = source_map[dof];
     }
+    ierr = VecRestoreArrayRead(source, &source_values);
+    IBTK_CHKERRQ(ierr);
 }
 
 inline void
@@ -353,24 +312,19 @@ PETScLevelSolverEigenShellBackendBase::accumulateSubdomainCorrection(const std::
     }
 }
 
-inline void
-PETScLevelSolverEigenShellBackendBase::updateSubdomainResidual(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/)
+inline const std::vector<int>&
+PETScLevelSolverEigenShellBackendBase::getSubdomainCorrectionDofs(const std::size_t subdomain_num) const
 {
-    auto& cache = d_common_subdomains[subdomain_num];
-    if (cache.active_residual_update_mat.rows() == 0) return;
+    return d_common_subdomains[subdomain_num].update_dofs;
+}
 
-    std::size_t residual_input_idx = 0;
-    for (const int local_pos : cache.update_local_positions)
-    {
-        cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
-            cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
-    }
-    cache.residual_delta_workspace.noalias() = cache.active_residual_update_mat * cache.residual_input_workspace;
-    std::size_t row_idx = 0;
-    for (const int row : cache.active_residual_update_rows)
-    {
-        d_sweep_residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
-    }
+inline void
+PETScLevelSolverEigenShellBackendBase::copySubdomainCorrection(const std::size_t subdomain_num,
+                                                               PetscScalar* correction_values)
+{
+    const auto& cache = d_common_subdomains[subdomain_num];
+    for (std::size_t update_num = 0; update_num < cache.update_local_positions.size(); ++update_num)
+        correction_values[update_num] = cache.delta_workspace[cache.update_local_positions[update_num]];
 }
 
 inline void
@@ -378,10 +332,7 @@ PETScLevelSolverEigenShellBackendBase::finalizeSubdomainSweep(Vec x, Vec y)
 {
     int ierr = VecRestoreArray(y, &d_sweep_y_values);
     IBTK_CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(x, &d_sweep_x_values);
-    IBTK_CHKERRQ(ierr);
     d_sweep_y_values = nullptr;
-    d_sweep_x_values = nullptr;
 }
 } // namespace IBTK
 

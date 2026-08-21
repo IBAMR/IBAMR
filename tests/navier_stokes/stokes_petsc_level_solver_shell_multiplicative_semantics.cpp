@@ -57,6 +57,40 @@
 
 namespace
 {
+struct RowAccessMatrixContext
+{
+    std::vector<std::vector<PetscInt>> columns;
+    std::vector<std::vector<PetscScalar>> values;
+    std::size_t get_row_calls = 0;
+};
+
+PetscErrorCode
+get_row_from_test_matrix(Mat mat,
+                         const PetscInt row,
+                         PetscInt* n_columns,
+                         const PetscInt** columns,
+                         const PetscScalar** values)
+{
+    RowAccessMatrixContext* context = nullptr;
+    PetscErrorCode ierr = MatShellGetContext(mat, &context);
+    CHKERRQ(ierr);
+    ++context->get_row_calls;
+    *n_columns = static_cast<PetscInt>(context->columns[static_cast<std::size_t>(row)].size());
+    *columns = context->columns[static_cast<std::size_t>(row)].data();
+    if (values) *values = context->values[static_cast<std::size_t>(row)].data();
+    return PETSC_SUCCESS;
+}
+
+PetscErrorCode
+restore_row_from_test_matrix(Mat /*mat*/,
+                             PetscInt /*row*/,
+                             PetscInt* /*n_columns*/,
+                             const PetscInt** /*columns*/,
+                             const PetscScalar** /*values*/)
+{
+    return PETSC_SUCCESS;
+}
+
 class RecordingShellBackend : public IBTK::PETScLevelSolverShellBackend
 {
 public:
@@ -68,17 +102,23 @@ public:
 
     void initializeSolverState(const IBTK::PETScLevelSolverShellBackendState& solver_state) override
     {
-        d_solver_state = solver_state;
+        initializeCorrectionCompositionState(solver_state);
+        finalizeCorrectionCompositionState();
     }
 
     void deallocateSolverState() override
     {
-        d_solver_state = IBTK::PETScLevelSolverShellBackendState();
+        deallocateCorrectionCompositionState();
     }
 
     const std::vector<std::string>& getEvents() const
     {
         return d_events;
+    }
+
+    const std::vector<PetscScalar>& getRhsSamples() const
+    {
+        return d_rhs_samples;
     }
 
     void recordEvent(std::string event)
@@ -97,9 +137,14 @@ protected:
         d_events.push_back("initialize");
     }
 
-    void beginSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    void beginSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec /*y*/) override
     {
         d_events.push_back("begin" + std::to_string(subdomain_num));
+        const PetscInt dof = (*d_solver_state.subdomain_dofs)[subdomain_num].front();
+        PetscScalar value = 0.0;
+        const int ierr = VecGetValues(getSubdomainResidualSource(x), 1, &dof, &value);
+        IBTK_CHKERRQ(ierr);
+        d_rhs_samples.push_back(value);
     }
 
     void endSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
@@ -117,14 +162,28 @@ protected:
         d_events.push_back("observe" + std::to_string(subdomain_num));
     }
 
-    void accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec /*y*/) override
+    void accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec y) override
     {
         d_events.push_back("accumulate" + std::to_string(subdomain_num));
+        const auto& dofs = (*d_solver_state.subdomain_dofs)[subdomain_num];
+        std::vector<PetscScalar> values(dofs.size(), 1.0);
+        int ierr = VecSetValues(y, static_cast<PetscInt>(dofs.size()), dofs.data(), values.data(), ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(y);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(y);
+        IBTK_CHKERRQ(ierr);
     }
 
-    void updateSubdomainResidual(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    const std::vector<int>& getSubdomainCorrectionDofs(const std::size_t subdomain_num) const override
+    {
+        return (*d_solver_state.subdomain_dofs)[subdomain_num];
+    }
+
+    void copySubdomainCorrection(const std::size_t subdomain_num, PetscScalar* correction_values) override
     {
         d_events.push_back("update" + std::to_string(subdomain_num));
+        std::fill_n(correction_values, (*d_solver_state.subdomain_dofs)[subdomain_num].size(), 1.0);
     }
 
     void finalizeSubdomainSweep(Vec /*x*/, Vec /*y*/) override
@@ -134,21 +193,13 @@ protected:
 
 private:
     std::vector<std::string> d_events;
+    std::vector<PetscScalar> d_rhs_samples;
 };
 
 bool
 verify_shared_composition_driver(const bool use_multiplicative, std::size_t& event_count)
 {
     RecordingShellBackend backend;
-    IBTK::PETScLevelSolverShellBackendState solver_state;
-    solver_state.use_multiplicative = use_multiplicative;
-    std::function<void(int, Mat, Vec, Vec, Vec)> observer = [](int, Mat, Vec, Vec, Vec) {};
-    std::function<bool(int)> predicate = [](const int subdomain_num) { return subdomain_num != 1; };
-    solver_state.subdomain_solve_observer = &observer;
-    solver_state.subdomain_solve_observer_predicate = &predicate;
-    solver_state.postprocess_result = [&backend](Vec) { backend.recordEvent("postprocess"); };
-    backend.initializeSolverState(solver_state);
-
     Vec x = nullptr, y = nullptr;
     int ierr = VecCreateSeq(PETSC_COMM_SELF, 1, &x);
     IBTK_CHKERRQ(ierr);
@@ -156,7 +207,37 @@ verify_shared_composition_driver(const bool use_multiplicative, std::size_t& eve
     IBTK_CHKERRQ(ierr);
     ierr = VecSet(x, 1.0);
     IBTK_CHKERRQ(ierr);
+    Mat mat = nullptr;
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, 1, 1, 1, nullptr, &mat);
+    IBTK_CHKERRQ(ierr);
+    const PetscInt row = 0;
+    const PetscScalar value = 1.0;
+    ierr = MatSetValue(mat, row, row, value, INSERT_VALUES);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+
+    const std::vector<std::vector<int>> subdomains = { { 0 }, { 0 }, { 0 } };
+    IBTK::PETScLevelSolverShellBackendState solver_state;
+    solver_state.use_multiplicative = use_multiplicative;
+    solver_state.petsc_mat = mat;
+    solver_state.petsc_x = x;
+    solver_state.petsc_b = x;
+    solver_state.subdomain_dofs = &subdomains;
+    solver_state.nonoverlap_subdomain_dofs = &subdomains;
+    std::function<void(int, Mat, Vec, Vec, Vec)> observer = [](int, Mat, Vec, Vec, Vec) {};
+    std::function<bool(int)> predicate = [](const int subdomain_num) { return subdomain_num != 1; };
+    solver_state.subdomain_solve_observer = &observer;
+    solver_state.subdomain_solve_observer_predicate = &predicate;
+    solver_state.postprocess_result = [&backend](Vec) { backend.recordEvent("postprocess"); };
+    backend.initializeSolverState(solver_state);
+
     backend.apply(x, y);
+    backend.deallocateSolverState();
+    ierr = MatDestroy(&mat);
+    IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&y);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&x);
@@ -173,6 +254,82 @@ verify_shared_composition_driver(const bool use_multiplicative, std::size_t& eve
                                                              "accumulate2", "finalize",    "postprocess" };
     event_count = backend.getEvents().size();
     return backend.getEvents() == (use_multiplicative ? multiplicative_events : additive_events);
+}
+
+bool
+verify_affected_row_residual_update(std::size_t& row_visits,
+                                    bool& stagewise_residual_valid,
+                                    const bool invalidate_pattern = false)
+{
+    RowAccessMatrixContext context;
+    context.columns = { { 0, 1 }, { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3 } };
+    context.values = { { 9.0, 9.0 }, { 9.0, 9.0, 9.0 }, { 9.0, 9.0, 9.0 }, { 9.0, 9.0 } };
+    const std::vector<std::vector<PetscScalar>> live_values = {
+        { 2.0, -1.0 }, { -1.0, 2.0, -1.0 }, { -1.0, 2.0, -1.0 }, { -1.0, 2.0 }
+    };
+    Mat mat = nullptr;
+    int ierr = MatCreateShell(PETSC_COMM_SELF, 4, 4, 4, 4, &context, &mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(mat, MATOP_GET_ROW, reinterpret_cast<void (*)(void)>(get_row_from_test_matrix));
+    IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(mat, MATOP_RESTORE_ROW, reinterpret_cast<void (*)(void)>(restore_row_from_test_matrix));
+    IBTK_CHKERRQ(ierr);
+
+    Vec x = nullptr, y = nullptr;
+    ierr = VecCreateSeq(PETSC_COMM_SELF, 4, &x);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(x, &y);
+    IBTK_CHKERRQ(ierr);
+    const PetscInt indices[] = { 0, 1, 2, 3 };
+    const PetscScalar x_values[] = { 10.0, 20.0, 30.0, 40.0 };
+    ierr = VecSetValues(x, 4, indices, x_values, INSERT_VALUES);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(x);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(x);
+    IBTK_CHKERRQ(ierr);
+
+    const std::vector<std::vector<int>> subdomains = { { 0 }, { 1 }, { 2 } };
+    IBTK::PETScLevelSolverShellBackendState solver_state;
+    solver_state.object_name = "affected_row_test";
+    solver_state.options_prefix = "affected_row_";
+    solver_state.use_multiplicative = true;
+    solver_state.petsc_mat = mat;
+    solver_state.petsc_x = x;
+    solver_state.petsc_b = x;
+    solver_state.subdomain_dofs = &subdomains;
+    solver_state.nonoverlap_subdomain_dofs = &subdomains;
+    solver_state.postprocess_result = [](Vec) {};
+
+    RecordingShellBackend backend;
+    backend.initializeSolverState(solver_state);
+    // The setup values are deliberately wrong: the isolated composition
+    // check succeeds only when application reads values from the borrowed
+    // matrix instead of a copied update matrix. Production operators still
+    // require complete solver reinitialization after reassembly.
+    context.values = live_values;
+    if (invalidate_pattern) std::swap(context.columns[0][0], context.columns[0][1]);
+    context.get_row_calls = 0;
+    backend.apply(x, y);
+    row_visits = context.get_row_calls;
+
+    const std::vector<PetscScalar> expected_rhs = { 10.0, 21.0, 31.0 };
+    stagewise_residual_valid = backend.getRhsSamples() == expected_rhs;
+    const PetscScalar* y_values = nullptr;
+    ierr = VecGetArrayRead(y, &y_values);
+    IBTK_CHKERRQ(ierr);
+    const bool correction_valid = y_values[0] == 1.0 && y_values[1] == 1.0 && y_values[2] == 1.0 && y_values[3] == 0.0;
+    ierr = VecRestoreArrayRead(y, &y_values);
+    IBTK_CHKERRQ(ierr);
+
+    backend.deallocateSolverState();
+    ierr = VecDestroy(&y);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&x);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&mat);
+    IBTK_CHKERRQ(ierr);
+    return row_visits == 5 && stagewise_residual_valid && correction_valid;
 }
 
 class TestableStaggeredStokesPETScLevelSolver : public IBAMR::StaggeredStokesPETScLevelSolver
@@ -421,6 +578,8 @@ main(int argc, char* argv[])
     const bool verify_stagewise_original_residual =
         test_db->getBoolWithDefault("verify_stagewise_original_residual", false);
     const bool verify_shared_composition = test_db->getBoolWithDefault("verify_shared_composition_driver", false);
+    const bool verify_affected_row_invalidation_failure =
+        test_db->getBoolWithDefault("verify_affected_row_invalidation_failure", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
     const bool verify_raw_export_comparator_contract =
         test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
@@ -461,13 +620,25 @@ main(int argc, char* argv[])
     }
 
     int test_failures = 0;
+    if (verify_affected_row_invalidation_failure)
+    {
+        std::size_t ignored_row_visits = 0;
+        bool ignored_stagewise_residual_valid = false;
+        verify_affected_row_residual_update(ignored_row_visits, ignored_stagewise_residual_valid, true);
+        ++test_failures;
+    }
     bool shared_additive_order_valid = true, shared_multiplicative_order_valid = true;
+    bool affected_row_update_valid = true, affected_row_stagewise_residual_valid = true;
     std::size_t shared_additive_event_count = 0, shared_multiplicative_event_count = 0;
+    std::size_t affected_row_update_row_visits = 0;
     if (verify_shared_composition)
     {
         shared_additive_order_valid = verify_shared_composition_driver(false, shared_additive_event_count);
         shared_multiplicative_order_valid = verify_shared_composition_driver(true, shared_multiplicative_event_count);
-        if (!shared_additive_order_valid || !shared_multiplicative_order_valid) ++test_failures;
+        affected_row_update_valid =
+            verify_affected_row_residual_update(affected_row_update_row_visits, affected_row_stagewise_residual_valid);
+        if (!shared_additive_order_valid || !shared_multiplicative_order_valid || !affected_row_update_valid)
+            ++test_failures;
     }
 
     const auto hierarchy_tuple = setup_hierarchy<NDIM>(app_initializer);
@@ -1106,6 +1277,10 @@ main(int argc, char* argv[])
         pout << "shared_multiplicative_event_count = " << shared_multiplicative_event_count << "\n";
         pout << "shared_multiplicative_order_valid = " << (shared_multiplicative_order_valid ? "true" : "false")
              << "\n";
+        pout << "affected_row_update_row_visits = " << affected_row_update_row_visits << "\n";
+        pout << "affected_row_stagewise_residual_valid = " << (affected_row_stagewise_residual_valid ? "true" : "false")
+             << "\n";
+        pout << "affected_row_update_valid = " << (affected_row_update_valid ? "true" : "false") << "\n";
     }
     pout << "shell_pc_type = " << (has_shell_pc_type ? shell_pc_type : std::string("<default>")) << "\n";
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";

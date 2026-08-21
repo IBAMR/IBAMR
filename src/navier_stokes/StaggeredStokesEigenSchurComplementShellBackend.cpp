@@ -124,7 +124,7 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
 {
     checkSerialEigenShellBackend(solver_state,
                                  "StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState()");
-    setSolverState(solver_state);
+    initializeCorrectionCompositionState(solver_state);
     configureFromInputDatabase(d_solver_state.input_db);
     const std::size_t n_subdomains = d_solver_state.subdomain_dofs->size();
     if (d_subdomain_caches.size() != n_subdomains)
@@ -208,10 +208,10 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
 void
 StaggeredStokesEigenSchurComplementShellBackend::deallocateSolverState()
 {
+    deallocateCorrectionCompositionState();
     clearCommonData();
     d_subdomain_caches.clear();
     d_a00_solver_storage.reset();
-    d_solver_state = IBTK::PETScLevelSolverShellBackendState();
 }
 
 void

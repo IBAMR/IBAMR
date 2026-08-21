@@ -55,13 +55,9 @@ protected:
         std::vector<int> nonoverlap_local_positions;
         std::vector<int> update_dofs;
         std::vector<int> update_local_positions;
-        std::vector<int> active_residual_update_rows;
-        Eigen::SparseMatrix<double, Eigen::RowMajor> active_residual_update_mat;
         Eigen::MatrixXd local_pseudoinverse;
         Eigen::VectorXd rhs_workspace;
         Eigen::VectorXd delta_workspace;
-        Eigen::VectorXd residual_input_workspace;
-        Eigen::VectorXd residual_delta_workspace;
     };
 
     template <class Handler>
@@ -133,8 +129,6 @@ protected:
     {
         d_n_dofs = 0;
         d_common_subdomains.clear();
-        d_sweep_residual.resize(0);
-        d_sweep_x_values = nullptr;
         d_sweep_y_values = nullptr;
     }
 
@@ -161,13 +155,9 @@ protected:
     void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
     void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
     void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
-    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+    const std::vector<int>& getSubdomainCorrectionDofs(std::size_t subdomain_num) const override;
+    void copySubdomainCorrection(std::size_t subdomain_num, PetscScalar* correction_values) override;
     void finalizeSubdomainSweep(Vec x, Vec y) override;
-
-    void setSolverState(const PETScLevelSolverShellBackendState& solver_state)
-    {
-        d_solver_state = solver_state;
-    }
 
     const PETScLevelSolverShellBackendState& getSolverState() const
     {
@@ -176,8 +166,6 @@ protected:
 
     Eigen::Index d_n_dofs = 0;
     std::vector<CommonSubdomainCache> d_common_subdomains;
-    Eigen::VectorXd d_sweep_residual;
-    const PetscScalar* d_sweep_x_values = nullptr;
     PetscScalar* d_sweep_y_values = nullptr;
 
 private:

@@ -46,7 +46,6 @@ public:
 private:
     struct Data
     {
-        Vec shell_r = nullptr;
         InsertMode prolongation_insert_mode = INSERT_VALUES;
         std::vector<IS> global_overlap_is, global_nonoverlap_is;
         std::vector<IS> local_overlap_is, local_nonoverlap_is;
@@ -62,7 +61,8 @@ private:
     void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
     void solveSubdomain(std::size_t subdomain_num) override;
     void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
-    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+    const std::vector<int>& getSubdomainCorrectionDofs(std::size_t subdomain_num) const override;
+    void copySubdomainCorrection(std::size_t subdomain_num, PetscScalar* correction_values) override;
 
     void beginAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
     void endAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
