@@ -9,6 +9,7 @@ test {
    expected_shell_pc_name = "stokes_shell_sem_PC_MultiplicativeBlasLapack"
    test_all_blas_lapack_solver_types = TRUE
    verify_stagewise_original_residual = TRUE
+   verify_shared_composition_driver = TRUE
    parity_tol = 1.0e-10
 }
 Main {

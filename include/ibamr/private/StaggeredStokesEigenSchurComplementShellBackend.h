@@ -33,8 +33,8 @@ namespace IBAMR
  * solves for staggered Stokes operators.
  *
  * This backend splits each cached subdomain into velocity and pressure blocks,
- * factors the local A00 operator, and applies the corresponding Schur
- * complement solve during additive or multiplicative shell sweeps.
+ * factors the local A00 operator, and supplies the corresponding one-patch
+ * Schur solve to the backend-independent correction composer.
  */
 class StaggeredStokesEigenSchurComplementShellBackend : public IBTK::PETScLevelSolverEigenShellBackendBase
 {
@@ -49,21 +49,13 @@ public:
 
     void deallocateSolverState() override;
 
-    void apply(Vec x, Vec y) override;
-
 private:
     using EigenSubdomainSolverType = PETScLevelSolverEigenShellBackendBase::EigenSubdomainSolverType;
 
     struct CustomEigenSchurSubdomainCache
     {
-        int overlap_size = 0;
-        const std::vector<int>* overlap_dofs = nullptr;
-        const std::vector<int>* update_dofs = nullptr;
-        const std::vector<int>* update_local_positions = nullptr;
-        const std::vector<int>* active_residual_update_rows = nullptr;
         std::vector<int> velocity_positions;
         std::vector<int> pressure_positions;
-        const Eigen::SparseMatrix<double, Eigen::RowMajor>* active_residual_update_mat = nullptr;
         Eigen::MatrixXd A00;
         Eigen::MatrixXd A01;
         Eigen::MatrixXd A10;
@@ -71,12 +63,8 @@ private:
         Eigen::MatrixXd A00_inv_A01;
         Eigen::MatrixXd schur;
         Eigen::MatrixXd schur_solve_matrix;
-        Eigen::VectorXd rhs_workspace;
         Eigen::VectorXd velocity_rhs_workspace;
         Eigen::VectorXd pressure_rhs_workspace;
-        Eigen::VectorXd delta_workspace;
-        Eigen::VectorXd residual_input_workspace;
-        Eigen::VectorXd residual_delta_workspace;
         Eigen::VectorXd velocity_solution_workspace;
         Eigen::VectorXd pressure_solution_workspace;
     };
@@ -84,11 +72,26 @@ private:
     struct CustomEigenA00SolverStorageBase
     {
         virtual ~CustomEigenA00SolverStorageBase() = default;
+
+        virtual void solveSubdomain(const StaggeredStokesEigenSchurComplementShellBackend& backend,
+                                    CustomEigenSchurSubdomainCache& custom_cache,
+                                    const Eigen::VectorXd& rhs,
+                                    Eigen::VectorXd& delta,
+                                    std::size_t subdomain_num) const = 0;
     };
 
     template <class SolverType>
     struct CustomEigenA00TypedSolveStorage : public CustomEigenA00SolverStorageBase
     {
+        void solveSubdomain(const StaggeredStokesEigenSchurComplementShellBackend& backend,
+                            CustomEigenSchurSubdomainCache& custom_cache,
+                            const Eigen::VectorXd& rhs,
+                            Eigen::VectorXd& delta,
+                            std::size_t subdomain_num) const override
+        {
+            backend.solveCustomEigenSubdomain(custom_cache, rhs, delta, solvers[subdomain_num]);
+        }
+
         std::vector<SolverType> solvers;
     };
 
@@ -101,20 +104,17 @@ private:
     template <class SolverType>
     void initializeCustomEigenA00SolveStorage(std::size_t n_subdomains);
 
-    SubdomainSweepView getCustomSubdomainSweepView(CustomEigenSchurSubdomainCache& custom_cache) const;
-
     template <class SolverType>
     void
     initializeCustomEigenA00Solver(SolverType& solver, const Eigen::MatrixXd& matrix, std::size_t subdomain_num) const;
 
     template <class SolverType>
-    void solveCustomEigenSubdomain(CustomEigenSchurSubdomainCache& custom_cache, const SolverType& a00_solver) const;
+    void solveCustomEigenSubdomain(CustomEigenSchurSubdomainCache& custom_cache,
+                                   const Eigen::VectorXd& rhs,
+                                   Eigen::VectorXd& delta,
+                                   const SolverType& a00_solver) const;
 
-    template <class SolverType>
-    void applyAdditive(Vec x, Vec y);
-
-    template <class SolverType>
-    void applyMultiplicative(Vec x, Vec y);
+    void solveSubdomain(std::size_t subdomain_num) override;
 
     EigenSubdomainSolverType parseBuiltinSolverType(const std::string& type) const;
     void configureFromInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);

@@ -34,11 +34,13 @@ public:
     PETScLevelSolverEigenReferenceShellBackend() = default;
 
     const std::string& getName() const override;
-    void apply(Vec x, Vec y) override;
 
 private:
     void initializeAdditionalSolverState() override;
     void deallocateAdditionalSolverState() override;
+    void initializeSubdomainSweep(Vec x, Vec y) override;
+    void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
 
     Eigen::SparseMatrix<double, Eigen::RowMajor> d_level_mat;
 };

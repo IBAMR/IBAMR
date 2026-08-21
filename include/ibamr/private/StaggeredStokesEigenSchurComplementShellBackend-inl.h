@@ -74,26 +74,6 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00SolveSt
     d_a00_solver_storage = std::move(storage);
 }
 
-inline IBTK::PETScLevelSolverEigenShellBackendBase::SubdomainSweepView
-StaggeredStokesEigenSchurComplementShellBackend::getCustomSubdomainSweepView(
-    CustomEigenSchurSubdomainCache& custom_cache) const
-{
-    TBOX_ASSERT(custom_cache.overlap_dofs);
-    TBOX_ASSERT(custom_cache.update_dofs);
-    TBOX_ASSERT(custom_cache.update_local_positions);
-    TBOX_ASSERT(custom_cache.active_residual_update_rows);
-    TBOX_ASSERT(custom_cache.active_residual_update_mat);
-    return { *custom_cache.overlap_dofs,
-             *custom_cache.update_dofs,
-             *custom_cache.update_local_positions,
-             *custom_cache.active_residual_update_rows,
-             *custom_cache.active_residual_update_mat,
-             custom_cache.rhs_workspace,
-             custom_cache.delta_workspace,
-             custom_cache.residual_input_workspace,
-             custom_cache.residual_delta_workspace };
-}
-
 template <class SolverType>
 inline void
 StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver(SolverType& solver,
@@ -117,28 +97,26 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeCustomEigenA00Solver(
 template <class SolverType>
 inline void
 StaggeredStokesEigenSchurComplementShellBackend::solveCustomEigenSubdomain(CustomEigenSchurSubdomainCache& custom_cache,
+                                                                           const Eigen::VectorXd& rhs,
+                                                                           Eigen::VectorXd& delta,
                                                                            const SolverType& a00_solver) const
 {
     using namespace StaggeredStokesEigenSchurComplementShellBackendDetail;
-    extract_subvector_into(
-        custom_cache.velocity_rhs_workspace, custom_cache.rhs_workspace, custom_cache.velocity_positions);
-    extract_subvector_into(
-        custom_cache.pressure_rhs_workspace, custom_cache.rhs_workspace, custom_cache.pressure_positions);
-    custom_cache.delta_workspace.setZero();
+    extract_subvector_into(custom_cache.velocity_rhs_workspace, rhs, custom_cache.velocity_positions);
+    extract_subvector_into(custom_cache.pressure_rhs_workspace, rhs, custom_cache.pressure_positions);
+    delta.setZero();
 
     if (custom_cache.pressure_positions.empty())
     {
         custom_cache.velocity_solution_workspace =
             solve_custom_a00(a00_solver, custom_cache.velocity_rhs_workspace).eval();
-        insert_subvector(
-            custom_cache.delta_workspace, custom_cache.velocity_positions, custom_cache.velocity_solution_workspace);
+        insert_subvector(delta, custom_cache.velocity_positions, custom_cache.velocity_solution_workspace);
     }
     else if (custom_cache.velocity_positions.empty())
     {
         custom_cache.pressure_solution_workspace.noalias() =
             custom_cache.schur_solve_matrix * custom_cache.pressure_rhs_workspace;
-        insert_subvector(
-            custom_cache.delta_workspace, custom_cache.pressure_positions, custom_cache.pressure_solution_workspace);
+        insert_subvector(delta, custom_cache.pressure_positions, custom_cache.pressure_solution_workspace);
     }
     else
     {
@@ -148,41 +126,9 @@ StaggeredStokesEigenSchurComplementShellBackend::solveCustomEigenSubdomain(Custo
         custom_cache.pressure_solution_workspace.noalias() =
             custom_cache.schur_solve_matrix * custom_cache.pressure_rhs_workspace;
         custom_cache.velocity_solution_workspace -= custom_cache.A00_inv_A01 * custom_cache.pressure_solution_workspace;
-        insert_subvector(
-            custom_cache.delta_workspace, custom_cache.velocity_positions, custom_cache.velocity_solution_workspace);
-        insert_subvector(
-            custom_cache.delta_workspace, custom_cache.pressure_positions, custom_cache.pressure_solution_workspace);
+        insert_subvector(delta, custom_cache.velocity_positions, custom_cache.velocity_solution_workspace);
+        insert_subvector(delta, custom_cache.pressure_positions, custom_cache.pressure_solution_workspace);
     }
-}
-
-template <class SolverType>
-inline void
-StaggeredStokesEigenSchurComplementShellBackend::applyAdditive(Vec x, Vec y)
-{
-    auto& typed_storage = getCustomEigenA00SolveStorage<SolverType>();
-    applyAdditiveSubdomainSweep(
-        x,
-        y,
-        d_subdomain_caches.size(),
-        [this](const std::size_t subdomain_num)
-        { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
-        [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
-        { solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]); });
-}
-
-template <class SolverType>
-inline void
-StaggeredStokesEigenSchurComplementShellBackend::applyMultiplicative(Vec x, Vec y)
-{
-    auto& typed_storage = getCustomEigenA00SolveStorage<SolverType>();
-    applyMultiplicativeSubdomainSweep(
-        x,
-        y,
-        d_subdomain_caches.size(),
-        [this](const std::size_t subdomain_num)
-        { return getCustomSubdomainSweepView(d_subdomain_caches[subdomain_num]); },
-        [this, &typed_storage](SubdomainSweepView& /*view*/, const std::size_t subdomain_num)
-        { solveCustomEigenSubdomain(d_subdomain_caches[subdomain_num], typed_storage.solvers[subdomain_num]); });
 }
 } // namespace IBAMR
 

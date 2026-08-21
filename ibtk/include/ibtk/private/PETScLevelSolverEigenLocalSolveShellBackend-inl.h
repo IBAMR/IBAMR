@@ -38,19 +38,6 @@ PETScLevelSolverEigenLocalSolveShellBackend::deallocateSolverState()
 }
 
 inline void
-PETScLevelSolverEigenLocalSolveShellBackend::apply(Vec x, Vec y)
-{
-    if (getSolverState().use_multiplicative)
-    {
-        applyMultiplicative(x, y);
-    }
-    else
-    {
-        applyAdditive(x, y);
-    }
-}
-
-inline void
 PETScLevelSolverEigenLocalSolveShellBackend::initializeAdditionalSolverState()
 {
     return;
@@ -63,31 +50,11 @@ PETScLevelSolverEigenLocalSolveShellBackend::deallocateAdditionalSolverState()
 }
 
 inline void
-PETScLevelSolverEigenLocalSolveShellBackend::applyAdditive(Vec x, Vec y)
+PETScLevelSolverEigenLocalSolveShellBackend::solveSubdomain(const std::size_t subdomain_num)
 {
     auto& common_subdomains = getCommonSubdomains();
-    applyAdditiveSubdomainSweep(
-        x,
-        y,
-        common_subdomains.size(),
-        [&common_subdomains](const std::size_t subdomain_num)
-        { return getCommonSubdomainSweepView(common_subdomains[subdomain_num]); },
-        [this](SubdomainSweepView& view, const std::size_t subdomain_num)
-        { view.delta_workspace = solveLocalSubdomainSystem(view.rhs_workspace, subdomain_num); });
-}
-
-inline void
-PETScLevelSolverEigenLocalSolveShellBackend::applyMultiplicative(Vec x, Vec y)
-{
-    auto& common_subdomains = getCommonSubdomains();
-    applyMultiplicativeSubdomainSweep(
-        x,
-        y,
-        common_subdomains.size(),
-        [&common_subdomains](const std::size_t subdomain_num)
-        { return getCommonSubdomainSweepView(common_subdomains[subdomain_num]); },
-        [this](SubdomainSweepView& view, const std::size_t subdomain_num)
-        { view.delta_workspace = solveLocalSubdomainSystem(view.rhs_workspace, subdomain_num); });
+    auto& cache = common_subdomains[subdomain_num];
+    cache.delta_workspace = solveLocalSubdomainSystem(cache.rhs_workspace, subdomain_num);
 }
 } // namespace IBTK
 

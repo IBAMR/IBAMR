@@ -271,59 +271,78 @@ PETScLevelSolverPetscShellBackend::endAccumulateCorrection(const int subdomain_n
     IBTK_CHKERRQ(ierr);
 }
 
-void
-PETScLevelSolverPetscShellBackend::accumulateCorrection(const int subdomain_num, Vec sub_y, Vec y)
+std::size_t
+PETScLevelSolverPetscShellBackend::getNumberOfSubdomains() const
 {
-    beginAccumulateCorrection(subdomain_num, sub_y, y);
-    endAccumulateCorrection(subdomain_num, sub_y, y);
+    return d_data->sub_ksp.size();
 }
 
 void
-PETScLevelSolverPetscShellBackend::apply(Vec x, Vec y)
+PETScLevelSolverPetscShellBackend::initializeSubdomainSweep(Vec /*x*/, Vec /*y*/)
+{
+}
+
+void
+PETScLevelSolverPetscShellBackend::beginSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec y)
 {
     auto& petsc = *d_data;
-    const int n_local_subdomains = static_cast<int>(petsc.sub_ksp.size());
-    int ierr = VecZeroEntries(y);
+    Vec source = x;
+    int ierr;
+    if (d_solver_state.use_multiplicative)
+    {
+        ierr = MatMult(d_solver_state.petsc_mat, y, petsc.shell_r);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAYPX(petsc.shell_r, -1.0, x);
+        IBTK_CHKERRQ(ierr);
+        source = petsc.shell_r;
+    }
+    ierr = VecScatterBegin(
+        petsc.restriction[subdomain_num], source, petsc.sub_x[subdomain_num], INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverPetscShellBackend::endSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec /*y*/)
+{
+    auto& petsc = *d_data;
+    Vec source = d_solver_state.use_multiplicative ? petsc.shell_r : x;
+    const int ierr = VecScatterEnd(
+        petsc.restriction[subdomain_num], source, petsc.sub_x[subdomain_num], INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverPetscShellBackend::solveSubdomain(const std::size_t subdomain_num)
+{
+    auto& petsc = *d_data;
+    const int ierr = KSPSolve(petsc.sub_ksp[subdomain_num], petsc.sub_x[subdomain_num], petsc.sub_y[subdomain_num]);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverPetscShellBackend::accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec y)
+{
+    auto& petsc = *d_data;
     if (!d_solver_state.use_multiplicative)
     {
-        for (int i = 0; i < n_local_subdomains; ++i)
-        {
-            ierr = VecScatterBegin(petsc.restriction[i], x, petsc.sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-        }
-        for (int i = 0; i < n_local_subdomains; ++i)
-        {
-            ierr = VecScatterEnd(petsc.restriction[i], x, petsc.sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSolve(petsc.sub_ksp[i], petsc.sub_x[i], petsc.sub_y[i]);
-            IBTK_CHKERRQ(ierr);
-            accumulateCorrection(i, petsc.sub_y[i], y);
-        }
+        beginAccumulateCorrection(static_cast<int>(subdomain_num), petsc.sub_y[subdomain_num], y);
+        endAccumulateCorrection(static_cast<int>(subdomain_num), petsc.sub_y[subdomain_num], y);
     }
     else
     {
-        for (int i = 0; i < n_local_subdomains; ++i)
-        {
-            ierr = MatMult(d_solver_state.petsc_mat, y, petsc.shell_r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAYPX(petsc.shell_r, -1.0, x);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterBegin(petsc.restriction[i], petsc.shell_r, petsc.sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterEnd(petsc.restriction[i], petsc.shell_r, petsc.sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSolve(petsc.sub_ksp[i], petsc.sub_x[i], petsc.sub_y[i]);
-            IBTK_CHKERRQ(ierr);
-            Vec y_sub = nullptr;
-            ierr = VecGetSubVector(y, petsc.global_overlap_is[i], &y_sub);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAXPY(y_sub, 1.0, petsc.sub_y[i]);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecRestoreSubVector(y, petsc.global_overlap_is[i], &y_sub);
-            IBTK_CHKERRQ(ierr);
-        }
+        Vec y_sub = nullptr;
+        int ierr = VecGetSubVector(y, petsc.global_overlap_is[subdomain_num], &y_sub);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(y_sub, 1.0, petsc.sub_y[subdomain_num]);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreSubVector(y, petsc.global_overlap_is[subdomain_num], &y_sub);
+        IBTK_CHKERRQ(ierr);
     }
-    d_solver_state.postprocess_result(y);
+}
+
+void
+PETScLevelSolverPetscShellBackend::updateSubdomainResidual(std::size_t /*subdomain_num*/, Vec /*x*/, Vec /*y*/)
+{
+    // This reference path recomputes the original residual before each patch.
 }
 } // namespace IBTK

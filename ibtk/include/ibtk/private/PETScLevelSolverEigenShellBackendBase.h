@@ -64,71 +64,6 @@ protected:
         Eigen::VectorXd residual_delta_workspace;
     };
 
-    struct SubdomainSweepView
-    {
-        const std::vector<int>& overlap_dofs;
-        const std::vector<int>& update_dofs;
-        const std::vector<int>& update_local_positions;
-        const std::vector<int>& active_residual_update_rows;
-        const Eigen::SparseMatrix<double, Eigen::RowMajor>& active_residual_update_mat;
-        Eigen::VectorXd& rhs_workspace;
-        Eigen::VectorXd& delta_workspace;
-        Eigen::VectorXd& residual_input_workspace;
-        Eigen::VectorXd& residual_delta_workspace;
-    };
-
-    class ConstPetscVecArrayMap
-    {
-    public:
-        ConstPetscVecArrayMap(Vec vec, Eigen::Index size) : d_vec(vec), d_size(size)
-        {
-            const int ierr = VecGetArrayRead(d_vec, &d_array);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        ~ConstPetscVecArrayMap()
-        {
-            const int ierr = VecRestoreArrayRead(d_vec, &d_array);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        Eigen::Map<const Eigen::VectorXd> getMap() const
-        {
-            return Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_array), d_size);
-        }
-
-    private:
-        Vec d_vec = nullptr;
-        Eigen::Index d_size = 0;
-        const PetscScalar* d_array = nullptr;
-    };
-
-    class PetscVecArrayMap
-    {
-    public:
-        PetscVecArrayMap(Vec vec, Eigen::Index size) : d_vec(vec), d_size(size)
-        {
-            const int ierr = VecGetArray(d_vec, &d_array);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        ~PetscVecArrayMap()
-        {
-            const int ierr = VecRestoreArray(d_vec, &d_array);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        Eigen::Map<Eigen::VectorXd> getMap() const
-        {
-            return Eigen::Map<Eigen::VectorXd>(reinterpret_cast<double*>(d_array), d_size);
-        }
-
-    private:
-        Vec d_vec = nullptr;
-        Eigen::Index d_size = 0;
-        PetscScalar* d_array = nullptr;
-    };
-
     template <class Handler>
     void dispatchEigenSolverType(EigenSubdomainSolverType solver_type, Handler&& handler) const;
 
@@ -198,6 +133,9 @@ protected:
     {
         d_n_dofs = 0;
         d_common_subdomains.clear();
+        d_sweep_residual.resize(0);
+        d_sweep_x_values = nullptr;
+        d_sweep_y_values = nullptr;
     }
 
     Eigen::Index getNumDofs() const
@@ -218,21 +156,13 @@ protected:
     template <class InitializeSubdomainSolver>
     void initializeCommonDataWithLocalOperatorHook(InitializeSubdomainSolver initialize_subdomain_solver);
 
-    static SubdomainSweepView getCommonSubdomainSweepView(CommonSubdomainCache& cache);
-
-    template <class GetSubdomainSweepView, class SolveSubdomain>
-    void applyAdditiveSubdomainSweep(Vec x,
-                                     Vec y,
-                                     std::size_t n_subdomains,
-                                     GetSubdomainSweepView get_subdomain_sweep_view,
-                                     SolveSubdomain solve_subdomain);
-
-    template <class GetSubdomainSweepView, class SolveSubdomain>
-    void applyMultiplicativeSubdomainSweep(Vec x,
-                                           Vec y,
-                                           std::size_t n_subdomains,
-                                           GetSubdomainSweepView get_subdomain_sweep_view,
-                                           SolveSubdomain solve_subdomain);
+    std::size_t getNumberOfSubdomains() const override;
+    void initializeSubdomainSweep(Vec x, Vec y) override;
+    void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
+    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+    void finalizeSubdomainSweep(Vec x, Vec y) override;
 
     void setSolverState(const PETScLevelSolverShellBackendState& solver_state)
     {
@@ -246,7 +176,9 @@ protected:
 
     Eigen::Index d_n_dofs = 0;
     std::vector<CommonSubdomainCache> d_common_subdomains;
-    PETScLevelSolverShellBackendState d_solver_state;
+    Eigen::VectorXd d_sweep_residual;
+    const PetscScalar* d_sweep_x_values = nullptr;
+    PetscScalar* d_sweep_y_values = nullptr;
 
 private:
     template <class SolverType>

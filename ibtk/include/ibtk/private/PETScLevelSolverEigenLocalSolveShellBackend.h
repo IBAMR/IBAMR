@@ -21,9 +21,9 @@ namespace IBTK
 /*!
  * \brief Common Eigen shell smoother support for overlap-based local solves.
  *
- * This class owns the standard solver-state lifecycle and the shared additive
- * and multiplicative overlap sweeps. Concrete backends only provide the local
- * subdomain setup and local linear solve operations.
+ * This class owns the standard solver-state lifecycle and adapts an Eigen
+ * local solve to the backend-independent correction composer. Concrete
+ * backends only provide local subdomain setup and solve operations.
  */
 class PETScLevelSolverEigenLocalSolveShellBackend : public PETScLevelSolverEigenShellBackendBase
 {
@@ -31,8 +31,6 @@ public:
     void initializeSolverState(const PETScLevelSolverShellBackendState& solver_state) override final;
 
     void deallocateSolverState() override final;
-
-    void apply(Vec x, Vec y) override;
 
 protected:
     virtual void configureFromInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) = 0;
@@ -46,9 +44,7 @@ protected:
     virtual void deallocateAdditionalSolverState();
 
 private:
-    void applyAdditive(Vec x, Vec y);
-
-    void applyMultiplicative(Vec x, Vec y);
+    void solveSubdomain(std::size_t subdomain_num) override;
 };
 } // namespace IBTK
 

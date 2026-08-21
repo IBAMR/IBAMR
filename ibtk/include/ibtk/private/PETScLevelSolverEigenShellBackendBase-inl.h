@@ -300,113 +300,88 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
     }
 }
 
-inline PETScLevelSolverEigenShellBackendBase::SubdomainSweepView
-PETScLevelSolverEigenShellBackendBase::getCommonSubdomainSweepView(CommonSubdomainCache& cache)
+inline std::size_t
+PETScLevelSolverEigenShellBackendBase::getNumberOfSubdomains() const
 {
-    return { cache.overlap_dofs,
-             cache.update_dofs,
-             cache.update_local_positions,
-             cache.active_residual_update_rows,
-             cache.active_residual_update_mat,
-             cache.rhs_workspace,
-             cache.delta_workspace,
-             cache.residual_input_workspace,
-             cache.residual_delta_workspace };
+    return d_common_subdomains.size();
 }
 
-template <class GetSubdomainSweepView, class SolveSubdomain>
 inline void
-PETScLevelSolverEigenShellBackendBase::applyAdditiveSubdomainSweep(Vec x,
-                                                                   Vec y,
-                                                                   const std::size_t n_subdomains,
-                                                                   GetSubdomainSweepView get_subdomain_sweep_view,
-                                                                   SolveSubdomain solve_subdomain)
+PETScLevelSolverEigenShellBackendBase::initializeSubdomainSweep(Vec x, Vec y)
 {
     TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
-    const Eigen::Index n = getNumDofs();
-    TBOX_ASSERT(n > 0);
-
+    TBOX_ASSERT(getNumDofs() > 0);
+    int ierr = VecGetArrayRead(x, &d_sweep_x_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(y, &d_sweep_y_values);
+    IBTK_CHKERRQ(ierr);
+    if (d_solver_state.use_multiplicative)
     {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        y_map.setZero();
-        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
-        {
-            SubdomainSweepView view = get_subdomain_sweep_view(subdomain_num);
-            std::size_t rhs_idx = 0;
-            for (const int dof : view.overlap_dofs)
-            {
-                view.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = x_map[dof];
-            }
-            solve_subdomain(view, subdomain_num);
-            std::size_t update_idx = 0;
-            for (const int dof : view.update_dofs)
-            {
-                y_map[dof] +=
-                    view.delta_workspace[static_cast<Eigen::Index>(view.update_local_positions[update_idx++])];
-            }
-        }
+        d_sweep_residual =
+            Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_x_values), getNumDofs());
     }
-    getSolverState().postprocess_result(y);
 }
 
-template <class GetSubdomainSweepView, class SolveSubdomain>
 inline void
-PETScLevelSolverEigenShellBackendBase::applyMultiplicativeSubdomainSweep(Vec x,
-                                                                         Vec y,
-                                                                         const std::size_t n_subdomains,
-                                                                         GetSubdomainSweepView get_subdomain_sweep_view,
-                                                                         SolveSubdomain solve_subdomain)
+PETScLevelSolverEigenShellBackendBase::beginSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/)
 {
-    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
-    const Eigen::Index n = getNumDofs();
-    TBOX_ASSERT(n > 0);
-
+    auto& cache = d_common_subdomains[subdomain_num];
+    const auto x_map =
+        Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double*>(d_sweep_x_values), getNumDofs());
+    std::size_t rhs_idx = 0;
+    for (const int dof : cache.overlap_dofs)
     {
-        ConstPetscVecArrayMap x_array(x, n);
-        PetscVecArrayMap y_array(y, n);
-        const auto x_map = x_array.getMap();
-        auto y_map = y_array.getMap();
-        Eigen::VectorXd residual(n);
-        y_map.setZero();
-        residual = x_map;
-        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
-        {
-            SubdomainSweepView view = get_subdomain_sweep_view(subdomain_num);
-            std::size_t rhs_idx = 0;
-            for (const int dof : view.overlap_dofs)
-            {
-                view.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] = residual[dof];
-            }
-            solve_subdomain(view, subdomain_num);
-
-            std::size_t update_idx = 0;
-            for (const int dof : view.update_dofs)
-            {
-                y_map[dof] +=
-                    view.delta_workspace[static_cast<Eigen::Index>(view.update_local_positions[update_idx++])];
-            }
-            if (subdomain_num + 1 < n_subdomains && view.active_residual_update_mat.rows() > 0)
-            {
-                std::size_t residual_input_idx = 0;
-                for (const int local_pos : view.update_local_positions)
-                {
-                    view.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
-                        view.delta_workspace[static_cast<Eigen::Index>(local_pos)];
-                }
-                view.residual_delta_workspace.noalias() =
-                    view.active_residual_update_mat * view.residual_input_workspace;
-                std::size_t row_idx = 0;
-                for (const int row : view.active_residual_update_rows)
-                {
-                    residual[row] -= view.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
-                }
-            }
-        }
+        cache.rhs_workspace[static_cast<Eigen::Index>(rhs_idx++)] =
+            d_solver_state.use_multiplicative ? d_sweep_residual[dof] : x_map[dof];
     }
-    getSolverState().postprocess_result(y);
+}
+
+inline void
+PETScLevelSolverEigenShellBackendBase::endSubdomainRhs(std::size_t /*subdomain_num*/, Vec /*x*/, Vec /*y*/)
+{
+}
+
+inline void
+PETScLevelSolverEigenShellBackendBase::accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec /*y*/)
+{
+    auto& cache = d_common_subdomains[subdomain_num];
+    auto y_map = Eigen::Map<Eigen::VectorXd>(reinterpret_cast<double*>(d_sweep_y_values), getNumDofs());
+    std::size_t update_idx = 0;
+    for (const int dof : cache.update_dofs)
+    {
+        y_map[dof] += cache.delta_workspace[static_cast<Eigen::Index>(cache.update_local_positions[update_idx++])];
+    }
+}
+
+inline void
+PETScLevelSolverEigenShellBackendBase::updateSubdomainResidual(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/)
+{
+    auto& cache = d_common_subdomains[subdomain_num];
+    if (cache.active_residual_update_mat.rows() == 0) return;
+
+    std::size_t residual_input_idx = 0;
+    for (const int local_pos : cache.update_local_positions)
+    {
+        cache.residual_input_workspace[static_cast<Eigen::Index>(residual_input_idx++)] =
+            cache.delta_workspace[static_cast<Eigen::Index>(local_pos)];
+    }
+    cache.residual_delta_workspace.noalias() = cache.active_residual_update_mat * cache.residual_input_workspace;
+    std::size_t row_idx = 0;
+    for (const int row : cache.active_residual_update_rows)
+    {
+        d_sweep_residual[row] -= cache.residual_delta_workspace[static_cast<Eigen::Index>(row_idx++)];
+    }
+}
+
+inline void
+PETScLevelSolverEigenShellBackendBase::finalizeSubdomainSweep(Vec x, Vec y)
+{
+    int ierr = VecRestoreArray(y, &d_sweep_y_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(x, &d_sweep_x_values);
+    IBTK_CHKERRQ(ierr);
+    d_sweep_y_values = nullptr;
+    d_sweep_x_values = nullptr;
 }
 } // namespace IBTK
 

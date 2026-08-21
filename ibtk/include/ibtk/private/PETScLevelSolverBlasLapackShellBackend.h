@@ -46,7 +46,6 @@ public:
     const std::string& getName() const override;
     void initializeSolverState(const PETScLevelSolverShellBackendState& solver_state) override;
     void deallocateSolverState() override;
-    void apply(Vec x, Vec y) override;
 
 private:
     enum class SubdomainSolverType
@@ -83,17 +82,19 @@ private:
     void initializeQRSolver(SubdomainData& subdomain_data, std::size_t subdomain_num);
     void initializeSVDSolver(SubdomainData& subdomain_data, std::size_t subdomain_num);
     void verifySymmetricSubdomainMatrix(const SubdomainData& subdomain_data, std::size_t subdomain_num) const;
-    void solveSubdomain(SubdomainData& subdomain_data, std::size_t subdomain_num) const;
+    void solveSubdomainSystem(SubdomainData& subdomain_data, std::size_t subdomain_num) const;
     const char* getSolverTypeName() const;
-    bool shouldObserveSubdomain(std::size_t subdomain_num) const;
-    void observeSubdomain(std::size_t subdomain_num,
-                          SubdomainData& subdomain_data,
-                          std::vector<PetscScalar>& local_rhs,
-                          Vec current_global_source) const;
-    void applyAdditive(Vec x, Vec y);
-    void applyMultiplicative(Vec x, Vec y);
+    void observeSubdomain(std::size_t subdomain_num, SubdomainData& subdomain_data, Vec current_global_source) const;
 
-    PETScLevelSolverShellBackendState d_solver_state;
+    std::size_t getNumberOfSubdomains() const override;
+    void initializeSubdomainSweep(Vec x, Vec y) override;
+    void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void solveSubdomain(std::size_t subdomain_num) override;
+    void observeSubdomainSolve(std::size_t subdomain_num, Vec x, Vec y) override;
+    void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
+    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+
     std::unique_ptr<Data> d_data;
     std::string d_backend_name;
     bool d_configurable_solver_type = false;

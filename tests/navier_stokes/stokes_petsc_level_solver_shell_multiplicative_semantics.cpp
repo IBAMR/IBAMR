@@ -19,6 +19,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/private/PETScLevelSolverShellBackend.h>
 
 #include <tbox/MemoryDatabase.h>
 
@@ -39,12 +40,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <numeric>
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "../tests.h"
@@ -54,6 +57,124 @@
 
 namespace
 {
+class RecordingShellBackend : public IBTK::PETScLevelSolverShellBackend
+{
+public:
+    const std::string& getName() const override
+    {
+        static const std::string name = "Recording";
+        return name;
+    }
+
+    void initializeSolverState(const IBTK::PETScLevelSolverShellBackendState& solver_state) override
+    {
+        d_solver_state = solver_state;
+    }
+
+    void deallocateSolverState() override
+    {
+        d_solver_state = IBTK::PETScLevelSolverShellBackendState();
+    }
+
+    const std::vector<std::string>& getEvents() const
+    {
+        return d_events;
+    }
+
+    void recordEvent(std::string event)
+    {
+        d_events.push_back(std::move(event));
+    }
+
+protected:
+    std::size_t getNumberOfSubdomains() const override
+    {
+        return 3;
+    }
+
+    void initializeSubdomainSweep(Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("initialize");
+    }
+
+    void beginSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("begin" + std::to_string(subdomain_num));
+    }
+
+    void endSubdomainRhs(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("end" + std::to_string(subdomain_num));
+    }
+
+    void solveSubdomain(const std::size_t subdomain_num) override
+    {
+        d_events.push_back("solve" + std::to_string(subdomain_num));
+    }
+
+    void observeSubdomainSolve(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("observe" + std::to_string(subdomain_num));
+    }
+
+    void accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec /*y*/) override
+    {
+        d_events.push_back("accumulate" + std::to_string(subdomain_num));
+    }
+
+    void updateSubdomainResidual(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("update" + std::to_string(subdomain_num));
+    }
+
+    void finalizeSubdomainSweep(Vec /*x*/, Vec /*y*/) override
+    {
+        d_events.push_back("finalize");
+    }
+
+private:
+    std::vector<std::string> d_events;
+};
+
+bool
+verify_shared_composition_driver(const bool use_multiplicative, std::size_t& event_count)
+{
+    RecordingShellBackend backend;
+    IBTK::PETScLevelSolverShellBackendState solver_state;
+    solver_state.use_multiplicative = use_multiplicative;
+    std::function<void(int, Mat, Vec, Vec, Vec)> observer = [](int, Mat, Vec, Vec, Vec) {};
+    std::function<bool(int)> predicate = [](const int subdomain_num) { return subdomain_num != 1; };
+    solver_state.subdomain_solve_observer = &observer;
+    solver_state.subdomain_solve_observer_predicate = &predicate;
+    solver_state.postprocess_result = [&backend](Vec) { backend.recordEvent("postprocess"); };
+    backend.initializeSolverState(solver_state);
+
+    Vec x = nullptr, y = nullptr;
+    int ierr = VecCreateSeq(PETSC_COMM_SELF, 1, &x);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(x, &y);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(x, 1.0);
+    IBTK_CHKERRQ(ierr);
+    backend.apply(x, y);
+    ierr = VecDestroy(&y);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&x);
+    IBTK_CHKERRQ(ierr);
+
+    const std::vector<std::string> additive_events = {
+        "initialize", "begin0",      "begin1", "begin2", "end0",     "solve0",      "observe0", "accumulate0", "end1",
+        "solve1",     "accumulate1", "end2",   "solve2", "observe2", "accumulate2", "finalize", "postprocess"
+    };
+    const std::vector<std::string> multiplicative_events = { "initialize",  "begin0",      "end0",        "solve0",
+                                                             "observe0",    "accumulate0", "update0",     "begin1",
+                                                             "end1",        "solve1",      "accumulate1", "update1",
+                                                             "begin2",      "end2",        "solve2",      "observe2",
+                                                             "accumulate2", "finalize",    "postprocess" };
+    event_count = backend.getEvents().size();
+    return backend.getEvents() == (use_multiplicative ? multiplicative_events : additive_events);
+}
+
 class TestableStaggeredStokesPETScLevelSolver : public IBAMR::StaggeredStokesPETScLevelSolver
 {
 public:
@@ -299,6 +420,7 @@ main(int argc, char* argv[])
     const bool verify_local_solve_observer = test_db->getBoolWithDefault("verify_local_solve_observer", false);
     const bool verify_stagewise_original_residual =
         test_db->getBoolWithDefault("verify_stagewise_original_residual", false);
+    const bool verify_shared_composition = test_db->getBoolWithDefault("verify_shared_composition_driver", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
     const bool verify_raw_export_comparator_contract =
         test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
@@ -339,6 +461,14 @@ main(int argc, char* argv[])
     }
 
     int test_failures = 0;
+    bool shared_additive_order_valid = true, shared_multiplicative_order_valid = true;
+    std::size_t shared_additive_event_count = 0, shared_multiplicative_event_count = 0;
+    if (verify_shared_composition)
+    {
+        shared_additive_order_valid = verify_shared_composition_driver(false, shared_additive_event_count);
+        shared_multiplicative_order_valid = verify_shared_composition_driver(true, shared_multiplicative_event_count);
+        if (!shared_additive_order_valid || !shared_multiplicative_order_valid) ++test_failures;
+    }
 
     const auto hierarchy_tuple = setup_hierarchy<NDIM>(app_initializer);
     Pointer<PatchHierarchy<NDIM>> patch_hierarchy = std::get<0>(hierarchy_tuple);
@@ -969,6 +1099,14 @@ main(int argc, char* argv[])
         level->deallocatePatchData(data_idx);
     }
 
+    if (verify_shared_composition)
+    {
+        pout << "shared_additive_event_count = " << shared_additive_event_count << "\n";
+        pout << "shared_additive_order_valid = " << (shared_additive_order_valid ? "true" : "false") << "\n";
+        pout << "shared_multiplicative_event_count = " << shared_multiplicative_event_count << "\n";
+        pout << "shared_multiplicative_order_valid = " << (shared_multiplicative_order_valid ? "true" : "false")
+             << "\n";
+    }
     pout << "shell_pc_type = " << (has_shell_pc_type ? shell_pc_type : std::string("<default>")) << "\n";
     pout << "coupling_aware_asm_closure_policy = " << closure_policy << "\n";
     pout << "parity_tol = " << tol << "\n";

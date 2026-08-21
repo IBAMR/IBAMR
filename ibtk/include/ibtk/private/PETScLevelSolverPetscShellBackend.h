@@ -42,10 +42,6 @@ public:
     const std::string& getName() const override;
     void initializeSolverState(const PETScLevelSolverShellBackendState& solver_state) override;
     void deallocateSolverState() override;
-    void beginAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
-    void endAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
-    void accumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
-    void apply(Vec x, Vec y) override;
 
 private:
     struct Data
@@ -60,7 +56,17 @@ private:
         std::vector<Vec> sub_x, sub_y;
     };
 
-    PETScLevelSolverShellBackendState d_solver_state;
+    std::size_t getNumberOfSubdomains() const override;
+    void initializeSubdomainSweep(Vec x, Vec y) override;
+    void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) override;
+    void solveSubdomain(std::size_t subdomain_num) override;
+    void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) override;
+    void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) override;
+
+    void beginAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
+    void endAccumulateCorrection(int subdomain_num, Vec sub_y, Vec y);
+
     std::unique_ptr<Data> d_data;
 };
 } // namespace IBTK

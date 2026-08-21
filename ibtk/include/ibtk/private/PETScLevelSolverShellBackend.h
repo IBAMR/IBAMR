@@ -20,6 +20,7 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>
@@ -68,9 +69,10 @@ struct PETScLevelSolverShellBackendState
  * \brief Abstract interface implemented by shell preconditioner backends used
  * by PETScLevelSolver.
  *
- * A backend owns any backend-specific state required to apply one shell
- * sweep for a PETScLevelSolver state. The configured composition is supplied
- * through PETScLevelSolverShellBackendState.
+ * A backend owns the algebra and representation required to solve one local
+ * subdomain problem. This base class owns correction-composition ordering so
+ * that concrete backends do not duplicate additive or multiplicative sweep
+ * semantics.
  */
 class PETScLevelSolverShellBackend
 {
@@ -95,8 +97,28 @@ public:
 
     /*!
      * \brief Apply the configured shell smoother action.
+     *
+     * The common composer controls subdomain order, observer placement,
+     * correction accumulation, residual-update placement, and final
+     * postprocessing. Concrete backends implement only the representation-
+     * specific one-subdomain operations below.
      */
-    virtual void apply(Vec x, Vec y) = 0;
+    void apply(Vec x, Vec y);
+
+protected:
+    virtual std::size_t getNumberOfSubdomains() const = 0;
+    virtual void initializeSubdomainSweep(Vec x, Vec y) = 0;
+    virtual void beginSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) = 0;
+    virtual void endSubdomainRhs(std::size_t subdomain_num, Vec x, Vec y) = 0;
+    virtual void solveSubdomain(std::size_t subdomain_num) = 0;
+    virtual void observeSubdomainSolve(std::size_t subdomain_num, Vec x, Vec y);
+    virtual void accumulateSubdomainCorrection(std::size_t subdomain_num, Vec y) = 0;
+    virtual void updateSubdomainResidual(std::size_t subdomain_num, Vec x, Vec y) = 0;
+    virtual void finalizeSubdomainSweep(Vec x, Vec y);
+
+    bool shouldObserveSubdomainSolve(std::size_t subdomain_num) const;
+
+    PETScLevelSolverShellBackendState d_solver_state;
 };
 
 /*!

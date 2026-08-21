@@ -142,8 +142,6 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
                 const auto& overlap_dofs = getCommonSubdomains()[subdomain_num].overlap_dofs;
                 auto& cache = d_subdomain_caches[subdomain_num];
                 cache = CustomEigenSchurSubdomainCache();
-                cache.overlap_size = static_cast<int>(overlap_dofs.size());
-                cache.overlap_dofs = &overlap_dofs;
 
                 for (std::size_t local_pos = 0; local_pos < overlap_dofs.size(); ++local_pos)
                 {
@@ -197,26 +195,11 @@ StaggeredStokesEigenSchurComplementShellBackend::initializeSolverState(
                     cache.schur_solve_matrix = buildSchurSolveMatrix(cache.schur);
                 }
 
-                cache.rhs_workspace.resize(static_cast<Eigen::Index>(cache.overlap_size));
-                cache.delta_workspace.resize(static_cast<Eigen::Index>(cache.overlap_size));
                 cache.velocity_rhs_workspace.resize(static_cast<Eigen::Index>(cache.velocity_positions.size()));
                 cache.pressure_rhs_workspace.resize(static_cast<Eigen::Index>(cache.pressure_positions.size()));
                 cache.velocity_solution_workspace.resize(static_cast<Eigen::Index>(cache.velocity_positions.size()));
                 cache.pressure_solution_workspace.resize(static_cast<Eigen::Index>(cache.pressure_positions.size()));
             });
-
-        const auto& common_subdomains = getCommonSubdomains();
-        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
-        {
-            auto& cache = d_subdomain_caches[subdomain_num];
-            const auto& common_cache = common_subdomains[subdomain_num];
-            cache.update_dofs = &common_cache.update_dofs;
-            cache.update_local_positions = &common_cache.update_local_positions;
-            cache.active_residual_update_rows = &common_cache.active_residual_update_rows;
-            cache.active_residual_update_mat = &common_cache.active_residual_update_mat;
-            cache.residual_input_workspace.resize(static_cast<Eigen::Index>(cache.update_local_positions->size()));
-            cache.residual_delta_workspace.resize(static_cast<Eigen::Index>(cache.active_residual_update_rows->size()));
-        }
     };
 
     dispatchEigenSolverType(d_a00_solver_type, [&initialize_impl](auto solver_tag) { initialize_impl(solver_tag); });
@@ -232,20 +215,11 @@ StaggeredStokesEigenSchurComplementShellBackend::deallocateSolverState()
 }
 
 void
-StaggeredStokesEigenSchurComplementShellBackend::apply(Vec x, Vec y)
+StaggeredStokesEigenSchurComplementShellBackend::solveSubdomain(const std::size_t subdomain_num)
 {
-    dispatchEigenSolverType(d_a00_solver_type,
-                            [this, x, y](auto solver_tag)
-                            {
-                                using SolverType = typename decltype(solver_tag)::type;
-                                if (d_solver_state.use_multiplicative)
-                                {
-                                    applyMultiplicative<SolverType>(x, y);
-                                }
-                                else
-                                {
-                                    applyAdditive<SolverType>(x, y);
-                                }
-                            });
+    auto& common_cache = getCommonSubdomains()[subdomain_num];
+    auto& custom_cache = d_subdomain_caches[subdomain_num];
+    d_a00_solver_storage->solveSubdomain(
+        *this, custom_cache, common_cache.rhs_workspace, common_cache.delta_workspace, subdomain_num);
 }
 } // namespace IBAMR

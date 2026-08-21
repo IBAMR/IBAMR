@@ -123,6 +123,64 @@ build_petsc_subdomain_index_sets(std::vector<IS>& subdomain_is,
     return;
 } // build_petsc_subdomain_index_sets
 
+void
+PETScLevelSolverShellBackend::apply(Vec x, Vec y)
+{
+    int ierr = VecZeroEntries(y);
+    IBTK_CHKERRQ(ierr);
+    initializeSubdomainSweep(x, y);
+
+    const std::size_t n_subdomains = getNumberOfSubdomains();
+    if (!d_solver_state.use_multiplicative)
+    {
+        // Permit PETSc backends to overlap independent additive gathers.
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+        {
+            beginSubdomainRhs(subdomain_num, x, y);
+        }
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+        {
+            endSubdomainRhs(subdomain_num, x, y);
+            solveSubdomain(subdomain_num);
+            if (shouldObserveSubdomainSolve(subdomain_num)) observeSubdomainSolve(subdomain_num, x, y);
+            accumulateSubdomainCorrection(subdomain_num, y);
+        }
+    }
+    else
+    {
+        for (std::size_t subdomain_num = 0; subdomain_num < n_subdomains; ++subdomain_num)
+        {
+            beginSubdomainRhs(subdomain_num, x, y);
+            endSubdomainRhs(subdomain_num, x, y);
+            solveSubdomain(subdomain_num);
+            if (shouldObserveSubdomainSolve(subdomain_num)) observeSubdomainSolve(subdomain_num, x, y);
+            accumulateSubdomainCorrection(subdomain_num, y);
+            if (subdomain_num + 1 < n_subdomains) updateSubdomainResidual(subdomain_num, x, y);
+        }
+    }
+
+    finalizeSubdomainSweep(x, y);
+    d_solver_state.postprocess_result(y);
+}
+
+void
+PETScLevelSolverShellBackend::observeSubdomainSolve(std::size_t /*subdomain_num*/, Vec /*x*/, Vec /*y*/)
+{
+}
+
+void
+PETScLevelSolverShellBackend::finalizeSubdomainSweep(Vec /*x*/, Vec /*y*/)
+{
+}
+
+bool
+PETScLevelSolverShellBackend::shouldObserveSubdomainSolve(const std::size_t subdomain_num) const
+{
+    if (!d_solver_state.subdomain_solve_observer || !*d_solver_state.subdomain_solve_observer) return false;
+    return !d_solver_state.subdomain_solve_observer_predicate || !*d_solver_state.subdomain_solve_observer_predicate ||
+           (*d_solver_state.subdomain_solve_observer_predicate)(static_cast<int>(subdomain_num));
+}
+
 PETScLevelSolverShellBackendManager* PETScLevelSolverShellBackendManager::s_shell_backend_manager_instance = nullptr;
 bool PETScLevelSolverShellBackendManager::s_registered_callback = false;
 unsigned char PETScLevelSolverShellBackendManager::s_shutdown_priority = 200;
@@ -809,8 +867,7 @@ PETScLevelSolver::configureShellPreconditioner(PC ksp_pc)
     d_shell_backend_data->solver_state.subdomain_dofs = &d_subdomain_dofs;
     d_shell_backend_data->solver_state.nonoverlap_subdomain_dofs = &d_nonoverlap_subdomain_dofs;
     d_shell_backend_data->solver_state.subdomain_solve_observer = &d_shell_subdomain_solve_observer;
-    d_shell_backend_data->solver_state.subdomain_solve_observer_predicate =
-        &d_shell_subdomain_solve_observer_predicate;
+    d_shell_backend_data->solver_state.subdomain_solve_observer_predicate = &d_shell_subdomain_solve_observer_predicate;
     d_shell_backend_data->solver_state.postprocess_result = [this](Vec y) { postprocessShellResult(y); };
     d_shell_backend_data->active_backend->initializeSolverState(d_shell_backend_data->solver_state);
 

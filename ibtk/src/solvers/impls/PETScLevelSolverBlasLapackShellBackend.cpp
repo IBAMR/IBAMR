@@ -71,8 +71,7 @@ to_lower(std::string value)
 std::size_t
 column_major_index(const PetscBLASInt row, const PetscBLASInt col, const PetscBLASInt leading_dimension)
 {
-    return static_cast<std::size_t>(row) +
-           static_cast<std::size_t>(col) * static_cast<std::size_t>(leading_dimension);
+    return static_cast<std::size_t>(row) + static_cast<std::size_t>(col) * static_cast<std::size_t>(leading_dimension);
 }
 
 PetscBLASInt
@@ -82,9 +81,8 @@ query_lapack_workspace_size(const PetscScalar query_value)
 }
 } // namespace
 
-PETScLevelSolverBlasLapackShellBackend::PETScLevelSolverBlasLapackShellBackend(
-    std::string backend_name,
-    const bool configurable_solver_type)
+PETScLevelSolverBlasLapackShellBackend::PETScLevelSolverBlasLapackShellBackend(std::string backend_name,
+                                                                               const bool configurable_solver_type)
     : d_backend_name(std::move(backend_name)), d_configurable_solver_type(configurable_solver_type)
 {
 }
@@ -134,9 +132,8 @@ PETScLevelSolverBlasLapackShellBackend::configureFromInputDatabase()
                        << "use 'symmetric-indefinite' when a symmetry-specific factorization is required.");
         else
             TBOX_ERROR(d_solver_state.object_name
-                       << " " << d_solver_state.options_prefix
-                       << " unsupported blas_lapack_subdomain_solver_type = " << solver_type
-                       << "; supported values are 'svd', 'lu', 'symmetric-indefinite', and 'qr'.");
+                       << " " << d_solver_state.options_prefix << " unsupported blas_lapack_subdomain_solver_type = "
+                       << solver_type << "; supported values are 'svd', 'lu', 'symmetric-indefinite', and 'qr'.");
     }
     if (d_solver_state.input_db->keyExists("blas_lapack_subdomain_solver_rcond"))
     {
@@ -145,8 +142,7 @@ PETScLevelSolverBlasLapackShellBackend::configureFromInputDatabase()
 }
 
 void
-PETScLevelSolverBlasLapackShellBackend::initializeSolverState(
-    const PETScLevelSolverShellBackendState& solver_state)
+PETScLevelSolverBlasLapackShellBackend::initializeSolverState(const PETScLevelSolverShellBackendState& solver_state)
 {
     if (IBTK_MPI::getNodes() != 1)
     {
@@ -199,7 +195,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(
         auto& subdomain_data = data.subdomains[subdomain_num];
         subdomain_data.overlap_dofs = &overlap_subdomains[subdomain_num];
         subdomain_data.update_dofs = d_solver_state.use_restrict_partition ? &nonoverlap_subdomains[subdomain_num] :
-                                                                          &overlap_subdomains[subdomain_num];
+                                                                             &overlap_subdomains[subdomain_num];
         const auto& overlap_dofs = *subdomain_data.overlap_dofs;
         ierr = PetscBLASIntCast(static_cast<PetscInt>(overlap_dofs.size()), &subdomain_data.local_size);
         IBTK_CHKERRQ(ierr);
@@ -254,7 +250,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(
 
 void
 PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolver(SubdomainData& subdomain_data,
-                                                                 const std::size_t subdomain_num)
+                                                                  const std::size_t subdomain_num)
 {
     if (subdomain_data.local_size == 0) return;
     PetscBLASInt info = 0;
@@ -327,7 +323,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolver(SubdomainData&
 
 void
 PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdomain_data,
-                                                          const std::size_t subdomain_num)
+                                                           const std::size_t subdomain_num)
 {
     const PetscBLASInt n = subdomain_data.local_size;
     // For A = Q R, form A^{-1} = R^{-1} Q^T directly in the persistent
@@ -350,15 +346,14 @@ PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdom
     if (info != 0)
     {
         TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
-                                              << " BLAS/LAPACK QR factorization failed for subdomain "
-                                              << subdomain_num << " with info = " << info << ".");
+                                              << " BLAS/LAPACK QR factorization failed for subdomain " << subdomain_num
+                                              << " with info = " << info << ".");
     }
 
     PetscReal max_abs_diagonal = 0.0;
     for (PetscBLASInt k = 0; k < n; ++k)
     {
-        max_abs_diagonal =
-            std::max(max_abs_diagonal, PetscAbsScalar(qr_factor[column_major_index(k, k, n)]));
+        max_abs_diagonal = std::max(max_abs_diagonal, PetscAbsScalar(qr_factor[column_major_index(k, k, n)]));
     }
     if (max_abs_diagonal == 0.0)
     {
@@ -372,8 +367,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdom
         // checks the computed R diagonal; SVD is the rank-deficient mode.
         for (PetscBLASInt k = 0; k < n; ++k)
         {
-            if (PetscAbsScalar(qr_factor[column_major_index(k, k, n)]) <=
-                d_subdomain_solver_rcond * max_abs_diagonal)
+            if (PetscAbsScalar(qr_factor[column_major_index(k, k, n)]) <= d_subdomain_solver_rcond * max_abs_diagonal)
             {
                 TBOX_ERROR(d_solver_state.object_name
                            << " " << d_solver_state.options_prefix
@@ -429,22 +423,14 @@ PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdom
     if (info != 0)
     {
         TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
-                                              << " BLAS/LAPACK QR application failed for subdomain "
-                                              << subdomain_num << " with info = " << info << ".");
+                                              << " BLAS/LAPACK QR application failed for subdomain " << subdomain_num
+                                              << " with info = " << info << ".");
     }
     const char uplo = 'U';
     const char no_transpose = 'N';
     const char nonunit = 'N';
-    LAPACKtrtrs_(&uplo,
-                 &no_transpose,
-                 &nonunit,
-                 &n,
-                 &n,
-                 qr_factor.data(),
-                 &n,
-                 subdomain_data.solve_data.data(),
-                 &n,
-                 &info);
+    LAPACKtrtrs_(
+        &uplo, &no_transpose, &nonunit, &n, &n, qr_factor.data(), &n, subdomain_data.solve_data.data(), &n, &info);
     if (info != 0)
     {
         TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
@@ -456,7 +442,7 @@ PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdom
 
 void
 PETScLevelSolverBlasLapackShellBackend::initializeSVDSolver(SubdomainData& subdomain_data,
-                                                           const std::size_t subdomain_num)
+                                                            const std::size_t subdomain_num)
 {
 #if defined(PETSC_USE_COMPLEX)
     TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
@@ -523,9 +509,8 @@ PETScLevelSolverBlasLapackShellBackend::initializeSVDSolver(SubdomainData& subdo
 }
 
 void
-PETScLevelSolverBlasLapackShellBackend::verifySymmetricSubdomainMatrix(
-    const SubdomainData& subdomain_data,
-    const std::size_t subdomain_num) const
+PETScLevelSolverBlasLapackShellBackend::verifySymmetricSubdomainMatrix(const SubdomainData& subdomain_data,
+                                                                       const std::size_t subdomain_num) const
 {
     PetscReal max_entry = 0.0;
     PetscReal max_asymmetry = 0.0;
@@ -542,14 +527,12 @@ PETScLevelSolverBlasLapackShellBackend::verifySymmetricSubdomainMatrix(
             max_asymmetry = std::max(max_asymmetry, PetscAbsScalar(upper - lower));
         }
     }
-    const PetscReal tolerance =
-        100.0 * std::numeric_limits<PetscReal>::epsilon() * std::max<PetscReal>(1.0, max_entry);
+    const PetscReal tolerance = 100.0 * std::numeric_limits<PetscReal>::epsilon() * std::max<PetscReal>(1.0, max_entry);
     if (max_asymmetry > tolerance)
     {
-        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix << " subdomain "
-                                              << subdomain_num << " is not symmetric enough for the "
-                                              << getSolverTypeName() << " solver; maximum asymmetry = "
-                                              << max_asymmetry << ".");
+        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix << " subdomain " << subdomain_num
+                                              << " is not symmetric enough for the " << getSolverTypeName()
+                                              << " solver; maximum asymmetry = " << max_asymmetry << ".");
     }
 }
 
@@ -597,8 +580,8 @@ PETScLevelSolverBlasLapackShellBackend::deallocateSolverState()
 }
 
 void
-PETScLevelSolverBlasLapackShellBackend::solveSubdomain(SubdomainData& subdomain_data,
-                                                       const std::size_t subdomain_num) const
+PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem(SubdomainData& subdomain_data,
+                                                             const std::size_t subdomain_num) const
 {
     if (subdomain_data.local_size == 0) return;
     const PetscBLASInt nrhs = 1;
@@ -639,10 +622,9 @@ PETScLevelSolverBlasLapackShellBackend::solveSubdomain(SubdomainData& subdomain_
                      &info);
         if (info != 0)
         {
-            TBOX_ERROR(d_solver_state.object_name
-                       << " " << d_solver_state.options_prefix
-                       << " BLAS/LAPACK symmetric-indefinite solve failed for subdomain " << subdomain_num
-                       << " with info = " << info << ".");
+            TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                                  << " BLAS/LAPACK symmetric-indefinite solve failed for subdomain "
+                                                  << subdomain_num << " with info = " << info << ".");
         }
         return;
     }
@@ -672,40 +654,39 @@ PETScLevelSolverBlasLapackShellBackend::solveSubdomain(SubdomainData& subdomain_
     }
 }
 
-bool
-PETScLevelSolverBlasLapackShellBackend::shouldObserveSubdomain(const std::size_t subdomain_num) const
-{
-    if (!d_solver_state.subdomain_solve_observer || !*d_solver_state.subdomain_solve_observer) return false;
-    return !d_solver_state.subdomain_solve_observer_predicate ||
-           !*d_solver_state.subdomain_solve_observer_predicate ||
-           (*d_solver_state.subdomain_solve_observer_predicate)(static_cast<int>(subdomain_num));
-}
-
 void
 PETScLevelSolverBlasLapackShellBackend::observeSubdomain(const std::size_t subdomain_num,
-                                                        SubdomainData& subdomain_data,
-                                                        std::vector<PetscScalar>& local_rhs,
-                                                        Vec current_global_source) const
+                                                         SubdomainData& subdomain_data,
+                                                         Vec current_global_source) const
 {
     const auto& overlap_dofs = *subdomain_data.overlap_dofs;
     const PetscInt local_size = static_cast<PetscInt>(overlap_dofs.size());
+    std::vector<PetscScalar> local_rhs(static_cast<std::size_t>(local_size));
+    const PetscScalar* source_values = nullptr;
+    int ierr = VecGetArrayRead(current_global_source, &source_values);
+    IBTK_CHKERRQ(ierr);
+    for (std::size_t local_dof = 0; local_dof < overlap_dofs.size(); ++local_dof)
+    {
+        local_rhs[local_dof] = source_values[overlap_dofs[local_dof]];
+    }
+    ierr = VecRestoreArrayRead(current_global_source, &source_values);
+    IBTK_CHKERRQ(ierr);
+
     std::vector<PetscInt> petsc_dofs(overlap_dofs.begin(), overlap_dofs.end());
     IS subdomain_is = nullptr;
-    int ierr = ISCreateGeneral(PetscObjectComm(reinterpret_cast<PetscObject>(d_solver_state.petsc_mat)),
-                               local_size,
-                               petsc_dofs.data(),
-                               PETSC_COPY_VALUES,
-                               &subdomain_is);
+    ierr = ISCreateGeneral(PetscObjectComm(reinterpret_cast<PetscObject>(d_solver_state.petsc_mat)),
+                           local_size,
+                           petsc_dofs.data(),
+                           PETSC_COPY_VALUES,
+                           &subdomain_is);
     IBTK_CHKERRQ(ierr);
     Mat local_matrix = nullptr;
-    ierr = MatCreateSubMatrix(
-        d_solver_state.petsc_mat, subdomain_is, subdomain_is, MAT_INITIAL_MATRIX, &local_matrix);
+    ierr = MatCreateSubMatrix(d_solver_state.petsc_mat, subdomain_is, subdomain_is, MAT_INITIAL_MATRIX, &local_matrix);
     IBTK_CHKERRQ(ierr);
     Vec rhs = nullptr, solution = nullptr;
     ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, local_size, local_rhs.data(), &rhs);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateSeqWithArray(
-        PETSC_COMM_SELF, 1, local_size, subdomain_data.rhs_workspace.data(), &solution);
+    ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, 1, local_size, subdomain_data.rhs_workspace.data(), &solution);
     IBTK_CHKERRQ(ierr);
     (*d_solver_state.subdomain_solve_observer)(
         static_cast<int>(subdomain_num), local_matrix, rhs, solution, current_global_source);
@@ -719,111 +700,93 @@ PETScLevelSolverBlasLapackShellBackend::observeSubdomain(const std::size_t subdo
     IBTK_CHKERRQ(ierr);
 }
 
-void
-PETScLevelSolverBlasLapackShellBackend::applyAdditive(Vec x, Vec y)
+std::size_t
+PETScLevelSolverBlasLapackShellBackend::getNumberOfSubdomains() const
 {
-    auto& data = *d_data;
-    int ierr = VecZeroEntries(y);
-    IBTK_CHKERRQ(ierr);
-    for (std::size_t subdomain_num = 0; subdomain_num < data.subdomains.size(); ++subdomain_num)
-    {
-        auto& subdomain_data = data.subdomains[subdomain_num];
-        const PetscScalar* x_values = nullptr;
-        ierr = VecGetArrayRead(x, &x_values);
-        IBTK_CHKERRQ(ierr);
-        for (std::size_t local_dof = 0; local_dof < subdomain_data.overlap_dofs->size(); ++local_dof)
-        {
-            subdomain_data.rhs_workspace[local_dof] = x_values[(*subdomain_data.overlap_dofs)[local_dof]];
-        }
-        ierr = VecRestoreArrayRead(x, &x_values);
-        IBTK_CHKERRQ(ierr);
-        std::vector<PetscScalar> observed_rhs;
-        if (shouldObserveSubdomain(subdomain_num)) observed_rhs = subdomain_data.rhs_workspace;
-        solveSubdomain(subdomain_data, subdomain_num);
-        if (!observed_rhs.empty()) observeSubdomain(subdomain_num, subdomain_data, observed_rhs, x);
-        PetscScalar* y_values = nullptr;
-        ierr = VecGetArray(y, &y_values);
-        IBTK_CHKERRQ(ierr);
-        for (std::size_t update_num = 0; update_num < subdomain_data.update_dofs->size(); ++update_num)
-        {
-            y_values[(*subdomain_data.update_dofs)[update_num]] +=
-                subdomain_data.rhs_workspace[static_cast<std::size_t>(
-                    subdomain_data.update_local_positions[update_num])];
-        }
-        ierr = VecRestoreArray(y, &y_values);
-        IBTK_CHKERRQ(ierr);
-    }
+    return d_data->subdomains.size();
 }
 
 void
-PETScLevelSolverBlasLapackShellBackend::applyMultiplicative(Vec x, Vec y)
-{
-    auto& data = *d_data;
-    int ierr = VecZeroEntries(y);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(x, data.residual);
-    IBTK_CHKERRQ(ierr);
-    for (std::size_t subdomain_num = 0; subdomain_num < data.subdomains.size(); ++subdomain_num)
-    {
-        auto& subdomain_data = data.subdomains[subdomain_num];
-        const PetscScalar* residual_values = nullptr;
-        ierr = VecGetArrayRead(data.residual, &residual_values);
-        IBTK_CHKERRQ(ierr);
-        for (std::size_t local_dof = 0; local_dof < subdomain_data.overlap_dofs->size(); ++local_dof)
-        {
-            subdomain_data.rhs_workspace[local_dof] =
-                residual_values[(*subdomain_data.overlap_dofs)[local_dof]];
-        }
-        ierr = VecRestoreArrayRead(data.residual, &residual_values);
-        IBTK_CHKERRQ(ierr);
-
-        std::vector<PetscScalar> observed_rhs;
-        if (shouldObserveSubdomain(subdomain_num)) observed_rhs = subdomain_data.rhs_workspace;
-        solveSubdomain(subdomain_data, subdomain_num);
-        if (!observed_rhs.empty()) observeSubdomain(subdomain_num, subdomain_data, observed_rhs, data.residual);
-        PetscScalar* y_values = nullptr;
-        ierr = VecGetArray(y, &y_values);
-        IBTK_CHKERRQ(ierr);
-        for (std::size_t update_num = 0; update_num < subdomain_data.update_dofs->size(); ++update_num)
-        {
-            y_values[(*subdomain_data.update_dofs)[update_num]] +=
-                subdomain_data.rhs_workspace[static_cast<std::size_t>(
-                    subdomain_data.update_local_positions[update_num])];
-        }
-        ierr = VecRestoreArray(y, &y_values);
-        IBTK_CHKERRQ(ierr);
-
-        if (subdomain_num + 1 < data.subdomains.size())
-        {
-            ierr = VecZeroEntries(data.patch_correction);
-            IBTK_CHKERRQ(ierr);
-            PetscScalar* correction_values = nullptr;
-            ierr = VecGetArray(data.patch_correction, &correction_values);
-            IBTK_CHKERRQ(ierr);
-            for (std::size_t update_num = 0; update_num < subdomain_data.update_dofs->size(); ++update_num)
-            {
-                correction_values[(*subdomain_data.update_dofs)[update_num]] =
-                    subdomain_data.rhs_workspace[static_cast<std::size_t>(
-                        subdomain_data.update_local_positions[update_num])];
-            }
-            ierr = VecRestoreArray(data.patch_correction, &correction_values);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMult(d_solver_state.petsc_mat, data.patch_correction, data.residual_update);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAXPY(data.residual, -1.0, data.residual_update);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
-}
-
-void
-PETScLevelSolverBlasLapackShellBackend::apply(Vec x, Vec y)
+PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSweep(Vec x, Vec /*y*/)
 {
     TBOX_ASSERT(d_data);
     if (d_solver_state.use_multiplicative)
-        applyMultiplicative(x, y);
-    else
-        applyAdditive(x, y);
-    d_solver_state.postprocess_result(y);
+    {
+        const int ierr = VecCopy(x, d_data->residual);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::beginSubdomainRhs(const std::size_t subdomain_num, Vec x, Vec /*y*/)
+{
+    auto& subdomain_data = d_data->subdomains[subdomain_num];
+    Vec source = d_solver_state.use_multiplicative ? d_data->residual : x;
+    const PetscScalar* source_values = nullptr;
+    int ierr = VecGetArrayRead(source, &source_values);
+    IBTK_CHKERRQ(ierr);
+    for (std::size_t local_dof = 0; local_dof < subdomain_data.overlap_dofs->size(); ++local_dof)
+    {
+        subdomain_data.rhs_workspace[local_dof] = source_values[(*subdomain_data.overlap_dofs)[local_dof]];
+    }
+    ierr = VecRestoreArrayRead(source, &source_values);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::endSubdomainRhs(std::size_t /*subdomain_num*/, Vec /*x*/, Vec /*y*/)
+{
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::solveSubdomain(const std::size_t subdomain_num)
+{
+    solveSubdomainSystem(d_data->subdomains[subdomain_num], subdomain_num);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::observeSubdomainSolve(const std::size_t subdomain_num, Vec x, Vec /*y*/)
+{
+    Vec source = d_solver_state.use_multiplicative ? d_data->residual : x;
+    observeSubdomain(subdomain_num, d_data->subdomains[subdomain_num], source);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::accumulateSubdomainCorrection(const std::size_t subdomain_num, Vec y)
+{
+    auto& subdomain_data = d_data->subdomains[subdomain_num];
+    PetscScalar* y_values = nullptr;
+    int ierr = VecGetArray(y, &y_values);
+    IBTK_CHKERRQ(ierr);
+    for (std::size_t update_num = 0; update_num < subdomain_data.update_dofs->size(); ++update_num)
+    {
+        y_values[(*subdomain_data.update_dofs)[update_num]] +=
+            subdomain_data.rhs_workspace[static_cast<std::size_t>(subdomain_data.update_local_positions[update_num])];
+    }
+    ierr = VecRestoreArray(y, &y_values);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::updateSubdomainResidual(const std::size_t subdomain_num, Vec /*x*/, Vec /*y*/)
+{
+    auto& data = *d_data;
+    auto& subdomain_data = data.subdomains[subdomain_num];
+    int ierr = VecZeroEntries(data.patch_correction);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* correction_values = nullptr;
+    ierr = VecGetArray(data.patch_correction, &correction_values);
+    IBTK_CHKERRQ(ierr);
+    for (std::size_t update_num = 0; update_num < subdomain_data.update_dofs->size(); ++update_num)
+    {
+        correction_values[(*subdomain_data.update_dofs)[update_num]] =
+            subdomain_data.rhs_workspace[static_cast<std::size_t>(subdomain_data.update_local_positions[update_num])];
+    }
+    ierr = VecRestoreArray(data.patch_correction, &correction_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_solver_state.petsc_mat, data.patch_correction, data.residual_update);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAXPY(data.residual, -1.0, data.residual_update);
+    IBTK_CHKERRQ(ierr);
 }
 } // namespace IBTK
