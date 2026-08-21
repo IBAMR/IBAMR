@@ -124,6 +124,35 @@ valid_live_export_manifest(const CAVLiveExportManifest& manifest)
            valid_manifest_token(manifest.local_solver_backend);
 }
 
+bool
+valid_fac_stage(const std::string& stage)
+{
+    static const std::array<std::string, 6> stages = { "pre-smooth-input",  "pre-smooth-output", "coarse-rhs",
+                                                       "coarse-correction", "post-smooth-input", "post-smooth-output" };
+    return std::find(stages.begin(), stages.end(), stage) != stages.end();
+}
+
+bool
+valid_physical_residual_summary(const CAVPhysicalResidualSummary& summary)
+{
+    const std::array<double, 14> values = { summary.rhs_l2,
+                                            summary.rhs_momentum_l2,
+                                            summary.rhs_divergence_l2,
+                                            summary.residual_l2,
+                                            summary.residual_momentum_l2,
+                                            summary.residual_divergence_l2,
+                                            summary.ib_matrix_free_action_l2,
+                                            summary.ib_matrix_action_l2,
+                                            summary.ib_residual_l2,
+                                            summary.denominator_floor,
+                                            summary.relative_residual,
+                                            summary.momentum_relative_residual,
+                                            summary.divergence_relative_residual,
+                                            summary.ib_relative_residual };
+    return std::all_of(
+        values.begin(), values.end(), [](const double value) { return std::isfinite(value) && value >= 0.0; });
+}
+
 EntryMap
 aggregate_entries(const std::vector<CAVRawMatrixEntry>& entries)
 {
@@ -883,6 +912,211 @@ sameCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& lhs,
                           return left.sweep == right.sweep && left.patch_ordinal == right.patch_ordinal &&
                                  left.artifact_stem == right.artifact_stem;
                       });
+}
+
+bool
+writeCAVLocalSolveTraceArtifacts(const CAVLocalSolveTraceRecord& record,
+                                 Mat local_matrix,
+                                 Vec local_rhs,
+                                 Vec local_solution,
+                                 Vec current_global_source)
+{
+    if (record.sweep < 0 || record.patch_ordinal < 0 || !valid_manifest_token(record.artifact_stem))
+        throw std::runtime_error("invalid CAV local-solve trace record");
+    writeCAVRawMatrixMarket(local_matrix, record.artifact_stem + "_A.mtx");
+    writeCAVRawVectorMarket(local_rhs, record.artifact_stem + "_rhs.mtx");
+    writeCAVRawVectorMarket(local_solution, record.artifact_stem + "_correction.mtx");
+    writeCAVRawVectorMarket(current_global_source, record.artifact_stem + "_pre_update_residual.mtx");
+    return sameCAVRawMatrixMarket(local_matrix, readCAVRawMatrixMarket(record.artifact_stem + "_A.mtx")) &&
+           sameCAVRawVectorMarket(local_rhs, readCAVRawVectorMarket(record.artifact_stem + "_rhs.mtx")) &&
+           sameCAVRawVectorMarket(local_solution, readCAVRawVectorMarket(record.artifact_stem + "_correction.mtx")) &&
+           sameCAVRawVectorMarket(current_global_source,
+                                  readCAVRawVectorMarket(record.artifact_stem + "_pre_update_residual.mtx"));
+}
+
+void
+writeCAVFACStageTraceIndex(const std::vector<CAVFACStageTraceRecord>& records, const std::string& filename)
+{
+    for (const CAVFACStageTraceRecord& record : records)
+    {
+        if (!valid_fac_stage(record.stage) || record.level < 0 || !valid_manifest_token(record.artifact_stem))
+            throw std::runtime_error("invalid CAV FAC-stage trace record");
+    }
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-fac-stage-trace-v1 " << records.size() << "\n";
+    for (std::size_t sequence = 0; sequence < records.size(); ++sequence)
+    {
+        out << sequence << " " << records[sequence].stage << " " << records[sequence].level << " "
+            << records[sequence].artifact_stem << "\n";
+    }
+}
+
+std::vector<CAVFACStageTraceRecord>
+readCAVFACStageTraceIndex(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::size_t count = 0;
+    in >> schema >> count;
+    if (!in || schema != "ibamr-cav-fac-stage-trace-v1")
+        throw std::runtime_error("invalid CAV FAC-stage trace metadata");
+    std::vector<CAVFACStageTraceRecord> records(count);
+    for (std::size_t expected_sequence = 0; expected_sequence < count; ++expected_sequence)
+    {
+        std::size_t sequence = 0;
+        in >> sequence >> records[expected_sequence].stage >> records[expected_sequence].level >>
+            records[expected_sequence].artifact_stem;
+        if (!in || sequence != expected_sequence || !valid_fac_stage(records[expected_sequence].stage) ||
+            records[expected_sequence].level < 0 || !valid_manifest_token(records[expected_sequence].artifact_stem))
+            throw std::runtime_error("invalid CAV FAC-stage trace record");
+    }
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing CAV FAC-stage trace data");
+    return records;
+}
+
+bool
+sameCAVFACStageTraceIndex(const std::vector<CAVFACStageTraceRecord>& lhs,
+                          const std::vector<CAVFACStageTraceRecord>& rhs)
+{
+    return lhs.size() == rhs.size() && std::equal(lhs.begin(),
+                                                  lhs.end(),
+                                                  rhs.begin(),
+                                                  [](const auto& left, const auto& right) {
+                                                      return left.stage == right.stage && left.level == right.level &&
+                                                             left.artifact_stem == right.artifact_stem;
+                                                  });
+}
+
+void
+writeCAVKrylovTraceIndex(const std::vector<CAVKrylovTraceRecord>& records, const std::string& filename)
+{
+    for (const CAVKrylovTraceRecord& record : records)
+    {
+        if (record.iteration < 0 || !std::isfinite(record.residual_norm) || record.residual_norm < 0.0 ||
+            !valid_manifest_token(record.artifact_stem))
+            throw std::runtime_error("invalid CAV Krylov trace record");
+    }
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-krylov-trace-v1 " << records.size() << "\n";
+    for (std::size_t sequence = 0; sequence < records.size(); ++sequence)
+    {
+        out << sequence << " " << records[sequence].iteration << " " << records[sequence].residual_norm << " "
+            << records[sequence].artifact_stem << "\n";
+    }
+}
+
+std::vector<CAVKrylovTraceRecord>
+readCAVKrylovTraceIndex(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    std::size_t count = 0;
+    in >> schema >> count;
+    if (!in || schema != "ibamr-cav-krylov-trace-v1") throw std::runtime_error("invalid CAV Krylov trace metadata");
+    std::vector<CAVKrylovTraceRecord> records(count);
+    for (std::size_t expected_sequence = 0; expected_sequence < count; ++expected_sequence)
+    {
+        std::size_t sequence = 0;
+        in >> sequence >> records[expected_sequence].iteration >> records[expected_sequence].residual_norm >>
+            records[expected_sequence].artifact_stem;
+        if (!in || sequence != expected_sequence || records[expected_sequence].iteration < 0 ||
+            !std::isfinite(records[expected_sequence].residual_norm) ||
+            records[expected_sequence].residual_norm < 0.0 ||
+            !valid_manifest_token(records[expected_sequence].artifact_stem))
+            throw std::runtime_error("invalid CAV Krylov trace record");
+    }
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing CAV Krylov trace data");
+    return records;
+}
+
+bool
+sameCAVKrylovTraceIndex(const std::vector<CAVKrylovTraceRecord>& lhs, const std::vector<CAVKrylovTraceRecord>& rhs)
+{
+    return lhs.size() == rhs.size() && std::equal(lhs.begin(),
+                                                  lhs.end(),
+                                                  rhs.begin(),
+                                                  [](const auto& left, const auto& right)
+                                                  {
+                                                      return left.iteration == right.iteration &&
+                                                             left.residual_norm == right.residual_norm &&
+                                                             left.artifact_stem == right.artifact_stem;
+                                                  });
+}
+
+void
+writeCAVPhysicalResidualSummary(const CAVPhysicalResidualSummary& summary, const std::string& filename)
+{
+    if (!valid_physical_residual_summary(summary)) throw std::runtime_error("invalid CAV physical-residual summary");
+    std::ofstream out = open_output(filename);
+    out << "ibamr-cav-physical-residual-v1\n";
+    out << "rhs_l2 " << summary.rhs_l2 << "\n";
+    out << "rhs_momentum_l2 " << summary.rhs_momentum_l2 << "\n";
+    out << "rhs_divergence_l2 " << summary.rhs_divergence_l2 << "\n";
+    out << "residual_l2 " << summary.residual_l2 << "\n";
+    out << "residual_momentum_l2 " << summary.residual_momentum_l2 << "\n";
+    out << "residual_divergence_l2 " << summary.residual_divergence_l2 << "\n";
+    out << "ib_matrix_free_action_l2 " << summary.ib_matrix_free_action_l2 << "\n";
+    out << "ib_matrix_action_l2 " << summary.ib_matrix_action_l2 << "\n";
+    out << "ib_residual_l2 " << summary.ib_residual_l2 << "\n";
+    out << "denominator_floor " << summary.denominator_floor << "\n";
+    out << "relative_residual " << summary.relative_residual << "\n";
+    out << "momentum_relative_residual " << summary.momentum_relative_residual << "\n";
+    out << "divergence_relative_residual " << summary.divergence_relative_residual << "\n";
+    out << "ib_relative_residual " << summary.ib_relative_residual << "\n";
+}
+
+CAVPhysicalResidualSummary
+readCAVPhysicalResidualSummary(const std::string& filename)
+{
+    std::ifstream in = open_input(filename);
+    std::string schema;
+    in >> schema;
+    if (!in || schema != "ibamr-cav-physical-residual-v1")
+        throw std::runtime_error("invalid CAV physical-residual metadata");
+    CAVPhysicalResidualSummary summary;
+    const std::array<std::pair<const char*, double*>, 14> fields = {
+        std::make_pair("rhs_l2", &summary.rhs_l2),
+        std::make_pair("rhs_momentum_l2", &summary.rhs_momentum_l2),
+        std::make_pair("rhs_divergence_l2", &summary.rhs_divergence_l2),
+        std::make_pair("residual_l2", &summary.residual_l2),
+        std::make_pair("residual_momentum_l2", &summary.residual_momentum_l2),
+        std::make_pair("residual_divergence_l2", &summary.residual_divergence_l2),
+        std::make_pair("ib_matrix_free_action_l2", &summary.ib_matrix_free_action_l2),
+        std::make_pair("ib_matrix_action_l2", &summary.ib_matrix_action_l2),
+        std::make_pair("ib_residual_l2", &summary.ib_residual_l2),
+        std::make_pair("denominator_floor", &summary.denominator_floor),
+        std::make_pair("relative_residual", &summary.relative_residual),
+        std::make_pair("momentum_relative_residual", &summary.momentum_relative_residual),
+        std::make_pair("divergence_relative_residual", &summary.divergence_relative_residual),
+        std::make_pair("ib_relative_residual", &summary.ib_relative_residual)
+    };
+    for (const auto& field : fields)
+    {
+        std::string name;
+        in >> name >> *field.second;
+        if (!in || name != field.first) throw std::runtime_error("invalid CAV physical-residual field");
+    }
+    std::string trailing;
+    if (in >> trailing) throw std::runtime_error("invalid trailing CAV physical-residual data");
+    if (!valid_physical_residual_summary(summary)) throw std::runtime_error("invalid CAV physical-residual values");
+    return summary;
+}
+
+bool
+sameCAVPhysicalResidualSummary(const CAVPhysicalResidualSummary& lhs, const CAVPhysicalResidualSummary& rhs)
+{
+    return lhs.rhs_l2 == rhs.rhs_l2 && lhs.rhs_momentum_l2 == rhs.rhs_momentum_l2 &&
+           lhs.rhs_divergence_l2 == rhs.rhs_divergence_l2 && lhs.residual_l2 == rhs.residual_l2 &&
+           lhs.residual_momentum_l2 == rhs.residual_momentum_l2 &&
+           lhs.residual_divergence_l2 == rhs.residual_divergence_l2 &&
+           lhs.ib_matrix_free_action_l2 == rhs.ib_matrix_free_action_l2 &&
+           lhs.ib_matrix_action_l2 == rhs.ib_matrix_action_l2 && lhs.ib_residual_l2 == rhs.ib_residual_l2 &&
+           lhs.denominator_floor == rhs.denominator_floor && lhs.relative_residual == rhs.relative_residual &&
+           lhs.momentum_relative_residual == rhs.momentum_relative_residual &&
+           lhs.divergence_relative_residual == rhs.divergence_relative_residual &&
+           lhs.ib_relative_residual == rhs.ib_relative_residual;
 }
 
 void

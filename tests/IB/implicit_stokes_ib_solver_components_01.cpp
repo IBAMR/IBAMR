@@ -40,6 +40,7 @@
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -107,6 +108,13 @@ struct LocalSolveDiagnostics
     double max_local_rhs_error = 0.0;
     bool order_valid = true;
     bool values_finite = true;
+    bool trace_enabled = false;
+    int trace_patch_ordinal = 0;
+    bool trace_artifacts_round_trip = true;
+    bool trace_index_round_trip = true;
+    bool trace_selection_valid = true;
+    bool trace_mutation_detected = true;
+    std::vector<IBAMR::TestSupport::CAVLocalSolveTraceRecord> trace_records;
 
     void initialize(Mat operator_mat, const std::vector<std::vector<int>>& patches)
     {
@@ -118,6 +126,13 @@ struct LocalSolveDiagnostics
         IBTK_CHKERRQ(ierr);
         ierr = VecDuplicate(sweep_rhs, &residual_difference);
         IBTK_CHKERRQ(ierr);
+    }
+
+    void enableTrace(const int patch_ordinal)
+    {
+        if (patch_ordinal < -1) TBOX_ERROR("CAV local trace patch ordinal must be -1 or nonnegative\n");
+        trace_enabled = true;
+        trace_patch_ordinal = patch_ordinal;
     }
 
     void observe(const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source)
@@ -139,6 +154,18 @@ struct LocalSolveDiagnostics
             IBTK_CHKERRQ(ierr);
         }
         order_valid = order_valid && static_cast<std::size_t>(ordinal) == expected_ordinal;
+
+        if (trace_enabled && (trace_patch_ordinal == -1 || ordinal == trace_patch_ordinal))
+        {
+            const int sweep = sweep_count - 1;
+            const std::string artifact_stem =
+                "cav_fgmres_local_sweep" + std::to_string(sweep) + "_patch" + std::to_string(ordinal);
+            const IBAMR::TestSupport::CAVLocalSolveTraceRecord record = { sweep, ordinal, artifact_stem };
+            trace_artifacts_round_trip = trace_artifacts_round_trip &&
+                                         IBAMR::TestSupport::writeCAVLocalSolveTraceArtifacts(
+                                             record, local_matrix, local_rhs, local_solution, current_global_source);
+            trace_records.push_back(record);
+        }
 
         ierr = MatMult(level_operator, accumulated_correction, fresh_residual);
         IBTK_CHKERRQ(ierr);
@@ -231,6 +258,21 @@ struct LocalSolveDiagnostics
                solve_count == sweep_count * static_cast<int>(patch_dofs->size());
     }
 
+    void finalizeTrace()
+    {
+        if (!trace_enabled) return;
+        IBAMR::TestSupport::writeCAVLocalSolveTraceIndex(trace_records, "cav_fgmres_local_trace.txt");
+        const auto reread_records = IBAMR::TestSupport::readCAVLocalSolveTraceIndex("cav_fgmres_local_trace.txt");
+        trace_index_round_trip = IBAMR::TestSupport::sameCAVLocalSolveTraceIndex(trace_records, reread_records);
+        const std::size_t expected_count = trace_patch_ordinal == -1 ?
+                                               static_cast<std::size_t>(sweep_count * patch_dofs->size()) :
+                                               static_cast<std::size_t>(sweep_count);
+        trace_selection_valid = trace_records.size() == expected_count;
+        auto mutated_records = reread_records;
+        if (!mutated_records.empty()) ++mutated_records.front().patch_ordinal;
+        trace_mutation_detected = !IBAMR::TestSupport::sameCAVLocalSolveTraceIndex(trace_records, mutated_records);
+    }
+
     void deallocate()
     {
         PetscErrorCode ierr = VecDestroy(&residual_difference);
@@ -245,6 +287,172 @@ struct LocalSolveDiagnostics
         patch_dofs = nullptr;
     }
 };
+
+std::string
+fac_stage_name(const IBTK::FACPreconditioner::CycleStage stage)
+{
+    using CycleStage = IBTK::FACPreconditioner::CycleStage;
+    switch (stage)
+    {
+    case CycleStage::PRE_SMOOTH_INPUT:
+        return "pre-smooth-input";
+    case CycleStage::PRE_SMOOTH_OUTPUT:
+        return "pre-smooth-output";
+    case CycleStage::COARSE_RHS:
+        return "coarse-rhs";
+    case CycleStage::COARSE_CORRECTION:
+        return "coarse-correction";
+    case CycleStage::POST_SMOOTH_INPUT:
+        return "post-smooth-input";
+    case CycleStage::POST_SMOOTH_OUTPUT:
+        return "post-smooth-output";
+    }
+    TBOX_ERROR("Unsupported FAC cycle stage\n");
+    return "";
+}
+
+struct FACTraceExporter
+{
+    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_operator;
+    Pointer<PatchHierarchy<NDIM>> hierarchy;
+    int u_dof_index_idx = -1;
+    int p_dof_index_idx = -1;
+    bool active = false;
+    bool artifacts_round_trip = true;
+    bool index_round_trip = true;
+    bool order_valid = true;
+    bool mutation_detected = true;
+    std::vector<IBAMR::TestSupport::CAVFACStageTraceRecord> records;
+
+    void observe(const IBTK::FACPreconditioner::CycleStage stage,
+                 const int level_num,
+                 const SAMRAIVectorReal<NDIM, double>& solution,
+                 const SAMRAIVectorReal<NDIM, double>& rhs)
+    {
+        if (!active) return;
+        Pointer<StaggeredStokesPETScLevelSolver> level_solver =
+            fac_operator->getStaggeredStokesPETScLevelSolver(level_num);
+        const auto live_view = level_solver->getLiveOperatorStateView();
+        if (!live_view.initialized || !live_view.operator_mat)
+            TBOX_ERROR("FAC trace requires an initialized live level operator\n");
+
+        // FAC stage vectors are hierarchy-native. Use the existing level DOF map for the transient serialized view;
+        // do not introduce a second hierarchy-wide numbering or retain an algebraic copy.
+        Vec solution_vec = nullptr;
+        Vec rhs_vec = nullptr;
+        PetscErrorCode ierr = MatCreateVecs(live_view.operator_mat, &solution_vec, &rhs_vec);
+        IBTK_CHKERRQ(ierr);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(solution_vec,
+                                                              solution.getComponentDescriptorIndex(0),
+                                                              u_dof_index_idx,
+                                                              solution.getComponentDescriptorIndex(1),
+                                                              p_dof_index_idx,
+                                                              hierarchy->getPatchLevel(level_num));
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(rhs_vec,
+                                                              rhs.getComponentDescriptorIndex(0),
+                                                              u_dof_index_idx,
+                                                              rhs.getComponentDescriptorIndex(1),
+                                                              p_dof_index_idx,
+                                                              hierarchy->getPatchLevel(level_num));
+
+        const std::string stage_name = fac_stage_name(stage);
+        const std::string artifact_stem =
+            "cav_fac_stage" + std::to_string(records.size()) + "_" + stage_name + "_level" + std::to_string(level_num);
+        IBAMR::TestSupport::writeCAVRawVectorMarket(solution_vec, artifact_stem + "_solution.mtx");
+        IBAMR::TestSupport::writeCAVRawVectorMarket(rhs_vec, artifact_stem + "_rhs.mtx");
+        artifacts_round_trip =
+            artifacts_round_trip &&
+            IBAMR::TestSupport::sameCAVRawVectorMarket(
+                solution_vec, IBAMR::TestSupport::readCAVRawVectorMarket(artifact_stem + "_solution.mtx")) &&
+            IBAMR::TestSupport::sameCAVRawVectorMarket(
+                rhs_vec, IBAMR::TestSupport::readCAVRawVectorMarket(artifact_stem + "_rhs.mtx"));
+        records.push_back({ stage_name, level_num, artifact_stem });
+
+        ierr = VecDestroy(&rhs_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&solution_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    void finalize(const std::vector<IBTK::FACPreconditioner::CycleStage>& expected_stages,
+                  const std::vector<int>& expected_levels)
+    {
+        IBAMR::TestSupport::writeCAVFACStageTraceIndex(records, "cav_fac_trace.txt");
+        const auto reread_records = IBAMR::TestSupport::readCAVFACStageTraceIndex("cav_fac_trace.txt");
+        index_round_trip = IBAMR::TestSupport::sameCAVFACStageTraceIndex(records, reread_records);
+        order_valid = records.size() == expected_stages.size() && expected_stages.size() == expected_levels.size();
+        for (std::size_t k = 0; order_valid && k < records.size(); ++k)
+        {
+            order_valid =
+                records[k].stage == fac_stage_name(expected_stages[k]) && records[k].level == expected_levels[k];
+        }
+        auto mutated_records = reread_records;
+        if (!mutated_records.empty()) ++mutated_records.front().level;
+        mutation_detected = !IBAMR::TestSupport::sameCAVFACStageTraceIndex(records, mutated_records);
+    }
+};
+
+struct KrylovTraceContext
+{
+    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_operator;
+    Pointer<PatchHierarchy<NDIM>> hierarchy;
+    int u_dof_index_idx = -1;
+    int p_dof_index_idx = -1;
+    bool artifacts_round_trip = true;
+    std::vector<IBAMR::TestSupport::CAVKrylovTraceRecord> records;
+};
+
+PetscErrorCode
+record_krylov_trace(KSP ksp, const PetscInt iteration, const PetscReal residual_norm, void* context)
+{
+    PetscFunctionBeginUser;
+    auto* trace = static_cast<KrylovTraceContext*>(context);
+    Vec solution = nullptr;
+    PetscCall(KSPBuildSolution(ksp, nullptr, &solution));
+    PetscBool is_samrai_vector = PETSC_FALSE;
+    PetscCall(PetscObjectTypeCompare(reinterpret_cast<PetscObject>(solution), "Vec_SAMRAI", &is_samrai_vector));
+    PetscCheck(is_samrai_vector,
+               PetscObjectComm(reinterpret_cast<PetscObject>(ksp)),
+               PETSC_ERR_ARG_WRONG,
+               "CAV Krylov trace requires the live Vec_SAMRAI iterate");
+    const std::string artifact_stem = "cav_fgmres_iteration" + std::to_string(iteration);
+    // The outer iterate has no single contiguous hierarchy numbering. Unwrap the live hierarchy vector and export each
+    // level through the same velocity-pressure global numbering used by its live level operator.
+    Pointer<SAMRAIVectorReal<NDIM, PetscScalar>> hierarchy_solution;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(solution, &hierarchy_solution);
+    try
+    {
+        for (int ln = hierarchy_solution->getCoarsestLevelNumber(); ln <= hierarchy_solution->getFinestLevelNumber();
+             ++ln)
+        {
+            Pointer<StaggeredStokesPETScLevelSolver> level_solver =
+                trace->fac_operator->getStaggeredStokesPETScLevelSolver(ln);
+            const auto live_view = level_solver->getLiveOperatorStateView();
+            Vec level_solution = nullptr;
+            PetscCall(MatCreateVecs(live_view.operator_mat, &level_solution, nullptr));
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(level_solution,
+                                                                  hierarchy_solution->getComponentDescriptorIndex(0),
+                                                                  trace->u_dof_index_idx,
+                                                                  hierarchy_solution->getComponentDescriptorIndex(1),
+                                                                  trace->p_dof_index_idx,
+                                                                  trace->hierarchy->getPatchLevel(ln));
+            const std::string filename = artifact_stem + "_level" + std::to_string(ln) + "_solution.mtx";
+            IBAMR::TestSupport::writeCAVRawVectorMarket(level_solution, filename);
+            trace->artifacts_round_trip = trace->artifacts_round_trip &&
+                                          IBAMR::TestSupport::sameCAVRawVectorMarket(
+                                              level_solution, IBAMR::TestSupport::readCAVRawVectorMarket(filename));
+            PetscCall(VecDestroy(&level_solution));
+        }
+        trace->records.push_back({ static_cast<int>(iteration), static_cast<double>(residual_norm), artifact_stem });
+    }
+    catch (const std::exception& exception)
+    {
+        IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(solution, &hierarchy_solution);
+        SETERRQ(PetscObjectComm(reinterpret_cast<PetscObject>(ksp)), PETSC_ERR_FILE_WRITE, "%s", exception.what());
+    }
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(solution, &hierarchy_solution);
+    PetscFunctionReturn(PETSC_SUCCESS);
+}
 
 void
 generate_structure(const unsigned int& strct_num,
@@ -398,6 +606,12 @@ main(int argc, char* argv[])
         const bool verify_fgmres_local_diagnostics = input_db->keyExists("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") ?
                                                          input_db->getBool("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") :
                                                          false;
+        const bool verify_cav_live_dynamic_trace_schema =
+            input_db->keyExists("VERIFY_CAV_LIVE_DYNAMIC_TRACE_SCHEMA") ?
+                input_db->getBool("VERIFY_CAV_LIVE_DYNAMIC_TRACE_SCHEMA") :
+                false;
+        const int cav_local_trace_patch_ordinal =
+            verify_cav_live_dynamic_trace_schema ? input_db->getInteger("CAV_LOCAL_TRACE_PATCH_ORDINAL") : 0;
         StructureSpec structure_spec;
         structure_spec.ds = input_db->getDoubleWithDefault("DS", 1.0 / 64.0);
         structure_spec.x_center = input_db->getDoubleWithDefault("X_CENTER", 0.5);
@@ -783,7 +997,17 @@ main(int argc, char* argv[])
                                                        false;
         if (verify_cav_live_export_schema && !verify_pressure_cav)
             TBOX_ERROR("The CAV live-export schema check requires VERIFY_PRESSURE_CAV = TRUE\n");
+        if (verify_cav_live_dynamic_trace_schema &&
+            (!verify_pressure_cav || !verify_fac_cycle_observer || !verify_fgmres_physical_residuals ||
+             !verify_fgmres_local_diagnostics))
+        {
+            TBOX_ERROR(
+                "The CAV dynamic-trace schema check requires pressure CAV, the FAC observer, FGMRES physical "
+                "residuals, and FGMRES local diagnostics\n");
+        }
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
+        bool dynamic_level_operator_round_trip = !verify_cav_live_dynamic_trace_schema;
+        bool dynamic_level_dof_map_round_trip = !verify_cav_live_dynamic_trace_schema;
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         if (verify_pressure_cav)
         {
@@ -792,6 +1016,9 @@ main(int argc, char* argv[])
             const auto& nonoverlap_dofs = pressure_cav_level_solver->getASMNonoverlapSubdomains();
             const auto& pressure_seeds = pressure_cav_level_solver->getCouplingAwareASMPressureSeedDOFs();
             const int expected_patch_count = input_db->getInteger("EXPECTED_PRESSURE_CAV_PATCH_COUNT");
+            if (verify_cav_live_dynamic_trace_schema &&
+                cav_local_trace_patch_ordinal >= static_cast<int>(overlap_dofs.size()))
+                TBOX_ERROR("CAV local trace patch ordinal is outside the live patch range\n");
 
             bool seed_order_valid = static_cast<int>(pressure_seeds.size()) == expected_patch_count &&
                                     pressure_seeds.size() == overlap_dofs.size();
@@ -813,6 +1040,30 @@ main(int argc, char* argv[])
             pout << "pressure_cav_enlarged_patch_count = " << enlarged_patch_count << std::endl;
             pout << "pressure_cav_seed_order_valid = " << (seed_order_valid ? "true" : "false") << std::endl;
             pout << "pressure_cav_partition_absent = " << (partition_absent ? "true" : "false") << std::endl;
+        }
+        if (verify_cav_live_dynamic_trace_schema)
+        {
+            dynamic_level_operator_round_trip = true;
+            dynamic_level_dof_map_round_trip = true;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                Pointer<StaggeredStokesPETScLevelSolver> level_solver = fac_op->getStaggeredStokesPETScLevelSolver(ln);
+                const auto live_view = level_solver->getLiveOperatorStateView();
+                const std::string prefix = "cav_dynamic_level" + std::to_string(ln);
+                IBAMR::TestSupport::writeCAVRawMatrixMarket(live_view.operator_mat, prefix + "_A.mtx");
+                dynamic_level_operator_round_trip =
+                    dynamic_level_operator_round_trip &&
+                    IBAMR::TestSupport::sameCAVRawMatrixMarket(
+                        live_view.operator_mat, IBAMR::TestSupport::readCAVRawMatrixMarket(prefix + "_A.mtx"));
+                const auto dof_map = IBAMR::TestSupport::captureCAVRawDofMap(
+                    patch_hierarchy->getPatchLevel(ln), u_dof_index_idx, p_dof_index_idx);
+                IBAMR::TestSupport::writeCAVRawDofMap(dof_map, prefix + "_dof_map.txt");
+                dynamic_level_dof_map_round_trip =
+                    dynamic_level_dof_map_round_trip &&
+                    IBAMR::TestSupport::sameCAVRawDofMap(dof_map,
+                                                         IBAMR::TestSupport::readCAVRawDofMap(prefix + "_dof_map.txt"));
+            }
+            if (!dynamic_level_operator_round_trip || !dynamic_level_dof_map_round_trip) ++test_failures;
         }
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         if (verify_cav_live_export_schema)
@@ -916,6 +1167,14 @@ main(int argc, char* argv[])
         std::vector<CycleStage> observed_fac_stages;
         std::vector<int> observed_fac_levels;
         bool fac_observer_views_valid = true;
+        FACTraceExporter fac_trace_exporter;
+        if (verify_cav_live_dynamic_trace_schema)
+        {
+            fac_trace_exporter.fac_operator = fac_op;
+            fac_trace_exporter.hierarchy = patch_hierarchy;
+            fac_trace_exporter.u_dof_index_idx = u_dof_index_idx;
+            fac_trace_exporter.p_dof_index_idx = p_dof_index_idx;
+        }
         IBTK::FACPreconditioner::CycleObserver fac_cycle_observer = [&](const CycleStage stage,
                                                                         const int level_num,
                                                                         const SAMRAIVectorReal<NDIM, double>& solution,
@@ -929,6 +1188,7 @@ main(int argc, char* argv[])
                                        solution.getFinestLevelNumber() == finest_ln &&
                                        rhs.getFinestLevelNumber() == finest_ln && std::isfinite(solution.L2Norm()) &&
                                        std::isfinite(rhs.L2Norm());
+            fac_trace_exporter.observe(stage, level_num, solution, rhs);
         };
 
         const std::vector<CycleStage> expected_fac_stages = {
@@ -952,12 +1212,21 @@ main(int argc, char* argv[])
             fac_observer_sol->allocateVectorData();
             fac_observer_sol->setToScalar(0.0);
             fac_pc->setCycleObserver(fac_cycle_observer);
+            fac_trace_exporter.active = verify_cav_live_dynamic_trace_schema;
             const bool observer_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_trace_exporter.active = false;
             fac_observer_first_cycle_valid = observer_solve_success && observed_fac_stages == expected_fac_stages &&
                                              observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
                                              std::isfinite(fac_observer_sol->L2Norm()) &&
                                              fac_observer_sol->L2Norm() > 1.0e-14;
             if (!fac_observer_first_cycle_valid) ++test_failures;
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                fac_trace_exporter.finalize(expected_fac_stages, expected_fac_levels);
+                if (!fac_trace_exporter.artifacts_round_trip || !fac_trace_exporter.index_round_trip ||
+                    !fac_trace_exporter.order_valid || !fac_trace_exporter.mutation_detected)
+                    ++test_failures;
+            }
 
             const std::size_t observed_stage_count = observed_fac_stages.size();
             fac_pc->setCycleObserver({});
@@ -1100,12 +1369,28 @@ main(int argc, char* argv[])
         linear_sol->allocateVectorData();
         linear_sol->setToScalar(0.0);
         LocalSolveDiagnostics local_solve_diagnostics;
+        KrylovTraceContext krylov_trace;
+        bool krylov_trace_index_round_trip = !verify_cav_live_dynamic_trace_schema;
+        bool krylov_trace_order_valid = !verify_cav_live_dynamic_trace_schema;
+        bool krylov_trace_history_valid = !verify_cav_live_dynamic_trace_schema;
+        bool krylov_trace_mutation_detected = !verify_cav_live_dynamic_trace_schema;
+        bool physical_summary_round_trip = !verify_cav_live_dynamic_trace_schema;
+        bool physical_summary_mutation_detected = !verify_cav_live_dynamic_trace_schema;
         if (verify_fgmres_physical_residuals)
         {
             linear_solver->initializeSolverState(*linear_sol, *jv);
             SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
             PetscErrorCode ierr = KSPSetResidualHistory(linear_solver->getPETScKSP(), nullptr, 201, PETSC_TRUE);
             IBTK_CHKERRQ(ierr);
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                krylov_trace.fac_operator = fac_op;
+                krylov_trace.hierarchy = patch_hierarchy;
+                krylov_trace.u_dof_index_idx = u_dof_index_idx;
+                krylov_trace.p_dof_index_idx = p_dof_index_idx;
+                ierr = KSPMonitorSet(linear_solver->getPETScKSP(), record_krylov_trace, &krylov_trace, nullptr);
+                IBTK_CHKERRQ(ierr);
+            }
         }
         if (verify_fgmres_local_diagnostics)
         {
@@ -1117,6 +1402,8 @@ main(int argc, char* argv[])
             PetscErrorCode ierr = KSPGetOperators(pressure_cav_level_solver->getPETScKSP(), &level_operator, nullptr);
             IBTK_CHKERRQ(ierr);
             local_solve_diagnostics.initialize(level_operator, pressure_cav_level_solver->getASMSubdomains());
+            if (verify_cav_live_dynamic_trace_schema)
+                local_solve_diagnostics.enableTrace(cav_local_trace_patch_ordinal);
             pressure_cav_level_solver->setShellSubdomainSolveObserver(
                 [&](const int ordinal, Mat local_matrix, Vec local_rhs, Vec local_solution, Vec current_global_source) {
                     local_solve_diagnostics.observe(
@@ -1124,9 +1411,29 @@ main(int argc, char* argv[])
                 });
         }
         const bool linear_success = linear_solver->solveSystem(*linear_sol, *jv);
+        if (verify_cav_live_dynamic_trace_schema)
+        {
+            PetscErrorCode ierr = KSPMonitorCancel(linear_solver->getPETScKSP());
+            IBTK_CHKERRQ(ierr);
+            IBAMR::TestSupport::writeCAVKrylovTraceIndex(krylov_trace.records, "cav_fgmres_trace.txt");
+            const auto reread_records = IBAMR::TestSupport::readCAVKrylovTraceIndex("cav_fgmres_trace.txt");
+            krylov_trace_index_round_trip =
+                IBAMR::TestSupport::sameCAVKrylovTraceIndex(krylov_trace.records, reread_records);
+            krylov_trace_order_valid = !krylov_trace.records.empty();
+            for (std::size_t k = 0; krylov_trace_order_valid && k < krylov_trace.records.size(); ++k)
+                krylov_trace_order_valid = krylov_trace.records[k].iteration == static_cast<int>(k);
+            auto mutated_records = reread_records;
+            if (!mutated_records.empty()) ++mutated_records.front().iteration;
+            krylov_trace_mutation_detected =
+                !IBAMR::TestSupport::sameCAVKrylovTraceIndex(krylov_trace.records, mutated_records);
+            if (!krylov_trace.artifacts_round_trip || !krylov_trace_index_round_trip || !krylov_trace_order_valid ||
+                !krylov_trace_mutation_detected)
+                ++test_failures;
+        }
         if (verify_fgmres_local_diagnostics)
         {
             pressure_cav_level_solver->setShellSubdomainSolveObserver({});
+            local_solve_diagnostics.finalizeTrace();
             const double local_diagnostic_tol = input_db->getDouble("FGMRES_LOCAL_DIAGNOSTIC_TOL");
             const bool local_diagnostics_valid =
                 local_solve_diagnostics.complete() && local_solve_diagnostics.order_valid &&
@@ -1134,7 +1441,11 @@ main(int argc, char* argv[])
                 local_solve_diagnostics.max_backward_error <= local_diagnostic_tol &&
                 local_solve_diagnostics.max_incremental_fresh_error <= local_diagnostic_tol &&
                 local_solve_diagnostics.max_local_rhs_error <= local_diagnostic_tol;
-            if (!local_diagnostics_valid) ++test_failures;
+            const bool local_trace_valid =
+                local_solve_diagnostics.trace_artifacts_round_trip && local_solve_diagnostics.trace_index_round_trip &&
+                local_solve_diagnostics.trace_selection_valid && local_solve_diagnostics.trace_mutation_detected;
+            if (!local_diagnostics_valid || (verify_cav_live_dynamic_trace_schema && !local_trace_valid))
+                ++test_failures;
             pout << std::setprecision(16);
             pout << "fgmres_local_sweep_count = " << local_solve_diagnostics.sweep_count << std::endl;
             pout << "fgmres_local_solve_count = " << local_solve_diagnostics.solve_count << std::endl;
@@ -1143,6 +1454,18 @@ main(int argc, char* argv[])
                  << std::endl;
             pout << "fgmres_local_rhs_error_max = " << local_solve_diagnostics.max_local_rhs_error << std::endl;
             pout << "fgmres_local_diagnostics_valid = " << (local_diagnostics_valid ? "true" : "false") << std::endl;
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                pout << "cav_local_trace_record_count = " << local_solve_diagnostics.trace_records.size() << std::endl;
+                pout << "cav_local_trace_artifacts_round_trip = "
+                     << (local_solve_diagnostics.trace_artifacts_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_local_trace_index_round_trip = "
+                     << (local_solve_diagnostics.trace_index_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_local_trace_selection_valid = "
+                     << (local_solve_diagnostics.trace_selection_valid ? "true" : "false") << std::endl;
+                pout << "cav_local_trace_mutation_detected = "
+                     << (local_solve_diagnostics.trace_mutation_detected ? "true" : "false") << std::endl;
+            }
             pout << std::setprecision(6);
             local_solve_diagnostics.deallocate();
         }
@@ -1191,6 +1514,16 @@ main(int argc, char* argv[])
             for (PetscInt k = 0; k < residual_history_size; ++k)
             {
                 fgmres_history_valid = fgmres_history_valid && std::isfinite(residual_history[k]);
+            }
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                krylov_trace_history_valid =
+                    krylov_trace.records.size() == static_cast<std::size_t>(residual_history_size);
+                for (PetscInt k = 0; krylov_trace_history_valid && k < residual_history_size; ++k)
+                {
+                    krylov_trace_history_valid =
+                        krylov_trace.records[static_cast<std::size_t>(k)].residual_norm == residual_history[k];
+                }
             }
             const double fgmres_history_final_relative =
                 residual_history_size >= 2 ?
@@ -1312,12 +1645,42 @@ main(int argc, char* argv[])
                            std::sqrt(std::numeric_limits<double>::epsilon()) * rhs_algebraic_norm,
                            1.0e-30 });
 
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                IBAMR::TestSupport::CAVPhysicalResidualSummary summary;
+                summary.rhs_l2 = rhs_norm;
+                summary.rhs_momentum_l2 = rhs_momentum_norm;
+                summary.rhs_divergence_l2 = rhs_divergence_norm;
+                summary.residual_l2 = original_residual_norm;
+                summary.residual_momentum_l2 = momentum_residual_norm;
+                summary.residual_divergence_l2 = divergence_residual_norm;
+                summary.ib_matrix_free_action_l2 = ib_matrix_free_action_norm;
+                summary.ib_matrix_action_l2 = ib_saj_action_norm;
+                summary.ib_residual_l2 = ib_coupling_residual_norm;
+                summary.denominator_floor = denominator_floor;
+                summary.relative_residual = original_relative_residual;
+                summary.momentum_relative_residual = momentum_relative_residual;
+                summary.divergence_relative_residual = divergence_relative_residual;
+                summary.ib_relative_residual = ib_coupling_relative_residual;
+                IBAMR::TestSupport::writeCAVPhysicalResidualSummary(summary, "cav_physical_residual.txt");
+                const auto reread_summary =
+                    IBAMR::TestSupport::readCAVPhysicalResidualSummary("cav_physical_residual.txt");
+                physical_summary_round_trip =
+                    IBAMR::TestSupport::sameCAVPhysicalResidualSummary(summary, reread_summary);
+                auto mutated_summary = reread_summary;
+                mutated_summary.residual_momentum_l2 += 1.0;
+                physical_summary_mutation_detected =
+                    !IBAMR::TestSupport::sameCAVPhysicalResidualSummary(summary, mutated_summary);
+            }
+
             const bool original_residual_valid = std::isfinite(original_relative_residual) &&
                                                  original_relative_residual <= original_relative_residual_tol;
             const bool ib_coupling_residual_valid = std::isfinite(ib_coupling_relative_residual) &&
                                                     ib_coupling_relative_residual <= ib_coupling_relative_residual_tol;
             if (!fgmres_type_valid || !fgmres_converged || !fgmres_history_valid || !original_residual_valid ||
-                !ib_coupling_residual_valid)
+                !ib_coupling_residual_valid ||
+                (verify_cav_live_dynamic_trace_schema &&
+                 (!krylov_trace_history_valid || !physical_summary_round_trip || !physical_summary_mutation_detected)))
             {
                 ++test_failures;
             }
@@ -1350,6 +1713,36 @@ main(int argc, char* argv[])
             pout << "ib_coupling_relative_residual = " << ib_coupling_relative_residual << std::endl;
             pout << "fgmres_original_residual_valid = " << (original_residual_valid ? "true" : "false") << std::endl;
             pout << "ib_coupling_residual_valid = " << (ib_coupling_residual_valid ? "true" : "false") << std::endl;
+            if (verify_cav_live_dynamic_trace_schema)
+            {
+                pout << "cav_dynamic_level_operator_round_trip = "
+                     << (dynamic_level_operator_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_dynamic_level_dof_map_round_trip = "
+                     << (dynamic_level_dof_map_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_fac_trace_record_count = " << fac_trace_exporter.records.size() << std::endl;
+                pout << "cav_fac_trace_artifacts_round_trip = "
+                     << (fac_trace_exporter.artifacts_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_fac_trace_index_round_trip = " << (fac_trace_exporter.index_round_trip ? "true" : "false")
+                     << std::endl;
+                pout << "cav_fac_trace_order_valid = " << (fac_trace_exporter.order_valid ? "true" : "false")
+                     << std::endl;
+                pout << "cav_fac_trace_mutation_detected = "
+                     << (fac_trace_exporter.mutation_detected ? "true" : "false") << std::endl;
+                pout << "cav_fgmres_trace_record_count = " << krylov_trace.records.size() << std::endl;
+                pout << "cav_fgmres_trace_artifacts_round_trip = "
+                     << (krylov_trace.artifacts_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_fgmres_trace_index_round_trip = " << (krylov_trace_index_round_trip ? "true" : "false")
+                     << std::endl;
+                pout << "cav_fgmres_trace_order_valid = " << (krylov_trace_order_valid ? "true" : "false") << std::endl;
+                pout << "cav_fgmres_trace_history_valid = " << (krylov_trace_history_valid ? "true" : "false")
+                     << std::endl;
+                pout << "cav_fgmres_trace_mutation_detected = " << (krylov_trace_mutation_detected ? "true" : "false")
+                     << std::endl;
+                pout << "cav_physical_summary_round_trip = " << (physical_summary_round_trip ? "true" : "false")
+                     << std::endl;
+                pout << "cav_physical_summary_mutation_detected = "
+                     << (physical_summary_mutation_detected ? "true" : "false") << std::endl;
+            }
 
             ierr = VecDestroy(&ib_matrix_free_output);
             IBTK_CHKERRQ(ierr);

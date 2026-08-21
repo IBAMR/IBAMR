@@ -112,6 +112,38 @@ struct CAVLocalSolveTraceRecord
     std::string artifact_stem;
 };
 
+struct CAVFACStageTraceRecord
+{
+    std::string stage;
+    int level = -1;
+    std::string artifact_stem;
+};
+
+struct CAVKrylovTraceRecord
+{
+    int iteration = -1;
+    double residual_norm = 0.0;
+    std::string artifact_stem;
+};
+
+struct CAVPhysicalResidualSummary
+{
+    double rhs_l2 = 0.0;
+    double rhs_momentum_l2 = 0.0;
+    double rhs_divergence_l2 = 0.0;
+    double residual_l2 = 0.0;
+    double residual_momentum_l2 = 0.0;
+    double residual_divergence_l2 = 0.0;
+    double ib_matrix_free_action_l2 = 0.0;
+    double ib_matrix_action_l2 = 0.0;
+    double ib_residual_l2 = 0.0;
+    double denominator_floor = 0.0;
+    double relative_residual = 0.0;
+    double momentum_relative_residual = 0.0;
+    double divergence_relative_residual = 0.0;
+    double ib_relative_residual = 0.0;
+};
+
 struct CAVRawMappingSpec
 {
     double coordinate_tolerance = 1.0e-14;
@@ -209,6 +241,32 @@ std::vector<CAVLocalSolveTraceRecord> readCAVLocalSolveTraceIndex(const std::str
 
 bool sameCAVLocalSolveTraceIndex(const std::vector<CAVLocalSolveTraceRecord>& lhs,
                                  const std::vector<CAVLocalSolveTraceRecord>& rhs);
+
+bool writeCAVLocalSolveTraceArtifacts(const CAVLocalSolveTraceRecord& record,
+                                      Mat local_matrix,
+                                      Vec local_rhs,
+                                      Vec local_solution,
+                                      Vec current_global_source);
+
+void writeCAVFACStageTraceIndex(const std::vector<CAVFACStageTraceRecord>& records, const std::string& filename);
+
+std::vector<CAVFACStageTraceRecord> readCAVFACStageTraceIndex(const std::string& filename);
+
+bool sameCAVFACStageTraceIndex(const std::vector<CAVFACStageTraceRecord>& lhs,
+                               const std::vector<CAVFACStageTraceRecord>& rhs);
+
+void writeCAVKrylovTraceIndex(const std::vector<CAVKrylovTraceRecord>& records, const std::string& filename);
+
+std::vector<CAVKrylovTraceRecord> readCAVKrylovTraceIndex(const std::string& filename);
+
+bool sameCAVKrylovTraceIndex(const std::vector<CAVKrylovTraceRecord>& lhs,
+                             const std::vector<CAVKrylovTraceRecord>& rhs);
+
+void writeCAVPhysicalResidualSummary(const CAVPhysicalResidualSummary& summary, const std::string& filename);
+
+CAVPhysicalResidualSummary readCAVPhysicalResidualSummary(const std::string& filename);
+
+bool sameCAVPhysicalResidualSummary(const CAVPhysicalResidualSummary& lhs, const CAVPhysicalResidualSummary& rhs);
 
 CAVRawComparison compareCAVRawOperatorBundles(const CAVRawOperatorBundle& candidate,
                                               const CAVRawOperatorBundle& reference,
