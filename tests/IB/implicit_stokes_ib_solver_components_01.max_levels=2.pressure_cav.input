@@ -33,6 +33,8 @@ PETSC_OPTIONS_FILE                = "PetscOptions.implicit_stokes_ib_solver_comp
 stokes_ib_precond_db {
    num_pre_sweeps = 1
    num_post_sweeps = 1
+   U_prolongation_method = "RT0_REFINE"
+   U_restriction_method = "RT0_COARSEN"
    rediscretize_stokes = TRUE
    res_rediscretized_stokes = TRUE
    level_solver_type = "PETSC_LEVEL_SOLVER"

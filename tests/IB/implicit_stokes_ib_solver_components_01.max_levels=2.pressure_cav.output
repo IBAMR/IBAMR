@@ -74,6 +74,8 @@ input_db {
    stokes_ib_precond_db {
       num_pre_sweeps                 = 1                    // input used
       num_post_sweeps                = 1                    // input used
+      U_prolongation_method          = "RT0_REFINE"         // input used
+      U_restriction_method           = "RT0_COARSEN"        // input used
       rediscretize_stokes            = TRUE                 // input used
       res_rediscretized_stokes       = TRUE                 // input used
       level_solver_type              = "PETSC_LEVEL_SOLVER" // input used

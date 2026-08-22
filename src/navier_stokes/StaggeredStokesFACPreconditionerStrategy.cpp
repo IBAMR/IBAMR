@@ -386,6 +386,12 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
     const int P_dst_idx = dst.getComponentDescriptorIndex(1);
     const std::pair<int, int> dst_idxs = std::make_pair(U_dst_idx, P_dst_idx);
 
+    // RT0 restriction reconstructs tangential side values with a stencil that
+    // reaches into fine-level ghost cells. Residuals produced by
+    // computeResidual() already satisfy this invariant, but the zero-pre-sweep
+    // FAC path restricts the caller's right-hand side directly.
+    if (d_U_restriction_method == "RT0_COARSEN") xeqScheduleGhostFillNoCoarse(src_idxs, dst_ln + 1);
+
     if (U_src_idx != U_dst_idx)
     {
         HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);

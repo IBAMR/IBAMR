@@ -1182,12 +1182,21 @@ main(int argc, char* argv[])
         {
             observed_fac_stages.push_back(stage);
             observed_fac_levels.push_back(level_num);
+            const double solution_norm = solution.L2Norm();
+            const double rhs_norm = rhs.L2Norm();
             fac_observer_views_valid = fac_observer_views_valid && solution.getPatchHierarchy() == patch_hierarchy &&
                                        rhs.getPatchHierarchy() == patch_hierarchy &&
                                        solution.getCoarsestLevelNumber() == 0 && rhs.getCoarsestLevelNumber() == 0 &&
                                        solution.getFinestLevelNumber() == finest_ln &&
-                                       rhs.getFinestLevelNumber() == finest_ln && std::isfinite(solution.L2Norm()) &&
-                                       std::isfinite(rhs.L2Norm());
+                                       rhs.getFinestLevelNumber() == finest_ln && std::isfinite(solution_norm) &&
+                                       std::isfinite(rhs_norm);
+            if (!std::isfinite(solution_norm) || !std::isfinite(rhs_norm))
+            {
+                pout << "fac_cycle_observer_nonfinite_stage = " << static_cast<int>(stage) << std::endl;
+                pout << "fac_cycle_observer_nonfinite_level = " << level_num << std::endl;
+                pout << "fac_cycle_observer_solution_norm = " << solution_norm << std::endl;
+                pout << "fac_cycle_observer_rhs_norm = " << rhs_norm << std::endl;
+            }
             fac_trace_exporter.observe(stage, level_num, solution, rhs);
         };
 
@@ -1202,6 +1211,7 @@ main(int argc, char* argv[])
                                                                      CycleStage::POST_SMOOTH_OUTPUT };
         const std::vector<int> expected_fac_no_pre_levels = { 0, 0, finest_ln, finest_ln };
         Pointer<SAMRAIVectorReal<NDIM, double>> fac_observer_sol;
+        Pointer<SAMRAIVectorReal<NDIM, double>> fac_observer_rhs;
         bool fac_observer_first_cycle_valid = true;
         bool fac_observer_disabled_silent = true;
         bool fac_observer_no_pre_cycle_valid = true;
@@ -1211,9 +1221,12 @@ main(int argc, char* argv[])
             fac_observer_sol = eul_sol_vec->cloneVector("fac_observer_sol");
             fac_observer_sol->allocateVectorData();
             fac_observer_sol->setToScalar(0.0);
+            fac_observer_rhs = jv->cloneVector("fac_observer_rhs");
+            fac_observer_rhs->allocateVectorData();
+            fac_observer_rhs->copyVector(jv);
             fac_pc->setCycleObserver(fac_cycle_observer);
             fac_trace_exporter.active = verify_cav_live_dynamic_trace_schema;
-            const bool observer_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            const bool observer_solve_success = fac_pc->solveSystem(*fac_observer_sol, *fac_observer_rhs);
             fac_trace_exporter.active = false;
             fac_observer_first_cycle_valid = observer_solve_success && observed_fac_stages == expected_fac_stages &&
                                              observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
@@ -1231,7 +1244,8 @@ main(int argc, char* argv[])
             const std::size_t observed_stage_count = observed_fac_stages.size();
             fac_pc->setCycleObserver({});
             fac_observer_sol->setToScalar(0.0);
-            const bool disabled_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_rhs->copyVector(jv);
+            const bool disabled_solve_success = fac_pc->solveSystem(*fac_observer_sol, *fac_observer_rhs);
             fac_observer_disabled_silent = disabled_solve_success && observed_fac_stages.size() == observed_stage_count;
             if (!fac_observer_disabled_silent) ++test_failures;
 
@@ -1241,12 +1255,28 @@ main(int argc, char* argv[])
             fac_pc->setNumPreSmoothingSweeps(0);
             fac_pc->setCycleObserver(fac_cycle_observer);
             fac_observer_sol->setToScalar(0.0);
-            const bool no_pre_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            // The no-presmoothing FAC path restricts its hierarchy RHS in
+            // place. Keep this observer-only check from changing the physical
+            // RHS used by the subsequent FGMRES validation.
+            fac_observer_rhs->copyVector(jv);
+            const bool no_pre_solve_success = fac_pc->solveSystem(*fac_observer_sol, *fac_observer_rhs);
             fac_observer_no_pre_cycle_valid =
                 no_pre_solve_success && observed_fac_stages == expected_fac_no_pre_stages &&
                 observed_fac_levels == expected_fac_no_pre_levels && fac_observer_views_valid &&
                 std::isfinite(fac_observer_sol->L2Norm()) && fac_observer_sol->L2Norm() > 1.0e-14;
-            if (!fac_observer_no_pre_cycle_valid) ++test_failures;
+            if (!fac_observer_no_pre_cycle_valid)
+            {
+                ++test_failures;
+                pout << "fac_cycle_observer_no_pre_solve_success = "
+                     << (no_pre_solve_success ? "true" : "false") << std::endl;
+                pout << "fac_cycle_observer_no_pre_stage_order_valid = "
+                     << (observed_fac_stages == expected_fac_no_pre_stages ? "true" : "false") << std::endl;
+                pout << "fac_cycle_observer_no_pre_level_order_valid = "
+                     << (observed_fac_levels == expected_fac_no_pre_levels ? "true" : "false") << std::endl;
+                pout << "fac_cycle_observer_no_pre_views_valid = "
+                     << (fac_observer_views_valid ? "true" : "false") << std::endl;
+                pout << "fac_cycle_observer_no_pre_solution_norm = " << fac_observer_sol->L2Norm() << std::endl;
+            }
             fac_pc->setCycleObserver({});
             fac_pc->setNumPreSmoothingSweeps(configured_num_pre_sweeps);
         }
@@ -1775,7 +1805,8 @@ main(int argc, char* argv[])
         {
             fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
             fac_observer_sol->setToScalar(0.0);
-            const bool reinitialized_solve_success = fac_pc->solveSystem(*fac_observer_sol, *jv);
+            fac_observer_rhs->copyVector(jv);
+            const bool reinitialized_solve_success = fac_pc->solveSystem(*fac_observer_sol, *fac_observer_rhs);
             fac_observer_reinitialize_valid =
                 reinitialized_solve_success && observed_fac_stages == expected_fac_stages &&
                 observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
