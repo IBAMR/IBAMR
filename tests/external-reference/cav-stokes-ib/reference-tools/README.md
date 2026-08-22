@@ -1,8 +1,8 @@
 # CAV multiplicative paired replay
 
-This directory contains external-reference tooling for the mandatory N0 and
-N1 multiplicative-CAV comparisons. It is not part of the normal `attest` suite
-and does not replace the native CAV regressions.
+This directory contains external-reference tooling for the mandatory N0, N1,
+and N2 multiplicative-CAV comparisons. It is not part of the normal `attest`
+suite and does not replace the native CAV regressions.
 
 `run_multiplicative_paired_replay.sh` requires:
 
@@ -19,6 +19,15 @@ it does not add a special FAC path for a one-level hierarchy. The runner covers
 `K=1`, `1e2`, and `1e4`, RELAXED and STRICT construction, and forward and
 reverse common-arithmetic sweeps. Reverse order is a sensitivity replay, not a
 production option.
+
+N2 uses a supported periodic `8x8 -> 16x16` hierarchy and the live RELAXED
+pressure-CAV construction on its finest level. Its production V-cycle has a
+forward pre-sweep and a forward post-sweep. A forward/reverse palindrome is a
+sensitivity replay only. N2 records the explicit `RT0_REFINE`/`RT0_COARSEN`
+velocity transfers, `LINEAR_REFINE`/`CONSERVATIVE_COARSEN` pressure transfers,
+the SVD pressure-nullspace coarse solve, Richardson level smoothing, both FAC
+levels, transfer-stage actions, V-cycle state, FGMRES state, and original
+physical residual components.
 
 The oracle exporter calls the pinned sandbox RELAXED construction and
 multiplicative smoother without editing the oracle. Since STRICT is an IBAMR
@@ -37,8 +46,18 @@ global states, and residuals after every patch. Separately labeled candidate
 and oracle native-smoother comparisons remain cross-runtime diagnostics, not
 the common-arithmetic gate.
 
+For N2, the actual IBAMR solve is accepted only when it produces complete
+finite physical/action diagnostics and a freshly recomputed original relative
+residual no larger than `1e-10`. Candidate/oracle physical scalar differences,
+iteration-count/history differences, and the matrix-free-versus-assembled
+`rho_IB` value remain mandatory first-mismatch diagnostics. The fixed per-`K`
+table applies to the common-arithmetic replay, not to those separately
+accumulated cross-representation diagnostics.
+
 The generated matrices, vectors, reports, logs, and hashes remain in the
-runner's temporary output directory and must not be committed.
+runner's temporary output directory and must not be committed. The runner
+preserves and hashes a generated report even when a comparison fails, so a red
+bundle remains reproducible diagnostic evidence.
 
 Example:
 
@@ -54,7 +73,8 @@ tests/external-reference/cav-stokes-ib/reference-tools/run_multiplicative_paired
 ```
 
 The optional output-parent argument defaults to `/private/tmp`. The final scope
-is `N0` or `N1` and defaults to `N1`; N0 runs `K=1`, both construction
-policies, and forward traversal, while N1 runs the complete matrix above. The
-runner creates a new directory and never deletes or overwrites an existing
-evidence bundle.
+is `N0`, `N1`, or `N2` and defaults to `N1`; N0 runs `K=1`, both construction
+policies, and forward traversal, N1 runs the complete single-level matrix
+above, and N2 adds the live two-level transfer/V-cycle/FGMRES path. The runner
+creates a new directory and never deletes or overwrites an existing evidence
+bundle.

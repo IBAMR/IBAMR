@@ -4,16 +4,24 @@ function export_oracle_multiplicative()
 oracle_root = getenv('CAV_ORACLE_ROOT');
 output_dir = getenv('CAV_ORACLE_OUTPUT');
 physical_K = str2double(getenv('CAV_PHYSICAL_K'));
+fine_grid_text = getenv('CAV_ORACLE_FINE_N');
+if isempty(fine_grid_text)
+    N = 8;
+else
+    N = str2double(fine_grid_text);
+end
 if isempty(oracle_root) || isempty(output_dir) || ~isfinite(physical_K) || physical_K <= 0
     error(['CAV_ORACLE_ROOT, CAV_ORACLE_OUTPUT, and a positive ' ...
            'CAV_PHYSICAL_K are required.']);
+end
+if ~ismember(N, [8, 16]) || N ~= round(N)
+    error('CAV_ORACLE_FINE_N must be 8 or 16.');
 end
 
 restoredefaultpath();
 addpath(oracle_root);
 setup_project_paths(oracle_root);
 
-N = 8;
 n = N^2;
 h = 1/N;
 dt = 0.005;
@@ -45,9 +53,16 @@ probe = zeros(3*n, 1);
 for i = 0:N-1
     for j = 0:N-1
         k = j+N*i+1;
-        probe(k) = sin(2*pi*(j+0.5)/N)+0.25*cos(4*pi*i/N);
-        probe(n+k) = -sin(2*pi*(i+0.5)/N)+0.125*cos(2*pi*j/N);
-        probe(2*n+k) = cos(2*pi*i/N)*sin(2*pi*j/N);
+        if N == 8
+            probe(k) = sin(2*pi*(j+0.5)/N)+0.25*cos(4*pi*i/N);
+            probe(n+k) = -sin(2*pi*(i+0.5)/N)+0.125*cos(2*pi*j/N);
+            probe(2*n+k) = cos(2*pi*i/N)*sin(2*pi*j/N);
+        else
+            % This is the exact finest-level probe used by the live IBAMR
+            % fixture. Its pressure component is zero.
+            probe(k) = sin(2*pi*(j+0.5)/N);
+            probe(n+k) = -sin(2*pi*(i+0.5)/N);
+        end
     end
 end
 probe(2*n+1:end) = probe(2*n+1:end)-mean(probe(2*n+1:end));
@@ -77,11 +92,68 @@ write_index_list(fullfile(output_dir, 'oracle_pressure_seeds.txt'), ...
 write_index_sets(fullfile(output_dir, 'oracle_patches.txt'), ...
                  smoother_data.coupled_dofs);
 
+if N == 16
+    static_data = build_multigrid_static_data(N, h, 2);
+    [coarse_A, ~] = build_saddle_point_matrix_level_sparse( ...
+        X, N, h, ds, physical_K, dt, rho, mu, 2, ib_data, static_data);
+    transfer = static_data{1}.transfer_to_next;
+    R = blkdiag(transfer.R_u, transfer.R_v, transfer.R_p);
+    P = blkdiag(transfer.P_u, transfer.P_v, transfer.P_p);
+    write_matrix_market(fullfile(output_dir, 'oracle_coarse_A.mtx'), coarse_A);
+    write_matrix_market(fullfile(output_dir, 'oracle_restriction.mtx'), R);
+    write_matrix_market(fullfile(output_dir, 'oracle_prolongation.mtx'), P);
+    write_dof_map(fullfile(output_dir, 'oracle_coarse_dof_map.txt'), N/2);
+
+    level_data = precompute_level_data( ...
+        A, X, N, h, ds, physical_K, dt, rho, mu, 2, ib_data, ...
+        1, static_data, false, struct(), 'targeted_ib');
+    vcycle = @(input) v_cycle_precomp( ...
+        A, input, zeros(size(input)), X, N, h, ds, physical_K, ...
+        dt, rho, mu, 2, 1, 1, 4, 2, 1, 1, level_data, 'multiplicative');
+    vcycle_correction = vcycle(rhs);
+    vcycle_residual = rhs-A*vcycle_correction;
+    [fgmres_solution, fgmres_flag, fgmres_relres, fgmres_iterations, fgmres_history] = ...
+        fgmres_opt(A, rhs, vcycle, zeros(size(rhs)), 1e-10, 1e-50, 200, false, 'either');
+    fgmres_residual = rhs-A*fgmres_solution;
+    pressure = false(3*n, 1);
+    pressure(2*n+1:end) = true;
+    fgmres_solution(pressure) = fgmres_solution(pressure)-mean(fgmres_solution(pressure));
+    write_vector_market(fullfile(output_dir, 'oracle_vcycle_correction.mtx'), vcycle_correction);
+    write_vector_market(fullfile(output_dir, 'oracle_vcycle_fresh_residual.mtx'), vcycle_residual);
+    write_vector_market(fullfile(output_dir, 'oracle_fgmres_solution.mtx'), fgmres_solution);
+    write_vector_market(fullfile(output_dir, 'oracle_fgmres_fresh_residual.mtx'), fgmres_residual);
+
+    physical_scale = h;
+    rhs_momentum_l2 = physical_scale*norm(rhs(1:2*n));
+    rhs_divergence_l2 = physical_scale*norm(rhs(2*n+1:end));
+    residual_momentum_l2 = physical_scale*norm(fgmres_residual(1:2*n));
+    residual_divergence_l2 = physical_scale*norm(fgmres_residual(2*n+1:end));
+    rhs_l2 = hypot(rhs_momentum_l2, rhs_divergence_l2);
+    residual_l2 = hypot(residual_momentum_l2, residual_divergence_l2);
+    denominator_floor = sqrt(eps)*rhs_l2;
+    fgmres_summary = struct( ...
+        'flag', int32(fgmres_flag), ...
+        'iterations', int32(fgmres_iterations), ...
+        'reported_relative_residual', fgmres_relres, ...
+        'residual_history', fgmres_history(:), ...
+        'rhs_l2', rhs_l2, ...
+        'rhs_momentum_l2', rhs_momentum_l2, ...
+        'rhs_divergence_l2', rhs_divergence_l2, ...
+        'residual_l2', residual_l2, ...
+        'residual_momentum_l2', residual_momentum_l2, ...
+        'residual_divergence_l2', residual_divergence_l2, ...
+        'denominator_floor', denominator_floor, ...
+        'relative_residual', residual_l2/max(rhs_l2, 1e-30), ...
+        'momentum_relative_residual', residual_momentum_l2/max([rhs_momentum_l2, denominator_floor, 1e-30]), ...
+        'divergence_relative_residual', residual_divergence_l2/max([rhs_divergence_l2, denominator_floor, 1e-30]));
+    write_json(fullfile(output_dir, 'oracle_fgmres_summary.json'), fgmres_summary);
+end
+
 metadata = struct();
 metadata.schema = 'sandbox-cav-multiplicative-oracle-v2';
 metadata.oracle_sha = '5b77344db6746269f8c77695c99e9043907ba74b';
 metadata.dimension = int32(2);
-metadata.base_grid_cells_per_axis = int32(4);
+metadata.base_grid_cells_per_axis = int32(N/2);
 metadata.refinement_ratio = int32(2);
 metadata.finest_grid_cells_per_axis = int32(N);
 metadata.dt = dt;
@@ -107,6 +179,7 @@ write_json(fullfile(output_dir, 'oracle_metadata.json'), metadata);
 fprintf('oracle_physical_stiffness_K=%.17g\n', physical_K);
 fprintf('oracle_patch_count=%d\n', numel(smoother_data.coupled_dofs));
 fprintf('oracle_enlarged_patch_count=%d\n', smoother_data.enlarged_patch_count);
+fprintf('oracle_finest_grid_cells_per_axis=%d\n', N);
 end
 
 function write_dof_map(filename, N)
