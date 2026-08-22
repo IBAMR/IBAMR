@@ -210,17 +210,21 @@ main(int argc, char* argv[])
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : input_db;
 
     const std::string closure_policy = test_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED");
-    const std::string patch_seed_type =
-        test_db->getStringWithDefault("coupling_aware_asm_patch_seed_type", "VELOCITY_COMPONENT");
+    const std::string patch_seed_type = test_db->keyExists("coupling_aware_asm_patch_seed_type") ?
+                                            test_db->getString("coupling_aware_asm_patch_seed_type") :
+                                            "VELOCITY_COMPONENT";
     const std::string shell_pc_type = test_db->getStringWithDefault("shell_pc_type", "multiplicative");
     const int seed_axis = test_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", 0);
     const int seed_stride = test_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", 1);
+    const std::string default_seed_traversal_order = NDIM == 2 ? "I_J" : "I_J_K";
     const std::string seed_traversal_order = test_db->keyExists("coupling_aware_asm_seed_traversal_order") ?
                                                  test_db->getString("coupling_aware_asm_seed_traversal_order") :
-                                                 "I_J";
+                                                 default_seed_traversal_order;
     const double alpha = test_db->getDoubleWithDefault("shell_pc_relaxation_factor", 1.0);
     const double tol = test_db->getDoubleWithDefault("parity_tol", 1.0e-11);
     const bool require_parity = test_db->getBoolWithDefault("require_parity", true);
+    const bool verify_reinitialize =
+        test_db->keyExists("verify_reinitialize") && test_db->getBool("verify_reinitialize");
 
     int test_failures = 0;
 
@@ -341,6 +345,11 @@ main(int argc, char* argv[])
     solver_db->putInteger("coupling_aware_asm_seed_axis", seed_axis);
     solver_db->putInteger("coupling_aware_asm_seed_stride", seed_stride);
     solver_db->putString("coupling_aware_asm_seed_traversal_order", seed_traversal_order);
+    if (test_db->keyExists("blas_lapack_subdomain_solver_type"))
+    {
+        solver_db->putString("blas_lapack_subdomain_solver_type",
+                             test_db->getString("blas_lapack_subdomain_solver_type"));
+    }
 
     Pointer<IBAMR::StaggeredStokesPETScLevelSolver> solver =
         new IBAMR::StaggeredStokesPETScLevelSolver("solver_cav_shell_semantics", solver_db, "stokes_shell_sem_");
@@ -442,6 +451,46 @@ main(int argc, char* argv[])
     const double error_inf_norm = vec_norm_inf(x_diff);
     if (require_parity && !(error_inf_norm <= tol)) ++test_failures;
 
+    solver->deallocateSolverState();
+    if (patch_seed_type == "PRESSURE_CELL" && !solver->getCouplingAwareASMPressureSeedDOFs().empty()) ++test_failures;
+
+    bool reinitialize_pressure_seed_order_valid = true;
+    double reinitialize_error_inf_norm = std::numeric_limits<double>::quiet_NaN();
+    if (verify_reinitialize)
+    {
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
+            u_data->fillAll(0.0);
+            p_data->fillAll(0.0);
+        }
+        // The construction matrix is borrowed only for one initialized state,
+        // so its live owner must resupply it before reinitialization.
+        if (construction_mat) solver->setCouplingAwareASMConstructionMat(construction_mat);
+        solver->initializeSolverState(x_vec, b_vec);
+        if (patch_seed_type == "PRESSURE_CELL")
+        {
+            reinitialize_pressure_seed_order_valid =
+                solver->getCouplingAwareASMPressureSeedDOFs() == expected_pressure_seed_dofs;
+            if (!reinitialize_pressure_seed_order_valid) ++test_failures;
+        }
+        const bool reinitialize_converged = solver->solveSystem(x_vec, b_vec);
+        if (!reinitialize_converged) ++test_failures;
+        IBAMR::StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            x_petsc, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, level);
+        ierr = VecCopy(x_petsc, x_diff);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(x_diff, -1.0, x_expected);
+        IBTK_CHKERRQ(ierr);
+        reinitialize_error_inf_norm = vec_norm_inf(x_diff);
+        if (!(reinitialize_error_inf_norm <= tol)) ++test_failures;
+        solver->deallocateSolverState();
+        if (patch_seed_type == "PRESSURE_CELL" && !solver->getCouplingAwareASMPressureSeedDOFs().empty())
+            ++test_failures;
+    }
+
     ierr = VecDestroy(&x_diff);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&x_expected);
@@ -453,8 +502,6 @@ main(int argc, char* argv[])
     ierr = ISDestroy(&pressure_is);
     IBTK_CHKERRQ(ierr);
 
-    solver->deallocateSolverState();
-    if (patch_seed_type == "PRESSURE_CELL" && !solver->getCouplingAwareASMPressureSeedDOFs().empty()) ++test_failures;
     ierr = MatDestroy(&construction_mat);
     IBTK_CHKERRQ(ierr);
 
@@ -479,6 +526,13 @@ main(int argc, char* argv[])
     pout << "expected_inf_norm = " << expected_inf_norm << "\n";
     pout << "actual_inf_norm = " << actual_inf_norm << "\n";
     pout << "error_inf_norm = " << error_inf_norm << "\n";
+    if (verify_reinitialize)
+    {
+        pout << "reinitialize_pressure_seed_order_valid = "
+             << (reinitialize_pressure_seed_order_valid ? "true" : "false") << "\n";
+        pout << "reinitialize_error_inf_norm = "
+             << (reinitialize_error_inf_norm <= tol ? 0.0 : reinitialize_error_inf_norm) << "\n";
+    }
     pout << "parity_tol = " << tol << "\n";
     pout << "test_failures = " << test_failures << "\n";
     return test_failures > 0 ? 1 : 0;
