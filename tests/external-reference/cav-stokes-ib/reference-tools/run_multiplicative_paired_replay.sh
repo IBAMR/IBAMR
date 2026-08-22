@@ -5,7 +5,7 @@ set -euo pipefail
 readonly oracle_sha=5b77344db6746269f8c77695c99e9043907ba74b
 
 if [[ $# -lt 5 || $# -gt 7 ]]; then
-    echo "usage: $0 CANDIDATE_WORKTREE CANDIDATE_BUILD CANDIDATE_SHA ORACLE_WORKTREE MATLAB [OUTPUT_PARENT] [N0|N1|N2]" >&2
+    echo "usage: $0 CANDIDATE_WORKTREE CANDIDATE_BUILD CANDIDATE_SHA ORACLE_WORKTREE MATLAB [OUTPUT_PARENT] [N0|N1|N2|N3|N4]" >&2
     exit 2
 fi
 
@@ -18,8 +18,8 @@ output_parent=${6:-/private/tmp}
 scope=${7:-N1}
 tools_dir=$(cd "$(dirname "$0")" && pwd -P)
 
-if [[ $scope != N0 && $scope != N1 && $scope != N2 ]]; then
-    echo "scope must be N0, N1, or N2" >&2
+if [[ $scope != N0 && $scope != N1 && $scope != N2 && $scope != N3 && $scope != N4 ]]; then
+    echo "scope must be N0, N1, N2, N3, or N4" >&2
     exit 2
 fi
 if [[ ! $candidate_sha =~ ^[0-9a-f]{40}$ ]]; then
@@ -73,22 +73,52 @@ fi
 
 if [[ $scope == N0 ]]; then
     stiffnesses=(1)
+elif [[ $scope == N4 ]]; then
+    stiffnesses=(1 1e4)
 else
     stiffnesses=(1 1e2 1e4)
 fi
 
-if [[ $scope == N2 ]]; then
+if [[ $scope == N2 || $scope == N3 ]]; then
     base_grid_cells=8
-    finest_grid_cells=16
-    patch_count=256
     closure_policies=(RELAXED)
     native_ib_collection_tolerance=1.0e-6
-else
+    if [[ $scope == N2 ]]; then
+        max_levels=2
+        oracle_depth=2
+        finest_grid_cells=16
+        patch_count=256
+        spring_stiffness_multiplier=2
+    else
+        max_levels=3
+        oracle_depth=3
+        finest_grid_cells=32
+        patch_count=1024
+        spring_stiffness_multiplier=4
+    fi
+elif [[ $scope == N4 ]]; then
     base_grid_cells=4
+    max_levels=2
+    oracle_depth=1
     finest_grid_cells=8
     patch_count=64
+    spring_stiffness_multiplier=1
+    closure_policies=(RELAXED)
+    native_ib_collection_tolerance=1.0e-10
+else
+    base_grid_cells=4
+    max_levels=2
+    oracle_depth=1
+    finest_grid_cells=8
+    patch_count=64
+    spring_stiffness_multiplier=1
     closure_policies=(RELAXED STRICT)
     native_ib_collection_tolerance=1.0e-10
+fi
+if [[ $scope == N4 ]]; then
+    candidate_variants=(EIGEN_REFERENCE EIGEN_SCHUR BLAS_LU BLAS_SVD)
+else
+    candidate_variants=("${closure_policies[@]}")
 fi
 
 mkdir -p "$output_parent"
@@ -115,22 +145,65 @@ for stiffness in "${stiffnesses[@]}"; do
     esac
     if [[ $scope == N2 && $stiffness == 1e4 ]]; then
         fd_tolerance=3.0e-6
+    elif [[ $scope == N3 && $stiffness == 1e2 ]]; then
+        fd_tolerance=3.0e-6
+    elif [[ $scope == N3 && $stiffness == 1e4 ]]; then
+        fd_tolerance=2.0e-5
     fi
+    candidate_spring_stiffness=$(awk -v value="$spring_stiffness" -v multiplier="$spring_stiffness_multiplier" \
+        'BEGIN { printf "%.1e", multiplier*value }')
 
-    for policy in "${closure_policies[@]}"; do
-        candidate_output="$candidate_root/K$stiffness/$policy"
-        mkdir -p "$candidate_output"
-        if [[ $scope == N2 ]]; then
-            spring_stiffness=$(awk -v value="$spring_stiffness" 'BEGIN { printf "%.1e", 2.0*value }')
+    for variant in "${candidate_variants[@]}"; do
+        if [[ $scope == N4 ]]; then
+            policy=RELAXED
+        else
+            policy=$variant
         fi
+        candidate_output="$candidate_root/K$stiffness/$variant"
+        mkdir -p "$candidate_output"
         sed -e "s/^N                                 = 4$/N                                 = $base_grid_cells/" \
-            -e "s/SPRING_STIFFNESS                  = 8.0e0/SPRING_STIFFNESS                  = $spring_stiffness/" \
+            -e "s/^MAX_LEVELS                        = 2$/MAX_LEVELS                        = $max_levels/" \
+            -e "s/SPRING_STIFFNESS                  = 8.0e0/SPRING_STIFFNESS                  = $candidate_spring_stiffness/" \
             -e "s/FD_REL_TOL                        = 1.0e-6/FD_REL_TOL                        = $fd_tolerance/" \
             -e "s/^EXPECTED_PRESSURE_CAV_PATCH_COUNT = 64$/EXPECTED_PRESSURE_CAV_PATCH_COUNT = $patch_count/" \
             -e "s/^IB_COUPLING_RELATIVE_RESIDUAL_TOL = 1.0e-10$/IB_COUPLING_RELATIVE_RESIDUAL_TOL = $native_ib_collection_tolerance/" \
             -e "s/coupling_aware_asm_closure_policy = \"RELAXED\"/coupling_aware_asm_closure_policy = \"$policy\"/" \
             "$candidate_template" > "$candidate_output/input"
-        if [[ $scope == N2 ]]; then
+        if [[ $scope == N4 ]]; then
+            case $variant in
+                EIGEN_REFERENCE)
+                    sed -e 's/shell_pc_type = "multiplicative-blas-lapack"/shell_pc_type = "multiplicative-eigen-reference"/' \
+                        -e 's/blas_lapack_subdomain_solver_type = "lu"/eigen_subdomain_solver_type = "partial-piv-lu"/' \
+                        -e 's/^VERIFY_FGMRES_LOCAL_DIAGNOSTICS   = TRUE$/VERIFY_FGMRES_LOCAL_DIAGNOSTICS   = FALSE/' \
+                        "$candidate_output/input" > "$candidate_output/input.with-backend"
+                    ;;
+                EIGEN_SCHUR)
+                    awk '
+                        /shell_pc_type = "multiplicative-blas-lapack"/ {
+                            sub(/"multiplicative-blas-lapack"/, "\"multiplicative-eigen-schur-complement\"")
+                        }
+                        /blas_lapack_subdomain_solver_type = "lu"/ {
+                            print "      a00_solver_type = \"full-piv-householder-qr\""
+                            print "      schur_solver_type = \"full-piv-householder-qr\""
+                            next
+                        }
+                        /^VERIFY_FGMRES_LOCAL_DIAGNOSTICS   = TRUE$/ {
+                            sub(/TRUE/, "FALSE")
+                        }
+                        { print }
+                    ' "$candidate_output/input" > "$candidate_output/input.with-backend"
+                    ;;
+                BLAS_LU)
+                    cp "$candidate_output/input" "$candidate_output/input.with-backend"
+                    ;;
+                BLAS_SVD)
+                    sed 's/blas_lapack_subdomain_solver_type = "lu"/blas_lapack_subdomain_solver_type = "svd"/' \
+                        "$candidate_output/input" > "$candidate_output/input.with-backend"
+                    ;;
+            esac
+            mv "$candidate_output/input.with-backend" "$candidate_output/input"
+        fi
+        if [[ $scope == N2 || $scope == N3 ]]; then
             awk '
                 /coarse_solver_db \{/ { in_coarse_solver = 1 }
                 !in_coarse_solver && /ksp_type = "preonly"/ { sub(/"preonly"/, "\"richardson\"") }
@@ -146,7 +219,7 @@ for stiffness in "${stiffnesses[@]}"; do
             mv "$candidate_output/input.with-explicit-transfers" "$candidate_output/input"
         fi
         cp "$candidate_petsc_options" "$candidate_output/$(basename "$candidate_petsc_options")"
-        if [[ $scope == N2 ]]; then
+        if [[ $scope == N2 || $scope == N3 ]]; then
             sed -i.bak \
                 's/-stokes_ib_pc_level_ksp_type preonly/-stokes_ib_pc_level_ksp_type richardson/' \
                 "$candidate_output/$(basename "$candidate_petsc_options")"
@@ -157,7 +230,7 @@ for stiffness in "${stiffnesses[@]}"; do
             "$candidate_executable" input > candidate.stdout 2> candidate.stderr
         )
         if ! rg -q '^test_failures = 0$' "$candidate_output/candidate.stdout"; then
-            echo "candidate $policy K=$stiffness live diagnostic failed" >&2
+            echo "candidate $variant K=$stiffness live diagnostic failed" >&2
             exit 1
         fi
     done
@@ -168,6 +241,9 @@ for stiffness in "${stiffnesses[@]}"; do
         CAV_ORACLE_OUTPUT="$oracle_output" \
         CAV_PHYSICAL_K="$stiffness" \
         CAV_ORACLE_FINE_N="$finest_grid_cells" \
+        CAV_ORACLE_DEPTH="$oracle_depth" \
+        CAV_LIVE_BASE_N="$base_grid_cells" \
+        CAV_LIVE_LEVEL_COUNT="$max_levels" \
         "$matlab" -batch "addpath('$tools_dir'); export_oracle_multiplicative" \
         > "$run_root/oracle-K$stiffness.stdout" 2> "$run_root/oracle-K$stiffness.stderr"
 done
@@ -204,16 +280,21 @@ fi
     echo "stiffnesses ${stiffnesses[*]}"
     echo "base_grid_cells_per_axis $base_grid_cells"
     echo "finest_grid_cells_per_axis $finest_grid_cells"
+    echo "level_count $max_levels"
+    echo "oracle_replay_depth $oracle_depth"
     echo "closure_policies ${closure_policies[*]}"
+    echo "candidate_variants ${candidate_variants[*]}"
     echo "native_ib_artifact_collection_tolerance $native_ib_collection_tolerance"
     echo "replay_ib_acceptance_tolerance 1.0e-10"
     echo "n2_K1e4_fd_artifact_collection_tolerance 3.0e-6"
-    echo "n2_velocity_prolongation_method RT0_REFINE"
-    echo "n2_velocity_restriction_method RT0_COARSEN"
-    echo "n2_pressure_prolongation_method LINEAR_REFINE"
-    echo "n2_pressure_restriction_method CONSERVATIVE_COARSEN"
-    echo "n2_pressure_nullspace_coarse_solver svd"
-    echo "n2_level_smoother_ksp_type richardson"
+    echo "n3_K1e2_fd_artifact_collection_tolerance 3.0e-6"
+    echo "n3_K1e4_fd_artifact_collection_tolerance 2.0e-5"
+    echo "multilevel_velocity_prolongation_method RT0_REFINE"
+    echo "multilevel_velocity_restriction_method RT0_COARSEN"
+    echo "multilevel_pressure_prolongation_method LINEAR_REFINE"
+    echo "multilevel_pressure_restriction_method CONSERVATIVE_COARSEN"
+    echo "multilevel_pressure_nullspace_coarse_solver svd"
+    echo "multilevel_level_smoother_ksp_type richardson"
 } > "$run_root/provenance.txt"
 
 find "$candidate_root" "$oracle_root" -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$run_root/RAW_ARTIFACTS.sha256"

@@ -56,6 +56,7 @@ fgmres_original_residual_valid = true
 ib_coupling_residual_valid = true
 cav_dynamic_level_operator_round_trip = true
 cav_dynamic_level_dof_map_round_trip = true
+cav_dynamic_level_cav_data_round_trip = true
 cav_fac_trace_record_count = 6
 cav_fac_trace_artifacts_round_trip = true
 cav_fac_trace_index_round_trip = true

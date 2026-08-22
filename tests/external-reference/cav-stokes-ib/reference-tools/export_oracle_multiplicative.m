@@ -5,17 +5,42 @@ oracle_root = getenv('CAV_ORACLE_ROOT');
 output_dir = getenv('CAV_ORACLE_OUTPUT');
 physical_K = str2double(getenv('CAV_PHYSICAL_K'));
 fine_grid_text = getenv('CAV_ORACLE_FINE_N');
+depth_text = getenv('CAV_ORACLE_DEPTH');
+live_base_text = getenv('CAV_LIVE_BASE_N');
+live_level_count_text = getenv('CAV_LIVE_LEVEL_COUNT');
 if isempty(fine_grid_text)
     N = 8;
 else
     N = str2double(fine_grid_text);
 end
+if isempty(depth_text)
+    depth = max(1, round(log2(N/8))+1);
+else
+    depth = str2double(depth_text);
+end
+if isempty(live_base_text)
+    live_base_N = N/2;
+else
+    live_base_N = str2double(live_base_text);
+end
+if isempty(live_level_count_text)
+    live_level_count = depth;
+else
+    live_level_count = str2double(live_level_count_text);
+end
 if isempty(oracle_root) || isempty(output_dir) || ~isfinite(physical_K) || physical_K <= 0
     error(['CAV_ORACLE_ROOT, CAV_ORACLE_OUTPUT, and a positive ' ...
            'CAV_PHYSICAL_K are required.']);
 end
-if ~ismember(N, [8, 16]) || N ~= round(N)
-    error('CAV_ORACLE_FINE_N must be 8 or 16.');
+if ~ismember(N, [8, 16, 32]) || N ~= round(N)
+    error('CAV_ORACLE_FINE_N must be 8, 16, or 32.');
+end
+if ~ismember(depth, [1, 2, 3]) || depth ~= round(depth) || N/2^(depth-1) ~= 8
+    error('CAV_ORACLE_DEPTH must describe an 8-based hierarchy of depth 1, 2, or 3.');
+end
+if ~ismember(live_base_N, [4, 8]) || live_base_N ~= round(live_base_N) || ...
+        ~ismember(live_level_count, [2, 3]) || live_level_count ~= round(live_level_count)
+    error('CAV live hierarchy metadata must describe a supported two- or three-level case.');
 end
 
 restoredefaultpath();
@@ -44,8 +69,18 @@ else
     ib_velocity = [ib_data.IB_u, Z; Z, ib_data.IB_v];
 end
 E_h = blkdiag(-dt*ib_velocity, sparse(n, n));
-[smoother_data, ~] = precompute_smoother_data( ...
-    A, N, 1, [], 'targeted_ib', ib_velocity);
+if depth > 1
+    static_data = build_multigrid_static_data(N, h, depth);
+    level_data = precompute_level_data( ...
+        A, X, N, h, ds, physical_K, dt, rho, mu, depth, ib_data, ...
+        1, static_data, false, struct(), 'targeted_ib');
+    smoother_data = level_data{1}.smoother_data;
+else
+    static_data = [];
+    level_data = [];
+    [smoother_data, ~] = precompute_smoother_data( ...
+        A, N, 1, [], 'targeted_ib', ib_velocity);
+end
 
 % This state is intentionally deterministic and independent of the candidate
 % export. Its assembled RHS gives both patch sequences a nontrivial control.
@@ -92,24 +127,46 @@ write_index_list(fullfile(output_dir, 'oracle_pressure_seeds.txt'), ...
 write_index_sets(fullfile(output_dir, 'oracle_patches.txt'), ...
                  smoother_data.coupled_dofs);
 
-if N == 16
-    static_data = build_multigrid_static_data(N, h, 2);
-    [coarse_A, ~] = build_saddle_point_matrix_level_sparse( ...
-        X, N, h, ds, physical_K, dt, rho, mu, 2, ib_data, static_data);
-    transfer = static_data{1}.transfer_to_next;
-    R = blkdiag(transfer.R_u, transfer.R_v, transfer.R_p);
-    P = blkdiag(transfer.P_u, transfer.P_v, transfer.P_p);
-    write_matrix_market(fullfile(output_dir, 'oracle_coarse_A.mtx'), coarse_A);
-    write_matrix_market(fullfile(output_dir, 'oracle_restriction.mtx'), R);
-    write_matrix_market(fullfile(output_dir, 'oracle_prolongation.mtx'), P);
-    write_dof_map(fullfile(output_dir, 'oracle_coarse_dof_map.txt'), N/2);
+if depth > 1
+    for level = 2:depth
+        candidate_level = depth-level;
+        level_N = N/2^(level-1);
+        level_prefix = sprintf('oracle_dynamic_level%d', candidate_level);
+        write_matrix_market(fullfile(output_dir, [level_prefix '_A.mtx']), level_data{level}.L);
+        write_dof_map(fullfile(output_dir, [level_prefix '_dof_map.txt']), level_N);
+        if level < depth
+            level_smoother = level_data{level}.smoother_data;
+            write_index_list(fullfile(output_dir, [level_prefix '_pressure_seeds.txt']), ...
+                2*level_N^2+level_smoother.seed_dofs-1);
+            write_index_sets(fullfile(output_dir, [level_prefix '_patches.txt']), ...
+                level_smoother.coupled_dofs);
+        end
+    end
+    for level = 1:(depth-1)
+        fine_candidate_level = depth-level;
+        coarse_candidate_level = fine_candidate_level-1;
+        transfer = static_data{level}.transfer_to_next;
+        R = blkdiag(transfer.R_u, transfer.R_v, transfer.R_p);
+        P = blkdiag(transfer.P_u, transfer.P_v, transfer.P_p);
+        write_matrix_market(fullfile(output_dir, sprintf( ...
+            'oracle_restriction_level%d_to_level%d.mtx', ...
+            fine_candidate_level, coarse_candidate_level)), R);
+        write_matrix_market(fullfile(output_dir, sprintf( ...
+            'oracle_prolongation_level%d_to_level%d.mtx', ...
+            coarse_candidate_level, fine_candidate_level)), P);
+    end
+    if depth == 2
+        % Retain the N2 artifact names while the multilevel consumer moves to
+        % the hierarchy-indexed contract used by N3.
+        write_matrix_market(fullfile(output_dir, 'oracle_coarse_A.mtx'), level_data{2}.L);
+        write_matrix_market(fullfile(output_dir, 'oracle_restriction.mtx'), R);
+        write_matrix_market(fullfile(output_dir, 'oracle_prolongation.mtx'), P);
+        write_dof_map(fullfile(output_dir, 'oracle_coarse_dof_map.txt'), N/2);
+    end
 
-    level_data = precompute_level_data( ...
-        A, X, N, h, ds, physical_K, dt, rho, mu, 2, ib_data, ...
-        1, static_data, false, struct(), 'targeted_ib');
     vcycle = @(input) v_cycle_precomp( ...
         A, input, zeros(size(input)), X, N, h, ds, physical_K, ...
-        dt, rho, mu, 2, 1, 1, 4, 2, 1, 1, level_data, 'multiplicative');
+        dt, rho, mu, depth, 1, 1, 4, 2, 1, 1, level_data, 'multiplicative');
     vcycle_correction = vcycle(rhs);
     vcycle_residual = rhs-A*vcycle_correction;
     [fgmres_solution, fgmres_flag, fgmres_relres, fgmres_iterations, fgmres_history] = ...
@@ -153,9 +210,11 @@ metadata = struct();
 metadata.schema = 'sandbox-cav-multiplicative-oracle-v2';
 metadata.oracle_sha = '5b77344db6746269f8c77695c99e9043907ba74b';
 metadata.dimension = int32(2);
-metadata.base_grid_cells_per_axis = int32(N/2);
+metadata.base_grid_cells_per_axis = int32(live_base_N);
 metadata.refinement_ratio = int32(2);
 metadata.finest_grid_cells_per_axis = int32(N);
+metadata.level_count = int32(live_level_count);
+metadata.oracle_replay_depth = int32(depth);
 metadata.dt = dt;
 metadata.rho = rho;
 metadata.mu = mu;

@@ -998,16 +998,16 @@ main(int argc, char* argv[])
         if (verify_cav_live_export_schema && !verify_pressure_cav)
             TBOX_ERROR("The CAV live-export schema check requires VERIFY_PRESSURE_CAV = TRUE\n");
         if (verify_cav_live_dynamic_trace_schema &&
-            (!verify_pressure_cav || !verify_fac_cycle_observer || !verify_fgmres_physical_residuals ||
-             !verify_fgmres_local_diagnostics))
+            (!verify_pressure_cav || !verify_fac_cycle_observer || !verify_fgmres_physical_residuals))
         {
             TBOX_ERROR(
                 "The CAV dynamic-trace schema check requires pressure CAV, the FAC observer, FGMRES physical "
-                "residuals, and FGMRES local diagnostics\n");
+                "residuals\n");
         }
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         bool dynamic_level_operator_round_trip = !verify_cav_live_dynamic_trace_schema;
         bool dynamic_level_dof_map_round_trip = !verify_cav_live_dynamic_trace_schema;
+        bool dynamic_level_cav_data_round_trip = !verify_cav_live_dynamic_trace_schema;
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         if (verify_pressure_cav)
         {
@@ -1045,6 +1045,7 @@ main(int argc, char* argv[])
         {
             dynamic_level_operator_round_trip = true;
             dynamic_level_dof_map_round_trip = true;
+            dynamic_level_cav_data_round_trip = true;
             for (int ln = 0; ln <= finest_ln; ++ln)
             {
                 Pointer<StaggeredStokesPETScLevelSolver> level_solver = fac_op->getStaggeredStokesPETScLevelSolver(ln);
@@ -1062,8 +1063,23 @@ main(int argc, char* argv[])
                     dynamic_level_dof_map_round_trip &&
                     IBAMR::TestSupport::sameCAVRawDofMap(dof_map,
                                                          IBAMR::TestSupport::readCAVRawDofMap(prefix + "_dof_map.txt"));
+                if (ln > 0)
+                {
+                    const auto& pressure_seeds = level_solver->getCouplingAwareASMPressureSeedDOFs();
+                    const auto& overlap_dofs = level_solver->getASMSubdomains();
+                    IBAMR::TestSupport::writeCAVRawIndexList(pressure_seeds, prefix + "_pressure_seeds.txt");
+                    IBAMR::TestSupport::writeCAVRawIndexSets(overlap_dofs, prefix + "_patches.txt");
+                    dynamic_level_cav_data_round_trip =
+                        dynamic_level_cav_data_round_trip && !pressure_seeds.empty() &&
+                        pressure_seeds.size() == overlap_dofs.size() &&
+                        pressure_seeds ==
+                            IBAMR::TestSupport::readCAVRawIndexList(prefix + "_pressure_seeds.txt") &&
+                        overlap_dofs == IBAMR::TestSupport::readCAVRawIndexSets(prefix + "_patches.txt");
+                }
             }
-            if (!dynamic_level_operator_round_trip || !dynamic_level_dof_map_round_trip) ++test_failures;
+            if (!dynamic_level_operator_round_trip || !dynamic_level_dof_map_round_trip ||
+                !dynamic_level_cav_data_round_trip)
+                ++test_failures;
         }
         Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
         if (verify_cav_live_export_schema)
@@ -1085,11 +1101,32 @@ main(int argc, char* argv[])
             writeCAVRawIndexSets(nonoverlap_dofs, prefix + "_nonoverlap.txt");
 
             Pointer<Database> level_solver_db = stokes_ib_precond_db->getDatabase("level_solver_db");
-            if (level_solver_db->getString("shell_pc_type") != "multiplicative-blas-lapack" ||
-                level_solver_db->getString("blas_lapack_subdomain_solver_type") != "lu" ||
-                level_solver_db->getString("coupling_aware_asm_patch_seed_type") != "PRESSURE_CELL")
+            if (level_solver_db->getString("coupling_aware_asm_patch_seed_type") != "PRESSURE_CELL")
             {
-                TBOX_ERROR("The native live-export contract requires pressure-cell multiplicative BLAS/LAPACK LU\n");
+                TBOX_ERROR("The native live-export contract requires pressure-cell CAV construction\n");
+            }
+            const std::string shell_pc_type = level_solver_db->getString("shell_pc_type");
+            std::string local_solver_backend;
+            if (shell_pc_type == "multiplicative-blas-lapack")
+            {
+                const std::string solver_type = level_solver_db->getString("blas_lapack_subdomain_solver_type");
+                if (solver_type != "lu" && solver_type != "svd")
+                    TBOX_ERROR("The native CAV backend export supports only BLAS/LAPACK LU and SVD\n");
+                local_solver_backend = "blas-lapack-" + solver_type;
+            }
+            else if (shell_pc_type == "multiplicative-eigen-reference")
+            {
+                const std::string solver_type =
+                    level_solver_db->getStringWithDefault("eigen_subdomain_solver_type", "partial-piv-lu");
+                local_solver_backend = "eigen-reference-" + solver_type;
+            }
+            else if (shell_pc_type == "multiplicative-eigen-schur-complement")
+            {
+                local_solver_backend = "eigen-schur-complement";
+            }
+            else
+            {
+                TBOX_ERROR("Unsupported native multiplicative CAV export backend: " << shell_pc_type << "\n");
             }
             CAVLiveExportManifest manifest;
             manifest.candidate_sha = "0123456789abcdef0123456789abcdef01234567";
@@ -1104,7 +1141,7 @@ main(int argc, char* argv[])
             manifest.seed_stride = level_solver_db->getInteger("coupling_aware_asm_seed_stride");
             manifest.traversal_order = level_solver_db->getString("coupling_aware_asm_seed_traversal_order");
             manifest.composition = "multiplicative";
-            manifest.local_solver_backend = "blas-lapack-lu";
+            manifest.local_solver_backend = local_solver_backend;
             writeCAVLiveExportManifest(manifest, prefix + "_manifest.txt");
 
             const bool operator_round_trip =
@@ -1200,16 +1237,36 @@ main(int argc, char* argv[])
             fac_trace_exporter.observe(stage, level_num, solution, rhs);
         };
 
-        const std::vector<CycleStage> expected_fac_stages = {
-            CycleStage::PRE_SMOOTH_INPUT,  CycleStage::PRE_SMOOTH_OUTPUT, CycleStage::COARSE_RHS,
-            CycleStage::COARSE_CORRECTION, CycleStage::POST_SMOOTH_INPUT, CycleStage::POST_SMOOTH_OUTPUT
-        };
-        const std::vector<int> expected_fac_levels = { finest_ln, finest_ln, 0, 0, finest_ln, finest_ln };
-        const std::vector<CycleStage> expected_fac_no_pre_stages = { CycleStage::COARSE_RHS,
-                                                                     CycleStage::COARSE_CORRECTION,
-                                                                     CycleStage::POST_SMOOTH_INPUT,
-                                                                     CycleStage::POST_SMOOTH_OUTPUT };
-        const std::vector<int> expected_fac_no_pre_levels = { 0, 0, finest_ln, finest_ln };
+        std::vector<CycleStage> expected_fac_stages;
+        std::vector<int> expected_fac_levels;
+        for (int ln = finest_ln; ln > 0; --ln)
+        {
+            expected_fac_stages.push_back(CycleStage::PRE_SMOOTH_INPUT);
+            expected_fac_stages.push_back(CycleStage::PRE_SMOOTH_OUTPUT);
+            expected_fac_levels.push_back(ln);
+            expected_fac_levels.push_back(ln);
+        }
+        expected_fac_stages.push_back(CycleStage::COARSE_RHS);
+        expected_fac_stages.push_back(CycleStage::COARSE_CORRECTION);
+        expected_fac_levels.push_back(0);
+        expected_fac_levels.push_back(0);
+        for (int ln = 1; ln <= finest_ln; ++ln)
+        {
+            expected_fac_stages.push_back(CycleStage::POST_SMOOTH_INPUT);
+            expected_fac_stages.push_back(CycleStage::POST_SMOOTH_OUTPUT);
+            expected_fac_levels.push_back(ln);
+            expected_fac_levels.push_back(ln);
+        }
+        std::vector<CycleStage> expected_fac_no_pre_stages = { CycleStage::COARSE_RHS,
+                                                                CycleStage::COARSE_CORRECTION };
+        std::vector<int> expected_fac_no_pre_levels = { 0, 0 };
+        for (int ln = 1; ln <= finest_ln; ++ln)
+        {
+            expected_fac_no_pre_stages.push_back(CycleStage::POST_SMOOTH_INPUT);
+            expected_fac_no_pre_stages.push_back(CycleStage::POST_SMOOTH_OUTPUT);
+            expected_fac_no_pre_levels.push_back(ln);
+            expected_fac_no_pre_levels.push_back(ln);
+        }
         Pointer<SAMRAIVectorReal<NDIM, double>> fac_observer_sol;
         Pointer<SAMRAIVectorReal<NDIM, double>> fac_observer_rhs;
         bool fac_observer_first_cycle_valid = true;
@@ -1749,6 +1806,8 @@ main(int argc, char* argv[])
                      << (dynamic_level_operator_round_trip ? "true" : "false") << std::endl;
                 pout << "cav_dynamic_level_dof_map_round_trip = "
                      << (dynamic_level_dof_map_round_trip ? "true" : "false") << std::endl;
+                pout << "cav_dynamic_level_cav_data_round_trip = "
+                     << (dynamic_level_cav_data_round_trip ? "true" : "false") << std::endl;
                 pout << "cav_fac_trace_record_count = " << fac_trace_exporter.records.size() << std::endl;
                 pout << "cav_fac_trace_artifacts_round_trip = "
                      << (fac_trace_exporter.artifacts_round_trip ? "true" : "false") << std::endl;

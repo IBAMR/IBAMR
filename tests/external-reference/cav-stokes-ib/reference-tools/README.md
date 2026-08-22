@@ -1,7 +1,7 @@
 # CAV multiplicative paired replay
 
-This directory contains external-reference tooling for the mandatory N0, N1,
-and N2 multiplicative-CAV comparisons. It is not part of the normal `attest`
+This directory contains external-reference tooling for the mandatory N0--N4
+multiplicative-CAV comparisons. It is not part of the normal `attest`
 suite and does not replace the native CAV regressions.
 
 `run_multiplicative_paired_replay.sh` requires:
@@ -29,6 +29,28 @@ the SVD pressure-nullspace coarse solve, Richardson level smoothing, both FAC
 levels, transfer-stage actions, V-cycle state, FGMRES state, and original
 physical residual components.
 
+N3 uses the supported periodic `8x8 -> 16x16 -> 32x32` hierarchy. It applies
+the same production construction, local backend, and forward/forward policy on
+both noncoarse levels and records both transfer pairs. The live diagnostic
+exports each borrowed per-level operator, DOF map, seed/patch sequence, and FAC
+stage transiently; it neither retains a hierarchy-wide algebraic numbering nor
+adds a production matrix copy. The paired replay checks every patch update on
+both smoothed levels before comparing the full V-cycle, FGMRES result, and
+fresh original physical residuals.
+
+N4 returns to the finest live `8x8` pressure-CAV level on the legal
+`4x4 -> 8x8` hierarchy and holds the operator, global velocity-pressure map,
+RELAXED patch order, traversal, and composition fixed while selecting the
+Eigen reference, production Eigen/Schur, BLAS/LAPACK LU, and BLAS/LAPACK SVD
+local backends. Exact mapped local matrices and common-arithmetic local solves
+are reconstructed from the borrowed live operator and ordered patch DOFs.
+Whole-sweep outputs make the backend comparison observable without widening
+the production observer API: the existing narrow per-patch trace remains an
+additional BLAS/LAPACK diagnostic. Candidate-versus-oracle common-arithmetic
+replays use the fixed per-`K` targets; separately reported live-versus-MATLAB
+and live-backend differences use the `1e-10` hard ceiling and do not silently
+replace the fixed gate.
+
 The oracle exporter calls the pinned sandbox RELAXED construction and
 multiplicative smoother without editing the oracle. Since STRICT is an IBAMR
 extension rather than a sandbox algorithm, the consumer independently derives
@@ -46,7 +68,7 @@ global states, and residuals after every patch. Separately labeled candidate
 and oracle native-smoother comparisons remain cross-runtime diagnostics, not
 the common-arithmetic gate.
 
-For N2, the actual IBAMR solve is accepted only when it produces complete
+For N2--N4, the actual IBAMR solve is accepted only when it produces complete
 finite physical/action diagnostics and a freshly recomputed original relative
 residual no larger than `1e-10`. Candidate/oracle physical scalar differences,
 iteration-count/history differences, and the matrix-free-versus-assembled
@@ -73,8 +95,10 @@ tests/external-reference/cav-stokes-ib/reference-tools/run_multiplicative_paired
 ```
 
 The optional output-parent argument defaults to `/private/tmp`. The final scope
-is `N0`, `N1`, or `N2` and defaults to `N1`; N0 runs `K=1`, both construction
+is `N0`, `N1`, `N2`, `N3`, or `N4` and defaults to `N1`; N0 runs `K=1`, both construction
 policies, and forward traversal, N1 runs the complete single-level matrix
-above, and N2 adds the live two-level transfer/V-cycle/FGMRES path. The runner
+above, N2 adds the live two-level transfer/V-cycle/FGMRES path, and N3 adds the
+second smoothed level and transfer pair. N4 runs `K=1` and `1e4` through all
+four assigned local backends on the same live level. The runner
 creates a new directory and never deletes or overwrites an existing evidence
 bundle.
