@@ -142,8 +142,8 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& overlap_size);
 
     /*!
-     * \brief Build all patch-level maps used by coupling-aware ASM into a
-     * reusable container.
+     * \brief Build the shared velocity-adjacency and cell-closure maps used by
+     * coupling-aware ASM into a reusable container.
      */
     static void buildPatchLevelCellClosureMaps(PatchLevelCellClosureMapData& map_data,
                                                int u_dof_index_idx,
@@ -156,7 +156,8 @@ public:
      * Subdomains are coupling-defined: overlap subdomains are generated from
      * seed velocity DOFs (for the selected component axis) via A00-induced cell
      * closures, and nonoverlap subdomains are then derived from overlap
-     * subdomains by removing overlaps.
+     * subdomains by removing overlaps. STRICT construction lazily adds its
+     * velocity-seed pairing map to map_data; RELAXED construction does not.
      */
     static void constructPatchLevelCouplingAwareASMSubdomains(
         std::vector<std::vector<int>>& overlap_dofs,
@@ -166,7 +167,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
         SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary,
         Mat A00_mat,
-        const PatchLevelCellClosureMapData& map_data,
+        PatchLevelCellClosureMapData& map_data,
         int seed_velocity_axis = 0,
         int seed_velocity_stride = 1,
 #if (NDIM == 2)

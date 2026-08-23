@@ -387,11 +387,15 @@ main(int argc, char* argv[])
     IBAMR::StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData map_data;
     IBAMR::StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
         map_data, u_dof_index_idx, p_dof_index_idx, level);
+    IBAMR::StaggeredStokesPETScMatUtilities::PatchLevelCellClosureMapData pressure_map_data;
+    IBAMR::StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(
+        pressure_map_data, u_dof_index_idx, p_dof_index_idx, level);
     using MapAccess = IBAMR::StaggeredStokesPETScMatUtilitiesPrivateAccess;
     const auto& velocity_dof_to_adjacent_cell_dofs = MapAccess::getVelocityDofToAdjacentCellDofs(map_data);
     const auto& cell_dof_to_closure_dofs = MapAccess::getCellDofToClosureDofs(map_data);
     const auto& velocity_dof_to_component_axis = MapAccess::getVelocityDofToComponentAxis(map_data);
-    const auto& velocity_dof_to_paired_seed_velocity_dofs = MapAccess::getVelocityDofToPairedSeedVelocityDofs(map_data);
+    bool velocity_relaxed_seed_pair_map_absent = !MapAccess::velocitySeedPairMapIsBuilt(map_data) &&
+                                                 MapAccess::getVelocityDofToPairedSeedVelocityDofs(map_data).empty();
 
     std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
     PoissonSpecifications u_problem_coefs("reference_parity_poisson");
@@ -430,6 +434,10 @@ main(int argc, char* argv[])
         primary_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
         relative_numerical_zero_tol);
+    velocity_relaxed_seed_pair_map_absent = velocity_relaxed_seed_pair_map_absent &&
+                                            !MapAccess::velocitySeedPairMapIsBuilt(map_data) &&
+                                            MapAccess::getVelocityDofToPairedSeedVelocityDofs(map_data).empty();
+    if (!velocity_relaxed_seed_pair_map_absent) ++test_failures;
 
     std::vector<std::vector<int>> overlap_strict, nonoverlap_strict;
     IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
@@ -446,6 +454,19 @@ main(int argc, char* argv[])
         primary_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::STRICT,
         relative_numerical_zero_tol);
+
+    const auto& velocity_dof_to_paired_seed_velocity_dofs = MapAccess::getVelocityDofToPairedSeedVelocityDofs(map_data);
+    std::size_t velocity_seed_pair_value_count = 0;
+    bool velocity_strict_seed_pair_map_count_valid =
+        MapAccess::velocitySeedPairMapIsBuilt(map_data) &&
+        velocity_dof_to_paired_seed_velocity_dofs.size() == velocity_dof_to_component_axis.size();
+    for (const auto& pair : velocity_dof_to_paired_seed_velocity_dofs)
+    {
+        velocity_seed_pair_value_count += pair.second.size();
+        velocity_strict_seed_pair_map_count_valid =
+            velocity_strict_seed_pair_map_count_valid && pair.second.size() == NDIM - 1;
+    }
+    if (!velocity_strict_seed_pair_map_count_valid) ++test_failures;
 
     if (overlap_relaxed.empty() || overlap_strict.empty()) ++test_failures;
     if (seed_velocity_dofs.empty()) ++test_failures;
@@ -513,7 +534,7 @@ main(int argc, char* argv[])
         p_dof_index_idx,
         level,
         zero_eulerian_elasticity_mat,
-        map_data,
+        pressure_map_data,
         1,
         primary_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
@@ -532,7 +553,7 @@ main(int argc, char* argv[])
         p_dof_index_idx,
         level,
         zero_eulerian_elasticity_mat,
-        map_data,
+        pressure_map_data,
         1,
         primary_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::STRICT,
@@ -577,7 +598,7 @@ main(int argc, char* argv[])
         p_dof_index_idx,
         level,
         zero_eulerian_elasticity_mat,
-        map_data,
+        pressure_map_data,
         1,
         alternate_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
@@ -602,7 +623,7 @@ main(int argc, char* argv[])
         p_dof_index_idx,
         level,
         zero_eulerian_elasticity_mat,
-        map_data,
+        pressure_map_data,
         2,
         primary_traversal_order,
         IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
@@ -687,7 +708,7 @@ main(int argc, char* argv[])
                     p_dof_index_idx,
                     level,
                     one_edge_eulerian_elasticity_mat,
-                    map_data,
+                    pressure_map_data,
                     1,
                     primary_traversal_order,
                     IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
@@ -700,7 +721,7 @@ main(int argc, char* argv[])
                     p_dof_index_idx,
                     level,
                     one_edge_eulerian_elasticity_mat,
-                    map_data,
+                    pressure_map_data,
                     1,
                     primary_traversal_order,
                     IBAMR::CouplingAwareASMClosurePolicy::STRICT,
@@ -754,7 +775,7 @@ main(int argc, char* argv[])
                 p_dof_index_idx,
                 level,
                 threshold_eulerian_elasticity_mat,
-                map_data,
+                pressure_map_data,
                 1,
                 primary_traversal_order,
                 IBAMR::CouplingAwareASMClosurePolicy::RELAXED,
@@ -817,7 +838,7 @@ main(int argc, char* argv[])
                     p_dof_index_idx,
                     level,
                     full_support_eulerian_elasticity_mat,
-                    map_data,
+                    pressure_map_data,
                     1,
                     primary_traversal_order,
                     IBAMR::CouplingAwareASMClosurePolicy::STRICT,
@@ -850,6 +871,17 @@ main(int argc, char* argv[])
     level->deallocatePatchData(u_dof_index_idx);
     level->deallocatePatchData(p_dof_index_idx);
 
+    const bool pressure_seed_pair_map_absent =
+        !MapAccess::velocitySeedPairMapIsBuilt(pressure_map_data) &&
+        MapAccess::getVelocityDofToPairedSeedVelocityDofs(pressure_map_data).empty();
+    if (!pressure_seed_pair_map_absent) ++test_failures;
+    pout << "pressure_seed_pair_map_absent = " << (pressure_seed_pair_map_absent ? "true" : "false") << std::endl;
+    pout << "velocity_relaxed_seed_pair_map_absent = " << (velocity_relaxed_seed_pair_map_absent ? "true" : "false")
+         << std::endl;
+    pout << "velocity_strict_seed_pair_map_count_valid = "
+         << (velocity_strict_seed_pair_map_count_valid ? "true" : "false") << std::endl;
+    pout << "velocity_strict_seed_pair_map_keys = " << velocity_dof_to_paired_seed_velocity_dofs.size() << std::endl;
+    pout << "velocity_strict_seed_pair_map_values = " << velocity_seed_pair_value_count << std::endl;
     plog << "Input database:\n";
     input_db->printClassData(plog);
     pout << "test_failures = " << test_failures << std::endl;

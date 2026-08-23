@@ -1,3 +1,8 @@
+pressure_seed_pair_map_absent = true
+velocity_relaxed_seed_pair_map_absent = true
+velocity_strict_seed_pair_map_count_valid = true
+velocity_strict_seed_pair_map_keys = 192
+velocity_strict_seed_pair_map_values = 384
 Input database:
 input_db {
    N = 4                                                    // input used

@@ -1484,7 +1484,6 @@ StaggeredStokesPETScMatUtilities::buildPatchLevelCellClosureMaps(PatchLevelCellC
                                                                  Pointer<PatchLevel<NDIM>> patch_level)
 {
     ensurePatchLevelCellClosureMapIsBuilt(map_data, u_dof_index_idx, p_dof_index_idx, patch_level);
-    ensurePatchLevelVelocitySeedPairMapIsBuilt(map_data, u_dof_index_idx, patch_level);
     return;
 } // buildPatchLevelCellClosureMaps
 
@@ -1632,13 +1631,18 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelCouplingAwareASMSubdomains(
     Pointer<PatchLevel<NDIM>> patch_level,
     Pointer<CoarseFineBoundary<NDIM>> /*cf_boundary*/,
     Mat A00_mat,
-    const PatchLevelCellClosureMapData& map_data,
+    PatchLevelCellClosureMapData& map_data,
     const int seed_velocity_axis,
     const int seed_velocity_stride,
     const CouplingAwareASMSeedTraversalOrder seed_traversal_order,
     const CouplingAwareASMClosurePolicy closure_policy,
     const double relative_numerical_zero_tol)
 {
+    if (closure_policy == CouplingAwareASMClosurePolicy::STRICT)
+    {
+        ensurePatchLevelVelocitySeedPairMapIsBuilt(map_data, u_dof_index_idx, patch_level);
+    }
+
     std::vector<int> seed_velocity_dofs;
     computePatchLevelCouplingAwareASMSeedVelocityDofs(seed_velocity_dofs,
                                                       u_dof_index_idx,
