@@ -45,6 +45,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <petsclog.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
@@ -78,6 +80,35 @@
 
 namespace
 {
+PetscInt petsc_vec_creation_count = 0;
+PetscInt petsc_vec_destruction_count = 0;
+
+PetscErrorCode
+ignore_petsc_log_event(PetscLogEvent, int, PetscObject, PetscObject, PetscObject, PetscObject)
+{
+    return PETSC_SUCCESS;
+}
+
+PetscErrorCode
+count_petsc_vec_creation(PetscObject object)
+{
+    PetscClassId class_id;
+    const PetscErrorCode ierr = PetscObjectGetClassId(object, &class_id);
+    if (ierr) return ierr;
+    if (class_id == VEC_CLASSID) ++petsc_vec_creation_count;
+    return PETSC_SUCCESS;
+}
+
+PetscErrorCode
+count_petsc_vec_destruction(PetscObject object)
+{
+    PetscClassId class_id;
+    const PetscErrorCode ierr = PetscObjectGetClassId(object, &class_id);
+    if (ierr) return ierr;
+    if (class_id == VEC_CLASSID) ++petsc_vec_destruction_count;
+    return PETSC_SUCCESS;
+}
+
 struct StructureSpec
 {
     int num_curve_points = 64;
@@ -995,6 +1026,10 @@ main(int argc, char* argv[])
         const bool verify_galerkin_operator_borrowing = input_db->keyExists("VERIFY_GALERKIN_OPERATOR_BORROWING") ?
                                                             input_db->getBool("VERIFY_GALERKIN_OPERATOR_BORROWING") :
                                                             false;
+        const bool verify_fac_residual_work_vector_cache =
+            input_db->keyExists("VERIFY_FAC_RESIDUAL_WORK_VECTOR_CACHE") ?
+                input_db->getBool("VERIFY_FAC_RESIDUAL_WORK_VECTOR_CACHE") :
+                false;
         const bool verify_cav_live_export_schema = input_db->keyExists("VERIFY_CAV_LIVE_EXPORT_SCHEMA") ?
                                                        input_db->getBool("VERIFY_CAV_LIVE_EXPORT_SCHEMA") :
                                                        false;
@@ -1009,6 +1044,9 @@ main(int argc, char* argv[])
         }
         if (verify_galerkin_operator_borrowing && !verify_fac_cycle_observer)
             TBOX_ERROR("The Galerkin borrowing reinitialization check requires VERIFY_FAC_CYCLE_OBSERVER = TRUE\n");
+        if (verify_fac_residual_work_vector_cache && !verify_fac_cycle_observer)
+            TBOX_ERROR(
+                "The FAC residual work-vector reinitialization check requires VERIFY_FAC_CYCLE_OBSERVER = TRUE\n");
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         bool dynamic_level_operator_round_trip = !verify_cav_live_dynamic_trace_schema;
         bool dynamic_level_dof_map_round_trip = !verify_cav_live_dynamic_trace_schema;
@@ -1027,6 +1065,56 @@ main(int argc, char* argv[])
             return valid;
         };
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+        auto check_fac_residual_work_vector_cache =
+            [&](PetscInt& vec_creations, PetscInt& vec_destructions, double& reuse_error)
+        {
+            Pointer<SAMRAIVectorReal<NDIM, double>> first_residual =
+                eul_rhs_vec->cloneVector("fac_residual_workspace_first");
+            Pointer<SAMRAIVectorReal<NDIM, double>> second_residual =
+                eul_rhs_vec->cloneVector("fac_residual_workspace_second");
+            first_residual->allocateVectorData();
+            second_residual->allocateVectorData();
+
+            PetscLogHandler log_handler = nullptr;
+            petsc_vec_creation_count = 0;
+            petsc_vec_destruction_count = 0;
+            PetscErrorCode ierr = PetscLogHandlerCreateLegacy(PETSC_COMM_WORLD,
+                                                              ignore_petsc_log_event,
+                                                              ignore_petsc_log_event,
+                                                              count_petsc_vec_creation,
+                                                              count_petsc_vec_destruction,
+                                                              &log_handler);
+            IBTK_CHKERRQ(ierr);
+            ierr = PetscLogHandlerStart(log_handler);
+            IBTK_CHKERRQ(ierr);
+            fac_op->computeResidual(*first_residual, *eul_sol_vec, *eul_rhs_vec, 0, finest_ln);
+            fac_op->computeResidual(*second_residual, *eul_sol_vec, *eul_rhs_vec, 0, finest_ln);
+            ierr = PetscLogHandlerStop(log_handler);
+            IBTK_CHKERRQ(ierr);
+            ierr = PetscLogHandlerDestroy(&log_handler);
+            IBTK_CHKERRQ(ierr);
+
+            vec_creations = petsc_vec_creation_count;
+            vec_destructions = petsc_vec_destruction_count;
+            first_residual->subtract(first_residual, second_residual);
+            reuse_error = std::abs(first_residual->maxNorm());
+            first_residual->deallocateVectorData();
+            second_residual->deallocateVectorData();
+            return vec_creations == 0 && vec_destructions == 0 && std::isfinite(reuse_error) && reuse_error == 0.0;
+        };
+
+        PetscInt fac_residual_work_vector_apply_creations = 0;
+        PetscInt fac_residual_work_vector_apply_destructions = 0;
+        double fac_residual_work_vector_reuse_error = 0.0;
+        bool fac_residual_work_vector_cache_valid = !verify_fac_residual_work_vector_cache;
+        if (verify_fac_residual_work_vector_cache)
+        {
+            fac_residual_work_vector_cache_valid =
+                check_fac_residual_work_vector_cache(fac_residual_work_vector_apply_creations,
+                                                     fac_residual_work_vector_apply_destructions,
+                                                     fac_residual_work_vector_reuse_error);
+            if (!fac_residual_work_vector_cache_valid) ++test_failures;
+        }
         bool galerkin_operator_borrowing_valid = !verify_galerkin_operator_borrowing;
         if (verify_galerkin_operator_borrowing)
         {
@@ -1886,6 +1974,10 @@ main(int argc, char* argv[])
 
         bool fac_observer_reinitialize_valid = true;
         bool galerkin_operator_borrowing_reinitialize_valid = !verify_galerkin_operator_borrowing;
+        bool fac_residual_work_vector_cache_reinitialize_valid = !verify_fac_residual_work_vector_cache;
+        PetscInt fac_residual_work_vector_reinitialize_creations = 0;
+        PetscInt fac_residual_work_vector_reinitialize_destructions = 0;
+        double fac_residual_work_vector_reinitialize_error = 0.0;
         if (verify_fac_cycle_observer)
         {
             observed_fac_stages.clear();
@@ -1897,6 +1989,14 @@ main(int argc, char* argv[])
         if (verify_fac_cycle_observer)
         {
             fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+            if (verify_fac_residual_work_vector_cache)
+            {
+                fac_residual_work_vector_cache_reinitialize_valid =
+                    check_fac_residual_work_vector_cache(fac_residual_work_vector_reinitialize_creations,
+                                                         fac_residual_work_vector_reinitialize_destructions,
+                                                         fac_residual_work_vector_reinitialize_error);
+                if (!fac_residual_work_vector_cache_reinitialize_valid) ++test_failures;
+            }
             fac_observer_sol->setToScalar(0.0);
             fac_observer_rhs->copyVector(jv);
             const bool reinitialized_solve_success = fac_pc->solveSystem(*fac_observer_sol, *fac_observer_rhs);
@@ -1928,6 +2028,24 @@ main(int argc, char* argv[])
                  << std::endl;
             pout << "galerkin_operator_borrowing_reinitialize_valid = "
                  << (galerkin_operator_borrowing_reinitialize_valid ? "true" : "false") << std::endl;
+        }
+        if (verify_fac_residual_work_vector_cache)
+        {
+            pout << "fac_residual_work_vector_apply_creations = " << fac_residual_work_vector_apply_creations
+                 << std::endl;
+            pout << "fac_residual_work_vector_apply_destructions = " << fac_residual_work_vector_apply_destructions
+                 << std::endl;
+            pout << "fac_residual_work_vector_reuse_error = " << fac_residual_work_vector_reuse_error << std::endl;
+            pout << "fac_residual_work_vector_cache_valid = "
+                 << (fac_residual_work_vector_cache_valid ? "true" : "false") << std::endl;
+            pout << "fac_residual_work_vector_reinitialize_creations = "
+                 << fac_residual_work_vector_reinitialize_creations << std::endl;
+            pout << "fac_residual_work_vector_reinitialize_destructions = "
+                 << fac_residual_work_vector_reinitialize_destructions << std::endl;
+            pout << "fac_residual_work_vector_reinitialize_error = " << fac_residual_work_vector_reinitialize_error
+                 << std::endl;
+            pout << "fac_residual_work_vector_cache_reinitialize_valid = "
+                 << (fac_residual_work_vector_cache_reinitialize_valid ? "true" : "false") << std::endl;
         }
         if (verify_pressure_cav)
         {

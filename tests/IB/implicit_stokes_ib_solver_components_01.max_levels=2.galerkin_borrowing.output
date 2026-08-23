@@ -10,6 +10,14 @@ fac_cycle_observer_no_pre_cycle_valid = true
 fac_cycle_observer_reinitialize_valid = true
 galerkin_operator_borrowing_valid = true
 galerkin_operator_borrowing_reinitialize_valid = true
+fac_residual_work_vector_apply_creations = 0
+fac_residual_work_vector_apply_destructions = 0
+fac_residual_work_vector_reuse_error = 0
+fac_residual_work_vector_cache_valid = true
+fac_residual_work_vector_reinitialize_creations = 0
+fac_residual_work_vector_reinitialize_destructions = 0
+fac_residual_work_vector_reinitialize_error = 0
+fac_residual_work_vector_cache_reinitialize_valid = true
 Input database:
 input_db {
    MU                                 = 0.01                // input used
@@ -33,6 +41,7 @@ input_db {
    FD_REL_TOL                         = 1e-06               // input used
    USE_FIXED_LE_OPERATORS             = TRUE                // input used
    VERIFY_FAC_CYCLE_OBSERVER          = TRUE                // input used
+   VERIFY_FAC_RESIDUAL_WORK_VECTOR_CACHE = TRUE             // input used
    VERIFY_GALERKIN_OPERATOR_BORROWING = TRUE                // input used
    REPORT_KRYLOV_LINEAR_RESIDUAL_NORM = FALSE               // input used
    PETSC_OPTIONS_FILE                 = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat" // input used

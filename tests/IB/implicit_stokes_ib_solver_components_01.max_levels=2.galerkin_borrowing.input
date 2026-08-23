@@ -23,6 +23,7 @@ TAG_BUFFER                          = 2
 FD_REL_TOL                          = 1.0e-6
 USE_FIXED_LE_OPERATORS              = TRUE
 VERIFY_FAC_CYCLE_OBSERVER           = TRUE
+VERIFY_FAC_RESIDUAL_WORK_VECTOR_CACHE = TRUE
 VERIFY_GALERKIN_OPERATOR_BORROWING  = TRUE
 REPORT_KRYLOV_LINEAR_RESIDUAL_NORM  = FALSE
 PETSC_OPTIONS_FILE                  = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat"

@@ -39,6 +39,14 @@ fac_cycle_observer_first_cycle_valid = true
 fac_cycle_observer_disabled_silent = true
 fac_cycle_observer_no_pre_cycle_valid = true
 fac_cycle_observer_reinitialize_valid = true
+fac_residual_work_vector_apply_creations = 0
+fac_residual_work_vector_apply_destructions = 0
+fac_residual_work_vector_reuse_error = 0
+fac_residual_work_vector_cache_valid = true
+fac_residual_work_vector_reinitialize_creations = 0
+fac_residual_work_vector_reinitialize_destructions = 0
+fac_residual_work_vector_reinitialize_error = 0
+fac_residual_work_vector_cache_reinitialize_valid = true
 pressure_cav_state_cleared = true
 Input database:
 input_db {
@@ -64,6 +72,7 @@ input_db {
    USE_FIXED_LE_OPERATORS                = TRUE             // input used
    VERIFY_PRESSURE_CAV                   = TRUE             // input used
    VERIFY_FAC_CYCLE_OBSERVER             = TRUE             // input used
+   VERIFY_FAC_RESIDUAL_WORK_VECTOR_CACHE = TRUE             // input used
    VERIFY_FGMRES_PHYSICAL_RESIDUALS      = TRUE             // input used
    FGMRES_ORIGINAL_RELATIVE_RESIDUAL_TOL = 1e-10            // input used
    IB_COUPLING_RELATIVE_RESIDUAL_TOL     = 1e-10            // input used

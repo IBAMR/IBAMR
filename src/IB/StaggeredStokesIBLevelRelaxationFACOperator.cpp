@@ -239,7 +239,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
                                                              int coarsest_level_num,
                                                              int finest_level_num)
 {
-    const int rank = IBTK_MPI::getRank();
     const auto apply_level_residual_op = [&](const int ln,
                                              const int U_res_idx,
                                              const int U_sol_idx,
@@ -250,22 +249,25 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
                                              const bool use_rhs_vec,
                                              const auto& residual_op)
     {
-        Vec solution_vec = nullptr;
-        Vec residual_vec = nullptr;
-        Vec rhs_vec = nullptr;
+#if !defined(NDEBUG)
+        TBOX_ASSERT(ln >= 0 && static_cast<std::size_t>(ln) < d_residual_work_vecs.size());
+#endif
+        auto& work_vecs = d_residual_work_vecs[ln];
+        Vec solution_vec = work_vecs.solution;
+        Vec residual_vec = work_vecs.residual;
+        Vec rhs_vec = use_rhs_vec ? work_vecs.rhs : nullptr;
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
 
-        int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
-        IBTK_CHKERRQ(ierr);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(solution_vec);
+        TBOX_ASSERT(residual_vec);
+        TBOX_ASSERT(!use_rhs_vec || rhs_vec);
+#endif
 
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
         if (use_rhs_vec)
         {
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &rhs_vec);
-            IBTK_CHKERRQ(ierr);
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
                 rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx, d_p_dof_index_idx, level);
         }
@@ -281,16 +283,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
         xeqScheduleDataSynch(U_res_idx, ln);
         xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
-
-        ierr = VecDestroy(&solution_vec);
-        IBTK_CHKERRQ(ierr);
-        if (rhs_vec)
-        {
-            ierr = VecDestroy(&rhs_vec);
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecDestroy(&residual_vec);
-        IBTK_CHKERRQ(ierr);
         return;
     };
 
@@ -527,6 +519,30 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         // Construct DOF indices and SAMRAI to PETSc ordering.
         StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
             d_num_dofs_per_proc[ln], d_u_dof_index_idx, d_p_dof_index_idx, level);
+    }
+
+    // Cache the full-level PETSc representation used by computeResidual().
+    // Reusing these vectors avoids repeated allocation while preserving the
+    // existing copies at the SAMRAI/PETSc representation boundary.
+    const int rank = IBTK_MPI::getRank();
+    d_residual_work_vecs.resize(d_finest_ln + 1);
+    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    {
+        auto& work_vecs = d_residual_work_vecs[ln];
+#if !defined(NDEBUG)
+        TBOX_ASSERT(!work_vecs.solution);
+        TBOX_ASSERT(!work_vecs.residual);
+        TBOX_ASSERT(!work_vecs.rhs);
+#endif
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &work_vecs.solution);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(work_vecs.solution, &work_vecs.residual);
+        IBTK_CHKERRQ(ierr);
+        if (!d_res_rediscretized_stokes)
+        {
+            ierr = VecDuplicate(work_vecs.solution, &work_vecs.rhs);
+            IBTK_CHKERRQ(ierr);
+        }
     }
 
     // Setup application ordering for the velocity and pressure DOFs.
@@ -826,6 +842,14 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     // Deallocate DOF index data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
+        auto& work_vecs = d_residual_work_vecs[ln];
+        ierr = VecDestroy(&work_vecs.solution);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&work_vecs.residual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&work_vecs.rhs);
+        IBTK_CHKERRQ(ierr);
+
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
         if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
