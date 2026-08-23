@@ -517,8 +517,17 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     if (d_operator_mat)
     {
-        ierr = MatDuplicate(d_operator_mat, MAT_COPY_VALUES, &d_petsc_mat);
-        IBTK_CHKERRQ(ierr);
+        if (d_augmented_operator_mat)
+        {
+            ierr = MatDuplicate(d_operator_mat, MAT_COPY_VALUES, &d_petsc_mat);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            // The supplied Galerkin operator outlives this initialized solver
+            // state. Borrow the exact matrix instead of copying all entries.
+            d_petsc_mat = d_operator_mat;
+        }
     }
     else
     {
@@ -672,6 +681,13 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
 void
 StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
+    if (d_operator_mat && d_petsc_mat == d_operator_mat)
+    {
+        TBOX_ASSERT(d_petsc_pc == d_petsc_mat);
+        d_petsc_mat = nullptr;
+        d_petsc_pc = nullptr;
+    }
+
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);

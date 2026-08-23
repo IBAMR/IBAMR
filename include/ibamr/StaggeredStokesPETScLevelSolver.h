@@ -126,9 +126,11 @@ public:
      * rediscretizing the Stokes operator in initializeSolverStateSpecialized().
      *
      * The provided matrix must live in the full coupled Stokes DOF space
-     * (velocity+pressure). The solver duplicates this matrix during
-     * initialization so subsequent modifications to the provided matrix do not
-     * affect the level solver state.
+     * (velocity+pressure). When no augmented operator is configured, the solver
+     * uses this matrix as a nonowning alias until deallocateSolverState(); the
+     * caller must retain, and must not modify or reassemble, it while the solver
+     * is initialized. An augmented operator requires a private copy since its
+     * entries are added during initialization.
      */
     void setOperatorMat(Mat operator_mat);
 

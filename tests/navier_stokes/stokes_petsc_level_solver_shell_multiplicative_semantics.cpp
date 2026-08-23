@@ -581,6 +581,8 @@ main(int argc, char* argv[])
     const bool verify_affected_row_invalidation_failure =
         test_db->getBoolWithDefault("verify_affected_row_invalidation_failure", false);
     const bool verify_live_operator_state_view = test_db->getBoolWithDefault("verify_live_operator_state_view", false);
+    const bool verify_supplied_operator_lifetime =
+        test_db->getBoolWithDefault("verify_supplied_operator_lifetime", false);
     const bool verify_raw_export_comparator_contract =
         test_db->getBoolWithDefault("verify_raw_export_comparator_contract", false);
     const std::string configured_pc_type = test_db->getStringWithDefault("configured_pc_type", "shell");
@@ -761,6 +763,8 @@ main(int argc, char* argv[])
         bool live_view_provenance_valid = true;
         bool live_view_nullspace_gauge_valid = true;
         bool live_view_post_deallocate_empty = true;
+        bool supplied_operator_identity = !verify_supplied_operator_lifetime;
+        bool supplied_operator_valid_after_deallocate = !verify_supplied_operator_lifetime;
         bool raw_export_round_trip = true;
         bool raw_export_global_dof_mapping = true;
         bool raw_export_pressure_row_minus_div = true;
@@ -770,7 +774,8 @@ main(int argc, char* argv[])
         bool raw_export_manifest_mutation_detected = true;
         bool raw_export_invalid_provenance_rejected = true;
         double raw_export_matrix_max_abs_error = 0.0;
-        if (verify_live_operator_state_view || verify_raw_export_comparator_contract)
+        if (verify_live_operator_state_view || verify_raw_export_comparator_contract ||
+            verify_supplied_operator_lifetime)
         {
             const auto view = solver->getLiveOperatorStateView();
             live_view_preinit_empty = !view.initialized && !view.operator_mat && !view.num_dofs_per_proc &&
@@ -812,11 +817,25 @@ main(int argc, char* argv[])
             solver->setPhysicalBcCoefs(u_bc_coefs, nullptr);
             solver->setPhysicalBoundaryHelper(bc_helper);
         }
+        Mat supplied_operator = nullptr;
+        if (verify_supplied_operator_lifetime)
+        {
+            IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(supplied_operator,
+                                                                                    problem_coefs,
+                                                                                    u_bc_coefs,
+                                                                                    0.0,
+                                                                                    num_dofs_per_proc,
+                                                                                    u_dof_index_idx,
+                                                                                    p_dof_index_idx,
+                                                                                    level);
+            solver->setOperatorMat(supplied_operator);
+        }
         solver->initializeSolverState(x_vec, b_vec);
         const bool use_multiplicative = solver->usesMultiplicativeShellSmootherForTest();
         const bool use_restrict_partition = solver->usesRestrictShellSmootherPartitionForTest();
         const KSP& petsc_ksp = solver->getPETScKSP();
-        if (verify_live_operator_state_view || verify_raw_export_comparator_contract)
+        if (verify_live_operator_state_view || verify_raw_export_comparator_contract ||
+            verify_supplied_operator_lifetime)
         {
             const auto view = solver->getLiveOperatorStateView();
             Mat ksp_operator = nullptr;
@@ -848,12 +867,14 @@ main(int argc, char* argv[])
                 std::all_of(view.locally_owned_pressure_dofs->begin(),
                             view.locally_owned_pressure_dofs->end(),
                             [&](const PetscInt dof) { return solver->isPressureDOF(static_cast<int>(dof)); });
-            live_view_provenance_valid =
-                view.level_number == 0 && !view.operator_was_provided && !view.includes_augmented_operator;
+            live_view_provenance_valid = view.level_number == 0 &&
+                                         view.operator_was_provided == verify_supplied_operator_lifetime &&
+                                         !view.includes_augmented_operator;
+            supplied_operator_identity = !verify_supplied_operator_lifetime || view.operator_mat == supplied_operator;
             live_view_nullspace_gauge_valid = !view.velocity_nullspace_declared && view.pressure_nullspace_declared &&
                                               view.operator_nullspace_attached && view.zero_mean_pressure_correction;
             if (!live_view_operator_identity || !live_view_ownership_valid || !live_view_block_partition_valid ||
-                !live_view_provenance_valid || !live_view_nullspace_gauge_valid)
+                !live_view_provenance_valid || !live_view_nullspace_gauge_valid || !supplied_operator_identity)
             {
                 ++test_failures;
             }
@@ -1001,6 +1022,11 @@ main(int argc, char* argv[])
             ierr = VecDestroy(&adjusted_b);
             IBTK_CHKERRQ(ierr);
             solver->deallocateSolverState();
+            if (supplied_operator)
+            {
+                ierr = MatDestroy(&supplied_operator);
+                IBTK_CHKERRQ(ierr);
+            }
 
             const std::string solver_label = solver_type.empty() ? std::string("default") : solver_type;
             pout << "solver_type = " << solver_label << "\n";
@@ -1279,6 +1305,16 @@ main(int argc, char* argv[])
 
         solver->deallocateSolverState();
 
+        if (verify_supplied_operator_lifetime)
+        {
+            double supplied_operator_norm = 0.0;
+            ierr = MatNorm(supplied_operator, NORM_INFINITY, &supplied_operator_norm);
+            IBTK_CHKERRQ(ierr);
+            supplied_operator_valid_after_deallocate =
+                std::isfinite(supplied_operator_norm) && supplied_operator_norm > 0.0;
+            if (!supplied_operator_valid_after_deallocate) ++test_failures;
+        }
+
         double reinitialize_error_inf_norm = std::numeric_limits<double>::quiet_NaN();
         if (verify_reinitialize)
         {
@@ -1352,12 +1388,24 @@ main(int argc, char* argv[])
             solver->deallocateSolverState();
         }
 
+        if (supplied_operator)
+        {
+            ierr = MatDestroy(&supplied_operator);
+            IBTK_CHKERRQ(ierr);
+        }
+
         if (verify_live_operator_state_view)
         {
             const auto view = solver->getLiveOperatorStateView();
             live_view_post_deallocate_empty = !view.initialized && !view.operator_mat && !view.num_dofs_per_proc &&
                                               !view.locally_owned_velocity_dofs && !view.locally_owned_pressure_dofs;
             if (!live_view_post_deallocate_empty) ++test_failures;
+        }
+        if (verify_supplied_operator_lifetime)
+        {
+            pout << "supplied_operator_identity = " << (supplied_operator_identity ? "true" : "false") << "\n";
+            pout << "supplied_operator_valid_after_deallocate = "
+                 << (supplied_operator_valid_after_deallocate ? "true" : "false") << "\n";
         }
 
         const std::string solver_label = solver_type.empty() ? std::string("default") : solver_type;

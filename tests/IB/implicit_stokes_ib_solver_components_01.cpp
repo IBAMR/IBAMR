@@ -992,6 +992,9 @@ main(int argc, char* argv[])
             input_db->keyExists("VERIFY_PRESSURE_CAV") ? input_db->getBool("VERIFY_PRESSURE_CAV") : false;
         const bool verify_fac_cycle_observer =
             input_db->keyExists("VERIFY_FAC_CYCLE_OBSERVER") ? input_db->getBool("VERIFY_FAC_CYCLE_OBSERVER") : false;
+        const bool verify_galerkin_operator_borrowing = input_db->keyExists("VERIFY_GALERKIN_OPERATOR_BORROWING") ?
+                                                            input_db->getBool("VERIFY_GALERKIN_OPERATOR_BORROWING") :
+                                                            false;
         const bool verify_cav_live_export_schema = input_db->keyExists("VERIFY_CAV_LIVE_EXPORT_SCHEMA") ?
                                                        input_db->getBool("VERIFY_CAV_LIVE_EXPORT_SCHEMA") :
                                                        false;
@@ -1004,11 +1007,32 @@ main(int argc, char* argv[])
                 "The CAV dynamic-trace schema check requires pressure CAV, the FAC observer, FGMRES physical "
                 "residuals\n");
         }
+        if (verify_galerkin_operator_borrowing && !verify_fac_cycle_observer)
+            TBOX_ERROR("The Galerkin borrowing reinitialization check requires VERIFY_FAC_CYCLE_OBSERVER = TRUE\n");
         Pointer<StaggeredStokesPETScLevelSolver> pressure_cav_level_solver;
         bool dynamic_level_operator_round_trip = !verify_cav_live_dynamic_trace_schema;
         bool dynamic_level_dof_map_round_trip = !verify_cav_live_dynamic_trace_schema;
         bool dynamic_level_cav_data_round_trip = !verify_cav_live_dynamic_trace_schema;
+        auto galerkin_operator_borrowing_is_valid = [&]()
+        {
+            bool valid = finest_ln > 0;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                const auto live_view = fac_op->getStaggeredStokesPETScLevelSolver(ln)->getLiveOperatorStateView();
+                const bool expect_galerkin_operator = ln != finest_ln;
+                valid = valid && live_view.initialized && live_view.operator_mat &&
+                        live_view.operator_was_provided == expect_galerkin_operator &&
+                        live_view.includes_augmented_operator != expect_galerkin_operator;
+            }
+            return valid;
+        };
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+        bool galerkin_operator_borrowing_valid = !verify_galerkin_operator_borrowing;
+        if (verify_galerkin_operator_borrowing)
+        {
+            galerkin_operator_borrowing_valid = galerkin_operator_borrowing_is_valid();
+            if (!galerkin_operator_borrowing_valid) ++test_failures;
+        }
         if (verify_pressure_cav)
         {
             pressure_cav_level_solver = fac_op->getStaggeredStokesPETScLevelSolver(finest_ln);
@@ -1562,7 +1586,19 @@ main(int argc, char* argv[])
             pout << "krylov linear solve failed" << std::endl;
         }
         pout << "krylov_linear_iterations = " << linear_solver->getNumIterations() << std::endl;
-        pout << "krylov_linear_residual_norm = " << linear_solver->getResidualNorm() << std::endl;
+        const bool report_krylov_linear_residual_norm = !input_db->keyExists("REPORT_KRYLOV_LINEAR_RESIDUAL_NORM") ||
+                                                        input_db->getBool("REPORT_KRYLOV_LINEAR_RESIDUAL_NORM");
+        if (report_krylov_linear_residual_norm)
+        {
+            pout << "krylov_linear_residual_norm = " << linear_solver->getResidualNorm() << std::endl;
+        }
+        else
+        {
+            const bool residual_norm_valid =
+                std::isfinite(linear_solver->getResidualNorm()) && linear_solver->getResidualNorm() >= 0.0;
+            if (!residual_norm_valid) ++test_failures;
+            pout << "krylov_linear_residual_valid = " << (residual_norm_valid ? "true" : "false") << std::endl;
+        }
 
         double linear_side_norm = std::numeric_limits<double>::quiet_NaN();
         double linear_cell_norm = std::numeric_limits<double>::quiet_NaN();
@@ -1852,6 +1888,7 @@ main(int argc, char* argv[])
         }
 
         bool fac_observer_reinitialize_valid = true;
+        bool galerkin_operator_borrowing_reinitialize_valid = !verify_galerkin_operator_borrowing;
         if (verify_fac_cycle_observer)
         {
             observed_fac_stages.clear();
@@ -1871,6 +1908,11 @@ main(int argc, char* argv[])
                 observed_fac_levels == expected_fac_levels && fac_observer_views_valid &&
                 std::isfinite(fac_observer_sol->L2Norm()) && fac_observer_sol->L2Norm() > 1.0e-14;
             if (!fac_observer_reinitialize_valid) ++test_failures;
+            if (verify_galerkin_operator_borrowing)
+            {
+                galerkin_operator_borrowing_reinitialize_valid = galerkin_operator_borrowing_is_valid();
+                if (!galerkin_operator_borrowing_reinitialize_valid) ++test_failures;
+            }
             fac_pc->setCycleObserver({});
             fac_pc->deallocateSolverState();
 
@@ -1882,6 +1924,13 @@ main(int argc, char* argv[])
                  << std::endl;
             pout << "fac_cycle_observer_reinitialize_valid = " << (fac_observer_reinitialize_valid ? "true" : "false")
                  << std::endl;
+        }
+        if (verify_galerkin_operator_borrowing)
+        {
+            pout << "galerkin_operator_borrowing_valid = " << (galerkin_operator_borrowing_valid ? "true" : "false")
+                 << std::endl;
+            pout << "galerkin_operator_borrowing_reinitialize_valid = "
+                 << (galerkin_operator_borrowing_reinitialize_valid ? "true" : "false") << std::endl;
         }
         if (verify_pressure_cav)
         {
