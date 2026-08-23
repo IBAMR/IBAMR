@@ -1,6 +1,6 @@
 # Audit Lane E: Concrete Extensibility
 
-**Prompt version:** `cav-audit-v5/E` (2026-08-20)
+**Prompt version:** `cav-audit-v8/E` (2026-08-21)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
 
@@ -26,6 +26,8 @@ Perform a structured, no-code change exercise for each concrete axis: list the m
 
 For serial/distributed evolution, inspect whether ownership and residual-gather contracts are explicit without requiring current implementation of a later distributed milestone.
 
+Sub-minimum SAMRAI hierarchy patches are not a planned extension axis. In 2D the implementation supports hierarchy patches of at least `4x4`; 3D follows the actual neighboring SAMRAI/IBAMR dimensional rule. Reject padding, synthetic splitting or levels, alternate initialization, shims, and special CAV solver paths added to extend below that platform precondition. Invalid user configuration follows existing validation. Do not confuse this limit with the membership size of an algebraic CAV patch.
+
 Verify that public API and nearby comments accurately document only the concrete supported seams, ownership/failure behavior, and extension boundaries; speculative framework commentary or a documented seam absent from code is a defect.
 
 ## Exclusions
@@ -33,6 +35,7 @@ Verify that public API and nearby comments accurately document only the concrete
 - No hypothetical plugin framework, registry, policy hierarchy, or public API without a named planned consumer.
 - Do not require current implementation of later milestones.
 - Do not count arbitrary configurability as extensibility.
+- Do not reward a compatibility mechanism for unsupported sub-minimum hierarchy geometry as extensibility.
 - Do not excuse duplicated semantic paths merely because they are selectable.
 - Do not edit or fix the candidate.
 

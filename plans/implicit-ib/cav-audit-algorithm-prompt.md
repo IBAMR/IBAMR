@@ -1,6 +1,6 @@
 # Audit Lane A: Algorithm Semantics
 
-**Prompt version:** `cav-audit-v5/A` (2026-08-20)
+**Prompt version:** `cav-audit-v8/A` (2026-08-21)
 
 Use with `cav-independent-audit-prompt.md`. This lane is independent and permanently read-only with respect to the candidate, oracle, comparator, and pinned refs.
 
@@ -21,7 +21,7 @@ Independently derive both algorithms before tracing code. The sandbox is executa
 - Verify the implemented resolution of the seed mismatch: the formal RELAXED path must be pressure-cell seeded, use only row-or-column `E_h` adjacency, retain exact standard patches when no coupling leaves `U_i`, and use the full original saddle-point matrix only for local solves/residual updates. Audit the declared pressure-seeded STRICT extension separately and ensure any foundation full-`A00` velocity-seeded compatibility path is explicitly named legacy behavior. Do not presume family or sweep equivalence.
 - Show fresh `b-Ax` checks at declared boundaries and prove that pressure normalization changes only the pressure gauge.
 - For RAS, verify macro geometry/order, solve and owned sets, exact ownership coverage, overlap, patch order within each macro, local residual/state traces, restricted completed correction, and common-state outer assembly.
-- Cover advertised MPI scope and boundary/no-IB cases where partitioning could alter semantics.
+- Cover advertised MPI scope and boundary/no-IB cases where partitioning could alter semantics, using only hierarchy patches legal for the neighboring SAMRAI/IBAMR path. In 2D every hierarchy patch extent is at least `4x4`; preserve the intended semantic condition within that supported geometry. Do not require a CAV-specific sub-minimum path. This platform constraint does not restrict algebraic CAV-patch membership.
 - Exercise and detect activated stale-residual, patch-order, pressure-gauge, RAS restriction/ownership, overlap, and inner-additive-for-inner-multiplicative mutations, with unmutated controls.
 - Verify that comments on mathematical state transitions, ordering, restriction, residual evolution, and gauge/nullspace behavior accurately describe the implemented invariants; materially misleading statements are defects, not style preferences.
 
@@ -31,6 +31,7 @@ Independently derive both algorithms before tracing code. The sandbox is executa
 - Do not define correctness by copying sandbox or historical code.
 - Do not evaluate container taste or performance except where it changes mathematical action.
 - Do not accept flat additive-then-restrict patch processing as CAV-RAS.
+- Do not treat normal SAMRAI/IBAMR rejection of an invalid hierarchy-patch size as an algorithm defect or accept padding, splitting, synthetic levels, alternate initialization, or a special CAV path as an algorithmic extension.
 - Do not edit or fix the candidate.
 
 ## Pass/fail

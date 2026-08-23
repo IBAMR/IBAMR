@@ -1,6 +1,6 @@
 # Common Independent Audit Protocol and Launch Index
 
-**Protocol version:** `cav-audit-v5` (2026-08-20)
+**Protocol version:** `cav-audit-v12` (2026-08-23)
 
 **Candidate policy:** permanently read-only
 
@@ -97,16 +97,22 @@ Before patch or smoother parity can pass, the assigned A/N audit evidence must s
 
 A mismatch must be reported; it cannot be hidden by a final smoother norm.
 
+### Supported hierarchy-patch scope
+
+SAMRAI/IBAMR hierarchy geometry is a platform precondition, not a CAV extension axis. In the applicable 2D scope every hierarchy patch extent is at least `4x4`. The mandatory N0 configuration is therefore the supported periodic `4x4 -> 8x8` hierarchy, with CAV construction, mapping, and selected-local-solve evidence taken from the live finest `8x8` level. The separate legal `4x4` comparator hand case may still validate raw mapping machinery, but it is not relabeled as a pressure-CAV FAC level.
+
+Do not require, reward, or accept CAV-specific padding, splitting, shims, synthetic hierarchy levels, alternate initialization, or special solver paths whose purpose is to admit a sub-minimum hierarchy patch. A user-facing invalid geometry follows the existing SAMRAI/IBAMR validation and failure behavior. Boundary, ownership, overlap, ordering, empty/no-IB, and degeneracy exercises must preserve their intended condition inside legal hierarchy patches. In 3D, record and follow the actual dimensional restriction enforced by the neighboring SAMRAI/IBAMR path; do not invent a CAV-specific minimum. This constraint does not limit the number of DOFs in an algebraic CAV patch and does not weaken RELAXED, STRICT, or macro ownership semantics.
+
 ## Evidence provenance and comparator independence
 
 Rerun evidence from builds tied to the active audit checkout. Old logs and implementation claims are context, not current validation. Use live IBAMR objects for production operators, mappings, patches, transfers, smoothers, V-cycles, and residuals. Generated evidence records commit, build, dimension, grid, coefficients, MPI size, mapping version, gauge, stiffness, traversal, backend, precision, and exact regeneration command.
 
-Numerical acceptance has two mandatory, separately reported tracks. The common-arithmetic track replays candidate and oracle semantics in one documented runtime on both independently exported operator/RHS sources, while consuming each side's own exported ordered construction/application artifacts. The live-production track executes the actual IBAMR path and reports fresh original momentum, divergence, and IB consistency residuals plus convergence and iteration history. Common replay cannot replace live construction or execution; raw cross-runtime entrywise differences remain first-mismatch diagnostics but are not, by themselves, the algorithm-parity definition. The exact formulas, fixed low-`K` targets, and pass/fail rules are in the versioned N-lane prompt.
+Numerical acceptance has two mandatory, separately reported tracks. The common-arithmetic track replays candidate and oracle semantics in one documented runtime on both independently exported operator/RHS sources, while consuming each side's own exported ordered construction/application artifacts; the fixed low-`K` parity table applies to this track. The live-production track executes the actual IBAMR path and reports finite convergence, a freshly recomputed original relative residual, momentum/divergence components, both IB action norms and defect, `rho_IB`, and iteration count/history. Common replay cannot replace live construction or execution. Live candidate/oracle scalar/history differences, `rho_IB`, and raw cross-runtime entrywise differences remain mandatory first-mismatch diagnostics, but are not fixed low-`K` gates by themselves. The exact formulas, diagnostic defect classifications, and pass/fail rules are in the versioned N-lane prompt.
 
 The numerical lane must independently validate the exporter, mapping, and comparator before accepting parity:
 
 - retain raw, pre-mapping exports from both live IBAMR and the detached oracle;
-- hand-check a tiny live `4x4` 2D case, including selected velocity/pressure DOFs, one interior or periodic patch, local matrix rows, and one patch correction;
+- hand-check the legal live `4x4` raw-comparator case and a selected subset of N0's live finest `8x8` pressure-CAV level, including selected velocity/pressure DOFs, one interior or periodic algebraic patch, local matrix rows, and one patch correction;
 - run comparator unit tests on exact-match and independently produced raw files;
 - mutate copies—not candidate/oracle sources—to exercise a DOF permutation, velocity or pressure sign flip, legal pressure-only constant gauge shift, illegal velocity shift, omitted row/DOF/patch, and patch reordering;
 - require declared mappings and legal gauge normalization to pass, while undeclared permutations, sign errors, omissions, illegal shifts, and algorithmically meaningful reorderings are detected;
@@ -133,7 +139,7 @@ Classification and severity are separate fields.
 | Severity | Gate effect |
 |---|---|
 | `S0 critical` | Wrong algorithm, corrupted result/state, or unsafe resource behavior; always blocking. |
-| `S1 high` | Required correctness, reproducibility, supported-scope robustness, or material performance criterion fails; always blocking. |
+| `S1 high` | Required correctness, reproducibility, supported-scope robustness, or material structural-efficiency criterion fails; always blocking. |
 | `S2 medium` | Material scoped weakness or test/evidence gap; blocking when it touches a milestone requirement, otherwise synthesis records its disposition. |
 | `S3 low` | Local cleanup or clarity issue with no acceptance impact; nonblocking unless it exposes a broader defect. |
 
@@ -173,25 +179,29 @@ Production robustness is mandatory cross-lane work, not an unowned seventh conce
 | hierarchy regridding, cache invalidation, stale-source rejection | D | N, C |
 | local-solver singular/ill-conditioned/failure behavior | N | A, D |
 | NaN/Inf propagation, sanitizer/resource/leak checks | N | D, C |
-| empty/tiny/boundary/periodic/no-IB and ownership boundary cases | N | A, D |
+| empty/smallest-legal/boundary/periodic/no-IB and ownership boundary cases | N | A, D |
 
 An unsupported configuration must be explicitly rejected or excluded, not silently treated as passing. The multiplicative M5 gate supports full 2D numerical parity on MPI rank 1; MPI rank 2 and 3D are native robustness scopes unless the candidate explicitly advertises broader parity. The serial CAV-RAS M9 gate is rank 1. Distributed CAV-RAS requires its later independent gate.
 
-## Executable performance contract
+## Structural-efficiency audit and separate controlled timing campaign
 
-The C and D lanes use the following reproducible contract at production-code units and all-six gates:
+No lane in this audit suite performs or requires production timing. Six lanes may run concurrently, so CPU scheduling, shared-cache pressure, memory bandwidth, build activity, and thermal/power state are uncontrolled. Auditors must not collect or compare wall-clock time, speedup, throughput, warmup/repetition statistics, medians/MADs, or percentage timing regressions. Any such data already gathered during a concurrent suite are invalid as performance evidence and are excluded from findings, outcomes, and synthesis. The only retained duration is focused/broad `attest` wall time used to judge normal CI suitability; label it CI operational metadata, never solver-performance evidence.
 
-- **Build:** `Release`, same compiler, flags, linked PETSc/BLAS/LAPACK, MPI implementation, and assertions for candidate and baseline; record all versions and the complete configuration command.
-- **Hardware:** same host, CPU model, physical/logical cores, RAM, OS, power/frequency state, process affinity, and MPI binding; no mixed-host comparison.
-- **Workload P1:** 2D periodic membrane, single `64x64` level, `K=1e4`, RELAXED, forward global multiplicative sweep, canonical parity backend, one rank; 5 warmups and 20 measured sweeps.
-- **Workload P2:** 2D periodic membrane, three levels `16x16`, `32x32`, `64x64`, `K=1e4`, one pre- and one post-sweep plus one V-cycle, one rank; 3 warmups and 15 measured cycles.
-- **Workload P3 at M9:** P1 geometry with CAV-RAS, pressure-cell macro blocks `8x8`, standard seed ghost width 0, IB seed ghost width 2, forward inner traversal, one rank; 5 warmups and 20 measured sweeps.
-- **Setup workload:** 10 clean initialize/deallocate cycles on P1; report setup time, peak RSS, retained bytes, and allocation count where tooling supports it.
-- **Baselines:** exact parent SHA for the review unit; cleaned `0c8447e...` for unchanged foundation operations; and the last frozen all-six tip for later cross-cutting changes. Missing algorithms get absolute measurements, not invented ratios.
-- **Metrics:** median and MAD of wall time, time per sweep/cycle, time per active DOF, allocations and bytes per apply, setup time, peak RSS and bytes per DOF, plus scaling observations at `N=32,64,128` when a scaling claim is made.
-- **Material regression:** blocking when median normalized time or peak memory is more than 10% worse and the delta exceeds three times the larger baseline/candidate MAD (or timer resolution), when new per-apply allocation/recomputation scales with patches/DOFs without necessity, or when an asserted linear-scaling path shows a reproducible superlinear trend. Report smaller changes without declaring a defect.
+D and C answer structural questions without timing:
 
-If build/hardware/workload parity cannot be established, the performance conclusion is **INCOMPLETE**, not speculative.
+- **D:** statically derive asymptotic setup/apply work and record deterministic counts or tight bounds for storage, ownership, allocations, copies, lookups, conversions, sorting, communication/synchronization, and recomputation. Separate setup, regrid, apply, per-patch/per-macro, per-level, and per-Krylov responsibilities.
+- **C:** statically map the unmodified production hot path, including representation, traversal, global/local gathers, indirection, temporaries, allocations/copies, residual recomputation, factor/matrix reuse, ownership, and invalidation. Compiler diagnostics and non-timing diagnostic event/count evidence may supplement the map.
+- **Structural scenario W1:** 2D periodic membrane, single `64x64` level, `K=1e4`, RELAXED, forward global multiplicative sweep, canonical parity backend, one rank.
+- **Structural scenario W2:** 2D periodic membrane, three levels `16x16`, `32x32`, `64x64`, `K=1e4`, one pre- and one post-sweep plus one V-cycle, one rank.
+- **Structural scenario W3 at M9:** W1 geometry with CAV-RAS, pressure-cell macro blocks `8x8`, standard seed ghost width 0, IB seed ghost width 2, forward inner traversal, one rank.
+- W1/W2/W3 identify concrete structures and existing live paths to inspect; they are not benchmarks and require no warmups, repetitions, paired baseline, or timing statistics.
+- Any compiler, counter, allocation, or call-path diagnostic run uses the fully optimized production-equivalent candidate and linked libraries when the tool supports that mode, so the inspected path is representative; this does not authorize timing.
+- Apple Developer Tools are available on the implementation host, and command-line Instruments tooling, including `xcrun xctrace`, is authorized for audit-readiness and later independent audit evidence. Lane C still records exact candidate-side capability checks and the actual template/tool invocation rather than assuming that host availability proves a usable trace. CPU Counters, Allocations, Leaks, and other appropriate templates may supply structural event/count, allocation, retained-memory, copy, call-structure, repeated-work, or cache/memory-access evidence. Time Profiler and `sample` may locate call structure only. Label every Instruments observation as non-timing structural evidence and explicitly ignore elapsed-time, duration, percentage-time, throughput, and relative-speed fields contained in any trace. A cache-miss claim requires appropriate counter/simulation evidence and cannot rest on elapsed time.
+- A disposable sensitivity harness may activate a narrow per-patch allocation/copy or locality-degrading challenge, but it must not become a timing surrogate.
+
+Missing timing never makes a lane **INCOMPLETE**. Missing the required static structure/hot-path analysis, deterministic counts/bounds, evidence provenance, or sensitivity detection may do so. Intuition alone cannot produce **FAIL**.
+
+Actual timing belongs to a separate, explicitly authorized performance campaign outside the audit suite and milestone gate. At minimum it requires a dedicated otherwise-idle host; no concurrent Codex tasks, builds, audits, or unrelated jobs; one MPI rank and one computational thread unless a prespecified scaling question requires otherwise; explicit BLAS/OpenMP thread limits and process placement; fully optimized candidate, baseline, IBAMR, PETSc, libMesh, SAMRAI, BLAS/LAPACK, and other linked libraries; identical compilers/flags/dependencies; disabled debug/export/audit instrumentation; fixed workloads; controlled thermal/power state; and a prespecified repetition/statistical protocol. If those conditions are not met, do not time.
 
 ## Audit-suite sensitivity controls
 
@@ -202,7 +212,7 @@ The candidate and oracle remain untouched. Use precommitted fault fixtures or mu
 | A | stale residual, patch reorder, gauge error, RAS ownership/overlap error, and inner additive substitution |
 | N | the A mutations plus mapping permutation/sign/gauge/omission/reordering controls and first-mismatch localization |
 | D | disposable forced per-apply map rebuild, duplicated full-domain ownership metadata, or equivalent lifecycle/recomputation challenge |
-| C | disposable cache-disable/per-patch-allocation or locality-degrading traversal challenge measured against its unmutated control |
+| C | disposable cache-disable/per-patch-allocation or locality-degrading traversal challenge detected against its unmutated control by static review, allocation tracing, or cache/profile counters; a wall-clock materiality threshold is not required |
 | E | structured change exercises for each concrete axis, including a seeded cross-layer-entanglement example the lane must reject |
 | S | structured deletion challenge plus a seeded redundant abstraction/state/option example the lane must identify |
 
@@ -215,8 +225,8 @@ Replace every placeholder with an exact SHA before launch.
 | Entry point | Candidate/baseline scope | Required lanes |
 |---|---|---|
 | Foundation restack | `[FOUNDATION_TIP]` versus declared stack parents and canonical ledger | Plan Section 12.4 rows for affected foundation units |
-| Recovered multiplicative review units | each exact lettered tip from `cav-1a` through `cav-6b` versus its exact parent | Assigned plan-matrix row only |
-| **Working multiplicative production gate** | exact durable `cav-6b-fac-vcycle-fgmres-parity` tip after **M5**, also demonstrated equivalent to the disposable integration tip | **all six independently at the same SHA** |
+| Recovered multiplicative review units | each exact lettered tip from `cav-1a` through corrective `cav-6g4` versus its exact parent; preserve failed M5 candidates `14fe2bac...` and `54454ad...` without transferring their outcomes | Assigned plan-matrix row only |
+| **Working multiplicative production gate** | exact cumulative `[CUMULATIVE_CAV_6G4_TIP]` after the four post-`54454ad...` repair units and **M5**, with the coordinator independently resolving and verifying the SHA, its exact parent, and any required disposable-integration equivalence at launch | **all six independently at the same SHA** |
 | Review-stack equivalence | durable M5 tip versus `[INTEGRATION_TIP]` | N mandatory; every lane affected by differences |
 | RAS construction | exact `cav-7-macro-construction` tip versus durable M5 tip | `cav-7` row |
 | Macro-local multiplicative semantics | exact `cav-8a-macro-local-multiplicative` tip versus `cav-7` | `cav-8a` row |
@@ -229,4 +239,6 @@ The M5 all-lane gate must pass before M6 retires integration scaffolding or M7 b
 
 ## Re-audit
 
-Every fix creates a new candidate SHA and a new or explicitly versioned suite. Rerun every affected lane. A and N are mandatory after semantic or cross-cutting changes. D and C rerun after ownership, storage, lifecycle, traversal, resource, or hot-path changes. E and S rerun after API, option, abstraction, state, backend, or review-boundary changes. Freeze new reports and rerun synthesis. Prior lane or milestone outcomes never transfer automatically.
+Every fix creates a new candidate SHA and a new or explicitly versioned suite. Rerun every affected lane. A and N are mandatory after semantic or cross-cutting changes. D and C rerun after ownership, storage, lifecycle, traversal, resource, or hot-path changes. E and S rerun after API, option, abstraction, state, backend, or review-boundary changes. The frozen `54454ad...` synthesis requires a fresh complete A/N/D/C/E/S suite at the cumulative `cav-6g4` candidate. Freeze new reports and rerun synthesis. Prior lane or milestone outcomes never transfer automatically.
+
+Future audit lanes default to medium reasoning effort. The coordinator may select higher effort only when the committed lane contract or a documented lane-specific need justifies it; record that justification in launch provenance. Model effort is process metadata, not technical evidence or a substitute for any required rerun.
