@@ -13,6 +13,7 @@ input_db {
       shell_pc_relaxation_factor         = 1                // input used
       parity_tol                         = 1e-10            // input used
       require_parity                     = TRUE             // input used
+      verify_reinitialize                = TRUE             // input used
    }
    Main {
       log_file_name               = "output"                // input used
@@ -62,5 +63,7 @@ require_parity = 1
 expected_inf_norm = 0.692173
 actual_inf_norm = 0.692173
 error_inf_norm = 9.60343e-15
+reinitialize_pressure_seed_order_valid = true
+reinitialize_error_inf_norm = 0
 parity_tol = 1e-10
 test_failures = 0

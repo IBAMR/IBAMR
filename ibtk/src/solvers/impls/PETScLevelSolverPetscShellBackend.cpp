@@ -59,6 +59,13 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(const PETScLevelSolverS
     const int n_local_subdomains = static_cast<int>(d_solver_state.subdomain_dofs->size());
     const bool use_restrict_partition = d_solver_state.use_restrict_partition;
     const bool use_multiplicative = d_solver_state.use_multiplicative;
+    if (use_restrict_partition &&
+        d_solver_state.nonoverlap_subdomain_dofs->size() != d_solver_state.subdomain_dofs->size())
+    {
+        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                              << " PETSc shell backend requires one nonoverlap subset per subdomain "
+                                                 "for restricted correction composition.\n");
+    }
     int ierr;
     petsc.prolongation_insert_mode = use_restrict_partition ? INSERT_VALUES : ADD_VALUES;
     build_petsc_subdomain_index_sets(petsc.global_overlap_is,
@@ -96,19 +103,20 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(const PETScLevelSolverS
             overlap_indices[overlap_local_idx] = overlap_local_idx;
         }
 
-        const auto& nonoverlap_dofs =
-            (*d_solver_state.nonoverlap_subdomain_dofs)[static_cast<std::size_t>(subdomain_num)];
-        const int nonoverlap_is_size = static_cast<int>(nonoverlap_dofs.size());
+        int nonoverlap_is_size = 0;
 #if !defined(NDEBUG)
-        for (const int dof : nonoverlap_dofs)
-        {
-            TBOX_ASSERT(idxs.find(dof) == idxs.end());
-            idxs.insert(dof);
-        }
+        if (use_restrict_partition)
+            for (const int dof : (*d_solver_state.nonoverlap_subdomain_dofs)[subdomain_num])
+            {
+                TBOX_ASSERT(idxs.find(dof) == idxs.end());
+                idxs.insert(dof);
+            }
 #endif
         PetscInt* nonoverlap_indices = nullptr;
         if (use_restrict_partition)
         {
+            const auto& nonoverlap_dofs = (*d_solver_state.nonoverlap_subdomain_dofs)[subdomain_num];
+            nonoverlap_is_size = static_cast<int>(nonoverlap_dofs.size());
             ierr = PetscMalloc1(nonoverlap_is_size, &nonoverlap_indices);
             IBTK_CHKERRQ(ierr);
             int nonoverlap_local_idx = 0;

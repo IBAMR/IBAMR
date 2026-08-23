@@ -431,7 +431,7 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::vector<i
             // The accepted global multiplicative policy updates each complete
             // patch. Do not manufacture an unused ownership partition that
             // could be mistaken for macro-subdomain CAV-RAS semantics.
-            nonoverlap_dofs.assign(overlap_dofs.size(), {});
+            nonoverlap_dofs.clear();
         }
         else
         {

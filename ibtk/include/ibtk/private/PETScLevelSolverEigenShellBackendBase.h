@@ -51,8 +51,6 @@ protected:
     struct CommonSubdomainCache
     {
         std::vector<int> overlap_dofs;
-        std::vector<int> nonoverlap_dofs;
-        std::vector<int> nonoverlap_local_positions;
         std::vector<int> update_dofs;
         std::vector<int> update_local_positions;
         Eigen::MatrixXd local_pseudoinverse;

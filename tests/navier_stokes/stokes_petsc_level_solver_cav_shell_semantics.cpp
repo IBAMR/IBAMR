@@ -405,9 +405,7 @@ main(int argc, char* argv[])
                 pressure_seed_order_valid &&
                 std::binary_search(overlap_is[k].begin(), overlap_is[k].end(), pressure_seeds[k]);
         }
-        pressure_seed_partition_absent =
-            nonoverlap_is.size() == overlap_is.size() &&
-            std::all_of(nonoverlap_is.begin(), nonoverlap_is.end(), [](const auto& dofs) { return dofs.empty(); });
+        pressure_seed_partition_absent = nonoverlap_is.empty();
         if (!pressure_seed_order_valid || !pressure_seed_partition_absent) ++test_failures;
     }
 

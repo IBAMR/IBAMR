@@ -1054,10 +1054,7 @@ main(int argc, char* argv[])
                     std::binary_search(overlap_dofs[k].begin(), overlap_dofs[k].end(), pressure_seeds[k]);
                 if (overlap_dofs[k].size() > 2 * NDIM + 1) ++enlarged_patch_count;
             }
-            const bool partition_absent = nonoverlap_dofs.size() == overlap_dofs.size() &&
-                                          std::all_of(nonoverlap_dofs.begin(),
-                                                      nonoverlap_dofs.end(),
-                                                      [](const auto& dofs) { return dofs.empty(); });
+            const bool partition_absent = nonoverlap_dofs.empty();
             if (!seed_order_valid || enlarged_patch_count == 0 || !partition_absent) ++test_failures;
 
             pout << "pressure_cav_patch_count = " << pressure_seeds.size() << std::endl;
@@ -1179,7 +1176,7 @@ main(int argc, char* argv[])
                 sameCAVLiveExportManifest(manifest, readCAVLiveExportManifest(prefix + "_manifest.txt"));
 
             bool mutations_detected = !dof_map.dofs.empty() && pressure_seeds.size() >= 2 && !overlap_dofs.empty() &&
-                                      !overlap_dofs.front().empty() && !nonoverlap_dofs.empty();
+                                      !overlap_dofs.front().empty();
             if (mutations_detected)
             {
                 CAVRawMatrixMarketData omitted_operator_entry = readCAVRawMatrixMarket(prefix + "_A.mtx");
@@ -1194,7 +1191,7 @@ main(int argc, char* argv[])
                     std::vector<std::vector<int>> omitted_patch_dof = overlap_dofs;
                     omitted_patch_dof.front().pop_back();
                     std::vector<std::vector<int>> altered_nonoverlap = nonoverlap_dofs;
-                    altered_nonoverlap.front().push_back(pressure_seeds.front());
+                    altered_nonoverlap.push_back({ pressure_seeds.front() });
                     CAVLiveExportManifest altered_manifest = manifest;
                     altered_manifest.pressure_equation_row_multiplier_to_oracle = 1.0;
                     mutations_detected = !sameCAVRawMatrixMarket(live_view.operator_mat, omitted_operator_entry) &&

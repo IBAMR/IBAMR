@@ -200,6 +200,13 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
     const Eigen::SparseMatrix<double, Eigen::RowMajor> eigen_level_mat =
         copyPETScMatToEigenSparse(d_solver_state.petsc_mat);
     d_n_dofs = eigen_level_mat.rows();
+    if (use_restrict_partition &&
+        d_solver_state.nonoverlap_subdomain_dofs->size() != d_solver_state.subdomain_dofs->size())
+    {
+        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                              << " Eigen shell backend requires one nonoverlap subset per subdomain "
+                                                 "for restricted correction composition.\n");
+    }
     d_common_subdomains.clear();
     d_common_subdomains.resize(d_solver_state.subdomain_dofs->size());
     for (std::size_t subdomain_num = 0; subdomain_num < d_common_subdomains.size(); ++subdomain_num)
@@ -213,18 +220,6 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
         for (Eigen::Index local_col = 0; local_col < overlap_size; ++local_col)
         {
             overlap_col_map[cache.overlap_dofs[static_cast<std::size_t>(local_col)]] = static_cast<int>(local_col);
-        }
-
-        cache.nonoverlap_dofs = (*d_solver_state.nonoverlap_subdomain_dofs)[subdomain_num];
-        cache.nonoverlap_local_positions.resize(cache.nonoverlap_dofs.size());
-        for (std::size_t local_col = 0; local_col < cache.nonoverlap_dofs.size(); ++local_col)
-        {
-            const int dof = cache.nonoverlap_dofs[local_col];
-            const auto overlap_pos_it = overlap_col_map.find(dof);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(overlap_pos_it != overlap_col_map.end());
-#endif
-            cache.nonoverlap_local_positions[local_col] = overlap_pos_it->second;
         }
 
         Eigen::MatrixXd local_operator = Eigen::MatrixXd::Zero(overlap_size, overlap_size);
@@ -243,8 +238,16 @@ PETScLevelSolverEigenShellBackendBase::initializeCommonDataWithLocalOperatorHook
 
         if (use_restrict_partition)
         {
-            cache.update_dofs = cache.nonoverlap_dofs;
-            cache.update_local_positions = cache.nonoverlap_local_positions;
+            cache.update_dofs = (*d_solver_state.nonoverlap_subdomain_dofs)[subdomain_num];
+            cache.update_local_positions.resize(cache.update_dofs.size());
+            for (std::size_t local_col = 0; local_col < cache.update_dofs.size(); ++local_col)
+            {
+                const auto overlap_pos_it = overlap_col_map.find(cache.update_dofs[local_col]);
+#if !defined(NDEBUG)
+                TBOX_ASSERT(overlap_pos_it != overlap_col_map.end());
+#endif
+                cache.update_local_positions[local_col] = overlap_pos_it->second;
+            }
         }
         else
         {

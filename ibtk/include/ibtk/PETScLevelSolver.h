@@ -128,8 +128,9 @@ public:
     /*!
      * \brief Get the stored ASM-like nonoverlapping partition subsets.
      *
-     * These nonoverlapping subsets of the ASM subdomains cover the local
-     * domain.
+     * When restricted correction composition is configured, these subsets
+     * cover the local domain. The returned vector is empty for unrestricted
+     * composition, which updates each complete overlapping subdomain.
      */
     const std::vector<std::vector<int>>& getASMNonoverlapSubdomains() const;
 
@@ -391,7 +392,8 @@ protected:
      *
      * The overlapping subdomains define the subdomain solves. The partition
      * subsets define nonoverlapping subsets of those subdomains whose union
-     * covers the local domain.
+     * covers the local domain. The partition vector remains empty when the
+     * configured composition updates complete overlapping subdomains.
      */
     std::vector<std::vector<int>> d_subdomain_dofs, d_nonoverlap_subdomain_dofs;
     ShellSubdomainSolveObserver d_shell_subdomain_solve_observer;

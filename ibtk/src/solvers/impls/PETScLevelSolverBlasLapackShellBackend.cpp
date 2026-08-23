@@ -149,8 +149,13 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(const PETScLevelSo
                                               << " BLAS/LAPACK shell backend currently requires one MPI rank.\n");
     }
     const auto& overlap_subdomains = *d_solver_state.subdomain_dofs;
-    const auto& nonoverlap_subdomains = *d_solver_state.nonoverlap_subdomain_dofs;
-    TBOX_ASSERT(overlap_subdomains.size() == nonoverlap_subdomains.size());
+    if (d_solver_state.use_restrict_partition &&
+        d_solver_state.nonoverlap_subdomain_dofs->size() != overlap_subdomains.size())
+    {
+        TBOX_ERROR(d_solver_state.object_name << " " << d_solver_state.options_prefix
+                                              << " BLAS/LAPACK shell backend requires one nonoverlap subset per "
+                                                 "subdomain for restricted correction composition.\n");
+    }
     data.subdomains.resize(overlap_subdomains.size());
     std::vector<PetscBLASInt> local_position(static_cast<std::size_t>(data.n_dofs), -1);
 
@@ -158,8 +163,9 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(const PETScLevelSo
     {
         auto& subdomain_data = data.subdomains[subdomain_num];
         subdomain_data.overlap_dofs = &overlap_subdomains[subdomain_num];
-        subdomain_data.update_dofs = d_solver_state.use_restrict_partition ? &nonoverlap_subdomains[subdomain_num] :
-                                                                             &overlap_subdomains[subdomain_num];
+        subdomain_data.update_dofs = d_solver_state.use_restrict_partition ?
+                                         &(*d_solver_state.nonoverlap_subdomain_dofs)[subdomain_num] :
+                                         &overlap_subdomains[subdomain_num];
         const auto& overlap_dofs = *subdomain_data.overlap_dofs;
         ierr = PetscBLASIntCast(static_cast<PetscInt>(overlap_dofs.size()), &subdomain_data.local_size);
         IBTK_CHKERRQ(ierr);
