@@ -1,8 +1,16 @@
-# Multiplicative CAV current-master PR submission manifest
+# Multiplicative CAV provisional review decomposition
 
 Date: 2026-08-24
 
-This is a local preparation artifact. It does not authorize a push or PR, and it does not cover CAV-RAS. Exact branch object IDs and immutable provenance are in Section 6 of `cav-implementation-plan.md`; merge-readiness and cumulative validation are in `cav-master-merge-readiness.md`.
+This is a local decomposition inventory, not a PR submission manifest. The boundaries below reproduce the current history exactly, but they require further consolidation/splitting analysis before they become a reviewable collection of branches. Do not push the 41 provisional `*-master` refs or open PRs from them. Exact branch object IDs and immutable provenance are in Section 6 of `cav-implementation-plan.md`; cumulative implementation validation is in `cav-master-integration-status.md`. This document does not cover CAV-RAS.
+
+## Why this is not review-ready
+
+- The literal reconstruction yields 15 prerequisite foundation boundaries and 25 multiplicative-CAV boundaries before documentation finalization. That is provenance, not a practical upstream stack.
+- Several `cav-6f*` units exist to support independent reproduction and audit observability. We must decide which parts belong in upstream native tests, which belong in review-only evidence, and which should not be proposed for IBAMR master.
+- The final branches must preserve same-unit feature tests while minimizing dependency depth and avoiding production refactors bundled with unrelated audit tooling.
+- The cleaned foundation boundaries predate the prospective CAV feature-test rule and include the ledger-approved support-API test deferral. The final upstream decomposition must address that scope deliberately.
+- No current `*-master` boundary should be treated as an approved PR head merely because its patch replay and cumulative integration tests are green.
 
 ## Evidence convention
 
@@ -14,7 +22,7 @@ Each PR body should distinguish:
 
 Do not report cumulative or independent evidence as though it were rerun at an intermediate PR tip. Before submission, use the focused selector listed below from that exact head and record the result in the PR body. Use the broad `-R IB/` scope required by the plan; a focused case does not substitute for it.
 
-## Foundation prerequisite stack
+## Provisional foundation boundaries
 
 | Order | Base branch | Head branch | Proposed title | One claim | Focused native evidence |
 |---:|---|---|---|---|---|
@@ -34,7 +42,7 @@ Do not report cumulative or independent evidence as though it were rerun at an i
 | 14 | `codex/implicit-ib-6.2-eigen-reference-shell-backend-master` | `codex/implicit-ib-6.3-eigen-optimized-shell-backends-master` | Add optimized Eigen shell backends | Add retained optimized Eigen dense-solve modes behind the same composition seam. | Optimized Eigen backend fixtures. |
 | 15 | `codex/implicit-ib-6.3-eigen-optimized-shell-backends-master` | `codex/implicit-ib-6.4-stokes-eigen-schur-shell-backend-master` | Add the Stokes Eigen-Schur shell backend | Add the Stokes-specialized Schur local solve while reusing shared sweep logic. | Eigen-Schur backend fixtures. |
 
-## Multiplicative CAV stack
+## Provisional multiplicative-CAV boundaries
 
 | Order | Base branch | Head branch | Proposed title | One claim | Focused native evidence |
 |---:|---|---|---|---|---|
@@ -68,7 +76,7 @@ Do not report cumulative or independent evidence as though it were rerun at an i
 
 The local `codex/implicit-ib-cav-6g4-fac-residual-vector-cache-master` tip adds the candidate-finalization/audit-handoff commits through the patch-equivalent cumulative rehearsal. The local `codex/implicit-ib-cav-master-merge-preparation` branch carries later frozen M5, M6, branch-mapping, and merge-readiness records. These tips change no production source beyond order 40. Submit or retain them as explicitly documentation/evidence-only changes; do not combine them with a new semantic fix.
 
-## Standard PR test block
+## Future PR test block
 
 Adapt the focused selector to the exact unit above and record the exact checkout path and discovered cases:
 

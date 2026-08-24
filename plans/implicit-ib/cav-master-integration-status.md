@@ -1,4 +1,4 @@
-# Multiplicative CAV current-master merge readiness
+# Multiplicative CAV current-master integration status
 
 Date: 2026-08-24
 
@@ -6,7 +6,7 @@ This handoff covers only the multiplicative CAV recovery through `cav-6g4`. It d
 
 ## Outcome
 
-The multiplicative CAV implementation is locally merge-ready on the current-master restack:
+The multiplicative CAV implementation is functionally complete at a cumulative current-master integration tip, but its upstream review-branch decomposition is not finalized and is not ready to push as a PR stack:
 
 - immutable independent-audit authority: `f0d32afbd27d031748f884a8f8ebe6647d97e7cf`, suite `m5-f0d32afb-20260824T001159Z`, all six lanes and synthesis `PASS`, no blocking finding;
 - target master: `54055638ea2e8a080e3617baba707a4506b86f4d`;
@@ -15,7 +15,7 @@ The multiplicative CAV implementation is locally merge-ready on the current-mast
 - fresh Debug 2D/3D build: passed;
 - focused feature `attest`: 39/39 twice;
 - broad `attest -R IB/`: 24/24;
-- all 41 master-based review refs in Section 6 of `cav-implementation-plan.md`: exact object IDs verified 41/41 and verified as rehearsal ancestors.
+- all 41 provisional master-based boundary refs in Section 6 of `cav-implementation-plan.md`: exact object IDs verified 41/41 and verified as rehearsal ancestors.
 
 The independent audit and the current-master implementation validation are separate evidence. No new independent-audit claim is made for the rebased SHA.
 
@@ -79,14 +79,20 @@ This scope passed 39/39 twice. The separate broad scope was:
 
 It passed 24/24. The initial managed-sandbox attempt is excluded because macOS denied Open MPI socket setup and PETSc hostname access before solver initialization; the identical commands passed with the required host access. Test duration is CI operational metadata only and is not performance evidence.
 
-## Local submission order
+## Review-decomposition status
 
-1. Submit the foundation `*-master` review branches in the exact Section 6 order through foundation 6.4.
-2. Submit `cav-0-recovery-plan-master`, then the CAV `*-master` branches in order from `cav-1a` through the `cav-6g4` production boundary.
-3. Carry the cumulative audit/finalization and current plan records from `codex/implicit-ib-cav-master-merge-preparation` only as clearly labeled documentation/evidence commits; do not backdate them into the audited SHA.
-4. Rebase or resolve review feedback forward on new candidate commits. Do not rewrite any cleaned-foundation, historical, audited, or frozen-result ref.
+The 41 local refs prove exact boundaries in the reconstructed history; they are not an approved or review-ready PR topology. In particular:
 
-No branch has been pushed and no PR has been opened.
+- 15 foundation boundaries plus 25 CAV boundaries are too many to adopt mechanically as an upstream submission plan;
+- audit/export/common-arithmetic evidence commits must be separated from the minimum production-and-native-regression story expected in IBAMR PRs;
+- every retained production feature must still carry its focused native `attest` regression in the same final review unit;
+- adjacent units may need consolidation when they form one reviewer-comprehensible claim, while semantic changes, representation refactors, and test-only evidence must not be hidden together;
+- the historical foundation support-API test disposition must be reconciled explicitly with the final PR scope instead of copied forward automatically;
+- exact base/head order, dependency depth, and branch count must be reconsidered before any provisional `*-master` ref is pushed.
+
+`cav-master-provisional-review-decomposition.md` is an inventory for that design exercise, not a submission manifest.
+
+No provisional review ref has been pushed and no PR has been opened. The user authorized pushing one cumulative finalized implementation branch to `origin` for preservation and collaboration; that push does not certify its history as a PR stack.
 
 ## Retained nonblocking items
 
