@@ -23,6 +23,8 @@ IB_TIME_STEPPING           = "BACKWARD_EULER"
 TAG_BUFFER                 = 2
 FD_REL_TOL                 = 1.0e-6
 USE_FIXED_LE_OPERATORS     = TRUE
+REPORT_BUILD_SENSITIVE_VALUES          = FALSE
+REPORT_KRYLOV_LINEAR_RESIDUAL_NORM     = FALSE
 PETSC_OPTIONS_FILE         = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat"
 
 // FAC preconditioner setup used by the solver-components checks.

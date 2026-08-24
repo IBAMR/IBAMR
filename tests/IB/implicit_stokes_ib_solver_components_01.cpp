@@ -634,6 +634,11 @@ main(int argc, char* argv[])
         const bool verify_fgmres_physical_residuals = input_db->keyExists("VERIFY_FGMRES_PHYSICAL_RESIDUALS") ?
                                                           input_db->getBool("VERIFY_FGMRES_PHYSICAL_RESIDUALS") :
                                                           false;
+        // Native regression cases may suppress build-sensitive magnitudes while
+        // retaining the threshold checks; diagnostic and parity runs report
+        // the values by default.
+        const bool report_build_sensitive_values = !input_db->keyExists("REPORT_BUILD_SENSITIVE_VALUES") ||
+                                                   input_db->getBool("REPORT_BUILD_SENSITIVE_VALUES");
         const bool verify_fgmres_local_diagnostics = input_db->keyExists("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") ?
                                                          input_db->getBool("VERIFY_FGMRES_LOCAL_DIAGNOSTICS") :
                                                          false;
@@ -990,8 +995,16 @@ main(int argc, char* argv[])
             const double rel_error =
                 std::sqrt(diff_side_norm * diff_side_norm + diff_cell_norm * diff_cell_norm) /
                 std::max(std::sqrt(jv_side_norm * jv_side_norm + jv_cell_norm * jv_cell_norm), 1.0e-14);
-            pout << "fd_relative_error = " << rel_error << std::endl;
-            if (!(rel_error <= fd_rel_tol))
+            const bool fd_relative_error_valid = rel_error <= fd_rel_tol;
+            if (report_build_sensitive_values)
+            {
+                pout << "fd_relative_error = " << rel_error << std::endl;
+            }
+            else
+            {
+                pout << "fd_relative_error_valid = " << (fd_relative_error_valid ? "true" : "false") << std::endl;
+            }
+            if (!fd_relative_error_valid)
             {
                 ++test_failures;
                 pout << "fd_relative_error exceeds tolerance: " << fd_rel_tol << std::endl;
@@ -1897,28 +1910,31 @@ main(int argc, char* argv[])
             pout << "fgmres_converged_reason = " << static_cast<int>(converged_reason) << std::endl;
             pout << "fgmres_converged = " << (fgmres_converged ? "true" : "false") << std::endl;
             pout << "fgmres_residual_history_size = " << residual_history_size << std::endl;
-            pout << std::setprecision(16);
-            for (PetscInt k = 0; k < residual_history_size; ++k)
+            if (report_build_sensitive_values)
             {
-                pout << "fgmres_residual_history_" << k << " = " << residual_history[k] << std::endl;
+                pout << std::setprecision(16);
+                for (PetscInt k = 0; k < residual_history_size; ++k)
+                {
+                    pout << "fgmres_residual_history_" << k << " = " << residual_history[k] << std::endl;
+                }
+                pout << "physical_stiffness = " << structure_spec.spring_stiffness * structure_spec.ds << std::endl;
+                pout << "original_rhs_l2 = " << rhs_norm << std::endl;
+                pout << "original_rhs_momentum_l2 = " << rhs_momentum_norm << std::endl;
+                pout << "original_rhs_divergence_l2 = " << rhs_divergence_norm << std::endl;
+                pout << "original_residual_l2 = " << original_residual_norm << std::endl;
+                pout << "ib_matrix_free_action_l2 = " << ib_matrix_free_action_norm << std::endl;
+                pout << "ib_saj_action_l2 = " << ib_saj_action_norm << std::endl;
+                pout << std::setprecision(6);
+                pout << "fgmres_history_final_relative = " << fgmres_history_final_relative << std::endl;
+                pout << "original_momentum_residual_l2 = " << momentum_residual_norm << std::endl;
+                pout << "original_momentum_relative_residual = " << momentum_relative_residual << std::endl;
+                pout << "original_divergence_residual_l2 = " << divergence_residual_norm << std::endl;
+                pout << "original_divergence_relative_residual = " << divergence_relative_residual << std::endl;
+                pout << "original_relative_residual = " << original_relative_residual << std::endl;
+                pout << "ib_coupling_residual_l2 = " << ib_coupling_residual_norm << std::endl;
+                pout << "ib_coupling_relative_residual = " << ib_coupling_relative_residual << std::endl;
             }
-            pout << "physical_stiffness = " << structure_spec.spring_stiffness * structure_spec.ds << std::endl;
-            pout << "original_rhs_l2 = " << rhs_norm << std::endl;
-            pout << "original_rhs_momentum_l2 = " << rhs_momentum_norm << std::endl;
-            pout << "original_rhs_divergence_l2 = " << rhs_divergence_norm << std::endl;
-            pout << "original_residual_l2 = " << original_residual_norm << std::endl;
-            pout << "ib_matrix_free_action_l2 = " << ib_matrix_free_action_norm << std::endl;
-            pout << "ib_saj_action_l2 = " << ib_saj_action_norm << std::endl;
-            pout << std::setprecision(6);
-            pout << "fgmres_history_final_relative = " << fgmres_history_final_relative << std::endl;
             pout << "fgmres_history_valid = " << (fgmres_history_valid ? "true" : "false") << std::endl;
-            pout << "original_momentum_residual_l2 = " << momentum_residual_norm << std::endl;
-            pout << "original_momentum_relative_residual = " << momentum_relative_residual << std::endl;
-            pout << "original_divergence_residual_l2 = " << divergence_residual_norm << std::endl;
-            pout << "original_divergence_relative_residual = " << divergence_relative_residual << std::endl;
-            pout << "original_relative_residual = " << original_relative_residual << std::endl;
-            pout << "ib_coupling_residual_l2 = " << ib_coupling_residual_norm << std::endl;
-            pout << "ib_coupling_relative_residual = " << ib_coupling_relative_residual << std::endl;
             pout << "fgmres_original_residual_valid = " << (original_residual_valid ? "true" : "false") << std::endl;
             pout << "ib_coupling_residual_valid = " << (ib_coupling_residual_valid ? "true" : "false") << std::endl;
             if (verify_cav_live_dynamic_trace_schema)

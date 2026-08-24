@@ -1,9 +1,9 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fd_relative_error = 4.29249e-09
+fd_relative_error_valid = true
 saj_cell_scaled_relative_error = 0
 saj_theta_scaled_relative_error = 0.371681
 krylov_linear_iterations = 1
-krylov_linear_residual_norm = 1.39945e-07
+krylov_linear_residual_valid = true
 Input database:
 input_db {
    MU                     = 0.01                            // input used
@@ -26,6 +26,8 @@ input_db {
    TAG_BUFFER             = 2                               // input used
    FD_REL_TOL             = 1e-06                           // input used
    USE_FIXED_LE_OPERATORS = TRUE                            // input used
+   REPORT_BUILD_SENSITIVE_VALUES = FALSE                    // input used
+   REPORT_KRYLOV_LINEAR_RESIDUAL_NORM = FALSE               // input used
    PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat" // input used
    RR                     = 2                               // input used
    RUN_SAJ_VECTOR_COMPARE = FALSE                           // from default
