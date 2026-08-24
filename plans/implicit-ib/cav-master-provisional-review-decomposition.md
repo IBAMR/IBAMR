@@ -2,7 +2,7 @@
 
 Date: 2026-08-24
 
-This is a local decomposition inventory, not a PR submission manifest. The boundaries below reproduce the current history exactly, but they require further consolidation/splitting analysis before they become a reviewable collection of branches. Do not push the 41 provisional `*-master` refs or open PRs from them. Exact branch object IDs and immutable provenance are in Section 6 of `cav-implementation-plan.md`; cumulative implementation validation is in `cav-master-integration-status.md`. This document does not cover CAV-RAS.
+This is a local decomposition inventory, not a PR submission manifest. The boundaries below reproduce the current history exactly, but they require further consolidation/splitting analysis before they become a reviewable collection of branches. Do not push the 41 provisional `*-master` refs or open PRs from them. The separately published `origin/codex/implicit-ib-cav-multiplicative-current-master` branch is cumulative preservation/collaboration history, not an endorsed PR topology. Exact boundary object IDs and immutable provenance are in Section 6 of `cav-implementation-plan.md`; cumulative implementation validation is in `cav-master-integration-status.md`. This document does not cover CAV-RAS.
 
 ## Why this is not review-ready
 

@@ -15,6 +15,7 @@ The multiplicative CAV implementation is functionally complete at a cumulative c
 - fresh Debug and Release 2D/3D builds: passed;
 - focused feature `attest`: Debug 39/39 after the portability repair and Release 39/39 twice; the pre-repair Debug rehearsal had already passed 39/39 twice;
 - broad `attest -R IB/`: Debug 24/24 and Release 24/24 after the portability repair;
+- cumulative publication: `origin/codex/implicit-ib-cav-multiplicative-current-master`, initially verified at `b3bb85245bf8cf81ed7befe5fc0142381e501cba`; subsequent changes on that branch are limited to this plans-only publication record;
 - all 41 provisional master-based boundary refs in Section 6 of `cav-implementation-plan.md`: exact object IDs verified 41/41 and verified as rehearsal ancestors.
 
 The independent audit and the current-master implementation validation are separate evidence. No new independent-audit claim is made for the rebased or post-audit test-only SHA.
@@ -104,7 +105,7 @@ The 41 local refs prove exact boundaries in the reconstructed history; they are 
 
 `cav-master-provisional-review-decomposition.md` is an inventory for that design exercise, not a submission manifest.
 
-No provisional review ref has been pushed and no PR has been opened. The user authorized pushing one cumulative finalized implementation branch, `codex/implicit-ib-cav-multiplicative-current-master`, to `origin` for preservation and collaboration; that push does not certify its history as a PR stack.
+No provisional review ref has been pushed and no PR has been opened. The one cumulative finalized implementation branch, `codex/implicit-ib-cav-multiplicative-current-master`, is published to `origin` for preservation and collaboration; that push does not certify its history as a PR stack. The next work is to design a substantially smaller reviewer-comprehensible branch collection while retaining same-unit native tests and separating production/native-regression claims from audit-only evidence.
 
 ## Retained nonblocking items
 
