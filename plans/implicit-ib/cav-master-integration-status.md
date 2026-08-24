@@ -11,13 +11,25 @@ The multiplicative CAV implementation is functionally complete at a cumulative c
 - immutable independent-audit authority: `f0d32afbd27d031748f884a8f8ebe6647d97e7cf`, suite `m5-f0d32afb-20260824T001159Z`, all six lanes and synthesis `PASS`, no blocking finding;
 - target master: `54055638ea2e8a080e3617baba707a4506b86f4d`;
 - patch-equivalent rehearsal: `82e8fd6c362e3fe2730e12827aeab7b7e88afdfb`, tree `035e54fb4452abc77db1cd80b389e0b56732c62a`, 94/94 range-diff entries `=`;
-- documentation-only merge-preparation tip: local branch `codex/implicit-ib-cav-master-merge-preparation`, based on the rehearsal and changing no file outside `plans/implicit-ib/`;
-- fresh Debug 2D/3D build: passed;
-- focused feature `attest`: 39/39 twice;
-- broad `attest -R IB/`: 24/24;
+- cumulative integration branch: local `codex/implicit-ib-cav-master-merge-preparation`, with validated post-audit test-only portability tip `4403fddd550fda03f3aa36ed5e42ef3d7eb4fd8f`; production sources remain those of the patch-equivalent rehearsal;
+- fresh Debug and Release 2D/3D builds: passed;
+- focused feature `attest`: Debug 39/39 after the portability repair and Release 39/39 twice; the pre-repair Debug rehearsal had already passed 39/39 twice;
+- broad `attest -R IB/`: Debug 24/24 and Release 24/24 after the portability repair;
 - all 41 provisional master-based boundary refs in Section 6 of `cav-implementation-plan.md`: exact object IDs verified 41/41 and verified as rehearsal ancestors.
 
-The independent audit and the current-master implementation validation are separate evidence. No new independent-audit claim is made for the rebased SHA.
+The independent audit and the current-master implementation validation are separate evidence. No new independent-audit claim is made for the rebased or post-audit test-only SHA.
+
+## Post-audit Release portability repair
+
+Frozen audit finding S3 `N-001` is historically correct at exact audited candidate `f0d32afb...`. On current master, test-only commit `4403fddd550fda03f3aa36ed5e42ef3d7eb4fd8f` resolves the observed Debug/Release expected-output mismatch without changing production code or weakening the checks:
+
+- the finite-difference Jacobian check still fails unless its measured relative error satisfies `FD_REL_TOL`;
+- the Krylov residual must remain finite and nonnegative;
+- the FGMRES history, original physical residual, and IB coupling residual retain their explicit threshold checks and failure accounting;
+- ordinary native cases compare deterministic validity/status output instead of compiler-configuration-sensitive floating-point magnitudes;
+- detailed residual histories and separate momentum, divergence, and IB values remain enabled by default for diagnostic/parity runs and are suppressed only by the focused native fixtures.
+
+This is implementation validation, not an independent re-audit or closure of the immutable report's retained finding. In the eventual upstream review decomposition, this repair must be folded into the same unit(s) that introduce the affected native feature cases rather than submitted as tests-later follow-up work.
 
 ## Feature/test boundary check
 
@@ -68,7 +80,7 @@ Run from the configured build directory, with the checkout's actual `attest` pat
   -R '^(IBTK/sc_interp_matrix_live_kernel_consistency|IB/implicit_stokes_ib_solver_components_01|navier_stokes/stokes_petsc_level_solver_(cav_shell_semantics|shell_multiplicative_semantics))'
 ```
 
-This scope passed 39/39 twice. The separate broad scope was:
+This scope passed 39/39 once in Debug and twice in Release after the portability repair. The separate broad scope was:
 
 ```bash
 /private/tmp/ibamr-cav-master-restack-rehearsal/attest -j8 \
@@ -77,7 +89,7 @@ This scope passed 39/39 twice. The separate broad scope was:
   --verbose -R IB/
 ```
 
-It passed 24/24. The initial managed-sandbox attempt is excluded because macOS denied Open MPI socket setup and PETSc hostname access before solver initialization; the identical commands passed with the required host access. Test duration is CI operational metadata only and is not performance evidence.
+It passed 24/24 in both Debug and Release after the portability repair. The initial managed-sandbox attempt is excluded because macOS denied Open MPI socket setup and PETSc hostname access before solver initialization; the identical commands passed with the required host access. Test duration is CI operational metadata only and is not performance evidence.
 
 ## Review-decomposition status
 
@@ -92,10 +104,10 @@ The 41 local refs prove exact boundaries in the reconstructed history; they are 
 
 `cav-master-provisional-review-decomposition.md` is an inventory for that design exercise, not a submission manifest.
 
-No provisional review ref has been pushed and no PR has been opened. The user authorized pushing one cumulative finalized implementation branch to `origin` for preservation and collaboration; that push does not certify its history as a PR stack.
+No provisional review ref has been pushed and no PR has been opened. The user authorized pushing one cumulative finalized implementation branch, `codex/implicit-ib-cav-multiplicative-current-master`, to `origin` for preservation and collaboration; that push does not certify its history as a PR stack.
 
 ## Retained nonblocking items
 
-- S3 `N-001`: Release expected-output portability remains nonblocking.
+- S3 `N-001` remains part of the immutable audit report at `f0d32afb...`; current-master test-only commit `4403fddd5...` addresses it with green Debug/Release `attest` validation, without claiming an independent re-audit.
 - The improvised Lane C `16x16 -> 32x32 -> 64x64`, `K=1e4` carrier did not converge. Do not advertise that configuration until it is separately diagnosed.
 - CAV-RAS remains outside this merge scope and begins only after the user decides the multiplicative-CAV submission has reached the desired upstream state.
