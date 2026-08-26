@@ -1999,9 +1999,54 @@ EnthalpyHierarchyIntegrator::extrapolateLiquidFractionToGasRegion(int lf_new_idx
     const double dt = 0.3 * d_lf_extrap_cell_size;
     int current_time_step = 0;
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase(); 
+    const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    const double H_eps = 1.0e-6; 
+    
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_new_idx);
+
+            Pointer<CellData<NDIM, double> > lf_extrap_data = patch->getPatchData(d_lf_extrap_current_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                const double H = (*H_data)(ci);
+                const double L = (*lf_data)(ci);
+
+                double varphi = 0.0; 
+
+                if ((*H_data)(ci) > H_eps)
+                {
+                    varphi = L/H; 
+                    varphi = clamp(varphi,0.0,1.0);
+
+                    }
+                    (*lf_extrap_data)(ci) = varphi;
+            }
+        }
+    }
+
     // Initially, copy lf from pcm for extrapolation.
-    d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, lf_new_idx);
+    // d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, lf_new_idx);
     d_hier_cc_data_ops->copyData(d_lf_extrap_scratch_idx, d_lf_extrap_current_idx);
+
+    d_hier_cc_data_ops->copyData(d_lf_extrap_new_idx, d_lf_extrap_current_idx);
+
+
+
 
     // Initializing with zero.
     d_hier_cc_data_ops->setToScalar(d_lf_extrap_rhs_scratch_idx, 0.0);
