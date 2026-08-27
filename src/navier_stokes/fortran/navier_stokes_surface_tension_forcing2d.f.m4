@@ -135,8 +135,8 @@ c     Find face normal gradients first and then interpolate
 c     face tangential gradients
 
 c     Do N00.
-      do i1 = ilower1 - 2, iupper1 + 2
-         do i0 = ilower0 - 1, iupper0 + 2
+      do i1 = ilower1 - N_gcw, iupper1 + N_gcw
+         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw
              
             N00(i0,i1) = fac0*(U(i0,i1) - U(i0-1,i1))
 
@@ -144,8 +144,8 @@ c     Do N00.
       enddo
       
 c     Do N11.
-      do i1 = ilower1 - 1, iupper1 + 2
-         do i0 = ilower0 - 2, iupper0 + 2
+      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw
+         do i0 = ilower0 - N_gcw, iupper0 + N_gcw
              
             N11(i0,i1) = fac1*(U(i0,i1) - U(i0,i1-1))
 
@@ -153,8 +153,8 @@ c     Do N11.
       enddo
 
 c     Interpolate N11 to N01
-      do i1 = ilower1 - 1, iupper1 + 1
-         do i0 = ilower0 - 1, iupper0 + 2
+      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw - 1
+         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw
              
             N01(i0,i1) = fourth*(N11(i0-1,i1) + N11(i0,i1) + 
      &                    N11(i0-1,i1+1) + N11(i0,i1+1)) 
@@ -163,8 +163,8 @@ c     Interpolate N11 to N01
       enddo
 
 c     Interpolate N00 to N10
-      do i1 = ilower1 - 1, iupper1 + 2
-         do i0 = ilower0 - 1, iupper0 + 1
+      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw
+         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw - 1
 
             N10(i0,i1) = fourth*(N00(i0,i1) + N00(i0+1,i1) +
      &                   N00(i0,i1-1) + N00(i0+1,i1-1))
