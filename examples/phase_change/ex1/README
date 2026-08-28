@@ -1,0 +1,1 @@
+In this example, a one-dimensional Stefan problem with volume expansion is solved numerically using the enthalpy approach for Rho_S/Rho_L = 0.185.
