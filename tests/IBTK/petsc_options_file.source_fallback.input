@@ -1,0 +1,4 @@
+test_case = "source_fallback"
+Main {
+   log_file_name = "petsc_options_file.log"
+}

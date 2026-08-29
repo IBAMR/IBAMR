@@ -1,0 +1,5 @@
+test_case = "missing"
+PETSC_OPTIONS_FILE = "petsc_options_missing.opts"
+Main {
+   log_file_name = "petsc_options_file.log"
+}

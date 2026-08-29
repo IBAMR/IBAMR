@@ -37,6 +37,14 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <array>
 #include <utility>
 
+namespace SAMRAI
+{
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
+
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBTK_BIT_SET(bitfield, b) ((bitfield) |= (1 << (b)))
@@ -152,6 +160,22 @@ get_data_or_null(const Container& data) -> decltype(data.data())
 {
     return data.empty() ? nullptr : data.data();
 }
+
+/*!
+ * Load a PETSc options file referenced by the input database.
+ *
+ * This helper accepts either PETSC_OPTIONS_FILE or petsc_options_file, with
+ * PETSC_OPTIONS_FILE taking precedence. It first tries the named path, then
+ * resolves it relative to the input filename provided on the command line,
+ * and finally relative to source_dir when it is provided. If a matching file
+ * is found, then it is inserted into the active PETSc options database.
+ *
+ * This function is a no-op when neither key is present in the input database.
+ */
+void load_petsc_options_file(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             int argc,
+                             char* argv[],
+                             const std::string& source_dir = "");
 
 /*!
  * Get the smallest cell width on the specified level. This operation is

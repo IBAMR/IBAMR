@@ -1,0 +1,5 @@
+test_case = "lowercase"
+petsc_options_file = "petsc_options_lowercase.opts"
+Main {
+   log_file_name = "petsc_options_file.log"
+}
