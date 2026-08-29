@@ -182,6 +182,12 @@ jobs:
           do
             brew list "$DEPENDENCY" 1>/dev/null 2>&1 || brew install "$DEPENDENCY"
           done
+          # Match Homebrew's pkg-config relocation for PETSc's other metadata.
+          PETSC_VARIABLES="$(brew --prefix petsc)/lib/petsc/conf/petscvariables"
+          sed -i '' -E \
+            -e "s#$(brew --cellar open-mpi)/[^/ ]+#$(brew --prefix open-mpi)#g" \
+            -e "s#$(brew --cellar gcc)/[^/ ]+#$(brew --prefix gcc)#g" \
+            "$PETSC_VARIABLES"
       - name: list HDF5 info
         run: |
           brew --prefix hdf5-mpi
