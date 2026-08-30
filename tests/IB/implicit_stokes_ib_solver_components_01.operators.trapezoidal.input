@@ -1,0 +1,31 @@
+test_case = "operators"
+time_stepping = "TRAPEZOIDAL_RULE"
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+IBMethod {
+   delta_fcn = "IB_4"
+}
+IBRedundantInitializer {
+   max_levels = 1
+   base_filenames_0 = "curve"
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(15,15)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = 16, 16 }
+   smallest_patch_size { level_0 = 16, 16 }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes { level_0 = [(0,0),(15,15)] }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
