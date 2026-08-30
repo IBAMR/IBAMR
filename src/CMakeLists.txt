@@ -197,6 +197,7 @@ SET(CXX_SRC
   IB/IBMethod.cpp
   IB/StaggeredStokesIBOperator.cpp
   IB/StaggeredStokesIBJacobianOperator.cpp
+  IB/StaggeredStokesIBJacobianFACPreconditioner.cpp
   IB/IBBeamForceSpec.cpp
   IB/IBSpringForceSpec.cpp
   IB/CIBMethod.cpp

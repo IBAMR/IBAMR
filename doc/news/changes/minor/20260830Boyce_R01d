@@ -1,0 +1,2 @@
+New: Add implicit Stokes-IB FAC components with cached residual workspaces. <br>
+(Boyce Griffith, 2026/08/30)
