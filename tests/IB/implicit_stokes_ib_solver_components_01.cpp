@@ -103,8 +103,9 @@ check_enums_and_kernels()
     };
     const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
     const double K6 = (59.0 - std::sqrt(261.0)) / 60.0;
-    // Independent values of the retained formulas, not a matrix/live-kernel
-    // consistency test or a claim that every kernel has identical moments.
+    // Independent samples of the one-dimensional kernel definitions. The IB_5
+    // values use lagrangian_ib_5_delta in lagrangian_delta.f.m4 evaluated at r-i;
+    // in particular, both support endpoints vanish when r=2.5.
     const std::array<Sample, 10> samples = {
         { { PETScMatUtilities::piecewise_constant_delta_fcn, 1, -0.25, { 1 } },
           { PETScMatUtilities::piecewise_linear_delta_fcn, 2, 0.25, { 0.75, 0.25 } },
@@ -120,15 +121,10 @@ check_enums_and_kernels()
           { PETScMatUtilities::ib_5_delta_fcn,
             6,
             2.5,
-            { -0.1527698285306304,
-              0.2913493337413153,
-              0.43877759942882527,
-              0.43877759942882527,
-              0.2913493337413153,
-              -0.1527698285306304 } },
+            { 0, 0.0612224005711746881, 0.438777599428825312, 0.438777599428825312, 0.0612224005711746881, 0 } },
           { PETScMatUtilities::ib_6_delta_fcn,
             6,
-            2.0,
+            3.0,
             { 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 } } }
     };
     const std::array<int, 10> widths = { PETScMatUtilities::piecewise_constant_delta_stencil,
@@ -153,6 +149,73 @@ check_enums_and_kernels()
             kernels = kernels && std::isfinite(weights[i]) && std::abs(weights[i] - sample.expected[i]) < 1.0e-12;
         for (unsigned int i = sample.width; i < weights.size(); ++i) kernels = kernels && weights[i] == -123.0;
     }
+    // IB_5: pointwise Fortran definition, on both sides of the nearest-center
+    // change. IB_6: lagrangian_ib_6_interp2d's pm3,...,pp2 recurrence with
+    // ic_lower=0 and X/dx=r+0.5, hence its coordinate is 1-X/dx+2.5=3-r.
+    // These values were evaluated independently at high precision; reversing
+    // the off-center weight order must not pass as a symmetric-kernel check.
+    const std::array<Sample, 4> off_center_samples = { { { PETScMatUtilities::ib_5_delta_fcn,
+                                                           6,
+                                                           2.25,
+                                                           { 0.000539644595320609716,
+                                                             0.128737522475479593,
+                                                             0.514244366143986938,
+                                                             0.333140121904304905,
+                                                             0.0233383448809079538,
+                                                             0 } },
+                                                         { PETScMatUtilities::ib_5_delta_fcn,
+                                                           6,
+                                                           2.75,
+                                                           { 0,
+                                                             0.0233383448809079538,
+                                                             0.333140121904304905,
+                                                             0.514244366143986938,
+                                                             0.128737522475479593,
+                                                             0.000539644595320609716 } },
+                                                         { PETScMatUtilities::ib_6_delta_fcn,
+                                                           6,
+                                                           2.25,
+                                                           { 0.00965617417165844278,
+                                                             0.174648694040214713,
+                                                             0.431221688477088836,
+                                                             0.325168575099164853,
+                                                             0.0591221373512527211,
+                                                             0.000182730860620434541 } },
+                                                         { PETScMatUtilities::ib_6_delta_fcn,
+                                                           6,
+                                                           2.75,
+                                                           { 0.000182730860620434541,
+                                                             0.0591221373512527211,
+                                                             0.325168575099164853,
+                                                             0.431221688477088836,
+                                                             0.174648694040214713,
+                                                             0.00965617417165844278 } } } };
+    for (const auto& sample : off_center_samples)
+    {
+        std::array<double, 8> weights;
+        weights.fill(-123.0);
+        sample.kernel(sample.r, weights.data());
+        for (int i = 0; i < sample.width; ++i)
+            kernels = kernels && std::isfinite(weights[i]) && std::abs(weights[i] - sample.expected[i]) < 1.0e-12;
+        kernels = kernels && weights[6] == -123.0 && weights[7] == -123.0;
+    }
+    // Partition of unity and linear reproduction across the callback's full
+    // lower-stencil displacement interval, including the IB_5 center switch.
+    for (Kernel kernel : { PETScMatUtilities::ib_5_delta_fcn, PETScMatUtilities::ib_6_delta_fcn })
+        for (int k = 0; k <= 64; ++k)
+        {
+            const double r = 2.0 + k / 64.0;
+            std::array<double, 6> weights;
+            kernel(r, weights.data());
+            double sum = 0.0, first_moment = 0.0;
+            for (unsigned int i = 0; i < weights.size(); ++i)
+            {
+                sum += weights[i];
+                first_moment += i * weights[i];
+            }
+            kernels = kernels && std::isfinite(sum) && std::isfinite(first_moment) && std::abs(sum - 1.0) < 1.0e-12 &&
+                      std::abs(first_moment - r) < 1.0e-12;
+        }
     pout << "enum_aliases_valid = " << (enums ? "true" : "false") << '\n';
     pout << "kernel_values_valid = " << (kernels ? "true" : "false") << '\n';
     return !enums + !kernels;
