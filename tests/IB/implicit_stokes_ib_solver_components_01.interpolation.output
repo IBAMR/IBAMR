@@ -1,0 +1,7 @@
+enum_aliases_valid = true
+kernel_values_valid = true
+IBRedundantInitializer:  Deallocating initialization data.
+stencil_columns_and_weights_valid = true
+scalar_component_transverse_equivalence_valid = true
+standalone_lifecycle_valid = true
+test_failures = 0
