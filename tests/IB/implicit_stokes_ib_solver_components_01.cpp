@@ -11,18 +11,24 @@
 //
 // ---------------------------------------------------------------------
 
-// Direct interpolation contracts, including the standalone IBMethod lifecycle.
+// Direct interpolation and implicit-operator contracts with a live IBMethod.
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
+#include <ibamr/StaggeredStokesIBJacobianOperator.h>
+#include <ibamr/StaggeredStokesIBOperator.h>
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/ibamr_enums.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 
@@ -30,10 +36,15 @@
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
+#include <CellVariable.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
 #include <SideData.h>
+#include <SideGeometry.h>
 #include <SideVariable.h>
 #include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
@@ -321,15 +332,11 @@ check_matrix(Mat matrix, Vec positions, Pointer<SideData<NDIM, int>> dofs, int c
 } // namespace
 
 int
-main(int argc, char* argv[])
+run_interpolation(Pointer<AppInitializer> app)
 {
-    IBTKInit init(argc, argv, MPI_COMM_WORLD);
-    // Keep optional visualization warnings out of the compared test output.
-    Logger::getInstance()->setWarning(false);
     PetscErrorCode ierr;
     int failures = 0;
     {
-        Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
         failures += check_enums_and_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         method->setUseFixedLEOperators(true);
@@ -434,4 +441,505 @@ main(int argc, char* argv[])
         pout << "test_failures = " << failures << std::endl;
     }
     return failures;
+}
+
+namespace
+{
+using HierarchyVector = SAMRAIVectorReal<NDIM, double>;
+
+class CountedIBOperator : public StaggeredStokesIBOperator
+{
+public:
+    CountedIBOperator() : StaggeredStokesIBOperator("nonlinear")
+    {
+    }
+    void apply(HierarchyVector& x, HierarchyVector& y) override
+    {
+        ++evaluations;
+        StaggeredStokesIBOperator::apply(x, y);
+    }
+    int evaluations = 0;
+};
+
+// Record dispatch while retaining the actual Stokes boundary operations.
+class BoundaryCheckedStokesOperator : public StaggeredStokesOperator
+{
+public:
+    BoundaryCheckedStokesOperator() : StaggeredStokesOperator("operator_test::stokes")
+    {
+    }
+    void modifyRhsForBcs(HierarchyVector& y) override
+    {
+        ++rhs_calls;
+        StaggeredStokesOperator::modifyRhsForBcs(y);
+    }
+    void imposeSolBcs(HierarchyVector& x) override
+    {
+        ++sol_calls;
+        StaggeredStokesOperator::imposeSolBcs(x);
+    }
+    int rhs_calls = 0, sol_calls = 0;
+};
+
+void
+generate_operator_structure(const unsigned int&, const int&, int& n, std::vector<IBTK::Point>& X, void*)
+{
+    n = 16;
+    X.resize(n);
+    for (int k = 0; k < n; ++k)
+    {
+        X[k](0) = 0.5 + 0.16 * std::cos(2.0 * M_PI * k / n);
+        X[k](1) = 0.5 + 0.12 * std::sin(2.0 * M_PI * k / n);
+    }
+}
+
+void
+generate_operator_springs(
+    const unsigned int&,
+    const int&,
+    std::multimap<int, IBRedundantInitializer::Edge>& edges,
+    std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>& specs,
+    void*)
+{
+    for (int k = 0; k < 16; ++k)
+    {
+        IBRedundantInitializer::Edge edge = { k, (k + 1) % 16 };
+        if (edge.first > edge.second) std::swap(edge.first, edge.second);
+        edges.emplace(edge.first, edge);
+        IBRedundantInitializer::SpringSpec spring;
+        spring.force_fcn_idx = 0;
+        // Nonzero rest length makes the force Jacobian depend on the base state.
+        spring.parameters = { 8.0, 0.02 };
+        specs.emplace(edge, spring);
+    }
+}
+
+void
+set_operator_velocity(int idx, Pointer<PatchLevel<NDIM>> level, double amplitude, double phase)
+{
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> data = patch->getPatchData(idx);
+        Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+        for (int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(data->getGhostBox(), axis)); b; b++)
+            {
+                const int other = 1 - axis;
+                const double q = geometry->getXLower()[other] +
+                                 (b()(other) - patch->getBox().lower()(other) + 0.5) * geometry->getDx()[other];
+                (*data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)) =
+                    amplitude * (axis == 0 ? 1.0 : -0.7) * std::sin(2.0 * M_PI * q + phase);
+            }
+    }
+}
+
+int
+run_operators(Pointer<AppInitializer> app)
+{
+    PetscErrorCode ierr;
+    const TimeSteppingType type =
+        IBAMR::string_to_enum<TimeSteppingType>(app->getInputDatabase()->getString("time_stepping"));
+    const double current = 0.25, dt = 0.125, next = current + dt;
+    const bool midpoint = type == MIDPOINT_RULE;
+    const double force_scale = type == TRAPEZOIDAL_RULE ? 0.5 : 1.0;
+    const double position_scale = type == BACKWARD_EULER ? 1.0 : (midpoint ? 0.25 : 0.5);
+    const double force_time = midpoint ? current + dt / 2 : next;
+    const auto parameters = get_staggered_stokes_ib_time_step_parameters(type, current, next, "operator_test");
+    bool time_valid = parameters.half_time == current + dt / 2 && parameters.velocity_time == force_time &&
+                      parameters.force_time == force_time && parameters.nonlinear_force_scale == force_scale &&
+                      parameters.force_position_fraction == (midpoint ? 0.5 : 1.0) &&
+                      parameters.jacobian_force_scale == (type == BACKWARD_EULER ? 1.0 : 0.5) &&
+                      parameters.velocity_state == (midpoint ? StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE :
+                                                               StaggeredStokesIBVelocityState::NEW);
+    Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
+    method->setUseFixedLEOperators(true);
+    Pointer<IBStandardForceGen> force = new IBStandardForceGen();
+    method->registerIBLagrangianForceFunction(force);
+    Pointer<CartesianGridGeometry<NDIM>> geometry =
+        new CartesianGridGeometry<NDIM>("CartesianGeometry", app->getComponentDatabase("CartesianGeometry"));
+    Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", geometry);
+    Pointer<StandardTagAndInitialize<NDIM>> tagger = new StandardTagAndInitialize<NDIM>(
+        "StandardTagAndInitialize", method, app->getComponentDatabase("StandardTagAndInitialize"));
+    Pointer<BergerRigoutsos<NDIM>> boxes = new BergerRigoutsos<NDIM>();
+    Pointer<LoadBalancer<NDIM>> balancer =
+        new LoadBalancer<NDIM>("LoadBalancer", app->getComponentDatabase("LoadBalancer"));
+    Pointer<GriddingAlgorithm<NDIM>> gridding = new GriddingAlgorithm<NDIM>(
+        "GriddingAlgorithm", app->getComponentDatabase("GriddingAlgorithm"), tagger, boxes, balancer);
+    Pointer<IBRedundantInitializer> initializer =
+        new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
+    initializer->setStructureNamesOnLevel(0, { "curve" });
+    initializer->registerInitStructureFunction(generate_operator_structure);
+    initializer->registerInitSpringDataFunction(generate_operator_springs);
+    method->registerLInitStrategy(initializer);
+    gridding->makeCoarsestLevel(hierarchy, current);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+    if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
+        TBOX_ERROR("Operator fixture requires one patch on one rank\n");
+
+    auto* variables = VariableDatabase<NDIM>::getDatabase();
+    auto context = variables->getContext("operators");
+    Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
+    Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
+    Pointer<SideVariable<NDIM, int>> u_dof_var = new SideVariable<NDIM, int>("u_dof");
+    Pointer<CellVariable<NDIM, int>> p_dof_var = new CellVariable<NDIM, int>("p_dof");
+    const auto ghosts = method->getMinimumGhostCellWidth();
+    std::vector<int> allocated;
+    auto register_data = [&](Pointer<Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
+    {
+        const int idx = variables->registerVariableAndContext(variable, variables->getContext(name), width);
+        level->allocatePatchData(idx, current);
+        allocated.push_back(idx);
+        return idx;
+    };
+    const int u_current = register_data(u_var, "current", ghosts);
+    const int scratch = register_data(u_var, "scratch", ghosts);
+    const int f_scratch = register_data(u_var, "force", ghosts);
+    const int u_dof = register_data(u_dof_var, "dofs", ghosts);
+    const int p_dof = register_data(p_dof_var, "dofs", IntVector<NDIM>(0));
+    set_operator_velocity(u_current, level, 0.03, 0.2);
+    std::vector<Pointer<CoarsenSchedule<NDIM>>> synch(1);
+    std::vector<Pointer<RefineSchedule<NDIM>>> fill(1), prolong(1);
+    method->initializePatchHierarchy(hierarchy, gridding, u_current, synch, fill, 0, current, true);
+    method->freeLInitStrategy();
+    initializer.setNull();
+    method->preprocessIntegrateData(current, next, 1);
+    method->updateFixedLEOperators();
+    method->interpolateVelocity(u_current, synch, fill, current);
+
+    Pointer<HierarchySideDataOpsReal<NDIM, double>> side_ops =
+        new HierarchySideDataOpsReal<NDIM, double>(hierarchy, 0, 0);
+    Pointer<HierarchyCellDataOpsReal<NDIM, double>> cell_ops =
+        new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, 0);
+    HierarchyMathOps math_ops("operator_test::math", hierarchy);
+    const int u = variables->registerVariableAndContext(u_var, context, ghosts);
+    const int p = variables->registerVariableAndContext(p_var, context, IntVector<NDIM>(1));
+    Pointer<HierarchyVector> base = new HierarchyVector("base", hierarchy, 0, 0);
+    base->addComponent(u_var, u, math_ops.getSideWeightPatchDescriptorIndex(), side_ops);
+    base->addComponent(p_var, p, math_ops.getCellWeightPatchDescriptorIndex(), cell_ops);
+    base->allocateVectorData();
+    std::vector<Pointer<HierarchyVector>> vectors = { base };
+    auto clone = [&](const std::string& name)
+    {
+        auto vector = base->cloneVector(name);
+        vector->allocateVectorData();
+        vector->setToScalar(0.0);
+        vectors.push_back(vector);
+        return vector;
+    };
+    auto direction = clone("direction"), residual = clone("residual"), expected = clone("expected"),
+         action = clone("action"), finite_difference = clone("finite_difference"), plus = clone("plus"),
+         minus = clone("minus"), work = clone("work"), difference = clone("difference"),
+         first_action = clone("first_action");
+    set_operator_velocity(direction->getComponentDescriptorIndex(0), level, 0.2, 0.8);
+    cell_ops->setToScalar(direction->getComponentDescriptorIndex(1), -0.25);
+
+    std::vector<int> counts;
+    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, u_dof, p_dof, level);
+    Mat J = nullptr, A = nullptr;
+    method->constructInterpOp(J, PETScMatUtilities::ib_4_delta_fcn, 4, counts, u_dof, force_time);
+    method->constructLagrangianForceJacobian(A, MATAIJ, force_time);
+    Vec eulerian = nullptr, spread = nullptr, interpolated = nullptr, position = nullptr, expected_position = nullptr;
+    ierr = MatCreateVecs(J, &eulerian, &interpolated);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(eulerian, &spread);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(interpolated, &position);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(position, &expected_position);
+    IBTK_CHKERRQ(ierr);
+    Vec X0 = method->getLDataManager()->getLData("X", 0)->getVec();
+    Pointer<LData> expected_force = new LData("expected_force", 16, NDIM);
+    const double cell_volume = geometry->getDx()[0] * geometry->getDx()[1];
+    Pointer<BoundaryCheckedStokesOperator> stokes = new BoundaryCheckedStokesOperator();
+    PoissonSpecifications coefs("coefs");
+    coefs.setCConstant(2.0);
+    coefs.setDConstant(-0.01);
+    stokes->setVelocityPoissonSpecifications(coefs);
+    stokes->setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr), nullptr);
+    StaggeredStokesIBOperator::Context ctx;
+    ctx.ib_implicit_ops = method;
+    ctx.stokes_op = stokes;
+    ctx.hier_velocity_data_ops = side_ops;
+    ctx.u_synch_scheds = synch;
+    ctx.u_ghost_fill_scheds = fill;
+    ctx.f_prolongation_scheds = prolong;
+    ctx.patch_level = level;
+    ctx.u_idx = scratch;
+    ctx.f_idx = f_scratch;
+    ctx.u_current_idx = u_current;
+    ctx.u_dof_index_idx = u_dof;
+    ctx.p_dof_index_idx = p_dof;
+    ctx.time_stepping_type = type;
+    CountedIBOperator nonlinear;
+    StaggeredStokesIBJacobianOperator jacobian("jacobian");
+    PETScMFFDJacobianOperator mffd("mffd");
+    nonlinear.setOperatorContext(ctx);
+    jacobian.setOperatorContext(ctx);
+    mffd.setOperator(Pointer<GeneralOperator>(&nonlinear, false));
+    for (GeneralOperator* op : { static_cast<GeneralOperator*>(&nonlinear),
+                                 static_cast<GeneralOperator*>(&jacobian),
+                                 static_cast<GeneralOperator*>(&mffd) })
+    {
+        op->setTimeInterval(current, next);
+        op->setSolutionTime(force_time);
+    }
+    auto copy_to_petsc = [&](Vec v, Pointer<HierarchyVector> x)
+    {
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            v, x->getComponentDescriptorIndex(0), u_dof, x->getComponentDescriptorIndex(1), p_dof, level);
+    };
+    auto close = [&](Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs, double tol)
+    {
+        difference->subtract(lhs, rhs);
+        const double error = difference->maxNorm(), norm = rhs->maxNorm();
+        return std::isfinite(error) && std::isfinite(norm) && error <= tol * std::max(1.0, norm);
+    };
+    bool residual_valid = true, derivative_valid = true, assembled_valid = true, base_valid = true,
+         lifecycle_valid = true, boundary_valid = true, nontrivial = true;
+    std::array<double, 5> errors = {};
+    auto record_error = [&](int slot, Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs)
+    {
+        difference->subtract(lhs, rhs);
+        errors[slot] = std::max(errors[slot], difference->maxNorm() / std::max(1.0, rhs->maxNorm()));
+    };
+    // Reinitialize all operator storage, and change the base twice per lifetime.
+    for (int cycle = 0; cycle < 2; ++cycle)
+    {
+        ierr = VecCopy(X0, position);
+        IBTK_CHKERRQ(ierr);
+        // The second lifetime uses different fixed current/endpoint coupling
+        // positions. Trapezoidal stepping must retain stored Lagrangian Ucurrent.
+        if (cycle == 1)
+        {
+            ierr = VecShift(position, 0.01);
+            IBTK_CHKERRQ(ierr);
+        }
+        method->setUpdatedPosition(position);
+        nonlinear.initializeOperatorState(*base, *residual);
+        jacobian.initializeOperatorState(*base, *residual);
+        mffd.initializeOperatorState(*base, *residual);
+        method->constructInterpOp(J, PETScMatUtilities::ib_4_delta_fcn, 4, counts, u_dof, force_time);
+        for (int state = 0; state < 2; ++state)
+        {
+            base->setToScalar(0.0);
+            set_operator_velocity(u, level, state == 0 ? 0.12 : 0.24, state == 0 ? 0.1 : 0.6);
+            nonlinear.apply(*base, *residual);
+            // Independent position/force composition using the live force law
+            // and a directly assembled interpolation matrix, with no FAC helper.
+            side_ops->linearSum(scratch, position_scale, u, midpoint ? position_scale : 0.0, u_current);
+            side_ops->copyData(work->getComponentDescriptorIndex(0), scratch);
+            cell_ops->setToScalar(work->getComponentDescriptorIndex(1), 0.0);
+            copy_to_petsc(eulerian, work);
+            ierr = MatMult(J, eulerian, interpolated);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecWAXPY(position, dt, interpolated, X0);
+            IBTK_CHKERRQ(ierr);
+            if (type == TRAPEZOIDAL_RULE)
+            {
+                std::vector<Pointer<LData>>* U_current_data;
+                method->getVelocityData(&U_current_data, TimePoint::CURRENT_TIME);
+                ierr = VecAXPY(position, dt / 2, (*U_current_data)[0]->getVec());
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = VecCopy(position, expected_position);
+            IBTK_CHKERRQ(ierr);
+            std::vector<Pointer<LData>>*X_data, *U_data;
+            bool* X_ghost;
+            const TimePoint force_point = midpoint ? TimePoint::HALF_TIME : TimePoint::NEW_TIME;
+            method->getPositionData(&X_data, &X_ghost, force_point);
+            method->getVelocityData(&U_data, force_point);
+            ierr = VecAXPY(position, -1.0, (*X_data)[0]->getVec());
+            IBTK_CHKERRQ(ierr);
+            PetscReal position_error;
+            ierr = VecNorm(position, NORM_INFINITY, &position_error);
+            IBTK_CHKERRQ(ierr);
+            time_valid = time_valid && std::isfinite(position_error) && position_error < 1.0e-12;
+            stokes->apply(*base, *expected);
+            ierr = VecSet(expected_force->getVec(), 0.0);
+            IBTK_CHKERRQ(ierr);
+            force->computeLagrangianForce(
+                expected_force, (*X_data)[0], (*U_data)[0], hierarchy, 0, force_time, method->getLDataManager());
+            ierr = MatMultTranspose(J, expected_force->getVec(), spread);
+            IBTK_CHKERRQ(ierr);
+            copy_to_petsc(eulerian, expected);
+            ierr = VecAXPY(eulerian, -force_scale / cell_volume, spread);
+            IBTK_CHKERRQ(ierr);
+            StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(eulerian,
+                                                                    expected->getComponentDescriptorIndex(0),
+                                                                    u_dof,
+                                                                    expected->getComponentDescriptorIndex(1),
+                                                                    p_dof,
+                                                                    level,
+                                                                    nullptr,
+                                                                    nullptr);
+            residual_valid = close(residual, expected, 1.0e-11) && residual_valid;
+            record_error(0, residual, expected);
+            nontrivial = nontrivial && residual->maxNorm() > 1.0e-6;
+            // Assemble -gamma*dt*alpha J^T A J at the actual force position.
+            ierr = MatZeroEntries(A);
+            IBTK_CHKERRQ(ierr);
+            force->computeLagrangianForceJacobian(A,
+                                                  MAT_FINAL_ASSEMBLY,
+                                                  1.0,
+                                                  (*X_data)[0],
+                                                  0.0,
+                                                  nullptr,
+                                                  hierarchy,
+                                                  0,
+                                                  force_time,
+                                                  method->getLDataManager());
+            Mat coupling = nullptr;
+            ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &coupling);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatScale(coupling, -force_scale * dt * position_scale / cell_volume);
+            IBTK_CHKERRQ(ierr);
+            // Leave stale nonlinear state from a different input deliberately:
+            // formJacobian must reconstruct its own supplied base.
+            nonlinear.apply(*direction, *work);
+            jacobian.formJacobian(*base);
+            if (type != BACKWARD_EULER)
+            {
+                method->getPositionData(&X_data, &X_ghost, force_point);
+                ierr = VecWAXPY(position, -1.0, expected_position, (*X_data)[0]->getVec());
+                IBTK_CHKERRQ(ierr);
+                ierr = VecNorm(position, NORM_INFINITY, &position_error);
+                IBTK_CHKERRQ(ierr);
+                time_valid = time_valid && std::isfinite(position_error) && position_error < 1.0e-12;
+            }
+            base_valid = close(jacobian.getBaseVector(), base, 0.0) && base_valid;
+            jacobian.apply(*direction, *action);
+            stokes->apply(*direction, *expected);
+            nontrivial = nontrivial && !close(action, expected, 1.0e-5);
+            if (state == 0)
+                first_action->copyVector(action);
+            else
+                nontrivial = nontrivial && !close(action, first_action, 1.0e-7);
+            jacobian.setIBCouplingJacobian(coupling);
+            jacobian.apply(*direction, *expected);
+            assembled_valid = close(action, expected, 1.0e-9) && assembled_valid;
+            record_error(1, action, expected);
+            Mat no_coupling = nullptr;
+            jacobian.setIBCouplingJacobian(no_coupling);
+            ierr = MatDestroy(&coupling);
+            IBTK_CHKERRQ(ierr);
+
+            const double h = 1.0e-5;
+            plus->linearSum(1.0, base, h, direction);
+            minus->linearSum(1.0, base, -h, direction);
+            nonlinear.apply(*plus, *expected);
+            nonlinear.apply(*minus, *work);
+            finite_difference->linearSum(0.5 / h, expected, -0.5 / h, work);
+            derivative_valid = close(action, finite_difference, 1.0e-6) && derivative_valid;
+            record_error(2, action, finite_difference);
+            const int evaluations_before_form = nonlinear.evaluations;
+            mffd.formJacobian(*base);
+            base_valid = base_valid && nonlinear.evaluations == evaluations_before_form + 1;
+            base_valid = close(mffd.getBaseVector(), base, 0.0) && base_valid;
+            mffd.apply(*direction, *expected);
+            derivative_valid = close(expected, finite_difference, 2.0e-5) && derivative_valid;
+            record_error(3, expected, finite_difference);
+
+            nonlinear.applyAdd(*base, *direction, *expected);
+            work->add(residual, direction);
+            residual_valid = close(expected, work, 1.0e-11) && residual_valid;
+            record_error(4, expected, work);
+            jacobian.applyAdd(*direction, *base, *expected);
+            work->add(action, base);
+            derivative_valid = close(expected, work, 1.0e-9) && derivative_valid;
+        }
+        for (GeneralOperator* op :
+             { static_cast<GeneralOperator*>(&nonlinear), static_cast<GeneralOperator*>(&jacobian) })
+            for (bool homogeneous : { false, true })
+            {
+                op->setHomogeneousBc(homogeneous);
+                op->setSolutionTime(current + 0.03125);
+                stokes->setTimeInterval(-2.0, -1.0);
+                stokes->setSolutionTime(-1.0);
+                stokes->setHomogeneousBc(!homogeneous);
+                op->modifyRhsForBcs(*residual);
+                boundary_valid = boundary_valid && stokes->getTimeInterval() == std::make_pair(current, next) &&
+                                 stokes->getSolutionTime() == current + 0.03125 &&
+                                 stokes->getHomogeneousBc() == homogeneous;
+                stokes->setTimeInterval(-2.0, -1.0);
+                stokes->setSolutionTime(-1.0);
+                stokes->setHomogeneousBc(!homogeneous);
+                op->imposeSolBcs(*base);
+                boundary_valid = boundary_valid && stokes->getTimeInterval() == std::make_pair(current, next) &&
+                                 stokes->getSolutionTime() == current + 0.03125 &&
+                                 stokes->getHomogeneousBc() == homogeneous;
+                op->setSolutionTime(force_time);
+            }
+        const std::array<int, 4> base_indices = { jacobian.getBaseVector()->getComponentDescriptorIndex(0),
+                                                  jacobian.getBaseVector()->getComponentDescriptorIndex(1),
+                                                  mffd.getBaseVector()->getComponentDescriptorIndex(0),
+                                                  mffd.getBaseVector()->getComponentDescriptorIndex(1) };
+        mffd.deallocateOperatorState();
+        jacobian.deallocateOperatorState();
+        nonlinear.deallocateOperatorState();
+        lifecycle_valid = lifecycle_valid && !mffd.getIsInitialized() && !jacobian.getIsInitialized() &&
+                          !nonlinear.getIsInitialized() && !jacobian.getBaseVector() && !mffd.getBaseVector();
+        for (const int idx : base_indices)
+        {
+            Pointer<Variable<NDIM>> variable;
+            lifecycle_valid = !variables->mapIndexToVariable(idx, variable) && lifecycle_valid;
+        }
+        for (const int idx : { u, p, u_current, scratch, f_scratch })
+        {
+            Pointer<Variable<NDIM>> variable;
+            lifecycle_valid = variables->mapIndexToVariable(idx, variable) && level->getPatch(0)->getPatchData(idx) &&
+                              lifecycle_valid;
+        }
+    }
+    boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
+    if (!residual_valid || !derivative_valid || !assembled_valid)
+        pout << "comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = " << errors[0] << ' '
+             << errors[1] << ' ' << errors[2] << ' ' << errors[3] << ' ' << errors[4] << '\n';
+    int failures = 0;
+    for (const auto& check :
+         std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
+                                                    { "nonlinear_residual_valid", residual_valid },
+                                                    { "nontrivial_coupling_valid", nontrivial },
+                                                    { "jacobian_finite_difference_valid", derivative_valid },
+                                                    { "assembled_coupling_valid", assembled_valid },
+                                                    { "updated_base_state_valid", base_valid },
+                                                    { "boundary_forwarding_valid", boundary_valid },
+                                                    { "operator_lifecycle_valid", lifecycle_valid } })
+    {
+        pout << check.first << " = " << (check.second ? "true" : "false") << '\n';
+        failures += !check.second;
+    }
+    method->postprocessIntegrateData(current, next, 1);
+    for (Vec* v : { &eulerian, &spread, &interpolated, &position, &expected_position })
+    {
+        ierr = VecDestroy(v);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatDestroy(&A);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&J);
+    IBTK_CHKERRQ(ierr);
+    for (auto& vector : vectors) free_vector_components(*vector);
+    for (int idx : allocated)
+    {
+        level->deallocatePatchData(idx);
+        variables->removePatchDataIndex(idx);
+    }
+    pout << "test_failures = " << failures << std::endl;
+    return failures;
+}
+} // namespace
+
+int
+main(int argc, char* argv[])
+{
+    IBTKInit init(argc, argv, MPI_COMM_WORLD);
+    // Keep optional visualization warnings out of the compared test output.
+    Logger::getInstance()->setWarning(false);
+    Pointer<AppInitializer> app = new AppInitializer(argc, argv, "components.log");
+    const std::string test_case = app->getInputDatabase()->getStringWithDefault("test_case", "interpolation");
+    if (test_case == "interpolation") return run_interpolation(app);
+    if (test_case == "operators") return run_operators(app);
+    TBOX_ERROR("Unknown component test case: " << test_case << '\n');
+    return 1;
 }

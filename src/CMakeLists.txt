@@ -195,6 +195,8 @@ SET(CXX_SRC
   IB/WallForceEvaluator.cpp
   IB/IBTargetPointForceSpecFactory.cpp
   IB/IBMethod.cpp
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
   IB/IBBeamForceSpec.cpp
   IB/IBSpringForceSpec.cpp
   IB/CIBMethod.cpp

@@ -1,0 +1,10 @@
+IBRedundantInitializer:  Deallocating initialization data.
+time_state_scaling_valid = true
+nonlinear_residual_valid = true
+nontrivial_coupling_valid = true
+jacobian_finite_difference_valid = true
+assembled_coupling_valid = true
+updated_base_state_valid = true
+boundary_forwarding_valid = true
+operator_lifecycle_valid = true
+test_failures = 0
