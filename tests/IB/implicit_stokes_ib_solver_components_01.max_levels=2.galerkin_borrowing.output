@@ -1,0 +1,13 @@
+IBRedundantInitializer:  Deallocating initialization data.
+fd_relative_error_valid = true
+krylov_linear_iterations = 1
+krylov_linear_residual_valid = true
+galerkin_operator_available_valid = true
+galerkin_operator_creator_lifetime_valid = true
+galerkin_operator_reinitialization_valid = true
+FAC Vec allocation measurement: calibrated and enforced with PETSC_USE_LOG; unavailable without it.
+fac_residual_work_vector_reuse_exact = true
+fac_residual_repeat_valid = true
+fac_residual_work_vector_reinitialize_exact = true
+fac_residual_repeat_reinitialize_valid = true
+test_failures = 0

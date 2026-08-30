@@ -1,0 +1,13 @@
+
+# levels > 0
+-stokes_ib_pc_level_ksp_type richardson
+-stokes_ib_pc_level_ksp_richardson_self_scale
+-stokes_ib_pc_level_pc_type asm
+-stokes_ib_pc_level_pc_asm_local_type additive
+-stokes_ib_pc_level_pc_asm_type basic
+-stokes_ib_pc_level_sub_pc_type lu
+-stokes_ib_pc_level_sub_pc_factor_shift_type nonzero
+
+# level 0
+-stokes_ib_pc_level_0_ksp_type preonly
+-stokes_ib_pc_level_0_pc_type svd

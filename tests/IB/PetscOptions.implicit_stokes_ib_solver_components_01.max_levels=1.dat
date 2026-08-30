@@ -1,0 +1,4 @@
+
+# level 0
+-stokes_ib_pc_level_0_ksp_type preonly
+-stokes_ib_pc_level_0_pc_type svd
