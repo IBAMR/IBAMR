@@ -1,0 +1,2 @@
+New: Support component/transverse IB interpolation kernels and odd-width stencils. <br>
+(Boyce Griffith, 2026/08/30)
