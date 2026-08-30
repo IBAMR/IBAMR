@@ -28,6 +28,9 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <petscao.h>
+#include <petscis.h>
+#include <petscmat.h>
 #include <petscvec.h>
 
 #include <CellVariable.h>
@@ -90,6 +93,35 @@ public:
     {
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * \brief Set a full-level PETSc operator matrix to use directly instead of
+     * rediscretizing the Stokes operator in initializeSolverStateSpecialized().
+     *
+     * The provided matrix must live in the full coupled Stokes DOF space
+     * (velocity+pressure). When no augmented operator is configured, the solver
+     * uses this matrix as a nonowning alias until deallocateSolverState(); the
+     * caller must retain, and must not modify or reassemble, it while the solver
+     * is initialized. An augmented operator requires a private copy since its
+     * entries are added during initialization.
+     * Set or replace this handle only while the solver is deallocated.
+     */
+    void setOperatorMat(Mat operator_mat);
+
+    /*!
+     * \brief Set a matrix contribution to be added to the full level operator
+     * matrix assembled in initializeSolverStateSpecialized().
+     *
+     * The augmentation may be either:
+     * 1) a full coupled Stokes matrix contribution (velocity+pressure space),
+     * or
+     * 2) an A00 velocity-block contribution; this is embedded in the full
+     *    coupled matrix by velocity DOF mapping.
+     *
+     * The caller retains ownership and must keep the contribution valid until
+     * deallocateSolverState(). Set or replace it only while deallocated.
+     */
+    void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
 protected:
     /*!
@@ -173,11 +205,16 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
+    SAMRAI::hier::IntVector<NDIM> d_box_size = 2, d_overlap_size = 1;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    IS d_velocity_field_is_local = nullptr;
+    AO d_velocity_field_ao = nullptr;
+    Mat d_operator_mat = nullptr;
+    Mat d_augmented_operator_mat = nullptr;
 
     //\}
 };

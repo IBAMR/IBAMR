@@ -17,10 +17,12 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
+#include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CCPoissonPETScLevelSolver.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -30,18 +32,24 @@
 #include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/SCPoissonPETScLevelSolver.h>
+
+#include <tbox/MemoryDatabase.h>
 
 #include <tbox/Logger.h>
 
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <CellVariable.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
+#include <ProcessorMapping.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideVariable.h>
@@ -925,6 +933,485 @@ run_operators(Pointer<AppInitializer> app)
 }
 } // namespace
 
+namespace
+{
+// Expose existing protected state for lifecycle assertions, without changing
+// the production API or replacing any solver operation.
+template <class Solver>
+class LevelSolverProbe : public Solver
+{
+public:
+    LevelSolverProbe(const std::string& name, Pointer<Database> db) : Solver(name, db, "")
+    {
+    }
+    Mat matrixBeforeKSP() const
+    {
+        return d_matrix_before_ksp;
+    }
+    PetscInt referencesBeforeKSP() const
+    {
+        return d_references_before_ksp;
+    }
+    bool shellStorageEmpty() const
+    {
+        return this->d_sub_x.empty() && this->d_sub_y.empty() && this->d_sub_ksp.empty() &&
+               this->d_restriction.empty() && this->d_prolongation.empty();
+    }
+    std::vector<Vec> retainShellVectors()
+    {
+        std::vector<Vec> result = this->d_sub_x;
+        result.insert(result.end(), this->d_sub_y.begin(), this->d_sub_y.end());
+        for (Vec v : result)
+        {
+            PetscErrorCode ierr = PetscObjectReference(reinterpret_cast<PetscObject>(v));
+            IBTK_CHKERRQ(ierr);
+        }
+        return result;
+    }
+
+protected:
+    void initializeSolverStateSpecialized(const HierarchyVector& x, const HierarchyVector& b) override
+    {
+        Solver::initializeSolverStateSpecialized(x, b);
+        d_matrix_before_ksp = this->d_petsc_mat;
+        PetscErrorCode ierr =
+            PetscObjectGetReference(reinterpret_cast<PetscObject>(d_matrix_before_ksp), &d_references_before_ksp);
+        IBTK_CHKERRQ(ierr);
+    }
+
+private:
+    Mat d_matrix_before_ksp = nullptr;
+    PetscInt d_references_before_ksp = 0;
+};
+
+struct LevelFixture
+{
+    Pointer<PatchHierarchy<NDIM>> hierarchy;
+    Pointer<PatchLevel<NDIM>> level;
+    Pointer<HierarchyVector> x, b;
+    std::vector<int> indices;
+    std::vector<PetscInt> velocity_ids;
+    int full_size = 0;
+
+    LevelFixture(Pointer<Database> geometry_db, int ln = 0, bool full = true)
+    {
+        if (IBTK_MPI::getNodes() != 1) TBOX_ERROR("Level fixture requires one rank\n");
+        Pointer<CartesianGridGeometry<NDIM>> geometry = new CartesianGridGeometry<NDIM>("level_geometry", geometry_db);
+        hierarchy = new PatchHierarchy<NDIM>("level_hierarchy", geometry);
+        BoxArray<NDIM> boxes(1);
+        boxes[0] = Box<NDIM>(SAMRAI::hier::Index<NDIM>(0), SAMRAI::hier::Index<NDIM>(15));
+        ProcessorMapping mapping(1);
+        mapping.setProcessorAssignment(0, 0);
+        hierarchy->makeNewPatchLevel(0, IntVector<NDIM>(1), boxes, mapping);
+        if (ln == 1)
+        {
+            boxes[0] = full ? Box<NDIM>(SAMRAI::hier::Index<NDIM>(0), SAMRAI::hier::Index<NDIM>(31)) :
+                              Box<NDIM>(SAMRAI::hier::Index<NDIM>(8), SAMRAI::hier::Index<NDIM>(23));
+            hierarchy->makeNewPatchLevel(1, IntVector<NDIM>(2), boxes, mapping);
+        }
+        level = hierarchy->getPatchLevel(ln);
+        auto* db = VariableDatabase<NDIM>::getDatabase();
+        auto context = db->getContext("level_fixture");
+        Pointer<SideVariable<NDIM, double>> u = new SideVariable<NDIM, double>("level_u");
+        Pointer<CellVariable<NDIM, double>> p = new CellVariable<NDIM, double>("level_p");
+        if (db->checkVariableExists("level_u")) u = db->getVariable("level_u");
+        if (db->checkVariableExists("level_p")) p = db->getVariable("level_p");
+        const int ui = db->registerVariableAndContext(u, context, IntVector<NDIM>(1));
+        const int pi = db->registerVariableAndContext(p, context, IntVector<NDIM>(1));
+        x = new HierarchyVector("level_x", hierarchy, ln, ln);
+        x->addComponent(u, ui, -1, new HierarchySideDataOpsReal<NDIM, double>(hierarchy, ln, ln));
+        x->addComponent(p, pi, -1, new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, ln, ln));
+        x->allocateVectorData();
+        x->setToScalar(0.0);
+        b = x->cloneVector("level_b");
+        b->allocateVectorData();
+        b->setToScalar(0.0);
+        Pointer<SideVariable<NDIM, int>> ud = new SideVariable<NDIM, int>("level_ud");
+        Pointer<CellVariable<NDIM, int>> pd = new CellVariable<NDIM, int>("level_pd");
+        if (db->checkVariableExists("level_ud")) ud = db->getVariable("level_ud");
+        if (db->checkVariableExists("level_pd")) pd = db->getVariable("level_pd");
+        const int udi = db->registerVariableAndContext(ud, context, IntVector<NDIM>(1));
+        const int pdi = db->registerVariableAndContext(pd, context, IntVector<NDIM>(1));
+        indices = { udi, pdi };
+        for (int idx : indices) level->allocatePatchData(idx);
+        std::vector<int> counts;
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, udi, pdi, level);
+        full_size = counts[0];
+        std::set<int> velocity;
+        Pointer<SideData<NDIM, int>> data = level->getPatch(0)->getPatchData(udi);
+        for (int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(level->getPatch(0)->getBox(), axis)); i; i++)
+                velocity.insert((*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower)));
+        velocity_ids.assign(velocity.begin(), velocity.end());
+    }
+    ~LevelFixture()
+    {
+        free_vector_components(*b);
+        free_vector_components(*x);
+        for (int idx : indices)
+        {
+            level->deallocatePatchData(idx);
+            VariableDatabase<NDIM>::getDatabase()->removePatchDataIndex(idx);
+        }
+    }
+};
+
+Pointer<Database>
+level_solver_database(const std::string& pc = "none", int overlap = 0)
+{
+    Pointer<Database> db = new MemoryDatabase("level_solver");
+    db->putString("ksp_type", "gmres");
+    db->putString("options_prefix", "level_");
+    db->putString("pc_type", pc);
+    db->putString("shell_pc_type", "additive");
+    db->putBool("initial_guess_nonzero", false);
+    db->putDouble("rel_residual_tol", 1.0e-12);
+    db->putInteger("max_iterations", 100);
+    const int size[NDIM] = { 4, 8 }, width[NDIM] = { overlap, overlap };
+    db->putIntegerArray("subdomain_box_size", size, NDIM);
+    db->putIntegerArray("subdomain_overlap_size", width, NDIM);
+    return db;
+}
+
+Mat
+level_test_matrix(PetscInt n, double shift)
+{
+    Mat matrix;
+    PetscErrorCode ierr = MatCreateAIJ(PETSC_COMM_WORLD, n, n, n, n, 2, nullptr, 0, nullptr, &matrix);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < n; ++i)
+    {
+        const PetscInt cols[2] = { i, (i + 3) % n };
+        const PetscScalar vals[2] = { shift + 0.001 * i, 0.125 };
+        ierr = MatSetValues(matrix, 1, &i, 2, cols, vals, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(matrix, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(matrix, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    return matrix;
+}
+
+bool
+matrices_equal(Mat a, Mat b)
+{
+    Mat diff;
+    PetscErrorCode ierr = MatDuplicate(a, MAT_COPY_VALUES, &diff);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAXPY(diff, -1.0, b, DIFFERENT_NONZERO_PATTERN);
+    IBTK_CHKERRQ(ierr);
+    PetscReal norm;
+    ierr = MatNorm(diff, NORM_INFINITY, &norm);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&diff);
+    IBTK_CHKERRQ(ierr);
+    return std::isfinite(norm) && norm < 1.0e-12;
+}
+
+// Exercise the installed solver KSP and its actual configured matrix/PC.
+bool
+check_level_solve(PETScLevelSolver& solver)
+{
+    Mat matrix;
+    PetscErrorCode ierr = KSPGetOperators(solver.getPETScKSP(), &matrix, nullptr);
+    IBTK_CHKERRQ(ierr);
+    Vec exact, rhs, solution;
+    ierr = MatCreateVecs(matrix, &exact, &rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(exact, &solution);
+    IBTK_CHKERRQ(ierr);
+    PetscInt n;
+    ierr = VecGetSize(exact, &n);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* values;
+    ierr = VecGetArray(exact, &values);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < n; ++i) values[i] = std::sin(0.13 * i) + 0.5;
+    ierr = VecRestoreArray(exact, &values);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(matrix, exact, rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSolve(solver.getPETScKSP(), rhs, solution);
+    IBTK_CHKERRQ(ierr);
+    KSPConvergedReason reason;
+    ierr = KSPGetConvergedReason(solver.getPETScKSP(), &reason);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAXPY(solution, -1.0, exact);
+    IBTK_CHKERRQ(ierr);
+    PetscReal error;
+    ierr = VecNorm(solution, NORM_INFINITY, &error);
+    IBTK_CHKERRQ(ierr);
+    for (Vec* v : { &exact, &rhs, &solution })
+    {
+        ierr = VecDestroy(v);
+        IBTK_CHKERRQ(ierr);
+    }
+    return reason > 0 && std::isfinite(error) && error < 1.0e-9;
+}
+
+bool
+check_stokes_vector_mapping(StaggeredStokesPETScLevelSolver& solver, LevelFixture& fixture)
+{
+    const int u = fixture.x->getComponentDescriptorIndex(0), p = fixture.x->getComponentDescriptorIndex(1);
+    set_operator_velocity(u, fixture.level, 0.3, 0.4);
+    Pointer<CellData<NDIM, double>> pressure = fixture.level->getPatch(0)->getPatchData(p);
+    pressure->fill(0.25);
+    Mat matrix;
+    PetscErrorCode ierr = KSPGetOperators(solver.getPETScKSP(), &matrix, nullptr);
+    IBTK_CHKERRQ(ierr);
+    Vec exact, rhs, result;
+    ierr = MatCreateVecs(matrix, &exact, &rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(exact, &result);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        exact, u, fixture.indices[0], p, fixture.indices[1], fixture.level);
+    ierr = MatMult(matrix, exact, rhs);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(rhs,
+                                                            fixture.b->getComponentDescriptorIndex(0),
+                                                            fixture.indices[0],
+                                                            fixture.b->getComponentDescriptorIndex(1),
+                                                            fixture.indices[1],
+                                                            fixture.level,
+                                                            nullptr,
+                                                            nullptr);
+    fixture.x->setToScalar(0.0);
+    const bool converged = solver.solveSystem(*fixture.x, *fixture.b);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        result, u, fixture.indices[0], p, fixture.indices[1], fixture.level);
+    ierr = VecAXPY(result, -1.0, exact);
+    IBTK_CHKERRQ(ierr);
+    PetscReal error;
+    ierr = VecNorm(result, NORM_INFINITY, &error);
+    IBTK_CHKERRQ(ierr);
+    for (Vec* v : { &exact, &rhs, &result })
+    {
+        ierr = VecDestroy(v);
+        IBTK_CHKERRQ(ierr);
+    }
+    return converged && std::isfinite(error) && error < 1.0e-9;
+}
+
+int
+run_level_operator(Pointer<AppInitializer> app, bool augmentation)
+{
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+    LevelSolverProbe<StaggeredStokesPETScLevelSolver> solver("supplied_stokes", level_solver_database());
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    bool identity = true, creator_valid = true, values_valid = true, solves = true;
+    for (int cycle = 0; cycle < (augmentation ? 4 : 2); ++cycle)
+    {
+        const bool full_augmentation = cycle % 2 == 0;
+        Mat creator = level_test_matrix(fixture.full_size, 4.0 + cycle), original;
+        PetscErrorCode ierr = MatDuplicate(creator, MAT_COPY_VALUES, &original);
+        IBTK_CHKERRQ(ierr);
+        solver.setOperatorMat(creator);
+        PetscInt references;
+        ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(creator), &references);
+        IBTK_CHKERRQ(ierr);
+        identity = identity && references == 1;
+        Mat augmented = nullptr, expected = nullptr, augmented_original = nullptr;
+        if (augmentation)
+        {
+            const PetscInt n = full_augmentation ? fixture.full_size : fixture.velocity_ids.size();
+            augmented = level_test_matrix(n, 1.0);
+            ierr = MatDuplicate(augmented, MAT_COPY_VALUES, &augmented_original);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(creator, MAT_COPY_VALUES, &expected);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetOption(expected, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+            IBTK_CHKERRQ(ierr);
+            // Independently embed known entries, using actual coupled DOF data.
+            for (PetscInt row = 0; row < n; ++row)
+            {
+                const PetscInt next = (row + 3) % n;
+                const PetscInt full_row = full_augmentation ? row : fixture.velocity_ids[row];
+                const PetscInt cols[2] = { full_row, full_augmentation ? next : fixture.velocity_ids[next] };
+                const PetscScalar vals[2] = { 1.0 + 0.001 * row, 0.125 };
+                ierr = MatSetValues(expected, 1, &full_row, 2, cols, vals, ADD_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(expected, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(expected, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+        }
+        solver.setAugmentedOperatorMat(augmented);
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        Mat installed;
+        ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+        IBTK_CHKERRQ(ierr);
+        identity = identity && installed == solver.matrixBeforeKSP() &&
+                   (augmentation ? installed != creator : installed == creator) && solver.referencesBeforeKSP() == 1;
+        values_valid = matrices_equal(installed, augmentation ? expected : original) && values_valid;
+        creator_valid = matrices_equal(creator, original) && creator_valid;
+        if (augmentation) creator_valid = matrices_equal(augmented, augmented_original) && creator_valid;
+        solves = check_level_solve(solver) && solves;
+        solves = check_stokes_vector_mapping(solver, fixture) && solves;
+        solver.deallocateSolverState();
+        ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(creator), &references);
+        IBTK_CHKERRQ(ierr);
+        creator_valid = creator_valid && references == 1 && matrices_equal(creator, original);
+        // The creator can be destroyed after solver deallocation; the next
+        // lifetime supplies another handle, not a retained solver copy.
+        solver.setOperatorMat(nullptr);
+        solver.setAugmentedOperatorMat(nullptr);
+        for (Mat* m : { &creator, &original, &augmented, &expected, &augmented_original })
+        {
+            ierr = MatDestroy(m);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    int failures = !identity + !creator_valid + !values_valid + !solves;
+    pout << "matrix_identity_valid = " << (identity ? "true" : "false") << '\n'
+         << "creator_lifetime_valid = " << (creator_valid ? "true" : "false") << '\n'
+         << "matrix_values_valid = " << (values_valid ? "true" : "false") << '\n'
+         << "level_solve_valid = " << (solves ? "true" : "false") << '\n'
+         << "test_failures = " << failures << std::endl;
+    return failures;
+}
+
+template <class Solver>
+bool
+check_shell_state(LevelSolverProbe<Solver>& solver,
+                  Pointer<HierarchyVector> x,
+                  Pointer<HierarchyVector> b,
+                  PetscInt& overlap_total)
+{
+    bool valid = true;
+    for (int cycle = 0; cycle < 2; ++cycle)
+    {
+        solver.initializeSolverState(*x, *b);
+        std::vector<IS>*nonoverlap, *overlap;
+        solver.getASMSubdomains(&nonoverlap, &overlap);
+        valid = valid && overlap->size() == 8 && nonoverlap->size() == 8;
+        overlap_total = 0;
+        for (IS is : *overlap)
+        {
+            PetscInt n;
+            PetscErrorCode ierr = ISGetSize(is, &n);
+            IBTK_CHKERRQ(ierr);
+            overlap_total += n;
+        }
+        valid = check_level_solve(solver) && valid;
+        auto retained = solver.retainShellVectors();
+        valid = valid && retained.size() == 16;
+        solver.deallocateSolverState();
+        valid = solver.shellStorageEmpty() && valid;
+        PetscInt max_references = 0;
+        for (Vec& v : retained)
+        {
+            PetscInt references;
+            PetscErrorCode ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(v), &references);
+            IBTK_CHKERRQ(ierr);
+            // Only this test reference may remain after solver teardown.
+            valid = references == 1 && valid;
+            max_references = std::max(max_references, references);
+            ierr = VecDestroy(&v);
+            IBTK_CHKERRQ(ierr);
+        }
+        if (max_references != 1) pout << "unreleased_shell_vector_references = " << max_references << std::endl;
+    }
+    return valid;
+}
+
+int
+run_level_state(Pointer<AppInitializer> app)
+{
+    bool cc_valid = true, sc_valid = true, stokes_valid = true, domain_valid = true;
+    {
+        LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+        Pointer<HierarchyVector> cc_x = new HierarchyVector("cc_x", fixture.hierarchy, 0, 0);
+        Pointer<HierarchyVector> sc_x = new HierarchyVector("sc_x", fixture.hierarchy, 0, 0);
+        cc_x->addComponent(fixture.x->getComponentVariable(1), fixture.x->getComponentDescriptorIndex(1));
+        sc_x->addComponent(fixture.x->getComponentVariable(0), fixture.x->getComponentDescriptorIndex(0));
+        auto cc_b = cc_x->cloneVector("cc_b"), sc_b = sc_x->cloneVector("sc_b");
+        cc_b->allocateVectorData();
+        sc_b->allocateVectorData();
+        PoissonSpecifications coefs("state_coefs");
+        coefs.setCConstant(2.0);
+        coefs.setDConstant(0.0);
+        PetscInt cc_previous = 0, sc_previous = 0, stokes_previous = 0;
+        for (int width : { 0, 2 })
+        {
+            auto db = level_solver_database("shell", width);
+            // Exercise both existing shell compositions across these lifetimes.
+            db->putString("shell_pc_type", width == 0 ? "multiplicative" : "additive");
+            LevelSolverProbe<CCPoissonPETScLevelSolver> cc("state_cc", db);
+            LevelSolverProbe<SCPoissonPETScLevelSolver> sc("state_sc", db);
+            cc.setPoissonSpecifications(coefs);
+            sc.setPoissonSpecifications(coefs);
+            cc.setPhysicalBcCoef(nullptr);
+            sc.setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));
+            cc.setTimeInterval(0.0, 1.0);
+            sc.setTimeInterval(0.0, 1.0);
+            PetscInt cc_total, sc_total, stokes_total;
+            cc_valid = check_shell_state(cc, cc_x, cc_b, cc_total) && cc_valid;
+            sc_valid = check_shell_state(sc, sc_x, sc_b, sc_total) && sc_valid;
+            LevelSolverProbe<StaggeredStokesPETScLevelSolver> stokes("state_stokes", db);
+            Mat creator = level_test_matrix(fixture.full_size, 4.0);
+            stokes.setOperatorMat(creator);
+            stokes.setTimeInterval(0.0, 1.0);
+            stokes_valid = check_shell_state(stokes, fixture.x, fixture.b, stokes_total) && stokes_valid;
+            stokes.setOperatorMat(nullptr);
+            PetscErrorCode ierr = MatDestroy(&creator);
+            IBTK_CHKERRQ(ierr);
+            if (width == 2)
+            {
+                cc_valid = cc_valid && cc_total > cc_previous;
+                sc_valid = sc_valid && sc_total > sc_previous;
+                stokes_valid = stokes_valid && stokes_total > stokes_previous;
+            }
+            cc_previous = cc_total;
+            sc_previous = sc_total;
+            stokes_previous = stokes_total;
+        }
+        free_vector_components(*cc_b);
+        free_vector_components(*sc_b);
+    }
+    for (int variant = 0; variant < 3; ++variant)
+    {
+        const bool full = variant != 2;
+        LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"), variant == 0 ? 0 : 1, full);
+        LevelSolverProbe<StaggeredStokesPETScLevelSolver> solver("domain_stokes", level_solver_database());
+        PoissonSpecifications coefs("domain_coefs");
+        coefs.setCConstant(2.0);
+        coefs.setDConstant(-0.01);
+        solver.setVelocityPoissonSpecifications(coefs);
+        solver.setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr), nullptr);
+        solver.setComponentsHaveNullSpace(false, true);
+        solver.setTimeInterval(0.0, 1.0);
+        solver.setSolutionTime(1.0);
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        Mat matrix;
+        MatNullSpace nullspace;
+        PetscErrorCode ierr = KSPGetOperators(solver.getPETScKSP(), &matrix, nullptr);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatGetNullSpace(matrix, &nullspace);
+        IBTK_CHKERRQ(ierr);
+        domain_valid = domain_valid && (full ? nullspace != nullptr : nullspace == nullptr);
+        if (full && nullspace)
+        {
+            PetscBool is_nullspace;
+            ierr = MatNullSpaceTest(nullspace, matrix, &is_nullspace);
+            IBTK_CHKERRQ(ierr);
+            domain_valid = domain_valid && is_nullspace;
+        }
+        solver.deallocateSolverState();
+    }
+    int failures = !cc_valid + !sc_valid + !stokes_valid + !domain_valid;
+    pout << "cc_state_valid = " << (cc_valid ? "true" : "false") << '\n'
+         << "sc_state_valid = " << (sc_valid ? "true" : "false") << '\n'
+         << "stokes_state_valid = " << (stokes_valid ? "true" : "false") << '\n'
+         << "domain_nullspace_valid = " << (domain_valid ? "true" : "false") << '\n'
+         << "test_failures = " << failures << std::endl;
+    return failures;
+}
+} // namespace
+
 int
 main(int argc, char* argv[])
 {
@@ -935,6 +1422,9 @@ main(int argc, char* argv[])
     const std::string test_case = app->getInputDatabase()->getStringWithDefault("test_case", "interpolation");
     if (test_case == "interpolation") return run_interpolation(app);
     if (test_case == "operators") return run_operators(app);
+    if (test_case == "level_borrowing") return run_level_operator(app, false);
+    if (test_case == "level_augmentation") return run_level_operator(app, true);
+    if (test_case == "level_state") return run_level_state(app);
     TBOX_ERROR("Unknown component test case: " << test_case << '\n');
     return 1;
 }
