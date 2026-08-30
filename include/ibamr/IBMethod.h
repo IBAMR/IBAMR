@@ -320,6 +320,18 @@ public:
                            double data_time) override;
 
     /*!
+     * Construct the IB interpolation operator for anisotropic kernels.
+     */
+    void constructInterpOp(Mat& J,
+                           void (*component_spread_fnc)(const double, double*),
+                           int component_stencil_width,
+                           void (*transverse_spread_fnc)(const double, double*),
+                           int transverse_stencil_width,
+                           const std::vector<int>& num_dofs_per_proc,
+                           int dof_index_idx,
+                           double data_time) override;
+
+    /*!
      * Indicate whether there are any internal fluid sources/sinks.
      */
     bool hasFluidSources() const override;
