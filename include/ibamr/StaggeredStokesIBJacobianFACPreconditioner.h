@@ -62,8 +62,9 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief FAC preconditioner wrapper for velocity-path Stokes-IB Jacobian
- * solves.
+ * \brief FAC preconditioner for the Stokes-IB Jacobian.
+ *
+ * Uses the velocity-pressure formulation described by \ref StaggeredStokesIBOperator.
  */
 class StaggeredStokesIBJacobianFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
 {
