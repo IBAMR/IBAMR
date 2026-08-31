@@ -1,0 +1,4 @@
+Fixed: CMake now repairs stale Homebrew GCC and Open MPI paths when reading
+PETSc configuration metadata on macOS, without modifying the PETSc installation.
+<br>
+(Boyce Griffith, 2026/08/31)

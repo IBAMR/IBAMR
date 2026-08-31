@@ -562,6 +562,7 @@ ENDIF()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up PETSc")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FixPETScHomebrewPaths.cmake")
 FIND_FILE(PETSC_VARIABLES_FILE petscvariables HINTS ${PETSC_ROOT}
   PATH_SUFFIXES conf lib/petsc/conf)
 IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_VARIABLES_FILE-NOTFOUND")
@@ -607,6 +608,7 @@ libMesh, it may have) to NOT use 64 bit indices.")
 
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
   SEPARATE_ARGUMENTS(_petsc_raw_includes)
+  IBAMR_FIX_PETSC_HOMEBREW_PATHS(_petsc_raw_includes)
   # Get rid of preceding -Is (CMake wants just directory names):
   SET(PETSC_INCLUDE_DIRS)
   FOREACH(_include ${_petsc_raw_includes})
@@ -630,6 +632,7 @@ something is wrong with the PETSc installation.")
   # If PETSC is not installed then ${PETSC_DIR}/${PETSC_ARCH} may appear in the list
   STRING(REGEX REPLACE "\\$.PETSC_DIR./\\$.PETSC_ARCH." "${PETSC_ROOT}" PETSC_LIBRARIES ${PETSC_LIBRARIES})
   SEPARATE_ARGUMENTS(PETSC_LIBRARIES)
+  IBAMR_FIX_PETSC_HOMEBREW_PATHS(PETSC_LIBRARIES)
   FIND_LIBRARY(PETSC_LIBRARY REQUIRED NAMES "petsc" HINTS ${PETSC_ROOT}/lib)
   LIST(PREPEND PETSC_LIBRARIES ${PETSC_LIBRARY})
   MESSAGE(STATUS "PETSC LIBRARIES: ${PETSC_LIBRARIES}")

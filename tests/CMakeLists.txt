@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2020 by the IBAMR developers
+## Copyright (c) 2020 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -12,6 +12,11 @@
 ## ---------------------------------------------------------------------
 
 ADD_CUSTOM_TARGET(tests)
+
+ADD_TEST(NAME cmake/petsc_homebrew_paths
+  COMMAND "${CMAKE_COMMAND}"
+    "-DFIXTURE_ROOT=${CMAKE_CURRENT_BINARY_DIR}/cmake/petsc_homebrew_paths"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/petsc_homebrew_paths.cmake")
 
 # We use the list of test directories in two ways:
 # 1. each test is added to a target tests-dir so that, e.g., 'make tests-IBFE'
