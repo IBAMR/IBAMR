@@ -90,6 +90,9 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     {
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
+        // Supply SAMRAI-backed base-function storage. Although PETSc permits a
+        // null base function, its default MatCreateVecs storage is not suitable
+        // for FormFunction_SAMRAI's output-vector conversion.
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_f_base, d_op_f_base);
         d_F->apply(*d_op_u, *d_op_f_base);
         ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, d_petsc_f_base);
