@@ -169,8 +169,12 @@ jobs:
           do
             brew list "$DEPENDENCY" 1>/dev/null 2>&1 || brew install "$DEPENDENCY"
           done
-      - name: Test PETSc Homebrew path correction
-        run: cmake -DFIXTURE_ROOT="$RUNNER_TEMP/petsc-homebrew-paths" -P tests/cmake/petsc_homebrew_paths.cmake
+          # Relocate Homebrew dependency paths in a temporary copy of PETSc's
+          # metadata, leaving the installation unchanged.
+          sed -E \
+            -e "s#$(brew --cellar open-mpi)/[^/ ]+#$(brew --prefix open-mpi)#g" \
+            -e "s#$(brew --cellar gcc)/[^/ ]+#$(brew --prefix gcc)#g" \
+            "$(brew --prefix petsc)/lib/petsc/conf/petscvariables" > "$RUNNER_TEMP/petscvariables"
       - name: list HDF5 info
         run: |
           brew --prefix hdf5-mpi
@@ -248,6 +252,7 @@ jobs:
               -DHDF5_ROOT="$(brew --prefix hdf5-mpi)"                                             \
               -DHYPRE_ROOT="$(brew --prefix hypre)"                                               \
               -DPETSC_ROOT="$(brew --prefix petsc)"                                               \
+              -DPETSC_VARIABLES_FILE="$RUNNER_TEMP/petscvariables"                                \
               -DSAMRAI_ROOT="$HOME/Applications/samrai"                                           \
               ../
           configure_status=$?
