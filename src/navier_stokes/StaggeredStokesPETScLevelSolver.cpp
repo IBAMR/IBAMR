@@ -205,12 +205,25 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
+    int ierr = MatDestroy(&d_operator_mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_augmented_operator_mat);
+    IBTK_CHKERRQ(ierr);
     return;
 } // ~StaggeredStokesPETScLevelSolver
 
 void
 StaggeredStokesPETScLevelSolver::setOperatorMat(Mat operator_mat)
 {
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setOperatorMat(): deallocate solver state before changing the matrix.");
+    }
+    // Retain before releasing so that same-handle replacement is safe.
+    int ierr = PetscObjectReference(reinterpret_cast<PetscObject>(operator_mat));
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_operator_mat);
+    IBTK_CHKERRQ(ierr);
     d_operator_mat = operator_mat;
     return;
 } // setOperatorMat
@@ -218,6 +231,14 @@ StaggeredStokesPETScLevelSolver::setOperatorMat(Mat operator_mat)
 void
 StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_mat)
 {
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setAugmentedOperatorMat(): deallocate solver state before changing the matrix.");
+    }
+    int ierr = PetscObjectReference(reinterpret_cast<PetscObject>(augmented_operator_mat));
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_augmented_operator_mat);
+    IBTK_CHKERRQ(ierr);
     d_augmented_operator_mat = augmented_operator_mat;
     return;
 } // setAugmentedOperatorMat
@@ -274,13 +295,13 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     {
         if (d_augmented_operator_mat)
         {
+            // Augmentation changes entries: preserve the installed input.
             ierr = MatDuplicate(d_operator_mat, MAT_COPY_VALUES, &d_petsc_mat);
             IBTK_CHKERRQ(ierr);
         }
         else
         {
-            // The supplied operator outlives this initialized solver
-            // state. Borrow the exact matrix instead of copying all entries.
+            // Solver state aliases the separately retained input reference.
             d_petsc_mat = d_operator_mat;
         }
     }
@@ -466,6 +487,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     if (d_operator_mat && d_petsc_mat == d_operator_mat)
     {
+        // The installed reference survives solver-state teardown. The base
+        // class releases the KSP references, but must not release this alias.
         TBOX_ASSERT(d_petsc_pc == d_petsc_mat);
         d_petsc_mat = nullptr;
         d_petsc_pc = nullptr;
