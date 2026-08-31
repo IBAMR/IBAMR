@@ -31,8 +31,8 @@ GitHub.
 #endif
 ```
   around APIs to keep backwards compatibility with older versions of libMesh.
-- [ ] check the test suite with the oldest (3.7.0) and newest (latest release)
-  versions of PETSc. Also check with the oldest (1.1.0) and newest (latest
+- [ ] check the test suite with the oldest (3.13.0) and newest (latest release)
+  versions of PETSc. Also check with the oldest (1.7.0) and newest (latest
   release) versions of libMesh.
 - [ ] clear basic compilation warnings with GCC and clang on linux and macOS
 - [ ] run cppcheck via
