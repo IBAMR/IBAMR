@@ -74,14 +74,20 @@ class RefineSchedule;
 namespace IBAMR
 {
 /*!
- * \brief Velocity-path nonlinear Stokes-IB residual operator.
+ * \brief Nonlinear Stokes-IB operator on Eulerian velocity-pressure vectors.
+ *
+ * The Lagrangian position is eliminated by advancing the IB strategy with the
+ * input velocity and the selected time-stepping rule. apply() subtracts the
+ * resulting spread force from the Stokes momentum action, with weight 1 for
+ * backward Euler/midpoint and 1/2 for trapezoidal stepping. The Stokes divergence
+ * component is unchanged. Known current-time terms and the complete time-step
+ * right-hand side are the caller's responsibility.
  */
 class StaggeredStokesIBOperator : public IBTK::GeneralOperator
 {
 public:
     /*!
-     * \brief Shared state used by Stokes-IB velocity-path operator
-     * components.
+     * \brief Shared coupling state for the nonlinear and Jacobian operators.
      */
     struct Context
     {
