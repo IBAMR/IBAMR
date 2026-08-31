@@ -62,6 +62,8 @@
 #include <map>
 #include <vector>
 
+#include "../tests.h"
+
 #include <ibamr/app_namespaces.h>
 
 namespace
@@ -588,7 +590,8 @@ run_operators(Pointer<AppInitializer> app)
     Pointer<CellVariable<NDIM, int>> p_dof_var = new CellVariable<NDIM, int>("p_dof");
     const auto ghosts = method->getMinimumGhostCellWidth();
     std::vector<int> allocated;
-    auto register_data = [&](Pointer<Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
+    auto register_data =
+        [&](Pointer<SAMRAI::hier::Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
     {
         const int idx = variables->registerVariableAndContext(variable, variables->getContext(name), width);
         level->allocatePatchData(idx, current);
@@ -884,12 +887,12 @@ run_operators(Pointer<AppInitializer> app)
                           !nonlinear.getIsInitialized() && !jacobian.getBaseVector() && !mffd.getBaseVector();
         for (const int idx : base_indices)
         {
-            Pointer<Variable<NDIM>> variable;
+            Pointer<SAMRAI::hier::Variable<NDIM>> variable;
             lifecycle_valid = !variables->mapIndexToVariable(idx, variable) && lifecycle_valid;
         }
         for (const int idx : { u, p, u_current, scratch, f_scratch })
         {
-            Pointer<Variable<NDIM>> variable;
+            Pointer<SAMRAI::hier::Variable<NDIM>> variable;
             lifecycle_valid = variables->mapIndexToVariable(idx, variable) && level->getPatch(0)->getPatchData(idx) &&
                               lifecycle_valid;
         }
@@ -1194,6 +1197,57 @@ check_stokes_vector_mapping(StaggeredStokesPETScLevelSolver& solver, LevelFixtur
     return converged && std::isfinite(error) && error < 1.0e-9;
 }
 
+PetscInt
+matrix_references(Mat matrix)
+{
+    PetscInt references;
+    PetscErrorCode ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(matrix), &references);
+    IBTK_CHKERRQ(ierr);
+    return references;
+}
+
+bool
+check_matrix_reference_lifetime(LevelFixture& fixture)
+{
+    Mat a = level_test_matrix(fixture.full_size, 4.0), b = level_test_matrix(fixture.full_size, 5.0);
+    bool valid = true;
+    {
+        StaggeredStokesPETScLevelSolver solver("uninitialized_lifetime", level_solver_database(), "");
+        // Each setter owns a reference, even when both inputs are the same Mat.
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(a);
+        valid = matrix_references(a) == 3 && valid;
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(a);
+        valid = matrix_references(a) == 3 && valid;
+        solver.setOperatorMat(b);
+        valid = matrix_references(a) == 2 && matrix_references(b) == 2 && valid;
+        solver.setAugmentedOperatorMat(b);
+        valid = matrix_references(a) == 1 && matrix_references(b) == 3 && valid;
+        solver.setOperatorMat(nullptr);
+        solver.setOperatorMat(nullptr);
+        valid = matrix_references(b) == 2 && valid;
+        // Destruction must release inputs even without initialization.
+    }
+    valid = matrix_references(a) == 1 && matrix_references(b) == 1 && valid;
+    {
+        StaggeredStokesPETScLevelSolver solver("initialized_lifetime", level_solver_database(), "");
+        solver.setTimeInterval(0.0, 1.0);
+        solver.setSolutionTime(1.0);
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(b);
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        valid = check_level_solve(solver) && valid;
+        // Destruction also tears down KSP state before releasing both inputs.
+    }
+    valid = matrix_references(a) == 1 && matrix_references(b) == 1 && valid;
+    PetscErrorCode ierr = MatDestroy(&a);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&b);
+    IBTK_CHKERRQ(ierr);
+    return valid;
+}
+
 int
 run_level_operator(Pointer<AppInitializer> app, bool augmentation)
 {
@@ -1202,6 +1256,7 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
     solver.setTimeInterval(0.0, 1.0);
     solver.setSolutionTime(1.0);
     bool identity = true, creator_valid = true, values_valid = true, solves = true;
+    bool references_valid = check_matrix_reference_lifetime(fixture);
     for (int cycle = 0; cycle < (augmentation ? 4 : 2); ++cycle)
     {
         const bool full_augmentation = cycle % 2 == 0;
@@ -1209,10 +1264,7 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
         PetscErrorCode ierr = MatDuplicate(creator, MAT_COPY_VALUES, &original);
         IBTK_CHKERRQ(ierr);
         solver.setOperatorMat(creator);
-        PetscInt references;
-        ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(creator), &references);
-        IBTK_CHKERRQ(ierr);
-        identity = identity && references == 1;
+        references_valid = matrix_references(creator) == 2 && references_valid;
         Mat augmented = nullptr, expected = nullptr, augmented_original = nullptr;
         if (augmentation)
         {
@@ -1240,38 +1292,98 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
             IBTK_CHKERRQ(ierr);
         }
         solver.setAugmentedOperatorMat(augmented);
-        solver.initializeSolverState(*fixture.x, *fixture.b);
-        Mat installed;
-        ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+        if (augmentation) references_valid = matrix_references(augmented) == 2 && references_valid;
+        // Reject missing retention before testing caller release, so that a
+        // regression reports failure instead of dereferencing a dangling Mat.
+        if (!references_valid) TBOX_ERROR("Installed matrix references were not retained correctly.\n");
+        const Mat operator_alias = creator, augmentation_alias = augmented;
+        ierr = MatDestroy(&creator);
         IBTK_CHKERRQ(ierr);
-        identity = identity && installed == solver.matrixBeforeKSP() &&
-                   (augmentation ? installed != creator : installed == creator) && solver.referencesBeforeKSP() == 1;
-        values_valid = matrices_equal(installed, augmentation ? expected : original) && values_valid;
-        creator_valid = matrices_equal(creator, original) && creator_valid;
-        if (augmentation) creator_valid = matrices_equal(augmented, augmented_original) && creator_valid;
-        solves = check_level_solve(solver) && solves;
-        solves = check_stokes_vector_mapping(solver, fixture) && solves;
-        solver.deallocateSolverState();
-        ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(creator), &references);
+        ierr = MatDestroy(&augmented);
         IBTK_CHKERRQ(ierr);
-        creator_valid = creator_valid && references == 1 && matrices_equal(creator, original);
-        // The creator can be destroyed after solver deallocation; the next
-        // lifetime supplies another handle, not a retained solver copy.
+        for (int lifetime = 0; lifetime < 2; ++lifetime)
+        {
+            // No caller-owned reference remains, even before initialization.
+            references_valid = matrix_references(operator_alias) == 1 && references_valid;
+            if (augmentation) references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            solver.initializeSolverState(*fixture.x, *fixture.b);
+            Mat installed;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+            IBTK_CHKERRQ(ierr);
+            identity = identity && installed == solver.matrixBeforeKSP() &&
+                       (augmentation ? installed != operator_alias : installed == operator_alias) &&
+                       solver.referencesBeforeKSP() == 1;
+            values_valid = matrices_equal(installed, augmentation ? expected : original) && values_valid;
+            creator_valid = matrices_equal(operator_alias, original) && creator_valid;
+            if (augmentation) creator_valid = matrices_equal(augmentation_alias, augmented_original) && creator_valid;
+            solves = check_level_solve(solver) && solves;
+            solves = check_stokes_vector_mapping(solver, fixture) && solves;
+            solver.deallocateSolverState();
+            // Same-handle replacement must also work with only the solver's
+            // reference remaining. Aliases are used read-only throughout.
+            solver.setOperatorMat(operator_alias);
+            solver.setAugmentedOperatorMat(augmentation_alias);
+            references_valid = matrix_references(operator_alias) == 1 && references_valid;
+            if (augmentation) references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+        }
+        // Retain observer references to check that clearing releases exactly
+        // the solver's references, without destroying another owner's data.
+        creator = operator_alias;
+        augmented = augmentation_alias;
+        ierr = PetscObjectReference(reinterpret_cast<PetscObject>(creator));
+        IBTK_CHKERRQ(ierr);
+        ierr = PetscObjectReference(reinterpret_cast<PetscObject>(augmented));
+        IBTK_CHKERRQ(ierr);
         solver.setOperatorMat(nullptr);
         solver.setAugmentedOperatorMat(nullptr);
+        references_valid = matrix_references(creator) == 1 && references_valid;
+        creator_valid = matrices_equal(creator, original) && creator_valid;
+        if (augmentation)
+        {
+            references_valid = matrix_references(augmented) == 1 && references_valid;
+            creator_valid = matrices_equal(augmented, augmented_original) && creator_valid;
+        }
         for (Mat* m : { &creator, &original, &augmented, &expected, &augmented_original })
         {
             ierr = MatDestroy(m);
             IBTK_CHKERRQ(ierr);
         }
     }
-    int failures = !identity + !creator_valid + !values_valid + !solves;
+    int failures = !identity + !creator_valid + !values_valid + !solves + !references_valid;
     pout << "matrix_identity_valid = " << (identity ? "true" : "false") << '\n'
          << "creator_lifetime_valid = " << (creator_valid ? "true" : "false") << '\n'
+         << "retained_references_valid = " << (references_valid ? "true" : "false") << '\n'
          << "matrix_values_valid = " << (values_valid ? "true" : "false") << '\n'
          << "level_solve_valid = " << (solves ? "true" : "false") << '\n'
          << "test_failures = " << failures << std::endl;
     return failures;
+}
+
+int
+run_initialized_matrix_setter(Pointer<AppInitializer> app, bool augmentation)
+{
+    // Use the repository's path-independent expected-error output.
+    Pointer<Logger::Appender> abort_appender = new TestAppender();
+    Logger::getInstance()->setAbortAppender(abort_appender);
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+    StaggeredStokesPETScLevelSolver solver("initialized_setter", level_solver_database(), "");
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    Mat matrix = level_test_matrix(fixture.full_size, 4.0);
+    solver.setOperatorMat(matrix);
+    if (augmentation) solver.setAugmentedOperatorMat(matrix);
+    solver.initializeSolverState(*fixture.x, *fixture.b);
+    if (augmentation)
+        solver.setAugmentedOperatorMat(matrix);
+    else
+        solver.setOperatorMat(matrix);
+    // Even same-handle setters must reject initialized state. Returning zero
+    // on unexpected continuation makes this expect_error=true case fail attest.
+    solver.deallocateSolverState();
+    PetscErrorCode ierr = MatDestroy(&matrix);
+    IBTK_CHKERRQ(ierr);
+    pout << "ERROR: initialized matrix setter unexpectedly returned.\n";
+    return 0;
 }
 
 template <class Solver>
@@ -1424,6 +1536,8 @@ main(int argc, char* argv[])
     if (test_case == "operators") return run_operators(app);
     if (test_case == "level_borrowing") return run_level_operator(app, false);
     if (test_case == "level_augmentation") return run_level_operator(app, true);
+    if (test_case == "set_operator_initialized") return run_initialized_matrix_setter(app, false);
+    if (test_case == "set_augmentation_initialized") return run_initialized_matrix_setter(app, true);
     if (test_case == "level_state") return run_level_state(app);
     TBOX_ERROR("Unknown component test case: " << test_case << '\n');
     return 1;

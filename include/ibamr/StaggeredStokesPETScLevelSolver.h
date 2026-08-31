@@ -100,11 +100,15 @@ public:
      *
      * The provided matrix must live in the full coupled Stokes DOF space
      * (velocity+pressure). When no augmented operator is configured, the solver
-     * uses this matrix as a nonowning alias until deallocateSolverState(); the
-     * caller must retain, and must not modify or reassemble, it while the solver
-     * is initialized. An augmented operator requires a private copy since its
-     * entries are added during initialization.
-     * Set or replace this handle only while the solver is deallocated.
+     * uses this matrix directly without copying its entries.
+     *
+     * The solver retains a PETSc reference, so the caller may release its own
+     * reference after this call. The matrix must not be modified or reassembled
+     * through any alias while installed. The retained reference survives
+     * deallocateSolverState() and is released on replacement, clearing with
+     * nullptr, or destruction of the solver, even if it was never initialized.
+     * Set, replace, or clear this handle only while the solver is deallocated;
+     * setting the same handle again leaves its reference count unchanged.
      */
     void setOperatorMat(Mat operator_mat);
 
@@ -118,8 +122,14 @@ public:
      * 2) an A00 velocity-block contribution; this is embedded in the full
      *    coupled matrix by velocity DOF mapping.
      *
-     * The caller retains ownership and must keep the contribution valid until
-     * deallocateSolverState(). Set or replace it only while deallocated.
+     * The solver retains a PETSc reference without changing the contribution's
+     * entries. The caller may release its own reference after this call, but
+     * must not modify or reassemble the contribution through any alias while
+     * installed. The retained reference survives deallocateSolverState() and is
+     * released on replacement, clearing with nullptr, or solver destruction,
+     * even if the solver was never initialized. Set, replace, or clear it only
+     * while deallocated; setting the same handle again leaves its reference
+     * count unchanged.
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
@@ -213,6 +223,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
     IS d_velocity_field_is_local = nullptr;
     AO d_velocity_field_ao = nullptr;
+    // Owned references to the installed inputs, independent of solver state.
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
 
