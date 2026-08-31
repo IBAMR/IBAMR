@@ -1,0 +1,3 @@
+Fixed: Retain supplied Stokes level matrices for their installed lifetime.
+<br>
+(Boyce Griffith, 2026/08/31)
