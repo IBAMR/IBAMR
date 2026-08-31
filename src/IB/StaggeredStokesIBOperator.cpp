@@ -16,7 +16,6 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
-#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 
@@ -24,6 +23,7 @@
 
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
+#include <StaggeredStokesIBTimeSteppingUtilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -80,10 +80,14 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     const int u_new_idx = x.getComponentDescriptorIndex(0);
     const int f_u_idx = y.getComponentDescriptorIndex(0);
 
+    // Start with the Eulerian Stokes action on (u_new, p). The IB contribution
+    // below changes only its momentum component, not the divergence equation.
     d_ctx.stokes_op->setTimeInterval(current_time, new_time);
     d_ctx.stokes_op->setSolutionTime(getSolutionTime());
     d_ctx.stokes_op->setHomogeneousBc(true);
     d_ctx.stokes_op->apply(x, y);
+    // Interpolate u_new for backward Euler/trapezoidal stepping, or the
+    // Eulerian average (u_current + u_new)/2 for midpoint stepping.
     switch (step_parameters.velocity_state)
     {
     case StaggeredStokesIBVelocityState::NEW:
@@ -104,9 +108,14 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_ctx.ib_implicit_ops->interpolateVelocity(
         d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
 
+    // Eliminate the position unknown with the strategy's time step. The force
+    // is evaluated at X_new for backward Euler/trapezoidal and X_half for
+    // midpoint. Trapezoidal stepping retains the stored Lagrangian U_current.
     advance_staggered_stokes_ib_strategy(
         *d_ctx.ib_implicit_ops, d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
+    // Subtract S F(X): weight 1 for backward Euler/midpoint and 1/2 for
+    // trapezoidal. Known current-time terms belong to the caller's RHS.
     d_ctx.ib_implicit_ops->computeLagrangianForce(step_parameters.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)

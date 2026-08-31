@@ -44,7 +44,15 @@ class SAMRAIVectorReal;
 namespace IBAMR
 {
 /*!
- * \brief Velocity-path Jacobian operator for Stokes-IB.
+ * \brief Stokes-IB Jacobian action on Eulerian velocity-pressure increments.
+ *
+ * formJacobian() uses the base velocity to reconstruct the force-evaluation
+ * position after eliminating the Lagrangian position through time stepping.
+ * apply() adds the resulting force-derivative contribution to the Stokes
+ * momentum action, leaving its pressure/divergence action unchanged. The
+ * strategy path holds interpolation and spreading fixed: it does not
+ * differentiate their dependence on moving coupling positions. A supplied
+ * coupling matrix may instead provide the already-scaled IB contribution.
  */
 class StaggeredStokesIBJacobianOperator : public IBTK::JacobianOperator
 {
@@ -65,8 +73,10 @@ public:
     void setOperatorContext(const StaggeredStokesIBOperator::Context& ctx);
 
     /*!
-     * \brief Set matrix contribution for the velocity-path coupling block.
+     * \brief Set the IB velocity-coupling contribution in coupled velocity-pressure ordering.
      *
+     * The matrix must include the sign and time-step factors; apply() adds it
+     * directly to the Stokes action without further scaling.
      * The operator retains a PETSc reference until replacement or deallocation.
      */
     void setIBCouplingJacobian(Mat& SAJ_mat);

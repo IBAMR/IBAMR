@@ -19,7 +19,6 @@
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/ibamr_enums.h>
-#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -545,13 +544,9 @@ run_operators(Pointer<AppInitializer> app)
     const double force_scale = type == TRAPEZOIDAL_RULE ? 0.5 : 1.0;
     const double position_scale = type == BACKWARD_EULER ? 1.0 : (midpoint ? 0.25 : 0.5);
     const double force_time = midpoint ? current + dt / 2 : next;
-    const auto parameters = get_staggered_stokes_ib_time_step_parameters(type, current, next, "operator_test");
-    bool time_valid = parameters.half_time == current + dt / 2 && parameters.velocity_time == force_time &&
-                      parameters.force_time == force_time && parameters.nonlinear_force_scale == force_scale &&
-                      parameters.force_position_fraction == (midpoint ? 0.5 : 1.0) &&
-                      parameters.jacobian_force_scale == (type == BACKWARD_EULER ? 1.0 : 0.5) &&
-                      parameters.velocity_state == (midpoint ? StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE :
-                                                               StaggeredStokesIBVelocityState::NEW);
+    // Check the time/state choices through actual positions and independently
+    // composed residual/Jacobian actions below, not the implementation's table.
+    bool time_valid = true;
     Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
     method->setUseFixedLEOperators(true);
     Pointer<IBStandardForceGen> force = new IBStandardForceGen();
