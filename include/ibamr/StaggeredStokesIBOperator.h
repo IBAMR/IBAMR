@@ -76,9 +76,12 @@ namespace IBAMR
 /*!
  * \brief Nonlinear Stokes-IB operator on Eulerian velocity-pressure vectors.
  *
- * The Lagrangian position is eliminated by advancing the IB strategy with the
- * input velocity and the selected time-stepping rule. apply() subtracts the
- * resulting spread force from the Stokes momentum action, with weight 1 for
+ * In this velocity-pressure formulation, the nonlinear solver unknowns are
+ * Eulerian velocity and pressure. Lagrangian positions are determined from the
+ * velocity through the time-stepping equations, not independent solver unknowns.
+ * apply() advances the IB strategy with the input velocity and selected
+ * time-stepping rule, then subtracts the resulting spread force from the Stokes
+ * momentum action, with weight 1 for
  * backward Euler/midpoint and 1/2 for trapezoidal stepping. The Stokes divergence
  * component is unchanged. Known current-time terms and the complete time-step
  * right-hand side are the caller's responsibility.
