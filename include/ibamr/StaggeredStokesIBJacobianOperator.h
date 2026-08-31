@@ -46,8 +46,8 @@ namespace IBAMR
 /*!
  * \brief Stokes-IB Jacobian action on Eulerian velocity-pressure increments.
  *
- * formJacobian() uses the base velocity to reconstruct the force-evaluation
- * position after eliminating the Lagrangian position through time stepping.
+ * Uses the velocity-pressure formulation described by \ref StaggeredStokesIBOperator.
+ * formJacobian() uses the base velocity to reconstruct the force-evaluation position.
  * apply() adds the resulting force-derivative contribution to the Stokes
  * momentum action, leaving its pressure/divergence action unchanged. The
  * strategy path holds interpolation and spreading fixed: it does not
