@@ -34,9 +34,8 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SCPoissonPETScLevelSolver.h>
 
-#include <tbox/MemoryDatabase.h>
-
 #include <tbox/Logger.h>
+#include <tbox/MemoryDatabase.h>
 
 #include <BergerRigoutsos.h>
 #include <BoxArray.h>
@@ -1227,6 +1226,8 @@ check_matrix_reference_lifetime(LevelFixture& fixture)
         solver.setOperatorMat(nullptr);
         solver.setOperatorMat(nullptr);
         valid = matrix_references(b) == 2 && valid;
+        solver.setOperatorMat(a);
+        valid = matrix_references(a) == 2 && valid;
         // Destruction must release inputs even without initialization.
     }
     valid = matrix_references(a) == 1 && matrix_references(b) == 1 && valid;
