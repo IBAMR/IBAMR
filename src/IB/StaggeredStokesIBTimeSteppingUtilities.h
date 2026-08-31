@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_inl_h
-#define included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_inl_h
+#ifndef included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
+#define included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
 
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/ibamr_enums.h>
@@ -23,6 +23,10 @@
 #include <string>
 
 namespace IBAMR
+{
+// Implementation shared only by the nonlinear and Jacobian operators. This
+// header is not installed; each translation unit keeps its own internal helpers.
+namespace
 {
 enum class StaggeredStokesIBVelocityState
 {
@@ -105,6 +109,7 @@ advance_staggered_stokes_ib_strategy(IBImplicitStrategy& ib_implicit_ops,
     }
     return;
 }
+} // namespace
 } // namespace IBAMR
 
-#endif // #ifndef included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_inl_h
+#endif // #ifndef included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
