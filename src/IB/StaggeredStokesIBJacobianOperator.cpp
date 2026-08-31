@@ -17,7 +17,6 @@
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
-#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities-inl.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -26,6 +25,7 @@
 #include <tbox/Pointer.h>
 
 #include <SAMRAIVectorReal.h>
+#include <StaggeredStokesIBTimeSteppingUtilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -216,6 +216,8 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                               y.getComponentDescriptorIndex(1),
                                                               d_ctx.p_dof_index_idx,
                                                               d_ctx.patch_level);
+        // The supplied coupling matrix already includes its sign and time-step
+        // factors: add it directly to the Stokes action in coupled DOF ordering.
         ierr = MatMultAdd(d_SAJ_mat, d_input_vec, d_output_vec, d_output_vec);
         IBTK_CHKERRQ(ierr);
         StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(d_output_vec,
@@ -255,6 +257,9 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
     {
         d_ctx.ib_implicit_ops->createSolverVecs(&d_solver_X, &d_solver_X0);
     }
+    // With zero position input, the linearized position residual is -dt*J*u.
+    // Interpolating -beta*u therefore produces dt*beta*J*u below, where beta
+    // is 1 for backward Euler and 1/2 for trapezoidal/midpoint.
     d_ctx.ib_implicit_ops->setupSolverVecs(nullptr, &d_solver_X0);
 
     d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -step_parameters.jacobian_force_scale, u_idx);
@@ -267,6 +272,12 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
         d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
 
+    // Apply the force derivative K at the position cached by formJacobian(),
+    // spread it, and subtract beta times the result. With fixed interpolation
+    // J and spreading S, the added momentum block is -dt*beta^2*S*K*J.
+    // For trapezoidal the two halves are the position and force weights; for
+    // midpoint their product accounts for both velocity and position averaging.
+    // The Stokes pressure/divergence action is unchanged.
     d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, step_parameters.force_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)
