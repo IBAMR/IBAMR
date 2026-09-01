@@ -327,7 +327,9 @@ enum_to_string<TimeSteppingType>(TimeSteppingType val)
 
 /*!
  * \brief Enumerated type for delta functions used by implicit IB
- * coupling.
+ * coupling. For COMPOSITE_BSPLINE_XY, X is the B-spline order in
+ * the face-normal direction and Y is the order in the face-tangential
+ * direction(s) of each side-centered velocity component.
  */
 enum DeltaFunctionType
 {
@@ -339,9 +341,13 @@ enum DeltaFunctionType
     BSPLINE_4,
     BSPLINE_5,
     BSPLINE_6,
+    COMPOSITE_BSPLINE_23,
     COMPOSITE_BSPLINE_32,
+    COMPOSITE_BSPLINE_34,
     COMPOSITE_BSPLINE_43,
+    COMPOSITE_BSPLINE_45,
     COMPOSITE_BSPLINE_54,
+    COMPOSITE_BSPLINE_56,
     COMPOSITE_BSPLINE_65,
     IB_3,
     IB_4,
@@ -362,9 +368,13 @@ string_to_enum<DeltaFunctionType>(const std::string& val)
     if (strcasecmp(val.c_str(), "BSPLINE_4") == 0) return BSPLINE_4;
     if (strcasecmp(val.c_str(), "BSPLINE_5") == 0) return BSPLINE_5;
     if (strcasecmp(val.c_str(), "BSPLINE_6") == 0) return BSPLINE_6;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_23") == 0) return COMPOSITE_BSPLINE_23;
     if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_32") == 0) return COMPOSITE_BSPLINE_32;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_34") == 0) return COMPOSITE_BSPLINE_34;
     if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_43") == 0) return COMPOSITE_BSPLINE_43;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_45") == 0) return COMPOSITE_BSPLINE_45;
     if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_54") == 0) return COMPOSITE_BSPLINE_54;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_56") == 0) return COMPOSITE_BSPLINE_56;
     if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_65") == 0) return COMPOSITE_BSPLINE_65;
     if (strcasecmp(val.c_str(), "IB_3") == 0) return IB_3;
     if (strcasecmp(val.c_str(), "IB_4") == 0) return IB_4;
@@ -383,9 +393,13 @@ enum_to_string<DeltaFunctionType>(DeltaFunctionType val)
     if (val == BSPLINE_4) return "BSPLINE_4";
     if (val == BSPLINE_5) return "BSPLINE_5";
     if (val == BSPLINE_6) return "BSPLINE_6";
+    if (val == COMPOSITE_BSPLINE_23) return "COMPOSITE_BSPLINE_23";
     if (val == COMPOSITE_BSPLINE_32) return "COMPOSITE_BSPLINE_32";
+    if (val == COMPOSITE_BSPLINE_34) return "COMPOSITE_BSPLINE_34";
     if (val == COMPOSITE_BSPLINE_43) return "COMPOSITE_BSPLINE_43";
+    if (val == COMPOSITE_BSPLINE_45) return "COMPOSITE_BSPLINE_45";
     if (val == COMPOSITE_BSPLINE_54) return "COMPOSITE_BSPLINE_54";
+    if (val == COMPOSITE_BSPLINE_56) return "COMPOSITE_BSPLINE_56";
     if (val == COMPOSITE_BSPLINE_65) return "COMPOSITE_BSPLINE_65";
     if (val == IB_3) return "IB_3";
     if (val == IB_4) return "IB_4";

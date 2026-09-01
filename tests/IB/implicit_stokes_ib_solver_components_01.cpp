@@ -69,15 +69,19 @@ three_point_probe(double r, double* w)
 int
 check_enums_and_kernels()
 {
-    const std::array<DeltaFunctionType, 14> types = { PIECEWISE_CONSTANT,
+    const std::array<DeltaFunctionType, 18> types = { PIECEWISE_CONSTANT,
                                                       PIECEWISE_LINEAR,
                                                       BSPLINE_3,
                                                       BSPLINE_4,
                                                       BSPLINE_5,
                                                       BSPLINE_6,
+                                                      COMPOSITE_BSPLINE_23,
                                                       COMPOSITE_BSPLINE_32,
+                                                      COMPOSITE_BSPLINE_34,
                                                       COMPOSITE_BSPLINE_43,
+                                                      COMPOSITE_BSPLINE_45,
                                                       COMPOSITE_BSPLINE_54,
+                                                      COMPOSITE_BSPLINE_56,
                                                       COMPOSITE_BSPLINE_65,
                                                       IB_3,
                                                       IB_4,

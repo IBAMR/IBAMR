@@ -805,16 +805,16 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
 void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
-                                                 void (*component_interp_fcn)(double r_lower, double* w),
-                                                 int component_interp_stencil,
-                                                 void (*transverse_interp_fcn)(double r_lower, double* w),
-                                                 int transverse_interp_stencil,
+                                                 void (*face_normal_interp_fcn)(double r_lower, double* w),
+                                                 int face_normal_interp_stencil,
+                                                 void (*face_tangential_interp_fcn)(double r_lower, double* w),
+                                                 int face_tangential_interp_stencil,
                                                  Vec& X_vec,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  const int dof_index_idx,
                                                  Pointer<PatchLevel<NDIM>> patch_level)
 {
-    if (component_interp_stencil <= 0 || transverse_interp_stencil <= 0)
+    if (face_normal_interp_stencil <= 0 || face_tangential_interp_stencil <= 0)
     {
         TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp(): stencil sizes must be positive\n");
     }
@@ -921,7 +921,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             std::array<int, NDIM> interp_stencil = {};
             for (int d = 0; d < NDIM; ++d)
             {
-                interp_stencil[d] = (d == axis ? component_interp_stencil : transverse_interp_stencil);
+                interp_stencil[d] = (d == axis ? face_normal_interp_stencil : face_tangential_interp_stencil);
             }
             Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
             hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
@@ -1006,7 +1006,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             std::array<int, NDIM> interp_stencil = {};
             for (int d = 0; d < NDIM; ++d)
             {
-                interp_stencil[d] = (d == axis ? component_interp_stencil : transverse_interp_stencil);
+                interp_stencil[d] = (d == axis ? face_normal_interp_stencil : face_tangential_interp_stencil);
                 w[d].resize(interp_stencil[d]);
             }
             int stencil_box_nvals = 1;
@@ -1026,11 +1026,11 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                     (static_cast<double>(i - domain_lower(d)) + (d == axis ? 0.0 : 0.5)) * dx[d] + x_lower[d];
                 if (d == axis)
                 {
-                    component_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
+                    face_normal_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
                 }
                 else
                 {
-                    transverse_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
+                    face_tangential_interp_fcn((X[d] - X_stencil_lower) / dx[d], &w[d][0]);
                 }
             }
 
