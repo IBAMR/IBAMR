@@ -130,7 +130,8 @@ public:
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator for the provided kernel function.
+     * side-centered IB interpolation operator for the provided one-dimensional
+     * kernel function, using that kernel in every coordinate direction.
      *
      * Odd-width stencils are centered on the nearest grid point, choosing the
      * higher index at a tie. Even-width stencils retain their cell-based placement.
@@ -148,19 +149,21 @@ public:
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator with distinct one-dimensional
-     * kernels in the velocity-component and transverse directions.
+     * side-centered IB interpolation operator with possibly distinct
+     * one-dimensional kernels in the face-normal and face-tangential directions.
+     * For each side-centered component, the face-normal direction is its component
+     * axis and the remaining coordinate directions are face-tangential.
      *
      * Each direction uses its own stencil width and centering. The callback
-     * convention and odd-width tie rule are the same as in the scalar overload.
+     * convention and odd-width tie rule are the same as in the single-kernel overload.
      *
      * \warning This routine does not properly handle physical boundary conditions.
      */
     static void constructPatchLevelSCInterpOp(Mat& mat,
-                                              void (*component_interp_fcn)(double r_lower, double* w),
-                                              int component_interp_stencil,
-                                              void (*transverse_interp_fcn)(double r_lower, double* w),
-                                              int transverse_interp_stencil,
+                                              void (*face_normal_interp_fcn)(double r_lower, double* w),
+                                              int face_normal_interp_stencil,
+                                              void (*face_tangential_interp_fcn)(double r_lower, double* w),
+                                              int face_tangential_interp_stencil,
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
