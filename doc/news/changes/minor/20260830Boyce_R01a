@@ -1,2 +1,2 @@
-New: Support component/transverse IB interpolation kernels and odd-width stencils. <br>
+New: Support face-normal/face-tangential IB interpolation kernels, including composite B-spline pairs and odd-width stencils. <br>
 (Boyce Griffith, 2026/08/30)
