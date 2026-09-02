@@ -34,7 +34,7 @@ require(bool valid, const std::string& message)
 
 template <class F>
 void
-requireInvalid(F operation)
+require_invalid(F operation)
 {
     bool rejected = false;
     try
@@ -77,7 +77,7 @@ main()
                 const IBKernel kernel(spelling);
                 require(kernel.getName() == name, "scalar canonical spelling");
                 require(kernel == IBKernel(name), "scalar equality");
-                require(IBKernelTensorProduct::fromName(spelling) == IBKernelTensorProduct(kernel, kernel),
+                require(IBKernelTensorProduct::from_name(spelling) == IBKernelTensorProduct(kernel, kernel),
                         "isotropic legacy name");
                 require(IBKernelTensorProduct(kernel) == IBKernelTensorProduct(kernel, kernel),
                         "isotropic constructor");
@@ -89,7 +89,7 @@ main()
             for (const auto& spelling : spellings(alias.first))
             {
                 require(IBKernel(spelling).getName() == alias.second, "scalar alias");
-                require(IBKernelTensorProduct::fromName(spelling) == IBKernelTensorProduct::fromName(alias.second),
+                require(IBKernelTensorProduct::from_name(spelling) == IBKernelTensorProduct::from_name(alias.second),
                         "isotropic alias");
             }
 
@@ -110,14 +110,14 @@ main()
         for (const auto& expected : composites)
             for (const auto& spelling : spellings(expected.name))
             {
-                const auto product = IBKernelTensorProduct::fromName(spelling);
+                const auto product = IBKernelTensorProduct::from_name(spelling);
                 require(product.getNormalKernel().getName() == expected.normal, "normal factor");
                 require(product.getTangentialKernel().getName() == expected.tangential, "tangential factor");
                 require(product == IBKernelTensorProduct(IBKernel(expected.normal), IBKernel(expected.tangential)),
                         "ordered product");
                 require(product != IBKernelTensorProduct(IBKernel(expected.tangential), IBKernel(expected.normal)),
                         "reversed product");
-                requireInvalid([&] { IBKernel scalar(spelling); });
+                require_invalid([&] { IBKernel scalar(spelling); });
             }
 
         std::string name = "ApplicationKernel";
@@ -128,7 +128,7 @@ main()
         require(IBKernel("IB_4_custom").getName() == "IB_4_custom", "custom built-in prefix");
         require(IBKernel("composite_bspline_custom").getName() == "composite_bspline_custom",
                 "custom composite-like prefix");
-        require(IBKernelTensorProduct::fromName(custom.getName()) == IBKernelTensorProduct(custom),
+        require(IBKernelTensorProduct::from_name(custom.getName()) == IBKernelTensorProduct(custom),
                 "custom isotropic interpretation");
         IBKernel normal("ApplicationKernel"), tangential("AnotherKernel");
         const IBKernelTensorProduct product(normal, tangential);
@@ -145,8 +145,8 @@ main()
                     IBKernelTensorProduct(IBKernel("BSPLINE_1")),
                 "normalized factor equality");
 
-        requireInvalid([] { IBKernel empty(""); });
-        requireInvalid([] { IBKernelTensorProduct::fromName(""); });
+        require_invalid([] { IBKernel empty(""); });
+        require_invalid([] { IBKernelTensorProduct::from_name(""); });
 
         std::ofstream out("output");
         out << "Scalar names and aliases: PASS\n"

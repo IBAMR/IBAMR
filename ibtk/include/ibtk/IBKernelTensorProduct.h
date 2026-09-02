@@ -36,15 +36,10 @@ class IBKernelTensorProduct
 {
 public:
     //! Construct the isotropic product (kernel,kernel).
-    explicit IBKernelTensorProduct(const IBKernel& kernel) : IBKernelTensorProduct(kernel, kernel)
-    {
-    }
+    explicit IBKernelTensorProduct(const IBKernel& kernel);
 
     //! Construct an ordered face-normal/face-tangential product.
-    IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential)
-        : d_normal(normal), d_tangential(tangential)
-    {
-    }
+    IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential);
 
     /*!
      * \brief Interpret an existing kernel name or a custom scalar identity.
@@ -57,27 +52,15 @@ public:
      *
      * \throws std::invalid_argument if the name is empty.
      */
-    static IBKernelTensorProduct fromName(const std::string& name);
+    static IBKernelTensorProduct from_name(const std::string& name);
 
-    const IBKernel& getNormalKernel() const
-    {
-        return d_normal;
-    }
+    const IBKernel& getNormalKernel() const;
 
-    const IBKernel& getTangentialKernel() const
-    {
-        return d_tangential;
-    }
+    const IBKernel& getTangentialKernel() const;
 
-    bool operator==(const IBKernelTensorProduct& other) const
-    {
-        return d_normal == other.d_normal && d_tangential == other.d_tangential;
-    }
+    bool operator==(const IBKernelTensorProduct& other) const;
 
-    bool operator!=(const IBKernelTensorProduct& other) const
-    {
-        return !(*this == other);
-    }
+    bool operator!=(const IBKernelTensorProduct& other) const;
 
 private:
     IBKernel d_normal, d_tangential;
