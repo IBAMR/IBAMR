@@ -32,6 +32,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/SCLaplaceOperator.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -69,6 +70,21 @@ main(int argc, char** argv)
         // file, and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+        // Expected-error cases still need an output file for attest. Successful
+        // cases replace this placeholder with their computed values below.
+        std::ofstream initial_output("output");
+        initial_output << '\n';
+        initial_output.close();
+        const std::string kernel_name = input_db->getString("IB_DELTA_FUNCTION");
+        if (input_db->keyExists("EXPECTED_CANONICAL_KERNEL"))
+        {
+            const std::string canonical_name =
+                IBTK::enum_to_string(IBTK::string_to_enum<IBTK::IBKernelType>(kernel_name));
+            const std::string expected_name = input_db->getString("EXPECTED_CANONICAL_KERNEL");
+            if (canonical_name != expected_name)
+                TBOX_ERROR("kernel " << kernel_name << " resolved to " << canonical_name << " instead of "
+                                     << expected_name << '\n');
+        }
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
@@ -96,7 +112,7 @@ main(int argc, char** argv)
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        const int n_ghosts = LEInteractor::getMinimumGhostWidth(input_db->getString("IB_DELTA_FUNCTION"));
+        const int n_ghosts = LEInteractor::getMinimumGhostWidth(kernel_name);
         Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(n_ghosts));
 
@@ -177,8 +193,7 @@ main(int argc, char** argv)
             for (double& v : X_data) v = distribution(std_seq);
 
             // interpolate:
-            const std::string interp_fcn = input_db->getString("IB_DELTA_FUNCTION");
-            LEInteractor::interpolate(Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, interp_fcn);
+            LEInteractor::interpolate(Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, kernel_name);
 
             // output:
             std::ofstream out("output");
@@ -207,7 +222,7 @@ main(int argc, char** argv)
                         // the ultra-wide kernels have a lot of trouble with
                         // roundoff that is evident at different optimization
                         // settings
-                        const double tol = LEInteractor::getStencilSize(interp_fcn) > 4 ? 1e-10 : 1e-12;
+                        const double tol = LEInteractor::getStencilSize(kernel_name) > 4 ? 1e-10 : 1e-12;
                         const double error = std::abs(Q_data[point_n * NDIM + d] - exact);
                         if (error > tol)
                         {

@@ -1,0 +1,42 @@
+Number of elements: 10
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+patch number 0
+Array side normal = 0
+Array depth = 0
+array(4,2) = 0.01664077774854435
+array(5,2) = 0.1404823448940178
+array(3,3) = 0.1402545026374924
+array(4,3) = 2.82593411724765
+array(5,3) = 2.574295934503226
+array(6,3) = 1.409260212886588
+array(3,4) = 0.08372198057458584
+array(4,4) = 1.482404158360063
+array(5,4) = 3.831765703971977
+array(6,4) = 2.279965150739451
+array(7,4) = 0.001125336782656892
+array(3,5) = 0.003562393076052621
+array(4,5) = 0.2220589468268332
+array(5,5) = 0.6394873444460495
+array(6,5) = 0.5347927066367937
+Array side normal = 1
+Array depth = 0
+array(4,2) = 0.002636490745101867
+array(3,3) = 1.006566647601294
+array(4,3) = 2.728991011922085
+array(5,3) = 1.75647691905981
+array(3,4) = 1.149274868919869
+array(4,4) = 3.259271903557273
+array(5,4) = 4.673486396780983
+array(6,4) = 0.1168529984397625
+array(3,5) = 0.3761612660520485
+array(4,5) = 2.493800048355091
+array(5,5) = 3.525047153306724
+array(6,5) = 0.01348025920283301
+array(3,6) = 0.01278403045668678
+array(4,6) = 0.08903112834022602
+array(5,6) = 0.1018904885921936

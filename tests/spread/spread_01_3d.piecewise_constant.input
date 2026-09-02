@@ -9,6 +9,7 @@ MFAC = 2.0
 ELEM_TYPE = "HEX8"
 
 IB_DELTA_FUNCTION = "PIECEWISE_CONSTANT"
+EXPECTED_CANONICAL_KERNEL = "BSPLINE_1"
 
 VelocityInitialConditions {
 function_0 = "X_0 + 2*X_1*X_1 + 2*X_2"

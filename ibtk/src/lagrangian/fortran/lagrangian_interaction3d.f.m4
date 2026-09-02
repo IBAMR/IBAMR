@@ -229,13 +229,13 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
-c     discontinuous linear delta function.
+c     Interpolate u onto V at the positions specified by X using a
+c     composite first-order/second-order B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine lagrangian_discontinuous_linear_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+      subroutine lagrangian_composite_bspline_12_21_interp3d(
+     &     dx,x_lower,x_upper,depth,axis,normal_order,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
@@ -246,7 +246,7 @@ c
 c
 c     Input.
 c
-      INTEGER depth,axis
+      INTEGER depth,axis,normal_order
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
@@ -291,7 +291,8 @@ c
       nugc(1) = nugc1
       nugc(2) = nugc2
 c
-c     Use the discontinuous linear delta function to interpolate u onto V.
+c     Use the selected ordered composite B-spline delta function to
+c     interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
@@ -309,7 +310,8 @@ c
      &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-            if ( d.eq.axis ) then
+            if ( (normal_order.eq.2 .and. d.eq.axis) .or.
+     &           (normal_order.eq.1 .and. d.ne.axis) ) then
                if ( X_shifted(d).lt.X_cell(d) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
@@ -357,14 +359,14 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
-c     discontinuous linear delta function using standard (double) precision
-c     accumulation on the Cartesian grid.
+c     Spread V onto u at the positions specified by X using a composite
+c     first-order/second-order B-spline delta function using standard
+c     (double) precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine lagrangian_discontinuous_linear_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
+      subroutine lagrangian_composite_bspline_12_21_spread3d(
+     &     dx,x_lower,x_upper,depth,axis,normal_order,
      &     indices,Xshift,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
@@ -375,7 +377,7 @@ c
 c
 c     Input.
 c
-      INTEGER depth,axis
+      INTEGER depth,axis,normal_order
       INTEGER nindices
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
@@ -420,7 +422,8 @@ c
       nugc(1) = nugc1
       nugc(2) = nugc2
 c
-c     Use the discontinuous linear delta function to interpolate u onto V.
+c     Use the selected ordered composite B-spline delta function to spread
+c     V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
@@ -438,7 +441,8 @@ c
      &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-            if ( d.eq.axis ) then
+            if ( (normal_order.eq.2 .and. d.eq.axis) .or.
+     &           (normal_order.eq.1 .and. d.ne.axis) ) then
                if ( X_shifted(d).lt.X_cell(d) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)

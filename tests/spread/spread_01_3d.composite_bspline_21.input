@@ -6,14 +6,15 @@ N = 8
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
 DX  = L/NFINEST
 MFAC = 2.0
-ELEM_TYPE = "TRI3"
+ELEM_TYPE = "HEX8"
 
-IB_DELTA_FUNCTION = "DISCONTINUOUS_LINEAR"
+IB_DELTA_FUNCTION = "COMPOSITE_BSPLINE_21"
 EXPECTED_CANONICAL_KERNEL = "COMPOSITE_BSPLINE_21"
 
 VelocityInitialConditions {
-function_0 = "X_0 + 2*X_1*X_1"
-function_1 = "2*X_0 + 3*X_0*X_0 - 2*X_1"
+function_0 = "X_0 + 2*X_1*X_1 + 2*X_2"
+function_1 = "2*X_0 + 3*X_0*X_0 - 2*X_1 + X_2*X_2"
+function_2 = "2*X_0 + 3*X_0*X_0 - 2*X_1 + X_2*X_2*X_0"
 }
 
 PressureInitialConditions {function = "42.0"}
@@ -37,24 +38,24 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = 0,0
-   x_up = L,L
-   periodic_dimension = 0,0
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0,0,0
+   x_up = L,L,L
+   periodic_dimension = 0,0,0
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8  // all finer levels will use same values as level_0
+      level_0 =   8,  8,  8  // all finer levels will use same values as level_0
    }
 }
 
