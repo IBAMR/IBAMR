@@ -21,7 +21,7 @@ namespace
 {
 // Only built-in spellings are case-insensitive. Never modify a custom identity.
 std::string
-uppercaseName(std::string name)
+uppercase_name(std::string name)
 {
     for (char& c : name)
         if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
@@ -30,7 +30,7 @@ uppercaseName(std::string name)
 
 // Zero means this is not a recognized composite spelling.
 int
-compositeOrders(const std::string& name)
+composite_orders(const std::string& name)
 {
     if (name == "DISCONTINUOUS_LINEAR") return 21;
     const int pairs[] = { 12, 21, 23, 32, 34, 43, 45, 54, 56, 65 };
@@ -45,8 +45,8 @@ namespace IBTK
 IBKernel::IBKernel(const std::string& name) : d_name(name)
 {
     if (name.empty()) throw std::invalid_argument("IBKernel requires a nonempty scalar name");
-    const std::string upper = uppercaseName(name);
-    if (compositeOrders(upper))
+    const std::string upper = uppercase_name(name);
+    if (composite_orders(upper))
         throw std::invalid_argument("IBKernel requires a scalar name, not a composite kernel name");
     if (upper == "PIECEWISE_CONSTANT")
         d_name = "BSPLINE_1";
@@ -67,10 +67,61 @@ IBKernel::IBKernel(const std::string& name) : d_name(name)
     }
 }
 
-IBKernelTensorProduct
-IBKernelTensorProduct::fromName(const std::string& name)
+const std::string&
+IBKernel::getName() const
 {
-    const int orders = compositeOrders(uppercaseName(name));
+    return d_name;
+}
+
+bool
+IBKernel::operator==(const IBKernel& other) const
+{
+    return d_name == other.d_name;
+}
+
+bool
+IBKernel::operator!=(const IBKernel& other) const
+{
+    return !(*this == other);
+}
+
+IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& kernel) : IBKernelTensorProduct(kernel, kernel)
+{
+}
+
+IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential)
+    : d_normal(normal), d_tangential(tangential)
+{
+}
+
+const IBKernel&
+IBKernelTensorProduct::getNormalKernel() const
+{
+    return d_normal;
+}
+
+const IBKernel&
+IBKernelTensorProduct::getTangentialKernel() const
+{
+    return d_tangential;
+}
+
+bool
+IBKernelTensorProduct::operator==(const IBKernelTensorProduct& other) const
+{
+    return d_normal == other.d_normal && d_tangential == other.d_tangential;
+}
+
+bool
+IBKernelTensorProduct::operator!=(const IBKernelTensorProduct& other) const
+{
+    return !(*this == other);
+}
+
+IBKernelTensorProduct
+IBKernelTensorProduct::from_name(const std::string& name)
+{
+    const int orders = composite_orders(uppercase_name(name));
     if (orders)
         return IBKernelTensorProduct(IBKernel("BSPLINE_" + std::to_string(orders / 10)),
                                      IBKernel("BSPLINE_" + std::to_string(orders % 10)));

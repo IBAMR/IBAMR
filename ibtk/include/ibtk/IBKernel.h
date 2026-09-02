@@ -40,25 +40,16 @@ public:
      *
      * \throws std::invalid_argument if the name is empty or is a recognized
      * composite name (including DISCONTINUOUS_LINEAR). Use
-     * IBKernelTensorProduct::fromName() to interpret those composite names.
+     * IBKernelTensorProduct::from_name() to interpret those composite names.
      */
     explicit IBKernel(const std::string& name);
 
     //! Return the owned scalar name, with built-in aliases normalized.
-    const std::string& getName() const
-    {
-        return d_name;
-    }
+    const std::string& getName() const;
 
-    bool operator==(const IBKernel& other) const
-    {
-        return d_name == other.d_name;
-    }
+    bool operator==(const IBKernel& other) const;
 
-    bool operator!=(const IBKernel& other) const
-    {
-        return !(*this == other);
-    }
+    bool operator!=(const IBKernel& other) const;
 
 private:
     std::string d_name;
