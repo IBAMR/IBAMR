@@ -18,7 +18,6 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/LIndexSetData.h>
 #include <ibtk/LSet.h>
-#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -63,10 +62,10 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC                                                                        \
     IBTK_FC_FUNC_(lagrangian_piecewise_constant_spread2d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD2D)
 
-#define LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP_FC                                                                   \
-    IBTK_FC_FUNC_(lagrangian_composite_bspline_12_21_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP2D)
-#define LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD_FC                                                                   \
-    IBTK_FC_FUNC_(lagrangian_composite_bspline_12_21_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD2D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP2D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD2D)
 
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC                                                                          \
     IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D)
@@ -152,10 +151,10 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC                                                                        \
     IBTK_FC_FUNC_(lagrangian_piecewise_constant_spread3d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD3D)
 
-#define LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP_FC                                                                   \
-    IBTK_FC_FUNC_(lagrangian_composite_bspline_12_21_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP3D)
-#define LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD_FC                                                                   \
-    IBTK_FC_FUNC_(lagrangian_composite_bspline_12_21_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD3D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP3D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD3D)
 
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC                                                                          \
     IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp3d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP3D)
@@ -297,69 +296,67 @@ extern "C"
 #endif
                                                  double*);
 
-    void LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP_FC(const double*,
-                                                      const double*,
-                                                      const double*,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
+    void LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
 #if (NDIM == 2)
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
 #endif
 #if (NDIM == 3)
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
 #endif
-                                                      const double*,
-                                                      const int*,
-                                                      const double*,
-                                                      const int&,
-                                                      const double*,
-                                                      double*);
+                                                   const double*,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   double*);
 
-    void LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD_FC(const double*,
-                                                      const double*,
-                                                      const double*,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int*,
-                                                      const double*,
-                                                      const int&,
-                                                      const double*,
-                                                      const double*,
+    void LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
 #if (NDIM == 2)
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
 #endif
 #if (NDIM == 3)
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
-                                                      const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
 #endif
-                                                      double*);
+                                                   double*);
 
     void LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(const double*,
                                                const double*,
@@ -1893,25 +1890,129 @@ spread_data(const int stencil_sz,
 #endif
 } // spread_data
 
-IBKernelType
-get_kernel_type(const std::string& kernel_fcn)
+// For internal use - convert to an enumeration. This may make it into the
+// public interface one day but for backwards compatibility we accept only
+// strings for now.
+enum KernelType
 {
-    // LEInteractor may dispatch the same kernel many times in a tight loop.
-    // Retain the semantic catalog as the single parser while avoiding repeated
-    // string comparisons on the common unchanged-kernel path.
-    static thread_local std::string cached_kernel_fcn;
-    static thread_local IBKernelType cached_kernel_type = IBKernelType::UNKNOWN;
-    if (kernel_fcn == cached_kernel_fcn) return cached_kernel_type;
+    BSPLINE_3,
+    BSPLINE_4,
+    BSPLINE_5,
+    BSPLINE_6,
+    COMPOSITE_BSPLINE_23,
+    COMPOSITE_BSPLINE_32,
+    COMPOSITE_BSPLINE_34,
+    COMPOSITE_BSPLINE_43,
+    COMPOSITE_BSPLINE_45,
+    COMPOSITE_BSPLINE_54,
+    COMPOSITE_BSPLINE_56,
+    COMPOSITE_BSPLINE_65,
+    DISCONTINUOUS_LINEAR,
+    PIECEWISE_CONSTANT,
+    PIECEWISE_LINEAR,
+    PIECEWISE_CUBIC,
+    IB_3,
+    IB_4,
+    IB_4_W8,
+    IB_5,
+    IB_6,
+    USER_DEFINED,
+    INVALID
+};
 
-    const IBKernelType kernel_type = string_to_enum<IBKernelType>(kernel_fcn);
-    if (kernel_type == IBKernelType::UNKNOWN)
+KernelType
+string_to_kernel(const std::string& kernel_fcn)
+{
+    // Some IBAMR applications want to call this function *a lot*, e.g., ideally
+    // we would call this on every element in a finite element mesh instead of
+    // batching with huge temporary arrays. Hence doing all these string
+    // comparisons can get surprisingly expensive. Chop them up first with a
+    // switch statement.
+#ifndef NDEBUG
+    if (!LEInteractor::isKnownKernel(kernel_fcn))
     {
         TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
-        return IBKernelType::UNKNOWN;
+        return INVALID;
     }
-    cached_kernel_fcn = kernel_fcn;
-    cached_kernel_type = kernel_type;
-    return kernel_type;
+#endif
+    switch (kernel_fcn.front())
+    {
+    // BSPLINE family
+    case 'B':
+    {
+        switch (kernel_fcn.back())
+        {
+        case '3':
+            return BSPLINE_3;
+        case '4':
+            return BSPLINE_4;
+        case '5':
+            return BSPLINE_5;
+        case '6':
+            return BSPLINE_6;
+        }
+        break;
+    }
+    // COMPOSITE_BSPLINE family
+    case 'C':
+    {
+        switch (kernel_fcn.back())
+        {
+        case '2':
+            return COMPOSITE_BSPLINE_32;
+        case '3':
+            return kernel_fcn[18] == '4' ? COMPOSITE_BSPLINE_43 : COMPOSITE_BSPLINE_23;
+        case '4':
+            return kernel_fcn[18] == '5' ? COMPOSITE_BSPLINE_54 : COMPOSITE_BSPLINE_34;
+        case '5':
+            return kernel_fcn[18] == '6' ? COMPOSITE_BSPLINE_65 : COMPOSITE_BSPLINE_45;
+        case '6':
+            return COMPOSITE_BSPLINE_56;
+        }
+        break;
+    }
+    // DISCONTINUOUS family
+    case 'D':
+    {
+        return DISCONTINUOUS_LINEAR;
+    }
+    // PIECEWISE family
+    case 'P':
+    {
+        switch (kernel_fcn[11])
+        {
+        case 'O':
+            return PIECEWISE_CONSTANT;
+        case 'I':
+            return PIECEWISE_LINEAR;
+        case 'U':
+            return PIECEWISE_CUBIC;
+        }
+        break;
+    }
+    // classic IB family
+    case 'I':
+    {
+        switch (kernel_fcn[3])
+        {
+        case '3':
+            return IB_3;
+        case '4':
+            return kernel_fcn.size() == 4 ? IB_4 : IB_4_W8;
+        case '5':
+            return IB_5;
+        case '6':
+            return IB_6;
+        }
+        break;
+    }
+    // user defined
+    case 'U':
+        return USER_DEFINED;
+    }
+
+    TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
+    return INVALID;
 }
 } // namespace
 
@@ -1937,60 +2038,67 @@ LEInteractor::printClassData(std::ostream& os)
 bool
 LEInteractor::isKnownKernel(const std::string& kernel_fcn)
 {
-    return string_to_enum<IBKernelType>(kernel_fcn) != IBKernelType::UNKNOWN;
+    return kernel_fcn == "BSPLINE_3" || kernel_fcn == "BSPLINE_4" || kernel_fcn == "BSPLINE_5" ||
+           kernel_fcn == "BSPLINE_6" || kernel_fcn == "COMPOSITE_BSPLINE_23" || kernel_fcn == "COMPOSITE_BSPLINE_32" ||
+           kernel_fcn == "COMPOSITE_BSPLINE_34" || kernel_fcn == "COMPOSITE_BSPLINE_43" ||
+           kernel_fcn == "COMPOSITE_BSPLINE_45" || kernel_fcn == "COMPOSITE_BSPLINE_54" ||
+           kernel_fcn == "COMPOSITE_BSPLINE_56" || kernel_fcn == "COMPOSITE_BSPLINE_65" ||
+           kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_CONSTANT" ||
+           kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC" || kernel_fcn == "IB_3" ||
+           kernel_fcn == "IB_4" || kernel_fcn == "IB_4_W8" || kernel_fcn == "IB_5" || kernel_fcn == "IB_6" ||
+           kernel_fcn == "USER_DEFINED";
 }
 
 int
 LEInteractor::getStencilSize(const std::string& kernel_fcn)
 {
-    switch (get_kernel_type(kernel_fcn))
+    switch (string_to_kernel(kernel_fcn))
     {
-    case IBKernelType::BSPLINE_1:
+    case BSPLINE_3:
+        return 4;
+    case BSPLINE_4:
+        return 4;
+    case BSPLINE_5:
+        return 6;
+    case BSPLINE_6:
+        return 6;
+    case COMPOSITE_BSPLINE_23:
+        return 4;
+    case COMPOSITE_BSPLINE_32:
+        return 4;
+    case COMPOSITE_BSPLINE_34:
+        return 4;
+    case COMPOSITE_BSPLINE_43:
+        return 4;
+    case COMPOSITE_BSPLINE_45:
+        return 5;
+    case COMPOSITE_BSPLINE_54:
+        return 5;
+    case COMPOSITE_BSPLINE_56:
+        return 6;
+    case COMPOSITE_BSPLINE_65:
+        return 6;
+    case DISCONTINUOUS_LINEAR:
+        return 2;
+    case PIECEWISE_CONSTANT:
         return 1;
-    case IBKernelType::BSPLINE_2:
+    case PIECEWISE_LINEAR:
         return 2;
-    case IBKernelType::BSPLINE_3:
+    case PIECEWISE_CUBIC:
         return 4;
-    case IBKernelType::BSPLINE_4:
+    case IB_3:
         return 4;
-    case IBKernelType::BSPLINE_5:
-        return 6;
-    case IBKernelType::BSPLINE_6:
-        return 6;
-    case IBKernelType::COMPOSITE_BSPLINE_12:
-    case IBKernelType::COMPOSITE_BSPLINE_21:
-        return 2;
-    case IBKernelType::COMPOSITE_BSPLINE_23:
+    case IB_4:
         return 4;
-    case IBKernelType::COMPOSITE_BSPLINE_32:
-        return 4;
-    case IBKernelType::COMPOSITE_BSPLINE_34:
-        return 4;
-    case IBKernelType::COMPOSITE_BSPLINE_43:
-        return 4;
-    case IBKernelType::COMPOSITE_BSPLINE_45:
-        return 5;
-    case IBKernelType::COMPOSITE_BSPLINE_54:
-        return 5;
-    case IBKernelType::COMPOSITE_BSPLINE_56:
-        return 6;
-    case IBKernelType::COMPOSITE_BSPLINE_65:
-        return 6;
-    case IBKernelType::PIECEWISE_CUBIC:
-        return 4;
-    case IBKernelType::IB_3:
-        return 4;
-    case IBKernelType::IB_4:
-        return 4;
-    case IBKernelType::IB_4_W8:
+    case IB_4_W8:
         return 8;
-    case IBKernelType::IB_5:
+    case IB_5:
         return 6;
-    case IBKernelType::IB_6:
+    case IB_6:
         return 6;
-    case IBKernelType::USER_DEFINED:
+    case USER_DEFINED:
         return s_kernel_fcn_stencil_size;
-    case IBKernelType::UNKNOWN:
+    case INVALID:
     default:
         TBOX_ERROR("LEInteractor::getStencilSize()\n"
                    << "  Unknown kernel function " << kernel_fcn << std::endl);
@@ -4392,10 +4500,9 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    const IBKernelType kernel_type = get_kernel_type(interp_fcn);
-    switch (kernel_type)
+    switch (string_to_kernel(interp_fcn))
     {
-    case IBKernelType::BSPLINE_1:
+    case PIECEWISE_CONSTANT:
     {
         LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(dx,
                                                 x_lower,
@@ -4428,44 +4535,41 @@ LEInteractor::interpolate(double* const Q_data,
                                                 Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_12:
-    case IBKernelType::COMPOSITE_BSPLINE_21:
+    case DISCONTINUOUS_LINEAR:
     {
-        const int face_normal_order = kernel_type == IBKernelType::COMPOSITE_BSPLINE_12 ? 1 : 2;
-        LAGRANGIAN_COMPOSITE_BSPLINE_12_21_INTERP_FC(dx,
-                                                     x_lower,
-                                                     x_upper,
-                                                     q_depth,
-                                                     axis,
-                                                     face_normal_order,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
 #if (NDIM == 2)
-                                                     ilower(0),
-                                                     iupper(0),
-                                                     ilower(1),
-                                                     iupper(1),
-                                                     q_gcw(0),
-                                                     q_gcw(1),
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                     ilower(0),
-                                                     iupper(0),
-                                                     ilower(1),
-                                                     iupper(1),
-                                                     ilower(2),
-                                                     iupper(2),
-                                                     q_gcw(0),
-                                                     q_gcw(1),
-                                                     q_gcw(2),
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
 #endif
-                                                     q_data,
-                                                     &local_indices[0],
-                                                     &periodic_shifts[0],
-                                                     local_indices_size,
-                                                     X_data,
-                                                     Q_data);
+                                                  q_data,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data);
         break;
     }
-    case IBKernelType::BSPLINE_2:
+    case PIECEWISE_LINEAR:
     {
         LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(dx,
                                               x_lower,
@@ -4498,7 +4602,7 @@ LEInteractor::interpolate(double* const Q_data,
                                               Q_data);
         break;
     }
-    case IBKernelType::PIECEWISE_CUBIC:
+    case PIECEWISE_CUBIC:
     {
         LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(dx,
                                              x_lower,
@@ -4531,7 +4635,7 @@ LEInteractor::interpolate(double* const Q_data,
                                              Q_data);
         break;
     }
-    case IBKernelType::IB_3:
+    case IB_3:
     {
         LAGRANGIAN_IB_3_INTERP_FC(dx,
                                   x_lower,
@@ -4564,7 +4668,7 @@ LEInteractor::interpolate(double* const Q_data,
                                   Q_data);
         break;
     }
-    case IBKernelType::IB_4:
+    case IB_4:
     {
         LAGRANGIAN_IB_4_INTERP_FC(dx,
                                   x_lower,
@@ -4597,7 +4701,7 @@ LEInteractor::interpolate(double* const Q_data,
                                   Q_data);
         break;
     }
-    case IBKernelType::IB_4_W8:
+    case IB_4_W8:
     {
         LAGRANGIAN_IB_4_W8_INTERP_FC(dx,
                                      x_lower,
@@ -4630,7 +4734,7 @@ LEInteractor::interpolate(double* const Q_data,
                                      Q_data);
         break;
     }
-    case IBKernelType::IB_5:
+    case IB_5:
     {
         LAGRANGIAN_IB_5_INTERP_FC(dx,
                                   x_lower,
@@ -4663,7 +4767,7 @@ LEInteractor::interpolate(double* const Q_data,
                                   Q_data);
         break;
     }
-    case IBKernelType::IB_6:
+    case IB_6:
     {
         LAGRANGIAN_IB_6_INTERP_FC(dx,
                                   x_lower,
@@ -4696,7 +4800,7 @@ LEInteractor::interpolate(double* const Q_data,
                                   Q_data);
         break;
     }
-    case IBKernelType::BSPLINE_3:
+    case BSPLINE_3:
     {
         LAGRANGIAN_BSPLINE_3_INTERP_FC(dx,
                                        x_lower,
@@ -4729,7 +4833,7 @@ LEInteractor::interpolate(double* const Q_data,
                                        Q_data);
         break;
     }
-    case IBKernelType::BSPLINE_4:
+    case BSPLINE_4:
     {
         LAGRANGIAN_BSPLINE_4_INTERP_FC(dx,
                                        x_lower,
@@ -4762,7 +4866,7 @@ LEInteractor::interpolate(double* const Q_data,
                                        Q_data);
         break;
     }
-    case IBKernelType::BSPLINE_5:
+    case BSPLINE_5:
     {
         LAGRANGIAN_BSPLINE_5_INTERP_FC(dx,
                                        x_lower,
@@ -4795,7 +4899,7 @@ LEInteractor::interpolate(double* const Q_data,
                                        Q_data);
         break;
     }
-    case IBKernelType::BSPLINE_6:
+    case BSPLINE_6:
     {
         LAGRANGIAN_BSPLINE_6_INTERP_FC(dx,
                                        x_lower,
@@ -4828,7 +4932,7 @@ LEInteractor::interpolate(double* const Q_data,
                                        Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_23:
+    case COMPOSITE_BSPLINE_23:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_23_INTERP_FC(dx,
                                                   x_lower,
@@ -4862,7 +4966,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_32:
+    case COMPOSITE_BSPLINE_32:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_32_INTERP_FC(dx,
                                                   x_lower,
@@ -4896,7 +5000,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_34:
+    case COMPOSITE_BSPLINE_34:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_34_INTERP_FC(dx,
                                                   x_lower,
@@ -4930,7 +5034,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_43:
+    case COMPOSITE_BSPLINE_43:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP_FC(dx,
                                                   x_lower,
@@ -4964,7 +5068,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_45:
+    case COMPOSITE_BSPLINE_45:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_45_INTERP_FC(dx,
                                                   x_lower,
@@ -4998,7 +5102,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_54:
+    case COMPOSITE_BSPLINE_54:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP_FC(dx,
                                                   x_lower,
@@ -5032,7 +5136,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_56:
+    case COMPOSITE_BSPLINE_56:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_56_INTERP_FC(dx,
                                                   x_lower,
@@ -5066,7 +5170,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_65:
+    case COMPOSITE_BSPLINE_65:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP_FC(dx,
                                                   x_lower,
@@ -5100,7 +5204,7 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
-    case IBKernelType::USER_DEFINED:
+    case USER_DEFINED:
     {
         userDefinedInterpolate(Q_data,
                                Q_depth,
@@ -5117,7 +5221,7 @@ LEInteractor::interpolate(double* const Q_data,
                                local_indices_size);
         break;
     }
-    case IBKernelType::UNKNOWN:
+    case INVALID:
     default:
         TBOX_ERROR("LEInteractor::interpolate()\n"
                    << "  Unknown interpolation kernel function " << interp_fcn << std::endl);
@@ -5164,10 +5268,9 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    const IBKernelType kernel_type = get_kernel_type(spread_fcn);
-    switch (kernel_type)
+    switch (string_to_kernel(spread_fcn))
     {
-    case IBKernelType::BSPLINE_1:
+    case PIECEWISE_CONSTANT:
     {
         LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(dx,
                                                 x_lower,
@@ -5200,44 +5303,41 @@ LEInteractor::spread(double* const q_data,
                                                 q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_12:
-    case IBKernelType::COMPOSITE_BSPLINE_21:
+    case DISCONTINUOUS_LINEAR:
     {
-        const int face_normal_order = kernel_type == IBKernelType::COMPOSITE_BSPLINE_12 ? 1 : 2;
-        LAGRANGIAN_COMPOSITE_BSPLINE_12_21_SPREAD_FC(dx,
-                                                     x_lower,
-                                                     x_upper,
-                                                     q_depth,
-                                                     axis,
-                                                     face_normal_order,
-                                                     &local_indices[0],
-                                                     &periodic_shifts[0],
-                                                     local_indices_size,
-                                                     X_data,
-                                                     Q_data,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data,
 #if (NDIM == 2)
-                                                     ilower(0),
-                                                     iupper(0),
-                                                     ilower(1),
-                                                     iupper(1),
-                                                     q_gcw(0),
-                                                     q_gcw(1),
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                     ilower(0),
-                                                     iupper(0),
-                                                     ilower(1),
-                                                     iupper(1),
-                                                     ilower(2),
-                                                     iupper(2),
-                                                     q_gcw(0),
-                                                     q_gcw(1),
-                                                     q_gcw(2),
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
 #endif
-                                                     q_data);
+                                                  q_data);
         break;
     }
-    case IBKernelType::BSPLINE_2:
+    case PIECEWISE_LINEAR:
     {
         LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(dx,
                                               x_lower,
@@ -5270,7 +5370,7 @@ LEInteractor::spread(double* const q_data,
                                               q_data);
         break;
     }
-    case IBKernelType::PIECEWISE_CUBIC:
+    case PIECEWISE_CUBIC:
     {
         LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(dx,
                                              x_lower,
@@ -5303,7 +5403,7 @@ LEInteractor::spread(double* const q_data,
                                              q_data);
         break;
     }
-    case IBKernelType::IB_3:
+    case IB_3:
     {
         LAGRANGIAN_IB_3_SPREAD_FC(dx,
                                   x_lower,
@@ -5336,7 +5436,7 @@ LEInteractor::spread(double* const q_data,
                                   q_data);
         break;
     }
-    case IBKernelType::IB_4:
+    case IB_4:
     {
         LAGRANGIAN_IB_4_SPREAD_FC(dx,
                                   x_lower,
@@ -5369,7 +5469,7 @@ LEInteractor::spread(double* const q_data,
                                   q_data);
         break;
     }
-    case IBKernelType::IB_4_W8:
+    case IB_4_W8:
     {
         LAGRANGIAN_IB_4_W8_SPREAD_FC(dx,
                                      x_lower,
@@ -5402,7 +5502,7 @@ LEInteractor::spread(double* const q_data,
                                      q_data);
         break;
     }
-    case IBKernelType::IB_5:
+    case IB_5:
     {
         LAGRANGIAN_IB_5_SPREAD_FC(dx,
                                   x_lower,
@@ -5435,7 +5535,7 @@ LEInteractor::spread(double* const q_data,
                                   q_data);
         break;
     }
-    case IBKernelType::IB_6:
+    case IB_6:
     {
         LAGRANGIAN_IB_6_SPREAD_FC(dx,
                                   x_lower,
@@ -5468,7 +5568,7 @@ LEInteractor::spread(double* const q_data,
                                   q_data);
         break;
     }
-    case IBKernelType::BSPLINE_3:
+    case BSPLINE_3:
     {
         LAGRANGIAN_BSPLINE_3_SPREAD_FC(dx,
                                        x_lower,
@@ -5501,7 +5601,7 @@ LEInteractor::spread(double* const q_data,
                                        q_data);
         break;
     }
-    case IBKernelType::BSPLINE_4:
+    case BSPLINE_4:
     {
         LAGRANGIAN_BSPLINE_4_SPREAD_FC(dx,
                                        x_lower,
@@ -5534,7 +5634,7 @@ LEInteractor::spread(double* const q_data,
                                        q_data);
         break;
     }
-    case IBKernelType::BSPLINE_5:
+    case BSPLINE_5:
     {
         LAGRANGIAN_BSPLINE_5_SPREAD_FC(dx,
                                        x_lower,
@@ -5567,7 +5667,7 @@ LEInteractor::spread(double* const q_data,
                                        q_data);
         break;
     }
-    case IBKernelType::BSPLINE_6:
+    case BSPLINE_6:
     {
         LAGRANGIAN_BSPLINE_6_SPREAD_FC(dx,
                                        x_lower,
@@ -5600,7 +5700,7 @@ LEInteractor::spread(double* const q_data,
                                        q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_23:
+    case COMPOSITE_BSPLINE_23:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_23_SPREAD_FC(dx,
                                                   x_lower,
@@ -5634,7 +5734,7 @@ LEInteractor::spread(double* const q_data,
                                                   q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_32:
+    case COMPOSITE_BSPLINE_32:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_32_SPREAD_FC(dx,
                                                   x_lower,
@@ -5668,7 +5768,7 @@ LEInteractor::spread(double* const q_data,
                                                   q_data);
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_34:
+    case COMPOSITE_BSPLINE_34:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_34_SPREAD_FC(dx,
                                                   x_lower,
@@ -5703,7 +5803,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_43:
+    case COMPOSITE_BSPLINE_43:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD_FC(dx,
                                                   x_lower,
@@ -5738,7 +5838,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_45:
+    case COMPOSITE_BSPLINE_45:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_45_SPREAD_FC(dx,
                                                   x_lower,
@@ -5773,7 +5873,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_54:
+    case COMPOSITE_BSPLINE_54:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD_FC(dx,
                                                   x_lower,
@@ -5808,7 +5908,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_56:
+    case COMPOSITE_BSPLINE_56:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_56_SPREAD_FC(dx,
                                                   x_lower,
@@ -5843,7 +5943,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::COMPOSITE_BSPLINE_65:
+    case COMPOSITE_BSPLINE_65:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD_FC(dx,
                                                   x_lower,
@@ -5878,7 +5978,7 @@ LEInteractor::spread(double* const q_data,
 
         break;
     }
-    case IBKernelType::USER_DEFINED:
+    case USER_DEFINED:
     {
         userDefinedSpread(q_data,
                           q_data_box,
@@ -5895,7 +5995,7 @@ LEInteractor::spread(double* const q_data,
                           local_indices_size);
         break;
     }
-    case IBKernelType::UNKNOWN:
+    case INVALID:
     default:
     {
         TBOX_ERROR("LEInteractor::spread()\n"

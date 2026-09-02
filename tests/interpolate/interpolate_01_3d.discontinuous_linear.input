@@ -15,7 +15,6 @@ Main {
 
 N = 8
 IB_DELTA_FUNCTION = "DISCONTINUOUS_LINEAR"
-EXPECTED_CANONICAL_KERNEL = "COMPOSITE_BSPLINE_21"
 
 CartesianGeometry {
    domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]

@@ -9,7 +9,6 @@ MFAC = 2.0
 ELEM_TYPE = "TRI3"
 
 IB_DELTA_FUNCTION = "PIECEWISE_LINEAR"
-EXPECTED_CANONICAL_KERNEL = "BSPLINE_2"
 
 VelocityInitialConditions {
 function_0 = "X_0 + 2*X_1*X_1"
