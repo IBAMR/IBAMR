@@ -236,6 +236,109 @@ enum_to_string<TimePoint>(TimePoint val)
     return "UNKNOWN_TIME_POINT";
 }
 
+/*!
+ * \brief Semantic identities for IB interpolation and spreading kernels.
+ *
+ * For COMPOSITE_BSPLINE_XY, X is the B-spline order in the face-normal
+ * direction and Y is the order in the face-tangential direction(s). This
+ * catalog identifies kernels independently of the capabilities and storage
+ * requirements of a particular interpolation or spreading backend.
+ *
+ * PIECEWISE_CONSTANT, PIECEWISE_LINEAR, and DISCONTINUOUS_LINEAR are accepted
+ * as input aliases for BSPLINE_1, BSPLINE_2, and COMPOSITE_BSPLINE_21,
+ * respectively. String conversion always returns the canonical name.
+ */
+enum class IBKernelType
+{
+    BSPLINE_1,
+    BSPLINE_2,
+    BSPLINE_3,
+    BSPLINE_4,
+    BSPLINE_5,
+    BSPLINE_6,
+    COMPOSITE_BSPLINE_12,
+    COMPOSITE_BSPLINE_21,
+    COMPOSITE_BSPLINE_23,
+    COMPOSITE_BSPLINE_32,
+    COMPOSITE_BSPLINE_34,
+    COMPOSITE_BSPLINE_43,
+    COMPOSITE_BSPLINE_45,
+    COMPOSITE_BSPLINE_54,
+    COMPOSITE_BSPLINE_56,
+    COMPOSITE_BSPLINE_65,
+    PIECEWISE_CUBIC,
+    IB_3,
+    IB_4,
+    IB_4_W8,
+    IB_5,
+    IB_6,
+    USER_DEFINED,
+    UNKNOWN
+};
+
+template <>
+inline IBKernelType
+string_to_enum<IBKernelType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "BSPLINE_1") == 0 || strcasecmp(val.c_str(), "PIECEWISE_CONSTANT") == 0)
+        return IBKernelType::BSPLINE_1;
+    if (strcasecmp(val.c_str(), "BSPLINE_2") == 0 || strcasecmp(val.c_str(), "PIECEWISE_LINEAR") == 0)
+        return IBKernelType::BSPLINE_2;
+    if (strcasecmp(val.c_str(), "BSPLINE_3") == 0) return IBKernelType::BSPLINE_3;
+    if (strcasecmp(val.c_str(), "BSPLINE_4") == 0) return IBKernelType::BSPLINE_4;
+    if (strcasecmp(val.c_str(), "BSPLINE_5") == 0) return IBKernelType::BSPLINE_5;
+    if (strcasecmp(val.c_str(), "BSPLINE_6") == 0) return IBKernelType::BSPLINE_6;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_12") == 0) return IBKernelType::COMPOSITE_BSPLINE_12;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_21") == 0 || strcasecmp(val.c_str(), "DISCONTINUOUS_LINEAR") == 0)
+        return IBKernelType::COMPOSITE_BSPLINE_21;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_23") == 0) return IBKernelType::COMPOSITE_BSPLINE_23;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_32") == 0) return IBKernelType::COMPOSITE_BSPLINE_32;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_34") == 0) return IBKernelType::COMPOSITE_BSPLINE_34;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_43") == 0) return IBKernelType::COMPOSITE_BSPLINE_43;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_45") == 0) return IBKernelType::COMPOSITE_BSPLINE_45;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_54") == 0) return IBKernelType::COMPOSITE_BSPLINE_54;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_56") == 0) return IBKernelType::COMPOSITE_BSPLINE_56;
+    if (strcasecmp(val.c_str(), "COMPOSITE_BSPLINE_65") == 0) return IBKernelType::COMPOSITE_BSPLINE_65;
+    if (strcasecmp(val.c_str(), "PIECEWISE_CUBIC") == 0) return IBKernelType::PIECEWISE_CUBIC;
+    if (strcasecmp(val.c_str(), "IB_3") == 0) return IBKernelType::IB_3;
+    if (strcasecmp(val.c_str(), "IB_4") == 0) return IBKernelType::IB_4;
+    if (strcasecmp(val.c_str(), "IB_4_W8") == 0) return IBKernelType::IB_4_W8;
+    if (strcasecmp(val.c_str(), "IB_5") == 0) return IBKernelType::IB_5;
+    if (strcasecmp(val.c_str(), "IB_6") == 0) return IBKernelType::IB_6;
+    if (strcasecmp(val.c_str(), "USER_DEFINED") == 0) return IBKernelType::USER_DEFINED;
+    return IBKernelType::UNKNOWN;
+}
+
+template <>
+inline std::string
+enum_to_string<IBKernelType>(IBKernelType val)
+{
+    if (val == IBKernelType::BSPLINE_1) return "BSPLINE_1";
+    if (val == IBKernelType::BSPLINE_2) return "BSPLINE_2";
+    if (val == IBKernelType::BSPLINE_3) return "BSPLINE_3";
+    if (val == IBKernelType::BSPLINE_4) return "BSPLINE_4";
+    if (val == IBKernelType::BSPLINE_5) return "BSPLINE_5";
+    if (val == IBKernelType::BSPLINE_6) return "BSPLINE_6";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_12) return "COMPOSITE_BSPLINE_12";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_21) return "COMPOSITE_BSPLINE_21";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_23) return "COMPOSITE_BSPLINE_23";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_32) return "COMPOSITE_BSPLINE_32";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_34) return "COMPOSITE_BSPLINE_34";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_43) return "COMPOSITE_BSPLINE_43";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_45) return "COMPOSITE_BSPLINE_45";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_54) return "COMPOSITE_BSPLINE_54";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_56) return "COMPOSITE_BSPLINE_56";
+    if (val == IBKernelType::COMPOSITE_BSPLINE_65) return "COMPOSITE_BSPLINE_65";
+    if (val == IBKernelType::PIECEWISE_CUBIC) return "PIECEWISE_CUBIC";
+    if (val == IBKernelType::IB_3) return "IB_3";
+    if (val == IBKernelType::IB_4) return "IB_4";
+    if (val == IBKernelType::IB_4_W8) return "IB_4_W8";
+    if (val == IBKernelType::IB_5) return "IB_5";
+    if (val == IBKernelType::IB_6) return "IB_6";
+    if (val == IBKernelType::USER_DEFINED) return "USER_DEFINED";
+    return "UNKNOWN_IB_KERNEL_TYPE";
+}
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
