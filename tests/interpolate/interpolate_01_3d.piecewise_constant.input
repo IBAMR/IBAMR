@@ -15,7 +15,6 @@ Main {
 
 N = 8
 IB_DELTA_FUNCTION = "PIECEWISE_CONSTANT"
-EXPECTED_CANONICAL_KERNEL = "BSPLINE_1"
 
 CartesianGeometry {
    domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]

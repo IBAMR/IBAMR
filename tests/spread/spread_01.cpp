@@ -45,7 +45,6 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/ibtk_enums.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -116,16 +115,6 @@ main(int argc, char** argv)
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
         Pointer<Database> input_db = app_initializer->getInputDatabase();
-        if (input_db->keyExists("EXPECTED_CANONICAL_KERNEL"))
-        {
-            const std::string kernel_name = input_db->getString("IB_DELTA_FUNCTION");
-            const std::string canonical_name =
-                IBTK::enum_to_string(IBTK::string_to_enum<IBTK::IBKernelType>(kernel_name));
-            const std::string expected_name = input_db->getString("EXPECTED_CANONICAL_KERNEL");
-            if (canonical_name != expected_name)
-                TBOX_ERROR("kernel " << kernel_name << " resolved to " << canonical_name << " instead of "
-                                     << expected_name << '\n');
-        }
 
         // Create a simple FE mesh.
         std::vector<std::unique_ptr<ReplicatedMesh>> meshes;

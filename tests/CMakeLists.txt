@@ -249,6 +249,7 @@ IF(${IBAMR_HAVE_LIBMESH})
 ENDIF()
 
 # IBTK:
+SETUP(IBTK ib_kernel.cpp IBAMR2d)
 SETUP(IBTK equal_eps.cpp IBAMR2d)
 SETUP(IBTK hierarchy_callbacks.cpp IBAMR2d)
 SETUP(IBTK ibtk_init.cpp IBAMR2d)

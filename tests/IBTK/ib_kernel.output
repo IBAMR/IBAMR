@@ -1,0 +1,4 @@
+Scalar names and aliases: PASS
+Ordered and isotropic products: PASS
+Custom identities and value ownership: PASS
+Scalar/composite separation and empty-name rejection: PASS
