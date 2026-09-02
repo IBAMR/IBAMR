@@ -18,6 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -65,8 +66,16 @@ spellings(const std::string& name)
 int
 main()
 {
+    static_assert(std::is_trivially_copyable<IBKernel>::value, "identity copies must be trivial");
+    static_assert(sizeof(IBKernel) <= sizeof(void*), "identity must be compact");
     try
     {
+        const IBKernel builtins[] = { IBKernel::BSPLINE_1,       IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
+                                      IBKernel::BSPLINE_4,       IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
+                                      IBKernel::PIECEWISE_CUBIC, IBKernel::IB_3,      IBKernel::IB_4,
+                                      IBKernel::IB_4_W8,         IBKernel::IB_5,      IBKernel::IB_6,
+                                      IBKernel::USER_DEFINED };
+        for (const auto& kernel : builtins) require(kernel == IBKernel(kernel.getName()), "public built-in identity");
         const char* scalar_names[] = {
             "BSPLINE_1", "BSPLINE_2", "BSPLINE_3", "BSPLINE_4", "BSPLINE_5", "BSPLINE_6",   "PIECEWISE_CUBIC",
             "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6",      "USER_DEFINED"
@@ -122,6 +131,9 @@ main()
 
         std::string name = "ApplicationKernel";
         const IBKernel custom(name);
+        const std::string& retained_name = custom.getName();
+        for (int i = 0; i < 1000; ++i) IBKernel("OtherApplicationKernel" + std::to_string(i));
+        require(&retained_name == &IBKernel(name).getName() && custom == IBKernel(name), "interned identity lifetime");
         name = "changed";
         require(custom.getName() == "ApplicationKernel", "scalar owns its name");
         require(custom != IBKernel("applicationkernel"), "custom case sensitivity");
@@ -148,10 +160,32 @@ main()
         require_invalid([] { IBKernel empty(""); });
         require_invalid([] { IBKernelTensorProduct::from_name(""); });
 
+        const std::array<IBKernel, NDIM> axes{ { IBKernel::IB_4,
+                                                 IBKernel::IB_3
+#if (NDIM == 3)
+                                                 ,
+                                                 IBKernel::IB_6
+#endif
+        } };
+        const IBKernelTensorProduct cartesian(axes), relative(IBKernel::IB_4, IBKernel::IB_3);
+        std::array<IBKernel, NDIM> equal_axes = axes;
+        equal_axes.fill(IBKernel::IB_4);
+        require(IBKernelTensorProduct(equal_axes) == IBKernelTensorProduct(IBKernel::IB_4), "equal Cartesian mapping");
+        require(cartesian != relative, "Cartesian and relative mappings differ");
+        for (unsigned int component = 0; component < NDIM; ++component)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                require(cartesian.getKernel(axis, component) == axes[axis], "Cartesian x/y/z mapping");
+                require(relative.getKernel(axis, component) ==
+                            IBKernel(component == axis ? IBKernel::IB_4 : IBKernel::IB_3),
+                        "component-relative mapping");
+            }
+
         std::ofstream out("output");
         out << "Scalar names and aliases: PASS\n"
             << "Ordered and isotropic products: PASS\n"
             << "Custom identities and value ownership: PASS\n"
+            << "Public compact identities and Cartesian/component direction mapping: PASS\n"
             << "Scalar/composite separation and empty-name rejection: PASS\n";
         if (!out) return 1;
     }

@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
+
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
 
@@ -71,6 +73,19 @@ namespace IBTK
  * to interpolate data from Eulerian grid patches onto Lagrangian meshes and to
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
+ *
+ * String overloads resolve the names in \ref ib_kernel_catalog at the API
+ * boundary. Resolved overloads avoid name lookup during repeated execution.
+ * Existing routines support isotropic products and the legacy component-relative
+ * composites (21, 23, 32, 34, 43, 45, 54, 56, 65). Unequal Cartesian factors
+ * and custom identities without an existing implementation are rejected with
+ * std::invalid_argument before changing numerical output. Masked operations
+ * support only IB_4 and the legacy USER_DEFINED callback.
+ *
+ * The existing centering convention is retained: the component axis is the
+ * side-normal axis for side data, the edge axis for edge data, and axis zero
+ * for cell/node data. A relative composite on cell/node/edge data must not be
+ * interpreted as introducing a new side-normal convention for that centering.
  */
 class LEInteractor
 {
@@ -98,11 +113,17 @@ public:
      */
     static int getStencilSize(const std::string& kernel_fcn);
 
+    //! Query an already resolved description, without name lookup.
+    static int getStencilSize(const IBKernelTensorProduct& kernel_fcn);
+
     /*!
      * \brief Return whether or not the provided string corresponds to a known
      * kernel function.
      */
     static bool isKnownKernel(const std::string& kernel_fcn);
+
+    //! Query an already resolved description, without name lookup.
+    static bool isKnownKernel(const IBKernelTensorProduct& kernel_fcn);
 
     /*!
      * \brief Returns the minimum ghost width size corresponding to the
@@ -116,6 +137,9 @@ public:
      */
     static int getMinimumGhostWidth(const std::string& kernel_fcn);
 
+    //! Query an already resolved description, without name lookup.
+    static int getMinimumGhostWidth(const IBKernelTensorProduct& kernel_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -347,6 +371,16 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -372,6 +406,17 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -396,6 +441,16 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -419,6 +474,16 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -445,6 +510,17 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -468,6 +544,16 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -494,6 +580,18 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -522,6 +620,19 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -548,6 +659,18 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -573,6 +696,18 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -601,6 +736,19 @@ public:
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -626,6 +774,18 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const IBKernelTensorProduct& interp_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -885,6 +1045,16 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -914,6 +1084,17 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mask_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -941,6 +1122,16 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -967,6 +1158,16 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -996,6 +1197,17 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> mask_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -1022,6 +1234,16 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1051,6 +1273,18 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1082,6 +1316,19 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mask_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -1111,6 +1358,18 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -1139,6 +1398,18 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1170,6 +1441,19 @@ public:
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> mask_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
+
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -1198,6 +1482,18 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const std::string& spread_fcn = "IB_4");
+
+    //! Resolved-kernel overload; see the string overload and \ref ib_kernel_catalog.
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const IBKernelTensorProduct& spread_fcn);
 
 private:
     /*!
@@ -1337,7 +1633,7 @@ private:
                             const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                             const Eigen::Map<Eigen::VectorXi>& local_indices,
                             const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
-                            const std::string& interp_fcn,
+                            const IBKernelTensorProduct& interp_fcn,
                             int axis = 0);
 
     /*!
@@ -1357,7 +1653,7 @@ private:
                        const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                        const Eigen::Map<Eigen::VectorXi>& local_indices,
                        const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
-                       const std::string& spread_fcn,
+                       const IBKernelTensorProduct& spread_fcn,
                        int axis = 0);
 
     /*!

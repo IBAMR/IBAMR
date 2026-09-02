@@ -37,6 +37,8 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 
+#include <stdexcept>
+
 #include <ibtk/app_namespaces.h> // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -1692,7 +1694,7 @@ perform_mls(const int stencil_sz,
 } // perform_mls
 
 void
-get_mls_weights(const std::string& kernel_fcn,
+get_mls_weights(const IBKernelTensorProduct& kernel_fcn,
                 const double* const X,
                 const double* const X_shift,
                 const double* const dx,
@@ -1705,10 +1707,10 @@ get_mls_weights(const std::string& kernel_fcn,
 {
     Weight::extent_gen extents;
 
-    if (kernel_fcn == "IB_4")
+    if (kernel_fcn == IBKernelTensorProduct(IBKernel::IB_4))
     {
         // Resize some arrays.
-        const int stencil_sz = LEInteractor::getStencilSize("IB_4");
+        const int stencil_sz = LEInteractor::getStencilSize(IBKernelTensorProduct(IBKernel::IB_4));
         TensorProductWeights D;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1733,7 +1735,7 @@ get_mls_weights(const std::string& kernel_fcn,
         }
         perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
     }
-    else if (kernel_fcn == "USER_DEFINED")
+    else if (kernel_fcn == IBKernelTensorProduct(IBKernel::USER_DEFINED))
     {
         std::array<double, NDIM> X_cell;
         std::array<int, NDIM> stencil_center;
@@ -1890,9 +1892,7 @@ spread_data(const int stencil_sz,
 #endif
 } // spread_data
 
-// For internal use - convert to an enumeration. This may make it into the
-// public interface one day but for backwards compatibility we accept only
-// strings for now.
+// Private dispatch codes for the existing numerical implementations.
 enum KernelType
 {
     BSPLINE_3,
@@ -1921,99 +1921,54 @@ enum KernelType
 };
 
 KernelType
-string_to_kernel(const std::string& kernel_fcn)
+kernel_to_backend(const IBKernelTensorProduct& kernel)
 {
-    // Some IBAMR applications want to call this function *a lot*, e.g., ideally
-    // we would call this on every element in a finite element mesh instead of
-    // batching with huge temporary arrays. Hence doing all these string
-    // comparisons can get surprisingly expensive. Chop them up first with a
-    // switch statement.
-#ifndef NDEBUG
-    if (!LEInteractor::isKnownKernel(kernel_fcn))
+    // No names, parsing, or interning on this path. This table maps the shared
+    // scalar identities to existing backend routines, not to another vocabulary.
+    if (kernel.isIsotropic())
     {
-        TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
+        static const std::pair<IBKernel, KernelType> scalar_backends[] = { { IBKernel::BSPLINE_1, PIECEWISE_CONSTANT },
+                                                                           { IBKernel::BSPLINE_2, PIECEWISE_LINEAR },
+                                                                           { IBKernel::BSPLINE_3, BSPLINE_3 },
+                                                                           { IBKernel::BSPLINE_4, BSPLINE_4 },
+                                                                           { IBKernel::BSPLINE_5, BSPLINE_5 },
+                                                                           { IBKernel::BSPLINE_6, BSPLINE_6 },
+                                                                           { IBKernel::PIECEWISE_CUBIC,
+                                                                             PIECEWISE_CUBIC },
+                                                                           { IBKernel::IB_3, IB_3 },
+                                                                           { IBKernel::IB_4, IB_4 },
+                                                                           { IBKernel::IB_4_W8, IB_4_W8 },
+                                                                           { IBKernel::IB_5, IB_5 },
+                                                                           { IBKernel::IB_6, IB_6 },
+                                                                           { IBKernel::USER_DEFINED, USER_DEFINED } };
+        for (const auto& entry : scalar_backends)
+            if (kernel.getKernel(0, 0) == entry.first) return entry.second;
         return INVALID;
     }
-#endif
-    switch (kernel_fcn.front())
-    {
-    // BSPLINE family
-    case 'B':
-    {
-        switch (kernel_fcn.back())
-        {
-        case '3':
-            return BSPLINE_3;
-        case '4':
-            return BSPLINE_4;
-        case '5':
-            return BSPLINE_5;
-        case '6':
-            return BSPLINE_6;
-        }
-        break;
-    }
-    // COMPOSITE_BSPLINE family
-    case 'C':
-    {
-        switch (kernel_fcn.back())
-        {
-        case '2':
-            return COMPOSITE_BSPLINE_32;
-        case '3':
-            return kernel_fcn[18] == '4' ? COMPOSITE_BSPLINE_43 : COMPOSITE_BSPLINE_23;
-        case '4':
-            return kernel_fcn[18] == '5' ? COMPOSITE_BSPLINE_54 : COMPOSITE_BSPLINE_34;
-        case '5':
-            return kernel_fcn[18] == '6' ? COMPOSITE_BSPLINE_65 : COMPOSITE_BSPLINE_45;
-        case '6':
-            return COMPOSITE_BSPLINE_56;
-        }
-        break;
-    }
-    // DISCONTINUOUS family
-    case 'D':
-    {
-        return DISCONTINUOUS_LINEAR;
-    }
-    // PIECEWISE family
-    case 'P':
-    {
-        switch (kernel_fcn[11])
-        {
-        case 'O':
-            return PIECEWISE_CONSTANT;
-        case 'I':
-            return PIECEWISE_LINEAR;
-        case 'U':
-            return PIECEWISE_CUBIC;
-        }
-        break;
-    }
-    // classic IB family
-    case 'I':
-    {
-        switch (kernel_fcn[3])
-        {
-        case '3':
-            return IB_3;
-        case '4':
-            return kernel_fcn.size() == 4 ? IB_4 : IB_4_W8;
-        case '5':
-            return IB_5;
-        case '6':
-            return IB_6;
-        }
-        break;
-    }
-    // user defined
-    case 'U':
-        return USER_DEFINED;
-    }
-
-    TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
+    if (!kernel.isComponentRelative()) return INVALID;
+    static const std::pair<IBKernelTensorProduct, KernelType> composite_backends[] = {
+        { IBKernelTensorProduct(IBKernel::BSPLINE_2, IBKernel::BSPLINE_1), DISCONTINUOUS_LINEAR },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_2, IBKernel::BSPLINE_3), COMPOSITE_BSPLINE_23 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_3, IBKernel::BSPLINE_2), COMPOSITE_BSPLINE_32 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_3, IBKernel::BSPLINE_4), COMPOSITE_BSPLINE_34 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_4, IBKernel::BSPLINE_3), COMPOSITE_BSPLINE_43 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_4, IBKernel::BSPLINE_5), COMPOSITE_BSPLINE_45 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_5, IBKernel::BSPLINE_4), COMPOSITE_BSPLINE_54 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_5, IBKernel::BSPLINE_6), COMPOSITE_BSPLINE_56 },
+        { IBKernelTensorProduct(IBKernel::BSPLINE_6, IBKernel::BSPLINE_5), COMPOSITE_BSPLINE_65 }
+    };
+    for (const auto& entry : composite_backends)
+        if (kernel == entry.first) return entry.second;
     return INVALID;
 }
+
+void
+require_supported_kernel(const IBKernelTensorProduct& kernel)
+{
+    if (kernel_to_backend(kernel) == INVALID)
+        throw std::invalid_argument("LEInteractor: unsupported kernel description");
+}
+
 } // namespace
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -2038,21 +1993,27 @@ LEInteractor::printClassData(std::ostream& os)
 bool
 LEInteractor::isKnownKernel(const std::string& kernel_fcn)
 {
-    return kernel_fcn == "BSPLINE_3" || kernel_fcn == "BSPLINE_4" || kernel_fcn == "BSPLINE_5" ||
-           kernel_fcn == "BSPLINE_6" || kernel_fcn == "COMPOSITE_BSPLINE_23" || kernel_fcn == "COMPOSITE_BSPLINE_32" ||
-           kernel_fcn == "COMPOSITE_BSPLINE_34" || kernel_fcn == "COMPOSITE_BSPLINE_43" ||
-           kernel_fcn == "COMPOSITE_BSPLINE_45" || kernel_fcn == "COMPOSITE_BSPLINE_54" ||
-           kernel_fcn == "COMPOSITE_BSPLINE_56" || kernel_fcn == "COMPOSITE_BSPLINE_65" ||
-           kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_CONSTANT" ||
-           kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC" || kernel_fcn == "IB_3" ||
-           kernel_fcn == "IB_4" || kernel_fcn == "IB_4_W8" || kernel_fcn == "IB_5" || kernel_fcn == "IB_6" ||
-           kernel_fcn == "USER_DEFINED";
+    if (kernel_fcn.empty()) return false;
+    return isKnownKernel(IBKernelTensorProduct::from_name(kernel_fcn));
+}
+
+bool
+LEInteractor::isKnownKernel(const IBKernelTensorProduct& kernel)
+{
+    return kernel_to_backend(kernel) != INVALID;
 }
 
 int
 LEInteractor::getStencilSize(const std::string& kernel_fcn)
 {
-    switch (string_to_kernel(kernel_fcn))
+    return getStencilSize(IBKernelTensorProduct::from_name(kernel_fcn));
+}
+
+int
+LEInteractor::getStencilSize(const IBKernelTensorProduct& kernel_fcn)
+{
+    require_supported_kernel(kernel_fcn);
+    switch (kernel_to_backend(kernel_fcn))
     {
     case BSPLINE_3:
         return 4;
@@ -2109,6 +2070,12 @@ LEInteractor::getStencilSize(const std::string& kernel_fcn)
 
 int
 LEInteractor::getMinimumGhostWidth(const std::string& kernel_fcn)
+{
+    return getMinimumGhostWidth(IBKernelTensorProduct::from_name(kernel_fcn));
+}
+
+int
+LEInteractor::getMinimumGhostWidth(const IBKernelTensorProduct& kernel_fcn)
 {
     return static_cast<int>(floor(0.5 * getStencilSize(kernel_fcn))) + 1;
 }
@@ -2278,6 +2245,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(interp_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -2324,7 +2293,7 @@ LEInteractor::interpolate(double* const Q_data,
                     patch_touches_upper_physical_bdry,
                     Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                     Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                    interp_fcn);
+                    kernel);
     }
     return;
 }
@@ -2342,6 +2311,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(interp_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -2394,7 +2365,7 @@ LEInteractor::interpolate(double* const Q_data,
                     patch_touches_upper_physical_bdry,
                     Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                     Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                    interp_fcn);
+                    kernel);
     }
     return;
 }
@@ -2412,6 +2383,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(interp_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -2477,7 +2450,7 @@ LEInteractor::interpolate(double* const Q_data,
                         patch_touches_upper_physical_bdry,
                         Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                         Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                        interp_fcn,
+                        kernel,
                         axis);
             for (const auto& local_index : local_indices)
             {
@@ -2501,6 +2474,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(interp_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -2569,7 +2544,7 @@ LEInteractor::interpolate(double* const Q_data,
                         patch_touches_upper_physical_bdry,
                         Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                         Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                        interp_fcn,
+                        kernel,
                         axis);
             for (const auto& local_index : local_indices)
             {
@@ -2590,6 +2565,21 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(
+        Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<CellData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2614,6 +2604,32 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_depth,
+                X_data,
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<CellData<NDIM, double>> mask_data,
+                          const Pointer<CellData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
+    if (interp_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        interp_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2638,6 +2654,21 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(
+        Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<NodeData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2661,6 +2692,21 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(
+        Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2685,6 +2731,32 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_depth,
+                X_data,
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double>> mask_data,
+                          const Pointer<SideData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
+    if (interp_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        interp_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2709,6 +2781,21 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(
+        Q_data, Q_depth, X_data, X_depth, q_data, patch, interp_box, IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<EdgeData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
                 static_cast<int>(Q_data.size()),
@@ -2813,6 +2900,31 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<CellData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -2874,6 +2986,36 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<CellData<NDIM, double>> mask_data,
+                          const Pointer<CellData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
+    if (interp_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        interp_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -2985,6 +3127,31 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<NodeData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -3053,6 +3220,31 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -3139,6 +3331,36 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double>> mask_data,
+                          const Pointer<SideData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
+    if (interp_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        interp_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -3262,6 +3484,31 @@ LEInteractor::interpolate(double* const Q_data,
                           const Box<NDIM>& interp_box,
                           const std::string& interp_fcn)
 {
+    interpolate(Q_data,
+                Q_size,
+                Q_depth,
+                X_data,
+                X_size,
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                IBKernelTensorProduct::from_name(interp_fcn));
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<EdgeData<NDIM, double>> q_data,
+                          const Pointer<Patch<NDIM>> patch,
+                          const Box<NDIM>& interp_box,
+                          const IBKernelTensorProduct& interp_fcn)
+{
+    require_supported_kernel(interp_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -3503,6 +3750,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                      const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(spread_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -3549,7 +3798,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                patch_touches_upper_physical_bdry,
                Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-               spread_fcn);
+               kernel);
     }
     return;
 }
@@ -3567,6 +3816,8 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                      const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(spread_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -3619,7 +3870,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                patch_touches_upper_physical_bdry,
                Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-               spread_fcn);
+               kernel);
     }
     return;
 }
@@ -3637,6 +3888,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(spread_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -3706,7 +3959,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                    patch_touches_upper_physical_bdry,
                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                   spread_fcn,
+                   kernel,
                    axis);
         }
     }
@@ -3726,6 +3979,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
+    const auto kernel = IBKernelTensorProduct::from_name(spread_fcn);
+    require_supported_kernel(kernel);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
@@ -3798,7 +4053,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                    patch_touches_upper_physical_bdry,
                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                   spread_fcn,
+                   kernel,
                    axis);
         }
     }
@@ -3815,6 +4070,20 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, spread_box, IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (Q_data.empty()) return;
     spread(q_data,
            &Q_data[0],
@@ -3839,6 +4108,32 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(mask_data,
+           q_data,
+           Q_data,
+           Q_depth,
+           X_data,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
+                     Pointer<CellData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
+    if (spread_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        spread_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
     if (Q_data.empty()) return;
     spread(mask_data,
            q_data,
@@ -3863,6 +4158,20 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, spread_box, IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (Q_data.empty()) return;
     spread(q_data,
            &Q_data[0],
@@ -3886,6 +4195,20 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, spread_box, IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (Q_data.empty()) return;
     spread(q_data,
            &Q_data[0],
@@ -3910,6 +4233,32 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(mask_data,
+           q_data,
+           Q_data,
+           Q_depth,
+           X_data,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
+                     Pointer<SideData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
+    if (spread_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        spread_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
     if (Q_data.empty()) return;
     spread(mask_data,
            q_data,
@@ -3934,6 +4283,20 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, spread_box, IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (Q_data.empty()) return;
     spread(q_data,
            &Q_data[0],
@@ -3959,6 +4322,31 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -4020,6 +4408,36 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(mask_data,
+           q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
+                     Pointer<CellData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
+    if (spread_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        spread_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -4130,6 +4548,31 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -4187,7 +4630,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
 void
 LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const double* const Q_data,
-                     const int /*Q_size*/,
+                     const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
@@ -4196,6 +4639,31 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int /*Q_size*/,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -4275,6 +4743,36 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(mask_data,
+           q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
+                     Pointer<SideData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
+    if (spread_fcn != IBKernelTensorProduct(IBKernel::IB_4) &&
+        spread_fcn != IBKernelTensorProduct(IBKernel::USER_DEFINED))
+        throw std::invalid_argument("LEInteractor: unsupported masked kernel description");
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
@@ -4385,7 +4883,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
 void
 LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const double* const Q_data,
-                     const int /*Q_size*/,
+                     const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
@@ -4394,6 +4892,31 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const Box<NDIM>& spread_box,
                      const std::string& spread_fcn)
 {
+    spread(q_data,
+           Q_data,
+           Q_size,
+           Q_depth,
+           X_data,
+           X_size,
+           X_depth,
+           patch,
+           spread_box,
+           IBKernelTensorProduct::from_name(spread_fcn));
+}
+
+void
+LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
+                     const double* const Q_data,
+                     const int /*Q_size*/,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM>> patch,
+                     const Box<NDIM>& spread_box,
+                     const IBKernelTensorProduct& spread_fcn)
+{
+    require_supported_kernel(spread_fcn);
     if (NDIM != 3 || Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -4482,9 +5005,10 @@ LEInteractor::interpolate(double* const Q_data,
                           const std::array<int, NDIM>& /*patch_touches_upper_physical_bdry*/,
                           const Eigen::Map<VectorXi>& local_indices,
                           const Eigen::Map<VectorXd>& periodic_shifts,
-                          const std::string& interp_fcn,
+                          const IBKernelTensorProduct& interp_fcn,
                           const int axis)
 {
+    require_supported_kernel(interp_fcn);
     const int stencil_size = getStencilSize(interp_fcn);
     const int min_ghosts = getMinimumGhostWidth(interp_fcn);
     const int q_gcw_min = q_gcw.min();
@@ -4500,7 +5024,7 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (string_to_kernel(interp_fcn))
+    switch (kernel_to_backend(interp_fcn))
     {
     case PIECEWISE_CONSTANT:
     {
@@ -5244,9 +5768,10 @@ LEInteractor::spread(double* const q_data,
                      const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                      const Eigen::Map<VectorXi>& local_indices,
                      const Eigen::Map<VectorXd>& periodic_shifts,
-                     const std::string& spread_fcn,
+                     const IBKernelTensorProduct& spread_fcn,
                      const int axis)
 {
+    require_supported_kernel(spread_fcn);
     const int stencil_size = getStencilSize(spread_fcn);
     const int min_ghosts = getMinimumGhostWidth(spread_fcn);
     const int q_gcw_min = q_gcw.min();
@@ -5268,7 +5793,7 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (string_to_kernel(spread_fcn))
+    switch (kernel_to_backend(spread_fcn))
     {
     case PIECEWISE_CONSTANT:
     {

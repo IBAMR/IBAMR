@@ -18,44 +18,56 @@
 
 #include <ibtk/IBKernel.h>
 
+#include <array>
+#include <iosfwd>
+
 namespace IBTK
 {
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * One factor denotes isotropic use in every coordinate direction. In the
- * two-factor side-centered form, the first factor applies in the face-normal
- * direction and the second in every face-tangential direction. Equality compares
- * the ordered factors, so K and (K,K) describe the same product.
- *
- * Describing a product does not imply that any particular interpolation or
- * spreading backend can execute it. No evaluation, storage extent, or execution
- * registration is attached to these values.
+ * An isotropic product repeats one factor. A component-relative product uses
+ * one factor along the component axis and another along every transverse axis:
+ * for side data these are the face-normal and tangential directions. Cartesian
+ * products instead fix factors in x/y/z order, independently of the component.
+ * In 3D, Cartesian factors can distinguish both tangential directions.
+ * Equality compares these mappings, with equal-factor forms equivalent.
+ * See \ref ib_kernel_catalog for built-ins and aliases. A description does not
+ * imply that a particular operation can execute it.
  */
 class IBKernelTensorProduct
 {
 public:
-    //! Construct the isotropic product (kernel,kernel).
+    //! Repeat the scalar factor in every spatial direction.
     explicit IBKernelTensorProduct(const IBKernel& kernel);
 
     //! Construct an ordered face-normal/face-tangential product.
     IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential);
 
+    //! Construct factors in Cartesian x/y/z order, independent of component axis.
+    explicit IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors);
+
+    //! Resolve the factor for a Cartesian axis and a vector component axis.
+    const IBKernel& getKernel(unsigned int axis, unsigned int component_axis) const;
+
+    bool isIsotropic() const;
+
+    bool isComponentRelative() const;
+
     /*!
      * \brief Interpret an existing kernel name or a custom scalar identity.
      *
-     * Scalar names denote isotropic products. Recognized COMPOSITE_BSPLINE_XY
-     * names (12, 21, 23, 32, 34, 43, 45, 54, 56, and 65) denote the ordered
-     * BSPLINE_X/BSPLINE_Y factors. DISCONTINUOUS_LINEAR aliases the 21 product.
-     * These names are recognized case-insensitively. All other names follow
-     * IBKernel's scalar-name rules; no general composite expression is parsed.
+     * Scalar names denote isotropic products. Composite names use the
+     * component-relative mapping documented in \ref ib_kernel_catalog.
      *
      * \throws std::invalid_argument if the name is empty.
      */
     static IBKernelTensorProduct from_name(const std::string& name);
 
+    //! Component-axis factor; throws std::logic_error for unequal Cartesian factors.
     const IBKernel& getNormalKernel() const;
 
+    //! Transverse factor; throws std::logic_error for unequal Cartesian factors.
     const IBKernel& getTangentialKernel() const;
 
     bool operator==(const IBKernelTensorProduct& other) const;
@@ -63,8 +75,12 @@ public:
     bool operator!=(const IBKernelTensorProduct& other) const;
 
 private:
-    IBKernel d_normal, d_tangential;
+    std::array<IBKernel, NDIM> d_factors;
+    bool d_component_relative;
 };
+
+//! Diagnostic output only; numerical dispatch uses identities, not names.
+std::ostream& operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel);
 } // namespace IBTK
 
 #endif

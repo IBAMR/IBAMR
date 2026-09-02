@@ -16,6 +16,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -45,6 +46,14 @@ std::vector<double> interpolate(const VectorNd& X,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
+//! Resolved description overload; no per-patch name resolution.
+std::vector<double> interpolate(const VectorNd& X,
+                                int data_idx,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
+                                int Q_depth,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                const IBKernelTensorProduct& kernel_fcn);
+
 /*
  * Interpolates the data stored in data_idx to the locations provided in X using the provided kernel function. The
  * position locations in X must be synchronized across all MPI ranks to this function call.
@@ -60,6 +69,14 @@ std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 int Q_depth,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
+
+//! Resolved description overload; no per-patch name resolution.
+std::vector<double> interpolate(const std::vector<VectorNd>& X,
+                                int data_idx,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
+                                int Q_depth,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
+                                const IBKernelTensorProduct& kernel_fcn);
 
 } // namespace IBTK
 #endif
