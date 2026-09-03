@@ -1921,10 +1921,11 @@ enum KernelType
 };
 
 KernelType
-kernel_to_backend(const IBKernelTensorProduct& kernel)
+kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_axis = 0)
 {
     // No names, parsing, or interning on this path. This table maps the shared
     // scalar identities to existing backend routines, not to another vocabulary.
+    const IBKernel& first = LEInteractor::get_kernel_factor(kernel, component_axis, component_axis);
     if (kernel.isIsotropic())
     {
         static const std::pair<IBKernel, KernelType> scalar_backends[] = { { IBKernel::BSPLINE_1, PIECEWISE_CONSTANT },
@@ -1942,10 +1943,14 @@ kernel_to_backend(const IBKernelTensorProduct& kernel)
                                                                            { IBKernel::IB_6, IB_6 },
                                                                            { IBKernel::USER_DEFINED, USER_DEFINED } };
         for (const auto& entry : scalar_backends)
-            if (kernel.getKernel(0, 0) == entry.first) return entry.second;
+            if (first == entry.first) return entry.second;
         return INVALID;
     }
-    if (!kernel.isComponentRelative()) return INVALID;
+    const IBKernel& second = LEInteractor::get_kernel_factor(kernel, component_axis == 0 ? 1 : 0, component_axis);
+    // Existing composite backends require the same factor on every transverse axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+        if (axis != component_axis && LEInteractor::get_kernel_factor(kernel, axis, component_axis) != second)
+            return INVALID;
     static const std::pair<IBKernelTensorProduct, KernelType> composite_backends[] = {
         { IBKernelTensorProduct(IBKernel::BSPLINE_2, IBKernel::BSPLINE_1), DISCONTINUOUS_LINEAR },
         { IBKernelTensorProduct(IBKernel::BSPLINE_2, IBKernel::BSPLINE_3), COMPOSITE_BSPLINE_23 },
@@ -1958,7 +1963,7 @@ kernel_to_backend(const IBKernelTensorProduct& kernel)
         { IBKernelTensorProduct(IBKernel::BSPLINE_6, IBKernel::BSPLINE_5), COMPOSITE_BSPLINE_65 }
     };
     for (const auto& entry : composite_backends)
-        if (kernel == entry.first) return entry.second;
+        if (first == entry.first.getKernel(0) && second == entry.first.getKernel(1)) return entry.second;
     return INVALID;
 }
 
@@ -1990,11 +1995,24 @@ LEInteractor::printClassData(std::ostream& os)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+const IBKernel&
+LEInteractor::get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis)
+{
+    if (axis >= NDIM || component_axis >= NDIM) throw std::out_of_range("IB kernel direction out of range");
+    return kernel.getKernel(axis == component_axis ? 0 : axis < component_axis ? axis + 1 : axis);
+}
+
 bool
 LEInteractor::isKnownKernel(const std::string& kernel_fcn)
 {
-    if (kernel_fcn.empty()) return false;
-    return isKnownKernel(IBKernelTensorProduct::from_name(kernel_fcn));
+    try
+    {
+        return isKnownKernel(IBKernelTensorProduct::from_name(kernel_fcn));
+    }
+    catch (const std::invalid_argument&)
+    {
+        return false;
+    }
 }
 
 bool
@@ -5024,7 +5042,7 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (kernel_to_backend(interp_fcn))
+    switch (kernel_to_backend(interp_fcn, axis))
     {
     case PIECEWISE_CONSTANT:
     {
@@ -5793,7 +5811,7 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (kernel_to_backend(spread_fcn))
+    switch (kernel_to_backend(spread_fcn, axis))
     {
     case PIECEWISE_CONSTANT:
     {

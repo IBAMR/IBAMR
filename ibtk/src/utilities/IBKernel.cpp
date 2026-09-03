@@ -127,28 +127,33 @@ IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& kernel) : IBKernelT
 {
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential)
-    : d_factors{ { normal,
-                   tangential
+IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& first, const IBKernel& second)
+    : d_factors{ { first,
+                   second
 #if (NDIM == 3)
                    ,
-                   tangential
+                   second
 #endif
-      } },
-      d_component_relative(normal != tangential)
+      } }
 {
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors)
-    : d_factors(factors), d_component_relative(false)
+#if (NDIM == 3)
+IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& first, const IBKernel& second, const IBKernel& third)
+    : d_factors{ { first, second, third } }
+{
+}
+#endif
+
+IBKernelTensorProduct::IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors) : d_factors(factors)
 {
 }
 
 const IBKernel&
-IBKernelTensorProduct::getKernel(unsigned int axis, unsigned int component_axis) const
+IBKernelTensorProduct::getKernel(unsigned int slot) const
 {
-    if (axis >= NDIM || component_axis >= NDIM) throw std::out_of_range("IB kernel direction out of range");
-    return d_factors[d_component_relative ? (axis == component_axis ? 0 : 1) : axis];
+    if (slot >= NDIM) throw std::out_of_range("IB kernel slot out of range");
+    return d_factors[slot];
 }
 
 bool
@@ -160,29 +165,9 @@ IBKernelTensorProduct::isIsotropic() const
 }
 
 bool
-IBKernelTensorProduct::isComponentRelative() const
-{
-    return d_component_relative;
-}
-
-const IBKernel&
-IBKernelTensorProduct::getNormalKernel() const
-{
-    if (!d_component_relative && !isIsotropic()) throw std::logic_error("Cartesian kernel has no normal factor");
-    return d_factors[0];
-}
-
-const IBKernel&
-IBKernelTensorProduct::getTangentialKernel() const
-{
-    if (!d_component_relative && !isIsotropic()) throw std::logic_error("Cartesian kernel has no tangential factor");
-    return d_factors[1];
-}
-
-bool
 IBKernelTensorProduct::operator==(const IBKernelTensorProduct& other) const
 {
-    return d_component_relative == other.d_component_relative && d_factors == other.d_factors;
+    return d_factors == other.d_factors;
 }
 
 bool
@@ -204,11 +189,11 @@ IBKernelTensorProduct::from_name(const std::string& name)
 std::ostream&
 operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel)
 {
-    stream << (kernel.isComponentRelative() ? "component-relative(" : "Cartesian(");
+    stream << '(';
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d) stream << ',';
-        stream << kernel.getKernel(d, 0).getName();
+        stream << kernel.getKernel(d).getName();
     }
     return stream << ')';
 }

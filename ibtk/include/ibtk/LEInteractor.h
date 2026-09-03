@@ -76,20 +76,33 @@ namespace IBTK
  *
  * String overloads resolve the names in \ref ib_kernel_catalog at the API
  * boundary. Resolved overloads avoid name lookup during repeated execution.
- * Existing routines support isotropic products and the legacy component-relative
- * composites (21, 23, 32, 34, 43, 45, 54, 56, 65). Unequal Cartesian factors
+ * Existing routines support isotropic products and the legacy composites
+ * (21, 23, 32, 34, 43, 45, 54, 56, 65). Distinct tangential factors
  * and custom identities without an existing implementation are rejected with
  * std::invalid_argument before changing numerical output. Masked operations
  * support only IB_4 and the legacy USER_DEFINED callback.
  *
- * The existing centering convention is retained: the component axis is the
- * side-normal axis for side data, the edge axis for edge data, and axis zero
- * for cell/node data. A relative composite on cell/node/edge data must not be
- * interpreted as introducing a new side-normal convention for that centering.
+ * \anchor le_interactor_kernel_mapping
+ * Ordered factor slot zero corresponds to the distinguished component axis.
+ * Remaining slots follow the other Cartesian axes in increasing order.
+ * The distinguished axis is the side-normal axis for side data, the edge axis
+ * for edge data, and axis zero for cell/node data regardless of data component.
+ * Thus on a 3D y-face, {A,B,C} means x:B, y:A, z:C. The two-factor shorthand
+ * repeats its second factor in both tangential directions. Use
+ * get_kernel_factor() to resolve this convention, including in other consumers.
  */
 class LEInteractor
 {
 public:
+    /*!
+     * \brief Resolve an ordered factor for a Cartesian axis using
+     * \ref le_interactor_kernel_mapping.
+     *
+     * \throws std::out_of_range if either axis is outside [0, NDIM).
+     */
+    static const IBKernel&
+    get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis);
+
     /*!
      * \brief Function pointer to user-defined kernel function along with
      * corresponding stencil size and quadratic constant C.
@@ -119,6 +132,8 @@ public:
     /*!
      * \brief Return whether or not the provided string corresponds to a known
      * kernel function.
+     * Invalid or unsupported names return false; name-validation errors do
+     * not escape this capability query.
      */
     static bool isKnownKernel(const std::string& kernel_fcn);
 

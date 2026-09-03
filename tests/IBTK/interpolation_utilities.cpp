@@ -62,6 +62,16 @@ require_unsupported(F operation)
 void
 check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
+    for (const char* name : { "IB_4", "piecewise_constant", "piecewise_linear", "composite_bspline_21" })
+        require_kernel_check(LEInteractor::isKnownKernel(name), "known string query rejected");
+    for (const std::string name : { std::string(""),
+                                    std::string("Bad Name"),
+                                    std::string("A\0B", 3),
+                                    std::string(25, 'A'),
+                                    std::string("UnregisteredTrialKernel"),
+                                    std::string("COMPOSITE_BSPLINE_12") })
+        require_kernel_check(!LEInteractor::isKnownKernel(name), "invalid/unsupported query must return false");
+
     int patches = 0;
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -115,7 +125,8 @@ check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
         for (const char* name : names)
         {
             const auto kernel = IBKernelTensorProduct::from_name(name);
-            require_kernel_check(LEInteractor::isKnownKernel(kernel), "legacy kernel unsupported");
+            require_kernel_check(LEInteractor::isKnownKernel(kernel) && LEInteractor::isKnownKernel(name),
+                                 "legacy kernel unsupported");
             require_kernel_check(LEInteractor::getStencilSize(kernel) == LEInteractor::getStencilSize(name),
                                  "stencil query changed");
             LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, name);
@@ -131,8 +142,17 @@ check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
         }
 
         // Independent hat/nearest-grid weights establish the 21 alias orientation.
-        const IBKernelTensorProduct linear_constant(IBKernel::BSPLINE_2, IBKernel::BSPLINE_1);
+        const IBKernelTensorProduct linear_constant(std::array<IBKernel, NDIM>{ { IBKernel::BSPLINE_2,
+                                                                                  IBKernel::BSPLINE_1
+#if (NDIM == 3)
+                                                                                  ,
+                                                                                  IBKernel::BSPLINE_1
+#endif
+        } });
+        require_kernel_check(LEInteractor::isKnownKernel(linear_constant), "ordered array query rejected");
         LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, "DISCONTINUOUS_LINEAR");
+        LEInteractor::interpolate(b, NDIM, X, NDIM, field, patch, box, linear_constant);
+        require_kernel_check(a == b, "ordered array interpolation differs from legacy alias");
         typed->fillAll(0.0);
         LEInteractor::spread(typed, force, NDIM, X, NDIM, patch, box, linear_constant);
         for (int component = 0; component < NDIM; ++component)
@@ -154,18 +174,19 @@ check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
             require_kernel_check(std::abs(a[component] - expected) < 1.e-12, "21 interpolation orientation");
         }
 
-        const std::array<IBKernel, NDIM> axes{ { IBKernel::IB_4,
-                                                 IBKernel::IB_3
+        const std::array<IBKernel, NDIM> factors{ {
 #if (NDIM == 3)
-                                                 ,
-                                                 IBKernel::IB_6
+            IBKernel::BSPLINE_2, IBKernel::BSPLINE_1, IBKernel::BSPLINE_3
+#else
+            IBKernel::IB_4, IBKernel::IB_3
 #endif
         } };
         const IBKernelTensorProduct unsupported[] = { IBKernelTensorProduct(IBKernel("UnregisteredTrialKernel")),
-                                                      IBKernelTensorProduct(axes),
+                                                      IBKernelTensorProduct(factors),
                                                       IBKernelTensorProduct(IBKernel::BSPLINE_1, IBKernel::BSPLINE_2) };
         for (const auto& kernel : unsupported)
         {
+            require_kernel_check(!LEInteractor::isKnownKernel(kernel), "unsupported tuple query must return false");
             a.assign(NDIM, 17.0);
             typed->fillAll(19.0);
             require_unsupported([&] { LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, kernel); });
@@ -312,7 +333,7 @@ main(int argc, char* argv[])
         if (input_db->getBoolWithDefault("kernel_trial", false))
         {
             check_kernel_consumption(patch_hierarchy);
-            pout << "LEInteractor typed/string execution, alias orientation and rejection: PASS\n";
+            pout << "LEInteractor typed/string execution, alias orientation, capability queries and rejection: PASS\n";
         }
 
         // Now interpolate to the specified point.

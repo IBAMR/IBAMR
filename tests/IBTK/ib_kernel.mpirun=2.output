@@ -2,5 +2,5 @@ Scalar names and aliases: PASS
 Ordered and isotropic products: PASS
 Custom canonical identities and two-word value copies: PASS
 Exact encoding, 24-character round trip, and rank order/subset independence: PASS
-Public compact identities and Cartesian/component direction mapping: PASS
+Ordered tuple expansion and shared consumer direction mapping: PASS
 Scalar/composite separation and invalid-name rejection: PASS

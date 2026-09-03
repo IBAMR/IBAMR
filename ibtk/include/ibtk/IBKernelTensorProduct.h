@@ -26,50 +26,45 @@ namespace IBTK
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * An isotropic product repeats one factor. A component-relative product uses
- * one factor along the component axis and another along every transverse axis:
- * for side data these are the face-normal and tangential directions. Cartesian
- * products instead fix factors in x/y/z order, independently of the component.
- * In 3D, Cartesian factors can distinguish both tangential directions.
- * Equality compares these mappings, with equal-factor forms equivalent.
+ * Stores NDIM ordered factors. One factor repeats in every slot; two factors
+ * expand to {A,B} in 2D and {A,B,B} in 3D. Equality compares the expanded
+ * factors. Their directional meaning belongs to the consuming operation;
+ * see \ref le_interactor_kernel_mapping for LEInteractor's convention.
  * See \ref ib_kernel_catalog for built-ins and aliases. A description does not
  * imply that a particular operation can execute it.
  */
 class IBKernelTensorProduct
 {
 public:
-    //! Repeat the scalar factor in every spatial direction.
+    //! Repeat the scalar factor in every slot.
     explicit IBKernelTensorProduct(const IBKernel& kernel);
 
-    //! Construct an ordered face-normal/face-tangential product.
-    IBKernelTensorProduct(const IBKernel& normal, const IBKernel& tangential);
+    //! Store the first factor followed by repetitions of the second.
+    IBKernelTensorProduct(const IBKernel& first, const IBKernel& second);
 
-    //! Construct factors in Cartesian x/y/z order, independent of component axis.
+#if (NDIM == 3)
+    //! Specify all three ordered factors.
+    IBKernelTensorProduct(const IBKernel& first, const IBKernel& second, const IBKernel& third);
+#endif
+
+    //! Specify all ordered factors.
     explicit IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors);
 
-    //! Resolve the factor for a Cartesian axis and a vector component axis.
-    const IBKernel& getKernel(unsigned int axis, unsigned int component_axis) const;
+    //! Access a factor by slot; throws std::out_of_range for slot >= NDIM.
+    const IBKernel& getKernel(unsigned int slot) const;
 
     bool isIsotropic() const;
-
-    bool isComponentRelative() const;
 
     /*!
      * \brief Interpret an existing kernel name or a custom scalar identity.
      *
-     * Scalar names denote isotropic products. Composite names use the
-     * component-relative mapping documented in \ref ib_kernel_catalog.
+     * Scalar names denote isotropic products. Composite names supply the
+     * ordered factors documented in \ref ib_kernel_catalog.
      *
      * \throws std::invalid_argument if the scalar name violates the canonical
      * name rules in \ref ib_kernel_catalog.
      */
     static IBKernelTensorProduct from_name(const std::string& name);
-
-    //! Component-axis factor; throws std::logic_error for unequal Cartesian factors.
-    const IBKernel& getNormalKernel() const;
-
-    //! Transverse factor; throws std::logic_error for unequal Cartesian factors.
-    const IBKernel& getTangentialKernel() const;
 
     bool operator==(const IBKernelTensorProduct& other) const;
 
@@ -77,7 +72,6 @@ public:
 
 private:
     std::array<IBKernel, NDIM> d_factors;
-    bool d_component_relative;
 };
 
 //! Diagnostic output only; numerical dispatch uses identities, not names.

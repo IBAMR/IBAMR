@@ -1,4 +1,4 @@
-LEInteractor typed/string execution, alias orientation and rejection: PASS
+LEInteractor typed/string execution, alias orientation, capability queries and rejection: PASS
 Interpolating cell centered values
 Interpolating side centered values
 Interpolating node centered values

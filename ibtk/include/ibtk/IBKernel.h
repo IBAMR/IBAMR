@@ -41,8 +41,8 @@ namespace IBTK
  * its separate legacy callback meaning; it is not an alias for custom names.
  *
  * IBKernelTensorProduct::from_name() also recognizes COMPOSITE_BSPLINE_XY for
- * XY = 12, 21, 23, 32, 34, 43, 45, 54, 56, 65, with component-axis BSPLINE_X
- * and transverse BSPLINE_Y factors. DISCONTINUOUS_LINEAR aliases 21. These
+ * XY = 12, 21, 23, 32, 34, 43, 45, 54, 56, 65, supplying ordered factors
+ * {BSPLINE_X, BSPLINE_Y}. DISCONTINUOUS_LINEAR aliases 21. These
  * product names cannot be used as scalar names. Execution support is a
  * separate property of the consuming operation.
  */

@@ -13,6 +13,7 @@
 
 #include <ibtk/IBKernel.h>
 #include <ibtk/IBKernelTensorProduct.h>
+#include <ibtk/LEInteractor.h>
 
 #include <mpi.h>
 
@@ -81,6 +82,12 @@ main(int argc, char* argv[])
 {
     static_assert(std::is_trivially_copyable<IBKernel>::value, "identity copies must be trivial");
     static_assert(std::is_standard_layout<IBKernel>::value, "test inspects the two-word layout");
+    static_assert(sizeof(IBKernelTensorProduct) == NDIM * sizeof(IBKernel), "tuple stores only expanded factors");
+    static_assert(!std::is_default_constructible<IBKernelTensorProduct>::value, "empty tuple is ill-formed");
+    static_assert(!std::is_constructible<IBKernelTensorProduct, IBKernel, IBKernel, IBKernel, IBKernel>::value,
+                  "excess factors are ill-formed");
+    static_assert(std::is_constructible<IBKernelTensorProduct, IBKernel, IBKernel, IBKernel>::value == (NDIM == 3),
+                  "three-factor construction is available only in 3D");
     MPI_Init(&argc, &argv);
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -190,8 +197,8 @@ main(int argc, char* argv[])
             for (const auto& spelling : spellings(expected.name))
             {
                 const auto product = IBKernelTensorProduct::from_name(spelling);
-                require(product.getNormalKernel().getName() == expected.normal, "normal factor");
-                require(product.getTangentialKernel().getName() == expected.tangential, "tangential factor");
+                require(product.getKernel(0).getName() == expected.normal, "first factor");
+                require(product.getKernel(1).getName() == expected.tangential, "second factor");
                 require(product == IBKernelTensorProduct(IBKernel(expected.normal), IBKernel(expected.tangential)),
                         "ordered product");
                 require(product != IBKernelTensorProduct(IBKernel(expected.tangential), IBKernel(expected.normal)),
@@ -215,7 +222,7 @@ main(int argc, char* argv[])
         const IBKernelTensorProduct product(normal, tangential);
         normal = IBKernel("changed");
         tangential = IBKernel("changed");
-        require(product.getNormalKernel() == custom && product.getTangentialKernel() == IBKernel("AnotherKernel"),
+        require(product.getKernel(0) == custom && product.getKernel(1) == IBKernel("AnotherKernel"),
                 "product owns its factors");
         require(IBKernelTensorProduct(custom) == IBKernelTensorProduct(IBKernel("applicationkernel")),
                 "custom product canonicalization");
@@ -229,25 +236,46 @@ main(int argc, char* argv[])
         require_invalid([] { IBKernel empty(""); });
         require_invalid([] { IBKernelTensorProduct::from_name(""); });
 
-        const std::array<IBKernel, NDIM> axes{ { IBKernel::IB_4,
-                                                 IBKernel::IB_3
+        const std::array<IBKernel, NDIM> factors{ { IBKernel::IB_4,
+                                                    IBKernel::IB_3
 #if (NDIM == 3)
-                                                 ,
-                                                 IBKernel::IB_6
+                                                    ,
+                                                    IBKernel::IB_6
 #endif
         } };
-        const IBKernelTensorProduct cartesian(axes), relative(IBKernel::IB_4, IBKernel::IB_3);
-        std::array<IBKernel, NDIM> equal_axes = axes;
-        equal_axes.fill(IBKernel::IB_4);
-        require(IBKernelTensorProduct(equal_axes) == IBKernelTensorProduct(IBKernel::IB_4), "equal Cartesian mapping");
-        require(cartesian != relative, "Cartesian and relative mappings differ");
+        const IBKernelTensorProduct ordered(factors), pair{ IBKernel::IB_4, IBKernel::IB_3 };
+        std::array<IBKernel, NDIM> repeated = factors;
+        repeated.fill(IBKernel::IB_4);
+        require(IBKernelTensorProduct(repeated) == IBKernelTensorProduct{ IBKernel::IB_4 }, "isotropic expansion");
+        repeated[1] = IBKernel::IB_3;
+#if (NDIM == 3)
+        repeated[2] = IBKernel::IB_3;
+        require(ordered == IBKernelTensorProduct{ IBKernel::IB_4, IBKernel::IB_3, IBKernel::IB_6 },
+                "three-factor construction");
+#endif
+        require(pair == IBKernelTensorProduct(repeated), "two-factor expansion");
+        for (unsigned int slot = 0; slot < NDIM; ++slot)
+            require(ordered.getKernel(slot) == factors[slot], "ordered slot access");
+        // Rows are distinguished component axes; columns are Cartesian axes.
+        const unsigned int expected_slots[NDIM][NDIM] = {
+#if (NDIM == 2)
+            { 0, 1 },
+            { 1, 0 }
+#else
+            { 0, 1, 2 },
+            { 1, 0, 2 },
+            { 1, 2, 0 }
+#endif
+        };
         for (unsigned int component = 0; component < NDIM; ++component)
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                require(cartesian.getKernel(axis, component) == axes[axis], "Cartesian x/y/z mapping");
-                require(relative.getKernel(axis, component) ==
+                require(IBTK::LEInteractor::get_kernel_factor(ordered, axis, component) ==
+                            factors[expected_slots[component][axis]],
+                        "shared consumer directional mapping");
+                require(IBTK::LEInteractor::get_kernel_factor(pair, axis, component) ==
                             IBKernel(component == axis ? IBKernel::IB_4 : IBKernel::IB_3),
-                        "component-relative mapping");
+                        "two-factor consumer mapping");
             }
 
         if (rank == 0)
@@ -257,7 +285,7 @@ main(int argc, char* argv[])
                 << "Ordered and isotropic products: PASS\n"
                 << "Custom canonical identities and two-word value copies: PASS\n"
                 << "Exact encoding, 24-character round trip, and rank order/subset independence: PASS\n"
-                << "Public compact identities and Cartesian/component direction mapping: PASS\n"
+                << "Ordered tuple expansion and shared consumer direction mapping: PASS\n"
                 << "Scalar/composite separation and invalid-name rejection: PASS\n";
             require(static_cast<bool>(out), "output write failed");
         }

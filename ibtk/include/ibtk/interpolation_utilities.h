@@ -46,7 +46,7 @@ std::vector<double> interpolate(const VectorNd& X,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
-//! Resolved description overload; no per-patch name resolution.
+//! Resolved description overload; no per-patch name resolution. See \ref le_interactor_kernel_mapping.
 std::vector<double> interpolate(const VectorNd& X,
                                 int data_idx,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
@@ -70,7 +70,7 @@ std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                 std::string kernel_fcn = "IB_4");
 
-//! Resolved description overload; no per-patch name resolution.
+//! Resolved description overload; no per-patch name resolution. See \ref le_interactor_kernel_mapping.
 std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 int data_idx,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
