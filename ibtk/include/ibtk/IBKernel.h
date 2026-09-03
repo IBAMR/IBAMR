@@ -19,6 +19,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace IBTK
 {
@@ -30,6 +31,8 @@ namespace IBTK
  * independently of construction order. Resolve names at configuration
  * boundaries, not in numerical loops. Store names, not internal values, in
  * input and restart data.
+ * The compile-time name capacity is currently 24 characters; changing it
+ * requires rebuilding both the library and its applications consistently.
  *
  * \anchor ib_kernel_catalog
  * The public constants below are the built-in scalar catalog. Built-in names
@@ -88,7 +91,14 @@ public:
     bool operator!=(const IBKernel& other) const;
 
 private:
-    std::array<std::uint64_t, 2> d_name;
+    static constexpr std::size_t MAX_NAME_LENGTH = 24;
+    static constexpr std::size_t DIGITS_PER_WORD = 12;
+    static constexpr std::uint64_t ENCODING_BASE = 38;
+    static constexpr std::size_t NAME_WORD_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_WORD - 1) / DIGITS_PER_WORD;
+
+    static constexpr std::array<std::uint64_t, NAME_WORD_COUNT> encode_name(std::string_view name);
+
+    std::array<std::uint64_t, NAME_WORD_COUNT> d_name;
 };
 } // namespace IBTK
 

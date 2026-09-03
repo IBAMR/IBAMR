@@ -14,57 +14,14 @@
 #include <ibtk/IBKernel.h>
 #include <ibtk/IBKernelTensorProduct.h>
 
+#include <locale>
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace
 {
-// Each word holds twelve base-38 digits. Zero is reserved for right padding;
-// 38^12 < 2^63, so neither chunk overflows. Call only with canonical names.
-constexpr std::array<std::uint64_t, 2>
-encode_name(const char* name, std::size_t length)
-{
-    std::array<std::uint64_t, 2> words{};
-    for (std::size_t i = 0; i < 24; ++i)
-    {
-        const char c = i < length ? name[i] : '\0';
-        const unsigned int digit = c == '\0' ? 0 : c == '_' ? 37 : c >= 'A' ? c - 'A' + 1 : c - '0' + 27;
-        words[i / 12] = 38 * words[i / 12] + digit;
-    }
-    return words;
-}
-
-template <std::size_t N>
-constexpr std::array<std::uint64_t, 2>
-encode_literal(const char (&name)[N])
-{
-    return encode_name(name, N - 1);
-}
-
-// Same order as IBKernel::Builtin. Constant initialization avoids packing names
-// whenever a built-in is constructed during numerical dispatch.
-constexpr std::array<std::array<std::uint64_t, 2>, 13> builtin_keys{ { encode_literal("BSPLINE_1"),
-                                                                       encode_literal("BSPLINE_2"),
-                                                                       encode_literal("BSPLINE_3"),
-                                                                       encode_literal("BSPLINE_4"),
-                                                                       encode_literal("BSPLINE_5"),
-                                                                       encode_literal("BSPLINE_6"),
-                                                                       encode_literal("PIECEWISE_CUBIC"),
-                                                                       encode_literal("IB_3"),
-                                                                       encode_literal("IB_4"),
-                                                                       encode_literal("IB_4_W8"),
-                                                                       encode_literal("IB_5"),
-                                                                       encode_literal("IB_6"),
-                                                                       encode_literal("USER_DEFINED") } };
-
-std::string
-uppercase_name(std::string name)
-{
-    for (char& c : name)
-        if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
-    return name;
-}
 
 // Zero means this is not a recognized composite spelling.
 int
@@ -80,42 +37,62 @@ composite_orders(const std::string& name)
 
 namespace IBTK
 {
-IBKernel::IBKernel(Builtin kernel) : d_name(builtin_keys.at(static_cast<unsigned int>(kernel)))
+IBKernel::IBKernel(Builtin kernel)
 {
+    // Same order as Builtin. Constant initialization avoids repeated packing.
+    static constexpr std::array<std::array<std::uint64_t, NAME_WORD_COUNT>, 13> builtin_keys{
+        { encode_name("BSPLINE_1"),
+          encode_name("BSPLINE_2"),
+          encode_name("BSPLINE_3"),
+          encode_name("BSPLINE_4"),
+          encode_name("BSPLINE_5"),
+          encode_name("BSPLINE_6"),
+          encode_name("PIECEWISE_CUBIC"),
+          encode_name("IB_3"),
+          encode_name("IB_4"),
+          encode_name("IB_4_W8"),
+          encode_name("IB_5"),
+          encode_name("IB_6"),
+          encode_name("USER_DEFINED") }
+    };
+    d_name = builtin_keys.at(static_cast<unsigned int>(kernel));
 }
 
 IBKernel::IBKernel(const std::string& name)
 {
     if (name.empty()) throw std::invalid_argument("IBKernel requires a nonempty scalar name");
-    std::string canonical = uppercase_name(name);
+    std::string canonical = name;
+    std::use_facet<std::ctype<char>>(std::locale::classic())
+        .toupper(canonical.data(), canonical.data() + canonical.size());
     if (composite_orders(canonical))
         throw std::invalid_argument("IBKernel requires a scalar name, not a composite kernel name");
     if (canonical == "PIECEWISE_CONSTANT")
         canonical = "BSPLINE_1";
     else if (canonical == "PIECEWISE_LINEAR")
         canonical = "BSPLINE_2";
-    if (canonical.size() > 24) throw std::invalid_argument("IBKernel scalar name exceeds 24 characters");
+    if (canonical.size() > MAX_NAME_LENGTH)
+        throw std::invalid_argument("IBKernel scalar name exceeds " + std::to_string(MAX_NAME_LENGTH) + " characters");
     for (const char c : canonical)
         if (!((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'))
             throw std::invalid_argument("IBKernel scalar name requires ASCII letters, digits, or underscore");
-    d_name = encode_name(canonical.data(), canonical.size());
+    d_name = encode_name(canonical);
 }
 
 std::string
 IBKernel::getName() const
 {
-    std::string name(24, '\0');
-    for (std::size_t chunk = 0; chunk < 2; ++chunk)
+    std::string name(NAME_WORD_COUNT * DIGITS_PER_WORD, '\0');
+    for (std::size_t chunk = 0; chunk < NAME_WORD_COUNT; ++chunk)
     {
         std::uint64_t word = d_name[chunk];
-        for (std::size_t i = 12; i > 0; --i)
+        for (std::size_t i = DIGITS_PER_WORD; i > 0; --i)
         {
-            const unsigned int digit = word % 38;
-            word /= 38;
-            name[12 * chunk + i - 1] = digit == 0  ? '\0' :
-                                       digit <= 26 ? 'A' + digit - 1 :
-                                       digit <= 36 ? '0' + digit - 27 :
-                                                     '_';
+            const unsigned int digit = word % ENCODING_BASE;
+            word /= ENCODING_BASE;
+            name[DIGITS_PER_WORD * chunk + i - 1] = digit == 0  ? '\0' :
+                                                    digit <= 26 ? 'A' + digit - 1 :
+                                                    digit <= 36 ? '0' + digit - 27 :
+                                                                  '_';
         }
     }
     const auto padding = name.find('\0');
@@ -123,43 +100,28 @@ IBKernel::getName() const
     return name;
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& kernel) : IBKernelTensorProduct(kernel, kernel)
+IBKernelTensorProduct::IBKernelTensorProduct(std::vector<IBKernel> factors) : d_factors(std::move(factors))
 {
+    if (d_factors.empty()) throw std::invalid_argument("IBKernelTensorProduct requires at least one factor");
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& first, const IBKernel& second)
-    : d_factors{ { first,
-                   second
-#if (NDIM == 3)
-                   ,
-                   second
-#endif
-      } }
+std::size_t
+IBKernelTensorProduct::getNumberOfKernels() const
 {
-}
-
-#if (NDIM == 3)
-IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& first, const IBKernel& second, const IBKernel& third)
-    : d_factors{ { first, second, third } }
-{
-}
-#endif
-
-IBKernelTensorProduct::IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors) : d_factors(factors)
-{
+    return d_factors.size();
 }
 
 const IBKernel&
-IBKernelTensorProduct::getKernel(unsigned int slot) const
+IBKernelTensorProduct::getKernel(std::size_t slot) const
 {
-    if (slot >= NDIM) throw std::out_of_range("IB kernel slot out of range");
+    if (slot >= d_factors.size()) throw std::out_of_range("IB kernel slot out of range");
     return d_factors[slot];
 }
 
 bool
 IBKernelTensorProduct::isIsotropic() const
 {
-    for (unsigned int d = 1; d < NDIM; ++d)
+    for (std::size_t d = 1; d < d_factors.size(); ++d)
         if (d_factors[d] != d_factors[0]) return false;
     return true;
 }
@@ -179,18 +141,21 @@ IBKernelTensorProduct::operator!=(const IBKernelTensorProduct& other) const
 IBKernelTensorProduct
 IBKernelTensorProduct::from_name(const std::string& name)
 {
-    const int orders = composite_orders(uppercase_name(name));
+    std::string canonical = name;
+    std::use_facet<std::ctype<char>>(std::locale::classic())
+        .toupper(canonical.data(), canonical.data() + canonical.size());
+    const int orders = composite_orders(canonical);
     if (orders)
-        return IBKernelTensorProduct(IBKernel("BSPLINE_" + std::to_string(orders / 10)),
-                                     IBKernel("BSPLINE_" + std::to_string(orders % 10)));
-    return IBKernelTensorProduct(IBKernel(name));
+        return IBKernelTensorProduct(
+            { IBKernel("BSPLINE_" + std::to_string(orders / 10)), IBKernel("BSPLINE_" + std::to_string(orders % 10)) });
+    return IBKernelTensorProduct({ IBKernel(canonical) });
 }
 
 std::ostream&
 operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel)
 {
     stream << '(';
-    for (unsigned int d = 0; d < NDIM; ++d)
+    for (std::size_t d = 0; d < kernel.getNumberOfKernels(); ++d)
     {
         if (d) stream << ',';
         stream << kernel.getKernel(d).getName();

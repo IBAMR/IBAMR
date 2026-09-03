@@ -18,17 +18,18 @@
 
 #include <ibtk/IBKernel.h>
 
-#include <array>
 #include <iosfwd>
+#include <vector>
 
 namespace IBTK
 {
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * Stores NDIM ordered factors. One factor repeats in every slot; two factors
- * expand to {A,B} in 2D and {A,B,B} in 3D. Equality compares the expanded
- * factors. Their directional meaning belongs to the consuming operation;
+ * Stores exactly the supplied nonempty ordered sequence, of any length.
+ * Equality compares both count and ordered identities: {K} differs from {K,K}.
+ * Construction and copying may allocate. Numerical consumers take descriptions
+ * by reference. Expansion and directional meaning belong to the consuming operation;
  * see \ref le_interactor_kernel_mapping for LEInteractor's convention.
  * See \ref ib_kernel_catalog for built-ins and aliases. A description does not
  * imply that a particular operation can execute it.
@@ -36,30 +37,24 @@ namespace IBTK
 class IBKernelTensorProduct
 {
 public:
-    //! Repeat the scalar factor in every slot.
-    explicit IBKernelTensorProduct(const IBKernel& kernel);
+    //! Own the supplied factors; throws std::invalid_argument for an empty collection.
+    explicit IBKernelTensorProduct(std::vector<IBKernel> factors);
 
-    //! Store the first factor followed by repetitions of the second.
-    IBKernelTensorProduct(const IBKernel& first, const IBKernel& second);
+    //! Number of supplied factors, without dimensional expansion.
+    std::size_t getNumberOfKernels() const;
 
-#if (NDIM == 3)
-    //! Specify all three ordered factors.
-    IBKernelTensorProduct(const IBKernel& first, const IBKernel& second, const IBKernel& third);
-#endif
+    //! Access a factor; throws std::out_of_range for slot >= getNumberOfKernels().
+    const IBKernel& getKernel(std::size_t slot) const;
 
-    //! Specify all ordered factors.
-    explicit IBKernelTensorProduct(const std::array<IBKernel, NDIM>& factors);
-
-    //! Access a factor by slot; throws std::out_of_range for slot >= NDIM.
-    const IBKernel& getKernel(unsigned int slot) const;
-
+    //! Whether every supplied factor equals the first (true for one factor).
+    //! This does not imply that a consumer supports the count or the kernel.
     bool isIsotropic() const;
 
     /*!
      * \brief Interpret an existing kernel name or a custom scalar identity.
      *
-     * Scalar names denote isotropic products. Composite names supply the
-     * ordered factors documented in \ref ib_kernel_catalog.
+     * Scalar names supply one factor. Composite names supply the two ordered
+     * factors documented in \ref ib_kernel_catalog. No dimensional expansion occurs.
      *
      * \throws std::invalid_argument if the scalar name violates the canonical
      * name rules in \ref ib_kernel_catalog.
@@ -71,7 +66,7 @@ public:
     bool operator!=(const IBKernelTensorProduct& other) const;
 
 private:
-    std::array<IBKernel, NDIM> d_factors;
+    std::vector<IBKernel> d_factors;
 };
 
 //! Diagnostic output only; numerical dispatch uses identities, not names.

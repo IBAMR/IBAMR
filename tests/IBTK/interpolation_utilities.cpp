@@ -142,17 +142,17 @@ check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
         }
 
         // Independent hat/nearest-grid weights establish the 21 alias orientation.
-        const IBKernelTensorProduct linear_constant(std::array<IBKernel, NDIM>{ { IBKernel::BSPLINE_2,
-                                                                                  IBKernel::BSPLINE_1
+        const IBKernelTensorProduct linear_constant({
+            IBKernel::BSPLINE_2, IBKernel::BSPLINE_1
 #if (NDIM == 3)
-                                                                                  ,
-                                                                                  IBKernel::BSPLINE_1
+                ,
+                IBKernel::BSPLINE_1
 #endif
-        } });
-        require_kernel_check(LEInteractor::isKnownKernel(linear_constant), "ordered array query rejected");
+        });
+        require_kernel_check(LEInteractor::isKnownKernel(linear_constant), "ordered sequence query rejected");
         LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, "DISCONTINUOUS_LINEAR");
         LEInteractor::interpolate(b, NDIM, X, NDIM, field, patch, box, linear_constant);
-        require_kernel_check(a == b, "ordered array interpolation differs from legacy alias");
+        require_kernel_check(a == b, "ordered sequence interpolation differs from legacy alias");
         typed->fillAll(0.0);
         LEInteractor::spread(typed, force, NDIM, X, NDIM, patch, box, linear_constant);
         for (int component = 0; component < NDIM; ++component)
@@ -174,16 +174,20 @@ check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
             require_kernel_check(std::abs(a[component] - expected) < 1.e-12, "21 interpolation orientation");
         }
 
-        const std::array<IBKernel, NDIM> factors{ {
+        const std::vector<IBKernel> factors
+        {
 #if (NDIM == 3)
             IBKernel::BSPLINE_2, IBKernel::BSPLINE_1, IBKernel::BSPLINE_3
 #else
             IBKernel::IB_4, IBKernel::IB_3
 #endif
-        } };
-        const IBKernelTensorProduct unsupported[] = { IBKernelTensorProduct(IBKernel("UnregisteredTrialKernel")),
-                                                      IBKernelTensorProduct(factors),
-                                                      IBKernelTensorProduct(IBKernel::BSPLINE_1, IBKernel::BSPLINE_2) };
+        };
+        const IBKernelTensorProduct unsupported[] = {
+            IBKernelTensorProduct({ IBKernel("UnregisteredTrialKernel") }),
+            IBKernelTensorProduct(factors),
+            IBKernelTensorProduct({ IBKernel::BSPLINE_1, IBKernel::BSPLINE_2 }),
+            IBKernelTensorProduct({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 })
+        };
         for (const auto& kernel : unsupported)
         {
             require_kernel_check(!LEInteractor::isKnownKernel(kernel), "unsupported tuple query must return false");
@@ -344,7 +348,7 @@ main(int argc, char* argv[])
         // Cell centered
         pout << "Interpolating cell centered values\n";
         std::vector<double> interped_val = interpolate(x_pt, cc_idx, cc_var, 1, patch_hierarchy, "IB_4");
-        const IBKernelTensorProduct resolved(IBKernel::IB_4);
+        const IBKernelTensorProduct resolved({ IBKernel::IB_4 });
         require_kernel_check(interped_val == interpolate(x_pt, cc_idx, cc_var, 1, patch_hierarchy, resolved),
                              "cell utility typed route");
         require_kernel_check(interpolate(x_pt[0], cc_idx, cc_var, 1, patch_hierarchy, resolved)[0] == interped_val[0],

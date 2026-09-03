@@ -83,6 +83,10 @@ namespace IBTK
  * support only IB_4 and the legacy USER_DEFINED callback.
  *
  * \anchor le_interactor_kernel_mapping
+ * Accepts one through NDIM supplied factors. One repeats on every axis;
+ * two give {A,B} in 2D and {A,B,B} in 3D; three specify all slots in 3D.
+ * Longer descriptions are unsupported even when all factors are equal.
+ * Expansion uses references to stored factors, without allocation.
  * Ordered factor slot zero corresponds to the distinguished component axis.
  * Remaining slots follow the other Cartesian axes in increasing order.
  * The distinguished axis is the side-normal axis for side data, the edge axis
@@ -99,6 +103,7 @@ public:
      * \ref le_interactor_kernel_mapping.
      *
      * \throws std::out_of_range if either axis is outside [0, NDIM).
+     * \throws std::invalid_argument if the stored factor count is unsupported.
      */
     static const IBKernel&
     get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis);
