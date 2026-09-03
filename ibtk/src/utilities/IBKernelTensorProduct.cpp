@@ -68,6 +68,11 @@ IBKernelTensorProduct::IBKernelTensorProduct(const std::string& name)
     }
 }
 
+IBKernelTensorProduct::IBKernelTensorProduct(const char* name)
+    : IBKernelTensorProduct(name ? std::string(name) : std::string())
+{
+}
+
 bool
 IBKernelTensorProduct::isValidName(const std::string& name)
 {

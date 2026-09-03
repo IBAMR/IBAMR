@@ -39,8 +39,11 @@ public:
     //! Own the supplied nonempty sequence of factors.
     IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
 
-    //! Interpret a legacy scalar or composite kernel name.
-    explicit IBKernelTensorProduct(const std::string& name);
+    //! Implicitly interpret a legacy scalar or composite kernel name.
+    IBKernelTensorProduct(const std::string& name);
+
+    //! Implicitly interpret a nonnull legacy scalar or composite C string.
+    IBKernelTensorProduct(const char* name);
 
     //! Whether name can construct a tensor-product description.
     static bool isValidName(const std::string& name);

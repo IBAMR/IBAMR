@@ -74,6 +74,9 @@ public:
      */
     explicit IBKernel(const std::string& name);
 
+    //! Construct a scalar identity from a nonnull C string.
+    explicit IBKernel(const char* name);
+
     //! Whether name satisfies the scalar kernel-name grammar.
     static bool isValidName(const std::string& name);
 

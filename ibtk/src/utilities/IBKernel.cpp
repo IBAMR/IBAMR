@@ -73,6 +73,10 @@ IBKernel::IBKernel(const std::string& name)
     d_name = encode_name(canonical);
 }
 
+IBKernel::IBKernel(const char* name) : IBKernel(name ? std::string(name) : std::string())
+{
+}
+
 std::string
 IBKernel::getName() const
 {

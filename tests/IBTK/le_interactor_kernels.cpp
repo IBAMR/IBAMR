@@ -76,6 +76,8 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
 
     const IBKernelTensorProduct unsupported({ IBKernel("UNREGISTERED_KERNEL") });
     require(!LEInteractor::isKnownKernel(unsupported), "unsupported typed query must return false");
+    require(LEInteractor::isKnownKernel("IB_4"), "known C-string query rejected");
+    require(!LEInteractor::isKnownKernel("BAD NAME"), "invalid C-string query must return false");
     if (expect_error)
     {
         std::ofstream("output") << "LEInteractor rejects unsupported kernel descriptions before interpolation\n";

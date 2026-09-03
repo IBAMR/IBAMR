@@ -64,6 +64,10 @@ main(int argc, char* argv[])
 {
     static_assert(std::is_trivially_copyable<IBKernel>::value, "identity copies must be trivial");
     static_assert(std::is_standard_layout<IBKernel>::value, "test inspects the two-block layout");
+    static_assert(std::is_convertible<std::string, IBKernelTensorProduct>::value,
+                  "legacy strings must convert to tensor products");
+    static_assert(std::is_convertible<const char*, IBKernelTensorProduct>::value,
+                  "legacy C strings must convert to tensor products");
     IBTK::IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -128,6 +132,8 @@ main(int argc, char* argv[])
     require(IBKernel("ABCDEFGHIJKLMNOPQRSTUVWX") != IBKernel("ABCDEFGHIJKLMNOPQRSTUVW_"),
             "final character affects equality");
     require(IBKernel("A") != IBKernel("A_") && IBKernel("A") != IBKernel("AA"), "padding is not a name character");
+    const char* const scalar_c_string = "piecewise_constant";
+    require(IBKernel{ scalar_c_string } == IBKernel(IBKernel::BSPLINE_1), "scalar C-string construction");
     require(!IBKernel::isValidName("ABCDEFGHIJKLMNOPQRSTUVWXY"), "over-capacity scalar name accepted");
     for (const std::string invalid :
          { std::string("A B"), std::string("A-B"), std::string("A\0B", 3), std::string("A\x80", 2) })
@@ -211,6 +217,9 @@ main(int argc, char* argv[])
     require(product[0] == custom && product[1] == IBKernel("AnotherKernel"), "product owns its factors");
     require(IBKernelTensorProduct({ custom }) == IBKernelTensorProduct({ IBKernel("applicationkernel") }),
             "custom product canonicalization");
+    const IBKernelTensorProduct legacy_c_string{ "DISCONTINUOUS_LINEAR" };
+    require(legacy_c_string == IBKernelTensorProduct({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 }),
+            "tensor-product C-string construction");
     require(IBKernelTensorProduct({ IBKernel("IB_4"), IBKernel("IB_3") }) !=
                 IBKernelTensorProduct({ IBKernel("IB_3"), IBKernel("IB_4") }),
             "non-B-spline product");
