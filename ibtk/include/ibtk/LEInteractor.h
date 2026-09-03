@@ -74,13 +74,13 @@ namespace IBTK
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
  *
- * String overloads resolve the names in \ref ib_kernel_catalog at the API
- * boundary. Resolved overloads avoid name lookup during repeated execution.
+ * String overloads resolve names at the API boundary. Resolved overloads avoid
+ * name lookup during repeated execution.
  * Existing routines support isotropic products and the legacy composites
  * (21, 23, 32, 34, 43, 45, 54, 56, 65). Distinct tangential factors
- * and custom identities without an existing implementation are rejected with
- * std::invalid_argument before changing numerical output. Masked operations
- * support only IB_4 and the legacy USER_DEFINED callback.
+ * and custom identities without an existing implementation are rejected before
+ * changing numerical output. Masked operations support only IB_4 and the
+ * legacy USER_DEFINED callback.
  *
  * \anchor le_interactor_kernel_mapping
  * Accepts one through NDIM supplied factors. One repeats on every axis;
@@ -102,8 +102,7 @@ public:
      * \brief Resolve an ordered factor for a Cartesian axis using
      * \ref le_interactor_kernel_mapping.
      *
-     * \throws std::out_of_range if either axis is outside [0, NDIM).
-     * \throws std::invalid_argument if the stored factor count is unsupported.
+     * Both axes must be in [0, NDIM), and the factor count must be supported.
      */
     static const IBKernel&
     get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis);

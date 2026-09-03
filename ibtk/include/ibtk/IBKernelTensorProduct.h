@@ -18,6 +18,7 @@
 
 #include <ibtk/IBKernel.h>
 
+#include <initializer_list>
 #include <iosfwd>
 #include <vector>
 
@@ -26,40 +27,33 @@ namespace IBTK
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * Stores exactly the supplied nonempty ordered sequence, of any length.
- * Equality compares both count and ordered identities: {K} differs from {K,K}.
- * Construction and copying may allocate. Numerical consumers take descriptions
- * by reference. Expansion and directional meaning belong to the consuming operation;
- * see \ref le_interactor_kernel_mapping for LEInteractor's convention.
- * See \ref ib_kernel_catalog for built-ins and aliases. A description does not
- * imply that a particular operation can execute it.
+ * Owns a nonempty ordered sequence of scalar factors. It may be constructed
+ * from factors or from a legacy scalar or composite kernel name.
  */
 class IBKernelTensorProduct
 {
 public:
-    //! Own the supplied factors; throws std::invalid_argument for an empty collection.
+    //! Own the supplied nonempty sequence of factors.
     explicit IBKernelTensorProduct(std::vector<IBKernel> factors);
 
-    //! Number of supplied factors, without dimensional expansion.
-    std::size_t getNumberOfKernels() const;
+    //! Own the supplied nonempty sequence of factors.
+    IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
 
-    //! Access a factor; throws std::out_of_range for slot >= getNumberOfKernels().
-    const IBKernel& getKernel(std::size_t slot) const;
+    //! Interpret a legacy scalar or composite kernel name.
+    explicit IBKernelTensorProduct(const std::string& name);
+
+    //! Whether name can construct a tensor-product description.
+    static bool isValidName(const std::string& name);
+
+    //! Number of supplied factors.
+    std::size_t size() const;
+
+    //! Access a factor. Valid indices satisfy slot < size().
+    const IBKernel& operator[](std::size_t slot) const;
 
     //! Whether every supplied factor equals the first (true for one factor).
     //! This does not imply that a consumer supports the count or the kernel.
     bool isIsotropic() const;
-
-    /*!
-     * \brief Interpret an existing kernel name or a custom scalar identity.
-     *
-     * Scalar names supply one factor. Composite names supply the two ordered
-     * factors documented in \ref ib_kernel_catalog. No dimensional expansion occurs.
-     *
-     * \throws std::invalid_argument if the scalar name violates the canonical
-     * name rules in \ref ib_kernel_catalog.
-     */
-    static IBKernelTensorProduct from_name(const std::string& name);
 
     bool operator==(const IBKernelTensorProduct& other) const;
 

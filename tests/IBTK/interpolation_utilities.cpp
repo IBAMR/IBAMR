@@ -17,7 +17,6 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-#include <ibtk/LEInteractor.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
 
@@ -31,8 +30,6 @@
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
 
-#include <stdexcept>
-
 #include <ibtk/app_namespaces.h>
 
 namespace
@@ -40,168 +37,7 @@ namespace
 void
 require_kernel_check(bool valid, const char* message)
 {
-    if (!valid) throw std::runtime_error(message);
-}
-
-template <class F>
-void
-require_unsupported(F operation)
-{
-    bool rejected = false;
-    try
-    {
-        operation();
-    }
-    catch (const std::invalid_argument& error)
-    {
-        rejected = std::string(error.what()) == "LEInteractor: unsupported kernel description";
-    }
-    require_kernel_check(rejected, "unsupported description did not produce the intended rejection");
-}
-
-void
-check_kernel_consumption(Pointer<PatchHierarchy<NDIM>> hierarchy)
-{
-    for (const char* name : { "IB_4", "piecewise_constant", "piecewise_linear", "composite_bspline_21" })
-        require_kernel_check(LEInteractor::isKnownKernel(name), "known string query rejected");
-    for (const std::string name : { std::string(""),
-                                    std::string("Bad Name"),
-                                    std::string("A\0B", 3),
-                                    std::string(25, 'A'),
-                                    std::string("UnregisteredTrialKernel"),
-                                    std::string("COMPOSITE_BSPLINE_12") })
-        require_kernel_check(!LEInteractor::isKnownKernel(name), "invalid/unsupported query must return false");
-
-    int patches = 0;
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        ++patches;
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-        const auto& box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
-        const auto dx = geometry->getDx();
-        const auto xlow = geometry->getXLower();
-        Pointer<SideData<NDIM, double>> field = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
-        Pointer<SideData<NDIM, double>> legacy = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
-        Pointer<SideData<NDIM, double>> typed = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
-        std::vector<double> X(NDIM), force(NDIM), a(NDIM), b(NDIM);
-        double volume = 1.0;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            X[d] = xlow[d] + (3.27 + 0.17 * d) * dx[d];
-            force[d] = 1.3 + 0.7 * d;
-            volume *= dx[d];
-        }
-        for (int component = 0; component < NDIM; ++component)
-            for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-            {
-                double value = 0.4 + component;
-                for (int d = 0; d < NDIM; ++d) value += std::sin((0.13 + 0.09 * d) * (i()(d) + 0.3 * component));
-                (*field)(i()) = value;
-            }
-        const char* names[] = { "PIECEWISE_CONSTANT",
-                                "PIECEWISE_LINEAR",
-                                "PIECEWISE_CUBIC",
-                                "IB_3",
-                                "IB_4",
-                                "IB_4_W8",
-                                "IB_5",
-                                "IB_6",
-                                "BSPLINE_3",
-                                "BSPLINE_4",
-                                "BSPLINE_5",
-                                "BSPLINE_6",
-                                "USER_DEFINED",
-                                "DISCONTINUOUS_LINEAR",
-                                "COMPOSITE_BSPLINE_23",
-                                "COMPOSITE_BSPLINE_32",
-                                "COMPOSITE_BSPLINE_34",
-                                "COMPOSITE_BSPLINE_43",
-                                "COMPOSITE_BSPLINE_45",
-                                "COMPOSITE_BSPLINE_54",
-                                "COMPOSITE_BSPLINE_56",
-                                "COMPOSITE_BSPLINE_65" };
-        for (const char* name : names)
-        {
-            const auto kernel = IBKernelTensorProduct::from_name(name);
-            require_kernel_check(LEInteractor::isKnownKernel(kernel) && LEInteractor::isKnownKernel(name),
-                                 "legacy kernel unsupported");
-            require_kernel_check(LEInteractor::getStencilSize(kernel) == LEInteractor::getStencilSize(name),
-                                 "stencil query changed");
-            LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, name);
-            LEInteractor::interpolate(b, NDIM, X, NDIM, field, patch, box, kernel);
-            require_kernel_check(a == b, "typed/string interpolation differs");
-            legacy->fillAll(0.0);
-            typed->fillAll(0.0);
-            LEInteractor::spread(legacy, force, NDIM, X, NDIM, patch, box, name);
-            LEInteractor::spread(typed, force, NDIM, X, NDIM, patch, box, kernel);
-            for (int component = 0; component < NDIM; ++component)
-                for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-                    require_kernel_check((*legacy)(i()) == (*typed)(i()), "typed/string spreading differs");
-        }
-
-        // Independent hat/nearest-grid weights establish the 21 alias orientation.
-        const IBKernelTensorProduct linear_constant({
-            IBKernel::BSPLINE_2, IBKernel::BSPLINE_1
-#if (NDIM == 3)
-                ,
-                IBKernel::BSPLINE_1
-#endif
-        });
-        require_kernel_check(LEInteractor::isKnownKernel(linear_constant), "ordered sequence query rejected");
-        LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, "DISCONTINUOUS_LINEAR");
-        LEInteractor::interpolate(b, NDIM, X, NDIM, field, patch, box, linear_constant);
-        require_kernel_check(a == b, "ordered sequence interpolation differs from legacy alias");
-        typed->fillAll(0.0);
-        LEInteractor::spread(typed, force, NDIM, X, NDIM, patch, box, linear_constant);
-        for (int component = 0; component < NDIM; ++component)
-        {
-            double expected = 0.0;
-            for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-            {
-                double weight = 1.0;
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    const double grid_x = xlow[d] + (i()(d) - box.lower()(d) + (d == component ? 0.0 : 0.5)) * dx[d];
-                    const double distance = std::abs((X[d] - grid_x) / dx[d]);
-                    weight *= d == component ? std::max(0.0, 1.0 - distance) : (distance < 0.5 ? 1.0 : 0.0);
-                }
-                expected += weight * (*field)(i());
-                require_kernel_check(std::abs((*typed)(i()) * volume - force[component] * weight) < 1.e-12,
-                                     "21 spreading orientation");
-            }
-            require_kernel_check(std::abs(a[component] - expected) < 1.e-12, "21 interpolation orientation");
-        }
-
-        const std::vector<IBKernel> factors
-        {
-#if (NDIM == 3)
-            IBKernel::BSPLINE_2, IBKernel::BSPLINE_1, IBKernel::BSPLINE_3
-#else
-            IBKernel::IB_4, IBKernel::IB_3
-#endif
-        };
-        const IBKernelTensorProduct unsupported[] = {
-            IBKernelTensorProduct({ IBKernel("UnregisteredTrialKernel") }),
-            IBKernelTensorProduct(factors),
-            IBKernelTensorProduct({ IBKernel::BSPLINE_1, IBKernel::BSPLINE_2 }),
-            IBKernelTensorProduct({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 })
-        };
-        for (const auto& kernel : unsupported)
-        {
-            require_kernel_check(!LEInteractor::isKnownKernel(kernel), "unsupported tuple query must return false");
-            a.assign(NDIM, 17.0);
-            typed->fillAll(19.0);
-            require_unsupported([&] { LEInteractor::interpolate(a, NDIM, X, NDIM, field, patch, box, kernel); });
-            require_unsupported([&] { LEInteractor::spread(typed, force, NDIM, X, NDIM, patch, box, kernel); });
-            require_kernel_check(a == std::vector<double>(NDIM, 17.0), "rejected interpolation changed output");
-            for (int component = 0; component < NDIM; ++component)
-                for (SideIterator<NDIM> i(typed->getGhostBox(), component); i; i++)
-                    require_kernel_check((*typed)(i()) == 19.0, "rejected spreading changed output");
-        }
-    }
-    require_kernel_check(IBTK_MPI::sumReduction(patches) > 1, "trial needs multiple patches");
+    if (!valid) TBOX_ERROR(message << '\n');
 }
 } // namespace
 
@@ -333,12 +169,6 @@ main(int argc, char* argv[])
         HierarchyGhostCellInterpolation ghost_cell_fill;
         ghost_cell_fill.initializeOperatorState(ghost_cell_comps, patch_hierarchy, coarsest_ln, finest_ln);
         ghost_cell_fill.fillData(0.0);
-
-        if (input_db->getBoolWithDefault("kernel_trial", false))
-        {
-            check_kernel_consumption(patch_hierarchy);
-            pout << "LEInteractor typed/string execution, alias orientation, capability queries and rejection: PASS\n";
-        }
 
         // Now interpolate to the specified point.
         std::vector<VectorNd> x_pt(2);

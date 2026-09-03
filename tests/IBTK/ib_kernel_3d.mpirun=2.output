@@ -1,6 +1,6 @@
 Scalar names and aliases: PASS
 Ordered and isotropic products: PASS
-Custom canonical identities and two-word value copies: PASS
+Custom canonical identities and two-block value copies: PASS
 Exact encoding, 24-character round trip, and rank order/subset independence: PASS
-Variable-length sequences and shared consumer expansion/mapping: PASS
-Scalar/composite separation and invalid-name rejection: PASS
+Variable-length sequence inspection and exact diagnostics: PASS
+Scalar/composite parsing ownership and validity predicates: PASS

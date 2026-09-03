@@ -63,7 +63,7 @@ interpolate(const VectorNd& X,
             Pointer<PatchHierarchy<NDIM>> hierarchy,
             std::string interp_fcn)
 {
-    return interpolate(X, data_idx, Q_var, Q_depth, hierarchy, IBKernelTensorProduct::from_name(interp_fcn));
+    return interpolate(X, data_idx, Q_var, Q_depth, hierarchy, IBKernelTensorProduct(interp_fcn));
 }
 
 std::vector<double>
@@ -86,7 +86,7 @@ interpolate(const std::vector<VectorNd>& X,
             Pointer<PatchHierarchy<NDIM>> hierarchy,
             std::string interp_fcn)
 {
-    return interpolate(X, data_idx, Q_var, Q_depth, hierarchy, IBKernelTensorProduct::from_name(interp_fcn));
+    return interpolate(X, data_idx, Q_var, Q_depth, hierarchy, IBKernelTensorProduct(interp_fcn));
 }
 
 std::vector<double>

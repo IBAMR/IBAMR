@@ -26,7 +26,7 @@ namespace IBTK
 /*!
  * \brief Value identifying a scalar one-dimensional IB kernel.
  *
- * Copies and equality use an exact two-word value, without string operations
+ * Copies and equality use an exact two-block value, without string operations
  * or allocation. The same canonical name has the same value on every process,
  * independently of construction order. Resolve names at configuration
  * boundaries, not in numerical loops. Store names, not internal values, in
@@ -34,7 +34,6 @@ namespace IBTK
  * The compile-time name capacity is currently 24 characters; changing it
  * requires rebuilding both the library and its applications consistently.
  *
- * \anchor ib_kernel_catalog
  * The public constants below are the built-in scalar catalog. Built-in names
  * are case-insensitive; PIECEWISE_CONSTANT and PIECEWISE_LINEAR alias BSPLINE_1
  * and BSPLINE_2. All names, including custom names, are normalized to uppercase
@@ -43,11 +42,6 @@ namespace IBTK
  * Naming a custom kernel does not register an evaluator. USER_DEFINED retains
  * its separate legacy callback meaning; it is not an alias for custom names.
  *
- * IBKernelTensorProduct::from_name() also recognizes COMPOSITE_BSPLINE_XY for
- * XY = 12, 21, 23, 32, 34, 43, 45, 54, 56, 65, supplying ordered factors
- * {BSPLINE_X, BSPLINE_Y}. DISCONTINUOUS_LINEAR aliases 21. These
- * product names cannot be used as scalar names. Execution support is a
- * separate property of the consuming operation.
  */
 class IBKernel
 {
@@ -75,13 +69,13 @@ public:
     /*!
      * \brief Construct a scalar identity.
      *
-     * \throws std::invalid_argument if the canonical name is empty, exceeds
-     * 24 characters, contains an invalid character, or is a recognized
-     * composite name (including DISCONTINUOUS_LINEAR). Aliases are resolved
-     * before checking the canonical scalar length. Use
-     * IBKernelTensorProduct::from_name() to interpret those composite names.
+     * The name must contain 1 to 24 ASCII letters, digits, or underscores.
+     * Scalar aliases are resolved before constructing the identity.
      */
     explicit IBKernel(const std::string& name);
+
+    //! Whether name satisfies the scalar kernel-name grammar.
+    static bool isValidName(const std::string& name);
 
     //! Reconstruct the canonical name for configuration or diagnostics, not dispatch.
     std::string getName() const;
@@ -92,13 +86,13 @@ public:
 
 private:
     static constexpr std::size_t MAX_NAME_LENGTH = 24;
-    static constexpr std::size_t DIGITS_PER_WORD = 12;
+    static constexpr std::size_t DIGITS_PER_BLOCK = 12;
     static constexpr std::uint64_t ENCODING_BASE = 38;
-    static constexpr std::size_t NAME_WORD_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_WORD - 1) / DIGITS_PER_WORD;
+    static constexpr std::size_t NAME_BLOCK_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_BLOCK - 1) / DIGITS_PER_BLOCK;
 
-    static constexpr std::array<std::uint64_t, NAME_WORD_COUNT> encode_name(std::string_view name);
+    static constexpr std::array<std::uint64_t, NAME_BLOCK_COUNT> encode_name(std::string_view name);
 
-    std::array<std::uint64_t, NAME_WORD_COUNT> d_name;
+    std::array<std::uint64_t, NAME_BLOCK_COUNT> d_name;
 };
 } // namespace IBTK
 
