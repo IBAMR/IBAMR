@@ -60,7 +60,8 @@ public:
      * Scalar names denote isotropic products. Composite names use the
      * component-relative mapping documented in \ref ib_kernel_catalog.
      *
-     * \throws std::invalid_argument if the name is empty.
+     * \throws std::invalid_argument if the scalar name violates the canonical
+     * name rules in \ref ib_kernel_catalog.
      */
     static IBKernelTensorProduct from_name(const std::string& name);
 

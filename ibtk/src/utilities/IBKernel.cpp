@@ -14,34 +14,50 @@
 #include <ibtk/IBKernel.h>
 #include <ibtk/IBKernelTensorProduct.h>
 
-#include <mutex>
 #include <ostream>
-#include <set>
 #include <stdexcept>
 #include <string>
 
 namespace
 {
-const std::array<std::string, 13>&
-builtin_names()
+// Each word holds twelve base-38 digits. Zero is reserved for right padding;
+// 38^12 < 2^63, so neither chunk overflows. Call only with canonical names.
+constexpr std::array<std::uint64_t, 2>
+encode_name(const char* name, std::size_t length)
 {
-    static const std::array<std::string, 13> names{ { "BSPLINE_1",
-                                                      "BSPLINE_2",
-                                                      "BSPLINE_3",
-                                                      "BSPLINE_4",
-                                                      "BSPLINE_5",
-                                                      "BSPLINE_6",
-                                                      "PIECEWISE_CUBIC",
-                                                      "IB_3",
-                                                      "IB_4",
-                                                      "IB_4_W8",
-                                                      "IB_5",
-                                                      "IB_6",
-                                                      "USER_DEFINED" } };
-    return names;
+    std::array<std::uint64_t, 2> words{};
+    for (std::size_t i = 0; i < 24; ++i)
+    {
+        const char c = i < length ? name[i] : '\0';
+        const unsigned int digit = c == '\0' ? 0 : c == '_' ? 37 : c >= 'A' ? c - 'A' + 1 : c - '0' + 27;
+        words[i / 12] = 38 * words[i / 12] + digit;
+    }
+    return words;
 }
 
-// Only built-in spellings are case-insensitive. Never modify a custom identity.
+template <std::size_t N>
+constexpr std::array<std::uint64_t, 2>
+encode_literal(const char (&name)[N])
+{
+    return encode_name(name, N - 1);
+}
+
+// Same order as IBKernel::Builtin. Constant initialization avoids packing names
+// whenever a built-in is constructed during numerical dispatch.
+constexpr std::array<std::array<std::uint64_t, 2>, 13> builtin_keys{ { encode_literal("BSPLINE_1"),
+                                                                       encode_literal("BSPLINE_2"),
+                                                                       encode_literal("BSPLINE_3"),
+                                                                       encode_literal("BSPLINE_4"),
+                                                                       encode_literal("BSPLINE_5"),
+                                                                       encode_literal("BSPLINE_6"),
+                                                                       encode_literal("PIECEWISE_CUBIC"),
+                                                                       encode_literal("IB_3"),
+                                                                       encode_literal("IB_4"),
+                                                                       encode_literal("IB_4_W8"),
+                                                                       encode_literal("IB_5"),
+                                                                       encode_literal("IB_6"),
+                                                                       encode_literal("USER_DEFINED") } };
+
 std::string
 uppercase_name(std::string name)
 {
@@ -64,33 +80,47 @@ composite_orders(const std::string& name)
 
 namespace IBTK
 {
-IBKernel::IBKernel(Builtin kernel) : d_name(&builtin_names().at(static_cast<unsigned int>(kernel)))
+IBKernel::IBKernel(Builtin kernel) : d_name(builtin_keys.at(static_cast<unsigned int>(kernel)))
 {
 }
 
 IBKernel::IBKernel(const std::string& name)
 {
     if (name.empty()) throw std::invalid_argument("IBKernel requires a nonempty scalar name");
-    const std::string upper = uppercase_name(name);
-    if (composite_orders(upper))
+    std::string canonical = uppercase_name(name);
+    if (composite_orders(canonical))
         throw std::invalid_argument("IBKernel requires a scalar name, not a composite kernel name");
-    std::string canonical = name;
-    if (upper == "PIECEWISE_CONSTANT")
+    if (canonical == "PIECEWISE_CONSTANT")
         canonical = "BSPLINE_1";
-    else if (upper == "PIECEWISE_LINEAR")
+    else if (canonical == "PIECEWISE_LINEAR")
         canonical = "BSPLINE_2";
-    for (const auto& builtin : builtin_names())
-        if (upper == builtin || canonical == builtin)
+    if (canonical.size() > 24) throw std::invalid_argument("IBKernel scalar name exceeds 24 characters");
+    for (const char c : canonical)
+        if (!((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'))
+            throw std::invalid_argument("IBKernel scalar name requires ASCII letters, digits, or underscore");
+    d_name = encode_name(canonical.data(), canonical.size());
+}
+
+std::string
+IBKernel::getName() const
+{
+    std::string name(24, '\0');
+    for (std::size_t chunk = 0; chunk < 2; ++chunk)
+    {
+        std::uint64_t word = d_name[chunk];
+        for (std::size_t i = 12; i > 0; --i)
         {
-            d_name = &builtin;
-            return;
+            const unsigned int digit = word % 38;
+            word /= 38;
+            name[12 * chunk + i - 1] = digit == 0  ? '\0' :
+                                       digit <= 26 ? 'A' + digit - 1 :
+                                       digit <= 36 ? '0' + digit - 27 :
+                                                     '_';
         }
-    // set insertion preserves existing elements and their addresses. This is
-    // only name interning: it has no evaluator registration or dispatch role.
-    static std::set<std::string> names;
-    static std::mutex mutex;
-    const std::lock_guard<std::mutex> lock(mutex);
-    d_name = &*names.insert(canonical).first;
+    }
+    const auto padding = name.find('\0');
+    if (padding != std::string::npos) name.resize(padding);
+    return name;
 }
 
 IBKernelTensorProduct::IBKernelTensorProduct(const IBKernel& kernel) : IBKernelTensorProduct(kernel, kernel)

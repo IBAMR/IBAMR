@@ -16,16 +16,10 @@
 
 namespace IBTK
 {
-inline const std::string&
-IBKernel::getName() const
-{
-    return *d_name;
-}
-
 inline bool
 IBKernel::operator==(const IBKernel& other) const
 {
-    return d_name == other.d_name;
+    return d_name[0] == other.d_name[0] && d_name[1] == other.d_name[1];
 }
 
 inline bool

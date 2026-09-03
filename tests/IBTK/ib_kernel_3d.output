@@ -1,5 +1,6 @@
 Scalar names and aliases: PASS
 Ordered and isotropic products: PASS
-Custom identities and value ownership: PASS
+Custom canonical identities and two-word value copies: PASS
+Exact encoding, 24-character round trip, and rank order/subset independence: PASS
 Public compact identities and Cartesian/component direction mapping: PASS
-Scalar/composite separation and empty-name rejection: PASS
+Scalar/composite separation and invalid-name rejection: PASS

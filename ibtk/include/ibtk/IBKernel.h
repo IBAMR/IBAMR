@@ -16,6 +16,8 @@
 
 #include <ibtk/config.h>
 
+#include <array>
+#include <cstdint>
 #include <string>
 
 namespace IBTK
@@ -23,15 +25,18 @@ namespace IBTK
 /*!
  * \brief Value identifying a scalar one-dimensional IB kernel.
  *
- * Copies and equality use a compact process-local identity, without string
- * operations or allocation. Resolve names at configuration boundaries, not in
- * numerical loops. Canonical names have process lifetime. Do not serialize the
- * identity or assume that custom identities agree between MPI processes.
+ * Copies and equality use an exact two-word value, without string operations
+ * or allocation. The same canonical name has the same value on every process,
+ * independently of construction order. Resolve names at configuration
+ * boundaries, not in numerical loops. Store names, not internal values, in
+ * input and restart data.
  *
  * \anchor ib_kernel_catalog
  * The public constants below are the built-in scalar catalog. Built-in names
  * are case-insensitive; PIECEWISE_CONSTANT and PIECEWISE_LINEAR alias BSPLINE_1
- * and BSPLINE_2. Other nonempty names are interned verbatim, case-sensitively.
+ * and BSPLINE_2. All names, including custom names, are normalized to uppercase
+ * using ASCII rules. Canonical scalar names contain 1 to 24 characters from
+ * A-Z, 0-9, and underscore; whitespace and other bytes are not accepted.
  * Naming a custom kernel does not register an evaluator. USER_DEFINED retains
  * its separate legacy callback meaning; it is not an alias for custom names.
  *
@@ -67,21 +72,23 @@ public:
     /*!
      * \brief Construct a scalar identity.
      *
-     * \throws std::invalid_argument if the name is empty or is a recognized
-     * composite name (including DISCONTINUOUS_LINEAR). Use
+     * \throws std::invalid_argument if the canonical name is empty, exceeds
+     * 24 characters, contains an invalid character, or is a recognized
+     * composite name (including DISCONTINUOUS_LINEAR). Aliases are resolved
+     * before checking the canonical scalar length. Use
      * IBKernelTensorProduct::from_name() to interpret those composite names.
      */
     explicit IBKernel(const std::string& name);
 
-    //! Return the process-lifetime canonical name, with built-in aliases normalized.
-    const std::string& getName() const;
+    //! Reconstruct the canonical name for configuration or diagnostics, not dispatch.
+    std::string getName() const;
 
     bool operator==(const IBKernel& other) const;
 
     bool operator!=(const IBKernel& other) const;
 
 private:
-    const std::string* d_name;
+    std::array<std::uint64_t, 2> d_name;
 };
 } // namespace IBTK
 
