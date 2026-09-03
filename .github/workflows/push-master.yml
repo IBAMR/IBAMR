@@ -178,10 +178,16 @@ jobs:
           # Work around issues with homebrew dependencies being pre-installed by
           # GitHub
           brew update
-          for DEPENDENCY in ccache cmake curl gcc hdf5-mpi hypre ninja open-mpi petsc
+          for DEPENDENCY in boost ccache cmake curl gcc hdf5-mpi hypre ninja open-mpi petsc
           do
             brew list "$DEPENDENCY" 1>/dev/null 2>&1 || brew install "$DEPENDENCY"
           done
+          # Relocate Homebrew dependency paths in a temporary copy of PETSc's
+          # metadata, leaving the installation unchanged.
+          sed -E \
+            -e "s#$(brew --cellar open-mpi)/[^/ ]+#$(brew --prefix open-mpi)#g" \
+            -e "s#$(brew --cellar gcc)/[^/ ]+#$(brew --prefix gcc)#g" \
+            "$(brew --prefix petsc)/lib/petsc/conf/petscvariables" > "$RUNNER_TEMP/petscvariables"
       - name: list HDF5 info
         run: |
           brew --prefix hdf5-mpi
@@ -255,9 +261,11 @@ jobs:
               -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS -std=c++17"                                   \
               -DCMAKE_Fortran_COMPILER="$(find -L $(brew --prefix gcc) -name gfortran)"           \
               -DCMAKE_Fortran_FLAGS="-O2 $WARNING_FLAGS -Wno-unused-parameter -Wno-compare-reals" \
+              -DBOOST_ROOT="$(brew --prefix boost)"                                               \
               -DHDF5_ROOT="$(brew --prefix hdf5-mpi)"                                             \
               -DHYPRE_ROOT="$(brew --prefix hypre)"                                               \
               -DPETSC_ROOT="$(brew --prefix petsc)"                                               \
+              -DPETSC_VARIABLES_FILE="$RUNNER_TEMP/petscvariables"                                \
               -DSAMRAI_ROOT="$HOME/Applications/samrai"                                           \
               ../
           configure_status=$?
