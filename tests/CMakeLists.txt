@@ -255,6 +255,7 @@ SETUP(IBTK ibtk_init.cpp IBAMR2d)
 SETUP(IBTK ibtk_mpi.cpp IBAMR2d)
 SETUP(IBTK ldata_01.cpp IBAMR2d)
 SETUP(IBTK mpi_type_wrappers.cpp IBAMR2d)
+SETUP(IBTK petsc_options_file.cpp IBAMR2d)
 SETUP(IBTK child_integrators.cpp IBAMR2d)
 SETUP(IBTK version_macros.cpp IBAMR2d)
 SETUP(IBTK restart_cleaner_interface_test.cpp IBAMR2d)
@@ -322,8 +323,8 @@ ADD_CUSTOM_COMMAND(TARGET tests
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/attest ${CMAKE_BINARY_DIR}/attest)
 
-# Set up the input and output files. Since the input and output files aren't
-# really used by the build system we use a shell script to find them every time
+# Set up the input, output, and PETSc options files. Since these files aren't
+# used by the build system we use a shell script to find them every time
 # 'make test' is run rather than evaluating the glob when cmake generates the
 # build system.
 FOREACH(_dir ${TEST_DIRECTORIES})

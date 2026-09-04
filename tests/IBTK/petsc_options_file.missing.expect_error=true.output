@@ -1,0 +1,1 @@
+IBTK_PETSC_OPTIONS_FILE_MISSING: could not open PETSc options file 'r00-deliberately-missing.opts'
