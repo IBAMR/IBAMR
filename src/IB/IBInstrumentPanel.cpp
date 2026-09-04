@@ -1203,23 +1203,25 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
                                  << "  dump directory name is empty" << std::endl);
     }
 
-    char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
     const int mpi_rank = IBTK_MPI::getRank();
     const int mpi_nodes = IBTK_MPI::getNodes();
 
     // Create the working directory.
-    snprintf(temp_buf, sizeof(temp_buf), "%06d", d_instrument_read_timestep_num);
-    std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
+    std::ostringstream oss;
+    oss << std::setw(6) << std::setfill('0') << d_instrument_read_timestep_num;
+    std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + oss.str();
     std::string dump_dirname = d_plot_directory_name + "/" + current_dump_directory_name;
 
     Utilities::recursiveMkdir(dump_dirname);
 
     // Create one local DBfile per MPI process.
-    snprintf(temp_buf, sizeof(temp_buf), "%04d", mpi_rank);
+    oss.str("");
+    oss.clear();
+    oss << std::setw(4) << std::setfill('0') << mpi_rank;
     current_file_name = dump_dirname + "/" + SILO_PROCESSOR_FILE_PREFIX;
-    current_file_name += temp_buf;
+    current_file_name += oss.str();
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
     if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
@@ -1249,9 +1251,11 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     {
         // Create and initialize the multimesh Silo database on the root MPI
         // process.
-        snprintf(temp_buf, sizeof(temp_buf), "%06d", d_instrument_read_timestep_num);
+        oss.str("");
+        oss.clear();
+        oss << std::setw(6) << std::setfill('0') << d_instrument_read_timestep_num;
         std::string summary_file_name =
-            dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+            dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + oss.str() + SILO_SUMMARY_FILE_POSTFIX;
         if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
@@ -1271,9 +1275,11 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         for (unsigned int meter = 0; meter < d_num_meters; ++meter)
         {
             const int proc = meter % mpi_nodes;
-            snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
+            oss.str("");
+            oss.clear();
+            oss << std::setw(4) << std::setfill('0') << proc;
             current_file_name = SILO_PROCESSOR_FILE_PREFIX;
-            current_file_name += temp_buf;
+            current_file_name += oss.str();
             current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
             std::string meshname = current_file_name + ":" + d_instrument_names[meter] + "/mesh";
@@ -1304,9 +1310,11 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         // Create or update the dumps file on the root MPI process.
         static bool summary_file_opened = false;
         std::string path = d_plot_directory_name + "/" + VISIT_DUMPS_FILENAME;
-        snprintf(temp_buf, sizeof(temp_buf), "%06d", d_instrument_read_timestep_num);
+        oss.str("");
+        oss.clear();
+        oss << std::setw(6) << std::setfill('0') << d_instrument_read_timestep_num;
         std::string file =
-            current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
+            current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + oss.str() + SILO_SUMMARY_FILE_POSTFIX;
         if (!summary_file_opened)
         {
             summary_file_opened = true;

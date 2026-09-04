@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBTK_MPI.h>
+
 #include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -35,6 +37,9 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
@@ -406,6 +411,34 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
     TBOX_ASSERT(p);
 #endif
     return *p;
+}
+
+/*!
+ * Generate a filename for a SAMRAI data file using the output directory,
+ * data prefix, iteration number, and MPI rank. This removes the need for duplicated
+ * filename-generation code.
+ */
+inline std::string
+formatSAMRAIOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
+{
+    std::ostringstream oss;
+    oss << data_dump_dirname << "/" << prefix << ".";
+    oss << std::setw(5) << std::setfill('0') << iteration_num << ".samrai." << std::setw(5) << IBTK_MPI::getRank();
+    return oss.str();
+}
+
+/*!
+ * Generate a filename for an iteration data file using the output directory,
+ * data prefix, and iteration number. This removes the need for duplicated
+ * filename-generation code.
+ */
+inline std::string
+formatIterationOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
+{
+    std::ostringstream oss;
+    oss << data_dump_dirname << "/" << prefix << ".";
+    oss << std::setw(5) << std::setfill('0') << iteration_num;
+    return oss.str();
 }
 
 } // namespace IBTK
