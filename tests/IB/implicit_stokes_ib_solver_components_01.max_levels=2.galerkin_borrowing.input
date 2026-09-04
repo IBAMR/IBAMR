@@ -24,7 +24,6 @@ TAG_BUFFER                          = 2
 FD_REL_TOL                          = 1.0e-6
 USE_FIXED_LE_OPERATORS              = TRUE
 VERIFY_GALERKIN_OPERATOR_BORROWING  = TRUE
-PETSC_OPTIONS_FILE                  = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=2.dat"
 
 stokes_ib_precond_db {
    num_pre_sweeps = 1
@@ -65,6 +64,17 @@ IBRedundantInitializer {
    base_filenames_1 = "x"
 }
 Main {
+   petsc_settings {
+      stokes_ib_pc_level_ksp_type = "richardson"
+      stokes_ib_pc_level_ksp_richardson_self_scale = TRUE
+      stokes_ib_pc_level_pc_type = "asm"
+      stokes_ib_pc_level_pc_asm_local_type = "additive"
+      stokes_ib_pc_level_pc_asm_type = "basic"
+      stokes_ib_pc_level_sub_pc_type = "lu"
+      stokes_ib_pc_level_sub_pc_factor_shift_type = "nonzero"
+      stokes_ib_pc_level_0_ksp_type = "preonly"
+      stokes_ib_pc_level_0_pc_type = "svd"
+   }
    log_file_name = "output"
    log_all_nodes = FALSE
    viz_dump_interval = 0
