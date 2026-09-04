@@ -38,6 +38,8 @@ bool ib_kernel_static_initialization_valid();
 
 namespace
 {
+constexpr std::size_t ENCODED_BLOCK_COUNT = 2;
+
 void
 require(bool valid, const std::string& message)
 {
@@ -53,12 +55,12 @@ spellings(const std::string& name)
     return { name, lower, mixed };
 }
 
-// Test-only inspection of the two-block layout, without adding a public key API.
-std::array<std::uint64_t, 2>
+// Test-only inspection of the compact layout, without adding a public key API.
+std::array<std::uint64_t, ENCODED_BLOCK_COUNT>
 numeric_blocks(const IBKernel& kernel)
 {
-    std::array<std::uint64_t, 2> blocks{};
-    static_assert(sizeof(kernel) == sizeof(blocks), "identity must contain exactly two blocks");
+    std::array<std::uint64_t, ENCODED_BLOCK_COUNT> blocks{};
+    static_assert(sizeof(kernel) == sizeof(blocks), "identity must contain the expected number of blocks");
     std::memcpy(blocks.data(), &kernel, sizeof(kernel));
     return blocks;
 }
@@ -120,27 +122,28 @@ main(int argc, char* argv[])
     // Ranks construct shared names in opposite orders with disjoint extras.
     // Compare the actual integers via typed MPI transport, not decoded names
     // or host-order bytes. The serial fixtures check the same value path.
-    const char* common_names[] = { "IB_4", "APPLICATION_KERNEL", "ABCDEFGHIJKLMNOPQRSTUVWX" };
-    std::array<std::uint64_t, 6> common_blocks{};
-    for (int j = 0; j < 3; ++j)
+    constexpr const char* COMMON_NAMES[] = { "IB_4", "APPLICATION_KERNEL", "ABCDEFGHIJKLMNOPQRSTUVWX" };
+    constexpr std::size_t COMMON_NAME_COUNT = std::size(COMMON_NAMES);
+    std::array<std::uint64_t, ENCODED_BLOCK_COUNT * COMMON_NAME_COUNT> common_blocks{};
+    for (std::size_t j = 0; j < COMMON_NAME_COUNT; ++j)
     {
-        const int i = rank % 2 ? 2 - j : j;
+        const std::size_t i = rank % 2 ? COMMON_NAME_COUNT - 1 - j : j;
         const IBKernel extra((rank % 2 ? "ODD_EXTRA_" : "EVEN_EXTRA_") + std::to_string(j));
-        const IBKernel common(common_names[i]);
+        const IBKernel common(COMMON_NAMES[i]);
         const auto blocks = numeric_blocks(common);
-        common_blocks[2 * i] = blocks[0];
-        common_blocks[2 * i + 1] = blocks[1];
+        for (std::size_t block = 0; block < ENCODED_BLOCK_COUNT; ++block)
+            common_blocks[ENCODED_BLOCK_COUNT * i + block] = blocks[block];
     }
     auto root_blocks = common_blocks;
-    MPI_Bcast(root_blocks.data(), 6, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+    MPI_Bcast(root_blocks.data(), static_cast<int>(root_blocks.size()), MPI_UINT64_T, 0, MPI_COMM_WORLD);
     require(common_blocks == root_blocks, "rank order/subset changed numeric identity");
 
-    // Independently tabulated positional values: A=1,...,Z=26,0=27,...,
-    // 9=36,_=37, padded with zeros to two twelve-digit base-38 chunks.
+    // Independently tabulated values for the canonical letter, digit, and
+    // underscore encoding with fixed-width block padding.
     struct Encoding
     {
         const char* name;
-        std::array<std::uint64_t, 2> blocks;
+        std::array<std::uint64_t, ENCODED_BLOCK_COUNT> blocks;
     };
     const Encoding encodings[] = {
         { "A", { { UINT64_C(238572050223552512), 0 } } },
@@ -311,7 +314,7 @@ main(int argc, char* argv[])
         out << "Scalar names and aliases: PASS\n"
             << "Ordered and isotropic products: PASS\n"
             << "Custom canonical identities and two-block value copies: PASS\n"
-            << "Exact encoding, 24-character round trip, and rank order/subset independence: PASS\n"
+            << "Exact encoding, maximum-length round trip, and rank order/subset independence: PASS\n"
             << "Canonical axis-relative products, equality, and diagnostics: PASS\n"
             << "Scalar/composite parsing ownership and validity predicates: PASS\n";
         require(static_cast<bool>(out), "output write failed");

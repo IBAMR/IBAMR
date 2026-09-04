@@ -19,12 +19,15 @@ namespace IBTK
 constexpr std::array<std::uint64_t, IBKernel::NAME_BLOCK_COUNT>
 IBKernel::encode_name(std::string_view name)
 {
-    // Zero pads each block; 38^12 < 2^63. Call only with canonical names.
+    // Zero pads each block; the chosen radix and digit count fit in a signed 64-bit value.
     std::array<std::uint64_t, NAME_BLOCK_COUNT> blocks{};
     for (std::size_t i = 0; i < NAME_BLOCK_COUNT * DIGITS_PER_BLOCK; ++i)
     {
         const char c = i < name.size() ? name[i] : '\0';
-        const unsigned int digit = c == '\0' ? 0 : c == '_' ? 37 : c >= 'A' ? c - 'A' + 1 : c - '0' + 27;
+        const unsigned int digit = c == '\0' ? 0 :
+                                   c == '_'  ? UNDERSCORE_DIGIT :
+                                   c >= 'A'  ? c - 'A' + LETTER_DIGIT_OFFSET :
+                                               c - '0' + NUMBER_DIGIT_OFFSET;
         blocks[i / DIGITS_PER_BLOCK] = ENCODING_BASE * blocks[i / DIGITS_PER_BLOCK] + digit;
     }
     return blocks;

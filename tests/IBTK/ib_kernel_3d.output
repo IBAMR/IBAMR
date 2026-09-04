@@ -1,6 +1,6 @@
 Scalar names and aliases: PASS
 Ordered and isotropic products: PASS
 Custom canonical identities and two-block value copies: PASS
-Exact encoding, 24-character round trip, and rank order/subset independence: PASS
+Exact encoding, maximum-length round trip, and rank order/subset independence: PASS
 Canonical axis-relative products, equality, and diagnostics: PASS
 Scalar/composite parsing ownership and validity predicates: PASS

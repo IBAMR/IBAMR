@@ -77,10 +77,10 @@ IBKernel::getName() const
         {
             const unsigned int digit = encoded_block % ENCODING_BASE;
             encoded_block /= ENCODING_BASE;
-            name[DIGITS_PER_BLOCK * block + i - 1] = digit == 0  ? '\0' :
-                                                     digit <= 26 ? 'A' + digit - 1 :
-                                                     digit <= 36 ? '0' + digit - 27 :
-                                                                   '_';
+            name[DIGITS_PER_BLOCK * block + i - 1] = digit == 0                  ? '\0' :
+                                                     digit < NUMBER_DIGIT_OFFSET ? 'A' + digit - LETTER_DIGIT_OFFSET :
+                                                     digit < UNDERSCORE_DIGIT    ? '0' + digit - NUMBER_DIGIT_OFFSET :
+                                                                                   '_';
         }
     }
     const auto padding = name.find('\0');

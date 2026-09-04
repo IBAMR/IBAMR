@@ -100,6 +100,15 @@ private:
     //! Radix used by the compact canonical-name representation.
     static constexpr std::uint64_t ENCODING_BASE = 38;
 
+    //! Offset of an encoded letter from its ASCII value.
+    static constexpr unsigned int LETTER_DIGIT_OFFSET = 1;
+
+    //! Offset of an encoded decimal digit from its ASCII value.
+    static constexpr unsigned int NUMBER_DIGIT_OFFSET = 27;
+
+    //! Encoded value reserved for underscore.
+    static constexpr unsigned int UNDERSCORE_DIGIT = 37;
+
     //! Number of integer blocks in the compact representation.
     static constexpr std::size_t NAME_BLOCK_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_BLOCK - 1) / DIGITS_PER_BLOCK;
 
