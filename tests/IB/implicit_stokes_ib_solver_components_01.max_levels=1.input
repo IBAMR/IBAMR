@@ -24,7 +24,6 @@ IB_TIME_STEPPING       = "BACKWARD_EULER"
 TAG_BUFFER             = 2
 FD_REL_TOL             = 1.0e-6
 USE_FIXED_LE_OPERATORS = TRUE
-PETSC_OPTIONS_FILE     = "PetscOptions.implicit_stokes_ib_solver_components_01.max_levels=1.dat"
 
 // FAC preconditioner setup used by the solver-components checks.
 stokes_ib_precond_db {
@@ -66,6 +65,10 @@ IBRedundantInitializer {
    base_filenames_0 = "x"
 }
 Main {
+   petsc_settings {
+      stokes_ib_pc_level_0_ksp_type = "preonly"
+      stokes_ib_pc_level_0_pc_type = "svd"
+   }
    log_file_name = "output"
    log_all_nodes = FALSE
    viz_dump_interval = 0
