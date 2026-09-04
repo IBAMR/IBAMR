@@ -15,6 +15,7 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConvectiveOperator.h>
+#include <ibamr/INSAveragingTurbulenceStatistics.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
@@ -22,6 +23,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
+#include <ibamr/INSTurbulenceStatistics.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
@@ -472,6 +474,22 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     if (input_db->keyExists("regrid_projection_sub_precond_type"))
         d_regrid_projection_sub_precond_type = input_db->getString("regrid_projection_sub_precond_type");
 
+    if (input_db->isDatabase("TurbulenceStatistics"))
+    {
+        d_turbulence_statistics_type = TurbulenceStatisticsType::AVERAGED_VELOCITY;
+        d_turbulence_statistics_db = input_db->getDatabase("TurbulenceStatistics");
+    }
+
+    std::string turbulence_statistics_type_string =
+        enum_to_string<TurbulenceStatisticsType>(d_turbulence_statistics_type);
+    if (input_db->keyExists("turbulence_statistics_type"))
+    {
+        turbulence_statistics_type_string = input_db->getString("turbulence_statistics_type");
+    }
+    if (d_turbulence_statistics_db && d_turbulence_statistics_db->keyExists("statistics_type"))
+        turbulence_statistics_type_string = d_turbulence_statistics_db->getString("statistics_type");
+    d_turbulence_statistics_type = string_to_enum<TurbulenceStatisticsType>(turbulence_statistics_type_string);
+
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
     {
@@ -662,7 +680,6 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
                                                                  d_object_name + "::velocity_sub_precond",
                                                                  d_velocity_sub_precond_db,
                                                                  "velocity_sub_pc_");
-        d_velocity_solver->setHierarchyMathOps(d_hier_math_ops);
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -686,11 +703,31 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
                                                                  d_object_name + "::pressure_sub_precond",
                                                                  d_pressure_sub_precond_db,
                                                                  "pressure_sub_pc_");
-        d_pressure_solver->setHierarchyMathOps(d_hier_math_ops);
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
 } // getPressureSubdomainSolver
+
+void
+INSStaggeredHierarchyIntegrator::registerTurbulenceStatistics(Pointer<INSTurbulenceStatistics> turbulence_statistics)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(!d_turbulence_statistics);
+#endif
+    d_turbulence_statistics = turbulence_statistics;
+    if (d_turbulence_statistics && d_visit_writer)
+    {
+        d_turbulence_statistics->registerVisItDataWriter(d_visit_writer);
+    }
+    return;
+}
+
+Pointer<INSTurbulenceStatistics>
+INSStaggeredHierarchyIntegrator::getTurbulenceStatistics() const
+{
+    return d_turbulence_statistics;
+}
 
 void
 INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
@@ -721,7 +758,6 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
                                                                        d_object_name + "::stokes_sub_precond",
                                                                        d_stokes_sub_precond_db,
                                                                        "stokes_sub_pc_");
-        d_stokes_solver->setHierarchyMathOps(d_hier_math_ops);
         d_stokes_solver_needs_init = true;
     }
     return d_stokes_solver;
@@ -742,6 +778,30 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    if (!d_turbulence_statistics && d_turbulence_statistics_type != TurbulenceStatisticsType::NONE)
+    {
+        if (!d_turbulence_statistics_db)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): turbulence statistics requested without a "
+                                        "TurbulenceStatistics database.\n");
+        }
+        switch (d_turbulence_statistics_type)
+        {
+        case TurbulenceStatisticsType::AVERAGED_VELOCITY:
+            d_turbulence_statistics = new INSAveragingTurbulenceStatistics(d_object_name + "::TurbulenceStatistics",
+                                                                           d_U_var,
+                                                                           d_turbulence_statistics_db,
+                                                                           d_hierarchy->getGridGeometry(),
+                                                                           d_registered_for_restart);
+            break;
+        case TurbulenceStatisticsType::NONE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator(): unsupported turbulence statistics type "
+                                     << enum_to_string<TurbulenceStatisticsType>(d_turbulence_statistics_type) << "\n");
+        }
+    }
 
     // Setup solvers.
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
@@ -929,6 +989,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     d_plot_indices.push_back(d_U_nc_idx);
     registerVariable(d_P_nc_idx, d_P_nc_var, no_ghosts, getPlotContext());
     d_plot_indices.push_back(d_P_nc_idx);
+
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     if (d_F_fcn)
@@ -1002,6 +1063,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             d_plot_indices.push_back(d_EE_idx);
             d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
         }
+    }
+
+    if (d_turbulence_statistics && d_visit_writer)
+    {
+        d_turbulence_statistics->registerVisItDataWriter(d_visit_writer);
     }
 
     // Setup a specialized coarsen algorithm.
@@ -1373,6 +1439,19 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         synchronizeHierarchyData(NEW_DATA);
     }
 
+    if (d_turbulence_statistics && !skip_synchronize_new_state_data)
+    {
+        const bool steady_state = d_turbulence_statistics->updateStatistics(
+            d_U_new_idx, d_U_var, getVelocityBoundaryConditions(), new_time, d_hierarchy, d_hier_math_ops);
+        if (steady_state && !d_turbulence_statistics_is_steady && d_enable_logging)
+        {
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): turbulence statistics reached periodic steady "
+                    "state\n";
+        }
+        d_turbulence_statistics_is_steady = steady_state;
+    }
+
     // Deallocate scratch data.
     deallocate_vector_data(*d_U_rhs_vec);
     deallocate_vector_data(*d_P_rhs_vec);
@@ -1713,6 +1792,11 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    if (d_turbulence_statistics)
+    {
+        d_turbulence_statistics->deallocatePlotData(d_hierarchy);
+    }
+
     // Do not coarsen or refine any plot data. Also ensure the divergence and
     // sources are allocated.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2160,6 +2244,11 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         d_hier_math_ops->strain_rate(d_EE_idx, d_EE_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
     }
 
+    if (d_turbulence_statistics)
+    {
+        d_turbulence_statistics->setupPlotData(d_integrator_time, d_hierarchy, d_hier_math_ops);
+    }
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
@@ -2216,7 +2305,6 @@ INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    regrid_projection_solver->setHierarchyMathOps(d_hier_math_ops);
     auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
