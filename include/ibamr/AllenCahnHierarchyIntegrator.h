@@ -123,7 +123,7 @@ public:
     /*!
      *  Add the temporal terms to the RHS of the energy equation.
      */
-    // void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.

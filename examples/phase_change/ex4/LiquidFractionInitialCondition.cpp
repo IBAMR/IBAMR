@@ -18,11 +18,9 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LiquidFractionInitialCondition::LiquidFractionInitialCondition(
-    const std::string& object_name,
-    const double initial_liquid_solid_interface_position)
-    : d_object_name(object_name),
-      d_initial_liquid_solid_interface_position(initial_liquid_solid_interface_position)
+LiquidFractionInitialCondition::LiquidFractionInitialCondition(const std::string& object_name,
+                                                               const double initial_liquid_solid_interface_position)
+    : d_object_name(object_name), d_initial_liquid_solid_interface_position(initial_liquid_solid_interface_position)
 {
     return;
 }

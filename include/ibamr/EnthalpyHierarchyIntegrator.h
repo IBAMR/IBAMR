@@ -67,7 +67,6 @@ namespace IBAMR
 class EnthalpyHierarchyIntegrator : public PhaseChangeHierarchyIntegrator
 {
 public:
-
     /*!
      * The constructor of EnthalpyHierarchyIntegrator class sets
      * some default values, reads in configuration information from input and
@@ -114,7 +113,7 @@ public:
     /*!
      * Add the temporal and linear terms to the RHS of the energy equation.
      */
-    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, int rho_h_n_idx, int H_new_idx,  double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.
@@ -132,12 +131,6 @@ public:
      */
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
 
-
-    using UpdateVOFFromLevelSetFcnPtr =
-    void (*)(double current_time, double new_time,int cycle_num, void* ctx);
-
-    void registerUpdateVOFFromLevelSetFcn(UpdateVOFFromLevelSetFcnPtr callback,  void* ctx);
-
     /*!
      * Write out specialized object state to the given database.
      */
@@ -154,9 +147,7 @@ public:
     void registerLiquidFractionVariableForExtrapolation(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var);
 
-     
 protected:
-
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
@@ -171,8 +162,6 @@ protected:
                                                 int finest_level) override;
 
 private:
-   UpdateVOFFromLevelSetFcnPtr d_update_vof_from_ls_fcn = nullptr;
-   void* d_update_vof_from_ls_ctx = nullptr;
     /*!
      * \brief Default constructor.
      *
@@ -216,9 +205,6 @@ private:
      */
     void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int rho_idx, int lf_idx, int H_idx);
 
-
-    void computeEnthalpyBasedOnTemperatureOnly(int h_idx, int T_idx,int H_idx); // in place of update enthalpy
-
     /*!
      * \brief Compute temperature based on (nonlinear) h-T relation.
      */
@@ -232,10 +218,7 @@ private:
     /*!
      * \brief compute dh/dT based on temperature.
      */
-    void computeRhoEnthalpyDerivative(int drhoh_dT_data, int T_idx, int H_idx);
-
     void computeEnthalpyDerivative(int dh_dT_data, int T_idx, int H_idx);
-    void computeEnthalpySecondDerivative(int d2h_dT_data, int T_idx, int H_idx);
 
     /*!
      * \brief Compute liquid fraction.
@@ -270,9 +253,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_grad_T_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_drhoh_dT_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dh_dT_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_d2h_dT_var;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
 
@@ -292,10 +273,7 @@ private:
      */
     int d_grad_T_idx = IBTK::invalid_index;
     int d_T_pre_idx = IBTK::invalid_index;
-    int d_drhoh_dT_scratch_idx = IBTK::invalid_index;
     int d_dh_dT_scratch_idx = IBTK::invalid_index;
-    int d_d2h_dT_scratch_idx = IBTK::invalid_index;
-    
 
     /*!
      * Boolean to output the enthalpy in visit.

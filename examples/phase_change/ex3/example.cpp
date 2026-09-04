@@ -220,7 +220,7 @@ main(int argc, char* argv[])
 
         // set Advection velocity.
         adv_diff_integrator->setAdvectionVelocity(ls_var, time_integrator->getAdvectionVelocityVariable());
-        //adv_diff_integrator->setAdvectionVelocity(H_var, time_integrator->getAdvectionVelocityVariable());
+        // adv_diff_integrator->setAdvectionVelocity(H_var, time_integrator->getAdvectionVelocityVariable());
         enthalpy_hier_integrator->setAdvectionVelocity(time_integrator->getAdvectionVelocityVariable());
 
         const ConvectiveDifferencingType ls_difference_form =

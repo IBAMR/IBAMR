@@ -111,8 +111,8 @@ struct SynchronizePCMVOFWithLSCtx
 
 void
 clamp_liquid_fraction_to_pcm_vof(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                  const int pcm_vof_idx,
-                                  const int liquid_fraction_idx)
+                                 const int pcm_vof_idx,
+                                 const int liquid_fraction_idx)
 {
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = 0; ln <= finest_ln; ++ln)
@@ -143,15 +143,14 @@ clamp_liquid_fraction_to_pcm_vof(Pointer<PatchHierarchy<NDIM>> hierarchy,
     }
 }
 
-
 void
 synchronize_pcm_vof_with_level_set(int pcm_vof_current_idx,
-                                    Pointer<HierarchyMathOps> hier_math_ops,
-                                    int /*integrator_step*/,
-                                    double time,
-                                    bool /*initial_time*/,
-                                    bool /*regrid_time*/,
-                                    void* ctx)
+                                   Pointer<HierarchyMathOps> hier_math_ops,
+                                   int /*integrator_step*/,
+                                   double time,
+                                   bool /*initial_time*/,
+                                   bool /*regrid_time*/,
+                                   void* ctx)
 {
     auto* sync_ctx = static_cast<SynchronizePCMVOFWithLSCtx*>(ctx);
 #if !defined(NDEBUG)
@@ -167,37 +166,20 @@ synchronize_pcm_vof_with_level_set(int pcm_vof_current_idx,
     sync_ctx->vof_from_ls->computeVOFFromLevelSet(time, /*use_new_context=*/false);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int mapped_pcm_vof_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ctx->pcm_vof_var,
-        sync_ctx->adv_diff_integrator->getCurrentContext());
+    const int mapped_pcm_vof_current_idx =
+        var_db->mapVariableAndContextToIndex(sync_ctx->pcm_vof_var, sync_ctx->adv_diff_integrator->getCurrentContext());
     const int liquid_fraction_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ctx->liquid_fraction_var,
-        sync_ctx->adv_diff_integrator->getCurrentContext());
+        sync_ctx->liquid_fraction_var, sync_ctx->adv_diff_integrator->getCurrentContext());
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(mapped_pcm_vof_current_idx == pcm_vof_current_idx);
 #endif
 
     // liquid_fraction is a whole-cell liquid PCM fraction: enforce 0 <= L <= C.
-    clamp_liquid_fraction_to_pcm_vof(hier_math_ops->getPatchHierarchy(),
-                                     pcm_vof_current_idx,
-                                     liquid_fraction_current_idx);
+    clamp_liquid_fraction_to_pcm_vof(
+        hier_math_ops->getPatchHierarchy(), pcm_vof_current_idx, liquid_fraction_current_idx);
 }
 
-void
-compute_pcm_vof_new_from_ls(double /*current_time*/,
-                            double new_time,
-                            int /*cycle_num*/,
-                            void* ctx)
-{
-    auto* vof_from_ls =
-        static_cast<IBAMR::VCINSVOFUtilities::
-                        VOFFromLevelSetInitializer*>(ctx);
-
-    vof_from_ls->computeVOFFromLevelSet(
-        new_time,
-        /*use_new_context=*/true);
-}
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -356,8 +338,8 @@ main(int argc, char* argv[])
         // Since H is synchronized with ls, the initial conditions for H is not rquired.
 
         Pointer<CartGridFunction> pcm_vof_init =
-        new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("pcm_vof_init", ls_init);
-        adv_diff_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);   
+            new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("pcm_vof_init", ls_init);
+        adv_diff_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);
 
         Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
             "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
@@ -383,10 +365,9 @@ main(int argc, char* argv[])
 
         IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
             "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
-        
-        enthalpy_hier_integrator->registerUpdateVOFFromLevelSetFcn(
-            &compute_pcm_vof_new_from_ls, static_cast<void*>(&pcm_vof_from_ls)
-        );
+
+            pcm_vof_from_ls.registerIntegrateHierarchyCallback();
+
 
         SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
         pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
@@ -597,19 +578,12 @@ main(int argc, char* argv[])
         pcm_vof_from_ls.computeVOFFromLevelSet(time_integrator->getIntegratorTime(), /*use_new_context=*/false);
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int pcm_vof_current_idx = var_db->mapVariableAndContextToIndex(
-            pcm_vof_var,
-            adv_diff_integrator->getCurrentContext());
-        const int lf_current_idx = var_db->mapVariableAndContextToIndex(
-            lf_var,
-            adv_diff_integrator->getCurrentContext());
+        const int pcm_vof_current_idx =
+            var_db->mapVariableAndContextToIndex(pcm_vof_var, adv_diff_integrator->getCurrentContext());
+        const int lf_current_idx =
+            var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
 
-        
-        clamp_liquid_fraction_to_pcm_vof(
-            patch_hierarchy,
-            pcm_vof_current_idx,
-            lf_current_idx);
-
+        clamp_liquid_fraction_to_pcm_vof(patch_hierarchy, pcm_vof_current_idx, lf_current_idx);
 
         // Remove the AppInitializer
         app_initializer.setNull();

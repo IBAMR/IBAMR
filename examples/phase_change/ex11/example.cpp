@@ -89,7 +89,6 @@ struct ConstantMushyThermalConductivityCtx
     double kappa_mushy;
 };
 
-
 void
 set_constant_mushy_thermal_conductivity(int kappa_idx,
                                         Pointer<Variable<NDIM>> /*kappa_var*/,
@@ -109,19 +108,18 @@ set_constant_mushy_thermal_conductivity(int kappa_idx,
 
     if (IBTK::rel_equal_eps(time, current_time))
     {
-        H_idx = var_db->mapVariableAndContextToIndex(
-            kappa_ctx->H_var, kappa_ctx->adv_diff_integrator->getCurrentContext());
+        H_idx =
+            var_db->mapVariableAndContextToIndex(kappa_ctx->H_var, kappa_ctx->adv_diff_integrator->getCurrentContext());
 
-        lf_idx = var_db->mapVariableAndContextToIndex(
-            kappa_ctx->lf_var, kappa_ctx->adv_diff_integrator->getCurrentContext());
+        lf_idx = var_db->mapVariableAndContextToIndex(kappa_ctx->lf_var,
+                                                      kappa_ctx->adv_diff_integrator->getCurrentContext());
     }
     else if (IBTK::rel_equal_eps(time, new_time))
     {
-        H_idx = var_db->mapVariableAndContextToIndex(
-            kappa_ctx->H_var, kappa_ctx->adv_diff_integrator->getNewContext());
+        H_idx = var_db->mapVariableAndContextToIndex(kappa_ctx->H_var, kappa_ctx->adv_diff_integrator->getNewContext());
 
-        lf_idx = var_db->mapVariableAndContextToIndex(
-            kappa_ctx->lf_var, kappa_ctx->adv_diff_integrator->getNewContext());
+        lf_idx =
+            var_db->mapVariableAndContextToIndex(kappa_ctx->lf_var, kappa_ctx->adv_diff_integrator->getNewContext());
     }
     else
     {
@@ -155,21 +153,15 @@ set_constant_mushy_thermal_conductivity(int kappa_idx,
 
                 if (liquid_fraction < 1.0e-4)
                 {
-                    (*kappa_data)(ci) =
-                        kappa_ctx->kappa_gas * (1.0 - heaviside) +
-                        kappa_ctx->kappa_solid * heaviside;
+                    (*kappa_data)(ci) = kappa_ctx->kappa_gas * (1.0 - heaviside) + kappa_ctx->kappa_solid * heaviside;
                 }
                 else if (liquid_fraction > 1.0 - 1.0e-4)
                 {
-                    (*kappa_data)(ci) =
-                        kappa_ctx->kappa_gas * (1.0 - heaviside) +
-                        kappa_ctx->kappa_liquid * heaviside;
+                    (*kappa_data)(ci) = kappa_ctx->kappa_gas * (1.0 - heaviside) + kappa_ctx->kappa_liquid * heaviside;
                 }
                 else
                 {
-                    (*kappa_data)(ci) =
-                        kappa_ctx->kappa_gas * (1.0 - heaviside) +
-                        kappa_ctx->kappa_mushy * heaviside;
+                    (*kappa_data)(ci) = kappa_ctx->kappa_gas * (1.0 - heaviside) + kappa_ctx->kappa_mushy * heaviside;
                 }
             }
         }
@@ -471,10 +463,8 @@ main(int argc, char* argv[])
         //     &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
         //     static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
-            &set_constant_mushy_thermal_conductivity,
-            static_cast<void*>(&kappa_ctx));
-
+        enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(&set_constant_mushy_thermal_conductivity,
+                                                                       static_cast<void*>(&kappa_ctx));
 
         enthalpy_hier_integrator->registerResetSpecificHeatFcn(
             &IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,

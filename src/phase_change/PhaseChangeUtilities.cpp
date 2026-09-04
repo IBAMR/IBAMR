@@ -25,7 +25,7 @@ namespace IBAMR
 
 namespace PhaseChangeUtilities
 {
-    
+
 void
 callSetDensityCallbackFunction(int rho_idx,
                                Pointer<Variable<NDIM>> rho_var,
@@ -254,8 +254,9 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                     const double heaviside = (*H_data)(ci);
                     const double liquid_fraction = (*lf_data)(ci);
 
-                    (*rho_data)(ci) = (1.0-heaviside)*d_rho_gas + liquid_fraction*d_rho_liquid + (heaviside - liquid_fraction)*d_rho_solid;
-                    
+                    (*rho_data)(ci) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
+                                      (heaviside - liquid_fraction) * d_rho_solid;
+
                     // d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
                     //                   (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
                 }
@@ -325,8 +326,9 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                         const double liquid_fraction_upper = (*lf_data)(si.toCell(1));
                         const double liquid_fraction = 0.5 * (liquid_fraction_lower + liquid_fraction_upper);
 
-                        (*rho_data)(si) = (1.0-heaviside)*d_rho_gas + liquid_fraction*d_rho_liquid + (heaviside - liquid_fraction)*d_rho_solid;
-                        
+                        (*rho_data)(si) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
+                                          (heaviside - liquid_fraction) * d_rho_solid;
+
                         // d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
                         //                   (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
                     }
@@ -406,8 +408,9 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
 
-                (*kappa_data)(ci) = (1.0-heaviside)*d_kappa_gas + liquid_fraction*d_kappa_liquid + (heaviside - liquid_fraction)*d_kappa_solid;
-                
+                (*kappa_data)(ci) = (1.0 - heaviside) * d_kappa_gas + liquid_fraction * d_kappa_liquid +
+                                    (heaviside - liquid_fraction) * d_kappa_solid;
+
                 // d_kappa_gas + (d_kappa_solid - d_kappa_gas) * heaviside +
                 //                       (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
             }
@@ -477,11 +480,12 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
 
-                (*specific_heat_data)(ci) = (1.0-heaviside)*d_specific_heat_gas + liquid_fraction*d_specific_heat_liquid + (heaviside - liquid_fraction)*d_specific_heat_solid;
-                
+                (*specific_heat_data)(ci) = (1.0 - heaviside) * d_specific_heat_gas +
+                                            liquid_fraction * d_specific_heat_liquid +
+                                            (heaviside - liquid_fraction) * d_specific_heat_solid;
+
                 // d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
                 // (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
-                
             }
         }
     }
@@ -548,8 +552,9 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
-                (*mu_data)(ci) = (1.0-heaviside)*d_mu_gas + liquid_fraction*d_mu_liquid + (heaviside - liquid_fraction)*d_mu_solid;
-                
+                (*mu_data)(ci) = (1.0 - heaviside) * d_mu_gas + liquid_fraction * d_mu_liquid +
+                                 (heaviside - liquid_fraction) * d_mu_solid;
+
                 // d_mu_gas + (d_mu_solid - d_mu_gas) * heaviside +
                 //                  (d_mu_liquid - d_mu_solid) * liquid_fraction * heaviside;
             }
