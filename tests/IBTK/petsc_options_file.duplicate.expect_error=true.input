@@ -1,0 +1,11 @@
+Main {
+    petsc_settings_poisson {
+        ksp_type = "cg"
+    }
+}
+
+PoissonKrylovSolver {
+    petsc_settings {
+        poisson_ksp_type = "gmres"
+    }
+}

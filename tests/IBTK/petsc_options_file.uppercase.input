@@ -1,0 +1,4 @@
+PETSC_OPTIONS_FILE = "petsc_options_uppercase.opts"
+petsc_options_file = 17
+Expected { r00_value = 2202 }
+Main { log_file_name = "petsc_options_file.log" }
