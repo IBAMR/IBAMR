@@ -227,6 +227,7 @@ SET(CXX_SRC
   utilities/STSMassFluxIntegrator.cpp
   utilities/ins_utilities.cpp
   utilities/vc_ins_utilities.cpp
+  utilities/VelocityCartGridFunction.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})
