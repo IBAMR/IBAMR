@@ -40,12 +40,6 @@ namespace
 {
 constexpr std::size_t ENCODED_BLOCK_COUNT = 2;
 
-void
-require(bool valid, const std::string& message)
-{
-    if (!valid) TBOX_ERROR(message << '\n');
-}
-
 std::vector<std::string>
 spellings(const std::string& name)
 {
@@ -136,7 +130,7 @@ main(int argc, char* argv[])
     }
     auto root_blocks = common_blocks;
     MPI_Bcast(root_blocks.data(), static_cast<int>(root_blocks.size()), MPI_UINT64_T, 0, MPI_COMM_WORLD);
-    require(common_blocks == root_blocks, "rank order/subset changed numeric identity");
+    TBOX_ASSERT(common_blocks == root_blocks);
 
     // Independently tabulated values for the canonical letter, digit, and
     // underscore encoding with fixed-width block padding.
@@ -158,20 +152,19 @@ main(int argc, char* argv[])
     for (const auto& expected : encodings)
     {
         const IBKernel kernel(expected.name), copy(kernel);
-        require(numeric_blocks(kernel) == expected.blocks, "exact numeric encoding");
-        require(copy == kernel && numeric_blocks(copy) == expected.blocks, "two-block value copy");
-        require(copy.getName() == expected.name, "exact name round trip");
+        TBOX_ASSERT(numeric_blocks(kernel) == expected.blocks);
+        TBOX_ASSERT(copy == kernel && numeric_blocks(copy) == expected.blocks);
+        TBOX_ASSERT(copy.getName() == expected.name);
     }
-    require(IBKernel("ABCDEFGHIJKL") != IBKernel("ABCDEFGHIJKLM"), "second chunk affects equality");
-    require(IBKernel("ABCDEFGHIJKLMNOPQRSTUVWX") != IBKernel("ABCDEFGHIJKLMNOPQRSTUVW_"),
-            "final character affects equality");
-    require(IBKernel("A") != IBKernel("A_") && IBKernel("A") != IBKernel("AA"), "padding is not a name character");
+    TBOX_ASSERT(IBKernel("ABCDEFGHIJKL") != IBKernel("ABCDEFGHIJKLM"));
+    TBOX_ASSERT(IBKernel("ABCDEFGHIJKLMNOPQRSTUVWX") != IBKernel("ABCDEFGHIJKLMNOPQRSTUVW_"));
+    TBOX_ASSERT(IBKernel("A") != IBKernel("A_") && IBKernel("A") != IBKernel("AA"));
     const char* const scalar_c_string = "piecewise_constant";
-    require(IBKernel{ scalar_c_string } == IBKernel(IBKernel::BSPLINE_1), "scalar C-string construction");
-    require(!IBKernel::isValidName("ABCDEFGHIJKLMNOPQRSTUVWXY"), "over-capacity scalar name accepted");
+    TBOX_ASSERT(IBKernel{ scalar_c_string } == IBKernel(IBKernel::BSPLINE_1));
+    TBOX_ASSERT(!IBKernel::isValidName("ABCDEFGHIJKLMNOPQRSTUVWXY"));
     for (const std::string invalid :
          { std::string("A B"), std::string("A-B"), std::string("A\0B", 3), std::string("A\x80", 2) })
-        require(!IBKernel::isValidName(invalid), "malformed scalar name accepted");
+        TBOX_ASSERT(!IBKernel::isValidName(invalid));
 
     const IBKernel standard_values[] = { IBKernel::BSPLINE_1, IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
                                          IBKernel::BSPLINE_4, IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
@@ -181,29 +174,27 @@ main(int argc, char* argv[])
                                    "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6",      "PIECEWISE_CUBIC" };
     const auto& catalog = IBKernel::getStandardKernels();
     const std::size_t n_standard_values = sizeof(standard_values) / sizeof(standard_values[0]);
-    require(catalog.size() == n_standard_values, "standard catalog size");
-    require(std::is_sorted(catalog.begin(), catalog.end()), "standard catalog order");
-    require(std::set<IBKernel>(catalog.begin(), catalog.end()).size() == catalog.size(),
-            "standard kernels are not unique container keys");
+    TBOX_ASSERT(catalog.size() == n_standard_values);
+    TBOX_ASSERT(std::is_sorted(catalog.begin(), catalog.end()));
+    TBOX_ASSERT(std::set<IBKernel>(catalog.begin(), catalog.end()).size() == catalog.size());
     for (std::size_t i = 0; i < n_standard_values; ++i)
     {
-        require(standard_values[i] == IBKernel(scalar_names[i]), "constant-initialized standard value");
-        require(catalog[i] == standard_values[i], "standard catalog value and order");
-        require(catalog[i].getName() != "USER_DEFINED" && catalog[i].getName() != "PIECEWISE_CONSTANT" &&
-                    catalog[i].getName() != "PIECEWISE_LINEAR",
-                "catalog contains aliases or callback selector");
+        TBOX_ASSERT(standard_values[i] == IBKernel(scalar_names[i]));
+        TBOX_ASSERT(catalog[i] == standard_values[i]);
+        TBOX_ASSERT(catalog[i].getName() != "USER_DEFINED" && catalog[i].getName() != "PIECEWISE_CONSTANT" &&
+                    catalog[i].getName() != "PIECEWISE_LINEAR");
         for (std::size_t j = 0; j < n_standard_values; ++j)
-            require((standard_values[i] < standard_values[j]) == (i < j), "exact standard kernel order");
+            TBOX_ASSERT((standard_values[i] < standard_values[j]) == (i < j));
     }
-    require(ib_kernel_static_initialization_valid(), "separate-TU standard value initialization");
+    TBOX_ASSERT(ib_kernel_static_initialization_valid());
     for (const char* name : scalar_names)
         for (const auto& spelling : spellings(name))
         {
             const IBKernel kernel(spelling);
-            require(kernel.getName() == name, "scalar canonical spelling");
-            require(kernel == IBKernel(name), "scalar equality");
-            require(IBKernelTensorProduct(spelling) == IBKernelTensorProduct({ kernel }), "isotropic legacy name");
-            require(IBKernelTensorProduct(spelling).size() == 1, "scalar name supplies one factor");
+            TBOX_ASSERT(kernel.getName() == name);
+            TBOX_ASSERT(kernel == IBKernel(name));
+            TBOX_ASSERT(IBKernelTensorProduct(spelling) == IBKernelTensorProduct({ kernel }));
+            TBOX_ASSERT(IBKernelTensorProduct(spelling).size() == 1);
         }
 
     const std::pair<const char*, const char*> aliases[] = { { "PIECEWISE_CONSTANT", "BSPLINE_1" },
@@ -211,8 +202,8 @@ main(int argc, char* argv[])
     for (const auto& alias : aliases)
         for (const auto& spelling : spellings(alias.first))
         {
-            require(IBKernel(spelling).getName() == alias.second, "scalar alias");
-            require(IBKernelTensorProduct(spelling) == IBKernelTensorProduct(alias.second), "isotropic alias");
+            TBOX_ASSERT(IBKernel(spelling).getName() == alias.second);
+            TBOX_ASSERT(IBKernelTensorProduct(spelling) == IBKernelTensorProduct(alias.second));
         }
 
     struct Composite
@@ -233,91 +224,72 @@ main(int argc, char* argv[])
         for (const auto& spelling : spellings(expected.name))
         {
             const auto product = IBKernelTensorProduct(spelling);
-            require(product.size() == 2, "composite name supplies two factors");
-            require(product[0].getName() == expected.normal, "first factor");
-            require(product[1].getName() == expected.tangential, "second factor");
-            require(product == IBKernelTensorProduct({ IBKernel(expected.normal), IBKernel(expected.tangential) }),
-                    "ordered product");
-            require(product != IBKernelTensorProduct({ IBKernel(expected.tangential), IBKernel(expected.normal) }),
-                    "reversed product");
-            require(IBKernel(spelling).getName() == std::string(expected.name),
-                    "scalar identity does not interpret composite names");
+            TBOX_ASSERT(product.size() == 2);
+            TBOX_ASSERT(product[0].getName() == expected.normal);
+            TBOX_ASSERT(product[1].getName() == expected.tangential);
+            TBOX_ASSERT(product == IBKernelTensorProduct({ IBKernel(expected.normal), IBKernel(expected.tangential) }));
+            TBOX_ASSERT(product != IBKernelTensorProduct({ IBKernel(expected.tangential), IBKernel(expected.normal) }));
+            TBOX_ASSERT(IBKernel(spelling).getName() == std::string(expected.name));
         }
 
     std::string name = "ApplicationKernel";
     const IBKernel custom(name);
     name = "changed";
-    require(custom.getName() == "APPLICATIONKERNEL", "scalar owns its value");
-    for (const auto& spelling : spellings("APPLICATIONKERNEL"))
-        require(custom == IBKernel(spelling), "custom ASCII uppercase canonicalization");
-    require(custom != IBKernel("USER_DEFINED"), "custom identity is distinct from legacy callback spelling");
-    require(IBKernel("IB_4_custom").getName() == "IB_4_CUSTOM", "custom built-in prefix");
-    require(IBKernel("composite_bspline_custom").getName() == "COMPOSITE_BSPLINE_CUSTOM",
-            "custom composite-like prefix");
-    require(IBKernelTensorProduct(custom.getName()) == IBKernelTensorProduct({ custom }),
-            "custom isotropic interpretation");
+    TBOX_ASSERT(custom.getName() == "APPLICATIONKERNEL");
+    for (const auto& spelling : spellings("APPLICATIONKERNEL")) TBOX_ASSERT(custom == IBKernel(spelling));
+    TBOX_ASSERT(custom != IBKernel("USER_DEFINED"));
+    TBOX_ASSERT(IBKernel("IB_4_custom").getName() == "IB_4_CUSTOM");
+    TBOX_ASSERT(IBKernel("composite_bspline_custom").getName() == "COMPOSITE_BSPLINE_CUSTOM");
+    TBOX_ASSERT(IBKernelTensorProduct(custom.getName()) == IBKernelTensorProduct({ custom }));
     IBKernel normal("ApplicationKernel"), tangential("AnotherKernel");
     const IBKernelTensorProduct product({ normal, tangential });
     normal = IBKernel("changed");
     tangential = IBKernel("changed");
-    require(product[0] == custom && product[1] == IBKernel("AnotherKernel"), "product owns its factors");
-    require(IBKernelTensorProduct({ custom }) == IBKernelTensorProduct({ IBKernel("applicationkernel") }),
-            "custom product canonicalization");
+    TBOX_ASSERT(product[0] == custom && product[1] == IBKernel("AnotherKernel"));
+    TBOX_ASSERT(IBKernelTensorProduct({ custom }) == IBKernelTensorProduct({ IBKernel("applicationkernel") }));
     const IBKernelTensorProduct legacy_c_string{ "DISCONTINUOUS_LINEAR" };
-    require(legacy_c_string == IBKernelTensorProduct({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 }),
-            "tensor-product C-string construction");
-    require(IBKernelTensorProduct({ IBKernel("IB_4"), IBKernel("IB_3") }) !=
-                IBKernelTensorProduct({ IBKernel("IB_3"), IBKernel("IB_4") }),
-            "non-B-spline product");
-    require(IBKernelTensorProduct({ IBKernel("piecewise_constant"), IBKernel("BSPLINE_1") }) ==
-                IBKernelTensorProduct({ IBKernel("BSPLINE_1"), IBKernel("BSPLINE_1") }),
-            "normalized factor equality");
+    TBOX_ASSERT(legacy_c_string == IBKernelTensorProduct({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 }));
+    TBOX_ASSERT(IBKernelTensorProduct({ IBKernel("IB_4"), IBKernel("IB_3") }) !=
+                IBKernelTensorProduct({ IBKernel("IB_3"), IBKernel("IB_4") }));
+    TBOX_ASSERT(IBKernelTensorProduct({ IBKernel("piecewise_constant"), IBKernel("BSPLINE_1") }) ==
+                IBKernelTensorProduct({ IBKernel("BSPLINE_1"), IBKernel("BSPLINE_1") }));
 
-    require(!IBKernel::isValidName("") && !IBKernelTensorProduct::isValidName(""), "empty names are not valid");
+    TBOX_ASSERT(!IBKernel::isValidName("") && !IBKernelTensorProduct::isValidName(""));
 
     const IBKernel runtime_normal("IB_4"), runtime_tangential("IB_3");
     const IBKernelTensorProduct scalar(IBKernel::IB_4), single({ runtime_normal });
     const IBKernelTensorProduct repeated = { IBKernel::IB_4, IBKernel::IB_4 };
     const IBKernelTensorProduct pair({ runtime_normal, runtime_tangential });
     const IBKernelTensorProduct ordered({ runtime_normal, runtime_tangential });
-    require(scalar.size() == 1 && single.size() == 1 && repeated.size() == 1 && pair.size() == 2,
-            "products expose canonical axis-relative arity");
-    require(scalar == single && single == repeated && scalar == repeated, "normalized isotropic transitivity");
-    require(scalar == IBKernel::IB_4 && IBKernel::IB_4 == scalar, "symmetric scalar equality");
-    require(pair != IBKernel::IB_4 && IBKernel::IB_4 != pair, "symmetric scalar inequality");
-    require(single.isIsotropic() && repeated.isIsotropic() && !pair.isIsotropic(), "normalized isotropy");
+    TBOX_ASSERT(scalar.size() == 1 && single.size() == 1 && repeated.size() == 1 && pair.size() == 2);
+    TBOX_ASSERT(scalar == single && single == repeated && scalar == repeated);
+    TBOX_ASSERT(scalar == IBKernel::IB_4 && IBKernel::IB_4 == scalar);
+    TBOX_ASSERT(pair != IBKernel::IB_4 && IBKernel::IB_4 != pair);
+    TBOX_ASSERT(single.isIsotropic() && repeated.isIsotropic() && !pair.isIsotropic());
     const IBKernelTensorProduct ordered_products[] = { IBKernelTensorProduct(IBKernel::BSPLINE_1),
                                                        IBKernelTensorProduct(
                                                            { IBKernel::BSPLINE_1, IBKernel::BSPLINE_2 }),
                                                        IBKernelTensorProduct(IBKernel::BSPLINE_2) };
-    require(std::is_sorted(std::begin(ordered_products), std::end(ordered_products)),
-            "tensor products have lexicographic container-key order");
-    require(std::set<IBKernelTensorProduct>(std::begin(ordered_products), std::end(ordered_products)).size() ==
-                std::size(ordered_products),
-            "tensor products are not unique container keys");
-    require(!(single < repeated) && !(repeated < single), "equal products differ in container-key order");
-    require(copy_product(IBKernel::IB_4) == scalar, "implicit scalar function argument");
-    require(copy_product(std::string("IB_4")) == scalar, "implicit string function argument");
-    require(copy_product("IB_4") == scalar, "implicit C-string function argument");
+    TBOX_ASSERT(std::is_sorted(std::begin(ordered_products), std::end(ordered_products)));
+    TBOX_ASSERT(std::set<IBKernelTensorProduct>(std::begin(ordered_products), std::end(ordered_products)).size() ==
+                std::size(ordered_products));
+    TBOX_ASSERT(!(single < repeated) && !(repeated < single));
+    TBOX_ASSERT(copy_product(IBKernel::IB_4) == scalar);
+    TBOX_ASSERT(copy_product(std::string("IB_4")) == scalar);
+    TBOX_ASSERT(copy_product("IB_4") == scalar);
     std::ostringstream diagnostic;
     diagnostic << single << ' ' << pair;
-    require(diagnostic.str() == "(IB_4) (IB_4,IB_3)", "diagnostic describes canonical product");
+    TBOX_ASSERT(diagnostic.str() == "(IB_4) (IB_4,IB_3)");
     for (std::size_t slot = 0; slot < ordered.size(); ++slot)
     {
         const IBKernel expected = slot == 0 ? runtime_normal : runtime_tangential;
-        require(ordered[slot] == expected, "ordered slot access");
+        TBOX_ASSERT(ordered[slot] == expected);
     }
 
     if (rank == 0)
     {
         std::ofstream out("output");
-        out << "Scalar names and aliases: PASS\n"
-            << "Ordered and isotropic products: PASS\n"
-            << "Custom canonical identities and two-block value copies: PASS\n"
-            << "Exact encoding, maximum-length round trip, and rank order/subset independence: PASS\n"
-            << "Canonical axis-relative products, equality, and diagnostics: PASS\n"
-            << "Scalar/composite parsing ownership and validity predicates: PASS\n";
-        require(static_cast<bool>(out), "output write failed");
+        TBOX_ASSERT(static_cast<bool>(out));
     }
     return 0;
 }

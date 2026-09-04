@@ -52,12 +52,6 @@ user_defined_kernel(double r)
 }
 
 void
-require(bool valid, const char* message)
-{
-    if (!valid) TBOX_ERROR(message << '\n');
-}
-
-void
 check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
 {
     const Box<NDIM>& box = patch->getBox();
@@ -85,10 +79,10 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
         }
 
     const IBKernelTensorProduct unsupported({ IBKernel("UNREGISTERED_KERNEL") });
-    require(!LEInteractor::isKnownKernel(unsupported), "unsupported typed query must return false");
-    require(LEInteractor::isKnownKernel("IB_4"), "known C-string query rejected");
-    require(!LEInteractor::isKnownKernel("BAD NAME"), "invalid C-string query must return false");
-    require(!LEInteractor::isKnownKernel(static_cast<const char*>(nullptr)), "null query must return false");
+    TBOX_ASSERT(!LEInteractor::isKnownKernel(unsupported));
+    TBOX_ASSERT(LEInteractor::isKnownKernel("IB_4"));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel("BAD NAME"));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel(static_cast<const char*>(nullptr)));
     if (expect_error)
     {
         std::ofstream("output") << "LEInteractor rejects unsupported kernel descriptions before interpolation\n";
@@ -100,27 +94,25 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     for (const std::string& name : { "IB_4", "piecewise_constant", "discontinuous_linear", "composite_bspline_23" })
     {
         const IBKernelTensorProduct kernel(name);
-        require(LEInteractor::isKnownKernel(name) && LEInteractor::isKnownKernel(kernel),
-                "known kernel query rejected");
-        require(LEInteractor::getStencilSize(name) == LEInteractor::getStencilSize(kernel),
-                "typed stencil query differs");
+        TBOX_ASSERT(LEInteractor::isKnownKernel(name) && LEInteractor::isKnownKernel(kernel));
+        TBOX_ASSERT(LEInteractor::getStencilSize(name) == LEInteractor::getStencilSize(kernel));
         LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, name);
         LEInteractor::interpolate(typed_value, NDIM, X, NDIM, field, patch, box, kernel);
-        require(string_value == typed_value, "typed/string interpolation differs");
+        TBOX_ASSERT(string_value == typed_value);
         string_spread->fillAll(0.0);
         typed_spread->fillAll(0.0);
         LEInteractor::spread(string_spread, force, NDIM, X, NDIM, patch, box, name);
         LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, kernel);
         for (int component = 0; component < NDIM; ++component)
             for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-                require((*string_spread)(i()) == (*typed_spread)(i()), "typed/string spreading differs");
+                TBOX_ASSERT((*string_spread)(i()) == (*typed_spread)(i()));
     }
 
     for (const std::string& name : { "", "BAD NAME", "UNREGISTERED_KERNEL", "COMPOSITE_BSPLINE_12" })
-        require(!LEInteractor::isKnownKernel(name), "invalid or unsupported string query must return false");
+        TBOX_ASSERT(!LEInteractor::isKnownKernel(name));
     const IBKernelTensorProduct linear_constant("DISCONTINUOUS_LINEAR");
     const IBKernelTensorProduct explicit_linear_constant({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 });
-    require(linear_constant == explicit_linear_constant, "discontinuous-linear factor order");
+    TBOX_ASSERT(linear_constant == explicit_linear_constant);
     LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, linear_constant);
     typed_spread->fillAll(0.0);
     LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, linear_constant);
@@ -137,11 +129,9 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
                 weight *= d == component ? std::max(0.0, 1.0 - distance) : (distance < 0.5 ? 1.0 : 0.0);
             }
             expected_value += weight * (*field)(i());
-            require(std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight) < 1.0e-12,
-                    "discontinuous-linear spreading orientation");
+            TBOX_ASSERT(std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight) < 1.0e-12);
         }
-        require(std::abs(string_value[component] - expected_value) < 1.0e-12,
-                "discontinuous-linear interpolation orientation");
+        TBOX_ASSERT(std::abs(string_value[component] - expected_value) < 1.0e-12);
     }
 
     const auto saved_kernel = LEInteractor::s_kernel_fcn;
@@ -149,23 +139,22 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     LEInteractor::s_kernel_fcn = &user_defined_kernel;
     LEInteractor::s_kernel_fcn_stencil_size = 2;
     const IBKernelTensorProduct user_defined(IBKernel("USER_DEFINED"));
-    require(LEInteractor::isKnownKernel(user_defined) && LEInteractor::isKnownKernel("USER_DEFINED"),
-            "legacy callback identity rejected");
-    require(LEInteractor::getStencilSize(user_defined) == 2, "legacy callback stencil size");
+    TBOX_ASSERT(LEInteractor::isKnownKernel(user_defined) && LEInteractor::isKnownKernel("USER_DEFINED"));
+    TBOX_ASSERT(LEInteractor::getStencilSize(user_defined) == 2);
 
     user_defined_calls = 0;
     LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, "USER_DEFINED");
     LEInteractor::interpolate(typed_value, NDIM, X, NDIM, field, patch, box, user_defined);
-    require(user_defined_calls > 0 && string_value == typed_value, "legacy callback interpolation execution");
+    TBOX_ASSERT(user_defined_calls > 0 && string_value == typed_value);
     string_spread->fillAll(0.0);
     typed_spread->fillAll(0.0);
     user_defined_calls = 0;
     LEInteractor::spread(string_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
     LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, user_defined);
-    require(user_defined_calls > 0, "legacy callback spreading execution");
+    TBOX_ASSERT(user_defined_calls > 0);
     for (int component = 0; component < NDIM; ++component)
         for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-            require((*string_spread)(i()) == (*typed_spread)(i()), "legacy callback typed/string spreading differs");
+            TBOX_ASSERT((*string_spread)(i()) == (*typed_spread)(i()));
 
     Pointer<SideData<NDIM, double>> mask = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
     Pointer<SideData<NDIM, double>> string_masked_spread = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
@@ -175,18 +164,16 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     user_defined_calls = 0;
     LEInteractor::interpolate(string_masked_value, NDIM, X, NDIM, mask, field, patch, box, "USER_DEFINED");
     LEInteractor::interpolate(typed_masked_value, NDIM, X, NDIM, mask, field, patch, box, user_defined);
-    require(user_defined_calls > 0 && string_masked_value == typed_masked_value,
-            "legacy callback masked interpolation execution");
+    TBOX_ASSERT(user_defined_calls > 0 && string_masked_value == typed_masked_value);
     string_masked_spread->fillAll(0.0);
     typed_masked_spread->fillAll(0.0);
     user_defined_calls = 0;
     LEInteractor::spread(mask, string_masked_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
     LEInteractor::spread(mask, typed_masked_spread, force, NDIM, X, NDIM, patch, box, user_defined);
-    require(user_defined_calls > 0, "legacy callback masked spreading execution");
+    TBOX_ASSERT(user_defined_calls > 0);
     for (int component = 0; component < NDIM; ++component)
         for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
-            require((*string_masked_spread)(i()) == (*typed_masked_spread)(i()),
-                    "legacy callback masked typed/string spreading differs");
+            TBOX_ASSERT((*string_masked_spread)(i()) == (*typed_masked_spread)(i()));
     LEInteractor::s_kernel_fcn = saved_kernel;
     LEInteractor::s_kernel_fcn_stencil_size = saved_stencil_size;
 }
@@ -218,13 +205,10 @@ main(int argc, char* argv[])
 
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     PatchLevel<NDIM>::Iterator p(level);
-    require(static_cast<bool>(p), "test hierarchy contains no patches");
+    TBOX_ASSERT(static_cast<bool>(p));
     check_patch(level->getPatch(p()), expect_error);
 
     std::ofstream output("output");
-    output << "LEInteractor typed/string interpolation and spreading: PASS\n"
-           << "Composite alias orientation and directional mapping: PASS\n"
-           << "Kernel capability queries: PASS\n"
-           << "Legacy user-defined callback execution: PASS\n";
+    TBOX_ASSERT(static_cast<bool>(output));
     return 0;
 }
