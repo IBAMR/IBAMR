@@ -14,7 +14,7 @@ test results for both_linear
 max norm of u_sc: 5
 max norm of exact - refined: 0
 test results for non_rt
-max norm of u_sc: 1.8125
+max norm of u_sc: 2.57422
 max norm of exact - refined: 1.16016
 test results for non_rt
 max norm of u_sc: 2.85547

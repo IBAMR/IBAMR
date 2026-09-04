@@ -1,0 +1,4 @@
+Fixed: Side-centered refinement operators will no longer read out-of-bounds
+data.
+<br>
+(David Wells, 2026/06/03)

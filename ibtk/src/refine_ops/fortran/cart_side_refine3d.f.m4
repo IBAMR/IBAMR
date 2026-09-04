@@ -112,7 +112,7 @@ c
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
                if ( i0 .eq. i_f0 ) then
                   u0_f(i0,i1,i2) = u0_c(i_c0,i_c1,i_c2)
@@ -129,7 +129,7 @@ c
 
       do i2=ilower2,iupper2
          coarsen_index(i2,i_c2,i_f2,ratio(2))
-         do i1=ilower1,iupper1+1
+         do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
             do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
@@ -146,7 +146,7 @@ c
          enddo
       enddo
 
-      do i2=ilower2,iupper2+1
+      do i2=ilower2,iupper2
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
@@ -240,7 +240,7 @@ c
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
 
                w0 = 1.d0-dble(i0-i_f0)/dx0
@@ -266,7 +266,7 @@ c
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
 
                i_f0 = i_c0*ratio(0)
@@ -296,7 +296,7 @@ c
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
 
                i_f0 = i_c0*ratio(0)
