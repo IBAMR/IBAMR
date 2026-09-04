@@ -74,26 +74,21 @@ namespace IBTK
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
  *
- * String overloads resolve names at the API boundary. Resolved overloads avoid
- * name lookup during repeated execution.
+ * Legacy string names implicitly construct a resolved description at the API
+ * boundary, avoiding name lookup during repeated execution.
  * Existing routines support isotropic products and the legacy composites
- * (21, 23, 32, 34, 43, 45, 54, 56, 65). Distinct tangential factors
- * and custom identities without an existing implementation are rejected before
- * changing numerical output. Masked operations support only IB_4 and the
- * legacy USER_DEFINED callback.
+ * (21, 23, 32, 34, 43, 45, 54, 56, 65). Other composite pairs and custom
+ * identities without an existing implementation are rejected before changing
+ * numerical output. Masked operations support only IB_4 and the legacy
+ * USER_DEFINED callback.
  *
  * \anchor le_interactor_kernel_mapping
- * Accepts one through NDIM supplied factors. One repeats on every axis;
- * two give {A,B} in 2D and {A,B,B} in 3D; three specify all slots in 3D.
- * Longer descriptions are unsupported even when all factors are equal.
- * Expansion uses references to stored factors, without allocation.
- * Ordered factor slot zero corresponds to the distinguished component axis.
- * Remaining slots follow the other Cartesian axes in increasing order.
+ * One factor applies on every axis. In a two-factor value, slot zero applies
+ * on the distinguished component axis and slot one on every transverse axis.
  * The distinguished axis is the side-normal axis for side data, the edge axis
  * for edge data, and axis zero for cell/node data regardless of data component.
- * Thus on a 3D y-face, {A,B,C} means x:B, y:A, z:C. The two-factor shorthand
- * repeats its second factor in both tangential directions. Use
- * get_kernel_factor() to resolve this convention, including in other consumers.
+ * Use get_kernel_factor() to resolve this convention, including in other
+ * consumers.
  */
 class LEInteractor
 {
@@ -102,7 +97,7 @@ public:
      * \brief Resolve an ordered factor for a Cartesian axis using
      * \ref le_interactor_kernel_mapping.
      *
-     * Both axes must be in [0, NDIM), and the factor count must be supported.
+     * Both axes must be in [0, NDIM).
      */
     static const IBKernel&
     get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis);

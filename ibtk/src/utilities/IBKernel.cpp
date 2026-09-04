@@ -17,30 +17,10 @@
 
 #include <locale>
 #include <string>
+#include <vector>
 
 namespace IBTK
 {
-IBKernel::IBKernel(Builtin kernel)
-{
-    // Same order as Builtin. Constant initialization avoids repeated packing.
-    static constexpr std::array<std::array<std::uint64_t, NAME_BLOCK_COUNT>, 13> builtin_keys{
-        { encode_name("BSPLINE_1"),
-          encode_name("BSPLINE_2"),
-          encode_name("BSPLINE_3"),
-          encode_name("BSPLINE_4"),
-          encode_name("BSPLINE_5"),
-          encode_name("BSPLINE_6"),
-          encode_name("PIECEWISE_CUBIC"),
-          encode_name("IB_3"),
-          encode_name("IB_4"),
-          encode_name("IB_4_W8"),
-          encode_name("IB_5"),
-          encode_name("IB_6"),
-          encode_name("USER_DEFINED") }
-    };
-    d_name = builtin_keys[static_cast<unsigned int>(kernel)];
-}
-
 bool
 IBKernel::isValidName(const std::string& name)
 {
@@ -75,6 +55,16 @@ IBKernel::IBKernel(const std::string& name)
 
 IBKernel::IBKernel(const char* name) : IBKernel(name ? std::string(name) : std::string())
 {
+}
+
+const std::vector<IBKernel>&
+IBKernel::getStandardKernels()
+{
+    static const std::vector<IBKernel> kernels = { BSPLINE_1,       BSPLINE_2, BSPLINE_3,
+                                                   BSPLINE_4,       BSPLINE_5, BSPLINE_6,
+                                                   PIECEWISE_CUBIC, IB_3,      IB_4,
+                                                   IB_4_W8,         IB_5,      IB_6 };
+    return kernels;
 }
 
 std::string

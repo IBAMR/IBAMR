@@ -250,7 +250,9 @@ ENDIF()
 
 # IBTK:
 SETUP(IBTK ib_kernel.cpp IBAMR2d)
+TARGET_SOURCES(tests-IBTK_ib_kernel PRIVATE IBTK/ib_kernel_static_initialization.cpp)
 SETUP_3D(IBTK ib_kernel.cpp)
+TARGET_SOURCES(tests-IBTK_ib_kernel_3d PRIVATE IBTK/ib_kernel_static_initialization.cpp)
 SETUP_2D(IBTK le_interactor_kernels.cpp)
 SETUP_3D(IBTK le_interactor_kernels.cpp)
 SETUP(IBTK equal_eps.cpp IBAMR2d)

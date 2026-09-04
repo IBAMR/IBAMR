@@ -18,25 +18,28 @@
 
 #include <ibtk/IBKernel.h>
 
+#include <array>
 #include <initializer_list>
 #include <iosfwd>
-#include <vector>
+#include <string>
 
 namespace IBTK
 {
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * Owns a nonempty ordered sequence of scalar factors. It may be constructed
- * from factors or from a legacy scalar or composite kernel name.
+ * Owns one or two axis-relative scalar factors. One factor applies in all
+ * directions. Two factors apply respectively on a consumer-defined
+ * distinguished axis and on every transverse axis. An equal pair is stored as
+ * the equivalent one-factor value.
  */
 class IBKernelTensorProduct
 {
 public:
-    //! Own the supplied nonempty sequence of factors.
-    explicit IBKernelTensorProduct(std::vector<IBKernel> factors);
+    //! Implicitly promote a scalar kernel to an isotropic tensor product.
+    IBKernelTensorProduct(const IBKernel& factor);
 
-    //! Own the supplied nonempty sequence of factors.
+    //! Canonicalize one or two ordered factors.
     IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
 
     //! Implicitly interpret a legacy scalar or composite kernel name.
@@ -48,14 +51,14 @@ public:
     //! Whether name can construct a tensor-product description.
     static bool isValidName(const std::string& name);
 
-    //! Number of supplied factors.
+    //! Number of meaningful factors, one or two.
     std::size_t size() const;
 
     //! Access a factor. Valid indices satisfy slot < size().
     const IBKernel& operator[](std::size_t slot) const;
 
-    //! Whether every supplied factor equals the first (true for one factor).
-    //! This does not imply that a consumer supports the count or the kernel.
+    //! Whether the value has one all-directions factor.
+    //! This does not imply that a consumer supports the kernel.
     bool isIsotropic() const;
 
     bool operator==(const IBKernelTensorProduct& other) const;
@@ -63,8 +66,31 @@ public:
     bool operator!=(const IBKernelTensorProduct& other) const;
 
 private:
-    std::vector<IBKernel> d_factors;
+    struct CanonicalFactors
+    {
+        std::array<IBKernel, 3> factors;
+        std::size_t size;
+    };
+
+    explicit IBKernelTensorProduct(CanonicalFactors factors);
+
+    static CanonicalFactors canonicalize(std::initializer_list<IBKernel> factors);
+
+    static CanonicalFactors parse_name(const std::string& name);
+
+    std::array<IBKernel, 3> d_factors;
+    std::size_t d_size;
 };
+
+//! Compare an isotropic product with a scalar kernel.
+bool operator==(const IBKernelTensorProduct& product, const IBKernel& kernel);
+
+//! Compare a scalar kernel with an isotropic product.
+bool operator==(const IBKernel& kernel, const IBKernelTensorProduct& product);
+
+bool operator!=(const IBKernelTensorProduct& product, const IBKernel& kernel);
+
+bool operator!=(const IBKernel& kernel, const IBKernelTensorProduct& product);
 
 //! Diagnostic output only; numerical dispatch uses identities, not names.
 std::ostream& operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel);

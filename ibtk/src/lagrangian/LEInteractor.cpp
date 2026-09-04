@@ -1691,10 +1691,11 @@ perform_mls(const int stencil_sz,
 
 } // perform_mls
 
-bool
-matches_scalar(const IBKernelTensorProduct& kernel, IBKernel::Builtin scalar)
+const IBKernel&
+user_defined_kernel()
 {
-    return kernel.size() >= 1 && kernel.size() <= NDIM && kernel.isIsotropic() && kernel[0] == scalar;
+    static const IBKernel kernel("USER_DEFINED");
+    return kernel;
 }
 
 void
@@ -1711,7 +1712,7 @@ get_mls_weights(const IBKernelTensorProduct& kernel_fcn,
 {
     Weight::extent_gen extents;
 
-    if (matches_scalar(kernel_fcn, IBKernel::IB_4))
+    if (kernel_fcn == IBKernel::IB_4)
     {
         // Resize some arrays.
         const int stencil_sz = LEInteractor::getStencilSize(kernel_fcn);
@@ -1739,7 +1740,7 @@ get_mls_weights(const IBKernelTensorProduct& kernel_fcn,
         }
         perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
     }
-    else if (matches_scalar(kernel_fcn, IBKernel::USER_DEFINED))
+    else if (kernel_fcn == user_defined_kernel())
     {
         std::array<double, NDIM> X_cell;
         std::array<int, NDIM> stencil_center;
@@ -1927,7 +1928,6 @@ enum KernelType
 KernelType
 kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_axis = 0)
 {
-    if (kernel.size() < 1 || kernel.size() > NDIM) return INVALID;
     // No names, parsing, or interning on this path. This table maps the shared
     // scalar identities to existing backend routines, not to another vocabulary.
     const IBKernel& first = LEInteractor::get_kernel_factor(kernel, component_axis, component_axis);
@@ -1946,7 +1946,7 @@ kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_ax
                                                                            { IBKernel::IB_4_W8, IB_4_W8 },
                                                                            { IBKernel::IB_5, IB_5 },
                                                                            { IBKernel::IB_6, IB_6 },
-                                                                           { IBKernel::USER_DEFINED, USER_DEFINED } };
+                                                                           { user_defined_kernel(), USER_DEFINED } };
         for (const auto& entry : scalar_backends)
             if (first == entry.first) return entry.second;
         return INVALID;
@@ -2004,10 +2004,7 @@ const IBKernel&
 LEInteractor::get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis)
 {
     if (axis >= NDIM || component_axis >= NDIM) TBOX_ERROR("LEInteractor: IB kernel direction out of range\n");
-    const auto count = kernel.size();
-    if (count < 1 || count > NDIM) TBOX_ERROR("LEInteractor: unsupported kernel description " << kernel << '\n');
-    const unsigned int slot = axis == component_axis ? 0 : axis < component_axis ? axis + 1 : axis;
-    return kernel[std::min<std::size_t>(slot, count - 1)];
+    return kernel[kernel.size() == 1 || axis == component_axis ? 0 : 1];
 }
 
 bool
@@ -2604,7 +2601,7 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const IBKernelTensorProduct& interp_fcn)
 {
     require_supported_kernel(interp_fcn);
-    if (!matches_scalar(interp_fcn, IBKernel::IB_4) && !matches_scalar(interp_fcn, IBKernel::USER_DEFINED))
+    if (interp_fcn != IBKernel::IB_4 && interp_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << interp_fcn << '\n');
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
@@ -2680,7 +2677,7 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const IBKernelTensorProduct& interp_fcn)
 {
     require_supported_kernel(interp_fcn);
-    if (!matches_scalar(interp_fcn, IBKernel::IB_4) && !matches_scalar(interp_fcn, IBKernel::USER_DEFINED))
+    if (interp_fcn != IBKernel::IB_4 && interp_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << interp_fcn << '\n');
     if (Q_data.empty()) return;
     interpolate(&Q_data[0],
@@ -2874,7 +2871,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const IBKernelTensorProduct& interp_fcn)
 {
     require_supported_kernel(interp_fcn);
-    if (!matches_scalar(interp_fcn, IBKernel::IB_4) && !matches_scalar(interp_fcn, IBKernel::USER_DEFINED))
+    if (interp_fcn != IBKernel::IB_4 && interp_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << interp_fcn << '\n');
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
@@ -3144,7 +3141,7 @@ LEInteractor::interpolate(double* const Q_data,
                           const IBKernelTensorProduct& interp_fcn)
 {
     require_supported_kernel(interp_fcn);
-    if (!matches_scalar(interp_fcn, IBKernel::IB_4) && !matches_scalar(interp_fcn, IBKernel::USER_DEFINED))
+    if (interp_fcn != IBKernel::IB_4 && interp_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << interp_fcn << '\n');
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
@@ -3857,7 +3854,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
                      const IBKernelTensorProduct& spread_fcn)
 {
     require_supported_kernel(spread_fcn);
-    if (!matches_scalar(spread_fcn, IBKernel::IB_4) && !matches_scalar(spread_fcn, IBKernel::USER_DEFINED))
+    if (spread_fcn != IBKernel::IB_4 && spread_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << spread_fcn << '\n');
     if (Q_data.empty()) return;
     spread(mask_data,
@@ -3933,7 +3930,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
                      const IBKernelTensorProduct& spread_fcn)
 {
     require_supported_kernel(spread_fcn);
-    if (!matches_scalar(spread_fcn, IBKernel::IB_4) && !matches_scalar(spread_fcn, IBKernel::USER_DEFINED))
+    if (spread_fcn != IBKernel::IB_4 && spread_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << spread_fcn << '\n');
     if (Q_data.empty()) return;
     spread(mask_data,
@@ -4048,7 +4045,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
                      const IBKernelTensorProduct& spread_fcn)
 {
     require_supported_kernel(spread_fcn);
-    if (!matches_scalar(spread_fcn, IBKernel::IB_4) && !matches_scalar(spread_fcn, IBKernel::USER_DEFINED))
+    if (spread_fcn != IBKernel::IB_4 && spread_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << spread_fcn << '\n');
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
@@ -4308,7 +4305,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
                      const IBKernelTensorProduct& spread_fcn)
 {
     require_supported_kernel(spread_fcn);
-    if (!matches_scalar(spread_fcn, IBKernel::IB_4) && !matches_scalar(spread_fcn, IBKernel::USER_DEFINED))
+    if (spread_fcn != IBKernel::IB_4 && spread_fcn != user_defined_kernel())
         TBOX_ERROR("LEInteractor: unsupported masked kernel description " << spread_fcn << '\n');
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);

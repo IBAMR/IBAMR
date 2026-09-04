@@ -41,6 +41,16 @@
 
 namespace
 {
+std::size_t user_defined_calls = 0;
+
+double
+user_defined_kernel(double r)
+{
+    ++user_defined_calls;
+    r = std::abs(r);
+    return r < 1.0 ? 1.0 - r : 0.0;
+}
+
 void
 require(bool valid, const char* message)
 {
@@ -78,6 +88,7 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     require(!LEInteractor::isKnownKernel(unsupported), "unsupported typed query must return false");
     require(LEInteractor::isKnownKernel("IB_4"), "known C-string query rejected");
     require(!LEInteractor::isKnownKernel("BAD NAME"), "invalid C-string query must return false");
+    require(!LEInteractor::isKnownKernel(static_cast<const char*>(nullptr)), "null query must return false");
     if (expect_error)
     {
         std::ofstream("output") << "LEInteractor rejects unsupported kernel descriptions before interpolation\n";
@@ -107,10 +118,6 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
 
     for (const std::string& name : { "", "BAD NAME", "UNREGISTERED_KERNEL", "COMPOSITE_BSPLINE_12" })
         require(!LEInteractor::isKnownKernel(name), "invalid or unsupported string query must return false");
-    require(!LEInteractor::isKnownKernel(
-                IBKernelTensorProduct({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 })),
-            "overlong sequence query must return false");
-
     const IBKernelTensorProduct linear_constant("DISCONTINUOUS_LINEAR");
     const IBKernelTensorProduct explicit_linear_constant({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 });
     require(linear_constant == explicit_linear_constant, "discontinuous-linear factor order");
@@ -137,25 +144,63 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
                 "discontinuous-linear interpolation orientation");
     }
 
-    const std::vector<IBKernel> factors
-    {
-        IBKernel::IB_4, IBKernel::IB_3
-#if (NDIM == 3)
-            ,
-            IBKernel::IB_6
-#endif
-    };
-    const IBKernelTensorProduct ordered(factors), shorthand({ IBKernel::IB_4, IBKernel::IB_3 });
+    const IBKernelTensorProduct isotropic(IBKernel::IB_4);
+    const IBKernelTensorProduct ordered({ IBKernel::IB_4, IBKernel::IB_3 });
     for (unsigned int component = 0; component < NDIM; ++component)
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            const unsigned int slot = axis == component ? 0 : axis < component ? axis + 1 : axis;
-            require(LEInteractor::get_kernel_factor(ordered, axis, component) == factors[slot],
-                    "full directional mapping");
-            require(LEInteractor::get_kernel_factor(shorthand, axis, component) ==
-                        IBKernel(component == axis ? IBKernel::IB_4 : IBKernel::IB_3),
-                    "two-factor directional mapping");
+            require(LEInteractor::get_kernel_factor(isotropic, axis, component) == IBKernel::IB_4,
+                    "all-directions scalar mapping");
+            require(LEInteractor::get_kernel_factor(ordered, axis, component) ==
+                        (component == axis ? IBKernel::IB_4 : IBKernel::IB_3),
+                    "distinguished/transverse directional mapping");
         }
+
+    const auto saved_kernel = LEInteractor::s_kernel_fcn;
+    const int saved_stencil_size = LEInteractor::s_kernel_fcn_stencil_size;
+    LEInteractor::s_kernel_fcn = &user_defined_kernel;
+    LEInteractor::s_kernel_fcn_stencil_size = 2;
+    const IBKernelTensorProduct user_defined(IBKernel("USER_DEFINED"));
+    require(LEInteractor::isKnownKernel(user_defined) && LEInteractor::isKnownKernel("USER_DEFINED"),
+            "legacy callback identity rejected");
+    require(LEInteractor::getStencilSize(user_defined) == 2, "legacy callback stencil size");
+
+    user_defined_calls = 0;
+    LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, "USER_DEFINED");
+    LEInteractor::interpolate(typed_value, NDIM, X, NDIM, field, patch, box, user_defined);
+    require(user_defined_calls > 0 && string_value == typed_value, "legacy callback interpolation execution");
+    string_spread->fillAll(0.0);
+    typed_spread->fillAll(0.0);
+    user_defined_calls = 0;
+    LEInteractor::spread(string_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
+    LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, user_defined);
+    require(user_defined_calls > 0, "legacy callback spreading execution");
+    for (int component = 0; component < NDIM; ++component)
+        for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
+            require((*string_spread)(i()) == (*typed_spread)(i()), "legacy callback typed/string spreading differs");
+
+    Pointer<SideData<NDIM, double>> mask = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
+    Pointer<SideData<NDIM, double>> string_masked_spread = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
+    Pointer<SideData<NDIM, double>> typed_masked_spread = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(5));
+    mask->fillAll(1.0);
+    std::vector<double> string_masked_value(NDIM), typed_masked_value(NDIM);
+    user_defined_calls = 0;
+    LEInteractor::interpolate(string_masked_value, NDIM, X, NDIM, mask, field, patch, box, "USER_DEFINED");
+    LEInteractor::interpolate(typed_masked_value, NDIM, X, NDIM, mask, field, patch, box, user_defined);
+    require(user_defined_calls > 0 && string_masked_value == typed_masked_value,
+            "legacy callback masked interpolation execution");
+    string_masked_spread->fillAll(0.0);
+    typed_masked_spread->fillAll(0.0);
+    user_defined_calls = 0;
+    LEInteractor::spread(mask, string_masked_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
+    LEInteractor::spread(mask, typed_masked_spread, force, NDIM, X, NDIM, patch, box, user_defined);
+    require(user_defined_calls > 0, "legacy callback masked spreading execution");
+    for (int component = 0; component < NDIM; ++component)
+        for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
+            require((*string_masked_spread)(i()) == (*typed_masked_spread)(i()),
+                    "legacy callback masked typed/string spreading differs");
+    LEInteractor::s_kernel_fcn = saved_kernel;
+    LEInteractor::s_kernel_fcn_stencil_size = saved_stencil_size;
 }
 } // namespace
 
@@ -191,6 +236,7 @@ main(int argc, char* argv[])
     std::ofstream output("output");
     output << "LEInteractor typed/string interpolation and spreading: PASS\n"
            << "Composite alias orientation and directional mapping: PASS\n"
-           << "Kernel capability queries: PASS\n";
+           << "Kernel capability queries: PASS\n"
+           << "Legacy user-defined callback execution: PASS\n";
     return 0;
 }

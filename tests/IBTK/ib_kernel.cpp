@@ -19,6 +19,7 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <locale>
@@ -30,6 +31,8 @@
 
 using IBTK::IBKernel;
 using IBTK::IBKernelTensorProduct;
+
+bool ib_kernel_static_initialization_valid();
 
 namespace
 {
@@ -57,6 +60,12 @@ numeric_blocks(const IBKernel& kernel)
     std::memcpy(blocks.data(), &kernel, sizeof(kernel));
     return blocks;
 }
+
+IBKernelTensorProduct
+copy_product(IBKernelTensorProduct kernel)
+{
+    return kernel;
+}
 } // namespace
 
 int
@@ -68,6 +77,14 @@ main(int argc, char* argv[])
                   "legacy strings must convert to tensor products");
     static_assert(std::is_convertible<const char*, IBKernelTensorProduct>::value,
                   "legacy C strings must convert to tensor products");
+    static_assert(std::is_convertible<IBKernel, IBKernelTensorProduct>::value,
+                  "scalar kernels must convert to tensor products");
+    static_assert(!std::is_default_constructible<IBKernelTensorProduct>::value,
+                  "tensor products have no unspecified state");
+    static_assert(!std::is_constructible<IBKernelTensorProduct, std::vector<IBKernel>>::value,
+                  "dynamic factor containers are not a public construction surface");
+    static_assert(!std::is_constructible<IBKernelTensorProduct, std::array<IBKernel, NDIM>>::value,
+                  "exact arrays are not a public construction surface");
     IBTK::IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -82,8 +99,20 @@ main(int argc, char* argv[])
     if (input_file.find("empty_product") != std::string::npos)
     {
         std::ofstream("output") << "IBKernelTensorProduct rejects empty factor sequences\n";
-        const IBKernelTensorProduct invalid(std::vector<IBKernel>{});
+        const IBKernelTensorProduct invalid(std::initializer_list<IBKernel>{});
         TBOX_ERROR("IBKernelTensorProduct empty-factor test continued unexpectedly: " << invalid << '\n');
+    }
+    if (input_file.find("null_product") != std::string::npos)
+    {
+        std::ofstream("output") << "IBKernelTensorProduct rejects null names\n";
+        const IBKernelTensorProduct invalid(static_cast<const char*>(nullptr));
+        TBOX_ERROR("IBKernelTensorProduct null-name test continued unexpectedly: " << invalid << '\n');
+    }
+    if (input_file.find("three_factor") != std::string::npos)
+    {
+        std::ofstream("output") << "IBKernelTensorProduct rejects three factors\n";
+        const IBKernelTensorProduct invalid({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 });
+        TBOX_ERROR("IBKernelTensorProduct three-factor test continued unexpectedly: " << invalid << '\n');
     }
 
     // Ranks construct shared names in opposite orders with disjoint extras.
@@ -139,17 +168,26 @@ main(int argc, char* argv[])
          { std::string("A B"), std::string("A-B"), std::string("A\0B", 3), std::string("A\x80", 2) })
         require(!IBKernel::isValidName(invalid), "malformed scalar name accepted");
 
-    const IBKernel builtins[] = { IBKernel::BSPLINE_1,       IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
-                                  IBKernel::BSPLINE_4,       IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
-                                  IBKernel::PIECEWISE_CUBIC, IBKernel::IB_3,      IBKernel::IB_4,
-                                  IBKernel::IB_4_W8,         IBKernel::IB_5,      IBKernel::IB_6,
-                                  IBKernel::USER_DEFINED };
-    for (const auto& kernel : builtins) require(kernel == IBKernel(kernel.getName()), "public built-in identity");
+    const IBKernel standard_values[] = { IBKernel::BSPLINE_1,       IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
+                                         IBKernel::BSPLINE_4,       IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
+                                         IBKernel::PIECEWISE_CUBIC, IBKernel::IB_3,      IBKernel::IB_4,
+                                         IBKernel::IB_4_W8,         IBKernel::IB_5,      IBKernel::IB_6 };
     const char* scalar_names[] = { "BSPLINE_1",       "BSPLINE_2", "BSPLINE_3", "BSPLINE_4", "BSPLINE_5", "BSPLINE_6",
-                                   "PIECEWISE_CUBIC", "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6",
-                                   "USER_DEFINED" };
-    for (std::size_t i = 0; i < sizeof(builtins) / sizeof(builtins[0]); ++i)
-        require(builtins[i] == IBKernel(scalar_names[i]), "precomputed built-in key matches its public name");
+                                   "PIECEWISE_CUBIC", "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6" };
+    const auto& catalog = IBKernel::getStandardKernels();
+    const std::size_t n_standard_values = sizeof(standard_values) / sizeof(standard_values[0]);
+    require(catalog.size() == n_standard_values, "standard catalog size");
+    for (std::size_t i = 0; i < n_standard_values; ++i)
+    {
+        require(standard_values[i] == IBKernel(scalar_names[i]), "constant-initialized standard value");
+        require(std::find(catalog.begin(), catalog.end(), standard_values[i]) != catalog.end(),
+                "standard catalog value");
+        require(catalog[i].getName() != "USER_DEFINED" && catalog[i].getName() != "PIECEWISE_CONSTANT" &&
+                    catalog[i].getName() != "PIECEWISE_LINEAR",
+                "catalog contains aliases or callback selector");
+        for (std::size_t j = 0; j < i; ++j) require(catalog[i] != catalog[j], "duplicate standard catalog value");
+    }
+    require(ib_kernel_static_initialization_valid(), "separate-TU standard value initialization");
     for (const char* name : scalar_names)
         for (const auto& spelling : spellings(name))
         {
@@ -204,7 +242,7 @@ main(int argc, char* argv[])
     require(custom.getName() == "APPLICATIONKERNEL", "scalar owns its value");
     for (const auto& spelling : spellings("APPLICATIONKERNEL"))
         require(custom == IBKernel(spelling), "custom ASCII uppercase canonicalization");
-    require(custom != IBKernel::USER_DEFINED, "custom is not the legacy callback selector");
+    require(custom != IBKernel("USER_DEFINED"), "custom identity is distinct from legacy callback spelling");
     require(IBKernel("IB_4_custom").getName() == "IB_4_CUSTOM", "custom built-in prefix");
     require(IBKernel("composite_bspline_custom").getName() == "COMPOSITE_BSPLINE_CUSTOM",
             "custom composite-like prefix");
@@ -229,32 +267,28 @@ main(int argc, char* argv[])
 
     require(!IBKernel::isValidName("") && !IBKernelTensorProduct::isValidName(""), "empty names are not valid");
 
-    const std::vector<IBKernel> factors
-    {
-        IBKernel::IB_4, IBKernel::IB_3
-#if (NDIM == 3)
-            ,
-            IBKernel::IB_6
-#endif
-    };
-    const IBKernelTensorProduct ordered(factors), pair({ IBKernel::IB_4, IBKernel::IB_3 });
-    const IBKernelTensorProduct single({ IBKernel::IB_4 }), repeated(std::vector<IBKernel>(NDIM, IBKernel::IB_4));
-    const IBKernelTensorProduct triple({ IBKernel::IB_4, IBKernel::IB_3, IBKernel::IB_3 });
-    const IBKernelTensorProduct four({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 });
-    require(single.size() == 1 && pair.size() == 2 && triple.size() == 3 && four.size() == 4, "supplied factor count");
-    require(single != repeated && pair != triple, "length-sensitive sequence equality");
-    require(single.isIsotropic() && repeated.isIsotropic() && four.isIsotropic() && !pair.isIsotropic(),
-            "stored-factor isotropy");
-    require(four[3] == IBKernel::IB_4, "access beyond spatial dimension");
+    const IBKernel runtime_normal("IB_4"), runtime_tangential("IB_3");
+    const IBKernelTensorProduct scalar(IBKernel::IB_4), single({ runtime_normal });
+    const IBKernelTensorProduct repeated = { IBKernel::IB_4, IBKernel::IB_4 };
+    const IBKernelTensorProduct pair({ runtime_normal, runtime_tangential });
+    const IBKernelTensorProduct ordered({ runtime_normal, runtime_tangential });
+    require(scalar.size() == 1 && single.size() == 1 && repeated.size() == 1 && pair.size() == 2,
+            "products expose canonical axis-relative arity");
+    require(scalar == single && single == repeated && scalar == repeated, "normalized isotropic transitivity");
+    require(scalar == IBKernel::IB_4 && IBKernel::IB_4 == scalar, "symmetric scalar equality");
+    require(pair != IBKernel::IB_4 && IBKernel::IB_4 != pair, "symmetric scalar inequality");
+    require(single.isIsotropic() && repeated.isIsotropic() && !pair.isIsotropic(), "normalized isotropy");
+    require(copy_product(IBKernel::IB_4) == scalar, "implicit scalar function argument");
+    require(copy_product(std::string("IB_4")) == scalar, "implicit string function argument");
+    require(copy_product("IB_4") == scalar, "implicit C-string function argument");
     std::ostringstream diagnostic;
-    diagnostic << single << ' ' << four;
-    require(diagnostic.str() == "(IB_4) (IB_4,IB_4,IB_4,IB_4)", "diagnostic preserves exact sequence");
-#if (NDIM == 3)
-    require(ordered == IBKernelTensorProduct({ IBKernel::IB_4, IBKernel::IB_3, IBKernel::IB_6 }),
-            "three-factor construction");
-#endif
+    diagnostic << single << ' ' << pair;
+    require(diagnostic.str() == "(IB_4) (IB_4,IB_3)", "diagnostic describes canonical product");
     for (std::size_t slot = 0; slot < ordered.size(); ++slot)
-        require(ordered[slot] == factors[slot], "ordered slot access");
+    {
+        const IBKernel expected = slot == 0 ? runtime_normal : runtime_tangential;
+        require(ordered[slot] == expected, "ordered slot access");
+    }
 
     if (rank == 0)
     {
@@ -263,7 +297,7 @@ main(int argc, char* argv[])
             << "Ordered and isotropic products: PASS\n"
             << "Custom canonical identities and two-block value copies: PASS\n"
             << "Exact encoding, 24-character round trip, and rank order/subset independence: PASS\n"
-            << "Variable-length sequence inspection and exact diagnostics: PASS\n"
+            << "Canonical axis-relative products, equality, and diagnostics: PASS\n"
             << "Scalar/composite parsing ownership and validity predicates: PASS\n";
         require(static_cast<bool>(out), "output write failed");
     }

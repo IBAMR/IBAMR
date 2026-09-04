@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace IBTK
 {
@@ -34,37 +35,29 @@ namespace IBTK
  * The compile-time name capacity is currently 24 characters; changing it
  * requires rebuilding both the library and its applications consistently.
  *
- * The public constants below are the built-in scalar catalog. Built-in names
+ * The public values below are the standard scalar catalog. Standard names
  * are case-insensitive; PIECEWISE_CONSTANT and PIECEWISE_LINEAR alias BSPLINE_1
  * and BSPLINE_2. All names, including custom names, are normalized to uppercase
  * using ASCII rules. Canonical scalar names contain 1 to 24 characters from
  * A-Z, 0-9, and underscore; whitespace and other bytes are not accepted.
- * Naming a custom kernel does not register an evaluator. USER_DEFINED retains
- * its separate legacy callback meaning; it is not an alias for custom names.
+ * Naming a custom kernel does not register an evaluator.
  *
  */
 class IBKernel
 {
 public:
-    enum Builtin
-    {
-        BSPLINE_1,
-        BSPLINE_2,
-        BSPLINE_3,
-        BSPLINE_4,
-        BSPLINE_5,
-        BSPLINE_6,
-        PIECEWISE_CUBIC,
-        IB_3,
-        IB_4,
-        IB_4_W8,
-        IB_5,
-        IB_6,
-        USER_DEFINED
-    };
-
-    //! Construct a built-in identity without name lookup.
-    IBKernel(Builtin kernel);
+    static const IBKernel BSPLINE_1;
+    static const IBKernel BSPLINE_2;
+    static const IBKernel BSPLINE_3;
+    static const IBKernel BSPLINE_4;
+    static const IBKernel BSPLINE_5;
+    static const IBKernel BSPLINE_6;
+    static const IBKernel PIECEWISE_CUBIC;
+    static const IBKernel IB_3;
+    static const IBKernel IB_4;
+    static const IBKernel IB_4_W8;
+    static const IBKernel IB_5;
+    static const IBKernel IB_6;
 
     /*!
      * \brief Construct a scalar identity.
@@ -80,6 +73,14 @@ public:
     //! Whether name satisfies the scalar kernel-name grammar.
     static bool isValidName(const std::string& name);
 
+    /*!
+     * \brief Return the standard scalar kernels.
+     *
+     * The order is for iteration only: it is not an ordinal, serialization,
+     * or communication format.
+     */
+    static const std::vector<IBKernel>& getStandardKernels();
+
     //! Reconstruct the canonical name for configuration or diagnostics, not dispatch.
     std::string getName() const;
 
@@ -94,6 +95,10 @@ private:
     static constexpr std::size_t NAME_BLOCK_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_BLOCK - 1) / DIGITS_PER_BLOCK;
 
     static constexpr std::array<std::uint64_t, NAME_BLOCK_COUNT> encode_name(std::string_view name);
+
+    explicit constexpr IBKernel(const std::array<std::uint64_t, NAME_BLOCK_COUNT>& name) : d_name(name)
+    {
+    }
 
     std::array<std::uint64_t, NAME_BLOCK_COUNT> d_name;
 };
