@@ -22,7 +22,9 @@
 #include <algorithm>
 #include <cstring>
 #include <fstream>
+#include <iterator>
 #include <locale>
+#include <set>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -168,24 +170,27 @@ main(int argc, char* argv[])
          { std::string("A B"), std::string("A-B"), std::string("A\0B", 3), std::string("A\x80", 2) })
         require(!IBKernel::isValidName(invalid), "malformed scalar name accepted");
 
-    const IBKernel standard_values[] = { IBKernel::BSPLINE_1,       IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
-                                         IBKernel::BSPLINE_4,       IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
-                                         IBKernel::PIECEWISE_CUBIC, IBKernel::IB_3,      IBKernel::IB_4,
-                                         IBKernel::IB_4_W8,         IBKernel::IB_5,      IBKernel::IB_6 };
-    const char* scalar_names[] = { "BSPLINE_1",       "BSPLINE_2", "BSPLINE_3", "BSPLINE_4", "BSPLINE_5", "BSPLINE_6",
-                                   "PIECEWISE_CUBIC", "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6" };
+    const IBKernel standard_values[] = { IBKernel::BSPLINE_1, IBKernel::BSPLINE_2, IBKernel::BSPLINE_3,
+                                         IBKernel::BSPLINE_4, IBKernel::BSPLINE_5, IBKernel::BSPLINE_6,
+                                         IBKernel::IB_3,      IBKernel::IB_4,      IBKernel::IB_4_W8,
+                                         IBKernel::IB_5,      IBKernel::IB_6,      IBKernel::PIECEWISE_CUBIC };
+    const char* scalar_names[] = { "BSPLINE_1", "BSPLINE_2", "BSPLINE_3", "BSPLINE_4", "BSPLINE_5", "BSPLINE_6",
+                                   "IB_3",      "IB_4",      "IB_4_W8",   "IB_5",      "IB_6",      "PIECEWISE_CUBIC" };
     const auto& catalog = IBKernel::getStandardKernels();
     const std::size_t n_standard_values = sizeof(standard_values) / sizeof(standard_values[0]);
     require(catalog.size() == n_standard_values, "standard catalog size");
+    require(std::is_sorted(catalog.begin(), catalog.end()), "standard catalog order");
+    require(std::set<IBKernel>(catalog.begin(), catalog.end()).size() == catalog.size(),
+            "standard kernels are not unique container keys");
     for (std::size_t i = 0; i < n_standard_values; ++i)
     {
         require(standard_values[i] == IBKernel(scalar_names[i]), "constant-initialized standard value");
-        require(std::find(catalog.begin(), catalog.end(), standard_values[i]) != catalog.end(),
-                "standard catalog value");
+        require(catalog[i] == standard_values[i], "standard catalog value and order");
         require(catalog[i].getName() != "USER_DEFINED" && catalog[i].getName() != "PIECEWISE_CONSTANT" &&
                     catalog[i].getName() != "PIECEWISE_LINEAR",
                 "catalog contains aliases or callback selector");
-        for (std::size_t j = 0; j < i; ++j) require(catalog[i] != catalog[j], "duplicate standard catalog value");
+        for (std::size_t j = 0; j < n_standard_values; ++j)
+            require((standard_values[i] < standard_values[j]) == (i < j), "exact standard kernel order");
     }
     require(ib_kernel_static_initialization_valid(), "separate-TU standard value initialization");
     for (const char* name : scalar_names)
@@ -278,6 +283,16 @@ main(int argc, char* argv[])
     require(scalar == IBKernel::IB_4 && IBKernel::IB_4 == scalar, "symmetric scalar equality");
     require(pair != IBKernel::IB_4 && IBKernel::IB_4 != pair, "symmetric scalar inequality");
     require(single.isIsotropic() && repeated.isIsotropic() && !pair.isIsotropic(), "normalized isotropy");
+    const IBKernelTensorProduct ordered_products[] = { IBKernelTensorProduct(IBKernel::BSPLINE_1),
+                                                       IBKernelTensorProduct(
+                                                           { IBKernel::BSPLINE_1, IBKernel::BSPLINE_2 }),
+                                                       IBKernelTensorProduct(IBKernel::BSPLINE_2) };
+    require(std::is_sorted(std::begin(ordered_products), std::end(ordered_products)),
+            "tensor products have lexicographic container-key order");
+    require(std::set<IBKernelTensorProduct>(std::begin(ordered_products), std::end(ordered_products)).size() ==
+                std::size(ordered_products),
+            "tensor products are not unique container keys");
+    require(!(single < repeated) && !(repeated < single), "equal products differ in container-key order");
     require(copy_product(IBKernel::IB_4) == scalar, "implicit scalar function argument");
     require(copy_product(std::string("IB_4")) == scalar, "implicit string function argument");
     require(copy_product("IB_4") == scalar, "implicit C-string function argument");

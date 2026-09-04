@@ -28,57 +28,80 @@ namespace IBTK
 /*!
  * \brief Value describing a tensor product of scalar IBKernel factors.
  *
- * Owns one or two axis-relative scalar factors. One factor applies in all
- * directions. Two factors apply respectively on a consumer-defined
- * distinguished axis and on every transverse axis. An equal pair is stored as
- * the equivalent one-factor value.
+ * Owns a canonical description with one or two axis-relative scalar factors.
+ * One factor applies in every direction. Two factors apply respectively on a
+ * consumer-defined distinguished axis and on every transverse axis. An equal
+ * pair is stored as the equivalent one-factor value.
  */
 class IBKernelTensorProduct
 {
 public:
-    //! Implicitly promote a scalar kernel to an isotropic tensor product.
+    /*! \brief Implicitly promote a scalar kernel to an isotropic tensor product. */
     IBKernelTensorProduct(const IBKernel& factor);
 
-    //! Canonicalize one or two ordered factors.
+    /*! \brief Canonicalize one or two ordered factors. */
     IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
 
-    //! Implicitly interpret a legacy scalar or composite kernel name.
+    /*! \brief Implicitly interpret a legacy scalar or composite kernel name. */
     IBKernelTensorProduct(const std::string& name);
 
-    //! Implicitly interpret a nonnull legacy scalar or composite C string.
+    /*! \brief Implicitly interpret a nonnull legacy scalar or composite C string. */
     IBKernelTensorProduct(const char* name);
 
-    //! Whether name can construct a tensor-product description.
+    /*! \brief Return whether \p name can construct a tensor-product description. */
     static bool isValidName(const std::string& name);
 
-    //! Number of meaningful factors, one or two.
+    /*! \brief Return the number of factors in the canonical description. */
     std::size_t size() const;
 
-    //! Access a factor. Valid indices satisfy slot < size().
+    /*! \brief Access a factor. Valid indices satisfy \p slot < size(). */
     const IBKernel& operator[](std::size_t slot) const;
 
-    //! Whether the value has one all-directions factor.
-    //! This does not imply that a consumer supports the kernel.
+    /*! \brief Return whether the same scalar kernel applies in every direction. */
     bool isIsotropic() const;
 
+    /*! \brief Return whether two products have the same canonical description. */
     bool operator==(const IBKernelTensorProduct& other) const;
 
+    /*! \brief Return whether two products have different canonical descriptions. */
     bool operator!=(const IBKernelTensorProduct& other) const;
 
+    /*! \brief Lexicographically order canonical descriptions for use as container keys. */
+    bool operator<(const IBKernelTensorProduct& other) const;
+
 private:
+    //! Minimum number of factors in a valid public description.
+    static constexpr std::size_t MIN_ACTIVE_FACTORS = 1;
+
+    //! Maximum number of factors in the current public description.
+    static constexpr std::size_t MAX_ACTIVE_FACTORS = 2;
+
+    //! Inline factor capacity, including reserved headroom for a future role.
+    static constexpr std::size_t INLINE_FACTOR_CAPACITY = 3;
+
+    //! Canonical factor storage returned by construction helpers.
     struct CanonicalFactors
     {
-        std::array<IBKernel, 3> factors;
+        //! Inline factor values; entries beyond size are not observable.
+        std::array<IBKernel, INLINE_FACTOR_CAPACITY> factors;
+
+        //! Number of active canonical factors.
         std::size_t size;
     };
 
+    /*! \brief Construct directly from canonical factor storage. */
     explicit IBKernelTensorProduct(CanonicalFactors factors);
 
+    /*! \brief Validate and canonicalize one or two supplied factors. */
     static CanonicalFactors canonicalize(std::initializer_list<IBKernel> factors);
 
+    /*! \brief Parse a validated legacy scalar or composite name. */
     static CanonicalFactors parse_name(const std::string& name);
 
-    std::array<IBKernel, 3> d_factors;
+    //! Inline canonical factors.
+    std::array<IBKernel, INLINE_FACTOR_CAPACITY> d_factors;
+
+    //! Number of active factors in d_factors.
     std::size_t d_size;
 };
 

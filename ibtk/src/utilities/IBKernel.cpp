@@ -60,10 +60,9 @@ IBKernel::IBKernel(const char* name) : IBKernel(name ? std::string(name) : std::
 const std::vector<IBKernel>&
 IBKernel::getStandardKernels()
 {
-    static const std::vector<IBKernel> kernels = { BSPLINE_1,       BSPLINE_2, BSPLINE_3,
-                                                   BSPLINE_4,       BSPLINE_5, BSPLINE_6,
-                                                   PIECEWISE_CUBIC, IB_3,      IB_4,
-                                                   IB_4_W8,         IB_5,      IB_6 };
+    static const std::vector<IBKernel> kernels = { BSPLINE_1, BSPLINE_2, BSPLINE_3, BSPLINE_4,
+                                                   BSPLINE_5, BSPLINE_6, IB_3,      IB_4,
+                                                   IB_4_W8,   IB_5,      IB_6,      PIECEWISE_CUBIC };
     return kernels;
 }
 

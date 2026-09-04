@@ -144,18 +144,6 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
                 "discontinuous-linear interpolation orientation");
     }
 
-    const IBKernelTensorProduct isotropic(IBKernel::IB_4);
-    const IBKernelTensorProduct ordered({ IBKernel::IB_4, IBKernel::IB_3 });
-    for (unsigned int component = 0; component < NDIM; ++component)
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            require(LEInteractor::get_kernel_factor(isotropic, axis, component) == IBKernel::IB_4,
-                    "all-directions scalar mapping");
-            require(LEInteractor::get_kernel_factor(ordered, axis, component) ==
-                        (component == axis ? IBKernel::IB_4 : IBKernel::IB_3),
-                    "distinguished/transverse directional mapping");
-        }
-
     const auto saved_kernel = LEInteractor::s_kernel_fcn;
     const int saved_stencil_size = LEInteractor::s_kernel_fcn_stencil_size;
     LEInteractor::s_kernel_fcn = &user_defined_kernel;

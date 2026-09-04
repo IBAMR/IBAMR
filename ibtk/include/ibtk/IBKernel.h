@@ -27,50 +27,47 @@ namespace IBTK
 /*!
  * \brief Value identifying a scalar one-dimensional IB kernel.
  *
- * Copies and equality use an exact two-block value, without string operations
- * or allocation. The same canonical name has the same value on every process,
- * independently of construction order. Resolve names at configuration
- * boundaries, not in numerical loops. Store names, not internal values, in
- * input and restart data.
- * The compile-time name capacity is currently 24 characters; changing it
- * requires rebuilding both the library and its applications consistently.
+ * Copies, equality, and ordering use an exact compact value, without string
+ * operations or allocation. The same canonical name has the same value on
+ * every process, independently of construction order. Store names, not this
+ * internal value, in input and restart data.
  *
- * The public values below are the standard scalar catalog. Standard names
- * are case-insensitive; PIECEWISE_CONSTANT and PIECEWISE_LINEAR alias BSPLINE_1
- * and BSPLINE_2. All names, including custom names, are normalized to uppercase
- * using ASCII rules. Canonical scalar names contain 1 to 24 characters from
- * A-Z, 0-9, and underscore; whitespace and other bytes are not accepted.
- * Naming a custom kernel does not register an evaluator.
- *
+ * Names are case-insensitive and may contain at most MAX_NAME_LENGTH ASCII
+ * letters, digits, or underscores. PIECEWISE_CONSTANT and PIECEWISE_LINEAR are
+ * aliases for BSPLINE_1 and BSPLINE_2. Naming a custom kernel does not register
+ * an evaluator.
  */
 class IBKernel
 {
 public:
+    /*! \name Standard scalar kernels */
+    //\{
     static const IBKernel BSPLINE_1;
     static const IBKernel BSPLINE_2;
     static const IBKernel BSPLINE_3;
     static const IBKernel BSPLINE_4;
     static const IBKernel BSPLINE_5;
     static const IBKernel BSPLINE_6;
-    static const IBKernel PIECEWISE_CUBIC;
     static const IBKernel IB_3;
     static const IBKernel IB_4;
     static const IBKernel IB_4_W8;
     static const IBKernel IB_5;
     static const IBKernel IB_6;
+    static const IBKernel PIECEWISE_CUBIC;
+    //\}
 
     /*!
      * \brief Construct a scalar identity.
      *
-     * The name must contain 1 to 24 ASCII letters, digits, or underscores.
-     * Scalar aliases are resolved before constructing the identity.
+     * \param name Name containing at most MAX_NAME_LENGTH ASCII letters,
+     * digits, or underscores. Scalar aliases are accepted.
      */
     explicit IBKernel(const std::string& name);
 
-    //! Construct a scalar identity from a nonnull C string.
+    /*! \brief Construct a scalar identity from a nonnull C string. */
     explicit IBKernel(const char* name);
 
-    //! Whether name satisfies the scalar kernel-name grammar.
+    /*! \brief Return whether \p name satisfies the scalar kernel-name grammar. */
     static bool isValidName(const std::string& name);
 
     /*!
@@ -81,25 +78,41 @@ public:
      */
     static const std::vector<IBKernel>& getStandardKernels();
 
-    //! Reconstruct the canonical name for configuration or diagnostics, not dispatch.
+    /*! \brief Reconstruct the canonical name for configuration or diagnostics. */
     std::string getName() const;
 
+    /*! \brief Return whether two kernels have the same canonical identity. */
     bool operator==(const IBKernel& other) const;
 
+    /*! \brief Return whether two kernels have different canonical identities. */
     bool operator!=(const IBKernel& other) const;
 
+    /*! \brief Order kernels by canonical identity for use as container keys. */
+    bool operator<(const IBKernel& other) const;
+
 private:
+    //! Maximum number of characters in a canonical kernel name.
     static constexpr std::size_t MAX_NAME_LENGTH = 24;
+
+    //! Number of encoded base-38 digits stored in each integer block.
     static constexpr std::size_t DIGITS_PER_BLOCK = 12;
+
+    //! Radix used by the compact canonical-name representation.
     static constexpr std::uint64_t ENCODING_BASE = 38;
+
+    //! Number of integer blocks in the compact representation.
     static constexpr std::size_t NAME_BLOCK_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_BLOCK - 1) / DIGITS_PER_BLOCK;
 
+    /*! \brief Encode a validated canonical name into its compact identity. */
     static constexpr std::array<std::uint64_t, NAME_BLOCK_COUNT> encode_name(std::string_view name);
 
-    explicit constexpr IBKernel(const std::array<std::uint64_t, NAME_BLOCK_COUNT>& name) : d_name(name)
-    {
-    }
+    /*! \brief Construct a standard value from a validated canonical name. */
+    static constexpr IBKernel from_canonical_name(std::string_view name);
 
+    /*! \brief Construct directly from a compact canonical identity. */
+    explicit constexpr IBKernel(const std::array<std::uint64_t, NAME_BLOCK_COUNT>& name);
+
+    //! Compact canonical kernel identity.
     std::array<std::uint64_t, NAME_BLOCK_COUNT> d_name;
 };
 } // namespace IBTK

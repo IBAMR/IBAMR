@@ -1925,12 +1925,19 @@ enum KernelType
     INVALID
 };
 
+const IBKernel&
+kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis)
+{
+    if (axis >= NDIM || component_axis >= NDIM) TBOX_ERROR("LEInteractor: IB kernel direction out of range\n");
+    return kernel[kernel.size() == 1 || axis == component_axis ? 0 : 1];
+}
+
 KernelType
 kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_axis = 0)
 {
     // No names, parsing, or interning on this path. This table maps the shared
     // scalar identities to existing backend routines, not to another vocabulary.
-    const IBKernel& first = LEInteractor::get_kernel_factor(kernel, component_axis, component_axis);
+    const IBKernel& first = kernel_factor(kernel, component_axis, component_axis);
     if (kernel.isIsotropic())
     {
         static const std::pair<IBKernel, KernelType> scalar_backends[] = { { IBKernel::BSPLINE_1, PIECEWISE_CONSTANT },
@@ -1951,11 +1958,7 @@ kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_ax
             if (first == entry.first) return entry.second;
         return INVALID;
     }
-    const IBKernel& second = LEInteractor::get_kernel_factor(kernel, component_axis == 0 ? 1 : 0, component_axis);
-    // Existing composite backends require the same factor on every transverse axis.
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-        if (axis != component_axis && LEInteractor::get_kernel_factor(kernel, axis, component_axis) != second)
-            return INVALID;
+    const IBKernel& second = kernel_factor(kernel, component_axis == 0 ? 1 : 0, component_axis);
     static const std::pair<std::array<IBKernel, 2>, KernelType> composite_backends[] = {
         { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 } }, DISCONTINUOUS_LINEAR },
         { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_3 } }, COMPOSITE_BSPLINE_23 },
@@ -1999,13 +2002,6 @@ LEInteractor::printClassData(std::ostream& os)
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-const IBKernel&
-LEInteractor::get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis)
-{
-    if (axis >= NDIM || component_axis >= NDIM) TBOX_ERROR("LEInteractor: IB kernel direction out of range\n");
-    return kernel[kernel.size() == 1 || axis == component_axis ? 0 : 1];
-}
 
 bool
 LEInteractor::isKnownKernel(const std::string& kernel_fcn)

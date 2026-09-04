@@ -16,21 +16,29 @@
 #include <tbox/Utilities.h>
 
 #include <algorithm>
+#include <array>
 #include <locale>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <utility>
 
 namespace
 {
-int
-composite_orders(const std::string& name)
+std::optional<std::array<unsigned int, 2>>
+composite_bspline_orders(const std::string& name)
 {
-    if (name == "DISCONTINUOUS_LINEAR") return 21;
-    const int pairs[] = { 12, 21, 23, 32, 34, 43, 45, 54, 56, 65 };
-    for (const int pair : pairs)
-        if (name == "COMPOSITE_BSPLINE_" + std::to_string(pair)) return pair;
-    return 0;
+    static const std::pair<const char*, std::array<unsigned int, 2>> composites[] = {
+        { "COMPOSITE_BSPLINE_12", { { 1, 2 } } }, { "COMPOSITE_BSPLINE_21", { { 2, 1 } } },
+        { "COMPOSITE_BSPLINE_23", { { 2, 3 } } }, { "COMPOSITE_BSPLINE_32", { { 3, 2 } } },
+        { "COMPOSITE_BSPLINE_34", { { 3, 4 } } }, { "COMPOSITE_BSPLINE_43", { { 4, 3 } } },
+        { "COMPOSITE_BSPLINE_45", { { 4, 5 } } }, { "COMPOSITE_BSPLINE_54", { { 5, 4 } } },
+        { "COMPOSITE_BSPLINE_56", { { 5, 6 } } }, { "COMPOSITE_BSPLINE_65", { { 6, 5 } } },
+        { "DISCONTINUOUS_LINEAR", { { 2, 1 } } }
+    };
+    for (const auto& composite : composites)
+        if (name == composite.first) return composite.second;
+    return std::nullopt;
 }
 
 std::string
@@ -66,7 +74,7 @@ bool
 IBKernelTensorProduct::isValidName(const std::string& name)
 {
     const std::string canonical = canonicalize_name(name);
-    return composite_orders(canonical) != 0 || IBKernel::isValidName(canonical);
+    return composite_bspline_orders(canonical).has_value() || IBKernel::isValidName(canonical);
 }
 
 IBKernelTensorProduct::IBKernelTensorProduct(CanonicalFactors factors)
@@ -77,10 +85,12 @@ IBKernelTensorProduct::IBKernelTensorProduct(CanonicalFactors factors)
 IBKernelTensorProduct::CanonicalFactors
 IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
 {
-    if (factors.size() == 0 || factors.size() > 2) TBOX_ERROR("IBKernelTensorProduct requires one or two factors\n");
+    if (factors.size() < MIN_ACTIVE_FACTORS || factors.size() > MAX_ACTIVE_FACTORS)
+        TBOX_ERROR("IBKernelTensorProduct requires one or two factors\n");
     const IBKernel first = *factors.begin();
-    const IBKernel second = factors.size() == 2 ? *(factors.begin() + 1) : first;
-    return { { { first, second, second } }, static_cast<std::size_t>(first == second ? 1 : 2) };
+    const IBKernel second = factors.size() == MAX_ACTIVE_FACTORS ? *(factors.begin() + 1) : first;
+    return { { { first, second, second } },
+             static_cast<std::size_t>(first == second ? MIN_ACTIVE_FACTORS : MAX_ACTIVE_FACTORS) };
 }
 
 IBKernelTensorProduct::CanonicalFactors
@@ -88,10 +98,10 @@ IBKernelTensorProduct::parse_name(const std::string& name)
 {
     if (!isValidName(name)) TBOX_ERROR("Invalid IB kernel tensor-product name: " << name << '\n');
     const std::string canonical = canonicalize_name(name);
-    const int orders = composite_orders(canonical);
+    const auto orders = composite_bspline_orders(canonical);
     if (orders)
-        return IBKernelTensorProduct::canonicalize(
-            { IBKernel("BSPLINE_" + std::to_string(orders / 10)), IBKernel("BSPLINE_" + std::to_string(orders % 10)) });
+        return IBKernelTensorProduct::canonicalize({ IBKernel("BSPLINE_" + std::to_string((*orders)[0])),
+                                                     IBKernel("BSPLINE_" + std::to_string((*orders)[1])) });
     return IBKernelTensorProduct::canonicalize({ IBKernel(canonical) });
 }
 
@@ -110,7 +120,7 @@ IBKernelTensorProduct::operator[](std::size_t slot) const
 bool
 IBKernelTensorProduct::isIsotropic() const
 {
-    return d_size == 1;
+    return d_size == MIN_ACTIVE_FACTORS;
 }
 
 bool
@@ -123,6 +133,13 @@ bool
 IBKernelTensorProduct::operator!=(const IBKernelTensorProduct& other) const
 {
     return !(*this == other);
+}
+
+bool
+IBKernelTensorProduct::operator<(const IBKernelTensorProduct& other) const
+{
+    return std::lexicographical_compare(
+        d_factors.begin(), d_factors.begin() + d_size, other.d_factors.begin(), other.d_factors.begin() + other.d_size);
 }
 
 bool

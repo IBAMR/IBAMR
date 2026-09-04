@@ -74,34 +74,19 @@ namespace IBTK
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
  *
- * Legacy string names implicitly construct a resolved description at the API
- * boundary, avoiding name lookup during repeated execution.
- * Existing routines support isotropic products and the legacy composites
- * (21, 23, 32, 34, 43, 45, 54, 56, 65). Other composite pairs and custom
- * identities without an existing implementation are rejected before changing
- * numerical output. Masked operations support only IB_4 and the legacy
- * USER_DEFINED callback.
+ * Kernel descriptions use axis-relative factors. One factor applies on every
+ * axis. In a two-factor description, slot zero applies on the distinguished
+ * component axis and slot one on every transverse axis. The distinguished axis
+ * is the side-normal axis for side data, the edge axis for edge data, and axis
+ * zero for cell and node data.
  *
- * \anchor le_interactor_kernel_mapping
- * One factor applies on every axis. In a two-factor value, slot zero applies
- * on the distinguished component axis and slot one on every transverse axis.
- * The distinguished axis is the side-normal axis for side data, the edge axis
- * for edge data, and axis zero for cell/node data regardless of data component.
- * Use get_kernel_factor() to resolve this convention, including in other
- * consumers.
+ * Legacy string names implicitly construct a resolved description at the API
+ * boundary, avoiding name lookup during repeated execution. Capability queries
+ * return false for malformed, unknown, or unsupported descriptions.
  */
 class LEInteractor
 {
 public:
-    /*!
-     * \brief Resolve an ordered factor for a Cartesian axis using
-     * \ref le_interactor_kernel_mapping.
-     *
-     * Both axes must be in [0, NDIM).
-     */
-    static const IBKernel&
-    get_kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis);
-
     /*!
      * \brief Function pointer to user-defined kernel function along with
      * corresponding stencil size and quadratic constant C.
