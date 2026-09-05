@@ -562,6 +562,9 @@ LDataManager::spread(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
+    const IBKernelTensorProduct spread_kernel(spread_kernel_fcn);
+    if (!LEInteractor::isKnownKernel(spread_kernel))
+        TBOX_ERROR("LDataManager::spread(): unsupported IB kernel " << spread_kernel << '\n');
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -630,25 +633,25 @@ LDataManager::spread(const int f_data_idx,
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
                 LEInteractor::spread(
-                    f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                    f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
                 LEInteractor::spread(
-                    f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                    f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
                 LEInteractor::spread(
-                    f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                    f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
                 LEInteractor::spread(
-                    f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                    f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
             }
             if (f_phys_bdry_op)
             {
@@ -706,6 +709,9 @@ LDataManager::interp(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_interp);
+    const IBKernelTensorProduct interp_kernel(d_default_interp_kernel_fcn);
+    if (!LEInteractor::isKnownKernel(interp_kernel))
+        TBOX_ERROR("LDataManager::interp(): unsupported IB kernel " << interp_kernel << '\n');
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -754,50 +760,26 @@ LDataManager::interp(const int f_data_idx,
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_cc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, interp_kernel);
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_ec_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, interp_kernel);
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_nc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, interp_kernel);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_sc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, interp_kernel);
             }
         }
     }

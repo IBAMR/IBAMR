@@ -15,8 +15,10 @@
 
 #include <tbox/Utilities.h>
 
-#include <locale>
+#include <algorithm>
+#include <array>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace IBTK
@@ -24,37 +26,74 @@ namespace IBTK
 bool
 IBKernel::isValidName(const std::string& name)
 {
-    if (name.empty()) return false;
-    std::string canonical = name;
-    std::use_facet<std::ctype<char>>(std::locale::classic())
-        .toupper(canonical.data(), canonical.data() + canonical.size());
+    std::array<std::uint64_t, NAME_BLOCK_COUNT> encoded_name;
+    return try_encode_name(name, encoded_name);
+}
+
+bool
+IBKernel::try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_BLOCK_COUNT>& encoded_name)
+{
+    if (name.empty() || name.size() > MAX_NAME_LENGTH) return false;
+
+    // Kernel identifiers are deliberately restricted to ASCII. Keeping this
+    // conversion kernel-local avoids locale work in a configuration path that
+    // is also used by legacy string-based LEInteractor calls.
+    std::array<char, MAX_NAME_LENGTH> canonical_name{};
+    for (std::size_t i = 0; i < name.size(); ++i)
+    {
+        const char input = name[i];
+        const char canonical = input >= 'a' && input <= 'z' ? static_cast<char>(input - 'a' + 'A') : input;
+        if (!((canonical >= 'A' && canonical <= 'Z') || (canonical >= '0' && canonical <= '9') || canonical == '_'))
+            return false;
+        canonical_name[i] = canonical;
+    }
+
+    const std::string_view canonical(canonical_name.data(), name.size());
     if (canonical == "PIECEWISE_CONSTANT")
-        canonical = "BSPLINE_1";
+        encoded_name = encode_name("BSPLINE_1");
     else if (canonical == "PIECEWISE_LINEAR")
-        canonical = "BSPLINE_2";
-    if (canonical.size() > MAX_NAME_LENGTH) return false;
-    for (const char c : canonical)
-        if (!((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')) return false;
+        encoded_name = encode_name("BSPLINE_2");
+    else
+    {
+        encoded_name = {};
+        for (std::size_t i = 0; i < canonical.size(); ++i)
+        {
+            const char c = canonical[i];
+            const unsigned int digit = c == '_'             ? UNDERSCORE_DIGIT :
+                                       c >= 'A' && c <= 'Z' ? c - 'A' + LETTER_DIGIT_OFFSET :
+                                                              c - '0' + NUMBER_DIGIT_OFFSET;
+            encoded_name[i / DIGITS_PER_BLOCK] = ENCODING_BASE * encoded_name[i / DIGITS_PER_BLOCK] + digit;
+        }
+        static constexpr auto encoding_base_powers = []()
+        {
+            std::array<std::uint64_t, DIGITS_PER_BLOCK + 1> powers{};
+            powers[0] = 1;
+            for (std::size_t i = 1; i < powers.size(); ++i) powers[i] = ENCODING_BASE * powers[i - 1];
+            return powers;
+        }();
+        for (std::size_t block = 0; block < NAME_BLOCK_COUNT; ++block)
+        {
+            const std::size_t block_start = block * DIGITS_PER_BLOCK;
+            const std::size_t active_digits =
+                canonical.size() <= block_start ? 0 : std::min(DIGITS_PER_BLOCK, canonical.size() - block_start);
+            encoded_name[block] *= encoding_base_powers[DIGITS_PER_BLOCK - active_digits];
+        }
+    }
     return true;
 }
 
 IBKernel::IBKernel(const std::string& name)
 {
-    if (!isValidName(name))
+    if (!try_encode_name(name, d_name))
         TBOX_ERROR("IBKernel requires 1 to " << MAX_NAME_LENGTH << " ASCII letters, digits, or underscores: " << name
                                              << '\n');
-    std::string canonical = name;
-    std::use_facet<std::ctype<char>>(std::locale::classic())
-        .toupper(canonical.data(), canonical.data() + canonical.size());
-    if (canonical == "PIECEWISE_CONSTANT")
-        canonical = "BSPLINE_1";
-    else if (canonical == "PIECEWISE_LINEAR")
-        canonical = "BSPLINE_2";
-    d_name = encode_name(canonical);
 }
 
-IBKernel::IBKernel(const char* name) : IBKernel(name ? std::string(name) : std::string())
+IBKernel::IBKernel(const char* name)
 {
+    if (!name || !try_encode_name(name, d_name))
+        TBOX_ERROR("IBKernel requires a nonnull name with 1 to " << MAX_NAME_LENGTH
+                                                                 << " ASCII letters, digits, or underscores\n");
 }
 
 const std::vector<IBKernel>&

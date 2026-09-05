@@ -14,6 +14,8 @@
 #ifndef included_IBTK_IBKernel_inl
 #define included_IBTK_IBKernel_inl
 
+#include <ibtk/IBKernel.h>
+
 namespace IBTK
 {
 constexpr std::array<std::uint64_t, IBKernel::NAME_BLOCK_COUNT>

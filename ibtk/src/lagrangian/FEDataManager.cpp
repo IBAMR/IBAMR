@@ -944,6 +944,9 @@ FEDataManager::spread(const int f_data_idx,
                       const FEDataManager::SpreadSpec& spread_spec)
 {
     IBTK_TIMER_START(t_spread);
+    const IBKernelTensorProduct spread_kernel(spread_spec.kernel_fcn);
+    if (!LEInteractor::isKnownKernel(spread_kernel))
+        TBOX_ERROR("FEDataManager::spread(): unsupported IB kernel " << spread_kernel << '\n');
 
     // Determine the type of data centering.
     auto var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1086,13 +1089,13 @@ FEDataManager::spread(const int f_data_idx,
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;
                     LEInteractor::spread(
-                        f_cc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                        f_cc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_kernel);
                 }
                 if (sc_data)
                 {
                     Pointer<SideData<NDIM, double>> f_sc_data = f_data;
                     LEInteractor::spread(
-                        f_sc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                        f_sc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_kernel);
                 }
             }
         }
@@ -1210,14 +1213,12 @@ FEDataManager::spread(const int f_data_idx,
                 if (cc_data)
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                    LEInteractor::spread(
-                        f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                    LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_kernel);
                 }
                 if (sc_data)
                 {
                     Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                    LEInteractor::spread(
-                        f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                    LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_kernel);
                 }
             }
         }
@@ -1702,6 +1703,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               const bool close_X)
 {
     IBTK_TIMER_START(t_interp_weighted);
+    const IBKernelTensorProduct interp_kernel(interp_spec.kernel_fcn);
+    if (!LEInteractor::isKnownKernel(interp_kernel))
+        TBOX_ERROR("FEDataManager::interpWeighted(): unsupported IB kernel " << interp_kernel << '\n');
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1871,13 +1875,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;
                     LEInteractor::interpolate(
-                        F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
+                        F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_kernel);
                 }
                 if (sc_data)
                 {
                     Pointer<SideData<NDIM, double>> f_sc_data = f_data;
                     LEInteractor::interpolate(
-                        F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+                        F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_kernel);
                 }
 
                 // Scale by the diagonal mass matrix.
@@ -1996,14 +2000,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 if (cc_data)
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                    LEInteractor::interpolate(
-                        F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
+                    LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_kernel);
                 }
                 if (sc_data)
                 {
                     Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                    LEInteractor::interpolate(
-                        F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+                    LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_kernel);
                 }
 
                 // Loop over the elements and accumulate the right-hand-side values.

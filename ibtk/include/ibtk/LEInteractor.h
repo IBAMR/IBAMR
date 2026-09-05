@@ -81,8 +81,9 @@ namespace IBTK
  * zero for cell and node data.
  *
  * Legacy string names implicitly construct a resolved description at the API
- * boundary, avoiding name lookup during repeated execution. Capability queries
- * return false for malformed, unknown, or unsupported descriptions.
+ * boundary. Code that repeatedly applies the same kernel should construct and
+ * reuse an IBKernelTensorProduct. Capability queries return false for
+ * malformed, unknown, or unsupported descriptions.
  */
 class LEInteractor
 {

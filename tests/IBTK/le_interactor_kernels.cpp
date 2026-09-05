@@ -78,7 +78,9 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
             (*field)(i()) = value;
         }
 
-    const IBKernelTensorProduct unsupported({ IBKernel("UNREGISTERED_KERNEL") });
+    // This is a valid, extensible tensor-product description, but
+    // LEInteractor does not yet provide its numerical implementation.
+    const IBKernelTensorProduct unsupported("COMPOSITE_BSPLINE_12");
     TBOX_ASSERT(!LEInteractor::isKnownKernel(unsupported));
     TBOX_ASSERT(LEInteractor::isKnownKernel("IB_4"));
     TBOX_ASSERT(!LEInteractor::isKnownKernel("BAD NAME"));

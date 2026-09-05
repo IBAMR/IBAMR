@@ -115,6 +115,9 @@ private:
     /*! \brief Encode a validated canonical name into its compact identity. */
     static constexpr std::array<std::uint64_t, NAME_BLOCK_COUNT> encode_name(std::string_view name);
 
+    /*! \brief Validate and canonicalize a name into its compact identity. */
+    static bool try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_BLOCK_COUNT>& encoded_name);
+
     /*! \brief Construct a standard value from a validated canonical name. */
     static constexpr IBKernel from_canonical_name(std::string_view name);
 

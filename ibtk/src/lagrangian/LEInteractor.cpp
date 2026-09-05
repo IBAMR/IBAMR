@@ -1925,53 +1925,55 @@ enum KernelType
     INVALID
 };
 
-const IBKernel&
-kernel_factor(const IBKernelTensorProduct& kernel, unsigned int axis, unsigned int component_axis)
-{
-    if (axis >= NDIM || component_axis >= NDIM) TBOX_ERROR("LEInteractor: IB kernel direction out of range\n");
-    return kernel[kernel.size() == 1 || axis == component_axis ? 0 : 1];
-}
-
 KernelType
-kernel_to_backend(const IBKernelTensorProduct& kernel, unsigned int component_axis = 0)
+kernel_to_backend(const IBKernelTensorProduct& kernel)
 {
     // No names, parsing, or interning on this path. This table maps the shared
     // scalar identities to existing backend routines, not to another vocabulary.
-    const IBKernel& first = kernel_factor(kernel, component_axis, component_axis);
+    const IBKernel& first = kernel[0];
     if (kernel.isIsotropic())
     {
-        static const std::pair<IBKernel, KernelType> scalar_backends[] = { { IBKernel::BSPLINE_1, PIECEWISE_CONSTANT },
-                                                                           { IBKernel::BSPLINE_2, PIECEWISE_LINEAR },
-                                                                           { IBKernel::BSPLINE_3, BSPLINE_3 },
-                                                                           { IBKernel::BSPLINE_4, BSPLINE_4 },
-                                                                           { IBKernel::BSPLINE_5, BSPLINE_5 },
-                                                                           { IBKernel::BSPLINE_6, BSPLINE_6 },
-                                                                           { IBKernel::PIECEWISE_CUBIC,
-                                                                             PIECEWISE_CUBIC },
-                                                                           { IBKernel::IB_3, IB_3 },
-                                                                           { IBKernel::IB_4, IB_4 },
-                                                                           { IBKernel::IB_4_W8, IB_4_W8 },
-                                                                           { IBKernel::IB_5, IB_5 },
-                                                                           { IBKernel::IB_6, IB_6 },
-                                                                           { user_defined_kernel(), USER_DEFINED } };
-        for (const auto& entry : scalar_backends)
-            if (first == entry.first) return entry.second;
+        static const std::array<std::pair<IBKernel, KernelType>, 13> scalar_backends = {
+            { { IBKernel::BSPLINE_1, PIECEWISE_CONSTANT },
+              { IBKernel::BSPLINE_2, PIECEWISE_LINEAR },
+              { IBKernel::BSPLINE_3, BSPLINE_3 },
+              { IBKernel::BSPLINE_4, BSPLINE_4 },
+              { IBKernel::BSPLINE_5, BSPLINE_5 },
+              { IBKernel::BSPLINE_6, BSPLINE_6 },
+              { IBKernel::IB_3, IB_3 },
+              { IBKernel::IB_4, IB_4 },
+              { IBKernel::IB_4_W8, IB_4_W8 },
+              { IBKernel::IB_5, IB_5 },
+              { IBKernel::IB_6, IB_6 },
+              { IBKernel::PIECEWISE_CUBIC, PIECEWISE_CUBIC },
+              { user_defined_kernel(), USER_DEFINED } }
+        };
+        const auto result =
+            std::lower_bound(scalar_backends.begin(),
+                             scalar_backends.end(),
+                             first,
+                             [](const auto& entry, const IBKernel& value) { return entry.first < value; });
+        if (result != scalar_backends.end() && result->first == first) return result->second;
         return INVALID;
     }
-    const IBKernel& second = kernel_factor(kernel, component_axis == 0 ? 1 : 0, component_axis);
-    static const std::pair<std::array<IBKernel, 2>, KernelType> composite_backends[] = {
-        { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 } }, DISCONTINUOUS_LINEAR },
-        { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_3 } }, COMPOSITE_BSPLINE_23 },
-        { { { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 } }, COMPOSITE_BSPLINE_32 },
-        { { { IBKernel::BSPLINE_3, IBKernel::BSPLINE_4 } }, COMPOSITE_BSPLINE_34 },
-        { { { IBKernel::BSPLINE_4, IBKernel::BSPLINE_3 } }, COMPOSITE_BSPLINE_43 },
-        { { { IBKernel::BSPLINE_4, IBKernel::BSPLINE_5 } }, COMPOSITE_BSPLINE_45 },
-        { { { IBKernel::BSPLINE_5, IBKernel::BSPLINE_4 } }, COMPOSITE_BSPLINE_54 },
-        { { { IBKernel::BSPLINE_5, IBKernel::BSPLINE_6 } }, COMPOSITE_BSPLINE_56 },
-        { { { IBKernel::BSPLINE_6, IBKernel::BSPLINE_5 } }, COMPOSITE_BSPLINE_65 }
+    const std::array<IBKernel, 2> factors = { first, kernel[1] };
+    static const std::array<std::pair<std::array<IBKernel, 2>, KernelType>, 9> composite_backends = {
+        { { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 } }, DISCONTINUOUS_LINEAR },
+          { { { IBKernel::BSPLINE_2, IBKernel::BSPLINE_3 } }, COMPOSITE_BSPLINE_23 },
+          { { { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 } }, COMPOSITE_BSPLINE_32 },
+          { { { IBKernel::BSPLINE_3, IBKernel::BSPLINE_4 } }, COMPOSITE_BSPLINE_34 },
+          { { { IBKernel::BSPLINE_4, IBKernel::BSPLINE_3 } }, COMPOSITE_BSPLINE_43 },
+          { { { IBKernel::BSPLINE_4, IBKernel::BSPLINE_5 } }, COMPOSITE_BSPLINE_45 },
+          { { { IBKernel::BSPLINE_5, IBKernel::BSPLINE_4 } }, COMPOSITE_BSPLINE_54 },
+          { { { IBKernel::BSPLINE_5, IBKernel::BSPLINE_6 } }, COMPOSITE_BSPLINE_56 },
+          { { { IBKernel::BSPLINE_6, IBKernel::BSPLINE_5 } }, COMPOSITE_BSPLINE_65 } }
     };
-    for (const auto& entry : composite_backends)
-        if (first == entry.first[0] && second == entry.first[1]) return entry.second;
+    const auto result =
+        std::lower_bound(composite_backends.begin(),
+                         composite_backends.end(),
+                         factors,
+                         [](const auto& entry, const std::array<IBKernel, 2>& value) { return entry.first < value; });
+    if (result != composite_backends.end() && result->first == factors) return result->second;
     return INVALID;
 }
 
@@ -1980,6 +1982,48 @@ require_supported_kernel(const IBKernelTensorProduct& kernel)
 {
     if (kernel_to_backend(kernel) == INVALID)
         TBOX_ERROR("LEInteractor: unsupported kernel description " << kernel << '\n');
+}
+
+int
+get_stencil_size(KernelType kernel_type, const IBKernelTensorProduct& kernel_fcn)
+{
+    switch (kernel_type)
+    {
+    case BSPLINE_3:
+    case BSPLINE_4:
+    case COMPOSITE_BSPLINE_23:
+    case COMPOSITE_BSPLINE_32:
+    case COMPOSITE_BSPLINE_34:
+    case COMPOSITE_BSPLINE_43:
+    case PIECEWISE_CUBIC:
+    case IB_3:
+    case IB_4:
+        return 4;
+    case BSPLINE_5:
+    case BSPLINE_6:
+    case COMPOSITE_BSPLINE_56:
+    case COMPOSITE_BSPLINE_65:
+    case IB_5:
+    case IB_6:
+        return 6;
+    case COMPOSITE_BSPLINE_45:
+    case COMPOSITE_BSPLINE_54:
+        return 5;
+    case DISCONTINUOUS_LINEAR:
+    case PIECEWISE_LINEAR:
+        return 2;
+    case PIECEWISE_CONSTANT:
+        return 1;
+    case IB_4_W8:
+        return 8;
+    case USER_DEFINED:
+        return LEInteractor::s_kernel_fcn_stencil_size;
+    case INVALID:
+    default:
+        TBOX_ERROR("LEInteractor::getStencilSize()\n"
+                   << "  Unsupported kernel function " << kernel_fcn << std::endl);
+    }
+    return -1;
 }
 
 } // namespace
@@ -2024,60 +2068,7 @@ LEInteractor::isKnownKernel(const IBKernelTensorProduct& kernel)
 int
 LEInteractor::getStencilSize(const IBKernelTensorProduct& kernel_fcn)
 {
-    require_supported_kernel(kernel_fcn);
-    switch (kernel_to_backend(kernel_fcn))
-    {
-    case BSPLINE_3:
-        return 4;
-    case BSPLINE_4:
-        return 4;
-    case BSPLINE_5:
-        return 6;
-    case BSPLINE_6:
-        return 6;
-    case COMPOSITE_BSPLINE_23:
-        return 4;
-    case COMPOSITE_BSPLINE_32:
-        return 4;
-    case COMPOSITE_BSPLINE_34:
-        return 4;
-    case COMPOSITE_BSPLINE_43:
-        return 4;
-    case COMPOSITE_BSPLINE_45:
-        return 5;
-    case COMPOSITE_BSPLINE_54:
-        return 5;
-    case COMPOSITE_BSPLINE_56:
-        return 6;
-    case COMPOSITE_BSPLINE_65:
-        return 6;
-    case DISCONTINUOUS_LINEAR:
-        return 2;
-    case PIECEWISE_CONSTANT:
-        return 1;
-    case PIECEWISE_LINEAR:
-        return 2;
-    case PIECEWISE_CUBIC:
-        return 4;
-    case IB_3:
-        return 4;
-    case IB_4:
-        return 4;
-    case IB_4_W8:
-        return 8;
-    case IB_5:
-        return 6;
-    case IB_6:
-        return 6;
-    case USER_DEFINED:
-        return s_kernel_fcn_stencil_size;
-    case INVALID:
-    default:
-        TBOX_ERROR("LEInteractor::getStencilSize()\n"
-                   << "  Unknown kernel function " << kernel_fcn << std::endl);
-    }
-
-    return -1;
+    return get_stencil_size(kernel_to_backend(kernel_fcn), kernel_fcn);
 }
 
 int
@@ -4514,9 +4505,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const IBKernelTensorProduct& interp_fcn,
                           const int axis)
 {
-    require_supported_kernel(interp_fcn);
-    const int stencil_size = getStencilSize(interp_fcn);
-    const int min_ghosts = getMinimumGhostWidth(interp_fcn);
+    const KernelType kernel_type = kernel_to_backend(interp_fcn);
+    const int stencil_size = get_stencil_size(kernel_type, interp_fcn);
+    const int min_ghosts = static_cast<int>(floor(0.5 * stencil_size)) + 1;
     const int q_gcw_min = q_gcw.min();
     if (q_gcw_min < min_ghosts)
     {
@@ -4530,7 +4521,7 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (kernel_to_backend(interp_fcn, axis))
+    switch (kernel_type)
     {
     case PIECEWISE_CONSTANT:
     {
@@ -5277,9 +5268,9 @@ LEInteractor::spread(double* const q_data,
                      const IBKernelTensorProduct& spread_fcn,
                      const int axis)
 {
-    require_supported_kernel(spread_fcn);
-    const int stencil_size = getStencilSize(spread_fcn);
-    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const KernelType kernel_type = kernel_to_backend(spread_fcn);
+    const int stencil_size = get_stencil_size(kernel_type, spread_fcn);
+    const int min_ghosts = static_cast<int>(floor(0.5 * stencil_size)) + 1;
     const int q_gcw_min = q_gcw.min();
     bool patch_touches_physical_bdry = false;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -5299,7 +5290,7 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (kernel_to_backend(spread_fcn, axis))
+    switch (kernel_type)
     {
     case PIECEWISE_CONSTANT:
     {

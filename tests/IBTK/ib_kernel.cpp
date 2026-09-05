@@ -162,7 +162,7 @@ main(int argc, char* argv[])
     const char* const scalar_c_string = "piecewise_constant";
     TBOX_ASSERT(IBKernel{ scalar_c_string } == IBKernel(IBKernel::BSPLINE_1));
     TBOX_ASSERT(!IBKernel::isValidName("ABCDEFGHIJKLMNOPQRSTUVWXY"));
-    for (const std::string invalid :
+    for (const std::string& invalid :
          { std::string("A B"), std::string("A-B"), std::string("A\0B", 3), std::string("A\x80", 2) })
         TBOX_ASSERT(!IBKernel::isValidName(invalid));
 

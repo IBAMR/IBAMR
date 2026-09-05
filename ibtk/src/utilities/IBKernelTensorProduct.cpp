@@ -17,35 +17,96 @@
 
 #include <algorithm>
 #include <array>
-#include <locale>
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace
 {
-std::optional<std::array<unsigned int, 2>>
-composite_bspline_orders(const std::string& name)
+bool
+equal_ignoring_case(std::string_view lhs, std::string_view rhs)
 {
-    static const std::pair<const char*, std::array<unsigned int, 2>> composites[] = {
-        { "COMPOSITE_BSPLINE_12", { { 1, 2 } } }, { "COMPOSITE_BSPLINE_21", { { 2, 1 } } },
-        { "COMPOSITE_BSPLINE_23", { { 2, 3 } } }, { "COMPOSITE_BSPLINE_32", { { 3, 2 } } },
-        { "COMPOSITE_BSPLINE_34", { { 3, 4 } } }, { "COMPOSITE_BSPLINE_43", { { 4, 3 } } },
-        { "COMPOSITE_BSPLINE_45", { { 4, 5 } } }, { "COMPOSITE_BSPLINE_54", { { 5, 4 } } },
-        { "COMPOSITE_BSPLINE_56", { { 5, 6 } } }, { "COMPOSITE_BSPLINE_65", { { 6, 5 } } },
-        { "DISCONTINUOUS_LINEAR", { { 2, 1 } } }
-    };
-    for (const auto& composite : composites)
-        if (name == composite.first) return composite.second;
-    return std::nullopt;
+    // Kernel identifiers are ASCII by contract; avoid locale-dependent case
+    // conversion while recognizing the small legacy spelling catalog.
+    if (lhs.size() != rhs.size()) return false;
+    for (std::size_t i = 0; i < lhs.size(); ++i)
+    {
+        const char lhs_char = lhs[i] >= 'a' && lhs[i] <= 'z' ? static_cast<char>(lhs[i] - 'a' + 'A') : lhs[i];
+        if (lhs_char != rhs[i]) return false;
+    }
+    return true;
 }
 
-std::string
-canonicalize_name(std::string name)
+std::optional<std::array<unsigned int, 2>>
+composite_bspline_orders(std::string_view name)
 {
-    std::use_facet<std::ctype<char>>(std::locale::classic()).toupper(name.data(), name.data() + name.size());
-    return name;
+    if (equal_ignoring_case(name, "DISCONTINUOUS_LINEAR")) return std::array<unsigned int, 2>{ { 2, 1 } };
+
+    constexpr std::string_view prefix = "COMPOSITE_BSPLINE_";
+    if (name.size() != prefix.size() + 2 || !equal_ignoring_case(name.substr(0, prefix.size()), prefix))
+        return std::nullopt;
+    const unsigned int first = name[prefix.size()] - '0';
+    const unsigned int second = name[prefix.size() + 1] - '0';
+    if (first < 1 || first > 6 || second < 1 || second > 6 || (first + 1 != second && second + 1 != first))
+        return std::nullopt;
+    return std::array<unsigned int, 2>{ { first, second } };
+}
+
+const IBTK::IBKernel& bspline_kernel(unsigned int order);
+
+const IBTK::IBKernel*
+standard_scalar_kernel(std::string_view name)
+{
+    constexpr std::string_view bspline_prefix = "BSPLINE_";
+    if (name.size() == bspline_prefix.size() + 1 &&
+        equal_ignoring_case(name.substr(0, bspline_prefix.size()), bspline_prefix) && name.back() >= '1' &&
+        name.back() <= '6')
+        return &bspline_kernel(name.back() - '0');
+
+    if (name.size() == 4 && equal_ignoring_case(name.substr(0, 3), "IB_") && name.back() >= '3' && name.back() <= '6')
+    {
+        switch (name.back())
+        {
+        case '3':
+            return &IBTK::IBKernel::IB_3;
+        case '4':
+            return &IBTK::IBKernel::IB_4;
+        case '5':
+            return &IBTK::IBKernel::IB_5;
+        case '6':
+            return &IBTK::IBKernel::IB_6;
+        }
+    }
+    if (equal_ignoring_case(name, "IB_4_W8")) return &IBTK::IBKernel::IB_4_W8;
+    if (equal_ignoring_case(name, "PIECEWISE_CONSTANT")) return &IBTK::IBKernel::BSPLINE_1;
+    if (equal_ignoring_case(name, "PIECEWISE_LINEAR")) return &IBTK::IBKernel::BSPLINE_2;
+    if (equal_ignoring_case(name, "PIECEWISE_CUBIC")) return &IBTK::IBKernel::PIECEWISE_CUBIC;
+    return nullptr;
+}
+
+const IBTK::IBKernel&
+bspline_kernel(unsigned int order)
+{
+    switch (order)
+    {
+    case 1:
+        return IBTK::IBKernel::BSPLINE_1;
+    case 2:
+        return IBTK::IBKernel::BSPLINE_2;
+    case 3:
+        return IBTK::IBKernel::BSPLINE_3;
+    case 4:
+        return IBTK::IBKernel::BSPLINE_4;
+    case 5:
+        return IBTK::IBKernel::BSPLINE_5;
+    case 6:
+        return IBTK::IBKernel::BSPLINE_6;
+    default:
+        TBOX_ERROR("Invalid B-spline order\n");
+    }
+    return IBTK::IBKernel::BSPLINE_1;
 }
 
 } // namespace
@@ -65,16 +126,14 @@ IBKernelTensorProduct::IBKernelTensorProduct(const std::string& name) : IBKernel
 {
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(const char* name)
-    : IBKernelTensorProduct(name ? std::string(name) : std::string())
+IBKernelTensorProduct::IBKernelTensorProduct(const char* name) : IBKernelTensorProduct(parse_name(name))
 {
 }
 
 bool
 IBKernelTensorProduct::isValidName(const std::string& name)
 {
-    const std::string canonical = canonicalize_name(name);
-    return composite_bspline_orders(canonical).has_value() || IBKernel::isValidName(canonical);
+    return standard_scalar_kernel(name) || composite_bspline_orders(name).has_value() || IBKernel::isValidName(name);
 }
 
 IBKernelTensorProduct::IBKernelTensorProduct(CanonicalFactors factors)
@@ -96,13 +155,22 @@ IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
 IBKernelTensorProduct::CanonicalFactors
 IBKernelTensorProduct::parse_name(const std::string& name)
 {
-    if (!isValidName(name)) TBOX_ERROR("Invalid IB kernel tensor-product name: " << name << '\n');
-    const std::string canonical = canonicalize_name(name);
-    const auto orders = composite_bspline_orders(canonical);
+    if (const IBKernel* scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
+    const auto orders = composite_bspline_orders(name);
     if (orders)
-        return IBKernelTensorProduct::canonicalize({ IBKernel("BSPLINE_" + std::to_string((*orders)[0])),
-                                                     IBKernel("BSPLINE_" + std::to_string((*orders)[1])) });
-    return IBKernelTensorProduct::canonicalize({ IBKernel(canonical) });
+        return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
+    return IBKernelTensorProduct::canonicalize({ IBKernel(name) });
+}
+
+IBKernelTensorProduct::CanonicalFactors
+IBKernelTensorProduct::parse_name(const char* name)
+{
+    if (!name) TBOX_ERROR("Invalid null IB kernel tensor-product name\n");
+    if (const IBKernel* scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
+    const auto orders = composite_bspline_orders(name);
+    if (orders)
+        return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
+    return IBKernelTensorProduct::canonicalize({ IBKernel(name) });
 }
 
 std::size_t

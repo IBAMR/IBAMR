@@ -98,6 +98,9 @@ private:
     /*! \brief Parse a validated legacy scalar or composite name. */
     static CanonicalFactors parse_name(const std::string& name);
 
+    /*! \brief Parse a nonnull legacy scalar or composite C string. */
+    static CanonicalFactors parse_name(const char* name);
+
     //! Inline canonical factors.
     std::array<IBKernel, INLINE_FACTOR_CAPACITY> d_factors;
 
