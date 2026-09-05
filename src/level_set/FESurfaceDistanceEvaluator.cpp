@@ -399,13 +399,14 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 
                 for (const auto& elem : elem_set)
                 {
-                    IBTK::VectorNd v, w, proj;
+                    IBTK::VectorNd proj;
                     double dist = std::numeric_limits<double>::max();
 #if (NDIM == 2)
                     // Get the nodes.
                     const libMesh::Point& n0 = elem->point(0);
                     const libMesh::Point& n1 = elem->point(1);
 
+                    IBTK::VectorNd v, w;
                     v << n0(0), n0(1);
                     w << n1(0), n1(1);
 

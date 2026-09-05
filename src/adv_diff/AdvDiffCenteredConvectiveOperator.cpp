@@ -99,6 +99,8 @@ AdvDiffCenteredConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, doubl
     const IntVector<NDIM>& u_data_gcw = u_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data_gcw.min() == u_data_gcw.max());
+#else
+    NULL_USE(u_data_gcw);
 #endif
     const IntVector<NDIM>& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
 #if !defined(NDEBUG)
