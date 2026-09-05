@@ -26,6 +26,8 @@
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 
+#include <tbox/Logger.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
@@ -322,6 +324,8 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
+    // Keep optional visualization warnings out of the compared test output.
+    Logger::getInstance()->setWarning(false);
     PetscErrorCode ierr;
     int failures = 0;
     {
