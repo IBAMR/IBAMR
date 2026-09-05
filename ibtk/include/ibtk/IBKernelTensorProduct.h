@@ -30,9 +30,8 @@ namespace IBTK
  *
  * A single factor applies in every coordinate direction. With two factors,
  * the first applies along an axis selected by the calling code and the second
- * applies in the remaining directions. For example, LEInteractor selects the
- * face-normal direction for side-centered data. Two equal factors are stored as a
- * single factor.
+ * applies in the remaining directions. Two equal factors are stored as a single
+ * factor.
  */
 class IBKernelTensorProduct
 {
