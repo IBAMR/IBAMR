@@ -186,6 +186,8 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
+#else
+    NULL_USE(out);
 #endif
 
     if (!d_hier_math_ops_external)

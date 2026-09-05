@@ -2821,6 +2821,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -2884,6 +2885,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(mask_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -2993,6 +2995,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -3062,6 +3065,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
@@ -3150,6 +3154,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(mask_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -3271,6 +3276,7 @@ LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
@@ -3967,6 +3973,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -4030,6 +4037,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> mask_data,
     TBOX_ASSERT(mask_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -4138,6 +4146,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -4206,6 +4215,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -4285,6 +4296,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> mask_data,
     TBOX_ASSERT(mask_data);
 #else
     NULL_USE(Q_size);
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
@@ -4404,6 +4416,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();

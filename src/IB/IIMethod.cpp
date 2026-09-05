@@ -1268,7 +1268,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int k = 0; k < local_indices.size(); ++k)
                     {
                         const int s = local_indices[k];
-                        IBTK::Point x, x_cell, xo, x_cell_o;
+                        IBTK::Point x, x_cell;
                         const double* const dx = patch_dx;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {

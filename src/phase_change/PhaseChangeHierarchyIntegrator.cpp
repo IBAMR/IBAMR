@@ -703,6 +703,8 @@ PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVa
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lf_var);
+#else
+    NULL_USE(lf_var);
 #endif
     d_lf_init = lf_init;
     return;
@@ -714,6 +716,8 @@ PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVaria
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
+#else
+    NULL_USE(T_var);
 #endif
     d_T_init = T_init;
     return;
@@ -725,6 +729,8 @@ PhaseChangeHierarchyIntegrator::setDensityInitialCondition(Pointer<CellVariable<
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_var);
+#else
+    NULL_USE(rho_var);
 #endif
     d_rho_init = rho_init;
     return;
@@ -736,6 +742,8 @@ PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(Pointer<CellVariabl
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
+#else
+    NULL_USE(T_var);
 #endif
     d_T_bc_coef = T_bc_coef;
     return;
