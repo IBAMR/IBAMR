@@ -125,8 +125,6 @@ PETScLevelSolver::PETScLevelSolver()
     d_rel_residual_tol = 1.0e-5;
     d_initial_guess_nonzero = true;
     d_enable_logging = false;
-    d_box_size = 2;
-    d_overlap_size = 1;
 
     // Setup Timers.
     IBTK_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::solveSystem()");
@@ -438,14 +436,14 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Generate user-defined subdomains.
         std::vector<std::set<int>> overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
-        d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
-        d_n_subdomains_max = IBTK_MPI::maxReduction(d_n_local_subdomains);
 
         // Generate PETSc IS in cases where they have not been generated directly.
         if (!d_overlap_is.size())
         {
             generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
         }
+        d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
+        d_n_subdomains_max = IBTK_MPI::maxReduction(d_n_local_subdomains);
 
         // Get the local submatrices.
         ierr = MatCreateSubMatrices(d_petsc_mat,
@@ -683,6 +681,10 @@ PETScLevelSolver::deallocateSolverState()
             IBTK_CHKERRQ(ierr);
             ierr = VecScatterDestroy(&d_restriction[i]);
             IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&d_sub_x[i]);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&d_sub_y[i]);
+            IBTK_CHKERRQ(ierr);
         }
         ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_mat);
         IBTK_CHKERRQ(ierr);
@@ -707,7 +709,7 @@ PETScLevelSolver::deallocateSolverState()
         d_prolongation.clear();
         d_sub_ksp.clear();
         d_sub_x.clear();
-        d_sub_x.clear();
+        d_sub_y.clear();
     }
 
     d_petsc_ksp = nullptr;
@@ -740,10 +742,6 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("shell_pc_type")) d_shell_pc_type = input_db->getString("shell_pc_type");
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("subdomain_box_size"))
-            input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
-        if (input_db->keyExists("subdomain_overlap_size"))
-            input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
     return;
 } // init
@@ -840,9 +838,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
         }
         ierr = VecScatterBegin(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
         CHKERRQ(ierr);
-    }
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
+        // Complete this write to the common destination before starting another.
         ierr = VecScatterEnd(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
         CHKERRQ(ierr);
     }
