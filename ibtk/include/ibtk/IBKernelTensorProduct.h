@@ -26,32 +26,33 @@
 namespace IBTK
 {
 /*!
- * \brief Value describing a tensor product of scalar IBKernel factors.
+ * \brief Class IBKernelTensorProduct describes a tensor product of scalar IB kernels.
  *
- * Owns a canonical description with one or two axis-relative scalar factors.
- * One factor applies in every direction. Two factors apply respectively on a
- * consumer-defined distinguished axis and on every transverse axis. An equal
- * pair is stored as the equivalent one-factor value.
+ * A single factor applies in every coordinate direction. With two factors,
+ * the first applies along an axis selected by the calling code and the second
+ * applies in the remaining directions. For example, LEInteractor selects the
+ * face-normal direction for side-centered data. Two equal factors are stored as a
+ * single factor.
  */
 class IBKernelTensorProduct
 {
 public:
-    /*! \brief Implicitly promote a scalar kernel to an isotropic tensor product. */
+    /*! \brief Construct a tensor product using the same kernel in every direction. */
     IBKernelTensorProduct(const IBKernel& factor);
 
-    /*! \brief Canonicalize one or two ordered factors. */
+    /*! \brief Construct a tensor product from one or two scalar kernels. */
     IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
 
-    /*! \brief Implicitly interpret a legacy scalar or composite kernel name. */
+    /*! \brief Construct a tensor product from a scalar or composite kernel name. */
     IBKernelTensorProduct(const std::string& name);
 
-    /*! \brief Implicitly interpret a nonnull legacy scalar or composite C string. */
+    /*! \brief Construct a tensor product from a nonnull scalar or composite kernel name. */
     IBKernelTensorProduct(const char* name);
 
-    /*! \brief Return whether \p name can construct a tensor-product description. */
+    /*! \brief Return whether \p name is a valid scalar or composite kernel name. */
     static bool isValidName(const std::string& name);
 
-    /*! \brief Return the number of factors in the canonical description. */
+    /*! \brief Return the number of factors, treating two equal factors as one. */
     std::size_t size() const;
 
     /*! \brief Access a factor. Valid indices satisfy \p slot < size(). */
@@ -60,48 +61,48 @@ public:
     /*! \brief Return whether the same scalar kernel applies in every direction. */
     bool isIsotropic() const;
 
-    /*! \brief Return whether two products have the same canonical description. */
+    /*! \brief Return whether two products have the same factors after combining equal pairs. */
     bool operator==(const IBKernelTensorProduct& other) const;
 
-    /*! \brief Return whether two products have different canonical descriptions. */
+    /*! \brief Return whether two products differ. */
     bool operator!=(const IBKernelTensorProduct& other) const;
 
-    /*! \brief Lexicographically order canonical descriptions for use as container keys. */
+    /*! \brief Compare factors lexicographically using IBKernel::operator<(). */
     bool operator<(const IBKernelTensorProduct& other) const;
 
 private:
-    //! Minimum number of factors in a valid public description.
+    //! Minimum number of factors accepted by the constructors.
     static constexpr std::size_t MIN_ACTIVE_FACTORS = 1;
 
-    //! Maximum number of factors in the current public description.
+    //! Maximum number of factors accepted by the constructors.
     static constexpr std::size_t MAX_ACTIVE_FACTORS = 2;
 
-    //! Inline factor capacity, including reserved headroom for a future role.
+    //! Storage capacity, with room for an additional factor.
     static constexpr std::size_t INLINE_FACTOR_CAPACITY = 3;
 
-    //! Canonical factor storage returned by construction helpers.
+    //! Factors and their count after combining equal pairs.
     struct CanonicalFactors
     {
-        //! Inline factor values; entries beyond size are not observable.
+        //! Scalar kernels; only the first size entries are used.
         std::array<IBKernel, INLINE_FACTOR_CAPACITY> factors;
 
-        //! Number of active canonical factors.
+        //! Number of factors in use.
         std::size_t size;
     };
 
-    /*! \brief Construct directly from canonical factor storage. */
+    /*! \brief Construct from factors with equal pairs already combined. */
     explicit IBKernelTensorProduct(CanonicalFactors factors);
 
-    /*! \brief Validate and canonicalize one or two supplied factors. */
+    /*! \brief Check the factor count and combine two equal factors into one. */
     static CanonicalFactors canonicalize(std::initializer_list<IBKernel> factors);
 
-    /*! \brief Parse a validated legacy scalar or composite name. */
+    /*! \brief Parse a scalar or composite kernel name. */
     static CanonicalFactors parse_name(const std::string& name);
 
-    /*! \brief Parse a nonnull legacy scalar or composite C string. */
+    /*! \brief Parse a scalar or composite kernel name, rejecting null pointers. */
     static CanonicalFactors parse_name(const char* name);
 
-    //! Inline canonical factors.
+    //! Scalar kernels in the tensor product.
     std::array<IBKernel, INLINE_FACTOR_CAPACITY> d_factors;
 
     //! Number of active factors in d_factors.
@@ -118,7 +119,7 @@ bool operator!=(const IBKernelTensorProduct& product, const IBKernel& kernel);
 
 bool operator!=(const IBKernel& kernel, const IBKernelTensorProduct& product);
 
-//! Diagnostic output only; numerical dispatch uses identities, not names.
+//! Write the scalar kernel names as a parenthesized, comma-separated list.
 std::ostream& operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel);
 } // namespace IBTK
 

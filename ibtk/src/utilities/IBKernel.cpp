@@ -35,9 +35,7 @@ IBKernel::try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_
 {
     if (name.empty() || name.size() > MAX_NAME_LENGTH) return false;
 
-    // Kernel identifiers are deliberately restricted to ASCII. Keeping this
-    // conversion kernel-local avoids locale work in a configuration path that
-    // is also used by legacy string-based LEInteractor calls.
+    // Kernel names use ASCII, so case conversion does not require a locale.
     std::array<char, MAX_NAME_LENGTH> canonical_name{};
     for (std::size_t i = 0; i < name.size(); ++i)
     {

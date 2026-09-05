@@ -31,6 +31,8 @@
 #include <utility>
 #include <vector>
 
+#include "../tests.h"
+
 using IBTK::IBKernel;
 using IBTK::IBKernelTensorProduct;
 
@@ -88,29 +90,31 @@ main(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     const std::string input_file = argc > 1 ? argv[1] : "";
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
+    SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
     if (input_file.find("invalid_scalar") != std::string::npos)
     {
-        std::ofstream("output") << "IBKernel rejects malformed scalar names\n";
+        SAMRAI::tbox::PIO::logOnlyNodeZero("output");
         const IBKernel invalid("BAD NAME");
-        TBOX_ERROR("IBKernel invalid-scalar test continued unexpectedly: " << invalid.getName() << '\n');
+        return 0;
     }
     if (input_file.find("empty_product") != std::string::npos)
     {
-        std::ofstream("output") << "IBKernelTensorProduct rejects empty factor sequences\n";
+        SAMRAI::tbox::PIO::logOnlyNodeZero("output");
         const IBKernelTensorProduct invalid(std::initializer_list<IBKernel>{});
-        TBOX_ERROR("IBKernelTensorProduct empty-factor test continued unexpectedly: " << invalid << '\n');
+        return 0;
     }
     if (input_file.find("null_product") != std::string::npos)
     {
-        std::ofstream("output") << "IBKernelTensorProduct rejects null names\n";
+        SAMRAI::tbox::PIO::logOnlyNodeZero("output");
         const IBKernelTensorProduct invalid(static_cast<const char*>(nullptr));
-        TBOX_ERROR("IBKernelTensorProduct null-name test continued unexpectedly: " << invalid << '\n');
+        return 0;
     }
     if (input_file.find("three_factor") != std::string::npos)
     {
-        std::ofstream("output") << "IBKernelTensorProduct rejects three factors\n";
+        SAMRAI::tbox::PIO::logOnlyNodeZero("output");
         const IBKernelTensorProduct invalid({ IBKernel::IB_4, IBKernel::IB_4, IBKernel::IB_4 });
-        TBOX_ERROR("IBKernelTensorProduct three-factor test continued unexpectedly: " << invalid << '\n');
+        return 0;
     }
 
     // Ranks construct shared names in opposite orders with disjoint extras.

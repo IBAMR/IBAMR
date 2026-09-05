@@ -37,6 +37,8 @@
 #include <string>
 #include <vector>
 
+#include "../tests.h"
+
 #include <ibtk/app_namespaces.h>
 
 namespace
@@ -87,13 +89,15 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     TBOX_ASSERT(!LEInteractor::isKnownKernel(static_cast<const char*>(nullptr)));
     if (expect_error)
     {
-        std::ofstream("output") << "LEInteractor rejects unsupported kernel descriptions before interpolation\n";
+        Pointer<Logger::Appender> abort_appender = new TestAppender();
+        Logger::getInstance()->setAbortAppender(abort_appender);
+        PIO::logOnlyNodeZero("output");
         string_value.assign(NDIM, 17.0);
         LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, unsupported);
-        TBOX_ERROR("LEInteractor unsupported-kernel test continued unexpectedly\n");
+        return;
     }
 
-    for (const std::string& name : { "IB_4", "piecewise_constant", "discontinuous_linear", "composite_bspline_23" })
+    for (const std::string name : { "IB_4", "piecewise_constant", "discontinuous_linear", "composite_bspline_23" })
     {
         const IBKernelTensorProduct kernel(name);
         TBOX_ASSERT(LEInteractor::isKnownKernel(name) && LEInteractor::isKnownKernel(kernel));
@@ -110,7 +114,7 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
                 TBOX_ASSERT((*string_spread)(i()) == (*typed_spread)(i()));
     }
 
-    for (const std::string& name : { "", "BAD NAME", "UNREGISTERED_KERNEL", "COMPOSITE_BSPLINE_12" })
+    for (const char* name : { "", "BAD NAME", "UNREGISTERED_KERNEL", "COMPOSITE_BSPLINE_12" })
         TBOX_ASSERT(!LEInteractor::isKnownKernel(name));
     const IBKernelTensorProduct linear_constant("DISCONTINUOUS_LINEAR");
     const IBKernelTensorProduct explicit_linear_constant({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 });

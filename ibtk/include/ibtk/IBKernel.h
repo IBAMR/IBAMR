@@ -25,17 +25,14 @@
 namespace IBTK
 {
 /*!
- * \brief Value identifying a scalar one-dimensional IB kernel.
+ * \brief Class IBKernel identifies a one-dimensional IB kernel by name.
  *
- * Copies, equality, and ordering use an exact compact value, without string
- * operations or allocation. The same canonical name has the same value on
- * every process, independently of construction order. Store names, not this
- * internal value, in input and restart data.
+ * Names are case-insensitive. PIECEWISE_CONSTANT and PIECEWISE_LINEAR are
+ * aliases for BSPLINE_1 and BSPLINE_2, respectively. Applications may define
+ * additional names, but must provide the corresponding kernel implementations.
  *
- * Names are case-insensitive and may contain at most MAX_NAME_LENGTH ASCII
- * letters, digits, or underscores. PIECEWISE_CONSTANT and PIECEWISE_LINEAR are
- * aliases for BSPLINE_1 and BSPLINE_2. Naming a custom kernel does not register
- * an evaluator.
+ * The same name has the same encoded value on every MPI process. Use getName()
+ * to write kernel names to input or restart files.
  */
 class IBKernel
 {
@@ -57,74 +54,75 @@ public:
     //\}
 
     /*!
-     * \brief Construct a scalar identity.
+     * \brief Construct a kernel from its name.
      *
-     * \param name Name containing at most MAX_NAME_LENGTH ASCII letters,
+     * \param name Nonempty name containing at most MAX_NAME_LENGTH ASCII letters,
      * digits, or underscores. Scalar aliases are accepted.
      */
     explicit IBKernel(const std::string& name);
 
-    /*! \brief Construct a scalar identity from a nonnull C string. */
+    /*!
+     * \brief Construct a kernel from its name.
+     *
+     * \param name Nonnull C string containing a nonempty name of at most
+     * MAX_NAME_LENGTH ASCII letters, digits, or underscores. Scalar aliases
+     * are accepted.
+     */
     explicit IBKernel(const char* name);
 
-    /*! \brief Return whether \p name satisfies the scalar kernel-name grammar. */
+    /*! \brief Return whether \p name satisfies the scalar kernel-name requirements. */
     static bool isValidName(const std::string& name);
 
-    /*!
-     * \brief Return the standard scalar kernels.
-     *
-     * The order is for iteration only: it is not an ordinal, serialization,
-     * or communication format.
-     */
+    /*! \brief Return the standard scalar kernels in alphabetical order. */
     static const std::vector<IBKernel>& getStandardKernels();
 
-    /*! \brief Reconstruct the canonical name for configuration or diagnostics. */
+    /*! \brief Return the uppercase kernel name, with aliases replaced by standard names. */
     std::string getName() const;
 
-    /*! \brief Return whether two kernels have the same canonical identity. */
+    /*! \brief Return whether two kernels have the same name after resolving aliases. */
     bool operator==(const IBKernel& other) const;
 
-    /*! \brief Return whether two kernels have different canonical identities. */
+    /*! \brief Return whether two kernels differ. */
     bool operator!=(const IBKernel& other) const;
 
-    /*! \brief Order kernels by canonical identity for use as container keys. */
+    /*! \brief Compare encoded names to order kernels in associative containers. */
     bool operator<(const IBKernel& other) const;
 
 private:
     //! Maximum number of characters in a canonical kernel name.
     static constexpr std::size_t MAX_NAME_LENGTH = 24;
 
-    //! Number of encoded base-38 digits stored in each integer block.
+    //! Number of encoded characters stored in each integer block.
     static constexpr std::size_t DIGITS_PER_BLOCK = 12;
 
-    //! Radix used by the compact canonical-name representation.
+    //! Base used to encode kernel names.
     static constexpr std::uint64_t ENCODING_BASE = 38;
 
-    //! Offset of an encoded letter from its ASCII value.
+    //! Encoded value of 'A'.
     static constexpr unsigned int LETTER_DIGIT_OFFSET = 1;
 
-    //! Offset of an encoded decimal digit from its ASCII value.
+    //! Encoded value of '0'.
     static constexpr unsigned int NUMBER_DIGIT_OFFSET = 27;
 
     //! Encoded value reserved for underscore.
     static constexpr unsigned int UNDERSCORE_DIGIT = 37;
 
-    //! Number of integer blocks in the compact representation.
+    //! Number of integer blocks needed to store a kernel name.
     static constexpr std::size_t NAME_BLOCK_COUNT = (MAX_NAME_LENGTH + DIGITS_PER_BLOCK - 1) / DIGITS_PER_BLOCK;
 
-    /*! \brief Encode a validated canonical name into its compact identity. */
+    /*! \brief Encode a valid uppercase name with aliases already resolved. */
     static constexpr std::array<std::uint64_t, NAME_BLOCK_COUNT> encode_name(std::string_view name);
 
-    /*! \brief Validate and canonicalize a name into its compact identity. */
+    /*! \brief Resolve aliases and encode a name; return false if the name is invalid. */
     static bool try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_BLOCK_COUNT>& encoded_name);
 
-    /*! \brief Construct a standard value from a validated canonical name. */
+    /*! \brief Construct a kernel from a valid uppercase name with aliases already resolved. */
     static constexpr IBKernel from_canonical_name(std::string_view name);
 
-    /*! \brief Construct directly from a compact canonical identity. */
+    /*! \brief Construct a kernel from an encoded name. */
     explicit constexpr IBKernel(const std::array<std::uint64_t, NAME_BLOCK_COUNT>& name);
 
-    //! Compact canonical kernel identity.
+    //! Encoded kernel name.
     std::array<std::uint64_t, NAME_BLOCK_COUNT> d_name;
 };
 } // namespace IBTK

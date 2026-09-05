@@ -14,6 +14,8 @@
 #ifndef included_IBTK_IBKernel_inl
 #define included_IBTK_IBKernel_inl
 
+#include <ibtk/config.h>
+
 #include <ibtk/IBKernel.h>
 
 namespace IBTK

@@ -28,8 +28,7 @@ namespace
 bool
 equal_ignoring_case(std::string_view lhs, std::string_view rhs)
 {
-    // Kernel identifiers are ASCII by contract; avoid locale-dependent case
-    // conversion while recognizing the small legacy spelling catalog.
+    // Kernel names use ASCII, so case conversion does not require a locale.
     if (lhs.size() != rhs.size()) return false;
     for (std::size_t i = 0; i < lhs.size(); ++i)
     {
