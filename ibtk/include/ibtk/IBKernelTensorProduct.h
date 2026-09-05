@@ -76,14 +76,11 @@ private:
     //! Maximum number of factors accepted by the constructors.
     static constexpr std::size_t MAX_ACTIVE_FACTORS = 2;
 
-    //! Storage capacity, with room for an additional factor.
-    static constexpr std::size_t INLINE_FACTOR_CAPACITY = 3;
-
     //! Factors and their count after combining equal pairs.
     struct CanonicalFactors
     {
         //! Scalar kernels; only the first size entries are used.
-        std::array<IBKernel, INLINE_FACTOR_CAPACITY> factors;
+        std::array<IBKernel, MAX_ACTIVE_FACTORS> factors;
 
         //! Number of factors in use.
         std::size_t size;
@@ -102,7 +99,7 @@ private:
     static CanonicalFactors parse_name(const char* name);
 
     //! Scalar kernels in the tensor product.
-    std::array<IBKernel, INLINE_FACTOR_CAPACITY> d_factors;
+    std::array<IBKernel, MAX_ACTIVE_FACTORS> d_factors;
 
     //! Number of active factors in d_factors.
     std::size_t d_size;

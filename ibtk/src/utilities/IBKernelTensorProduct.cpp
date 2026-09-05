@@ -147,7 +147,7 @@ IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
         TBOX_ERROR("IBKernelTensorProduct requires one or two factors\n");
     const IBKernel first = *factors.begin();
     const IBKernel second = factors.size() == MAX_ACTIVE_FACTORS ? *(factors.begin() + 1) : first;
-    return { { { first, second, second } },
+    return { { { first, second } },
              static_cast<std::size_t>(first == second ? MIN_ACTIVE_FACTORS : MAX_ACTIVE_FACTORS) };
 }
 
