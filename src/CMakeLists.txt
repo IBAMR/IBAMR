@@ -195,6 +195,8 @@ SET(CXX_SRC
   IB/WallForceEvaluator.cpp
   IB/IBTargetPointForceSpecFactory.cpp
   IB/IBMethod.cpp
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
   IB/IBBeamForceSpec.cpp
   IB/IBSpringForceSpec.cpp
   IB/CIBMethod.cpp
@@ -253,6 +255,10 @@ ENDIF()
 
 TARGET_SOURCES(IBAMR2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})
 TARGET_SOURCES(IBAMR3d PRIVATE ${FORTRAN_GENERATED_SRC3D} ${CXX_SRC})
+
+# Noninstalled implementation helpers shared by the Stokes-IB operators.
+SET_PROPERTY(SOURCE IB/StaggeredStokesIBOperator.cpp IB/StaggeredStokesIBJacobianOperator.cpp
+  APPEND PROPERTY INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/IB)
 
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBAMRHeaders)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders)
