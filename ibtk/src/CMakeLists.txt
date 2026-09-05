@@ -190,6 +190,8 @@ SET(CXX_SRC
   utilities/CopyToRootSchedule.cpp
   utilities/AppInitializer.cpp
   utilities/IBTKInit.cpp
+  utilities/IBKernel.cpp
+  utilities/IBKernelTensorProduct.cpp
   utilities/RestartCleaner.cpp
   utilities/SAMRAIDataCache.cpp
   utilities/FixedSizedStream.cpp

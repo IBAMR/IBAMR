@@ -1,0 +1,17 @@
+Main {
+   log_file_name = "le_interactor_kernels.log"
+   log_all_nodes = FALSE
+}
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo = -1,-1
+   x_up = 1,1
+   periodic_dimension = 0,0
+}
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = 8,8 }
+   smallest_patch_size { level_0 = 4,4 }
+}
+StandardTagAndInitialize { tagging_method = "REFINE_BOXES" RefineBoxes {} }
+LoadBalancer {}

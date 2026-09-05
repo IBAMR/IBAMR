@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
+
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
 
@@ -71,6 +73,17 @@ namespace IBTK
  * to interpolate data from Eulerian grid patches onto Lagrangian meshes and to
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
+ *
+ * Kernel descriptions use axis-relative factors. One factor applies on every
+ * axis. In a two-factor description, slot zero applies on the distinguished
+ * component axis and slot one on every transverse axis. The distinguished axis
+ * is the side-normal axis for side data, the edge axis for edge data, and axis
+ * zero for cell and node data.
+ *
+ * Legacy string names implicitly construct a resolved description at the API
+ * boundary. Code that repeatedly applies the same kernel should construct and
+ * reuse an IBKernelTensorProduct. Capability queries return false for
+ * malformed, unknown, or unsupported descriptions.
  */
 class LEInteractor
 {
@@ -93,16 +106,24 @@ public:
     static void printClassData(std::ostream& os);
 
     /*!
+     * \brief Return whether or not the provided string corresponds to a known
+     * kernel function.
+     * Invalid or unsupported names return false; name-validation errors do
+     * not escape this capability query.
+     */
+    static bool isKnownKernel(const std::string& kernel_fcn);
+
+    //! Equivalent nonfatal capability query for a C string.
+    static bool isKnownKernel(const char* kernel_fcn);
+
+    //! Query an already resolved description, without name lookup.
+    static bool isKnownKernel(const IBKernelTensorProduct& kernel_fcn);
+
+    /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
      * specified kernel function.
      */
-    static int getStencilSize(const std::string& kernel_fcn);
-
-    /*!
-     * \brief Return whether or not the provided string corresponds to a known
-     * kernel function.
-     */
-    static bool isKnownKernel(const std::string& kernel_fcn);
+    static int getStencilSize(const IBKernelTensorProduct& kernel_fcn);
 
     /*!
      * \brief Returns the minimum ghost width size corresponding to the
@@ -114,7 +135,7 @@ public:
      * allowed to move further between regridding/redistribution operations
      * require correspondingly larger ghost cell widths.
      */
-    static int getMinimumGhostWidth(const std::string& kernel_fcn);
+    static int getMinimumGhostWidth(const IBKernelTensorProduct& kernel_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -139,7 +160,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -164,7 +185,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -189,7 +210,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -214,7 +235,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -241,7 +262,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -268,7 +289,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -295,7 +316,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -322,7 +343,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -346,7 +367,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
@@ -370,7 +391,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -394,7 +415,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -418,7 +439,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -443,7 +464,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -467,7 +488,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -493,7 +514,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -520,7 +541,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -546,7 +567,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -572,7 +593,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -599,7 +620,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -625,7 +646,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const std::string& interp_fcn = "IB_4");
+                            const IBKernelTensorProduct& interp_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -653,7 +674,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -681,7 +702,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -709,7 +730,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -737,7 +758,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -767,7 +788,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -797,7 +818,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -827,7 +848,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -857,7 +878,7 @@ public:
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
                        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -884,7 +905,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -912,7 +933,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -939,7 +960,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -966,7 +987,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -994,7 +1015,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1021,7 +1042,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1050,7 +1071,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1080,7 +1101,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1109,7 +1130,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1138,7 +1159,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1168,7 +1189,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1197,7 +1218,7 @@ public:
                        int X_depth,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const std::string& spread_fcn = "IB_4");
+                       const IBKernelTensorProduct& spread_fcn = { IBKernel::IB_4 });
 
 private:
     /*!
@@ -1337,7 +1358,7 @@ private:
                             const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                             const Eigen::Map<Eigen::VectorXi>& local_indices,
                             const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
-                            const std::string& interp_fcn,
+                            const IBKernelTensorProduct& interp_fcn,
                             int axis = 0);
 
     /*!
@@ -1357,7 +1378,7 @@ private:
                        const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                        const Eigen::Map<Eigen::VectorXi>& local_indices,
                        const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
-                       const std::string& spread_fcn,
+                       const IBKernelTensorProduct& spread_fcn,
                        int axis = 0);
 
     /*!
