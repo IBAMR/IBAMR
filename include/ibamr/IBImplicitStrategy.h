@@ -142,6 +142,20 @@ public:
                                    int dof_index_idx,
                                    double data_time) = 0;
 
+    /*!
+     * Construct the IB interpolation operator with possibly distinct
+     * face-normal and face-tangential kernels. The single-kernel overload uses
+     * the same kernel and stencil width in both directions.
+     */
+    virtual void constructInterpOp(Mat& J,
+                                   void (*face_normal_spread_fnc)(const double, double*),
+                                   int face_normal_stencil_width,
+                                   void (*face_tangential_spread_fnc)(const double, double*),
+                                   int face_tangential_stencil_width,
+                                   const std::vector<int>& num_dofs_per_proc,
+                                   int dof_index_idx,
+                                   double data_time) = 0;
+
 protected:
 private:
     /*!

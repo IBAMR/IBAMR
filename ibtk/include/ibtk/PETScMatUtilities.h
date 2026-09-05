@@ -30,6 +30,7 @@
 
 #include <PoissonSpecifications.h>
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -129,11 +130,15 @@ public:
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator for the provided kernel function.
+     * side-centered IB interpolation operator for the provided one-dimensional
+     * kernel function, using that kernel in every coordinate direction.
      *
-     * \warning This routine does not properly handle delta functions for which
-     * interp_stencil is odd, nor does it properly handle physical boundary
-     * conditions.
+     * Odd-width stencils are centered on the nearest grid point, choosing the
+     * higher index at a tie. Even-width stencils retain their cell-based placement.
+     * The callback receives the displacement from the lower stencil point to
+     * the IB point, divided by the grid spacing, and writes interp_stencil weights.
+     *
+     * \warning This routine does not properly handle physical boundary conditions.
      */
     static void constructPatchLevelSCInterpOp(Mat& mat,
                                               void (*interp_fcn)(double r_lower, double* w),
@@ -143,39 +148,75 @@ public:
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
     /*!
-     * \brief Standard one-dimensional Peskin 4-pt delta function.
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered IB interpolation operator with possibly distinct
+     * one-dimensional kernels in the face-normal and face-tangential directions.
+     * For each side-centered component, the face-normal direction is its component
+     * axis and the remaining coordinate directions are face-tangential.
      *
-     * \param r Normalized distance (by grid space h) between the IB point and
-     * the lowermost stencil location.
+     * Each direction uses its own stencil width and centering. The callback
+     * convention and odd-width tie rule are the same as in the single-kernel overload.
      *
-     * \param w Weights as a function of (normalized) distance between the IB
-     * point and stencil locations. The first entry corresponds to the distance
-     * \f$ r_0 = r \f$ between the IB point and lowermost stencil location. The
-     * next normalized distance is taken as \f$ r_1 = r_0 + 1 \f$ and so on.
+     * \warning This routine does not properly handle physical boundary conditions.
      */
-    static void ib_4_interp_fcn(const double r, double* const w)
-    {
-        const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-        w[0] = 0.125 * (5.0 - 2.0 * r - q);
-        w[1] = 0.125 * (5.0 - 2.0 * r + q);
-        w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-        w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-        return;
-    } // ib_4_interp_fcn
-
-    static const int ib_4_interp_stencil = 4;
+    static void constructPatchLevelSCInterpOp(Mat& mat,
+                                              void (*face_normal_interp_fcn)(double r_lower, double* w),
+                                              int face_normal_interp_stencil,
+                                              void (*face_tangential_interp_fcn)(double r_lower, double* w),
+                                              int face_tangential_interp_stencil,
+                                              Vec& X_vec,
+                                              const std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
-     * \brief Standard one-dimensional Piecewise linear interpolation function.
+     * \name One-dimensional delta function kernels.
+     *
+     * The first argument is the IB point's displacement from the lower stencil
+     * point in grid units. Entry i corresponds to displacement r - i. The caller
+     * provides storage for the associated delta_stencil number of weights.
      */
-    static void pwl_interp_fcn(const double r, double* const w)
-    {
-        w[0] = 1.0 - r;
-        w[1] = r;
-        return;
-    } // pwl_interp_fcn
+    //\{
+    static void piecewise_constant_delta_fcn(double r, double* w);
 
-    static const int pwl_interp_stencil = 2;
+    static const int piecewise_constant_delta_stencil = 1;
+
+    static void piecewise_linear_delta_fcn(double r, double* w);
+
+    static const int piecewise_linear_delta_stencil = 2;
+
+    static void bspline_3_delta_fcn(double r, double* w);
+
+    static const int bspline_3_delta_stencil = 4;
+
+    static void bspline_4_delta_fcn(double r, double* w);
+
+    static const int bspline_4_delta_stencil = 4;
+
+    static void bspline_5_delta_fcn(double r, double* w);
+
+    static const int bspline_5_delta_stencil = 6;
+
+    static void bspline_6_delta_fcn(double r, double* w);
+
+    static const int bspline_6_delta_stencil = 6;
+
+    static void ib_3_delta_fcn(double r, double* w);
+
+    static const int ib_3_delta_stencil = 4;
+
+    static void ib_4_delta_fcn(double r, double* w);
+
+    static const int ib_4_delta_stencil = 4;
+
+    static void ib_5_delta_fcn(double r, double* w);
+
+    static const int ib_5_delta_stencil = 6;
+
+    static void ib_6_delta_fcn(double r, double* w);
+
+    static const int ib_6_delta_stencil = 6;
+    //\}
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
@@ -313,6 +354,8 @@ private:
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 };
 } // namespace IBTK
+
+#include <ibtk/private/PETScMatUtilities-inl.h>
 
 /////////////////////////////////////////////////////////////////////////////
 
