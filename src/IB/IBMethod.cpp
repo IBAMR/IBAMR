@@ -1032,55 +1032,19 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
 
 void
 IBMethod::constructInterpOp(Mat& J,
-                            void (*spread_fnc)(const double, double*),
-                            const int stencil_width,
+                            const IBKernelTensorProduct& kernel,
                             const std::vector<int>& num_dofs_per_proc,
                             const int dof_index_idx,
                             const double data_time)
 {
-    constructInterpOp(
-        J, spread_fnc, stencil_width, spread_fnc, stencil_width, num_dofs_per_proc, dof_index_idx, data_time);
-    return;
-} // constructInterpOp
-
-void
-IBMethod::constructInterpOp(Mat& J,
-                            void (*face_normal_spread_fnc)(const double, double*),
-                            const int face_normal_stencil_width,
-                            void (*face_tangential_spread_fnc)(const double, double*),
-                            const int face_tangential_stencil_width,
-                            const std::vector<int>& num_dofs_per_proc,
-                            const int dof_index_idx,
-                            const double data_time)
-{
-    if (J)
-    {
-        int ierr = MatDestroy(&J);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    // Get the "frozen" position for Lagrangian structure
     std::vector<Pointer<LData>>* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-
-    // Build the Jacobian matrix.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    PETScMatUtilities::constructPatchLevelSCInterpOp(J,
-                                                     face_normal_spread_fnc,
-                                                     face_normal_stencil_width,
-                                                     face_tangential_spread_fnc,
-                                                     face_tangential_stencil_width,
-                                                     X_vec,
-                                                     num_dofs_per_proc,
-                                                     dof_index_idx,
-                                                     finest_level);
-
-    return;
-
-} // constructInterpOp
+    PETScMatUtilities::constructPatchLevelSCInterpOp(J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+}
 
 void
 IBMethod::computeLagrangianFluidSource(const double data_time)
