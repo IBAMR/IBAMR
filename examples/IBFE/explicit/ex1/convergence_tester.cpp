@@ -162,9 +162,10 @@ main(int argc, char* argv[])
              coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
         {
             string coarse_file_name =
-                formatSAMRAIOutputFilename(coarse_iteration_num, coarse_hier_dump_dirname, "hier_data");
+                format_samrai_output_filename(coarse_iteration_num, coarse_hier_dump_dirname, "hier_data");
 
-            string fine_file_name = formatSAMRAIOutputFilename(fine_iteration_num, fine_hier_dump_dirname, "hier_data");
+            string fine_file_name =
+                format_samrai_output_filename(fine_iteration_num, fine_hier_dump_dirname, "hier_data");
 
             for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
             {
@@ -377,23 +378,23 @@ main(int argc, char* argv[])
             string file_name;
 
             Mesh mesh_coarse(init.comm(), NDIM);
-            file_name = formatIterationOutputFilename(coarse_iteration_num, coarse_hier_dump_dirname, "fe_mesh");
+            file_name = format_iteration_output_filename(coarse_iteration_num, coarse_hier_dump_dirname, "fe_mesh");
             file_name += ".xda";
             mesh_coarse.read(file_name);
 
             Mesh mesh_fine(init.comm(), NDIM);
-            file_name = formatIterationOutputFilename(fine_iteration_num, fine_hier_dump_dirname, "fe_mesh");
+            file_name = format_iteration_output_filename(fine_iteration_num, fine_hier_dump_dirname, "fe_mesh");
             file_name += ".xda";
             mesh_fine.read(file_name);
 
             EquationSystems equation_systems_coarse(mesh_coarse);
             equation_systems_coarse.read(
-                formatIterationOutputFilename(coarse_iteration_num, coarse_hier_dump_dirname, "fe_equation_systems"),
+                format_iteration_output_filename(coarse_iteration_num, coarse_hier_dump_dirname, "fe_equation_systems"),
                 (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             EquationSystems equation_systems_fine(mesh_fine);
             equation_systems_fine.read(
-                formatIterationOutputFilename(fine_iteration_num, fine_hier_dump_dirname, "fe_equation_systems"),
+                format_iteration_output_filename(fine_iteration_num, fine_hier_dump_dirname, "fe_equation_systems"),
                 (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             ExactSolution error_estimator(equation_systems_coarse);

@@ -154,9 +154,9 @@ main(int argc, char* argv[])
          coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
     {
         string coarse_file_name =
-            formatSAMRAIOutputFilename(coarse_iteration_num, coarse_hier_dump_dirname, "hier_data");
+            format_samrai_output_filename(coarse_iteration_num, coarse_hier_dump_dirname, "hier_data");
 
-        string fine_file_name = formatSAMRAIOutputFilename(fine_iteration_num, fine_hier_dump_dirname, "hier_data");
+        string fine_file_name = format_samrai_output_filename(fine_iteration_num, fine_hier_dump_dirname, "hier_data");
 
         for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
         {
