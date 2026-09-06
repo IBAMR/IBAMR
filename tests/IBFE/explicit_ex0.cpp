@@ -606,7 +606,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 
     // Write Cartesian data.
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(formatSAMRAIOutputFilename(iteration_num, data_dump_dirname, "hier_data"));
+    hier_db->create(format_samrai_output_filename(iteration_num, data_dump_dirname, "hier_data"));
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     ComponentSelector hier_data;
@@ -620,10 +620,10 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     hier_db->close();
 
     // Write Lagrangian data.
-    std::string file_name = formatIterationOutputFilename(iteration_num, data_dump_dirname, "fe_mesh");
+    std::string file_name = format_iteration_output_filename(iteration_num, data_dump_dirname, "fe_mesh");
     file_name += ".xda";
     mesh.write(file_name);
-    equation_systems->write(formatIterationOutputFilename(iteration_num, data_dump_dirname, "fe_equation_systems"),
+    equation_systems->write(format_iteration_output_filename(iteration_num, data_dump_dirname, "fe_equation_systems"),
                             (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
 } // output_data
