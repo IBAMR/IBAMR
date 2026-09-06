@@ -314,7 +314,7 @@ public:
      * \brief Construct interpolation using a registered tensor-product kernel.
      *
      * A pair selects face-normal and face-tangential kernels, respectively.
-     * \see IBTK::PETScMatUtilities::register_sc_interp_kernel()
+     * \see IBTK::SCInterpOpRegistry::register_kernel()
      */
     void constructInterpOp(Mat& J,
                            const IBTK::IBKernelTensorProduct& kernel,
