@@ -116,6 +116,8 @@ LTransaction<T>::unpackStream(AbstractStream& stream)
     d_dst_item_set.resize(num_items);
     for (auto it = d_dst_item_set.begin(); it != d_dst_item_set.end(); ++it)
     {
+        // Allocate the destination object before unpacking into it.
+        it->item = new T();
         it->item->unpackStream(stream, periodic_offset);
         Point& posn = it->posn;
         stream.unpack(posn.data(), NDIM);
