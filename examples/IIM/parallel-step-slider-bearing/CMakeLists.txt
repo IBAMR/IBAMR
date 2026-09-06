@@ -1,0 +1,20 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-parallel_step_slider_bearing-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/parallel_step_slider_bearing"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+    read_file.c
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  EXTRA_FILES
+    )

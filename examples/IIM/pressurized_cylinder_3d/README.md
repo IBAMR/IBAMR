@@ -1,0 +1,1 @@
+This example tests the capabilities of the smoothed normals (ICW or projected) on the enforcement of the non-penetration condition for a cylinder in three spatial dimensions with either a non-zero pressure gradient (Poiseuille flow) or a zero pressure gradient. https://arxiv.org/pdf/2603.07248.

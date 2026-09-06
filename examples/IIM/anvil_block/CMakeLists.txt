@@ -1,0 +1,23 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-anvil_block-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/anvil_block"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  EXTRA_FILES
+    cone_geom_MFAC_2_theta_20.e
+    cone_geom_MFAC_2_theta_45.e
+    cone_geom_MFAC_2_theta_90.e
+    cone_geom_MFAC_2_theta_180.e
+    )

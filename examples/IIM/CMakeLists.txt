@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2021 - 2021 by the IBAMR developers
+## Copyright (c) 2020 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,6 +11,6 @@
 ##
 ## ---------------------------------------------------------------------
 
-FOREACH(_dir ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9)
+FOREACH(_dir ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 anvil_block ball-in-blocked-tube ball-in-narrowing-tube ball-in-tube concentric_rotating_cylinders eccentric_rotating_cylinders flow-past-star misaligned_sliding_bearing parallel-step-slider-bearing pressurized_circle pressurized_cylinder_3d shearing_parallel_plates)
   ADD_SUBDIRECTORY(${_dir})
 ENDFOREACH()

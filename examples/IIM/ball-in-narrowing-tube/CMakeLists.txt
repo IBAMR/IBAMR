@@ -1,0 +1,19 @@
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IIM-ball_in_narrowing_tube-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IIM/ball_in_narrowing_tube"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IIM
+  SOURCES
+    example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  EXTRA_FILES
+    )
