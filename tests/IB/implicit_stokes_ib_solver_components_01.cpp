@@ -20,6 +20,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBKernelEvaluators.h>
 #include <ibtk/IBKernelTensorProductEvaluator.h>
+#include <ibtk/IBOperatorRegistry.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
@@ -27,7 +28,6 @@
 #include <ibtk/LDataManager.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
-#include <ibtk/SCInterpOpRegistry.h>
 
 #include <tbox/Logger.h>
 
@@ -233,16 +233,16 @@ register_probe_kernels()
     const auto register_pair = [&](const IBKernel& other, auto evaluator)
     {
         using E = decltype(evaluator);
-        SCInterpOpRegistry::register_kernel({ probe_kernel, other },
-                                            IBKernelTensorProductEvaluator{ ProbeEvaluator{}, E{} });
-        SCInterpOpRegistry::register_kernel({ other, probe_kernel },
-                                            IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
+        IBOperatorRegistry::register_interpolation_matrix_sc({ probe_kernel, other },
+                                                             IBKernelTensorProductEvaluator{ ProbeEvaluator{}, E{} });
+        IBOperatorRegistry::register_interpolation_matrix_sc({ other, probe_kernel },
+                                                             IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
     };
     register_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{});
     register_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{});
     register_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{});
-    SCInterpOpRegistry::register_kernel(probe_kernel,
-                                        IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
+    IBOperatorRegistry::register_interpolation_matrix_sc(
+        probe_kernel, IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
 }
 
 void
@@ -374,8 +374,8 @@ main(int argc, char* argv[])
             std::ifstream input(input_file);
             std::string kernel_name;
             input >> kernel_name;
-            SCInterpOpRegistry::register_kernel(IBKernel(kernel_name),
-                                                IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            IBOperatorRegistry::register_interpolation_matrix_sc(
+                IBKernel(kernel_name), IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
             return 0;
         }
     }
@@ -508,7 +508,8 @@ main(int argc, char* argv[])
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
-                        SCInterpOpRegistry::construct(scalar, kernel[cw - 1], X, counts, dof, level);
+                        IBOperatorRegistry::construct_interpolation_matrix_sc(
+                            scalar, kernel[cw - 1], X, counts, dof, level);
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
@@ -544,7 +545,7 @@ main(int argc, char* argv[])
         }
         failures += !placement + !scalar_equivalence + !lifecycle;
         pout << "stencil_columns_and_weights_valid = " << (placement ? "true" : "false") << '\n';
-        pout << "scalar_component_transverse_equivalence_valid = " << (scalar_equivalence ? "true" : "false") << '\n';
+        pout << "isotropic_equivalence_valid = " << (scalar_equivalence ? "true" : "false") << '\n';
         pout << "standalone_lifecycle_valid = " << (lifecycle ? "true" : "false") << '\n';
         level->deallocatePatchData(u);
         level->deallocatePatchData(dof);

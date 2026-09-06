@@ -33,7 +33,7 @@
 
 namespace IBTK
 {
-// Geometry and borrowed position access for typed interpolation builders.
+// Interpolation stencil geometry and borrowed IB positions.
 struct PETScMatUtilities::SCInterpOpData
 {
     /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
