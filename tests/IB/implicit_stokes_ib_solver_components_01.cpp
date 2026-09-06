@@ -120,14 +120,14 @@ check_kernels()
     const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
     const double K6 = (59.0 - std::sqrt(261.0)) / 60.0;
     double error = std::max(
-        { sample_error(IBKernelEvaluatorBSpline1{}, -0.25, std::array<double, 1>{ 1.0 }),
-          sample_error(IBKernelEvaluatorBSpline2{}, 0.25, std::array<double, 2>{ 0.75, 0.25 }),
-          sample_error(IBKernelEvaluatorBSpline3{}, 1.0, std::array<double, 3>{ 0.125, 0.75, 0.125 }),
+        { sample_error(IBKernelEvaluatorBSpline<1>{}, -0.25, std::array<double, 1>{ 1.0 }),
+          sample_error(IBKernelEvaluatorBSpline<2>{}, 0.25, std::array<double, 2>{ 0.75, 0.25 }),
+          sample_error(IBKernelEvaluatorBSpline<3>{}, 1.0, std::array<double, 3>{ 0.125, 0.75, 0.125 }),
           sample_error(
-              IBKernelEvaluatorBSpline4{}, 1.5, std::array<double, 4>{ 1.0 / 48, 23.0 / 48, 23.0 / 48, 1.0 / 48 }),
+              IBKernelEvaluatorBSpline<4>{}, 1.5, std::array<double, 4>{ 1.0 / 48, 23.0 / 48, 23.0 / 48, 1.0 / 48 }),
           sample_error(
-              IBKernelEvaluatorBSpline5{}, 1.5, std::array<double, 5>{ 1.0 / 24, 11.0 / 24, 11.0 / 24, 1.0 / 24, 0 }),
-          sample_error(IBKernelEvaluatorBSpline6{},
+              IBKernelEvaluatorBSpline<5>{}, 1.5, std::array<double, 5>{ 1.0 / 24, 11.0 / 24, 11.0 / 24, 1.0 / 24, 0 }),
+          sample_error(IBKernelEvaluatorBSpline<6>{},
                        2.5,
                        std::array<double, 6>{
                            1.0 / 3840, 237.0 / 3840, 1682.0 / 3840, 1682.0 / 3840, 237.0 / 3840, 1.0 / 3840 }),
@@ -142,6 +142,18 @@ check_kernels()
               IBKernelEvaluatorIB6{},
               3.0,
               std::array<double, 6>{ 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 }) });
+    // Exact rational values from the truncated-power definition at r = 11/4.
+    // This order is not among the library's named registrations.
+    error = std::max(error,
+                     sample_error(IBKernelEvaluatorBSpline<7>{},
+                                  2.75,
+                                  std::array<double, 7>{ 729.0 / 2949120,
+                                                         112546.0 / 2949120,
+                                                         963327.0 / 2949120,
+                                                         1434812.0 / 2949120,
+                                                         422087.0 / 2949120,
+                                                         15618.0 / 2949120,
+                                                         1.0 / 2949120 }));
     // Independently evaluated Fortran definitions, with natural odd-width
     // coordinates on either side of the nearest-center change.
     error = std::max({ error,
@@ -175,11 +187,12 @@ check_kernels()
                                                            0.431221688477088836,
                                                            0.174648694040214713,
                                                            0.00965617417165844278 }) });
-    const double moments = std::max({ moment_error(IBKernelEvaluatorBSpline2{}),
-                                      moment_error(IBKernelEvaluatorBSpline3{}),
-                                      moment_error(IBKernelEvaluatorBSpline4{}),
-                                      moment_error(IBKernelEvaluatorBSpline5{}),
-                                      moment_error(IBKernelEvaluatorBSpline6{}),
+    const double moments = std::max({ moment_error(IBKernelEvaluatorBSpline<2>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<3>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<4>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<5>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<6>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<7>{}),
                                       moment_error(IBKernelEvaluatorIB3{}),
                                       moment_error(IBKernelEvaluatorIB4{}),
                                       moment_error(IBKernelEvaluatorIB5{}),
@@ -188,8 +201,8 @@ check_kernels()
     // Exercise every component axis of a 3D tensor product in this 2D executable.
     // These are evaluator checks, not a 3D hierarchy or matrix test.
     const IBKernelTensorProductEvaluator product{ IBKernelEvaluatorIB4{}, IBKernelEvaluatorIB3{} };
-    const IBKernelTensorProductEvaluator isotropic3{ IBKernelEvaluatorBSpline3{} };
-    const IBKernelTensorProductEvaluator isotropic5{ IBKernelEvaluatorBSpline5{} };
+    const IBKernelTensorProductEvaluator isotropic3{ IBKernelEvaluatorBSpline<3>{} };
+    const IBKernelTensorProductEvaluator isotropic5{ IBKernelEvaluatorBSpline<5>{} };
     const auto weights27 = isotropic3.evaluate<0>(std::array<double, 3>{ 1.0, 1.0, 1.0 });
     const auto weights125 = isotropic5.evaluate<2>(std::array<double, 3>{ 1.5, 1.5, 1.5 });
     static_assert(weights27.size() == 27 && weights125.size() == 125, "Natural 3D stencil sizes");
@@ -238,8 +251,8 @@ register_probe_kernels()
         IBOperatorRegistry::register_interpolation_matrix_sc({ other, probe_kernel },
                                                              IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
     };
-    register_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{});
-    register_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{});
+    register_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline<1>{});
+    register_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline<2>{});
     register_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{});
     IBOperatorRegistry::register_interpolation_matrix_sc(
         probe_kernel, IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
@@ -460,14 +473,14 @@ main(int argc, char* argv[])
             Mat direct = nullptr, builtin = nullptr, registered = nullptr;
             PETScMatUtilities::constructPatchLevelSCInterpOp(
                 direct,
-                IBKernelTensorProductEvaluator{ ProbeEvaluator{}, IBKernelEvaluatorBSpline2{} },
+                IBKernelTensorProductEvaluator{ ProbeEvaluator{}, IBKernelEvaluatorBSpline<2>{} },
                 X,
                 counts,
                 dof,
                 level);
             PETScMatUtilities::constructPatchLevelSCInterpOp(
                 builtin,
-                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline3{}, IBKernelEvaluatorBSpline2{} },
+                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<3>{}, IBKernelEvaluatorBSpline<2>{} },
                 X,
                 counts,
                 dof,
@@ -485,6 +498,26 @@ main(int argc, char* argv[])
             if (!equal) ++failures;
             method->constructInterpOp(registered, { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 }, counts, dof, new_time);
             ierr = MatEqual(builtin, registered, &equal);
+            IBTK_CHKERRQ(ierr);
+            if (!equal) ++failures;
+
+            // An application can instantiate and register an additional order
+            // without changing the library's built-in registrations.
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                direct,
+                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<7>{}, IBKernelEvaluatorBSpline<2>{} },
+                X,
+                counts,
+                dof,
+                level);
+            placement = check_matrix(direct, X, dofs, 7, 2, true) && placement;
+            if (step == 0)
+                IBOperatorRegistry::register_interpolation_matrix_sc(
+                    { IBKernel("BSPLINE_7"), IBKernel::BSPLINE_2 },
+                    IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<7>{}, IBKernelEvaluatorBSpline<2>{} });
+            method->constructInterpOp(
+                registered, { IBKernel("BSPLINE_7"), IBKernel::BSPLINE_2 }, counts, dof, new_time);
+            ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
             if (!equal) ++failures;
             ierr = MatDestroy(&direct);

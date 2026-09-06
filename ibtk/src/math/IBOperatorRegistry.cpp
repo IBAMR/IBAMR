@@ -28,12 +28,12 @@ IBOperatorRegistry::get_builders()
     static auto builders = []
     {
         std::map<IBKernelTensorProduct, Builder> result;
-        const auto kernels = std::make_tuple(std::make_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{}),
-                                             std::make_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{}),
-                                             std::make_pair(IBKernel::BSPLINE_3, IBKernelEvaluatorBSpline3{}),
-                                             std::make_pair(IBKernel::BSPLINE_4, IBKernelEvaluatorBSpline4{}),
-                                             std::make_pair(IBKernel::BSPLINE_5, IBKernelEvaluatorBSpline5{}),
-                                             std::make_pair(IBKernel::BSPLINE_6, IBKernelEvaluatorBSpline6{}),
+        const auto kernels = std::make_tuple(std::make_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline<1>{}),
+                                             std::make_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline<2>{}),
+                                             std::make_pair(IBKernel::BSPLINE_3, IBKernelEvaluatorBSpline<3>{}),
+                                             std::make_pair(IBKernel::BSPLINE_4, IBKernelEvaluatorBSpline<4>{}),
+                                             std::make_pair(IBKernel::BSPLINE_5, IBKernelEvaluatorBSpline<5>{}),
+                                             std::make_pair(IBKernel::BSPLINE_6, IBKernelEvaluatorBSpline<6>{}),
                                              std::make_pair(IBKernel::IB_3, IBKernelEvaluatorIB3{}),
                                              std::make_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{}),
                                              std::make_pair(IBKernel::IB_5, IBKernelEvaluatorIB5{}),
