@@ -11,13 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_SCInterpOpRegistry_inl
-#define included_IBTK_SCInterpOpRegistry_inl
+#ifndef included_IBTK_IBOperatorRegistry_inl
+#define included_IBTK_IBOperatorRegistry_inl
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBOperatorRegistry.h>
 #include <ibtk/PETScMatUtilities.h>
-#include <ibtk/SCInterpOpRegistry.h>
 
 #include <memory>
 #include <utility>
@@ -26,20 +26,23 @@ namespace IBTK
 {
 template <class Evaluator>
 inline void
-SCInterpOpRegistry::register_kernel(const IBKernelTensorProduct& kernel, Evaluator evaluator)
+IBOperatorRegistry::register_interpolation_matrix_sc(const IBKernelTensorProduct& kernel, Evaluator evaluator)
 {
     auto& builders = get_builders();
     if (builders.find(kernel) != builders.end())
     {
-        TBOX_ERROR("SCInterpOpRegistry::register_kernel(): kernel " << kernel << " is already registered\n");
+        TBOX_ERROR("IBOperatorRegistry::register_interpolation_matrix_sc(): kernel " << kernel
+                                                                                     << " is already registered\n");
     }
     builders.emplace(kernel, make_builder(std::move(evaluator)));
 }
 
 template <class Evaluator>
-inline SCInterpOpRegistry::Builder
-SCInterpOpRegistry::make_builder(Evaluator evaluator)
+inline IBOperatorRegistry::Builder
+IBOperatorRegistry::make_builder(Evaluator evaluator)
 {
+    // Compile the complete matrix operation with this evaluator type. Runtime
+    // selection calls it once per matrix, not once per stencil coefficient.
     const auto owned_evaluator = std::make_shared<const Evaluator>(std::move(evaluator));
     return [owned_evaluator](Mat& mat,
                              Vec& X,

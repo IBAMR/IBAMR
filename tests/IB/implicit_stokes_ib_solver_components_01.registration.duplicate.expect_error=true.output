@@ -1,4 +1,4 @@
 Program abort called with error message
 
-    SCInterpOpRegistry::register_kernel(): kernel (IB_4) is already registered
+    IBOperatorRegistry::register_interpolation_matrix_sc(): kernel (IB_4) is already registered
 
