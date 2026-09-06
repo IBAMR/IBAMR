@@ -20,8 +20,45 @@
 
 #include <ibtk/namespaces.h>
 
+namespace
+{
+constexpr int MAX_SUPPLIED_BSPLINE_ORDER = 6;
+
+template <class Evaluator>
+bool
+is_within_bspline_limit(const Evaluator&, int)
+{
+    return true;
+}
+
+template <std::size_t N>
+bool
+is_within_bspline_limit(const IBTK::IBKernelEvaluatorBSpline<N>&, const int max_order)
+{
+    return N <= static_cast<std::size_t>(max_order);
+}
+} // namespace
+
 namespace IBTK
 {
+int IBOperatorRegistry::s_max_bspline_order = MAX_SUPPLIED_BSPLINE_ORDER;
+bool IBOperatorRegistry::s_builders_initialized = false;
+
+void
+IBOperatorRegistry::set_max_bspline_order(const int max_order)
+{
+    if (max_order < 1 || max_order > MAX_SUPPLIED_BSPLINE_ORDER)
+    {
+        TBOX_ERROR("IBOperatorRegistry::set_max_bspline_order(): order must be between 1 and "
+                   << MAX_SUPPLIED_BSPLINE_ORDER << "\n");
+    }
+    if (s_builders_initialized)
+    {
+        TBOX_ERROR("IBOperatorRegistry::set_max_bspline_order(): registry is already initialized\n");
+    }
+    s_max_bspline_order = max_order;
+}
+
 std::map<IBKernelTensorProduct, IBOperatorRegistry::Builder>&
 IBOperatorRegistry::get_builders()
 {
@@ -40,16 +77,17 @@ IBOperatorRegistry::get_builders()
                                              std::make_pair(IBKernel::IB_6, IBKernelEvaluatorIB6{}));
         const auto add_normal = [&](const auto& normal)
         {
-            std::apply(
-                [&](const auto&... tangential)
-                {
-                    (result.emplace(IBKernelTensorProduct{ normal.first, tangential.first },
-                                    make_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second })),
-                     ...);
-                },
-                kernels);
+            if (!is_within_bspline_limit(normal.second, s_max_bspline_order)) return;
+            const auto add_tangential = [&](const auto& tangential)
+            {
+                if (is_within_bspline_limit(tangential.second, s_max_bspline_order))
+                    result.emplace(IBKernelTensorProduct{ normal.first, tangential.first },
+                                   make_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second }));
+            };
+            std::apply([&](const auto&... tangential) { (add_tangential(tangential), ...); }, kernels);
         };
         std::apply([&](const auto&... normal) { (add_normal(normal), ...); }, kernels);
+        s_builders_initialized = true;
         return result;
     }();
     return builders;

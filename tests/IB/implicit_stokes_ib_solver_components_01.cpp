@@ -382,6 +382,18 @@ main(int argc, char* argv[])
         Pointer<Logger::Appender> appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(appender);
         PIO::logOnlyNodeZero("output");
+        if (input_file.find("registration.max_order.") != std::string::npos)
+        {
+            std::ifstream input(input_file);
+            int max_order;
+            bool initialize_registry;
+            input >> max_order >> initialize_registry;
+            if (initialize_registry)
+                IBOperatorRegistry::register_interpolation_matrix_sc(
+                    IBKernel("APPLICATION_KERNEL"), IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            IBOperatorRegistry::set_max_bspline_order(max_order);
+            return 0;
+        }
         if (input_file.find("duplicate") != std::string::npos)
         {
             std::ifstream input(input_file);
@@ -396,6 +408,9 @@ main(int argc, char* argv[])
     int failures = 0;
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
+        const int max_bspline_order = app->getInputDatabase()->getIntegerWithDefault("max_bspline_order", 6);
+        if (app->getInputDatabase()->keyExists("max_bspline_order"))
+            IBOperatorRegistry::set_max_bspline_order(max_bspline_order);
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
         if (!unsupported) failures += check_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
@@ -520,6 +535,45 @@ main(int argc, char* argv[])
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
             if (!equal) ++failures;
+
+            if (max_bspline_order < 4)
+            {
+                const IBKernelTensorProductEvaluator normal4{ IBKernelEvaluatorBSpline<4>{},
+                                                              IBKernelEvaluatorBSpline<2>{} };
+                const IBKernelTensorProductEvaluator tangent4{ IBKernelEvaluatorBSpline<2>{},
+                                                               IBKernelEvaluatorBSpline<4>{} };
+                // Successful registration proves neither orientation was added
+                // automatically. Explicit registrations remain usable above the limit.
+                if (step == 0)
+                {
+                    IBOperatorRegistry::register_interpolation_matrix_sc({ IBKernel::BSPLINE_4, IBKernel::BSPLINE_2 },
+                                                                         normal4);
+                    IBOperatorRegistry::register_interpolation_matrix_sc({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_4 },
+                                                                         tangent4);
+                }
+                PETScMatUtilities::constructPatchLevelSCInterpOp(direct, normal4, X, counts, dof, level);
+                placement = check_matrix(direct, X, dofs, 4, 2, true) && placement;
+                method->constructInterpOp(
+                    registered, { IBKernel::BSPLINE_4, IBKernel::BSPLINE_2 }, counts, dof, new_time);
+                ierr = MatEqual(direct, registered, &equal);
+                IBTK_CHKERRQ(ierr);
+                if (!equal) ++failures;
+                PETScMatUtilities::constructPatchLevelSCInterpOp(direct, tangent4, X, counts, dof, level);
+                placement = check_matrix(direct, X, dofs, 2, 4, true) && placement;
+                method->constructInterpOp(
+                    registered, { IBKernel::BSPLINE_2, IBKernel::BSPLINE_4 }, counts, dof, new_time);
+                ierr = MatEqual(direct, registered, &equal);
+                IBTK_CHKERRQ(ierr);
+                if (!equal) ++failures;
+            }
+
+            // The B-spline limit does not restrict the other supplied kernels.
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                direct, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB6{} }, X, counts, dof, level);
+            method->constructInterpOp(registered, IBKernel::IB_6, counts, dof, new_time);
+            ierr = MatEqual(direct, registered, &equal);
+            IBTK_CHKERRQ(ierr);
+            if (!equal) ++failures;
             ierr = MatDestroy(&direct);
             IBTK_CHKERRQ(ierr);
             ierr = MatDestroy(&builtin);
@@ -557,6 +611,7 @@ main(int argc, char* argv[])
             for (int cw : { 2, 3, 5 })
                 for (int tw : { 2, 3, 5 })
                 {
+                    if (cw > max_bspline_order || tw > max_bspline_order) continue;
                     Mat matrix = nullptr;
                     method->constructInterpOp(
                         matrix,
