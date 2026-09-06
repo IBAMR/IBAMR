@@ -1,4 +1,4 @@
 Program abort called with error message
 
-    PETScMatUtilities::register_sc_interp_kernel(): kernel (IB_4) is already registered
+    SCInterpOpRegistry::register_kernel(): kernel (IB_4) is already registered
 

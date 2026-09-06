@@ -60,6 +60,7 @@
 #include <array>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -784,17 +785,18 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 
 PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                                                   Vec X_vec,
-                                                  int face_normal_interp_stencil,
-                                                  int face_tangential_interp_stencil,
+                                                  const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
     : d_mat(mat), d_X(X_vec), d_level(patch_level), d_dof_index_idx(dof_index_idx)
 {
-    if (face_normal_interp_stencil <= 0 || face_tangential_interp_stencil <= 0)
-    {
-        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp(): stencil sizes must be positive\n");
-    }
+    for (const auto& widths : stencil_widths)
+        for (int width : widths)
+            if (width <= 0)
+            {
+                TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp(): stencil sizes must be positive\n");
+            }
 
     int ierr;
     if (mat)
@@ -901,11 +903,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         for (int axis = 0; axis < NDIM; ++axis)
         {
             // Determine the stencil box.
-            std::array<int, NDIM> interp_stencil = {};
-            for (int d = 0; d < NDIM; ++d)
-            {
-                interp_stencil[d] = (d == axis ? face_normal_interp_stencil : face_tangential_interp_stencil);
-            }
+            const auto& interp_stencil = stencil_widths[axis];
             Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
             hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
             hier::Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
@@ -984,58 +982,6 @@ PETScMatUtilities::SCInterpOpData::assemble()
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(d_mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-}
-
-std::map<IBKernelTensorProduct, PETScMatUtilities::SCInterpOpBuilder>&
-PETScMatUtilities::get_sc_interp_op_builders()
-{
-    static auto builders = []
-    {
-        std::map<IBKernelTensorProduct, SCInterpOpBuilder> result;
-        const auto kernels = std::make_tuple(std::make_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{}),
-                                             std::make_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{}),
-                                             std::make_pair(IBKernel::BSPLINE_3, IBKernelEvaluatorBSpline3{}),
-                                             std::make_pair(IBKernel::BSPLINE_4, IBKernelEvaluatorBSpline4{}),
-                                             std::make_pair(IBKernel::BSPLINE_5, IBKernelEvaluatorBSpline5{}),
-                                             std::make_pair(IBKernel::BSPLINE_6, IBKernelEvaluatorBSpline6{}),
-                                             std::make_pair(IBKernel::IB_3, IBKernelEvaluatorIB3{}),
-                                             std::make_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{}),
-                                             std::make_pair(IBKernel::IB_5, IBKernelEvaluatorIB5{}),
-                                             std::make_pair(IBKernel::IB_6, IBKernelEvaluatorIB6{}));
-        const auto add_normal = [&](const auto& normal)
-        {
-            std::apply(
-                [&](const auto&... tangential)
-                {
-                    (result.emplace(
-                         IBKernelTensorProduct{ normal.first, tangential.first },
-                         make_sc_interp_op_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second })),
-                     ...);
-                },
-                kernels);
-        };
-        std::apply([&](const auto&... normal) { (add_normal(normal), ...); }, kernels);
-        return result;
-    }();
-    return builders;
-}
-
-void
-PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
-                                                 const IBKernelTensorProduct& kernel,
-                                                 Vec& X_vec,
-                                                 const std::vector<int>& num_dofs_per_proc,
-                                                 int dof_index_idx,
-                                                 Pointer<PatchLevel<NDIM>> patch_level)
-{
-    const auto& builders = get_sc_interp_op_builders();
-    const auto builder = builders.find(kernel);
-    if (builder == builders.end())
-    {
-        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp(): no registered evaluator for kernel " << kernel
-                                                                                                             << "\n");
-    }
-    builder->second(mat, X_vec, num_dofs_per_proc, dof_index_idx, patch_level);
 }
 
 void

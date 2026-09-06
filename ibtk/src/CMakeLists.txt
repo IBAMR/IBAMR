@@ -118,6 +118,7 @@ SET(CXX_SRC
   math/PoissonUtilities.cpp
   math/SAMRAIGhostDataAccumulator.cpp
   math/PETScMatUtilities.cpp
+  math/SCInterpOpRegistry.cpp
   math/PatchMathOps.cpp
 
   # refine ops

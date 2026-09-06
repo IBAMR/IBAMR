@@ -34,7 +34,7 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
-#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/SCInterpOpRegistry.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -1043,7 +1043,7 @@ IBMethod::constructInterpOp(Mat& J,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    PETScMatUtilities::constructPatchLevelSCInterpOp(J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+    SCInterpOpRegistry::construct(J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
 }
 
 void
