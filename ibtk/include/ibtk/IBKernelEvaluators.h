@@ -17,6 +17,7 @@
 #include <ibtk/config.h>
 
 #include <array>
+#include <cstddef>
 
 namespace IBTK
 {
@@ -35,78 +36,19 @@ namespace IBTK
  */
 //\{
 /*!
- * \brief Evaluate the 1-point B-spline kernel.
+ * \brief Evaluate the N-point cardinal B-spline kernel of degree N - 1.
+ *
+ * N must be positive. The order is fixed at compile time, independently of
+ * which kernels are registered for named operations.
  */
-class IBKernelEvaluatorBSpline1
+template <std::size_t N>
+class IBKernelEvaluatorBSpline
 {
+    static_assert(N > 0, "B-spline order must be positive");
+
 public:
     //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 1>;
-
-    /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
-    Weights operator()(double r) const;
-};
-
-/*!
- * \brief Evaluate the 2-point B-spline kernel.
- */
-class IBKernelEvaluatorBSpline2
-{
-public:
-    //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 2>;
-
-    /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
-    Weights operator()(double r) const;
-};
-
-/*!
- * \brief Evaluate the 3-point B-spline kernel.
- */
-class IBKernelEvaluatorBSpline3
-{
-public:
-    //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 3>;
-
-    /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
-    Weights operator()(double r) const;
-};
-
-/*!
- * \brief Evaluate the 4-point B-spline kernel.
- */
-class IBKernelEvaluatorBSpline4
-{
-public:
-    //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 4>;
-
-    /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
-    Weights operator()(double r) const;
-};
-
-/*!
- * \brief Evaluate the 5-point B-spline kernel.
- */
-class IBKernelEvaluatorBSpline5
-{
-public:
-    //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 5>;
-
-    /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
-    Weights operator()(double r) const;
-};
-
-/*!
- * \brief Evaluate the 6-point B-spline kernel.
- */
-class IBKernelEvaluatorBSpline6
-{
-public:
-    //! Consecutive weights in the kernel stencil.
-    using Weights = std::array<double, 6>;
+    using Weights = std::array<double, N>;
 
     /*! \brief Return the stencil weights described in \ref IBKernelEvaluators. */
     Weights operator()(double r) const;

@@ -22,101 +22,19 @@
 
 namespace IBTK
 {
-inline IBKernelEvaluatorBSpline1::Weights
-IBKernelEvaluatorBSpline1::operator()(const double /*r*/) const
+template <std::size_t N>
+inline typename IBKernelEvaluatorBSpline<N>::Weights
+IBKernelEvaluatorBSpline<N>::operator()(const double r) const
 {
-    Weights w;
-    w[0] = 1.0;
-    return w;
-}
-
-inline IBKernelEvaluatorBSpline2::Weights
-IBKernelEvaluatorBSpline2::operator()(const double r) const
-{
-    Weights w;
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return w;
-}
-
-inline IBKernelEvaluatorBSpline3::Weights
-IBKernelEvaluatorBSpline3::operator()(const double r) const
-{
-    // Cardinal B-spline recurrence on one knot interval. Every entry has
-    // a fixed polynomial branch on this interval.
-    const double t = r - 0.5;
+    // On this knot interval, t is in [0, 1]. The recurrence combines
+    // nonnegative contributions without subtracting nearly equal weights.
+    const double t = r - 0.5 * (static_cast<double>(N) - 2.0);
     Weights w = {};
     w[0] = 1.0;
-    for (int degree = 1; degree < 3; ++degree)
+    for (std::size_t degree = 1; degree < N; ++degree)
     {
         double saved = 0.0;
-        for (int i = 0; i < degree; ++i)
-        {
-            const double term = w[i] / static_cast<double>(degree);
-            w[i] = saved + (static_cast<double>(i + 1) - t) * term;
-            saved = (t + static_cast<double>(degree - i - 1)) * term;
-        }
-        w[degree] = saved;
-    }
-    return w;
-}
-
-inline IBKernelEvaluatorBSpline4::Weights
-IBKernelEvaluatorBSpline4::operator()(const double r) const
-{
-    // Cardinal B-spline recurrence on one knot interval. Every entry has
-    // a fixed polynomial branch on this interval.
-    const double t = r - 1;
-    Weights w = {};
-    w[0] = 1.0;
-    for (int degree = 1; degree < 4; ++degree)
-    {
-        double saved = 0.0;
-        for (int i = 0; i < degree; ++i)
-        {
-            const double term = w[i] / static_cast<double>(degree);
-            w[i] = saved + (static_cast<double>(i + 1) - t) * term;
-            saved = (t + static_cast<double>(degree - i - 1)) * term;
-        }
-        w[degree] = saved;
-    }
-    return w;
-}
-
-inline IBKernelEvaluatorBSpline5::Weights
-IBKernelEvaluatorBSpline5::operator()(const double r) const
-{
-    // Cardinal B-spline recurrence on one knot interval. Every entry has
-    // a fixed polynomial branch on this interval.
-    const double t = r - 1.5;
-    Weights w = {};
-    w[0] = 1.0;
-    for (int degree = 1; degree < 5; ++degree)
-    {
-        double saved = 0.0;
-        for (int i = 0; i < degree; ++i)
-        {
-            const double term = w[i] / static_cast<double>(degree);
-            w[i] = saved + (static_cast<double>(i + 1) - t) * term;
-            saved = (t + static_cast<double>(degree - i - 1)) * term;
-        }
-        w[degree] = saved;
-    }
-    return w;
-}
-
-inline IBKernelEvaluatorBSpline6::Weights
-IBKernelEvaluatorBSpline6::operator()(const double r) const
-{
-    // Cardinal B-spline recurrence on one knot interval. Every entry has
-    // a fixed polynomial branch on this interval.
-    const double t = r - 2;
-    Weights w = {};
-    w[0] = 1.0;
-    for (int degree = 1; degree < 6; ++degree)
-    {
-        double saved = 0.0;
-        for (int i = 0; i < degree; ++i)
+        for (std::size_t i = 0; i < degree; ++i)
         {
             const double term = w[i] / static_cast<double>(degree);
             w[i] = saved + (static_cast<double>(i + 1) - t) * term;
