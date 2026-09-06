@@ -135,10 +135,15 @@ public:
         double data_time) = 0;
 
     /*!
-     * \brief Construct interpolation using a registered tensor-product kernel.
+     * \brief Construct a matrix mapping side-centered velocity to IB points at data_time.
      *
-     * A pair selects face-normal and face-tangential kernels, respectively.
-     * \see IBTK::SCInterpOpRegistry::register_kernel()
+     * A single kernel factor is isotropic; a pair selects face-normal and
+     * face-tangential kernels, respectively. The kernel must have an evaluator
+     * registered with IBTK::IBOperatorRegistry::register_interpolation_matrix_sc().
+     * An existing J is destroyed and replaced. The caller owns the new matrix.
+     *
+     * \see IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp() for degree-of-freedom
+     * numbering and physical-boundary limitations.
      */
     virtual void constructInterpOp(Mat& J,
                                    const IBTK::IBKernelTensorProduct& kernel,

@@ -311,10 +311,9 @@ public:
         double data_time) override;
 
     /*!
-     * \brief Construct interpolation using a registered tensor-product kernel.
+     * \copydoc IBImplicitStrategy::constructInterpOp()
      *
-     * A pair selects face-normal and face-tangential kernels, respectively.
-     * \see IBTK::SCInterpOpRegistry::register_kernel()
+     * Uses the coupling positions at data_time on the finest hierarchy level.
      */
     void constructInterpOp(Mat& J,
                            const IBTK::IBKernelTensorProduct& kernel,
