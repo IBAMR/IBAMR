@@ -316,6 +316,30 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
 
+    struct LevelResidualWorkspace
+    {
+        LevelResidualWorkspace() = default;
+        ~LevelResidualWorkspace();
+        LevelResidualWorkspace(const LevelResidualWorkspace&) = delete;
+        LevelResidualWorkspace& operator=(const LevelResidualWorkspace&) = delete;
+        LevelResidualWorkspace(LevelResidualWorkspace&& from) noexcept;
+        LevelResidualWorkspace& operator=(LevelResidualWorkspace&& from) noexcept;
+
+        void initialize(PetscInt local_size, bool allocate_rhs);
+        void deallocate();
+
+        Vec solution = nullptr;
+        Vec residual = nullptr;
+        Vec rhs = nullptr;
+    };
+
+    /*
+     * Full-level PETSc vectors reused at the SAMRAI/PETSc residual boundary.
+     * Their layout is hierarchy-dependent, so they are rebuilt with operator
+     * state and invalidated by the same deallocation/regrid path as the DOFs.
+     */
+    std::vector<LevelResidualWorkspace> d_residual_work_vecs;
+
     /*
      * The time stepping type.
      */
