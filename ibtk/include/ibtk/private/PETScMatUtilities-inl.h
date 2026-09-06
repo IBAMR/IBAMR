@@ -16,8 +16,6 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/IBKernelEvaluators.h>
-#include <ibtk/IBKernelTensorProductEvaluator.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
 
@@ -29,7 +27,6 @@
 #include <SideIndex.h>
 
 #include <array>
-#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -42,8 +39,7 @@ struct PETScMatUtilities::SCInterpOpData
     /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
     SCInterpOpData(Mat& mat,
                    Vec X,
-                   int normal_width,
-                   int tangential_width,
+                   const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
                    const std::vector<int>& num_dofs_per_proc,
                    int dof_index_idx,
                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -77,40 +73,22 @@ struct PETScMatUtilities::SCInterpOpData
 
 template <class Evaluator>
 inline void
-PETScMatUtilities::register_sc_interp_kernel(const IBKernelTensorProduct& kernel, Evaluator evaluator)
+PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
+                                                 const Evaluator& evaluator,
+                                                 Vec& X_vec,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level)
 {
-    auto& builders = get_sc_interp_op_builders();
-    if (builders.find(kernel) != builders.end())
-    {
-        TBOX_ERROR("PETScMatUtilities::register_sc_interp_kernel(): kernel " << kernel << " is already registered\n");
-    }
-    builders.emplace(kernel, make_sc_interp_op_builder(std::move(evaluator)));
-}
-
-template <class Evaluator>
-inline PETScMatUtilities::SCInterpOpBuilder
-PETScMatUtilities::make_sc_interp_op_builder(Evaluator evaluator)
-{
-    const auto owned_evaluator = std::make_shared<const Evaluator>(std::move(evaluator));
-    return [owned_evaluator](Mat& mat,
-                             Vec& X,
-                             const std::vector<int>& num_dofs,
-                             int dof_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level)
-    { construct_sc_interp_op(mat, *owned_evaluator, X, num_dofs, dof_idx, level); };
-}
-
-template <class Evaluator>
-inline void
-PETScMatUtilities::construct_sc_interp_op(Mat& mat,
-                                          const Evaluator& evaluator,
-                                          Vec& X_vec,
-                                          const std::vector<int>& num_dofs_per_proc,
-                                          int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level)
-{
-    constexpr auto widths = Evaluator::template get_stencil_widths<0, NDIM>();
-    SCInterpOpData data(mat, X_vec, widths[0], widths[1], num_dofs_per_proc, dof_index_idx, patch_level);
+    constexpr std::array<std::array<int, NDIM>, NDIM> widths = {
+        Evaluator::template get_stencil_widths<0, NDIM>(),
+        Evaluator::template get_stencil_widths<1, NDIM>()
+#if (NDIM == 3)
+            ,
+        Evaluator::template get_stencil_widths<2, NDIM>()
+#endif
+    };
+    SCInterpOpData data(mat, X_vec, widths, num_dofs_per_proc, dof_index_idx, patch_level);
     construct_sc_interp_op_axis<0>(data, evaluator);
     construct_sc_interp_op_axis<1>(data, evaluator);
 #if (NDIM == 3)
@@ -139,6 +117,13 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
         }
         const auto values = evaluator.template evaluate<Axis>(r);
         constexpr int nvalues = std::tuple_size<decltype(values)>::value;
+        constexpr int stencil_size = []
+        {
+            int size = 1;
+            for (int width : Evaluator::template get_stencil_widths<Axis, NDIM>()) size *= width;
+            return size;
+        }();
+        static_assert(nvalues == stencil_size, "Evaluator values must fill the stencil");
         std::array<int, nvalues> columns;
 
         tbox::Pointer<hier::Patch<NDIM>> patch = data.d_level->getPatch(data.d_patch_numbers[point]);
