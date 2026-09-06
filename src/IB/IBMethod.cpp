@@ -24,6 +24,7 @@
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBOperatorRegistry.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
@@ -34,7 +35,6 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
-#include <ibtk/SCInterpOpRegistry.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -1043,7 +1043,8 @@ IBMethod::constructInterpOp(Mat& J,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    SCInterpOpRegistry::construct(J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+    IBOperatorRegistry::construct_interpolation_matrix_sc(
+        J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
 }
 
 void

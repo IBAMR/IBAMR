@@ -13,7 +13,7 @@
 
 #include <ibtk/IBKernelEvaluators.h>
 #include <ibtk/IBKernelTensorProductEvaluator.h>
-#include <ibtk/SCInterpOpRegistry.h>
+#include <ibtk/IBOperatorRegistry.h>
 
 #include <tuple>
 #include <utility>
@@ -22,8 +22,8 @@
 
 namespace IBTK
 {
-std::map<IBKernelTensorProduct, SCInterpOpRegistry::Builder>&
-SCInterpOpRegistry::get_builders()
+std::map<IBKernelTensorProduct, IBOperatorRegistry::Builder>&
+IBOperatorRegistry::get_builders()
 {
     static auto builders = []
     {
@@ -56,18 +56,19 @@ SCInterpOpRegistry::get_builders()
 }
 
 void
-SCInterpOpRegistry::construct(Mat& mat,
-                              const IBKernelTensorProduct& kernel,
-                              Vec& X_vec,
-                              const std::vector<int>& num_dofs_per_proc,
-                              int dof_index_idx,
-                              Pointer<PatchLevel<NDIM>> patch_level)
+IBOperatorRegistry::construct_interpolation_matrix_sc(Mat& mat,
+                                                      const IBKernelTensorProduct& kernel,
+                                                      Vec& X_vec,
+                                                      const std::vector<int>& num_dofs_per_proc,
+                                                      int dof_index_idx,
+                                                      Pointer<PatchLevel<NDIM>> patch_level)
 {
     const auto& builders = get_builders();
     const auto builder = builders.find(kernel);
     if (builder == builders.end())
     {
-        TBOX_ERROR("SCInterpOpRegistry::construct(): no registered evaluator for kernel " << kernel << "\n");
+        TBOX_ERROR("IBOperatorRegistry::construct_interpolation_matrix_sc(): no registered evaluator for kernel "
+                   << kernel << "\n");
     }
     builder->second(mat, X_vec, num_dofs_per_proc, dof_index_idx, patch_level);
 }

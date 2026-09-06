@@ -129,20 +129,26 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
-     * \brief Construct a side-centered interpolation matrix with an evaluator.
+     * \brief Construct a matrix mapping side-centered velocity to IB points.
+     *
+     * X_vec contains consecutive NDIM coordinates for each IB point and
+     * determines the matrix row ordering. The side-centered data at
+     * dof_index_idx contain global column indices; num_dofs_per_proc gives
+     * the column counts on each rank. The physical domain must be a single
+     * box, and local index data must cover the stencils of local IB points.
      *
      * For each velocity component Axis, Evaluator::get_stencil_widths<Axis, NDIM>()
      * supplies a constexpr std::array<int, NDIM> of positive stencil widths.
-     * evaluator.evaluate<Axis>(r) returns a std::array<double, N> containing
-     * their product of weights, with coordinate zero varying fastest. Each
+     * evaluator.evaluate<Axis>(r) returns std::array<double, N>, where N is
+     * the product of the stencil widths. Coefficients are ordered with
+     * coordinate zero varying fastest. Each
      * r[d] is the point's grid-unit distance from the first stencil point.
      * IBKernelTensorProductEvaluator satisfies this interface.
      *
      * Odd widths use the nearest grid point, choosing the higher index at a
      * tie. Even widths bracket the point using the component's grid centering.
-     * The coefficient loop is instantiated in the caller's translation unit.
      * No kernel registration is required. The evaluator is borrowed for this call.
-     * An existing mat is destroyed and replaced.
+     * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
      * \warning Physical boundary conditions are not handled.
      */
@@ -196,7 +202,7 @@ protected:
 private:
     struct SCInterpOpData;
 
-    /*! \brief Assemble one velocity component with compile-time direction choices. */
+    /*! \brief Assemble matrix rows for one velocity component. */
     template <int Axis, class Evaluator>
     static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
 

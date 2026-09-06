@@ -1,5 +1,5 @@
 IBRedundantInitializer:  Deallocating initialization data.
 Program abort called with error message
 
-    SCInterpOpRegistry::construct(): no registered evaluator for kernel (IB_4_W8)
+    IBOperatorRegistry::construct_interpolation_matrix_sc(): no registered evaluator for kernel (IB_4_W8)
 
