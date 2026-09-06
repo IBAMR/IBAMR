@@ -29,13 +29,15 @@ namespace IBTK
  * and return std::array<double, N> with its natural stencil width. A single evaluator
  * applies in every direction; with two evaluators, the first applies along
  * the selected axis and the second in the remaining directions.
- * Evaluators are stored by value. Dim must be two or three, and Axis must
- * identify one of its coordinate directions. For side-centered data, Axis
- * is the face-normal direction.
+ * Evaluators are stored by value. Dim must be two or three, and Axis identifies
+ * x (0), y (1), or z (2), with Axis < Dim. For side-centered data, Axis is the
+ * face-normal direction.
  *
  * The input contains displacements from the lower stencil point in grid
- * units, following \ref IBKernelEvaluators. Output coefficients are ordered
- * with coordinate zero varying fastest. No grid-spacing factors are applied.
+ * units, following \ref IBKernelEvaluators. The caller must account for the
+ * grid-data centering when computing these displacements. Output coefficients
+ * are ordered with coordinate zero varying fastest. No grid-spacing factors
+ * are applied.
  *
  * For example:
  * \code
