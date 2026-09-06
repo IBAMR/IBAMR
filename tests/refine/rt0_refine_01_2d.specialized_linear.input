@@ -1,0 +1,6 @@
+test_specialized_linear_refine = TRUE
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
