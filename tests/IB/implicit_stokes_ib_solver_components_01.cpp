@@ -1973,11 +1973,13 @@ namespace
 PetscInt petsc_vec_creation_count = 0;
 PetscInt petsc_vec_destruction_count = 0;
 
+#if PETSC_VERSION_GE(3, 20, 0)
 PetscErrorCode
 ignore_petsc_log_event(PetscLogEvent, int, PetscObject, PetscObject, PetscObject, PetscObject)
 {
     return 0;
 }
+#endif
 
 PetscErrorCode
 count_petsc_vec_creation(PetscObject object)
@@ -2132,7 +2134,6 @@ set_divergence_free_probe_velocity(const int u_idx, Pointer<PatchHierarchy<NDIM>
 int
 run_foundation(Pointer<AppInitializer> app_initializer)
 {
-    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
     int test_failures = 0;
     {
         Pointer<Database> input_db = app_initializer->getInputDatabase();
