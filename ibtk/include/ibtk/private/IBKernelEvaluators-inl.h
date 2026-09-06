@@ -26,8 +26,17 @@ template <std::size_t N>
 inline typename IBKernelEvaluatorBSpline<N>::Weights
 IBKernelEvaluatorBSpline<N>::operator()(const double r) const
 {
-    // On this knot interval, t is in [0, 1]. The recurrence combines
-    // nonnegative contributions without subtracting nearly equal weights.
+    // Unit-spacing form of the B-spline basis recurrence; see C. de Boor,
+    // "On calculating with B-splines", J. Approx. Theory 6 (1972), 50-62,
+    // Section 2, Eq. (27), doi:10.1016/0021-9045(72)90080-9.
+    //
+    // With w_0^(0) = 1 and missing entries zero, the degree-d weights satisfy
+    // w_i^(d) = ((i+1-t)*w_i^(d-1) + (t+d-i)*w_(i-1)^(d-1))/d.
+    // Here t is in [0,1]; degree N-1 gives the N weights in stencil order.
+    // Each old weight is split into nonnegative contributions whose
+    // coefficients sum to one. This avoids cancellation between weights
+    // and preserves their sum in exact arithmetic. Floating-point sums are
+    // subject to roundoff. The calculation uses O(N^2) work and O(N) storage.
     const double t = r - 0.5 * (static_cast<double>(N) - 2.0);
     Weights w = {};
     w[0] = 1.0;
