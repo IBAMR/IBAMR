@@ -419,7 +419,7 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
  * filename-generation code.
  */
 inline std::string
-formatSAMRAIOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
+format_samrai_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
 {
     std::ostringstream oss;
     oss << data_dump_dirname << "/" << prefix << ".";
@@ -433,7 +433,7 @@ formatSAMRAIOutputFilename(const int iteration_num, const std::string& data_dump
  * filename-generation code.
  */
 inline std::string
-formatIterationOutputFilename(const int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
+format_iteration_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
 {
     std::ostringstream oss;
     oss << data_dump_dirname << "/" << prefix << ".";

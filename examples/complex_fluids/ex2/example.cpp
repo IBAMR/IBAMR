@@ -517,7 +517,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     {
         // Output files
         Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-        hier_db->create(formatSAMRAIOutputFilename(iteration_num, data_dump_dirname, "hier_data"));
+        hier_db->create(format_samrai_output_filename(iteration_num, data_dump_dirname, "hier_data"));
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         ComponentSelector hier_data;
         if (polymericStressForcing)
