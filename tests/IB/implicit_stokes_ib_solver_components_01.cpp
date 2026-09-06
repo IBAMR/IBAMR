@@ -18,6 +18,8 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBKernelEvaluators.h>
+#include <ibtk/IBKernelTensorProductEvaluator.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
@@ -41,14 +43,17 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <fstream>
 #include <map>
+#include <memory>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
 namespace
 {
-using Kernel = void (*)(double, double*);
 constexpr double epsilon = 1.0 / 1024.0;
 // Grid coordinates just below, at, and above cell- and side-centering ties.
 const std::array<double, 6> probe = { 4.0 - epsilon, 4.0, 4.0 + epsilon, 4.5 - epsilon, 4.5, 4.5 + epsilon };
@@ -60,171 +65,183 @@ const std::array<int, 6> cell_even_lower = { 3, 3, 3, 3, 3, 4 };
 
 // Deliberately asymmetric, distance-dependent weights expose reversal and
 // incorrect lower-stencil coordinates as well as misplaced columns.
-void
-three_point_probe(double r, double* w)
+// Application-defined, move-only evaluator state must survive registration.
+struct ProbeEvaluator
 {
-    w[0] = 0.125 + r / 32.0;
-    w[1] = 0.375 - r / 32.0;
-    w[2] = 0.5;
+    std::unique_ptr<double> slope = std::make_unique<double>(1.0 / 32.0);
+
+    std::array<double, 3> operator()(double r) const
+    {
+        return { 0.125 + r * *slope, 0.375 - r * *slope, 0.5 };
+    }
+};
+
+template <class Evaluator, std::size_t N>
+double
+sample_error(const Evaluator& evaluator, double r, const std::array<double, N>& expected)
+{
+    const auto weights = evaluator(r);
+    static_assert(std::tuple_size<decltype(weights)>::value == N, "Natural stencil size changed");
+    double error = 0.0;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        if (!std::isfinite(weights[i])) TBOX_ERROR("Nonfinite kernel weight\n");
+        error = std::max(error, std::abs(weights[i] - expected[i]));
+    }
+    return error;
+}
+
+template <class Evaluator>
+double
+moment_error(const Evaluator& evaluator)
+{
+    constexpr int width = std::tuple_size<decltype(evaluator(0.0))>::value;
+    double error = 0.0;
+    for (int k = 0; k < 64; ++k)
+    {
+        const double r = 0.5 * width - 1.0 + k / 64.0;
+        const auto w = evaluator(r);
+        double sum = 0.0, moment = 0.0;
+        for (int i = 0; i < width; ++i)
+        {
+            sum += w[i];
+            moment += i * w[i];
+        }
+        if (!std::isfinite(sum) || !std::isfinite(moment)) TBOX_ERROR("Nonfinite kernel moment\n");
+        error = std::max({ error, std::abs(sum - 1.0), std::abs(moment - r) });
+    }
+    return error;
 }
 
 int
-check_enums_and_kernels()
+check_kernels()
 {
-    const std::array<DeltaFunctionType, 18> types = { PIECEWISE_CONSTANT,
-                                                      PIECEWISE_LINEAR,
-                                                      BSPLINE_3,
-                                                      BSPLINE_4,
-                                                      BSPLINE_5,
-                                                      BSPLINE_6,
-                                                      COMPOSITE_BSPLINE_23,
-                                                      COMPOSITE_BSPLINE_32,
-                                                      COMPOSITE_BSPLINE_34,
-                                                      COMPOSITE_BSPLINE_43,
-                                                      COMPOSITE_BSPLINE_45,
-                                                      COMPOSITE_BSPLINE_54,
-                                                      COMPOSITE_BSPLINE_56,
-                                                      COMPOSITE_BSPLINE_65,
-                                                      IB_3,
-                                                      IB_4,
-                                                      IB_5,
-                                                      IB_6 };
-    bool enums = true;
-    for (const auto type : types)
-        enums = enums && IBAMR::string_to_enum<DeltaFunctionType>(IBAMR::enum_to_string(type)) == type;
-    enums = enums && BSPLINE_1 == PIECEWISE_CONSTANT && BSPLINE_2 == PIECEWISE_LINEAR &&
-            IBAMR::string_to_enum<DeltaFunctionType>("bspline_1") == PIECEWISE_CONSTANT &&
-            IBAMR::string_to_enum<DeltaFunctionType>("bspline_2") == PIECEWISE_LINEAR &&
-            IBAMR::enum_to_string(BSPLINE_1) == "PIECEWISE_CONSTANT" &&
-            IBAMR::enum_to_string(BSPLINE_2) == "PIECEWISE_LINEAR" &&
-            IBAMR::string_to_enum<DeltaFunctionType>("invalid") == UNKNOWN_DELTA_FUNCTION_TYPE &&
-            IBAMR::enum_to_string(UNKNOWN_DELTA_FUNCTION_TYPE) == "UNKNOWN_DELTA_FUNCTION_TYPE";
-
-    struct Sample
-    {
-        Kernel kernel;
-        int width;
-        double r;
-        std::array<double, 6> expected;
-    };
     const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
     const double K6 = (59.0 - std::sqrt(261.0)) / 60.0;
-    // Independent samples of the one-dimensional kernel definitions. The IB_5
-    // values use lagrangian_ib_5_delta in lagrangian_delta.f.m4 evaluated at r-i;
-    // in particular, both support endpoints vanish when r=2.5.
-    const std::array<Sample, 10> samples = {
-        { { PETScMatUtilities::piecewise_constant_delta_fcn, 1, -0.25, { 1 } },
-          { PETScMatUtilities::piecewise_linear_delta_fcn, 2, 0.25, { 0.75, 0.25 } },
-          { PETScMatUtilities::bspline_3_delta_fcn, 4, 1.5, { 0, 0.5, 0.5, 0 } },
-          { PETScMatUtilities::bspline_4_delta_fcn, 4, 1.5, { 1.0 / 48, 23.0 / 48, 23.0 / 48, 1.0 / 48 } },
-          { PETScMatUtilities::bspline_5_delta_fcn, 6, 2.5, { 0, 1.0 / 24, 11.0 / 24, 11.0 / 24, 1.0 / 24, 0 } },
-          { PETScMatUtilities::bspline_6_delta_fcn,
-            6,
-            2.5,
-            { 1.0 / 3840, 237.0 / 3840, 1682.0 / 3840, 1682.0 / 3840, 237.0 / 3840, 1.0 / 3840 } },
-          { PETScMatUtilities::ib_3_delta_fcn, 4, 1.5, { 0, 0.5, 0.5, 0 } },
-          { PETScMatUtilities::ib_4_delta_fcn, 4, 1.5, { a, b, b, a } },
-          { PETScMatUtilities::ib_5_delta_fcn,
-            6,
-            2.5,
-            { 0, 0.0612224005711746881, 0.438777599428825312, 0.438777599428825312, 0.0612224005711746881, 0 } },
-          { PETScMatUtilities::ib_6_delta_fcn,
-            6,
-            3.0,
-            { 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 } } }
-    };
-    const std::array<int, 10> widths = { PETScMatUtilities::piecewise_constant_delta_stencil,
-                                         PETScMatUtilities::piecewise_linear_delta_stencil,
-                                         PETScMatUtilities::bspline_3_delta_stencil,
-                                         PETScMatUtilities::bspline_4_delta_stencil,
-                                         PETScMatUtilities::bspline_5_delta_stencil,
-                                         PETScMatUtilities::bspline_6_delta_stencil,
-                                         PETScMatUtilities::ib_3_delta_stencil,
-                                         PETScMatUtilities::ib_4_delta_stencil,
-                                         PETScMatUtilities::ib_5_delta_stencil,
-                                         PETScMatUtilities::ib_6_delta_stencil };
-    bool kernels = true;
-    for (unsigned int n = 0; n < samples.size(); ++n)
-    {
-        const auto& sample = samples[n];
-        std::array<double, 8> weights;
-        weights.fill(-123.0);
-        sample.kernel(sample.r, weights.data());
-        kernels = kernels && sample.width == widths[n];
-        for (int i = 0; i < sample.width; ++i)
-            kernels = kernels && std::isfinite(weights[i]) && std::abs(weights[i] - sample.expected[i]) < 1.0e-12;
-        for (unsigned int i = sample.width; i < weights.size(); ++i) kernels = kernels && weights[i] == -123.0;
-    }
-    // IB_5: pointwise Fortran definition, on both sides of the nearest-center
-    // change. IB_6: lagrangian_ib_6_interp2d's pm3,...,pp2 recurrence with
-    // ic_lower=0 and X/dx=r+0.5, hence its coordinate is 1-X/dx+2.5=3-r.
-    // These values were evaluated independently at high precision; reversing
-    // the off-center weight order must not pass as a symmetric-kernel check.
-    const std::array<Sample, 4> off_center_samples = { { { PETScMatUtilities::ib_5_delta_fcn,
-                                                           6,
-                                                           2.25,
-                                                           { 0.000539644595320609716,
-                                                             0.128737522475479593,
-                                                             0.514244366143986938,
-                                                             0.333140121904304905,
-                                                             0.0233383448809079538,
-                                                             0 } },
-                                                         { PETScMatUtilities::ib_5_delta_fcn,
-                                                           6,
-                                                           2.75,
-                                                           { 0,
-                                                             0.0233383448809079538,
-                                                             0.333140121904304905,
-                                                             0.514244366143986938,
-                                                             0.128737522475479593,
-                                                             0.000539644595320609716 } },
-                                                         { PETScMatUtilities::ib_6_delta_fcn,
-                                                           6,
-                                                           2.25,
-                                                           { 0.00965617417165844278,
-                                                             0.174648694040214713,
-                                                             0.431221688477088836,
-                                                             0.325168575099164853,
-                                                             0.0591221373512527211,
-                                                             0.000182730860620434541 } },
-                                                         { PETScMatUtilities::ib_6_delta_fcn,
-                                                           6,
-                                                           2.75,
-                                                           { 0.000182730860620434541,
-                                                             0.0591221373512527211,
-                                                             0.325168575099164853,
-                                                             0.431221688477088836,
-                                                             0.174648694040214713,
-                                                             0.00965617417165844278 } } } };
-    for (const auto& sample : off_center_samples)
-    {
-        std::array<double, 8> weights;
-        weights.fill(-123.0);
-        sample.kernel(sample.r, weights.data());
-        for (int i = 0; i < sample.width; ++i)
-            kernels = kernels && std::isfinite(weights[i]) && std::abs(weights[i] - sample.expected[i]) < 1.0e-12;
-        kernels = kernels && weights[6] == -123.0 && weights[7] == -123.0;
-    }
-    // Partition of unity and linear reproduction across the callback's full
-    // lower-stencil displacement interval, including the IB_5 center switch.
-    for (Kernel kernel : { PETScMatUtilities::ib_5_delta_fcn, PETScMatUtilities::ib_6_delta_fcn })
-        for (int k = 0; k <= 64; ++k)
-        {
-            const double r = 2.0 + k / 64.0;
-            std::array<double, 6> weights;
-            kernel(r, weights.data());
-            double sum = 0.0, first_moment = 0.0;
-            for (unsigned int i = 0; i < weights.size(); ++i)
+    double error = std::max(
+        { sample_error(IBKernelEvaluatorBSpline1{}, -0.25, std::array<double, 1>{ 1.0 }),
+          sample_error(IBKernelEvaluatorBSpline2{}, 0.25, std::array<double, 2>{ 0.75, 0.25 }),
+          sample_error(IBKernelEvaluatorBSpline3{}, 1.0, std::array<double, 3>{ 0.125, 0.75, 0.125 }),
+          sample_error(
+              IBKernelEvaluatorBSpline4{}, 1.5, std::array<double, 4>{ 1.0 / 48, 23.0 / 48, 23.0 / 48, 1.0 / 48 }),
+          sample_error(
+              IBKernelEvaluatorBSpline5{}, 1.5, std::array<double, 5>{ 1.0 / 24, 11.0 / 24, 11.0 / 24, 1.0 / 24, 0 }),
+          sample_error(IBKernelEvaluatorBSpline6{},
+                       2.5,
+                       std::array<double, 6>{
+                           1.0 / 3840, 237.0 / 3840, 1682.0 / 3840, 1682.0 / 3840, 237.0 / 3840, 1.0 / 3840 }),
+          sample_error(IBKernelEvaluatorIB3{}, 1.0, std::array<double, 3>{ 1.0 / 6, 2.0 / 3, 1.0 / 6 }),
+          sample_error(IBKernelEvaluatorIB4{}, 1.5, std::array<double, 4>{ a, b, b, a }),
+          sample_error(
+              IBKernelEvaluatorIB5{},
+              1.5,
+              std::array<double, 5>{
+                  0.0612224005711746881, 0.438777599428825312, 0.438777599428825312, 0.0612224005711746881, 0 }),
+          sample_error(
+              IBKernelEvaluatorIB6{},
+              3.0,
+              std::array<double, 6>{ 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 }) });
+    // Independently evaluated Fortran definitions, with natural odd-width
+    // coordinates on either side of the nearest-center change.
+    error = std::max({ error,
+                       sample_error(IBKernelEvaluatorIB5{},
+                                    2.25,
+                                    std::array<double, 5>{ 0.000539644595320609716,
+                                                           0.128737522475479593,
+                                                           0.514244366143986938,
+                                                           0.333140121904304905,
+                                                           0.0233383448809079538 }),
+                       sample_error(IBKernelEvaluatorIB5{},
+                                    1.75,
+                                    std::array<double, 5>{ 0.0233383448809079538,
+                                                           0.333140121904304905,
+                                                           0.514244366143986938,
+                                                           0.128737522475479593,
+                                                           0.000539644595320609716 }),
+                       sample_error(IBKernelEvaluatorIB6{},
+                                    2.25,
+                                    std::array<double, 6>{ 0.00965617417165844278,
+                                                           0.174648694040214713,
+                                                           0.431221688477088836,
+                                                           0.325168575099164853,
+                                                           0.0591221373512527211,
+                                                           0.000182730860620434541 }),
+                       sample_error(IBKernelEvaluatorIB6{},
+                                    2.75,
+                                    std::array<double, 6>{ 0.000182730860620434541,
+                                                           0.0591221373512527211,
+                                                           0.325168575099164853,
+                                                           0.431221688477088836,
+                                                           0.174648694040214713,
+                                                           0.00965617417165844278 }) });
+    const double moments = std::max({ moment_error(IBKernelEvaluatorBSpline2{}),
+                                      moment_error(IBKernelEvaluatorBSpline3{}),
+                                      moment_error(IBKernelEvaluatorBSpline4{}),
+                                      moment_error(IBKernelEvaluatorBSpline5{}),
+                                      moment_error(IBKernelEvaluatorBSpline6{}),
+                                      moment_error(IBKernelEvaluatorIB3{}),
+                                      moment_error(IBKernelEvaluatorIB4{}),
+                                      moment_error(IBKernelEvaluatorIB5{}),
+                                      moment_error(IBKernelEvaluatorIB6{}) });
+
+    // Exercise every component axis of a 3D tensor product in this 2D executable.
+    // These are evaluator checks, not a 3D hierarchy or matrix test.
+    const IBKernelTensorProductEvaluator product{ IBKernelEvaluatorIB4{}, IBKernelEvaluatorIB3{} };
+    const IBKernelTensorProductEvaluator isotropic3{ IBKernelEvaluatorBSpline3{} };
+    const IBKernelTensorProductEvaluator isotropic5{ IBKernelEvaluatorBSpline5{} };
+    const auto weights27 = isotropic3.evaluate<0>(std::array<double, 3>{ 1.0, 1.0, 1.0 });
+    const auto weights125 = isotropic5.evaluate<2>(std::array<double, 3>{ 1.5, 1.5, 1.5 });
+    static_assert(weights27.size() == 27 && weights125.size() == 125, "Natural 3D stencil sizes");
+    const auto w0 = product.evaluate<0>(std::array<double, 3>{ 1.5, 1.0, 1.0 });
+    const auto w1 = product.evaluate<1>(std::array<double, 3>{ 1.0, 1.5, 1.0 });
+    const auto w2 = product.evaluate<2>(std::array<double, 3>{ 1.0, 1.0, 1.5 });
+    const auto factors = product.evaluateFactors<1>(std::array<double, 3>{ 1.0, 1.5, 1.0 });
+    static_assert(std::tuple_size<std::remove_reference_t<decltype(std::get<0>(factors))>>::value == 3,
+                  "Natural factor width");
+    static_assert(w0.size() == 36 && w1.size() == 36 && w2.size() == 36, "No tensor-product padding");
+    const std::array<double, 4> normal = { a, b, b, a };
+    const std::array<double, 3> tangent = { 1.0 / 6, 2.0 / 3, 1.0 / 6 };
+    double tensor_error = 0.0;
+    tensor_error =
+        std::max(std::abs(weights27[13] - 0.75 * 0.75 * 0.75), std::abs(weights125[0] - 1.0 / (24.0 * 24.0 * 24.0)));
+    for (int i = 0; i < 3; ++i)
+        tensor_error = std::max({ tensor_error,
+                                  std::abs(std::get<0>(factors)[i] - tangent[i]),
+                                  std::abs(std::get<2>(factors)[i] - tangent[i]) });
+    for (int i = 0; i < 4; ++i) tensor_error = std::max(tensor_error, std::abs(std::get<1>(factors)[i] - normal[i]));
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            for (int k = 0; k < 3; ++k)
             {
-                sum += weights[i];
-                first_moment += i * weights[i];
+                const double expected = normal[i] * tangent[j] * tangent[k];
+                tensor_error = std::max({ tensor_error,
+                                          std::abs(w0[i + 4 * (j + 3 * k)] - expected),
+                                          std::abs(w1[j + 3 * (i + 4 * k)] - expected),
+                                          std::abs(w2[j + 3 * (k + 3 * i)] - expected) });
             }
-            kernels = kernels && std::isfinite(sum) && std::isfinite(first_moment) && std::abs(sum - 1.0) < 1.0e-12 &&
-                      std::abs(first_moment - r) < 1.0e-12;
-        }
-    pout << "enum_aliases_valid = " << (enums ? "true" : "false") << '\n';
-    pout << "kernel_values_valid = " << (kernels ? "true" : "false") << '\n';
-    return !enums + !kernels;
+    pout << "kernel_sample_max_error = " << error << '\n';
+    pout << "kernel_moment_max_error = " << moments << '\n';
+    pout << "tensor_product_3d_max_error = " << tensor_error << '\n';
+    return error > 1.0e-12 || moments > 1.0e-12 || tensor_error > 1.0e-12;
+}
+
+void
+register_probe_kernels()
+{
+    const IBKernel probe_kernel("PROBE");
+    const auto register_pair = [&](const IBKernel& other, auto evaluator)
+    {
+        using E = decltype(evaluator);
+        PETScMatUtilities::register_sc_interp_kernel({ probe_kernel, other },
+                                                     IBKernelTensorProductEvaluator{ ProbeEvaluator{}, E{} });
+        PETScMatUtilities::register_sc_interp_kernel({ other, probe_kernel },
+                                                     IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
+    };
+    register_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{});
+    register_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{});
+    register_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{});
+    PETScMatUtilities::register_sc_interp_kernel(probe_kernel,
+                                                 IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
 }
 
 void
@@ -242,8 +259,22 @@ generate_probes(const unsigned int& structure, const int& level, int& count, std
 }
 
 double
-expected_weight(int width, int offset, double distance)
+expected_weight(int width, int offset, double distance, bool bspline = false)
 {
+    if (bspline && width > 2)
+    {
+        // Independent truncated-power definition of the centered cardinal
+        // B-spline, rather than the production knot-interval recurrence.
+        double result = 0.0, binomial = 1.0, factorial = 1.0;
+        for (int i = 2; i < width; ++i) factorial *= i;
+        for (int k = 0; k <= width; ++k)
+        {
+            const double x = std::max(0.0, distance + 0.5 * width - k);
+            result += (k % 2 ? -1.0 : 1.0) * binomial * std::pow(x, width - 1) / factorial;
+            binomial *= static_cast<double>(width - k) / (k + 1);
+        }
+        return result;
+    }
     if (width == 1) return 1.0;
     if (width == 2) return std::max(0.0, 1.0 - std::abs(distance));
     if (width == 3)
@@ -258,7 +289,12 @@ expected_weight(int width, int offset, double distance)
 }
 
 bool
-check_matrix(Mat matrix, Vec positions, Pointer<SideData<NDIM, int>> dofs, int component_width, int transverse_width)
+check_matrix(Mat matrix,
+             Vec positions,
+             Pointer<SideData<NDIM, int>> dofs,
+             int component_width,
+             int transverse_width,
+             bool bspline = false)
 {
     PetscErrorCode ierr;
     PetscInt begin, end;
@@ -297,7 +333,7 @@ check_matrix(Mat matrix, Vec positions, Pointer<SideData<NDIM, int>> dofs, int c
                 const double y = probe[sample[1]] - (index(1) + (axis == 1 ? 0.0 : 0.5));
                 const int column = (*dofs)(side);
                 valid = valid && column >= 0;
-                expected[column] = expected_weight(width[0], i, x) * expected_weight(width[1], j, y);
+                expected[column] = expected_weight(width[0], i, x, bspline) * expected_weight(width[1], j, y, bspline);
             }
         PetscInt count;
         const PetscInt* columns;
@@ -326,11 +362,29 @@ main(int argc, char* argv[])
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     // Keep optional visualization warnings out of the compared test output.
     Logger::getInstance()->setWarning(false);
+    const std::string input_file = argc > 1 ? argv[1] : "";
+    if (input_file.find("registration.") != std::string::npos)
+    {
+        Pointer<Logger::Appender> appender = new TestAppender();
+        Logger::getInstance()->setAbortAppender(appender);
+        PIO::logOnlyNodeZero("output");
+        if (input_file.find("duplicate") != std::string::npos)
+        {
+            std::ifstream input(input_file);
+            std::string kernel_name;
+            input >> kernel_name;
+            PETScMatUtilities::register_sc_interp_kernel(IBKernel(kernel_name),
+                                                         IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            return 0;
+        }
+    }
     PetscErrorCode ierr;
     int failures = 0;
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
-        failures += check_enums_and_kernels();
+        const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
+        if (!unsupported) failures += check_kernels();
+        register_probe_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         method->setUseFixedLEOperators(true);
         Pointer<IBStandardForceGen> force = new IBStandardForceGen();
@@ -376,10 +430,22 @@ main(int argc, char* argv[])
         method->freeLInitStrategy();
         initializer.setNull();
 
-        const std::array<Kernel, 4> kernel = { PETScMatUtilities::piecewise_constant_delta_fcn,
-                                               PETScMatUtilities::piecewise_linear_delta_fcn,
-                                               three_point_probe,
-                                               PETScMatUtilities::ib_4_delta_fcn };
+        if (unsupported)
+        {
+            method->preprocessIntegrateData(0.0, 0.125, 1);
+            method->updateFixedLEOperators();
+            Mat matrix = nullptr;
+            method->constructInterpOp(
+                matrix, IBKernel(app->getInputDatabase()->getString("matrix_kernel")), counts, dof, 0.125);
+            ierr = MatDestroy(&matrix);
+            IBTK_CHKERRQ(ierr);
+            method->postprocessIntegrateData(0.0, 0.125, 1);
+            method->postprocessData();
+        }
+
+        const std::array<IBKernel, 4> kernel = {
+            IBKernel::BSPLINE_1, IBKernel::BSPLINE_2, IBKernel("PROBE"), IBKernel::IB_4
+        };
         bool placement = true, scalar_equivalence = true, lifecycle = true;
         // Repeat setup/use/cleanup on the same IBMethod to exercise scratch state
         // invalidation, with fixed-operator updates at both new and half times.
@@ -394,18 +460,17 @@ main(int argc, char* argv[])
                 {
                     Mat matrix = nullptr;
                     IBImplicitStrategy& strategy = *method;
-                    strategy.constructInterpOp(matrix, kernel[cw - 1], cw, kernel[tw - 1], tw, counts, dof, new_time);
+                    strategy.constructInterpOp(matrix, { kernel[cw - 1], kernel[tw - 1] }, counts, dof, new_time);
                     placement = check_matrix(matrix, X, dofs, cw, tw) && placement;
                     if (cw == tw)
                     {
                         Mat scalar = nullptr;
-                        strategy.constructInterpOp(scalar, kernel[cw - 1], cw, counts, dof, new_time);
+                        strategy.constructInterpOp(scalar, kernel[cw - 1], counts, dof, new_time);
                         PetscBool equal;
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
-                        PETScMatUtilities::constructPatchLevelSCInterpOp(
-                            scalar, kernel[cw - 1], cw, X, counts, dof, level);
+                        PETScMatUtilities::constructPatchLevelSCInterpOp(scalar, kernel[cw - 1], X, counts, dof, level);
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
@@ -415,8 +480,24 @@ main(int argc, char* argv[])
                     ierr = MatDestroy(&matrix);
                     IBTK_CHKERRQ(ierr);
                 }
+            // Natural named odd widths in both orientations, including mixed
+            // parity, checked against independent scalar B-spline values.
+            for (int cw : { 2, 3, 5 })
+                for (int tw : { 2, 3, 5 })
+                {
+                    Mat matrix = nullptr;
+                    method->constructInterpOp(
+                        matrix,
+                        { IBKernel("BSPLINE_" + std::to_string(cw)), IBKernel("BSPLINE_" + std::to_string(tw)) },
+                        counts,
+                        dof,
+                        new_time);
+                    placement = check_matrix(matrix, X, dofs, cw, tw, true) && placement;
+                    ierr = MatDestroy(&matrix);
+                    IBTK_CHKERRQ(ierr);
+                }
             Mat half = nullptr;
-            method->constructInterpOp(half, kernel[0], 1, counts, dof, current_time + 0.0625);
+            method->constructInterpOp(half, kernel[0], counts, dof, current_time + 0.0625);
             lifecycle = check_matrix(half, X, dofs, 1, 1) && lifecycle;
             ierr = MatDestroy(&half);
             IBTK_CHKERRQ(ierr);

@@ -22,6 +22,8 @@
 
 #include <ibamr/IBStrategy.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
+
 #include <petscmat.h>
 #include <petscvec.h>
 
@@ -133,25 +135,13 @@ public:
         double data_time) = 0;
 
     /*!
-     * Construct the IB interpolation operator.
+     * \brief Construct interpolation using a registered tensor-product kernel.
+     *
+     * A pair selects face-normal and face-tangential kernels, respectively.
+     * \see IBTK::PETScMatUtilities::register_sc_interp_kernel()
      */
     virtual void constructInterpOp(Mat& J,
-                                   void (*spread_fnc)(const double, double*),
-                                   int stencil_width,
-                                   const std::vector<int>& num_dofs_per_proc,
-                                   int dof_index_idx,
-                                   double data_time) = 0;
-
-    /*!
-     * Construct the IB interpolation operator with possibly distinct
-     * face-normal and face-tangential kernels. The single-kernel overload uses
-     * the same kernel and stencil width in both directions.
-     */
-    virtual void constructInterpOp(Mat& J,
-                                   void (*face_normal_spread_fnc)(const double, double*),
-                                   int face_normal_stencil_width,
-                                   void (*face_tangential_spread_fnc)(const double, double*),
-                                   int face_tangential_stencil_width,
+                                   const IBTK::IBKernelTensorProduct& kernel,
                                    const std::vector<int>& num_dofs_per_proc,
                                    int dof_index_idx,
                                    double data_time) = 0;

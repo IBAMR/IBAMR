@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
@@ -32,6 +33,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <map>
 #include <vector>
 
 namespace SAMRAI
@@ -129,94 +132,51 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator for the provided one-dimensional
-     * kernel function, using that kernel in every coordinate direction.
+     * \brief Construct a side-centered interpolation matrix with registered kernels.
      *
-     * Odd-width stencils are centered on the nearest grid point, choosing the
-     * higher index at a tie. Even-width stencils retain their cell-based placement.
-     * The callback receives the displacement from the lower stencil point to
-     * the IB point, divided by the grid spacing, and writes interp_stencil weights.
+     * A single factor applies in every direction. For a pair, the first factor
+     * applies in the face-normal direction and the second in the face-tangential
+     * directions. Stencil widths are supplied by the registered evaluators.
+     * Odd-width stencils use the nearest grid point, choosing the higher index
+     * at a tie. Each direction uses its own width and centering.
+     * Missing registrations are fatal errors.
      *
-     * \warning This routine does not properly handle physical boundary conditions.
+     * \warning Physical boundary conditions are not handled.
+     * \see register_sc_interp_kernel()
      */
     static void constructPatchLevelSCInterpOp(Mat& mat,
-                                              void (*interp_fcn)(double r_lower, double* w),
-                                              int interp_stencil,
-                                              Vec& X_vec,
-                                              const std::vector<int>& num_dofs_per_proc,
-                                              int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
-    /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator with possibly distinct
-     * one-dimensional kernels in the face-normal and face-tangential directions.
-     * For each side-centered component, the face-normal direction is its component
-     * axis and the remaining coordinate directions are face-tangential.
-     *
-     * Each direction uses its own stencil width and centering. The callback
-     * convention and odd-width tie rule are the same as in the single-kernel overload.
-     *
-     * \warning This routine does not properly handle physical boundary conditions.
-     */
-    static void constructPatchLevelSCInterpOp(Mat& mat,
-                                              void (*face_normal_interp_fcn)(double r_lower, double* w),
-                                              int face_normal_interp_stencil,
-                                              void (*face_tangential_interp_fcn)(double r_lower, double* w),
-                                              int face_tangential_interp_stencil,
+                                              const IBKernelTensorProduct& kernel,
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
-     * \name One-dimensional delta function kernels.
+     * \brief Register evaluators for an implicit interpolation kernel combination.
      *
-     * The first argument is the IB point's displacement from the lower stencil
-     * point in grid units. Entry i corresponds to displacement r - i. The caller
-     * provides storage for the associated delta_stencil number of weights.
+     * The evaluator is an IBKernelTensorProductEvaluator, which determines
+     * the natural stencil widths and coefficient order. It is moved into
+     * owned, immutable storage at registration.
+     * Registration of an existing combination is a fatal error.
+     *
+     * The matrix coefficient loop is instantiated with the concrete evaluator
+     * type in the calling translation unit. Runtime kernel selection occurs
+     * once per matrix construction, not within the coefficient loop.
+     *
+     * Register each complete combination needed by the application on every rank
+     * that uses it. Registration order does not affect kernel identities.
+     * Registration does not supply an implementation to other consumers.
+     *
+     * For example, with application evaluators MyNormal and MyTangential:
+     * \code
+     * const IBKernelTensorProduct kernel{ IBKernel("MY_NORMAL"), IBKernel("MY_TANGENTIAL") };
+     * PETScMatUtilities::register_sc_interp_kernel(
+     *     kernel, IBKernelTensorProductEvaluator{MyNormal{}, MyTangential{}});
+     * // Pass kernel to IBMethod::constructInterpOp().
+     * \endcode
      */
-    //\{
-    static void piecewise_constant_delta_fcn(double r, double* w);
-
-    static const int piecewise_constant_delta_stencil = 1;
-
-    static void piecewise_linear_delta_fcn(double r, double* w);
-
-    static const int piecewise_linear_delta_stencil = 2;
-
-    static void bspline_3_delta_fcn(double r, double* w);
-
-    static const int bspline_3_delta_stencil = 4;
-
-    static void bspline_4_delta_fcn(double r, double* w);
-
-    static const int bspline_4_delta_stencil = 4;
-
-    static void bspline_5_delta_fcn(double r, double* w);
-
-    static const int bspline_5_delta_stencil = 6;
-
-    static void bspline_6_delta_fcn(double r, double* w);
-
-    static const int bspline_6_delta_stencil = 6;
-
-    static void ib_3_delta_fcn(double r, double* w);
-
-    static const int ib_3_delta_stencil = 4;
-
-    static void ib_4_delta_fcn(double r, double* w);
-
-    static const int ib_4_delta_stencil = 4;
-
-    static void ib_5_delta_fcn(double r, double* w);
-
-    static const int ib_5_delta_stencil = 6;
-
-    static void ib_6_delta_fcn(double r, double* w);
-
-    static const int ib_6_delta_stencil = 6;
-    //\}
+    template <class Evaluator>
+    static void register_sc_interp_kernel(const IBKernelTensorProduct& kernel, Evaluator evaluator);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
@@ -258,6 +218,32 @@ public:
 
 protected:
 private:
+    struct SCInterpOpData;
+
+    /*! \brief Assemble one velocity component with compile-time direction choices. */
+    template <int Axis, class Evaluator>
+    static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
+
+    //! A compiled interpolation-matrix operation.
+    using SCInterpOpBuilder = std::function<
+        void(Mat&, Vec&, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
+
+    /*! \brief Return the registered interpolation builders, including built-in kernels. */
+    static std::map<IBKernelTensorProduct, SCInterpOpBuilder>& get_sc_interp_op_builders();
+
+    /*! \brief Own the evaluators and bind them to their compiled matrix builder. */
+    template <class Evaluator>
+    static SCInterpOpBuilder make_sc_interp_op_builder(Evaluator evaluator);
+
+    /*! \brief Assemble interpolation coefficients using concrete evaluator types. */
+    template <class Evaluator>
+    static void construct_sc_interp_op(Mat& mat,
+                                       const Evaluator& evaluator,
+                                       Vec& X_vec,
+                                       const std::vector<int>& num_dofs_per_proc,
+                                       int dof_index_idx,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
     /*!
      * \brief Default constructor.
      *

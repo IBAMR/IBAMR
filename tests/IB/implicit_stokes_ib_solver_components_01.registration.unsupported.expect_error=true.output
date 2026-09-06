@@ -1,0 +1,5 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    PETScMatUtilities::constructPatchLevelSCInterpOp(): no registered evaluator for kernel (IB_4_W8)
+
