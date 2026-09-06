@@ -20,7 +20,6 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
@@ -33,8 +32,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
-#include <map>
 #include <vector>
 
 namespace SAMRAI
@@ -132,51 +129,30 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
-     * \brief Construct a side-centered interpolation matrix with registered kernels.
+     * \brief Construct a side-centered interpolation matrix with an evaluator.
      *
-     * A single factor applies in every direction. For a pair, the first factor
-     * applies in the face-normal direction and the second in the face-tangential
-     * directions. Stencil widths are supplied by the registered evaluators.
-     * Odd-width stencils use the nearest grid point, choosing the higher index
-     * at a tie. Each direction uses its own width and centering.
-     * Missing registrations are fatal errors.
+     * For each velocity component Axis, Evaluator::get_stencil_widths<Axis, NDIM>()
+     * supplies a constexpr std::array<int, NDIM> of positive stencil widths.
+     * evaluator.evaluate<Axis>(r) returns a std::array<double, N> containing
+     * their product of weights, with coordinate zero varying fastest. Each
+     * r[d] is the point's grid-unit distance from the first stencil point.
+     * IBKernelTensorProductEvaluator satisfies this interface.
+     *
+     * Odd widths use the nearest grid point, choosing the higher index at a
+     * tie. Even widths bracket the point using the component's grid centering.
+     * The coefficient loop is instantiated in the caller's translation unit.
+     * No kernel registration is required. The evaluator is borrowed for this call.
+     * An existing mat is destroyed and replaced.
      *
      * \warning Physical boundary conditions are not handled.
-     * \see register_sc_interp_kernel()
      */
+    template <class Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
-                                              const IBKernelTensorProduct& kernel,
+                                              const Evaluator& evaluator,
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
-
-    /*!
-     * \brief Register evaluators for an implicit interpolation kernel combination.
-     *
-     * The evaluator is an IBKernelTensorProductEvaluator, which determines
-     * the natural stencil widths and coefficient order. It is moved into
-     * owned, immutable storage at registration.
-     * Registration of an existing combination is a fatal error.
-     *
-     * The matrix coefficient loop is instantiated with the concrete evaluator
-     * type in the calling translation unit. Runtime kernel selection occurs
-     * once per matrix construction, not within the coefficient loop.
-     *
-     * Register each complete combination needed by the application on every rank
-     * that uses it. Registration order does not affect kernel identities.
-     * Registration does not supply an implementation to other consumers.
-     *
-     * For example, with application evaluators MyNormal and MyTangential:
-     * \code
-     * const IBKernelTensorProduct kernel{ IBKernel("MY_NORMAL"), IBKernel("MY_TANGENTIAL") };
-     * PETScMatUtilities::register_sc_interp_kernel(
-     *     kernel, IBKernelTensorProductEvaluator{MyNormal{}, MyTangential{}});
-     * // Pass kernel to IBMethod::constructInterpOp().
-     * \endcode
-     */
-    template <class Evaluator>
-    static void register_sc_interp_kernel(const IBKernelTensorProduct& kernel, Evaluator evaluator);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
@@ -223,26 +199,6 @@ private:
     /*! \brief Assemble one velocity component with compile-time direction choices. */
     template <int Axis, class Evaluator>
     static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
-
-    //! A compiled interpolation-matrix operation.
-    using SCInterpOpBuilder = std::function<
-        void(Mat&, Vec&, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
-
-    /*! \brief Return the registered interpolation builders, including built-in kernels. */
-    static std::map<IBKernelTensorProduct, SCInterpOpBuilder>& get_sc_interp_op_builders();
-
-    /*! \brief Own the evaluators and bind them to their compiled matrix builder. */
-    template <class Evaluator>
-    static SCInterpOpBuilder make_sc_interp_op_builder(Evaluator evaluator);
-
-    /*! \brief Assemble interpolation coefficients using concrete evaluator types. */
-    template <class Evaluator>
-    static void construct_sc_interp_op(Mat& mat,
-                                       const Evaluator& evaluator,
-                                       Vec& X_vec,
-                                       const std::vector<int>& num_dofs_per_proc,
-                                       int dof_index_idx,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
      * \brief Default constructor.

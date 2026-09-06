@@ -27,6 +27,7 @@
 #include <ibtk/LDataManager.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/SCInterpOpRegistry.h>
 
 #include <tbox/Logger.h>
 
@@ -232,16 +233,16 @@ register_probe_kernels()
     const auto register_pair = [&](const IBKernel& other, auto evaluator)
     {
         using E = decltype(evaluator);
-        PETScMatUtilities::register_sc_interp_kernel({ probe_kernel, other },
-                                                     IBKernelTensorProductEvaluator{ ProbeEvaluator{}, E{} });
-        PETScMatUtilities::register_sc_interp_kernel({ other, probe_kernel },
-                                                     IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
+        SCInterpOpRegistry::register_kernel({ probe_kernel, other },
+                                            IBKernelTensorProductEvaluator{ ProbeEvaluator{}, E{} });
+        SCInterpOpRegistry::register_kernel({ other, probe_kernel },
+                                            IBKernelTensorProductEvaluator{ E{}, ProbeEvaluator{} });
     };
     register_pair(IBKernel::BSPLINE_1, IBKernelEvaluatorBSpline1{});
     register_pair(IBKernel::BSPLINE_2, IBKernelEvaluatorBSpline2{});
     register_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{});
-    PETScMatUtilities::register_sc_interp_kernel(probe_kernel,
-                                                 IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
+    SCInterpOpRegistry::register_kernel(probe_kernel,
+                                        IBKernelTensorProductEvaluator{ ProbeEvaluator{}, ProbeEvaluator{} });
 }
 
 void
@@ -373,8 +374,8 @@ main(int argc, char* argv[])
             std::ifstream input(input_file);
             std::string kernel_name;
             input >> kernel_name;
-            PETScMatUtilities::register_sc_interp_kernel(IBKernel(kernel_name),
-                                                         IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            SCInterpOpRegistry::register_kernel(IBKernel(kernel_name),
+                                                IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
             return 0;
         }
     }
@@ -384,7 +385,6 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
         if (!unsupported) failures += check_kernels();
-        register_probe_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         method->setUseFixedLEOperators(true);
         Pointer<IBStandardForceGen> force = new IBStandardForceGen();
@@ -455,6 +455,44 @@ main(int argc, char* argv[])
             method->preprocessIntegrateData(current_time, new_time, 1);
             method->updateFixedLEOperators();
             Vec X = method->getLDataManager()->getLData("X", 0)->getVec();
+            // Direct construction precedes registration and uses distinct functions
+            // with the same widths. Both paths must retain the actual weights.
+            Mat direct = nullptr, builtin = nullptr, registered = nullptr;
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                direct,
+                IBKernelTensorProductEvaluator{ ProbeEvaluator{}, IBKernelEvaluatorBSpline2{} },
+                X,
+                counts,
+                dof,
+                level);
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                builtin,
+                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline3{}, IBKernelEvaluatorBSpline2{} },
+                X,
+                counts,
+                dof,
+                level);
+            placement = check_matrix(direct, X, dofs, 3, 2) && placement;
+            placement = check_matrix(builtin, X, dofs, 3, 2, true) && placement;
+            PetscBool equal;
+            ierr = MatEqual(direct, builtin, &equal);
+            IBTK_CHKERRQ(ierr);
+            if (equal) ++failures;
+            if (step == 0) register_probe_kernels();
+            method->constructInterpOp(registered, { IBKernel("PROBE"), IBKernel::BSPLINE_2 }, counts, dof, new_time);
+            ierr = MatEqual(direct, registered, &equal);
+            IBTK_CHKERRQ(ierr);
+            if (!equal) ++failures;
+            method->constructInterpOp(registered, { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 }, counts, dof, new_time);
+            ierr = MatEqual(builtin, registered, &equal);
+            IBTK_CHKERRQ(ierr);
+            if (!equal) ++failures;
+            ierr = MatDestroy(&direct);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&builtin);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&registered);
+            IBTK_CHKERRQ(ierr);
             for (int cw = 1; cw <= 4; ++cw)
                 for (int tw = 1; tw <= 4; ++tw)
                 {
@@ -470,7 +508,7 @@ main(int argc, char* argv[])
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
-                        PETScMatUtilities::constructPatchLevelSCInterpOp(scalar, kernel[cw - 1], X, counts, dof, level);
+                        SCInterpOpRegistry::construct(scalar, kernel[cw - 1], X, counts, dof, level);
                         ierr = MatEqual(matrix, scalar, &equal);
                         IBTK_CHKERRQ(ierr);
                         scalar_equivalence = scalar_equivalence && equal;
