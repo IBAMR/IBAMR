@@ -143,7 +143,6 @@ check_kernels()
               3.0,
               std::array<double, 6>{ 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 }) });
     // Exact rational values from the truncated-power definition at r = 11/4.
-    // This order is not among the library's named registrations.
     error = std::max(error,
                      sample_error(IBKernelEvaluatorBSpline<7>{},
                                   2.75,
@@ -154,6 +153,18 @@ check_kernels()
                                                          422087.0 / 2949120,
                                                          15618.0 / 2949120,
                                                          1.0 / 2949120 }));
+    // Exact rational values from the truncated-power definition at r = 7/2.
+    error = std::max(error,
+                     sample_error(IBKernelEvaluatorBSpline<8>{},
+                                  3.5,
+                                  std::array<double, 8>{ 1.0 / 645120,
+                                                         2179.0 / 645120,
+                                                         60657.0 / 645120,
+                                                         259723.0 / 645120,
+                                                         259723.0 / 645120,
+                                                         60657.0 / 645120,
+                                                         2179.0 / 645120,
+                                                         1.0 / 645120 }));
     // Independently evaluated Fortran definitions, with natural odd-width
     // coordinates on either side of the nearest-center change.
     error = std::max({ error,
@@ -193,6 +204,7 @@ check_kernels()
                                       moment_error(IBKernelEvaluatorBSpline<5>{}),
                                       moment_error(IBKernelEvaluatorBSpline<6>{}),
                                       moment_error(IBKernelEvaluatorBSpline<7>{}),
+                                      moment_error(IBKernelEvaluatorBSpline<8>{}),
                                       moment_error(IBKernelEvaluatorIB3{}),
                                       moment_error(IBKernelEvaluatorIB4{}),
                                       moment_error(IBKernelEvaluatorIB5{}),
@@ -382,18 +394,6 @@ main(int argc, char* argv[])
         Pointer<Logger::Appender> appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(appender);
         PIO::logOnlyNodeZero("output");
-        if (input_file.find("registration.max_order.") != std::string::npos)
-        {
-            std::ifstream input(input_file);
-            int max_order;
-            bool initialize_registry;
-            input >> max_order >> initialize_registry;
-            if (initialize_registry)
-                IBOperatorRegistry::register_interpolation_matrix_sc(
-                    IBKernel("APPLICATION_KERNEL"), IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
-            IBOperatorRegistry::set_max_bspline_order(max_order);
-            return 0;
-        }
         if (input_file.find("duplicate") != std::string::npos)
         {
             std::ifstream input(input_file);
@@ -408,9 +408,7 @@ main(int argc, char* argv[])
     int failures = 0;
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
-        const int max_bspline_order = app->getInputDatabase()->getIntegerWithDefault("max_bspline_order", 6);
-        if (app->getInputDatabase()->keyExists("max_bspline_order"))
-            IBOperatorRegistry::set_max_bspline_order(max_bspline_order);
+        constexpr int max_bspline_order = IBTK_MAX_BSPLINE_ORDER;
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
         if (!unsupported) failures += check_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
@@ -511,13 +509,17 @@ main(int argc, char* argv[])
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
             if (!equal) ++failures;
-            method->constructInterpOp(registered, { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 }, counts, dof, new_time);
-            ierr = MatEqual(builtin, registered, &equal);
-            IBTK_CHKERRQ(ierr);
-            if (!equal) ++failures;
+            if (max_bspline_order >= 3)
+            {
+                method->constructInterpOp(
+                    registered, { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 }, counts, dof, new_time);
+                ierr = MatEqual(builtin, registered, &equal);
+                IBTK_CHKERRQ(ierr);
+                if (!equal) ++failures;
+            }
 
-            // An application can instantiate and register an additional order
-            // without changing the library's built-in registrations.
+            // Direct evaluation is independent of the configured registrations.
+            // Supply this combination when it is outside the automatic catalog.
             PETScMatUtilities::constructPatchLevelSCInterpOp(
                 direct,
                 IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<7>{}, IBKernelEvaluatorBSpline<2>{} },
@@ -526,7 +528,7 @@ main(int argc, char* argv[])
                 dof,
                 level);
             placement = check_matrix(direct, X, dofs, 7, 2, true) && placement;
-            if (step == 0)
+            if (step == 0 && max_bspline_order < 7)
                 IBOperatorRegistry::register_interpolation_matrix_sc(
                     { IBKernel("BSPLINE_7"), IBKernel::BSPLINE_2 },
                     IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<7>{}, IBKernelEvaluatorBSpline<2>{} });
@@ -535,37 +537,6 @@ main(int argc, char* argv[])
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
             if (!equal) ++failures;
-
-            if (max_bspline_order < 4)
-            {
-                const IBKernelTensorProductEvaluator normal4{ IBKernelEvaluatorBSpline<4>{},
-                                                              IBKernelEvaluatorBSpline<2>{} };
-                const IBKernelTensorProductEvaluator tangent4{ IBKernelEvaluatorBSpline<2>{},
-                                                               IBKernelEvaluatorBSpline<4>{} };
-                // Successful registration proves neither orientation was added
-                // automatically. Explicit registrations remain usable above the limit.
-                if (step == 0)
-                {
-                    IBOperatorRegistry::register_interpolation_matrix_sc({ IBKernel::BSPLINE_4, IBKernel::BSPLINE_2 },
-                                                                         normal4);
-                    IBOperatorRegistry::register_interpolation_matrix_sc({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_4 },
-                                                                         tangent4);
-                }
-                PETScMatUtilities::constructPatchLevelSCInterpOp(direct, normal4, X, counts, dof, level);
-                placement = check_matrix(direct, X, dofs, 4, 2, true) && placement;
-                method->constructInterpOp(
-                    registered, { IBKernel::BSPLINE_4, IBKernel::BSPLINE_2 }, counts, dof, new_time);
-                ierr = MatEqual(direct, registered, &equal);
-                IBTK_CHKERRQ(ierr);
-                if (!equal) ++failures;
-                PETScMatUtilities::constructPatchLevelSCInterpOp(direct, tangent4, X, counts, dof, level);
-                placement = check_matrix(direct, X, dofs, 2, 4, true) && placement;
-                method->constructInterpOp(
-                    registered, { IBKernel::BSPLINE_2, IBKernel::BSPLINE_4 }, counts, dof, new_time);
-                ierr = MatEqual(direct, registered, &equal);
-                IBTK_CHKERRQ(ierr);
-                if (!equal) ++failures;
-            }
 
             // The B-spline limit does not restrict the other supplied kernels.
             PETScMatUtilities::constructPatchLevelSCInterpOp(
@@ -583,6 +554,7 @@ main(int argc, char* argv[])
             for (int cw = 1; cw <= 4; ++cw)
                 for (int tw = 1; tw <= 4; ++tw)
                 {
+                    if (max_bspline_order < 2 && (cw == 2 || tw == 2)) continue;
                     Mat matrix = nullptr;
                     IBImplicitStrategy& strategy = *method;
                     strategy.constructInterpOp(matrix, { kernel[cw - 1], kernel[tw - 1] }, counts, dof, new_time);
@@ -606,6 +578,24 @@ main(int argc, char* argv[])
                     ierr = MatDestroy(&matrix);
                     IBTK_CHKERRQ(ierr);
                 }
+            // Keep the highest-order sample inside this fixed patch geometry.
+            const int highest_order = std::min(max_bspline_order, 8);
+            const int transverse_order = std::min(max_bspline_order, 2);
+            for (bool normal : { true, false })
+            {
+                const int cw = normal ? highest_order : transverse_order;
+                const int tw = normal ? transverse_order : highest_order;
+                Mat matrix = nullptr;
+                method->constructInterpOp(
+                    matrix,
+                    { IBKernel("BSPLINE_" + std::to_string(cw)), IBKernel("BSPLINE_" + std::to_string(tw)) },
+                    counts,
+                    dof,
+                    new_time);
+                placement = check_matrix(matrix, X, dofs, cw, tw, true) && placement;
+                ierr = MatDestroy(&matrix);
+                IBTK_CHKERRQ(ierr);
+            }
             // Natural named odd widths in both orientations, including mixed
             // parity, checked against independent scalar B-spline values.
             for (int cw : { 2, 3, 5 })
