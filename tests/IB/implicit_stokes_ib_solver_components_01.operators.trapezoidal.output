@@ -1,4 +1,7 @@
 IBRedundantInitializer:  Deallocating initialization data.
+outer_initialization_strategy_error = 0
+outer_initialization_action_change = 0.546883
+post_initialization_supplied_error = 0
 time_state_scaling_valid = true
 nonlinear_residual_valid = true
 nontrivial_coupling_valid = true

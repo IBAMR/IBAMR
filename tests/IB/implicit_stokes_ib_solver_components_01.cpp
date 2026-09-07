@@ -30,6 +30,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
@@ -1267,13 +1268,17 @@ run_operators(Pointer<AppInitializer> app)
             else
                 nontrivial = nontrivial && !close(action, first_action, 1.0e-7);
             jacobian.setIBCouplingJacobian(coupling);
+            // Release the creator's reference, then reinstall the borrowed handle.
+            // The operator must retain its own reference throughout replacement.
+            Mat coupling_alias = coupling;
+            ierr = MatDestroy(&coupling);
+            IBTK_CHKERRQ(ierr);
+            jacobian.setIBCouplingJacobian(coupling_alias);
             jacobian.apply(*direction, *expected);
             assembled_valid = close(action, expected, 1.0e-9) && assembled_valid;
             record_error(1, action, expected);
             Mat no_coupling = nullptr;
             jacobian.setIBCouplingJacobian(no_coupling);
-            ierr = MatDestroy(&coupling);
-            IBTK_CHKERRQ(ierr);
 
             const double h = 1.0e-5;
             plus->linearSum(1.0, base, h, direction);
@@ -1342,6 +1347,50 @@ run_operators(Pointer<AppInitializer> app)
                               lifecycle_valid;
         }
     }
+    // A zero supplied contribution distinguishes its action from the nonzero
+    // strategy Jacobian without inspecting which implementation is selected.
+    Mat zero_coupling = nullptr;
+    ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, 1.0, &zero_coupling);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatZeroEntries(zero_coupling);
+    IBTK_CHKERRQ(ierr);
+    jacobian.initializeOperatorState(*base, *residual);
+    jacobian.setIBCouplingJacobian(zero_coupling);
+    jacobian.apply(*direction, *first_action);
+    stokes->apply(*direction, *work);
+    assembled_valid = close(first_action, work, 1.0e-12) && assembled_valid;
+
+    PETScKrylovLinearSolver outer("initialization_sequence", nullptr, "initialization_sequence_");
+    outer.setOperator(Pointer<LinearOperator>(&jacobian, false));
+    outer.setTimeInterval(current, next);
+    outer.setSolutionTime(force_time);
+    outer.initializeSolverState(*base, *residual);
+    lifecycle_valid = !jacobian.getBaseVector() && lifecycle_valid;
+    jacobian.formJacobian(*base);
+    jacobian.apply(*direction, *action);
+    Mat no_coupling = nullptr;
+    jacobian.setIBCouplingJacobian(no_coupling);
+    jacobian.apply(*direction, *expected);
+    difference->subtract(action, expected);
+    const double strategy_error = difference->maxNorm();
+    difference->subtract(action, first_action);
+    const double selection_difference = difference->maxNorm();
+    assembled_valid = close(action, expected, 1.0e-12) && !close(action, first_action, 1.0e-5) && assembled_valid;
+
+    // Install the supplied matrix after the outer solver has initialized its
+    // operator. This must restore the zero-coupling (Stokes-only) action.
+    jacobian.setIBCouplingJacobian(zero_coupling);
+    jacobian.apply(*direction, *expected);
+    difference->subtract(expected, first_action);
+    const double supplied_error = difference->maxNorm();
+    assembled_valid = close(expected, first_action, 1.0e-12) && assembled_valid;
+    outer.deallocateSolverState();
+    lifecycle_valid = !jacobian.getIsInitialized() && !jacobian.getBaseVector() && lifecycle_valid;
+    ierr = MatDestroy(&zero_coupling);
+    IBTK_CHKERRQ(ierr);
+    pout << "outer_initialization_strategy_error = " << strategy_error << '\n'
+         << "outer_initialization_action_change = " << selection_difference << '\n'
+         << "post_initialization_supplied_error = " << supplied_error << '\n';
     boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
     if (!residual_valid || !derivative_valid || !assembled_valid)
         pout << "comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = " << errors[0] << ' '
