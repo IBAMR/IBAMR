@@ -53,13 +53,17 @@ public:
     PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix = "");
 
     /*!
-     * \brief Empty destructor.
+     * \brief Deallocate operator state and destroy the operator.
      */
     ~PETScMFFDJacobianOperator();
 
     /*!
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
+     *
+     * The caller configures and initializes F before formJacobian(), which
+     * evaluates it immediately in standalone use. This operator neither
+     * initializes F nor forwards its own time settings to F.
      */
     void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> F);
 
@@ -75,17 +79,28 @@ public:
     //\{
 
     /*!
-     * \brief Compute hierarchy dependent data required for evaluating F'[x].
+     * \brief Set the base state required for evaluating \f$F'[u]\f$.
      *
-     * \param x value where the Jacobian is to be evaluated
+     * In standalone use, requires initialized operator state, copies u, and
+     * caches F(u). F must already be ready to evaluate (see setOperator()).
+     * Form this pair again after changing F or its time-dependent/shared state.
+     * When associated with PETScNewtonKrylovSolver, uses that solver's current
+     * solution and function vectors instead of an independent base from u.
+     *
+     * \param u standalone value where the Jacobian is to be evaluated
      */
     void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      *
-     * \note This member function returns a nullptr pointer if the operator is not
-     * initialized, or if formJacobian() has not been called.
+     * In standalone use, the operator-owned vector is allocated at initialization,
+     * but its contents are meaningful only after formJacobian(). Later formation
+     * overwrites it; deallocation frees its components and resets the returned
+     * Pointer to nullptr. Retaining a Pointer does not preserve those components.
+     * Mutating the vector does not refresh the cached function value.
+     * With an associated PETScNewtonKrylovSolver, returns its current solution;
+     * the solver must have initialized its SNES state.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> getBaseVector() const override;
 
@@ -151,7 +166,9 @@ public:
      * \param in input vector
      * \param out output vector
      *
-     * \note The default implementation is empty.
+     * Allocates this operator's matrix and vector storage, but does not
+     * initialize F or form a base/function pair. See setOperator() and
+     * formJacobian().
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
@@ -166,7 +183,7 @@ public:
      *
      * \see initializeOperatorState
      *
-     * \note The default implementation is empty.
+     * Releases this operator's matrix and vector storage, not F's state.
      */
     void deallocateOperatorState() override;
 

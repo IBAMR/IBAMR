@@ -58,6 +58,7 @@ StaggeredStokesIBJacobianOperator::setOperatorContext(const StaggeredStokesIBOpe
 void
 StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat& SAJ_mat)
 {
+    if (d_SAJ_mat == SAJ_mat) return;
     if (d_SAJ_mat)
     {
         PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
