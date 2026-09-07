@@ -104,6 +104,11 @@ class CCPoissonPETScLevelSolver : public PETScLevelSolver, public PoissonSolver
 public:
     /*!
      * \brief Constructor.
+     *
+     * input_db may specify subdomain_box_size and subdomain_overlap_size as
+     * NDIM-entry integer arrays. Their entries give the nonoverlapping subdomain
+     * extent and the overlap width, respectively, in cells along each coordinate
+     * direction for Schwarz preconditioning.
      */
     CCPoissonPETScLevelSolver(const std::string& object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
