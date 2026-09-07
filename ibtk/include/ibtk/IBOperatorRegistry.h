@@ -41,28 +41,16 @@ namespace IBTK
 /*!
  * \brief Register and construct IB interpolation matrices.
  *
- * By default, supplied registrations include BSPLINE_1 through BSPLINE_6 and IB_3
- * through IB_6, and their ordered normal/tangential combinations.
+ * Supplied registrations include B-splines through the order selected by the
+ * IBTK_MAX_BSPLINE_ORDER CMake setting, IB_3 through IB_6, and their ordered
+ * normal/tangential combinations. Explicit application registrations are not
+ * restricted by this build setting.
  * Other kernels require an application-provided evaluator, even if their
  * names appear in the kernel catalog.
  */
 class IBOperatorRegistry
 {
 public:
-    /*!
-     * \brief Set the highest automatically registered B-spline order.
-     *
-     * The default is 6, and max_order must be between 1 and 6. Each B-spline
-     * factor of a supplied tensor product must satisfy this limit; supplied IB
-     * kernels and explicit application registrations are unaffected.
-     *
-     * Call this function on each participating MPI rank before the first
-     * registration or matrix construction through this registry. Calling it
-     * after the registry is initialized is a fatal error, even if the value
-     * is unchanged. Configuration and registration must be serialized.
-     */
-    static void set_max_bspline_order(int max_order);
-
     /*!
      * \brief Register a side-centered interpolation-matrix evaluator.
      *
@@ -94,11 +82,6 @@ public:
                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
 
 private:
-    //! Highest B-spline order included in automatic registrations.
-    static int s_max_bspline_order;
-    //! Whether the supplied registrations have been initialized.
-    static bool s_builders_initialized;
-
     //! Construct a matrix with a stored evaluator.
     using Builder = std::function<
         void(Mat&, Vec&, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
