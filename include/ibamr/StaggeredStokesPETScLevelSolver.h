@@ -73,6 +73,11 @@ class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public St
 public:
     /*!
      * \brief Constructor.
+     *
+     * input_db may specify subdomain_box_size and subdomain_overlap_size as
+     * NDIM-entry integer arrays. Their entries give the nonoverlapping subdomain
+     * extent and the overlap width, respectively, in cells along each coordinate
+     * direction for Schwarz preconditioning.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -95,12 +100,17 @@ public:
     } // allocate_solver
 
     /*!
-     * \brief Set a full-level PETSc operator matrix to use directly instead of
-     * rediscretizing the Stokes operator in initializeSolverStateSpecialized().
+     * \brief Set a full-level PETSc matrix instead of rediscretizing the Stokes operator.
      *
-     * The provided matrix must live in the full coupled Stokes DOF space
-     * (velocity+pressure). When no augmented operator is configured, the solver
-     * uses this matrix directly without copying its entries.
+     * The assembled matrix must use the full coupled velocity-pressure numbering
+     * and local row/column distribution defined by
+     * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices() for this
+     * level, on PETSC_COMM_WORLD. Its boundary treatment must match the solver's
+     * boundary configuration, and any configured nullspace must be a nullspace
+     * of the supplied system. Its PETSc type must support the operations required
+     * by the chosen solver/preconditioner and any configured augmentation.
+     * Without augmentation the solver uses the exact supplied matrix handle.
+     * Passing nullptr restores rediscretization without clearing an augmentation.
      *
      * The solver retains a PETSc reference, so the caller may release its own
      * reference after this call. The matrix must not be modified or reassembled
@@ -113,23 +123,23 @@ public:
     void setOperatorMat(Mat operator_mat);
 
     /*!
-     * \brief Set a matrix contribution to be added to the full level operator
-     * matrix assembled in initializeSolverStateSpecialized().
+     * \brief Set a matrix contribution to add to the supplied or rediscretized level operator.
      *
-     * The augmentation may be either:
-     * 1) a full coupled Stokes matrix contribution (velocity+pressure space),
-     * or
-     * 2) an A00 velocity-block contribution; this is embedded in the full
-     *    coupled matrix by velocity DOF mapping.
+     * The assembled contribution may use either the full coupled numbering and
+     * distribution in setOperatorMat(), or a compact velocity-only numbering.
+     * For the latter, each rank owns a contiguous range with one row per locally
+     * owned velocity DOF, ordered by increasing coupled global index within the
+     * velocity field from StaggeredStokesPETScMatUtilities::constructPatchLevelFields().
+     * Columns use the same global compact-to-coupled mapping. All contributions
+     * must use PETSC_COMM_WORLD. The compact velocity matrix must support PETSc
+     * row access, and the base matrix must support addition of the full-system
+     * or embedded velocity contribution.
      *
-     * The solver retains a PETSc reference without changing the contribution's
-     * entries. The caller may release its own reference after this call, but
-     * must not modify or reassemble the contribution through any alias while
-     * installed. The retained reference survives deallocateSolverState() and is
-     * released on replacement, clearing with nullptr, or solver destruction,
-     * even if the solver was never initialized. Set, replace, or clear it only
-     * while deallocated; setting the same handle again leaves its reference
-     * count unchanged.
+     * Addition preserves both installed matrices' entries. Configure boundary
+     * conditions and nullspaces consistently with the resulting system.
+     * Passing nullptr clears only the augmentation. The installed-reference,
+     * immutability, and deallocated-state requirements of setOperatorMat() apply
+     * independently to this handle.
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
