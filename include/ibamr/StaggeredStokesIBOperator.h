@@ -91,6 +91,32 @@ class StaggeredStokesIBOperator : public IBTK::GeneralOperator
 public:
     /*!
      * \brief Shared coupling state for the nonlinear and Jacobian operators.
+     *
+     * Operator vectors have side-centered velocity as component 0 and
+     * cell-centered pressure as component 1. Their allocated data, hierarchy,
+     * and level range must satisfy IBTK::GeneralOperator's vector requirements.
+     * The data operations and schedules below must refer to the same hierarchy.
+     *
+     * Configure stokes_op's coefficients and boundary objects before use. Both
+     * operators initialize and deallocate its state and set its times and
+     * boundary mode. Prepare ib_implicit_ops for the active hierarchy and time
+     * step. With IBMethod, enable fixed-operator storage before
+     * IBMethod::preprocessIntegrateData() when fixed coupling will be used.
+     * Trapezoidal stepping also requires the current Lagrangian velocity stored
+     * by the strategy; u_current_idx instead identifies current Eulerian velocity.
+     *
+     * Allocate side-centered velocity/force scratch data at u_idx/f_idx and
+     * current velocity at u_current_idx with the ghost widths required by the
+     * strategy. Supply the corresponding velocity synchronization/ghost-fill
+     * and force-prolongation schedules. The optional u_phys_bdry_op is borrowed
+     * and must remain valid during use; omit it only if the boundary setup needs
+     * no such strategy, e.g. a periodic domain.
+     *
+     * The supplied-matrix Jacobian action additionally requires patch_level and
+     * the coupled velocity/pressure DOF fields u_dof_index_idx/p_dof_index_idx;
+     * see StaggeredStokesIBJacobianOperator::setIBCouplingJacobian().
+     * Copying Context copies handles and indices, not the shared objects or
+     * patch data. Keep that shared state valid throughout operator use.
      */
     struct Context
     {
@@ -107,7 +133,9 @@ public:
         int u_current_idx = IBTK::invalid_index;
         int u_dof_index_idx = IBTK::invalid_index;
         int p_dof_index_idx = IBTK::invalid_index;
+        //! Nonlinear initialization uses this flag; Jacobian initialization always enables fixed coupling.
         bool use_fixed_le_operators = true;
+        //! Supported rules are BACKWARD_EULER, TRAPEZOIDAL_RULE, and MIDPOINT_RULE.
         TimeSteppingType time_stepping_type = MIDPOINT_RULE;
     };
 
@@ -123,11 +151,30 @@ public:
 
     /*!
      * \brief Set context data required by this operator.
+     *
+     * Copies ctx; later edits to the caller's Context do not update this copy.
+     * Deallocate before replacing dependencies or hierarchy-dependent data,
+     * then initialize with vectors matching the new Context.
+     * After preparing Context and the strategy's time-step data, the ordinary
+     * sequence is:
+     * \code
+     * op.setOperatorContext(ctx);
+     * op.setTimeInterval(current_time, new_time);
+     * op.setSolutionTime(force_time);
+     * op.initializeOperatorState(x, y);
+     * op.apply(x, y);
+     * op.deallocateOperatorState();
+     * \endcode
      */
     void setOperatorContext(const Context& ctx);
 
     /*!
      * \brief Compute \f$y = A[x]\f$.
+     *
+     * Requires initialized state and the prepared Context. Updates the shared
+     * IB strategy's velocity, positions, and force. The Stokes action uses
+     * homogeneous boundary conditions; velocity interpolation uses physical
+     * boundary data, independently of this wrapper's homogeneous-boundary flag.
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
@@ -141,6 +188,11 @@ public:
 
     /*!
      * \brief Initialize hierarchy-dependent operator state.
+     *
+     * Sets the strategy's fixed-coupling flag from Context::use_fixed_le_operators
+     * and initializes the shared Stokes operator. Existing state is deallocated
+     * first; preparation of the strategy's time-step data remains the caller's
+     * responsibility (see Context).
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
@@ -153,11 +205,13 @@ public:
     /*!
      * \brief Modify right-hand side values to account for inhomogeneous
      * boundary conditions.
+     * Uses this wrapper's boundary flag and times in the shared Stokes operator.
      */
     void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Impose solution boundary conditions.
+     * Uses this wrapper's boundary flag and times in the shared Stokes operator.
      */
     void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
