@@ -1,4 +1,0 @@
-Program abort called with error message
-
-    IBOperatorRegistry::set_max_bspline_order(): order must be between 1 and 6
-

@@ -1,8 +1,0 @@
-kernel_sample_max_error = 0
-kernel_moment_max_error = 0
-tensor_product_3d_max_error = 0
-IBRedundantInitializer:  Deallocating initialization data.
-stencil_columns_and_weights_valid = true
-isotropic_equivalence_valid = true
-standalone_lifecycle_valid = true
-test_failures = 0
