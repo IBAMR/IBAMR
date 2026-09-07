@@ -147,6 +147,14 @@ In particular, to use compilers specified by modules, you need to provide paths
 to them to CMake.
 
 ### Configuring the build
+- `IBTK_MAX_BSPLINE_ORDER` sets the highest B-spline order automatically registered
+  for IB interpolation matrices. It defaults to `8` and accepts positive decimal
+  integers without leading zeros. For example, configure with
+  `-DIBTK_MAX_BSPLINE_ORDER=12` and rebuild IBAMR to supply orders 1 through 12.
+  Explicit application registrations are independent of this setting. Larger
+  values increase compilation time and storage requirements: including the four
+  supplied IB kernels, a maximum of `M` generates `(M + 4)^2` ordered kernel pairs.
+  Compiler, matrix-index, and available-memory limits still apply.
 - If you want to build IBAMR with static libraries then pass the argument
   `-DBUILD_SHARED_LIBS=OFF` to the initial call to `cmake`. IBAMR defaults to
   building shared libraries.
