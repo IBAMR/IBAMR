@@ -1900,6 +1900,9 @@ level_test_matrix(PetscInt n, double shift)
     return matrix;
 }
 
+// Maximum errors across the matrix replacements and solver lifetimes in one case.
+double max_matrix_error = 0.0, max_level_solve_error = 0.0, max_mapping_error = 0.0;
+
 bool
 matrices_equal(Mat a, Mat b)
 {
@@ -1913,6 +1916,7 @@ matrices_equal(Mat a, Mat b)
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&diff);
     IBTK_CHKERRQ(ierr);
+    max_matrix_error = std::max(max_matrix_error, norm);
     return std::isfinite(norm) && norm < 1.0e-12;
 }
 
@@ -1954,6 +1958,7 @@ check_level_solve(PETScLevelSolver& solver)
         ierr = VecDestroy(v);
         IBTK_CHKERRQ(ierr);
     }
+    max_level_solve_error = std::max(max_level_solve_error, error);
     return reason > 0 && std::isfinite(error) && error < 1.0e-9;
 }
 
@@ -1998,6 +2003,7 @@ check_stokes_vector_mapping(StaggeredStokesPETScLevelSolver& solver, LevelFixtur
         ierr = VecDestroy(v);
         IBTK_CHKERRQ(ierr);
     }
+    max_mapping_error = std::max(max_mapping_error, error);
     return converged && std::isfinite(error) && error < 1.0e-9;
 }
 
@@ -2159,8 +2165,9 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
     pout << "matrix_identity_valid = " << (identity ? "true" : "false") << '\n'
          << "creator_lifetime_valid = " << (creator_valid ? "true" : "false") << '\n'
          << "retained_references_valid = " << (references_valid ? "true" : "false") << '\n'
-         << "matrix_values_valid = " << (values_valid ? "true" : "false") << '\n'
-         << "level_solve_valid = " << (solves ? "true" : "false") << '\n'
+         << "matrix_error = " << max_matrix_error << '\n'
+         << "level_solve_error = " << max_level_solve_error << '\n'
+         << "velocity_pressure_mapping_error = " << max_mapping_error << '\n'
          << "test_failures = " << failures << std::endl;
     return failures;
 }
@@ -2321,7 +2328,8 @@ run_level_state(Pointer<AppInitializer> app)
         solver.deallocateSolverState();
     }
     int failures = !cc_valid + !sc_valid + !stokes_valid + !domain_valid;
-    pout << "cc_state_valid = " << (cc_valid ? "true" : "false") << '\n'
+    pout << "shell_solve_error = " << max_level_solve_error << '\n'
+         << "cc_state_valid = " << (cc_valid ? "true" : "false") << '\n'
          << "sc_state_valid = " << (sc_valid ? "true" : "false") << '\n'
          << "stokes_state_valid = " << (stokes_valid ? "true" : "false") << '\n'
          << "domain_nullspace_valid = " << (domain_valid ? "true" : "false") << '\n'
