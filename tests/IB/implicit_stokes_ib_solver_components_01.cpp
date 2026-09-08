@@ -908,16 +908,16 @@ namespace
 {
 using HierarchyVector = SAMRAIVectorReal<NDIM, double>;
 
-class CountedIBOperator : public StaggeredStokesIBOperator
+class QuadraticOperator : public GeneralOperator
 {
 public:
-    CountedIBOperator() : StaggeredStokesIBOperator("nonlinear")
+    QuadraticOperator() : GeneralOperator("quadratic")
     {
     }
     void apply(HierarchyVector& x, HierarchyVector& y) override
     {
         ++evaluations;
-        StaggeredStokesIBOperator::apply(x, y);
+        y.multiply(Pointer<HierarchyVector>(&x, false), Pointer<HierarchyVector>(&x, false));
     }
     int evaluations = 0;
 };
@@ -1115,7 +1115,7 @@ run_operators(Pointer<AppInitializer> app)
     auto direction = clone("direction"), residual = clone("residual"), expected = clone("expected"),
          action = clone("action"), finite_difference = clone("finite_difference"), plus = clone("plus"),
          minus = clone("minus"), work = clone("work"), difference = clone("difference"),
-         first_action = clone("first_action");
+         first_action = clone("first_action"), mffd_base = clone("mffd_base"), mffd_direction = clone("mffd_direction");
     set_operator_velocity(direction->getComponentDescriptorIndex(0), level, 0.2, 0.8);
     cell_ops->setToScalar(direction->getComponentDescriptorIndex(1), -0.25);
 
@@ -1140,7 +1140,7 @@ run_operators(Pointer<AppInitializer> app)
         ctx.f_idx = f_scratch;
         ctx.u_current_idx = u_current;
         ctx.time_stepping_type = BACKWARD_EULER;
-        CountedIBOperator nonlinear;
+        StaggeredStokesIBOperator nonlinear("nonlinear");
         StaggeredStokesIBJacobianOperator jacobian("boundary_jacobian");
         nonlinear.setOperatorContext(ctx);
         jacobian.setOperatorContext(ctx);
@@ -1257,12 +1257,13 @@ run_operators(Pointer<AppInitializer> app)
     ctx.u_dof_index_idx = u_dof;
     ctx.p_dof_index_idx = p_dof;
     ctx.time_stepping_type = type;
-    CountedIBOperator nonlinear;
+    StaggeredStokesIBOperator nonlinear("nonlinear");
+    QuadraticOperator quadratic;
     StaggeredStokesIBJacobianOperator jacobian("jacobian");
     PETScMFFDJacobianOperator mffd("mffd");
     nonlinear.setOperatorContext(ctx);
     jacobian.setOperatorContext(ctx);
-    mffd.setOperator(Pointer<GeneralOperator>(&nonlinear, false));
+    mffd.setOperator(Pointer<GeneralOperator>(&quadratic, false));
     for (GeneralOperator* op : { static_cast<GeneralOperator*>(&nonlinear),
                                  static_cast<GeneralOperator*>(&jacobian),
                                  static_cast<GeneralOperator*>(&mffd) })
@@ -1283,7 +1284,8 @@ run_operators(Pointer<AppInitializer> app)
     };
     bool residual_valid = true, derivative_valid = true, assembled_valid = true, base_valid = true,
          lifecycle_valid = true, boundary_valid = true, nontrivial = true;
-    std::array<double, 5> errors = {};
+    std::array<double, 4> errors = {};
+    std::array<double, 2> quadratic_action_norms = {};
     auto record_error = [&](int slot, Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs)
     {
         difference->subtract(lhs, rhs);
@@ -1304,7 +1306,7 @@ run_operators(Pointer<AppInitializer> app)
         method->setUpdatedPosition(position);
         nonlinear.initializeOperatorState(*base, *residual);
         jacobian.initializeOperatorState(*base, *residual);
-        mffd.initializeOperatorState(*base, *residual);
+        mffd.initializeOperatorState(*mffd_base, *residual);
         method->constructInterpOp(J, IBKernel::IB_4, counts, u_dof, force_time);
         for (int state = 0; state < 2; ++state)
         {
@@ -1422,18 +1424,26 @@ run_operators(Pointer<AppInitializer> app)
             finite_difference->linearSum(0.5 / h, expected, -0.5 / h, work);
             derivative_valid = close(action, finite_difference, 1.0e-6) && derivative_valid;
             record_error(2, action, finite_difference);
-            const int evaluations_before_form = nonlinear.evaluations;
-            mffd.formJacobian(*base);
-            base_valid = base_valid && nonlinear.evaluations == evaluations_before_form + 1;
-            base_valid = close(mffd.getBaseVector(), base, 0.0) && base_valid;
-            mffd.apply(*direction, *expected);
-            derivative_valid = close(expected, finite_difference, 2.0e-5) && derivative_valid;
-            record_error(3, expected, finite_difference);
+            // F(u) = u^2 has J(u)v = 2uv componentwise. Dyadic inputs isolate
+            // MFFD storage and changed-base behavior from the Stokes-IB operator.
+            side_ops->setToScalar(mffd_base->getComponentDescriptorIndex(0), state == 0 ? 0.5 : 1.0);
+            cell_ops->setToScalar(mffd_base->getComponentDescriptorIndex(1), state == 0 ? -0.25 : -0.5);
+            side_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(0), 0.25);
+            cell_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(1), 0.5);
+            const int evaluations_before_form = quadratic.evaluations;
+            mffd.formJacobian(*mffd_base);
+            base_valid = base_valid && quadratic.evaluations == evaluations_before_form + 1;
+            base_valid = close(mffd.getBaseVector(), mffd_base, 0.0) && base_valid;
+            mffd.apply(*mffd_direction, *expected);
+            work->multiply(mffd_base, mffd_direction);
+            work->scale(2.0, work);
+            derivative_valid = close(expected, work, 1.0e-6) && derivative_valid;
+            quadratic_action_norms[state] = expected->maxNorm();
 
             nonlinear.applyAdd(*base, *direction, *expected);
             work->add(residual, direction);
             residual_valid = close(expected, work, 1.0e-11) && residual_valid;
-            record_error(4, expected, work);
+            record_error(3, expected, work);
             jacobian.applyAdd(*direction, *base, *expected);
             work->add(action, base);
             derivative_valid = close(expected, work, 1.0e-9) && derivative_valid;
@@ -1527,9 +1537,10 @@ run_operators(Pointer<AppInitializer> app)
          << "post_initialization_supplied_error = " << supplied_error << '\n';
     boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
     // Roundoff-sensitive output is compact; the checks above retain full precision.
-    pout << "comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = " << std::scientific
-         << std::setprecision(0) << errors[0] << ' ' << errors[1] << ' ' << errors[2] << ' ' << errors[3] << ' '
-         << errors[4] << std::defaultfloat << std::setprecision(6) << '\n';
+    pout << "comparison_errors (residual, assembled, centered_fd, apply_add) = " << std::scientific
+         << std::setprecision(0) << errors[0] << ' ' << errors[1] << ' ' << errors[2] << ' ' << errors[3]
+         << std::defaultfloat << std::setprecision(6) << '\n'
+         << "quadratic_mffd_action_norms = " << quadratic_action_norms[0] << ' ' << quadratic_action_norms[1] << '\n';
     int failures = !residual_valid + !derivative_valid + !assembled_valid;
     for (const auto& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
