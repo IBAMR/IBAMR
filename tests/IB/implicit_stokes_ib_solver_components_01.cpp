@@ -3002,6 +3002,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 IBTK_CHKERRQ(ierr);
             }
         }
+        constexpr double FAC_ACTION_TOL = 1.0e-9;
+        pout << "FAC checks use stated accuracy bounds; attained roundoff may vary.\n";
         auto check_fac_residual_work_vector_cache = [&](double& reuse_error)
         {
             Pointer<SAMRAIVectorReal<NDIM, double>> first_residual =
@@ -3144,11 +3146,20 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 check_ierr = VecDestroy(&actual);
                 IBTK_CHKERRQ(check_ierr);
             }
-            pout << "fac_operator_error = " << operator_error << ", residual_composition_error = " << composition_error
-                 << ", elastic_action_norm = " << elastic_action_norm << std::endl;
-            if (!std::isfinite(operator_error) || operator_error > 1.0e-9 || !std::isfinite(composition_error) ||
-                composition_error > 1.0e-9 || !std::isfinite(elastic_action_norm) || elastic_action_norm <= 1.0e-12)
+            const bool operator_valid = std::isfinite(operator_error) && operator_error <= FAC_ACTION_TOL;
+            const bool composition_valid = std::isfinite(composition_error) && composition_error <= FAC_ACTION_TOL;
+            pout << "fac_operator_valid = " << (operator_valid ? "true" : "false")
+                 << ", residual_composition_valid = " << (composition_valid ? "true" : "false")
+                 << ", absolute_inf_bound = " << FAC_ACTION_TOL << ", elastic_action_norm = " << elastic_action_norm
+                 << std::endl;
+            if (!operator_valid || !composition_valid || !std::isfinite(elastic_action_norm) ||
+                elastic_action_norm <= 1.0e-12)
+            {
+                pout << "FAC comparison failed: operator_error = " << std::setprecision(17) << operator_error
+                     << ", composition_error = " << composition_error
+                     << ", elastic_action_norm = " << elastic_action_norm << std::setprecision(6) << std::endl;
                 ++test_failures;
+            }
             const double residual_norm = first_residual->maxNorm();
             first_residual->subtract(first_residual, second_residual);
             reuse_error = std::abs(first_residual->maxNorm());
@@ -3240,9 +3251,18 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         jac_op->apply(*v, *diff);
         diff->subtract(diff, jv);
         const double initialized_action_error = diff->L2Norm();
-        pout << "initialized_jacobian_action_error = " << initialized_action_error << std::endl;
-        if (!std::isfinite(initialized_action_error) || initialized_action_error > 1.0e-9 * std::max(1.0, jv->L2Norm()))
+        constexpr double INITIALIZED_ACTION_TOL = 1.0e-9;
+        const double initialized_action_bound = INITIALIZED_ACTION_TOL * std::max(1.0, jv->L2Norm());
+        const bool initialized_action_valid =
+            std::isfinite(initialized_action_error) && initialized_action_error <= initialized_action_bound;
+        pout << "initialized_jacobian_action_valid = " << (initialized_action_valid ? "true" : "false")
+             << ", L2_bound = " << initialized_action_bound << std::endl;
+        if (!initialized_action_valid)
+        {
+            pout << "Initialized Jacobian action failed: error = " << std::setprecision(17) << initialized_action_error
+                 << ", bound = " << initialized_action_bound << std::setprecision(6) << std::endl;
             ++test_failures;
+        }
         PetscErrorCode linear_ierr = KSPSetPCSide(linear_solver->getPETScKSP(), PC_RIGHT);
         IBTK_CHKERRQ(linear_ierr);
         linear_ierr = KSPSetNormType(linear_solver->getPETScKSP(), KSP_NORM_UNPRECONDITIONED);
@@ -3271,16 +3291,24 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         IBTK_CHKERRQ(linear_ierr);
         linear_ierr = KSPGetType(linear_solver->getPETScKSP(), &ksp_type);
         IBTK_CHKERRQ(linear_ierr);
-        const bool krylov_linear_residual_valid =
-            std::string(ksp_type) == KSPFGMRES && side == PC_RIGHT && norm_type == KSP_NORM_UNPRECONDITIONED &&
-            reason > 0 && std::isfinite(linear_solver->getResidualNorm()) && linear_solver->getResidualNorm() >= 0.0 &&
-            std::isfinite(actual_residual) && actual_residual <= std::max(1.0e-12, 2.0 * residual_limit);
-        pout << "actual_residual = " << std::scientific << std::setprecision(0) << actual_residual
-             << ", reported_residual = " << linear_solver->getResidualNorm() << std::defaultfloat
-             << std::setprecision(6) << ", acceptance_bound = " << std::max(1.0e-12, 2.0 * residual_limit)
-             << ", pc_side = " << side << ", norm_type = " << norm_type << ", ksp_type = " << ksp_type
-             << ", reason = " << reason << std::endl;
-        if (!krylov_linear_residual_valid) ++test_failures;
+        const double residual_bound = std::max(1.0e-12, 2.0 * residual_limit);
+        const bool physical_residual_valid = std::isfinite(actual_residual) && actual_residual <= residual_bound;
+        const bool krylov_linear_residual_valid = std::string(ksp_type) == KSPFGMRES && side == PC_RIGHT &&
+                                                  norm_type == KSP_NORM_UNPRECONDITIONED && reason > 0 &&
+                                                  std::isfinite(linear_solver->getResidualNorm()) &&
+                                                  linear_solver->getResidualNorm() >= 0.0 && physical_residual_valid;
+        // The integration check requires a bounded physical residual, not a
+        // particular over-converged residual from the preconditioned solve.
+        pout << "physical_residual_valid = " << (physical_residual_valid ? "true" : "false")
+             << ", acceptance_bound = " << residual_bound << ", pc_side = " << side << ", norm_type = " << norm_type
+             << ", ksp_type = " << ksp_type << ", reason = " << reason << std::endl;
+        if (!krylov_linear_residual_valid)
+        {
+            pout << "Krylov residual check failed: actual_residual = " << std::setprecision(17) << actual_residual
+                 << ", reported_residual = " << linear_solver->getResidualNorm() << ", bound = " << residual_bound
+                 << std::setprecision(6) << std::endl;
+            ++test_failures;
+        }
 
         double linear_side_norm = std::numeric_limits<double>::quiet_NaN();
         double linear_cell_norm = std::numeric_limits<double>::quiet_NaN();
