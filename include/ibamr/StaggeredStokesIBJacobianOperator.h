@@ -51,7 +51,9 @@ namespace IBAMR
  * apply() adds the resulting force-derivative contribution to the Stokes
  * momentum action, leaving its pressure/divergence action unchanged. The
  * strategy path holds interpolation and spreading fixed: it does not
- * differentiate their dependence on moving coupling positions. A supplied
+ * differentiate their dependence on moving coupling positions. It uses only
+ * the position derivative of the force; velocity-dependent terms such as
+ * target-point damping are not differentiated. A supplied
  * coupling matrix may instead provide the already-scaled IB contribution.
  */
 class StaggeredStokesIBJacobianOperator : public IBTK::JacobianOperator

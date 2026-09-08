@@ -1,0 +1,3 @@
+Fixed: Include physical velocity boundary data in the backward-Euler Stokes-IB Jacobian base.
+<br>
+(Boyce Griffith, 2026/09/08)
