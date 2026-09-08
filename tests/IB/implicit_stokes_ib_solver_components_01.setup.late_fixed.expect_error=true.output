@@ -1,0 +1,5 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+IBMethod::updateFixedLEOperators(): fixed LE data is not initialized.
+Call setUseFixedLEOperators(true) before preprocessIntegrateData().

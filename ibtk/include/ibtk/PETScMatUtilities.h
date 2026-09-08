@@ -136,6 +136,7 @@ public:
      * dof_index_idx contain global column indices; num_dofs_per_proc gives
      * the column counts on each rank. The physical domain must be a single
      * box, and local index data must cover the stencils of local IB points.
+     * Insufficient DOF ghost storage is a fatal error.
      *
      * For each velocity component Axis, Evaluator::get_stencil_widths<Axis, NDIM>()
      * supplies a constexpr std::array<int, NDIM> of positive stencil widths.

@@ -286,6 +286,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
 {
     if (d_integrator_is_initialized) return;
 
+    // The configured minimum must also cover the independently selected Jacobian kernel.
     // Register u and p DOF variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
