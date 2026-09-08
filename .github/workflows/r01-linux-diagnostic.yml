@@ -1,0 +1,47 @@
+# Local template only. Publishing/running this workflow requires explicit approval.
+name: R01 one-off Linux numerical diagnosis
+on:
+  push:
+    branches: [codex/r01-linux-numerical-diagnostic-20260908]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: docker://wellsd2/ibamr@sha256:78ae125b6152a3f1108dd60c9620ad6561bc7c3d826f9f8ba019aca0104e8642
+    env:
+      CCACHE_DIR: /compilationcache
+      CCACHE_MAXSIZE: 250M
+    steps:
+      - name: Read approved diagnostic package
+        uses: actions/checkout@v6
+        with:
+          path: package
+          persist-credentials: false
+      - name: Read exact numerical source
+        uses: actions/checkout@v6
+        with:
+          ref: e70a6b6fdb4af99e1cf569daa5279f16e2c25cf3
+          path: source
+          persist-credentials: false
+      - name: Restore existing compiler cache without saving
+        uses: actions/cache/restore@v5
+        with:
+          path: /compilationcache
+          key: ibamr-arch-cmake-no-libmesh-master-cache-204
+      - name: Run original and sidecar-only focused diagnostics
+        shell: bash
+        run: bash package/diagnostic/runner.sh "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/results" "$GITHUB_WORKSPACE/package/diagnostic"
+      - name: Retain original failures and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: r01-linux-numerical-diagnostic
+          path: |
+            results/
+            package/diagnostic/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error

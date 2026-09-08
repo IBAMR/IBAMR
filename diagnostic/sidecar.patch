@@ -1,0 +1,285 @@
+--- a/tests/IB/implicit_stokes_ib_solver_components_01.cpp
++++ b/tests/IB/implicit_stokes_ib_solver_components_01.cpp
+@@ -37,6 +37,7 @@
+ #include <ibtk/IBTK_MPI.h>
+ #include <ibtk/LData.h>
+ #include <ibtk/LDataManager.h>
++#include <ibtk/NormOps.h>
+ #include <ibtk/PETScKrylovLinearSolver.h>
+ #include <ibtk/PETScMFFDJacobianOperator.h>
+ #include <ibtk/PETScMatUtilities.h>
+@@ -82,6 +83,7 @@
+ #include <limits>
+ #include <map>
+ #include <memory>
++#include <set>
+ #include <vector>
+ 
+ #include "../tests.h"
+@@ -715,17 +717,161 @@
+ namespace
+ {
+ using HierarchyVector = SAMRAIVectorReal<NDIM, double>;
++
++// Disposable diagnostic, restricted to the logged PETSc 3.23/3.24 configurations.
++#if !defined(PETSC_USE_LOG) || !PETSC_VERSION_GE(3, 20, 0)
++#error This diagnostic requires the approved logging-enabled PETSc configuration.
++#endif
++std::ofstream diagnostic_stream;
++std::set<PetscObject> diagnostic_matrices;
++const char* diagnostic_phase = nullptr;
++int diagnostic_cycle = -1, diagnostic_state = -1, diagnostic_evaluation = 0;
++
++PetscErrorCode
++diagnostic_ignore_event(PetscLogEvent, int, PetscObject, PetscObject, PetscObject, PetscObject)
++{
++    return 0;
++}
++PetscErrorCode
++diagnostic_object_create(PetscObject object)
++{
++    PetscClassId id;
++    const auto ierr = PetscObjectGetClassId(object, &id);
++    if (ierr) return ierr;
++    if (id == MAT_CLASSID) diagnostic_matrices.insert(object);
++    return 0;
++}
++PetscErrorCode
++diagnostic_object_destroy(PetscObject object)
++{
++    diagnostic_matrices.erase(object);
++    return 0;
++}
++struct DiagnosticObserver
++{
++    PetscLogHandler handler = nullptr;
++    DiagnosticObserver()
++    {
++        diagnostic_stream.open("numerical-sidecar.txt");
++        if (!diagnostic_stream) TBOX_ERROR("Cannot open numerical diagnostic sidecar\n");
++        diagnostic_stream << std::scientific << std::setprecision(17);
++        PetscErrorCode ierr = PetscLogHandlerCreateLegacy(PETSC_COMM_WORLD,
++                                                          diagnostic_ignore_event,
++                                                          diagnostic_ignore_event,
++                                                          diagnostic_object_create,
++                                                          diagnostic_object_destroy,
++                                                          &handler);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscLogHandlerStart(handler);
++        IBTK_CHKERRQ(ierr);
++    }
++    ~DiagnosticObserver()
++    {
++        PetscErrorCode ierr = PetscLogHandlerStop(handler);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscLogHandlerDestroy(&handler);
++        IBTK_CHKERRQ(ierr);
++        diagnostic_stream.close();
++    }
++};
+ 
++// Record interior operands, not ghosts, with stable geometry/component labels.
++// The four selected fixtures are serial; no MPI gather or numerical operation is added.
++void
++diagnostic_values(const char* label, HierarchyVector& x)
++{
++    diagnostic_stream << "vector " << label << " cycle=" << diagnostic_cycle << " state=" << diagnostic_state
++                      << " phase=" << (diagnostic_phase ? diagnostic_phase : "action")
++                      << " evaluation=" << diagnostic_evaluation << '\n';
++    const auto hierarchy = x.getPatchHierarchy();
++    for (int ln = x.getCoarsestLevelNumber(); ln <= x.getFinestLevelNumber(); ++ln)
++    {
++        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
++        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
++        {
++            Pointer<Patch<NDIM>> patch = level->getPatch(p());
++            for (int c = 0; c < x.getNumberOfComponents(); ++c)
++            {
++                const int idx = x.getComponentDescriptorIndex(c);
++                Pointer<SideData<NDIM, double>> side = patch->getPatchData(idx);
++                Pointer<CellData<NDIM, double>> cell = patch->getPatchData(idx);
++                if (side)
++                    for (int axis = 0; axis < NDIM; ++axis)
++                    {
++                        const Box<NDIM> box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
++                        for (Box<NDIM>::Iterator b(box); b; b++)
++                            diagnostic_stream << ln << ' ' << p() << ' ' << c << ' ' << axis << ' ' << b() << ' '
++                                              << (*side)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)) << '\n';
++                    }
++                else if (cell)
++                    for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
++                        diagnostic_stream << ln << ' ' << p() << ' ' << c << " -1 " << b() << ' ' << (*cell)(b())
++                                          << '\n';
++            }
++        }
++    }
++}
++
++void
++diagnostic_report_mffd(const char* prefix, HierarchyVector& base, HierarchyVector& direction)
++{
++    const double base_norm = NormOps::L2Norm(&base), direction_norm = NormOps::L2Norm(&direction);
++    diagnostic_stream << "mffd_norms prefix=" << prefix << " cycle=" << diagnostic_cycle
++                      << " state=" << diagnostic_state << " base=" << base_norm << " direction=" << direction_norm
++                      << " samrai_base=" << base.L2Norm() << " samrai_direction=" << direction.L2Norm()
++                      << " default_expected_h="
++                      << PETSC_SQRT_MACHINE_EPSILON * std::sqrt(1.0 + base_norm) / direction_norm << '\n';
++    int found = 0;
++    for (PetscObject object : diagnostic_matrices)
++    {
++        PetscBool match;
++        PetscErrorCode ierr = PetscObjectTypeCompare(object, MATMFFD, &match);
++        IBTK_CHKERRQ(ierr);
++        if (!match) continue;
++        const char* actual_prefix = nullptr;
++        ierr = PetscObjectGetOptionsPrefix(object, &actual_prefix);
++        IBTK_CHKERRQ(ierr);
++        if (std::string(actual_prefix ? actual_prefix : "") != prefix) continue;
++        ++found;
++        PetscScalar h;
++        ierr = MatMFFDGetH(reinterpret_cast<Mat>(object), &h);
++        IBTK_CHKERRQ(ierr);
++        diagnostic_stream << "live_mffd prefix=" << prefix << " h=" << h << '\n';
++        PetscViewer viewer = nullptr;
++        ierr = PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscViewerSetType(viewer, PETSCVIEWERASCII);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscViewerFileSetMode(viewer, FILE_MODE_APPEND);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscViewerFileSetName(viewer, "mffd-view.txt");
++        IBTK_CHKERRQ(ierr);
++        ierr = MatView(reinterpret_cast<Mat>(object), viewer);
++        IBTK_CHKERRQ(ierr);
++        ierr = PetscViewerDestroy(&viewer);
++        IBTK_CHKERRQ(ierr);
++    }
++    if (found != 1) TBOX_ERROR("Diagnostic did not observe exactly one matching live MFFD matrix\n");
++    diagnostic_values("direction", direction);
++}
++
+ class CountedIBOperator : public StaggeredStokesIBOperator
+ {
+ public:
+-    CountedIBOperator() : StaggeredStokesIBOperator("nonlinear")
++    CountedIBOperator(const std::string& name = "nonlinear", bool homogeneous = false)
++        : StaggeredStokesIBOperator(name, homogeneous)
+     {
+     }
+     void apply(HierarchyVector& x, HierarchyVector& y) override
+     {
+         ++evaluations;
++        if (diagnostic_phase)
++        {
++            ++diagnostic_evaluation;
++            diagnostic_values("input", x);
++        }
+         StaggeredStokesIBOperator::apply(x, y);
++        if (diagnostic_phase) diagnostic_values("function", y);
+     }
+     int evaluations = 0;
+ };
+@@ -1096,6 +1242,9 @@
+     {
+         difference->subtract(lhs, rhs);
+         errors[slot] = std::max(errors[slot], difference->maxNorm() / std::max(1.0, rhs->maxNorm()));
++        diagnostic_stream << "comparison slot=" << slot << " lhs=" << lhs->maxNorm() << " rhs=" << rhs->maxNorm()
++                          << " absolute_error=" << difference->maxNorm() << " maximum_normalized_error=" << errors[slot]
++                          << '\n';
+     };
+     // Reinitialize all operator storage, and change the base twice per lifetime.
+     for (int cycle = 0; cycle < 2; ++cycle)
+@@ -1231,10 +1380,20 @@
+             derivative_valid = close(action, finite_difference, 1.0e-6) && derivative_valid;
+             record_error(2, action, finite_difference);
+             const int evaluations_before_form = nonlinear.evaluations;
++            diagnostic_cycle = cycle;
++            diagnostic_state = state;
++            diagnostic_phase = "base_F";
+             mffd.formJacobian(*base);
++            diagnostic_phase = nullptr;
+             base_valid = base_valid && nonlinear.evaluations == evaluations_before_form + 1;
+             base_valid = close(mffd.getBaseVector(), base, 0.0) && base_valid;
++            diagnostic_phase = "perturbed_F";
+             mffd.apply(*direction, *expected);
++            diagnostic_phase = nullptr;
++            diagnostic_report_mffd("", *base, *direction);
++            diagnostic_values("mffd_action", *expected);
++            diagnostic_values("analytic_action", *action);
++            diagnostic_values("centered_fd_action", *finite_difference);
+             derivative_valid = close(expected, finite_difference, 2.0e-5) && derivative_valid;
+             record_error(3, expected, finite_difference);
+ 
+@@ -2376,7 +2535,7 @@
+         ctx.time_stepping_type = IBAMR::string_to_enum<TimeSteppingType>(
+             input_db->getStringWithDefault("IB_TIME_STEPPING", "MIDPOINT_RULE"));
+ 
+-        StaggeredStokesIBOperator nonlinear_op("stokes_ib_solver_components::nonlinear_op", false);
++        CountedIBOperator nonlinear_op("stokes_ib_solver_components::nonlinear_op", false);
+         nonlinear_op.setOperatorContext(ctx);
+         nonlinear_op.setTimeInterval(current_time, new_time);
+         nonlinear_op.setSolutionTime(new_time);
+@@ -2447,12 +2606,19 @@
+         mffd_jac_op->setTimeInterval(current_time, new_time);
+         mffd_jac_op->setSolutionTime(new_time);
+         mffd_jac_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
++        diagnostic_phase = "base_F";
+         mffd_jac_op->formJacobian(*eul_sol_vec);
++        diagnostic_phase = nullptr;
+ 
+         Pointer<SAMRAIVectorReal<NDIM, double>> fd_jv = eul_rhs_vec->cloneVector("fd_jv");
+         fd_jv->allocateVectorData();
+         fd_jv->setToScalar(0.0);
++        diagnostic_phase = "perturbed_F";
+         mffd_jac_op->apply(*v, *fd_jv);
++        diagnostic_phase = nullptr;
++        diagnostic_report_mffd("ib_jac_mffd_", *eul_sol_vec, *v);
++        diagnostic_values("mffd_action", *fd_jv);
++        diagnostic_values("analytic_action", *jv);
+ 
+         Pointer<SAMRAIVectorReal<NDIM, double>> diff = eul_rhs_vec->cloneVector("diff");
+         diff->allocateVectorData();
+@@ -2890,6 +3056,14 @@
+              << ", pc_side = " << side << ", norm_type = " << norm_type << ", ksp_type = " << ksp_type
+              << ", reason = " << reason << std::endl;
+         if (!krylov_linear_residual_valid) ++test_failures;
++        diagnostic_stream << "FAC actual_residual=" << actual_residual
++                          << " reported_residual=" << linear_solver->getResidualNorm() << " rhs_norm=" << jv->L2Norm()
++                          << " solution_norm=" << linear_sol->L2Norm() << " nominal_limit=" << residual_limit
++                          << " acceptance_bound=" << std::max(1.0e-12, 2.0 * residual_limit)
++                          << " relative_tolerance=" << linear_solver->getRelativeTolerance()
++                          << " absolute_tolerance=" << linear_solver->getAbsoluteTolerance() << " type=" << ksp_type
++                          << " side=" << side << " norm=" << norm_type << " reason=" << reason
++                          << " iterations=" << linear_solver->getNumIterations() << '\n';
+ 
+         double linear_side_norm = std::numeric_limits<double>::quiet_NaN();
+         double linear_cell_norm = std::numeric_limits<double>::quiet_NaN();
+@@ -2907,6 +3081,20 @@
+             pout << "krylov linear solve action is trivial" << std::endl;
+         }
+ 
++        // Existing residual scratch is no longer consumed by any assertion.
++        diff->subtract(linear_sol, v);
++        const int diagnostic_p_idx = diff->getComponentDescriptorIndex(1);
++        const double diagnostic_velocity_error =
++            hier_velocity_data_ops->L2Norm(diff->getComponentDescriptorIndex(0), wgt_sc_idx);
++        const double diagnostic_pressure_raw = hier_pressure_data_ops->L2Norm(diagnostic_p_idx, wgt_cc_idx);
++        const double diagnostic_mean = hier_pressure_data_ops->integral(diagnostic_p_idx, wgt_cc_idx) /
++                                       hier_pressure_data_ops->sumControlVolumes(diagnostic_p_idx, wgt_cc_idx);
++        hier_pressure_data_ops->addScalar(diagnostic_p_idx, diagnostic_p_idx, -diagnostic_mean);
++        diagnostic_stream << "solution_error velocity=" << diagnostic_velocity_error
++                          << " pressure_raw=" << diagnostic_pressure_raw << " pressure_mean=" << diagnostic_mean
++                          << " pressure_projected=" << hier_pressure_data_ops->L2Norm(diagnostic_p_idx, wgt_cc_idx)
++                          << '\n';
++        diagnostic_values("FAC_solution", *linear_sol);
+         linear_solver->deallocateSolverState();
+         fac_pc->deallocateSolverState();
+         for (int ln = 0; ln <= finest_ln; ++ln)
+@@ -2972,6 +3160,7 @@
+ main(int argc, char* argv[])
+ {
+     IBTKInit init(argc, argv, MPI_COMM_WORLD);
++    DiagnosticObserver diagnostic_observer;
+     // Keep optional visualization warnings out of the compared test output.
+     Logger::getInstance()->setWarning(false);
+     const std::string input_file = argc > 1 ? argv[1] : "";
