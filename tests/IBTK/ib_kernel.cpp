@@ -236,6 +236,40 @@ main(int argc, char* argv[])
             TBOX_ASSERT(IBKernel(spelling).getName() == std::string(expected.name));
         }
 
+    const char* higher_order_scalars[] = { "BSPLINE_7", "BSPLINE_8", "BSPLINE_12", "BSPLINE_16" };
+    for (const char* scalar_name : higher_order_scalars)
+        for (const auto& spelling : spellings(scalar_name))
+        {
+            const IBKernel kernel(spelling);
+            TBOX_ASSERT(kernel.getName() == scalar_name);
+            TBOX_ASSERT(IBKernel(spelling.c_str()) == kernel);
+            TBOX_ASSERT(IBKernelTensorProduct(spelling) == IBKernelTensorProduct({ kernel }));
+            TBOX_ASSERT(IBKernelTensorProduct(spelling.c_str()) == IBKernelTensorProduct({ kernel }));
+        }
+    const Composite higher_order_composites[] = { { "COMPOSITE_BSPLINE_78", "BSPLINE_7", "BSPLINE_8" },
+                                                  { "COMPOSITE_BSPLINE_87", "BSPLINE_8", "BSPLINE_7" },
+                                                  { "COMPOSITE_BSPLINE_29", "BSPLINE_2", "BSPLINE_9" },
+                                                  { "COMPOSITE_BSPLINE_88", "BSPLINE_8", "BSPLINE_8" },
+                                                  { "COMPOSITE_BSPLINE_7_8", "BSPLINE_7", "BSPLINE_8" },
+                                                  { "COMPOSITE_BSPLINE_8_7", "BSPLINE_8", "BSPLINE_7" },
+                                                  { "COMPOSITE_BSPLINE_2_9", "BSPLINE_2", "BSPLINE_9" },
+                                                  { "COMPOSITE_BSPLINE_8_8", "BSPLINE_8", "BSPLINE_8" },
+                                                  { "COMPOSITE_BSPLINE_12_11", "BSPLINE_12", "BSPLINE_11" },
+                                                  { "COMPOSITE_BSPLINE_11_12", "BSPLINE_11", "BSPLINE_12" },
+                                                  { "COMPOSITE_BSPLINE_10_11", "BSPLINE_10", "BSPLINE_11" } };
+    for (const auto& expected : higher_order_composites)
+        for (const auto& spelling : spellings(expected.name))
+        {
+            const auto product = IBKernelTensorProduct(spelling);
+            const IBKernel normal(expected.normal), tangential(expected.tangential);
+            TBOX_ASSERT(IBKernelTensorProduct::isValidName(spelling));
+            TBOX_ASSERT(product == IBKernelTensorProduct(spelling.c_str()));
+            TBOX_ASSERT(product == IBKernelTensorProduct({ normal, tangential }));
+            TBOX_ASSERT(product[0] == normal);
+            TBOX_ASSERT(product.size() == (normal == tangential ? 1 : 2));
+            if (!product.isIsotropic()) TBOX_ASSERT(product[1] == tangential);
+        }
+
     std::string name = "ApplicationKernel";
     const IBKernel custom(name);
     name = "changed";
@@ -244,6 +278,8 @@ main(int argc, char* argv[])
     TBOX_ASSERT(custom != IBKernel("USER_DEFINED"));
     TBOX_ASSERT(IBKernel("IB_4_custom").getName() == "IB_4_CUSTOM");
     TBOX_ASSERT(IBKernel("composite_bspline_custom").getName() == "COMPOSITE_BSPLINE_CUSTOM");
+    TBOX_ASSERT(IBKernelTensorProduct("composite_bspline_custom") ==
+                IBKernelTensorProduct({ IBKernel("COMPOSITE_BSPLINE_CUSTOM") }));
     TBOX_ASSERT(IBKernelTensorProduct(custom.getName()) == IBKernelTensorProduct({ custom }));
     IBKernel normal("ApplicationKernel"), tangential("AnotherKernel");
     const IBKernelTensorProduct product({ normal, tangential });
@@ -294,6 +330,10 @@ main(int argc, char* argv[])
     {
         std::ofstream out("output");
         TBOX_ASSERT(static_cast<bool>(out));
+        for (const char* scalar_name : higher_order_scalars)
+            out << scalar_name << " = " << IBKernelTensorProduct(scalar_name) << '\n';
+        for (const auto& composite : higher_order_composites)
+            out << composite.name << " = " << IBKernelTensorProduct(composite.name) << '\n';
     }
     return 0;
 }

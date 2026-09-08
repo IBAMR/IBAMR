@@ -17,10 +17,12 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <optional>
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 
 namespace
@@ -44,50 +46,63 @@ composite_bspline_orders(std::string_view name)
     if (equal_ignoring_case(name, "DISCONTINUOUS_LINEAR")) return std::array<unsigned int, 2>{ { 2, 1 } };
 
     constexpr std::string_view prefix = "COMPOSITE_BSPLINE_";
-    if (name.size() != prefix.size() + 2 || !equal_ignoring_case(name.substr(0, prefix.size()), prefix))
+    if (name.size() <= prefix.size() || !equal_ignoring_case(name.substr(0, prefix.size()), prefix))
         return std::nullopt;
-    const unsigned int first = name[prefix.size()] - '0';
-    const unsigned int second = name[prefix.size() + 1] - '0';
-    if (first < 1 || first > 6 || second < 1 || second > 6 || (first + 1 != second && second + 1 != first))
+
+    const std::string_view orders = name.substr(prefix.size());
+    if (orders.size() == 2 && orders[0] >= '1' && orders[0] <= '9' && orders[1] >= '1' && orders[1] <= '9')
+        return std::array<unsigned int, 2>{ { static_cast<unsigned int>(orders[0] - '0'),
+                                              static_cast<unsigned int>(orders[1] - '0') } };
+
+    const std::size_t separator = orders.find('_');
+    if (separator == std::string_view::npos) return std::nullopt;
+    unsigned int first = 0, second = 0;
+    const char* const begin = orders.data();
+    const char* const end = begin + orders.size();
+    const auto first_result = std::from_chars(begin, begin + separator, first);
+    const auto second_result = std::from_chars(begin + separator + 1, end, second);
+    if (first_result.ec != std::errc{} || first_result.ptr != begin + separator || second_result.ec != std::errc{} ||
+        second_result.ptr != end || first == 0 || second == 0)
         return std::nullopt;
     return std::array<unsigned int, 2>{ { first, second } };
 }
 
-const IBTK::IBKernel& bspline_kernel(unsigned int order);
+IBTK::IBKernel bspline_kernel(unsigned int order);
 
-const IBTK::IBKernel*
+std::optional<IBTK::IBKernel>
 standard_scalar_kernel(std::string_view name)
 {
     constexpr std::string_view bspline_prefix = "BSPLINE_";
     if (name.size() == bspline_prefix.size() + 1 &&
         equal_ignoring_case(name.substr(0, bspline_prefix.size()), bspline_prefix) && name.back() >= '1' &&
         name.back() <= '6')
-        return &bspline_kernel(name.back() - '0');
+        return bspline_kernel(name.back() - '0');
 
     if (name.size() == 4 && equal_ignoring_case(name.substr(0, 3), "IB_") && name.back() >= '3' && name.back() <= '6')
     {
         switch (name.back())
         {
         case '3':
-            return &IBTK::IBKernel::IB_3;
+            return IBTK::IBKernel::IB_3;
         case '4':
-            return &IBTK::IBKernel::IB_4;
+            return IBTK::IBKernel::IB_4;
         case '5':
-            return &IBTK::IBKernel::IB_5;
+            return IBTK::IBKernel::IB_5;
         case '6':
-            return &IBTK::IBKernel::IB_6;
+            return IBTK::IBKernel::IB_6;
         }
     }
-    if (equal_ignoring_case(name, "IB_4_W8")) return &IBTK::IBKernel::IB_4_W8;
-    if (equal_ignoring_case(name, "PIECEWISE_CONSTANT")) return &IBTK::IBKernel::BSPLINE_1;
-    if (equal_ignoring_case(name, "PIECEWISE_LINEAR")) return &IBTK::IBKernel::BSPLINE_2;
-    if (equal_ignoring_case(name, "PIECEWISE_CUBIC")) return &IBTK::IBKernel::PIECEWISE_CUBIC;
-    return nullptr;
+    if (equal_ignoring_case(name, "IB_4_W8")) return IBTK::IBKernel::IB_4_W8;
+    if (equal_ignoring_case(name, "PIECEWISE_CONSTANT")) return IBTK::IBKernel::BSPLINE_1;
+    if (equal_ignoring_case(name, "PIECEWISE_LINEAR")) return IBTK::IBKernel::BSPLINE_2;
+    if (equal_ignoring_case(name, "PIECEWISE_CUBIC")) return IBTK::IBKernel::PIECEWISE_CUBIC;
+    return std::nullopt;
 }
 
-const IBTK::IBKernel&
+IBTK::IBKernel
 bspline_kernel(unsigned int order)
 {
+    if (order == 0) TBOX_ERROR("B-spline order must be positive\n");
     switch (order)
     {
     case 1:
@@ -103,9 +118,8 @@ bspline_kernel(unsigned int order)
     case 6:
         return IBTK::IBKernel::BSPLINE_6;
     default:
-        TBOX_ERROR("Invalid B-spline order\n");
+        return IBTK::IBKernel("BSPLINE_" + std::to_string(order));
     }
-    return IBTK::IBKernel::BSPLINE_1;
 }
 
 } // namespace
@@ -154,7 +168,7 @@ IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
 IBKernelTensorProduct::CanonicalFactors
 IBKernelTensorProduct::parse_name(const std::string& name)
 {
-    if (const IBKernel* scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
+    if (const auto scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
     const auto orders = composite_bspline_orders(name);
     if (orders)
         return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
@@ -165,7 +179,7 @@ IBKernelTensorProduct::CanonicalFactors
 IBKernelTensorProduct::parse_name(const char* name)
 {
     if (!name) TBOX_ERROR("Invalid null IB kernel tensor-product name\n");
-    if (const IBKernel* scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
+    if (const auto scalar = standard_scalar_kernel(name)) return IBKernelTensorProduct::canonicalize({ *scalar });
     const auto orders = composite_bspline_orders(name);
     if (orders)
         return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });

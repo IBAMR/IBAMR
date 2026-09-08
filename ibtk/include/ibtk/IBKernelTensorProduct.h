@@ -32,6 +32,13 @@ namespace IBTK
  * the first applies along an axis selected by the calling code and the second
  * applies in the remaining directions. Two equal factors are stored as a single
  * factor.
+ *
+ * Composite B-spline names have the form COMPOSITE_BSPLINE_N_M, where N and M
+ * are positive orders. For single-digit orders, COMPOSITE_BSPLINE_NM is an
+ * equivalent spelling. For example, COMPOSITE_BSPLINE_78 and
+ * COMPOSITE_BSPLINE_7_8 both denote
+ * <code>IBKernelTensorProduct{ IBKernel("BSPLINE_7"), IBKernel("BSPLINE_8") }</code>.
+ * Multi-digit orders require the separator, as in COMPOSITE_BSPLINE_12_11.
  */
 class IBKernelTensorProduct
 {
