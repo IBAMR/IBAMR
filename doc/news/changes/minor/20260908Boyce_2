@@ -1,3 +1,0 @@
-Fixed: Diagnose insufficient IB interpolation ghost storage and invalid fixed-operator setup.
-<br>
-(Boyce Griffith, 2026/09/08)
