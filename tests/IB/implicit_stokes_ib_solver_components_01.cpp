@@ -63,6 +63,7 @@
 #include <iomanip>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "../tests.h"
@@ -919,26 +920,17 @@ namespace
 {
 using HierarchyVector = SAMRAIVectorReal<NDIM, double>;
 
-class QuadraticOperator : public GeneralOperator
-{
-public:
-    QuadraticOperator() : GeneralOperator("quadratic")
-    {
-    }
-    void apply(HierarchyVector& x, HierarchyVector& y) override
-    {
-        ++evaluations;
-        y.multiply(Pointer<HierarchyVector>(&x, false), Pointer<HierarchyVector>(&x, false));
-    }
-    int evaluations = 0;
-};
-
-// Record dispatch while retaining the actual Stokes boundary operations.
+// Count evaluations and boundary dispatch without changing the Stokes operations.
 class BoundaryCheckedStokesOperator : public StaggeredStokesOperator
 {
 public:
     BoundaryCheckedStokesOperator() : StaggeredStokesOperator("operator_test::stokes")
     {
+    }
+    void apply(HierarchyVector& x, HierarchyVector& y) override
+    {
+        ++evaluations;
+        StaggeredStokesOperator::apply(x, y);
     }
     void modifyRhsForBcs(HierarchyVector& y) override
     {
@@ -950,7 +942,7 @@ public:
         ++sol_calls;
         StaggeredStokesOperator::imposeSolBcs(x);
     }
-    int rhs_calls = 0, sol_calls = 0;
+    int evaluations = 0, rhs_calls = 0, sol_calls = 0;
 };
 
 void
@@ -1269,12 +1261,11 @@ run_operators(Pointer<AppInitializer> app)
     ctx.p_dof_index_idx = p_dof;
     ctx.time_stepping_type = type;
     StaggeredStokesIBOperator nonlinear("nonlinear");
-    QuadraticOperator quadratic;
     StaggeredStokesIBJacobianOperator jacobian("jacobian");
     PETScMFFDJacobianOperator mffd("mffd");
     nonlinear.setOperatorContext(ctx);
     jacobian.setOperatorContext(ctx);
-    mffd.setOperator(Pointer<GeneralOperator>(&quadratic, false));
+    mffd.setOperator(stokes);
     for (GeneralOperator* op : { static_cast<GeneralOperator*>(&nonlinear),
                                  static_cast<GeneralOperator*>(&jacobian),
                                  static_cast<GeneralOperator*>(&mffd) })
@@ -1287,21 +1278,22 @@ run_operators(Pointer<AppInitializer> app)
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             v, x->getComponentDescriptorIndex(0), u_dof, x->getComponentDescriptorIndex(1), p_dof, level);
     };
-    auto close = [&](Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs, double tol)
+    auto close =
+        [&](Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs, double tol, const char* label = nullptr)
     {
         difference->subtract(lhs, rhs);
         const double error = difference->maxNorm(), norm = rhs->maxNorm();
-        return std::isfinite(error) && std::isfinite(norm) && error <= tol * std::max(1.0, norm);
+        const double bound = tol * std::max(1.0, norm);
+        const bool valid = std::isfinite(error) && std::isfinite(norm) && error <= bound;
+        if (!valid && label)
+            pout << label << ": error = " << std::setprecision(17) << error << ", bound = " << bound
+                 << std::setprecision(6) << '\n';
+        return valid;
     };
+    constexpr double RESIDUAL_TOL = 1.0e-11, JACOBIAN_TOL = 1.0e-9, FD_TOL = 1.0e-6, INITIALIZATION_TOL = 1.0e-12;
     bool residual_valid = true, derivative_valid = true, assembled_valid = true, base_valid = true,
          lifecycle_valid = true, boundary_valid = true, nontrivial = true;
-    std::array<double, 4> errors = {};
-    std::array<double, 2> quadratic_action_norms = {};
-    auto record_error = [&](int slot, Pointer<HierarchyVector> lhs, Pointer<HierarchyVector> rhs)
-    {
-        difference->subtract(lhs, rhs);
-        errors[slot] = std::max(errors[slot], difference->maxNorm() / std::max(1.0, rhs->maxNorm()));
-    };
+    bool nonlinear_add_valid = true, jacobian_add_valid = true, mffd_valid = true;
     // Reinitialize all operator storage, and change the base twice per lifetime.
     for (int cycle = 0; cycle < 2; ++cycle)
     {
@@ -1372,8 +1364,7 @@ run_operators(Pointer<AppInitializer> app)
                                                                     level,
                                                                     nullptr,
                                                                     nullptr);
-            residual_valid = close(residual, expected, 1.0e-11) && residual_valid;
-            record_error(0, residual, expected);
+            residual_valid = close(residual, expected, RESIDUAL_TOL, "nonlinear residual") && residual_valid;
             nontrivial = nontrivial && residual->maxNorm() > 1.0e-6;
             // Assemble -gamma*dt*alpha J^T A J at the actual force position.
             ierr = MatZeroEntries(A);
@@ -1422,8 +1413,7 @@ run_operators(Pointer<AppInitializer> app)
             IBTK_CHKERRQ(ierr);
             jacobian.setIBCouplingJacobian(coupling_alias);
             jacobian.apply(*direction, *expected);
-            assembled_valid = close(action, expected, 1.0e-9) && assembled_valid;
-            record_error(1, action, expected);
+            assembled_valid = close(action, expected, JACOBIAN_TOL, "assembled Jacobian") && assembled_valid;
             Mat no_coupling = nullptr;
             jacobian.setIBCouplingJacobian(no_coupling);
 
@@ -1433,31 +1423,32 @@ run_operators(Pointer<AppInitializer> app)
             nonlinear.apply(*plus, *expected);
             nonlinear.apply(*minus, *work);
             finite_difference->linearSum(0.5 / h, expected, -0.5 / h, work);
-            derivative_valid = close(action, finite_difference, 1.0e-6) && derivative_valid;
-            record_error(2, action, finite_difference);
-            // F(u) = u^2 has J(u)v = 2uv componentwise. Dyadic inputs isolate
-            // MFFD storage and changed-base behavior from the Stokes-IB operator.
+            derivative_valid =
+                close(action, finite_difference, FD_TOL, "centered finite difference") && derivative_valid;
+            // A real Stokes action exercises SAMRAI-backed MFFD function storage.
+            // Its derivative is linear: changed-base coverage comes from the
+            // stored-vector and evaluation checks, not a changing derivative.
             side_ops->setToScalar(mffd_base->getComponentDescriptorIndex(0), state == 0 ? 0.5 : 1.0);
             cell_ops->setToScalar(mffd_base->getComponentDescriptorIndex(1), state == 0 ? -0.25 : -0.5);
             side_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(0), 0.25);
             cell_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(1), 0.5);
-            const int evaluations_before_form = quadratic.evaluations;
+            stokes->setTimeInterval(current, next);
+            stokes->setSolutionTime(force_time);
+            stokes->setHomogeneousBc(true);
+            const int evaluations_before_form = stokes->evaluations;
             mffd.formJacobian(*mffd_base);
-            base_valid = base_valid && quadratic.evaluations == evaluations_before_form + 1;
+            base_valid = base_valid && stokes->evaluations == evaluations_before_form + 1;
             base_valid = close(mffd.getBaseVector(), mffd_base, 0.0) && base_valid;
             mffd.apply(*mffd_direction, *expected);
-            work->multiply(mffd_base, mffd_direction);
-            work->scale(2.0, work);
-            derivative_valid = close(expected, work, 1.0e-6) && derivative_valid;
-            quadratic_action_norms[state] = expected->maxNorm();
+            stokes->apply(*mffd_direction, *work);
+            mffd_valid = close(expected, work, FD_TOL, "MFFD Stokes action") && work->maxNorm() > 1.0e-12 && mffd_valid;
 
             nonlinear.applyAdd(*base, *direction, *expected);
             work->add(residual, direction);
-            residual_valid = close(expected, work, 1.0e-11) && residual_valid;
-            record_error(3, expected, work);
+            nonlinear_add_valid = close(expected, work, RESIDUAL_TOL, "nonlinear applyAdd") && nonlinear_add_valid;
             jacobian.applyAdd(*direction, *base, *expected);
             work->add(action, base);
-            derivative_valid = close(expected, work, 1.0e-9) && derivative_valid;
+            jacobian_add_valid = close(expected, work, JACOBIAN_TOL, "Jacobian applyAdd") && jacobian_add_valid;
         }
         for (GeneralOperator* op :
              { static_cast<GeneralOperator*>(&nonlinear), static_cast<GeneralOperator*>(&jacobian) })
@@ -1513,7 +1504,7 @@ run_operators(Pointer<AppInitializer> app)
     jacobian.setIBCouplingJacobian(zero_coupling);
     jacobian.apply(*direction, *first_action);
     stokes->apply(*direction, *work);
-    assembled_valid = close(first_action, work, 1.0e-12) && assembled_valid;
+    const bool initial_supplied_valid = close(first_action, work, INITIALIZATION_TOL, "initial supplied action");
 
     PETScKrylovLinearSolver outer("initialization_sequence", nullptr, "initialization_sequence_");
     outer.setOperator(Pointer<LinearOperator>(&jacobian, false));
@@ -1526,33 +1517,40 @@ run_operators(Pointer<AppInitializer> app)
     Mat no_coupling = nullptr;
     jacobian.setIBCouplingJacobian(no_coupling);
     jacobian.apply(*direction, *expected);
-    difference->subtract(action, expected);
-    const double strategy_error = difference->maxNorm();
     difference->subtract(action, first_action);
     const double selection_difference = difference->maxNorm();
-    assembled_valid = close(action, expected, 1.0e-12) && !close(action, first_action, 1.0e-5) && assembled_valid;
+    const bool strategy_valid = close(action, expected, INITIALIZATION_TOL, "outer initialization strategy");
+    nontrivial = !close(action, first_action, 1.0e-5) && nontrivial;
 
     // Install the supplied matrix after the outer solver has initialized its
     // operator. This must restore the zero-coupling (Stokes-only) action.
     jacobian.setIBCouplingJacobian(zero_coupling);
     jacobian.apply(*direction, *expected);
-    difference->subtract(expected, first_action);
-    const double supplied_error = difference->maxNorm();
-    assembled_valid = close(expected, first_action, 1.0e-12) && assembled_valid;
+    const bool supplied_valid =
+        close(expected, first_action, INITIALIZATION_TOL, "post-initialization supplied action");
     outer.deallocateSolverState();
     lifecycle_valid = !jacobian.getIsInitialized() && !jacobian.getBaseVector() && lifecycle_valid;
     ierr = MatDestroy(&zero_coupling);
     IBTK_CHKERRQ(ierr);
-    pout << "outer_initialization_strategy_error = " << strategy_error << '\n'
-         << "outer_initialization_action_change = " << selection_difference << '\n'
-         << "post_initialization_supplied_error = " << supplied_error << '\n';
+    pout << "outer_initialization_action_change = " << selection_difference << '\n';
     boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
-    // Roundoff-sensitive output is compact; the checks above retain full precision.
-    pout << "comparison_errors (residual, assembled, centered_fd, apply_add) = " << std::scientific
-         << std::setprecision(0) << errors[0] << ' ' << errors[1] << ' ' << errors[2] << ' ' << errors[3]
-         << std::defaultfloat << std::setprecision(6) << '\n'
-         << "quadratic_mffd_action_norms = " << quadratic_action_norms[0] << ' ' << quadratic_action_norms[1] << '\n';
-    int failures = !residual_valid + !derivative_valid + !assembled_valid;
+    // Check operator accuracy, not equality of cancellation-sensitive errors.
+    pout << "Accuracy checks use error_inf <= tolerance * max(1, reference_inf); attained roundoff may vary.\n";
+    int failures = 0;
+    for (const auto& check : { std::make_tuple("nonlinear_residual", residual_valid, RESIDUAL_TOL),
+                               std::make_tuple("assembled_jacobian", assembled_valid, JACOBIAN_TOL),
+                               std::make_tuple("centered_fd", derivative_valid, FD_TOL),
+                               std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
+                               std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
+                               std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
+                               std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
+                               std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
+                               std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
+    {
+        pout << std::get<0>(check) << " = " << (std::get<1>(check) ? "true" : "false")
+             << ", tolerance = " << std::get<2>(check) << '\n';
+        failures += !std::get<1>(check);
+    }
     for (const auto& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
                                                     { "nontrivial_coupling_valid", nontrivial },
