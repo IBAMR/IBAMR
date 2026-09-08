@@ -32,6 +32,7 @@
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -45,61 +46,6 @@
 // Application
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.h"
-#include "vc_ins_vof_utilities.h"
-
-struct SynchronizeLevelSetCtx
-{
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<CellVariable<NDIM, double>> ls_var;
-    Pointer<CellVariable<NDIM, double>> H_var;
-    double num_interface_cells;
-};
-
-void
-synchronize_levelset_with_heaviside_fcn(int H_current_idx,
-                                        Pointer<HierarchyMathOps> hier_math_ops,
-                                        int /*integrator_step*/,
-                                        double /*time*/,
-                                        bool /*initial_time*/,
-                                        bool /*regrid_time*/,
-                                        void* ctx)
-{
-    SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ls_ctx->ls_var, sync_ls_ctx->adv_diff_hier_integrator->getCurrentContext());
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-            const double* patch_dx = patch_geom->getDx();
-            double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
-            const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-
-            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_current_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*ls_data)(ci);
-
-                (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-            }
-        }
-    }
-}
 
 struct SynchronizePCMVOFWithLSCtx
 {
@@ -323,10 +269,6 @@ main(int argc, char* argv[])
             IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("LS_CONVECTIVE_FORM"));
         adv_diff_integrator->setConvectiveDifferencingType(ls_var, ls_difference_form);
 
-        // const ConvectiveDifferencingType H_difference_form =
-        //     IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("H_CONVECTIVE_FORM"));
-        // adv_diff_integrator->setConvectiveDifferencingType(H_var, H_difference_form);
-
         // set priority.
         adv_diff_integrator->setResetPriority(ls_var, 0);
         adv_diff_integrator->setResetPriority(pcm_vof_var, 1);
@@ -366,8 +308,7 @@ main(int argc, char* argv[])
         IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
             "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
 
-            pcm_vof_from_ls.registerIntegrateHierarchyCallback();
-
+        pcm_vof_from_ls.registerIntegrateHierarchyCallback();
 
         SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
         pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
@@ -396,10 +337,10 @@ main(int argc, char* argv[])
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
         std::unique_ptr<RobinBcCoefStrategy<NDIM>> pcm_vof_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("PCMVoFBcCoefs"))
         {
             pcm_vof_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
+                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("PCMVoFBcCoefs"), grid_geometry);
             adv_diff_integrator->setPhysicalBcCoef(pcm_vof_var, pcm_vof_bc_coef.get());
         }
 
@@ -551,14 +492,6 @@ main(int argc, char* argv[])
             enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
         enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
             &IBAMR::PhaseChangeUtilities::callTagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
-
-        // Register H Div U term in the Heaviside equation.
-        // Pointer<CellVariable<NDIM, double>> F_var = new CellVariable<NDIM, double>("F");
-        // adv_diff_integrator->registerSourceTerm(F_var, true);
-        // Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
-        //     "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
-        // adv_diff_integrator->setSourceTermFunction(F_var, H_forcing_fcn);
-        // adv_diff_integrator->setSourceTerm(H_var, F_var);
 
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =

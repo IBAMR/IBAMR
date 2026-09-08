@@ -35,6 +35,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -45,8 +46,6 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <algorithm>
-
-#include "vc_ins_vof_utilities.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -358,21 +357,6 @@ main(int argc, char* argv[])
             new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("pcm_vof_init", ls_init);
         adv_diff_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);
 
-        IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
-            "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
-
-
-        pcm_vof_from_ls.registerIntegrateHierarchyCallback();
-
-        SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
-        pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
-        pcm_vof_sync_ctx.adv_diff_integrator = adv_diff_integrator;
-        pcm_vof_sync_ctx.pcm_vof_var = pcm_vof_var;
-        pcm_vof_sync_ctx.liquid_fraction_var = lf_var;
-
-        adv_diff_integrator->registerResetFunction(
-            pcm_vof_var, &synchronize_pcm_vof_with_level_set, static_cast<void*>(&pcm_vof_sync_ctx));
-
         const double initial_liquid_solid_interface_position =
             input_db->getDouble("INITIAL_LIQUID_SOLID_INTERFACE_POSITION");
         const double initial_liquid_temperature = input_db->getDouble("INITIAL_LIQUID_TEMPERATURE");
@@ -400,6 +384,20 @@ main(int argc, char* argv[])
             time_integrator->registerPressureInitialConditions(p_init);
         }
 
+        IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
+            "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
+
+        pcm_vof_from_ls.registerIntegrateHierarchyCallback();
+
+        SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
+        pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
+        pcm_vof_sync_ctx.adv_diff_integrator = adv_diff_integrator;
+        pcm_vof_sync_ctx.pcm_vof_var = pcm_vof_var;
+        pcm_vof_sync_ctx.liquid_fraction_var = lf_var;
+
+        adv_diff_integrator->registerResetFunction(
+            pcm_vof_var, &synchronize_pcm_vof_with_level_set, static_cast<void*>(&pcm_vof_sync_ctx));
+
         // Setup the INS maintained material properties.
         Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
         time_integrator->registerMassDensityVariable(rho_sc_var);
@@ -421,7 +419,7 @@ main(int argc, char* argv[])
         if (!(periodic_shift.min() > 0))
         {
             pcm_vof_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
+                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("PCMVoFBcCoefs"), grid_geometry);
             adv_diff_integrator->setPhysicalBcCoef(pcm_vof_var, pcm_vof_bc_coef.get());
         }
 

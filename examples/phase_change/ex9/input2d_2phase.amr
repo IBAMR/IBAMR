@@ -181,7 +181,7 @@ LevelSetBcCoefs {
   gcoef_function_3 = "0.0"
 }
 
-HeavisideBcCoefs {
+PCMVoFBcCoefs {
   acoef_function_0 = "0.0"
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
@@ -422,6 +422,7 @@ EnthalpyHierarchyIntegrator {
    enable_logging                  = ENABLE_LOGGING
    max_integrator_steps            = MAX_INTEGRATOR_STEPS
    latent_heat                     = LATENT_HEAT
+   rho_gas                         = RHO_G
    rho_liquid                      = RHO_L
    rho_solid                       = RHO_S
    specific_heat_liquid            = CP_L

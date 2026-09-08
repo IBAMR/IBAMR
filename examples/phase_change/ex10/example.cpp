@@ -35,6 +35,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -51,7 +52,6 @@
 #include "LevelSetInitialCondition.h"
 #include "LiquidFractionInitialCondition.h"
 #include "TemperatureInitialCondition.h"
-#include "vc_ins_vof_utilities.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -492,9 +492,8 @@ main(int argc, char* argv[])
 
         IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
             "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
-            
-            pcm_vof_from_ls.registerIntegrateHierarchyCallback();
 
+        pcm_vof_from_ls.registerIntegrateHierarchyCallback();
 
         SynchronizePCMVOFWithLSCtx pcm_vof_sync_ctx;
         pcm_vof_sync_ctx.vof_from_ls = &pcm_vof_from_ls;
@@ -540,10 +539,10 @@ main(int argc, char* argv[])
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
         std::unique_ptr<RobinBcCoefStrategy<NDIM>> pcm_vof_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("PCMVoFBcCoefs"))
         {
             pcm_vof_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
+                "pcm_vof_bc_coef", app_initializer->getComponentDatabase("PCMVoFBcCoefs"), grid_geometry);
             adv_diff_integrator->setPhysicalBcCoef(pcm_vof_var, pcm_vof_bc_coef.get());
         }
 
@@ -846,7 +845,7 @@ main(int argc, char* argv[])
                     const double* patch_X_lower = patch_geom->getXLower();
                     const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
-                    Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(pcm_vof_idx);
+                    Pointer<CellData<NDIM, double>> pcm_vof_data = patch->getPatchData(pcm_vof_idx);
                     Pointer<CellData<NDIM, double>> wgt_data = patch->getPatchData(wgt_cc_idx);
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {
@@ -860,11 +859,11 @@ main(int argc, char* argv[])
                         }
                         if (coord[0] < 5.0e-3 && coord[1] < 4.0e-3)
                         {
-                            left_bubble_volume += (1.0 - (*H_data)(ci)) * (*wgt_data)(ci);
+                            left_bubble_volume += (1.0 - (*pcm_vof_data)(ci)) * (*wgt_data)(ci);
                         }
                         else if (coord[0] > 5.0e-3 && coord[1] < 4.0e-3)
                         {
-                            right_bubble_volume += (1.0 - (*H_data)(ci)) * (*wgt_data)(ci);
+                            right_bubble_volume += (1.0 - (*pcm_vof_data)(ci)) * (*wgt_data)(ci);
                         }
                     }
                 }

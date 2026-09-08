@@ -229,6 +229,7 @@ SET(CXX_SRC
   utilities/STSMassFluxIntegrator.cpp
   utilities/ins_utilities.cpp
   utilities/vc_ins_utilities.cpp
+  utilities/vc_ins_vof_utilities.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})

@@ -41,7 +41,7 @@ TemperatureInitialConditions{
   function = "973.6"
 }
 
-HeavisideInitialConditions{
+PCMVoFInitialConditions{
   function = "1.0"
 }
 
@@ -113,7 +113,7 @@ LevelSetBcCoefs {
   gcoef_function_3 = "0.0"
 }
 
-HeavisideBcCoefs {
+PCMVoFBcCoefs {
   acoef_function_0 = "0.0"
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
@@ -199,6 +199,7 @@ EnthalpyHierarchyIntegrator {
    max_integrator_steps            = MAX_INTEGRATOR_STEPS
    regrid_interval                 = REGRID_INTERVAL
    latent_heat                     = LATENT_HEAT
+   rho_gas                         = RHO_L // there is no gas region in this example. So this won't be used.
    rho_liquid                      = RHO_L
    rho_solid                       = RHO_S
    specific_heat_liquid            = CP_L

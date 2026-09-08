@@ -27,6 +27,7 @@
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PhaseChangeUtilities.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -124,19 +125,19 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register Heaviside
-        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
-        time_integrator->registerTransportedQuantity(H_var, true);
-        time_integrator->setDiffusionCoefficient(H_var, 0.0);
-        enthalpy_hier_integrator->registerHeavisideVariable(H_var);
+        // register pcm volume of fraction
+        Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
+        time_integrator->registerTransportedQuantity(pcm_vof_var, true);
+        time_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
+        enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         enthalpy_hier_integrator->registerTemperatureVariable(T_var, true);
 
-        Pointer<CartGridFunction> H_init = new muParserCartGridFunction(
-            "H_init", app_initializer->getComponentDatabase("HeavisideInitialConditions"), grid_geometry);
-        time_integrator->setInitialConditions(H_var, H_init);
+        Pointer<CartGridFunction> pcm_vof_init = new muParserCartGridFunction(
+            "pcm_vof_init", app_initializer->getComponentDatabase("PCMVoFInitialConditions"), grid_geometry);
+        time_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);
 
         Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
             "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
@@ -156,12 +157,12 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> H_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> pcm_vof_bc_coef;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("PCMVoFBcCoefs"))
         {
-            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
-            time_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
+            pcm_vof_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                " pcm_vof_bc_coef", app_initializer->getComponentDatabase("PCMVoFBcCoefs"), grid_geometry);
+            time_integrator->setPhysicalBcCoef(pcm_vof_var, pcm_vof_bc_coef.get());
         }
 
         std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef;
@@ -212,8 +213,8 @@ main(int argc, char* argv[])
         // the advection-diffusion integrator
         IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                               time_integrator,
-                                                                              H_var,
-                                                                              H_bc_coef.get(),
+                                                                              pcm_vof_var,
+                                                                              pcm_vof_bc_coef.get(),
                                                                               lf_var,
                                                                               lf_bc_coef.get(),
                                                                               rho_liquid,
