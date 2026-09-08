@@ -833,7 +833,8 @@ run_operators(Pointer<AppInitializer> app)
     Pointer<CellVariable<NDIM, int>> p_dof_var = new CellVariable<NDIM, int>("p_dof");
     const auto ghosts = method->getMinimumGhostCellWidth();
     std::vector<int> allocated;
-    auto register_data = [&](Pointer<Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
+    auto register_data =
+        [&](Pointer<SAMRAI::hier::Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
     {
         const int idx = variables->registerVariableAndContext(variable, variables->getContext(name), width);
         level->allocatePatchData(idx, current);
@@ -1259,12 +1260,12 @@ run_operators(Pointer<AppInitializer> app)
                           !nonlinear.getIsInitialized() && !jacobian.getBaseVector() && !mffd.getBaseVector();
         for (const int idx : base_indices)
         {
-            Pointer<Variable<NDIM>> variable;
+            Pointer<SAMRAI::hier::Variable<NDIM>> variable;
             lifecycle_valid = !variables->mapIndexToVariable(idx, variable) && lifecycle_valid;
         }
         for (const int idx : { u, p, u_current, scratch, f_scratch })
         {
-            Pointer<Variable<NDIM>> variable;
+            Pointer<SAMRAI::hier::Variable<NDIM>> variable;
             lifecycle_valid = variables->mapIndexToVariable(idx, variable) && level->getPatch(0)->getPatchData(idx) &&
                               lifecycle_valid;
         }
