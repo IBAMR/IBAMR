@@ -21,6 +21,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBKernelEvaluators.h>
 #include <ibtk/IBKernelTensorProductEvaluator.h>
@@ -45,7 +46,10 @@
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideVariable.h>
@@ -56,6 +60,7 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <map>
 #include <memory>
 #include <vector>
@@ -727,13 +732,14 @@ public:
 };
 
 void
-generate_operator_structure(const unsigned int&, const int&, int& n, std::vector<IBTK::Point>& X, void*)
+generate_operator_structure(const unsigned int&, const int&, int& n, std::vector<IBTK::Point>& X, void* ctx)
 {
     n = 16;
     X.resize(n);
     for (int k = 0; k < n; ++k)
     {
-        X[k](0) = 0.5 + 0.16 * std::cos(2.0 * M_PI * k / n);
+        const bool physical_boundary = ctx && *static_cast<bool*>(ctx);
+        X[k](0) = (physical_boundary ? 0.1 : 0.5) + (physical_boundary ? 0.06 : 0.16) * std::cos(2.0 * M_PI * k / n);
         X[k](1) = 0.5 + 0.12 * std::sin(2.0 * M_PI * k / n);
     }
 }
@@ -783,6 +789,7 @@ int
 run_operators(Pointer<AppInitializer> app)
 {
     PetscErrorCode ierr;
+    bool physical_boundary = app->getInputDatabase()->getBoolWithDefault("physical_boundary", false);
     const TimeSteppingType type =
         IBAMR::string_to_enum<TimeSteppingType>(app->getInputDatabase()->getString("time_stepping"));
     const double current = 0.25, dt = 0.125, next = current + dt;
@@ -810,7 +817,7 @@ run_operators(Pointer<AppInitializer> app)
     Pointer<IBRedundantInitializer> initializer =
         new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
     initializer->setStructureNamesOnLevel(0, { "curve" });
-    initializer->registerInitStructureFunction(generate_operator_structure);
+    initializer->registerInitStructureFunction(generate_operator_structure, &physical_boundary);
     initializer->registerInitSpringDataFunction(generate_operator_springs);
     method->registerLInitStrategy(initializer);
     gridding->makeCoarsestLevel(hierarchy, current);
@@ -841,12 +848,37 @@ run_operators(Pointer<AppInitializer> app)
     set_operator_velocity(u_current, level, 0.03, 0.2);
     std::vector<Pointer<CoarsenSchedule<NDIM>>> synch(1);
     std::vector<Pointer<RefineSchedule<NDIM>>> fill(1), prolong(1);
+    std::vector<Pointer<LocationIndexRobinBcCoefs<NDIM>>> physical_coefs(NDIM);
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
+    Pointer<CartSideRobinPhysBdryOp> physical_bc;
+    if (physical_boundary)
+    {
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            physical_coefs[axis] = new LocationIndexRobinBcCoefs<NDIM>("velocity_bc", nullptr);
+            for (int face = 0; face < 2 * NDIM; ++face)
+                physical_coefs[axis]->setBoundaryValue(face, axis == 1 && face < 2 ? 0.3 : 0.0);
+            bc_coefs[axis] = physical_coefs[axis];
+        }
+        physical_bc = new CartSideRobinPhysBdryOp(u_current, bc_coefs, false);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            physical_bc->setPhysicalBoundaryConditions(*level->getPatch(p()), current, ghosts);
+        method->beginDataRedistribution(hierarchy, gridding);
+        method->endDataRedistribution(hierarchy, gridding);
+    }
     method->initializePatchHierarchy(hierarchy, gridding, u_current, synch, fill, 0, current, true);
     method->freeLInitStrategy();
     initializer.setNull();
     method->preprocessIntegrateData(current, next, 1);
     method->updateFixedLEOperators();
     method->interpolateVelocity(u_current, synch, fill, current);
+    if (physical_boundary)
+    {
+        physical_bc->setPatchDataIndex(scratch);
+        RefineAlgorithm<NDIM> ghost_fill;
+        ghost_fill.registerRefine(scratch, scratch, scratch, nullptr);
+        fill[0] = ghost_fill.createSchedule(level, physical_bc.getPointer());
+    }
 
     Pointer<HierarchySideDataOpsReal<NDIM, double>> side_ops =
         new HierarchySideDataOpsReal<NDIM, double>(hierarchy, 0, 0);
@@ -874,6 +906,107 @@ run_operators(Pointer<AppInitializer> app)
          first_action = clone("first_action");
     set_operator_velocity(direction->getComponentDescriptorIndex(0), level, 0.2, 0.8);
     cell_ops->setToScalar(direction->getComponentDescriptorIndex(1), -0.25);
+
+    if (physical_boundary)
+    {
+        // Exercise the live strategy near the wall, without assembling an IB matrix.
+        Pointer<StaggeredStokesOperator> stokes = new StaggeredStokesOperator("boundary_stokes");
+        PoissonSpecifications coefs("boundary_coefs");
+        coefs.setCConstant(2.0);
+        coefs.setDConstant(-0.01);
+        stokes->setVelocityPoissonSpecifications(coefs);
+        stokes->setPhysicalBcCoefs(bc_coefs, nullptr);
+        StaggeredStokesIBOperator::Context ctx;
+        ctx.ib_implicit_ops = method;
+        ctx.stokes_op = stokes;
+        ctx.hier_velocity_data_ops = side_ops;
+        ctx.u_phys_bdry_op = physical_bc;
+        ctx.u_synch_scheds = synch;
+        ctx.u_ghost_fill_scheds = fill;
+        ctx.f_prolongation_scheds = prolong;
+        ctx.u_idx = scratch;
+        ctx.f_idx = f_scratch;
+        ctx.u_current_idx = u_current;
+        ctx.time_stepping_type = BACKWARD_EULER;
+        CountedIBOperator nonlinear;
+        StaggeredStokesIBJacobianOperator jacobian("boundary_jacobian");
+        nonlinear.setOperatorContext(ctx);
+        jacobian.setOperatorContext(ctx);
+        for (GeneralOperator* op :
+             { static_cast<GeneralOperator*>(&nonlinear), static_cast<GeneralOperator*>(&jacobian) })
+        {
+            op->setTimeInterval(current, next);
+            op->setSolutionTime(next);
+        }
+        Vec physical_position = nullptr;
+        Vec X0 = method->getLDataManager()->getLData("X", 0)->getVec();
+        ierr = VecDuplicate(X0, &physical_position);
+        IBTK_CHKERRQ(ierr);
+        double fd_error = 0.0, boundary_position_change = 0.0, coupling_norm = 0.0;
+        int failures = 0;
+        for (int cycle = 0; cycle < 2; ++cycle)
+        {
+            method->setUpdatedPosition(X0);
+            nonlinear.initializeOperatorState(*base, *residual);
+            jacobian.initializeOperatorState(*base, *residual);
+            for (int state = 0; state < 2; ++state)
+            {
+                base->setToScalar(0.0);
+                set_operator_velocity(u, level, state == 0 ? 0.12 : 0.24, state == 0 ? 0.1 : 0.6);
+                nonlinear.apply(*base, *residual);
+                std::vector<Pointer<LData>>* positions = nullptr;
+                bool* needs_fill = nullptr;
+                method->getPositionData(&positions, &needs_fill, TimePoint::NEW_TIME);
+                ierr = VecCopy((*positions)[0]->getVec(), physical_position);
+                IBTK_CHKERRQ(ierr);
+                // A zero-boundary control proves the marker interpolation sees the wall data.
+                for (int face = 0; face < 2; ++face) physical_coefs[1]->setBoundaryValue(face, 0.0);
+                nonlinear.apply(*base, *expected);
+                ierr = VecAXPY(physical_position, -1.0, (*positions)[0]->getVec());
+                IBTK_CHKERRQ(ierr);
+                PetscReal position_change = 0.0;
+                ierr = VecNorm(physical_position, NORM_INFINITY, &position_change);
+                IBTK_CHKERRQ(ierr);
+                boundary_position_change = std::max(boundary_position_change, position_change);
+                for (int face = 0; face < 2; ++face) physical_coefs[1]->setBoundaryValue(face, 0.3);
+                nonlinear.apply(*base, *residual);
+                jacobian.formJacobian(*base);
+                jacobian.apply(*direction, *action);
+                stokes->apply(*direction, *expected);
+                difference->subtract(action, expected);
+                const double ib_norm = difference->maxNorm();
+                coupling_norm = std::max(coupling_norm, ib_norm);
+                const double h = 1.0e-5;
+                work->linearSum(1.0, base, h, direction);
+                nonlinear.apply(*work, *plus);
+                work->linearSum(1.0, base, -h, direction);
+                nonlinear.apply(*work, *minus);
+                finite_difference->linearSum(0.5 / h, plus, -0.5 / h, minus);
+                difference->subtract(action, finite_difference);
+                const double error = difference->maxNorm() / std::max(1.0, finite_difference->maxNorm());
+                fd_error = std::max(fd_error, error);
+                failures += !std::isfinite(error) || error > 1.0e-6 || !std::isfinite(position_change) ||
+                            position_change <= 1.0e-4 || !std::isfinite(ib_norm) || ib_norm <= 1.0e-4;
+            }
+            jacobian.deallocateOperatorState();
+            nonlinear.deallocateOperatorState();
+        }
+        pout << "physical_base_fd_error = " << std::scientific << std::setprecision(0) << fd_error << std::defaultfloat
+             << std::setprecision(6) << '\n'
+             << "boundary_position_change = " << boundary_position_change << '\n'
+             << "nonzero_ib_action = " << coupling_norm << '\n';
+        ierr = VecDestroy(&physical_position);
+        IBTK_CHKERRQ(ierr);
+        method->postprocessIntegrateData(current, next, 1);
+        for (auto& vector : vectors) free_vector_components(*vector);
+        for (int idx : allocated)
+        {
+            level->deallocatePatchData(idx);
+            variables->removePatchDataIndex(idx);
+        }
+        pout << "test_failures = " << failures << std::endl;
+        return failures;
+    }
 
     std::vector<int> counts;
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, u_dof, p_dof, level);
@@ -1181,16 +1314,14 @@ run_operators(Pointer<AppInitializer> app)
          << "outer_initialization_action_change = " << selection_difference << '\n'
          << "post_initialization_supplied_error = " << supplied_error << '\n';
     boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
-    if (!residual_valid || !derivative_valid || !assembled_valid)
-        pout << "comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = " << errors[0] << ' '
-             << errors[1] << ' ' << errors[2] << ' ' << errors[3] << ' ' << errors[4] << '\n';
-    int failures = 0;
+    // Roundoff-sensitive output is compact; the checks above retain full precision.
+    pout << "comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = " << std::scientific
+         << std::setprecision(0) << errors[0] << ' ' << errors[1] << ' ' << errors[2] << ' ' << errors[3] << ' '
+         << errors[4] << std::defaultfloat << std::setprecision(6) << '\n';
+    int failures = !residual_valid + !derivative_valid + !assembled_valid;
     for (const auto& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
-                                                    { "nonlinear_residual_valid", residual_valid },
                                                     { "nontrivial_coupling_valid", nontrivial },
-                                                    { "jacobian_finite_difference_valid", derivative_valid },
-                                                    { "assembled_coupling_valid", assembled_valid },
                                                     { "updated_base_state_valid", base_valid },
                                                     { "boundary_forwarding_valid", boundary_valid },
                                                     { "operator_lifecycle_valid", lifecycle_valid } })

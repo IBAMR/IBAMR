@@ -126,15 +126,19 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
 
     if (d_ctx.time_stepping_type == BACKWARD_EULER)
     {
-        d_ctx.hier_velocity_data_ops->scale(d_ctx.u_idx, -1.0, d_ctx.u_idx);
+        // Interpolate the physical base, including inhomogeneous boundary data.
+        // Negating u before interpolation would not negate the boundary contribution.
         if (d_ctx.u_phys_bdry_op)
         {
             d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-            d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
+            d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
         }
         d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
             d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
         d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
+        // The position residual is X_current - dt*U; reflect it to obtain X_new.
+        PetscErrorCode ierr = VecAXPBY(d_solver_X, 2.0, -1.0, d_solver_X0);
+        IBTK_CHKERRQ(ierr);
     }
     else
     {
