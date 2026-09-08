@@ -21,6 +21,8 @@ MU_G    = 0.0
 
 LATENT_HEAT = 3.8384e5
 
+KAPPA_M = 211.0
+
 MELT_TEMPERATURE = 933.6
 LIQUID_TEMPERATURE = 973.6
 SOLID_TEMPERATURE = 298.6
@@ -402,6 +404,7 @@ EnthalpyHierarchyIntegrator {
    enable_logging                  = ENABLE_LOGGING
    max_integrator_steps            = MAX_INTEGRATOR_STEPS
    latent_heat                     = LATENT_HEAT
+   rho_gas                         = RHO_G
    rho_liquid                      = RHO_L
    rho_solid                       = RHO_S
    specific_heat_liquid            = CP_L

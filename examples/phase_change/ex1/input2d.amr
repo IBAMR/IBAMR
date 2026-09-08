@@ -19,6 +19,8 @@ KAPPA_G = 61.0e-3
 CP_G    = 1.1e3
 MU_G    = 0.0
 
+KAPPA_M = 211.0 // thermal conductivity of the mushy zone
+
 LATENT_HEAT = 3.8384e5
 
 MELT_TEMPERATURE = 933.6
