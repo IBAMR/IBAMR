@@ -405,13 +405,17 @@ main(int argc, char* argv[])
         Pointer<Logger::Appender> appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(appender);
         PIO::logOnlyNodeZero("output");
-        if (input_file.find("duplicate") != std::string::npos)
+        if (input_file.find("duplicate") != std::string::npos ||
+            input_file.find("registration.unknown") != std::string::npos)
         {
             std::ifstream input(input_file);
-            std::string kernel_name;
+            std::string kernel_name, transverse_name;
             input >> kernel_name;
+            const IBKernelTensorProduct kernel =
+                input >> transverse_name ? IBKernelTensorProduct{ IBKernel(kernel_name), IBKernel(transverse_name) } :
+                                           IBKernelTensorProduct{ IBKernel(kernel_name) };
             IBOperatorRegistry::register_interpolation_matrix_sc(
-                IBKernel(kernel_name), IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+                kernel, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
             return 0;
         }
     }

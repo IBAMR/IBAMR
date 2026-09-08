@@ -62,6 +62,7 @@ public:
      * Register each kernel combination on every MPI rank that uses it.
      * Duplicate registration is a fatal error. Registration order does not
      * affect kernel identity.
+     * No factor may be IBKernel::UNKNOWN.
      */
     template <class Evaluator>
     static void register_interpolation_matrix_sc(const IBKernelTensorProduct& kernel, Evaluator evaluator);
@@ -71,6 +72,7 @@ public:
      *
      * A single factor is isotropic; two factors are face-normal and
      * face-tangential, respectively. Missing registration is a fatal error.
+     * No factor may be IBKernel::UNKNOWN.
      * Matrix layout, replacement, and boundary limitations are described in
      * PETScMatUtilities::constructPatchLevelSCInterpOp().
      */
