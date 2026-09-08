@@ -20,6 +20,7 @@
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_enums.h>
@@ -2224,7 +2225,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         const IntVector<NDIM> ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
         const IntVector<NDIM> one_ghost = IntVector<NDIM>(1);
-        const IntVector<NDIM> no_ghosts = IntVector<NDIM>(0);
 
         const int u_current_idx = var_db->registerVariableAndContext(u_var, current_ctx, ib_ghosts);
         const int u_sol_idx = var_db->registerVariableAndContext(u_var, solver_ctx, one_ghost);
@@ -2234,7 +2234,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         const int u_scratch_idx = var_db->registerVariableAndContext(u_var, scratch_ctx, ib_ghosts);
         const int f_scratch_idx = var_db->registerVariableAndContext(f_var, scratch_ctx, ib_ghosts);
         const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, scratch_ctx, ib_ghosts);
-        const int p_dof_index_idx = var_db->registerVariableAndContext(p_dof_index_var, scratch_ctx, no_ghosts);
+        // The independent MAC matrix assembly accesses neighboring pressure indices.
+        const int p_dof_index_idx = var_db->registerVariableAndContext(p_dof_index_var, scratch_ctx, one_ghost);
 
         const std::vector<int> allocated_patch_data_indices = {
             u_current_idx, u_scratch_idx, f_scratch_idx, u_dof_index_idx, p_dof_index_idx
@@ -2267,7 +2268,14 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         std::vector<Pointer<CoarsenSchedule<NDIM>>> u_synch_scheds(finest_ln + 1);
         std::vector<Pointer<RefineSchedule<NDIM>>> u_ghost_fill_scheds(finest_ln + 1);
         std::vector<Pointer<RefineSchedule<NDIM>>> f_prolongation_scheds(finest_ln + 1);
+        RefineAlgorithm<NDIM> velocity_ghost_fill;
+        velocity_ghost_fill.registerRefine(u_scratch_idx, u_scratch_idx, u_scratch_idx, nullptr);
+        for (int ln = 0; ln <= finest_ln; ++ln)
+            u_ghost_fill_scheds[ln] = velocity_ghost_fill.createSchedule(patch_hierarchy->getPatchLevel(ln));
 
+        // Populate the Lagrangian ghost-node/periodic-image distribution before spreading.
+        ib_method_ops->beginDataRedistribution(patch_hierarchy, gridding_algorithm);
+        ib_method_ops->endDataRedistribution(patch_hierarchy, gridding_algorithm);
         ib_method_ops->initializePatchHierarchy(patch_hierarchy,
                                                 gridding_algorithm,
                                                 u_current_idx,
@@ -2415,13 +2423,16 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         jac_op->setOperatorContext(ctx);
         jac_op->setTimeInterval(current_time, new_time);
         jac_op->setSolutionTime(new_time);
+        // Restore the physical base before initialization freezes the coupling
+        // positions; the preceding nonlinear probe left a different endpoint.
+        nonlinear_op.apply(*eul_sol_vec, *f_probe);
         jac_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
         jac_op->formJacobian(*eul_sol_vec);
 
         Pointer<SAMRAIVectorReal<NDIM, double>> v = eul_sol_vec->cloneVector("v");
         v->allocateVectorData();
         v->setToScalar(0.0);
-        hier_velocity_data_ops->setToScalar(v->getComponentDescriptorIndex(0), 1.0, false);
+        set_divergence_free_probe_velocity(v->getComponentDescriptorIndex(0), patch_hierarchy);
         hier_pressure_data_ops->setToScalar(v->getComponentDescriptorIndex(1), -0.25, false);
 
         Pointer<SAMRAIVectorReal<NDIM, double>> jv = eul_rhs_vec->cloneVector("jv");
@@ -2477,7 +2488,9 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 std::sqrt(diff_side_norm * diff_side_norm + diff_cell_norm * diff_cell_norm) /
                 std::max(std::sqrt(jv_side_norm * jv_side_norm + jv_cell_norm * jv_cell_norm), 1.0e-14);
             const bool fd_relative_error_valid = rel_error <= fd_rel_tol;
-            pout << "fd_relative_error_valid = " << (fd_relative_error_valid ? "true" : "false") << std::endl;
+            // Report roundoff-sensitive errors at one significant digit; bounds use full precision.
+            pout << "fd_relative_error = " << std::scientific << std::setprecision(0) << rel_error << std::defaultfloat
+                 << std::setprecision(6) << std::endl;
             if (!fd_relative_error_valid)
             {
                 ++test_failures;
@@ -2485,6 +2498,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             }
         }
         mffd_jac_op->deallocateOperatorState();
+        nonlinear_op.apply(*eul_sol_vec, *f_probe);
 
         Pointer<Database> stokes_ib_precond_db =
             input_db->isDatabase("stokes_ib_precond_db") ? input_db->getDatabase("stokes_ib_precond_db") : nullptr;
@@ -2510,6 +2524,93 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         const bool verify_galerkin_operator_borrowing =
             input_db->getBoolWithDefault("VERIFY_GALERKIN_OPERATOR_BORROWING", false);
+        const bool rediscretize_stokes = stokes_ib_precond_db->getBoolWithDefault("rediscretize_stokes", true);
+        const bool rediscretize_residual = stokes_ib_precond_db->getBoolWithDefault("res_rediscretized_stokes", true);
+        std::vector<Mat> coupling_reference(finest_ln + 1, nullptr), rediscretized_reference(finest_ln + 1, nullptr),
+            operator_reference(finest_ln + 1, nullptr);
+        for (int ln = finest_ln; ln >= 0; --ln)
+        {
+            PetscErrorCode ierr;
+            if (ln == finest_ln)
+            {
+                ierr = MatPtAP(A, J, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &coupling_reference[ln]);
+                IBTK_CHKERRQ(ierr);
+                const double beta = ctx.time_stepping_type == BACKWARD_EULER ? 1.0 : 0.5;
+                double scale = -dt * beta * beta;
+                const IntVector<NDIM> ratio = patch_hierarchy->getPatchLevel(ln)->getRatio();
+                for (int d = 0; d < NDIM; ++d) scale *= ratio(d) / grid_geometry->getDx()[d];
+                ierr = MatScale(coupling_reference[ln], scale);
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                ierr = MatPtAP(coupling_reference[ln + 1],
+                               fac_op->getProlongationOp(ln),
+                               MAT_INITIAL_MATRIX,
+                               PETSC_DEFAULT,
+                               &coupling_reference[ln]);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatDiagonalScale(coupling_reference[ln], fac_op->getRestrictionScalingOp(ln), nullptr);
+                IBTK_CHKERRQ(ierr);
+            }
+            StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(rediscretized_reference[ln],
+                                                                             U_problem_coefs,
+                                                                             u_bc_coefs,
+                                                                             new_time,
+                                                                             num_dofs_per_proc[ln],
+                                                                             u_dof_index_idx,
+                                                                             p_dof_index_idx,
+                                                                             patch_hierarchy->getPatchLevel(ln));
+            ierr = MatAXPY(rediscretized_reference[ln], 1.0, coupling_reference[ln], DIFFERENT_NONZERO_PATTERN);
+            IBTK_CHKERRQ(ierr);
+            if (rediscretize_stokes || ln == finest_ln)
+            {
+                ierr = MatDuplicate(rediscretized_reference[ln], MAT_COPY_VALUES, &operator_reference[ln]);
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                AO ordering = nullptr;
+                int u_offset = 0, p_offset = 0;
+                StaggeredStokesPETScVecUtilities::constructPatchLevelAO(ordering,
+                                                                        num_dofs_per_proc[ln],
+                                                                        u_dof_index_idx,
+                                                                        p_dof_index_idx,
+                                                                        patch_hierarchy->getPatchLevel(ln),
+                                                                        u_offset,
+                                                                        p_offset);
+                Mat prolongation = nullptr;
+                Vec scaling = nullptr;
+                // These fixtures use the standard RT0 velocity and conservative pressure transfers.
+                StaggeredStokesPETScMatUtilities::constructProlongationOp(prolongation,
+                                                                          "RT0",
+                                                                          "CONSERVATIVE",
+                                                                          u_dof_index_idx,
+                                                                          p_dof_index_idx,
+                                                                          num_dofs_per_proc[ln + 1],
+                                                                          num_dofs_per_proc[ln],
+                                                                          patch_hierarchy->getPatchLevel(ln + 1),
+                                                                          patch_hierarchy->getPatchLevel(ln),
+                                                                          ordering,
+                                                                          u_offset,
+                                                                          p_offset);
+                PETScMatUtilities::constructRestrictionScalingOp(prolongation, scaling);
+                ierr = MatPtAP(operator_reference[ln + 1],
+                               prolongation,
+                               MAT_INITIAL_MATRIX,
+                               PETSC_DEFAULT,
+                               &operator_reference[ln]);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatDiagonalScale(operator_reference[ln], scaling, nullptr);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&scaling);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatDestroy(&prolongation);
+                IBTK_CHKERRQ(ierr);
+                ierr = AODestroy(&ordering);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
         auto check_fac_residual_work_vector_cache = [&](double& reuse_error)
         {
             Pointer<SAMRAIVectorReal<NDIM, double>> first_residual =
@@ -2551,8 +2652,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             petsc_vec_creation_count = 0;
             petsc_vec_destruction_count = 0;
 #endif
-            fac_op->computeResidual(*first_residual, *nonlinear_probe, *jv, 0, finest_ln);
-            fac_op->computeResidual(*second_residual, *nonlinear_probe, *jv, 0, finest_ln);
+            fac_op->computeResidual(*first_residual, *nonlinear_probe, *eul_rhs_vec, 0, finest_ln);
+            fac_op->computeResidual(*second_residual, *nonlinear_probe, *eul_rhs_vec, 0, finest_ln);
 #if defined(PETSC_USE_LOG)
 #if PETSC_VERSION_GE(3, 20, 0)
             ierr = PetscLogHandlerStop(log_handler);
@@ -2570,11 +2671,99 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                      << ", destructions = " << petsc_vec_destruction_count << std::endl;
             }
 #endif
+            Pointer<SAMRAIVectorReal<NDIM, double>> stokes_reference =
+                eul_rhs_vec->cloneVector("fac_residual_stokes_reference");
+            stokes_reference->allocateVectorData();
+            if (rediscretize_residual) stokes_op->apply(*nonlinear_probe, *stokes_reference);
+            double operator_error = 0.0, composition_error = 0.0, elastic_action_norm = 0.0;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                Mat installed = nullptr, matrix_difference = nullptr;
+                PetscErrorCode check_ierr =
+                    KSPGetOperators(fac_op->getStaggeredStokesPETScLevelSolver(ln)->getPETScKSP(), &installed, nullptr);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = MatDuplicate(installed, MAT_COPY_VALUES, &matrix_difference);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = MatAXPY(matrix_difference, -1.0, operator_reference[ln], DIFFERENT_NONZERO_PATTERN);
+                IBTK_CHKERRQ(check_ierr);
+                PetscReal error = 0.0;
+                check_ierr = MatNorm(matrix_difference, NORM_INFINITY, &error);
+                IBTK_CHKERRQ(check_ierr);
+                operator_error = std::max(operator_error, error);
+                check_ierr = MatDestroy(&matrix_difference);
+                IBTK_CHKERRQ(check_ierr);
+                Vec solution = nullptr, expected = nullptr, actual = nullptr;
+                check_ierr = MatCreateVecs(operator_reference[ln], &solution, &expected);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecDuplicate(expected, &actual);
+                IBTK_CHKERRQ(check_ierr);
+                const auto level = patch_hierarchy->getPatchLevel(ln);
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(solution,
+                                                                      nonlinear_probe->getComponentDescriptorIndex(0),
+                                                                      u_dof_index_idx,
+                                                                      nonlinear_probe->getComponentDescriptorIndex(1),
+                                                                      p_dof_index_idx,
+                                                                      level);
+                check_ierr = MatMult(coupling_reference[ln], solution, expected);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecNorm(expected, NORM_2, &error);
+                IBTK_CHKERRQ(check_ierr);
+                elastic_action_norm = std::max(elastic_action_norm, error);
+                if (rediscretize_residual)
+                {
+                    // Use the hierarchy Stokes action to retain coarse-fine synchronization.
+                    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+                        actual,
+                        stokes_reference->getComponentDescriptorIndex(0),
+                        u_dof_index_idx,
+                        stokes_reference->getComponentDescriptorIndex(1),
+                        p_dof_index_idx,
+                        level);
+                    check_ierr = VecAXPY(expected, 1.0, actual);
+                    IBTK_CHKERRQ(check_ierr);
+                }
+                else
+                {
+                    check_ierr = MatMult(operator_reference[ln], solution, expected);
+                    IBTK_CHKERRQ(check_ierr);
+                }
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual,
+                                                                      eul_rhs_vec->getComponentDescriptorIndex(0),
+                                                                      u_dof_index_idx,
+                                                                      eul_rhs_vec->getComponentDescriptorIndex(1),
+                                                                      p_dof_index_idx,
+                                                                      level);
+                check_ierr = VecAYPX(expected, -1.0, actual);
+                IBTK_CHKERRQ(check_ierr);
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual,
+                                                                      first_residual->getComponentDescriptorIndex(0),
+                                                                      u_dof_index_idx,
+                                                                      first_residual->getComponentDescriptorIndex(1),
+                                                                      p_dof_index_idx,
+                                                                      level);
+                check_ierr = VecAXPY(actual, -1.0, expected);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecNorm(actual, NORM_INFINITY, &error);
+                IBTK_CHKERRQ(check_ierr);
+                composition_error = std::max(composition_error, error);
+                check_ierr = VecDestroy(&solution);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecDestroy(&expected);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecDestroy(&actual);
+                IBTK_CHKERRQ(check_ierr);
+            }
+            pout << "fac_operator_error = " << operator_error << ", residual_composition_error = " << composition_error
+                 << ", elastic_action_norm = " << elastic_action_norm << std::endl;
+            if (!std::isfinite(operator_error) || operator_error > 1.0e-9 || !std::isfinite(composition_error) ||
+                composition_error > 1.0e-9 || !std::isfinite(elastic_action_norm) || elastic_action_norm <= 1.0e-12)
+                ++test_failures;
             const double residual_norm = first_residual->maxNorm();
             first_residual->subtract(first_residual, second_residual);
             reuse_error = std::abs(first_residual->maxNorm());
             free_vector_components(*first_residual);
             free_vector_components(*second_residual);
+            free_vector_components(*stokes_reference);
             return std::isfinite(residual_norm) && residual_norm > 1.0e-12 && std::isfinite(reuse_error) &&
                    reuse_error == 0.0;
         };
@@ -2633,8 +2822,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             fac_reinitialization_valid = supplied_operator != nullptr && reference_count > 1;
         }
         if (!fac_residual_repeat_reinitialize_valid || !fac_reinitialization_valid) ++test_failures;
-        Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
-        jac_op->setIBCouplingJacobian(SAJ);
 
         Pointer<PETScKrylovLinearSolver> linear_solver =
             new PETScKrylovLinearSolver("stokes_ib_solver_components::linear_solver", nullptr, "ib_");
@@ -2651,6 +2838,20 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         linear_sol->allocateVectorData();
         linear_sol->setToScalar(0.0);
         linear_solver->initializeSolverState(*linear_sol, *jv);
+        // Outer initialization clears the Jacobian base and rebuilds FAC state.
+        jac_op->formJacobian(*eul_sol_vec);
+        if (finest_ln == 0)
+        {
+            Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
+            jac_op->setIBCouplingJacobian(SAJ);
+        }
+        // Multilevel application deliberately uses the strategy action.
+        jac_op->apply(*v, *diff);
+        diff->subtract(diff, jv);
+        const double initialized_action_error = diff->L2Norm();
+        pout << "initialized_jacobian_action_error = " << initialized_action_error << std::endl;
+        if (!std::isfinite(initialized_action_error) || initialized_action_error > 1.0e-9 * std::max(1.0, jv->L2Norm()))
+            ++test_failures;
         PetscErrorCode linear_ierr = KSPSetPCSide(linear_solver->getPETScKSP(), PC_RIGHT);
         IBTK_CHKERRQ(linear_ierr);
         linear_ierr = KSPSetNormType(linear_solver->getPETScKSP(), KSP_NORM_UNPRECONDITIONED);
@@ -2683,16 +2884,12 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             std::string(ksp_type) == KSPFGMRES && side == PC_RIGHT && norm_type == KSP_NORM_UNPRECONDITIONED &&
             reason > 0 && std::isfinite(linear_solver->getResidualNorm()) && linear_solver->getResidualNorm() >= 0.0 &&
             std::isfinite(actual_residual) && actual_residual <= std::max(1.0e-12, 2.0 * residual_limit);
-        if (!krylov_linear_residual_valid)
-        {
-            pout << "actual_residual = " << actual_residual
-                 << ", acceptance_bound = " << std::max(1.0e-12, 2.0 * residual_limit)
-                 << ", reported_residual = " << linear_solver->getResidualNorm() << ", pc_side = " << side
-                 << ", norm_type = " << norm_type << ", ksp_type = " << ksp_type << ", reason = " << reason
-                 << std::endl;
-        }
+        pout << "actual_residual = " << std::scientific << std::setprecision(0) << actual_residual
+             << ", reported_residual = " << linear_solver->getResidualNorm() << std::defaultfloat
+             << std::setprecision(6) << ", acceptance_bound = " << std::max(1.0e-12, 2.0 * residual_limit)
+             << ", pc_side = " << side << ", norm_type = " << norm_type << ", ksp_type = " << ksp_type
+             << ", reason = " << reason << std::endl;
         if (!krylov_linear_residual_valid) ++test_failures;
-        pout << "krylov_linear_residual_valid = " << (krylov_linear_residual_valid ? "true" : "false") << std::endl;
 
         double linear_side_norm = std::numeric_limits<double>::quiet_NaN();
         double linear_cell_norm = std::numeric_limits<double>::quiet_NaN();
@@ -2712,6 +2909,15 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         linear_solver->deallocateSolverState();
         fac_pc->deallocateSolverState();
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            PetscErrorCode ierr = MatDestroy(&coupling_reference[ln]);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&rediscretized_reference[ln]);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&operator_reference[ln]);
+            IBTK_CHKERRQ(ierr);
+        }
 
         if (verify_galerkin_operator_borrowing)
         {
@@ -2724,13 +2930,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         }
         pout << "FAC Vec allocation measurement: calibrated and enforced with PETSC_USE_LOG; unavailable without it."
              << std::endl;
-        pout << "fac_residual_work_vector_reuse_exact = "
-             << (fac_residual_work_vector_reuse_error == 0.0 ? "true" : "false") << std::endl;
-        pout << "fac_residual_repeat_valid = " << (fac_residual_repeat_valid ? "true" : "false") << std::endl;
-        pout << "fac_residual_work_vector_reinitialize_exact = "
-             << (fac_residual_work_vector_reinitialize_error == 0.0 ? "true" : "false") << std::endl;
-        pout << "fac_residual_repeat_reinitialize_valid = "
-             << (fac_residual_repeat_reinitialize_valid ? "true" : "false") << std::endl;
+        pout << "fac_residual_repeat_error = " << fac_residual_work_vector_reuse_error
+             << ", reinitialized_repeat_error = " << fac_residual_work_vector_reinitialize_error << std::endl;
 
         jac_op->deallocateOperatorState();
         nonlinear_op.deallocateOperatorState();
@@ -2803,6 +3004,12 @@ main(int argc, char* argv[])
     if (test_case == "set_augmentation_initialized") return run_initialized_matrix_setter(app, true);
     if (test_case == "level_state") return run_level_state(app);
     if (test_case == "foundation") return run_foundation(app);
+    if (test_case == "foundation_coarse_solver")
+    {
+        Pointer<Logger::Appender> abort_appender = new TestAppender();
+        Logger::getInstance()->setAbortAppender(abort_appender);
+        return run_foundation(app);
+    }
     TBOX_ERROR("Unknown component test case: " << test_case << '\n');
     return 1;
 }

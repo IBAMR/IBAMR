@@ -98,6 +98,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 
     // Indicate that this subclass handles initializaing the coarse-grid solver.
     d_coarse_solver_init_subclass = true;
+    if (!input_db || !input_db->keyExists("coarse_solver_type")) d_coarse_solver_type = "PETSC_LEVEL_SOLVER";
 
     // Get values from the input database.
     if (input_db)
@@ -490,6 +491,12 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
+    if (d_coarse_solver_type == "LEVEL_SMOOTHER")
+    {
+        TBOX_ERROR(
+            d_object_name << "::initializeOperatorStateSpecialized():\n"
+                          << "  LEVEL_SMOOTHER is unsupported; select PETSC_LEVEL_SOLVER for the coarse solver.");
+    }
     int ierr;
 
     const double dt = d_new_time - d_current_time;
@@ -707,7 +714,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                           "Stokes+IB operators and SAJ-augmented rediscretized Stokes operators before "
                           "initializeSolverState().\n");
         }
-        if (d_rediscretize_stokes)
+        // A single-level hierarchy has no projected coarse matrix: its coarse
+        // solver is also the finest-level Stokes-plus-IB solver.
+        if (d_rediscretize_stokes || d_coarsest_ln == d_finest_ln)
         {
             p_coarse_petsc_solver->setOperatorMat(nullptr);
             p_coarse_petsc_solver->setAugmentedOperatorMat(d_SAJ_mat[d_coarsest_ln]);

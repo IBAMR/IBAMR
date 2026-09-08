@@ -1,4 +1,4 @@
-test_case = "foundation"
+test_case = "foundation_coarse_solver"
 // Single-level solver-components case.
 // This input is used by implicit_stokes_ib_solver_components_01.cpp to
 // exercise the nonlinear residual, Jacobian, and FAC-preconditioned linear
@@ -43,6 +43,7 @@ stokes_ib_precond_db {
       subdomain_box_size = 8, 8
       subdomain_overlap_size = 0, 0
    }
+   coarse_solver_type = "LEVEL_SMOOTHER"
    coarse_solver_rel_residual_tol = 1.0e-10
    coarse_solver_abs_residual_tol = 1.0e-50
    coarse_solver_max_iterations = 1

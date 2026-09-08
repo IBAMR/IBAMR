@@ -105,8 +105,10 @@ namespace IBAMR
  * Vectors contain side-centered velocity followed by cell-centered pressure on
  * the configured hierarchy and level range.
  *
+ * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
+ * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
  * For example, select PETSc solvers for the coarse level and finer levels with
- * the following input (these are explicit settings, not a list of defaults):
+ * the following input:
  * \verbatim
  level_solver_type = "PETSC_LEVEL_SOLVER"
  coarse_solver_type = "PETSC_LEVEL_SOLVER"
