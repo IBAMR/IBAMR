@@ -655,18 +655,18 @@ IBMethod::updateFixedLEOperators()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (!d_X_LE_new_data[ln])
+        if (ln >= static_cast<int>(d_X_LE_new_data.size()) || !d_X_LE_new_data[ln])
         {
             TBOX_ERROR(d_object_name << "::updateFixedLEOperators(): fixed LE data is not initialized.\n"
-                                     << "Call setUseFixedLEOperators(true) before preprocessIntegrateData().\n");
+                                     << "Call setUseFixedLEOperators(true) before preprocessIntegrateData().");
         }
         ierr = VecCopy(d_X_new_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     d_X_LE_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData>>* X_LE_half_data;
-    bool* X_LE_half_needs_ghost_fill;
+    std::vector<Pointer<LData>>* X_LE_half_data = nullptr;
+    bool* X_LE_half_needs_ghost_fill = nullptr;
     getLECouplingPositionData(&X_LE_half_data, &X_LE_half_needs_ghost_fill, d_half_time);
     if (!X_LE_half_data || !X_LE_half_needs_ghost_fill)
     {
