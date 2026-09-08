@@ -1,7 +1,7 @@
 IBRedundantInitializer:  Deallocating initialization data.
 fd_relative_error = 9e-09
-fac_operator_error = 0, residual_composition_error = 8.52651e-14, elastic_action_norm = 8.45012
-fac_operator_error = 0, residual_composition_error = 8.52651e-14, elastic_action_norm = 8.45012
+fac_operator_error = 0, residual_composition_error = 0, elastic_action_norm = 8.45012
+fac_operator_error = 0, residual_composition_error = 0, elastic_action_norm = 8.45012
 initialized_jacobian_action_error = 4.81914e-14
 krylov_linear_iterations = 1
 actual_residual = 2e-13, reported_residual = 2e-13, acceptance_bound = 0.00404342, pc_side = 1, norm_type = 2, ksp_type = fgmres, reason = 2

@@ -1,0 +1,3 @@
+Fixed: Preserve IB coupling in single-level Galerkin FAC and use a supported coarse solver by default.
+<br>
+(Boyce Griffith, 2026/09/07)
