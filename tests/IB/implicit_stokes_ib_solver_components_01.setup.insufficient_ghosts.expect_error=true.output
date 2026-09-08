@@ -1,0 +1,6 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+PETScMatUtilities::constructPatchLevelSCInterpOp():
+  interpolation stencil exceeds the DOF ghost box.
+  Increase the ghost width of the DOF index data.

@@ -271,8 +271,19 @@ register_probe_kernels()
 }
 
 void
-generate_probes(const unsigned int& structure, const int& level, int& count, std::vector<IBTK::Point>& positions, void*)
+generate_probes(const unsigned int& structure,
+                const int& level,
+                int& count,
+                std::vector<IBTK::Point>& positions,
+                void* ctx)
 {
+    if (ctx && *static_cast<bool*>(ctx))
+    {
+        count = 1;
+        positions.resize(1);
+        for (int d = 0; d < NDIM; ++d) positions[0](d) = 0.25 / 16.0;
+        return;
+    }
     TBOX_ASSERT(structure == 0 && level == 0);
     count = probe.size() * probe.size();
     positions.resize(count);
@@ -408,11 +419,19 @@ main(int argc, char* argv[])
     int failures = 0;
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "interpolation.log");
+        const std::string setup_test = app->getInputDatabase()->getStringWithDefault("setup_test", "");
+        bool setup_probe = !setup_test.empty();
+        const bool late_fixed = setup_test == "late_fixed";
+        if (setup_probe)
+        {
+            Pointer<Logger::Appender> appender = new TestAppender();
+            Logger::getInstance()->setAbortAppender(appender);
+        }
         constexpr int max_bspline_order = IBTK_MAX_BSPLINE_ORDER;
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
-        if (!unsupported) failures += check_kernels();
+        if (!unsupported && !setup_probe) failures += check_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
-        method->setUseFixedLEOperators(true);
+        method->setUseFixedLEOperators(!late_fixed);
         Pointer<IBStandardForceGen> force = new IBStandardForceGen();
         method->registerIBLagrangianForceFunction(force);
         Pointer<CartesianGridGeometry<NDIM>> geometry =
@@ -428,13 +447,11 @@ main(int argc, char* argv[])
         Pointer<IBRedundantInitializer> initializer =
             new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
         initializer->setStructureNamesOnLevel(0, { "probes" });
-        initializer->registerInitStructureFunction(generate_probes);
+        initializer->registerInitStructureFunction(generate_probes, &setup_probe);
         method->registerLInitStrategy(initializer);
         gridding->makeCoarsestLevel(hierarchy, 0.0);
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
-        // This fixture deliberately uses a single patch/rank; all tested stencils
-        // lie in its interior, so neither ghost-numbering nor boundary extensions
-        // can obscure the centering/column assertions.
+        // Interior probes check centering; setup probes exercise periodic ghost support.
         if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
             TBOX_ERROR("Interpolation fixture requires one patch on one rank\n");
         VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
@@ -442,6 +459,7 @@ main(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double>> velocity = new SideVariable<NDIM, double>("velocity");
         Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("indices");
         const int u = variables->registerVariableAndContext(velocity, context, method->getMinimumGhostCellWidth());
+        // Match the implicit integrator's DOF allocation, including IBMethod's input minimum.
         const int dof = variables->registerVariableAndContext(indices, context, method->getMinimumGhostCellWidth());
         level->allocatePatchData(u, 0.0);
         level->allocatePatchData(dof, 0.0);
@@ -455,6 +473,51 @@ main(int argc, char* argv[])
         method->initializePatchHierarchy(hierarchy, gridding, u, synch, ghost_fill, 0, 0.0, true);
         method->freeLInitStrategy();
         initializer.setNull();
+
+        if (setup_probe)
+        {
+            method->preprocessIntegrateData(0.0, 0.125, 1);
+            if (late_fixed) method->setUseFixedLEOperators(true);
+            method->updateFixedLEOperators();
+            if (setup_test == "wide_kernel")
+            {
+                // Applications may still register this evaluator with a smaller built-in catalog.
+                if (max_bspline_order < 8)
+                    IBOperatorRegistry::register_interpolation_matrix_sc(
+                        IBKernel("BSPLINE_8"), IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<8>{} });
+                Mat matrix = nullptr;
+                method->constructInterpOp(matrix, IBKernel("BSPLINE_8"), counts, dof, 0.125);
+                Vec ones = nullptr, residual = nullptr;
+                ierr = MatCreateVecs(matrix, &ones, &residual);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecSet(ones, 1.0);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatMult(matrix, ones, residual);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecShift(residual, -1.0);
+                IBTK_CHKERRQ(ierr);
+                PetscReal error = 0.0;
+                ierr = VecNorm(residual, NORM_INFINITY, &error);
+                IBTK_CHKERRQ(ierr);
+                failures += !std::isfinite(error) || error > 1.0e-12;
+                pout << "dof_ghost_width = " << method->getMinimumGhostCellWidth()(0) << '\n'
+                     << "constant_interpolation_error = " << error << '\n';
+                ierr = VecDestroy(&ones);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&residual);
+                IBTK_CHKERRQ(ierr);
+                ierr = MatDestroy(&matrix);
+                IBTK_CHKERRQ(ierr);
+            }
+            method->postprocessIntegrateData(0.0, 0.125, 1);
+            method->postprocessData();
+            level->deallocatePatchData(u);
+            level->deallocatePatchData(dof);
+            variables->removePatchDataIndex(u);
+            variables->removePatchDataIndex(dof);
+            pout << "test_failures = " << failures << std::endl;
+            return failures;
+        }
 
         if (unsupported)
         {
