@@ -1,9 +1,10 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fac_operator_error = 0, residual_composition_error = 1.98952e-13, elastic_action_norm = 73.764
-fac_operator_error = 0, residual_composition_error = 1.98952e-13, elastic_action_norm = 73.764
-initialized_jacobian_action_error = 0
+FAC checks use stated accuracy bounds; attained roundoff may vary.
+fac_operator_valid = true, residual_composition_valid = true, absolute_inf_bound = 1e-09, elastic_action_norm = 73.764
+fac_operator_valid = true, residual_composition_valid = true, absolute_inf_bound = 1e-09, elastic_action_norm = 73.764
+initialized_jacobian_action_valid = true, L2_bound = 2.02411e-07
 krylov_linear_iterations = 4
-actual_residual = 6e-04, reported_residual = 6e-04, acceptance_bound = 0.00404822, pc_side = 1, norm_type = 2, ksp_type = fgmres, reason = 2
+physical_residual_valid = true, acceptance_bound = 0.00404822, pc_side = 1, norm_type = 2, ksp_type = fgmres, reason = 2
 FAC Vec allocation measurement: calibrated and enforced with PETSC_USE_LOG; unavailable without it.
 fac_residual_repeat_error = 0, reinitialized_repeat_error = 0
 test_failures = 0
