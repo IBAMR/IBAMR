@@ -1,3 +1,4 @@
+shell_solve_error = 5.81124e-12
 cc_state_valid = true
 sc_state_valid = true
 stokes_state_valid = true

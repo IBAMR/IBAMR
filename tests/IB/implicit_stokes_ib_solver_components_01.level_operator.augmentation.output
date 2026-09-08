@@ -1,6 +1,7 @@
 matrix_identity_valid = true
 creator_lifetime_valid = true
 retained_references_valid = true
-matrix_values_valid = true
-level_solve_valid = true
+matrix_error = 0
+level_solve_error = 1.74272e-12
+velocity_pressure_mapping_error = 1.26621e-12
 test_failures = 0
