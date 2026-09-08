@@ -2,7 +2,8 @@ IBRedundantInitializer:  Deallocating initialization data.
 outer_initialization_strategy_error = 0
 outer_initialization_action_change = 0.538316
 post_initialization_supplied_error = 0
-comparison_errors (residual, assembled, centered_fd, mffd, apply_add) = 2e-16 9e-16 3e-09 9e-07 0e+00
+comparison_errors (residual, assembled, centered_fd, apply_add) = 2e-16 9e-16 3e-09 0e+00
+quadratic_mffd_action_norms = 0.25 0.5
 time_state_scaling_valid = true
 nontrivial_coupling_valid = true
 updated_base_state_valid = true
