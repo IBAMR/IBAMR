@@ -88,6 +88,8 @@ public:
      * Passing nullptr selects the strategy action instead. formJacobian() does
      * not rebuild or rescale this matrix.
      * The operator retains a PETSc reference until replacement or deallocation.
+     * Reinitialization releases the retained matrix; install a current matrix
+     * after any enclosing solver has initialized this operator.
      */
     void setIBCouplingJacobian(Mat& SAJ_mat);
 
@@ -136,12 +138,20 @@ public:
      * of StaggeredStokesIBOperator::Context::use_fixed_le_operators, and initializes the shared Stokes
      * operator. The caller must first prepare the strategy's time-step data;
      * see StaggeredStokesIBOperator::Context.
+     * Reinitialization deallocates the previous state, including the Jacobian
+     * base and supplied coupling matrix. After enclosing solver initialization,
+     * call formJacobian() at the intended base before using the strategy action,
+     * and install any supplied coupling matrix after its construction is complete.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Deallocate hierarchy-dependent operator state.
+     *
+     * Releases the cached base and retained coupling matrix and deallocates the
+     * shared Stokes operator. A subsequent initialization requires fresh setup
+     * as described by initializeOperatorState().
      */
     void deallocateOperatorState() override;
 
