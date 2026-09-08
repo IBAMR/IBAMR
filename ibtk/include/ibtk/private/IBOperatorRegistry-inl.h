@@ -28,6 +28,11 @@ template <class Evaluator>
 inline void
 IBOperatorRegistry::register_interpolation_matrix_sc(const IBKernelTensorProduct& kernel, Evaluator evaluator)
 {
+    for (std::size_t d = 0; d < kernel.size(); ++d)
+    {
+        if (kernel[d] == IBKernel::UNKNOWN)
+            TBOX_ERROR("IBOperatorRegistry::register_interpolation_matrix_sc(): unspecified kernel " << kernel << '\n');
+    }
     auto& builders = get_builders();
     if (builders.find(kernel) != builders.end())
     {
