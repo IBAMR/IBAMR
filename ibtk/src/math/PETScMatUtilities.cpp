@@ -935,9 +935,12 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 }
             }
             const int local_idx = NDIM * k + axis;
-#if !defined(NDEBUG)
-            TBOX_ASSERT(SideGeometry<NDIM>::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis));
-#endif
+            if (!SideGeometry<NDIM>::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis))
+            {
+                TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                           << "  interpolation stencil exceeds the DOF ghost box.\n"
+                           << "  Increase the ghost width of the DOF index data.");
+            }
             for (Box<NDIM>::Iterator b(stencil_box_axis); b; b++)
             {
                 const int dof_index = (*dof_index_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
