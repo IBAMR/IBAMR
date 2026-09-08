@@ -33,6 +33,8 @@ namespace IBTK
  * applies in the remaining directions. Two equal factors are stored as a single
  * factor.
  *
+ * Factors may be IBKernel::UNKNOWN to describe an unspecified kernel.
+ *
  * Composite B-spline names have the form COMPOSITE_BSPLINE_N_M, where N and M
  * are positive orders. For single-digit orders, COMPOSITE_BSPLINE_NM is an
  * equivalent spelling. For example, COMPOSITE_BSPLINE_78 and

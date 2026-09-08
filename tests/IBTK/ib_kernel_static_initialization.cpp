@@ -16,10 +16,12 @@
 namespace
 {
 constexpr IBTK::IBKernel separate_translation_unit_kernel = IBTK::IBKernel::IB_4;
-}
+constexpr IBTK::IBKernel separate_translation_unit_unknown = IBTK::IBKernel::UNKNOWN;
+} // namespace
 
 bool
 ib_kernel_static_initialization_valid()
 {
-    return separate_translation_unit_kernel == IBTK::IBKernel("IB_4");
+    return separate_translation_unit_kernel == IBTK::IBKernel("IB_4") &&
+           separate_translation_unit_unknown == IBTK::IBKernel("unknown");
 }

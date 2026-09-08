@@ -31,12 +31,18 @@ namespace IBTK
  * aliases for BSPLINE_1 and BSPLINE_2, respectively. Applications may define
  * additional names, but must provide the corresponding kernel implementations.
  *
+ * UNKNOWN denotes an unspecified kernel. It is a valid name, but cannot be
+ * evaluated or used to register an evaluator. It is not a standard kernel.
+ *
  * The same name has the same encoded value on every MPI process. Use getName()
  * to write kernel names to input or restart files.
  */
 class IBKernel
 {
 public:
+    /*! \brief An unspecified kernel. */
+    static const IBKernel UNKNOWN;
+
     /*! \name Standard scalar kernels */
     //\{
     static const IBKernel BSPLINE_1;

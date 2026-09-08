@@ -54,7 +54,7 @@ user_defined_kernel(double r)
 }
 
 void
-check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
+check_patch(Pointer<Patch<NDIM>> patch, bool expect_error, const std::string& error_kernel)
 {
     const Box<NDIM>& box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
@@ -87,13 +87,18 @@ check_patch(Pointer<Patch<NDIM>> patch, bool expect_error)
     TBOX_ASSERT(LEInteractor::isKnownKernel("IB_4"));
     TBOX_ASSERT(!LEInteractor::isKnownKernel("BAD NAME"));
     TBOX_ASSERT(!LEInteractor::isKnownKernel(static_cast<const char*>(nullptr)));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel("unknown"));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel(std::string("UnKnOwN")));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel(IBKernel::UNKNOWN));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel({ IBKernel::UNKNOWN, IBKernel::IB_4 }));
+    TBOX_ASSERT(!LEInteractor::isKnownKernel({ IBKernel::IB_4, IBKernel::UNKNOWN }));
     if (expect_error)
     {
         Pointer<Logger::Appender> abort_appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(abort_appender);
         PIO::logOnlyNodeZero("output");
         string_value.assign(NDIM, 17.0);
-        LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, unsupported);
+        LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, error_kernel);
         return;
     }
 
@@ -190,7 +195,7 @@ main(int argc, char* argv[])
 {
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     const std::string input_file = argc > 1 ? argv[1] : "";
-    const bool expect_error = input_file.find("unsupported") != std::string::npos;
+    const bool expect_error = input_file.find("expect_error=true") != std::string::npos;
 
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "le_interactor_kernels.log");
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -212,7 +217,9 @@ main(int argc, char* argv[])
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     PatchLevel<NDIM>::Iterator p(level);
     TBOX_ASSERT(static_cast<bool>(p));
-    check_patch(level->getPatch(p()), expect_error);
+    check_patch(level->getPatch(p()),
+                expect_error,
+                app_initializer->getInputDatabase()->getStringWithDefault("error_kernel", "COMPOSITE_BSPLINE_12"));
 
     std::ofstream output("output");
     TBOX_ASSERT(static_cast<bool>(output));

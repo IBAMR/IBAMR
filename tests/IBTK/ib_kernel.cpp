@@ -79,8 +79,9 @@ main(int argc, char* argv[])
                   "legacy C strings must convert to tensor products");
     static_assert(std::is_convertible<IBKernel, IBKernelTensorProduct>::value,
                   "scalar kernels must convert to tensor products");
+    static_assert(!std::is_default_constructible<IBKernel>::value, "scalar kernels require explicit construction");
     static_assert(!std::is_default_constructible<IBKernelTensorProduct>::value,
-                  "tensor products have no unspecified state");
+                  "tensor products require explicit construction");
     static_assert(!std::is_constructible<IBKernelTensorProduct, std::vector<IBKernel>>::value,
                   "dynamic factor containers are not a public construction surface");
     static_assert(!std::is_constructible<IBKernelTensorProduct, std::array<IBKernel, NDIM>>::value,
@@ -120,7 +121,7 @@ main(int argc, char* argv[])
     // Ranks construct shared names in opposite orders with disjoint extras.
     // Compare the actual integers via typed MPI transport, not decoded names
     // or host-order bytes. The serial fixtures check the same value path.
-    constexpr const char* COMMON_NAMES[] = { "IB_4", "APPLICATION_KERNEL", "ABCDEFGHIJKLMNOPQRSTUVWX" };
+    constexpr const char* COMMON_NAMES[] = { "IB_4", "APPLICATION_KERNEL", "ABCDEFGHIJKLMNOPQRSTUVWX", "unknown" };
     constexpr std::size_t COMMON_NAME_COUNT = std::size(COMMON_NAMES);
     std::array<std::uint64_t, ENCODED_BLOCK_COUNT * COMMON_NAME_COUNT> common_blocks{};
     for (std::size_t j = 0; j < COMMON_NAME_COUNT; ++j)
@@ -181,6 +182,7 @@ main(int argc, char* argv[])
     TBOX_ASSERT(catalog.size() == n_standard_values);
     TBOX_ASSERT(std::is_sorted(catalog.begin(), catalog.end()));
     TBOX_ASSERT(std::set<IBKernel>(catalog.begin(), catalog.end()).size() == catalog.size());
+    TBOX_ASSERT(std::find(catalog.begin(), catalog.end(), IBKernel::UNKNOWN) == catalog.end());
     for (std::size_t i = 0; i < n_standard_values; ++i)
     {
         TBOX_ASSERT(standard_values[i] == IBKernel(scalar_names[i]));
@@ -191,6 +193,31 @@ main(int argc, char* argv[])
             TBOX_ASSERT((standard_values[i] < standard_values[j]) == (i < j));
     }
     TBOX_ASSERT(ib_kernel_static_initialization_valid());
+    for (const auto& spelling : spellings("UNKNOWN"))
+    {
+        TBOX_ASSERT(IBKernel::isValidName(spelling));
+        TBOX_ASSERT(IBKernelTensorProduct::isValidName(spelling));
+        TBOX_ASSERT(IBKernel(spelling) == IBKernel::UNKNOWN);
+        TBOX_ASSERT(IBKernel(spelling.c_str()) == IBKernel::UNKNOWN);
+        TBOX_ASSERT(IBKernel(spelling).getName() == "UNKNOWN");
+        TBOX_ASSERT(IBKernelTensorProduct(spelling) == IBKernel::UNKNOWN);
+        TBOX_ASSERT(IBKernelTensorProduct(spelling.c_str()) == IBKernel::UNKNOWN);
+    }
+    const IBKernelTensorProduct unspecified(IBKernel::UNKNOWN);
+    const IBKernelTensorProduct unknown_normal({ IBKernel::UNKNOWN, IBKernel::IB_4 });
+    const IBKernelTensorProduct unknown_transverse({ IBKernel::IB_4, IBKernel::UNKNOWN });
+    TBOX_ASSERT(unspecified.size() == 1 && unspecified[0] == IBKernel::UNKNOWN);
+    TBOX_ASSERT(IBKernelTensorProduct({ IBKernel::UNKNOWN, IBKernel::UNKNOWN }) == unspecified);
+    TBOX_ASSERT(unknown_normal.size() == 2 && unknown_normal[0] == IBKernel::UNKNOWN &&
+                unknown_normal[1] == IBKernel::IB_4);
+    TBOX_ASSERT(unknown_transverse.size() == 2 && unknown_transverse[0] == IBKernel::IB_4 &&
+                unknown_transverse[1] == IBKernel::UNKNOWN);
+    TBOX_ASSERT(unknown_normal != unknown_transverse);
+    for (const char* name : { "INVALID", "UNSUPPORTED", "UNKNOWN_CUSTOM" })
+    {
+        TBOX_ASSERT(IBKernel(name).getName() == name);
+        TBOX_ASSERT(IBKernel(name) != IBKernel::UNKNOWN);
+    }
     for (const char* name : scalar_names)
         for (const auto& spelling : spellings(name))
         {
@@ -334,6 +361,8 @@ main(int argc, char* argv[])
             out << scalar_name << " = " << IBKernelTensorProduct(scalar_name) << '\n';
         for (const auto& composite : higher_order_composites)
             out << composite.name << " = " << IBKernelTensorProduct(composite.name) << '\n';
+        out << "unspecified kernel = " << IBKernel::UNKNOWN.getName() << '\n';
+        out << "unspecified products = " << unspecified << ' ' << unknown_normal << ' ' << unknown_transverse << '\n';
     }
     return 0;
 }

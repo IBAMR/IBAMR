@@ -47,6 +47,7 @@ constexpr IBKernel::IBKernel(const std::array<std::uint64_t, NAME_BLOCK_COUNT>& 
 {
 }
 
+inline constexpr IBKernel IBKernel::UNKNOWN(IBKernel::from_canonical_name("UNKNOWN"));
 inline constexpr IBKernel IBKernel::BSPLINE_1(IBKernel::from_canonical_name("BSPLINE_1"));
 inline constexpr IBKernel IBKernel::BSPLINE_2(IBKernel::from_canonical_name("BSPLINE_2"));
 inline constexpr IBKernel IBKernel::BSPLINE_3(IBKernel::from_canonical_name("BSPLINE_3"));
