@@ -1,3 +1,0 @@
-Fixed: Preserve the installed Stokes-IB Jacobian matrix when setting the same handle again.
-<br>
-(Boyce Griffith, 2026/09/07)
