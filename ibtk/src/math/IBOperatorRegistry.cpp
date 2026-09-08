@@ -68,6 +68,12 @@ IBOperatorRegistry::construct_interpolation_matrix_sc(Mat& mat,
                                                       int dof_index_idx,
                                                       Pointer<PatchLevel<NDIM>> patch_level)
 {
+    for (std::size_t d = 0; d < kernel.size(); ++d)
+    {
+        if (kernel[d] == IBKernel::UNKNOWN)
+            TBOX_ERROR("IBOperatorRegistry::construct_interpolation_matrix_sc(): unspecified kernel " << kernel
+                                                                                                      << '\n');
+    }
     const auto& builders = get_builders();
     const auto builder = builders.find(kernel);
     if (builder == builders.end())
