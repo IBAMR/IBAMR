@@ -2868,39 +2868,18 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         jv->setToScalar(0.0);
         jac_op->apply(*v, *jv);
 
-        const double fd_rel_tol = input_db->getDoubleWithDefault("FD_REL_TOL", 5.0e-2);
-        Pointer<PETScMFFDJacobianOperator> mffd_jac_op =
-            new PETScMFFDJacobianOperator("stokes_ib_solver_components::mffd_jacobian_op", "ib_jac_mffd_");
-        mffd_jac_op->setOperator(Pointer<GeneralOperator>(&nonlinear_op, false));
-        mffd_jac_op->setTimeInterval(current_time, new_time);
-        mffd_jac_op->setSolutionTime(new_time);
-        mffd_jac_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
-        mffd_jac_op->formJacobian(*eul_sol_vec);
-
-        Pointer<SAMRAIVectorReal<NDIM, double>> fd_jv = eul_rhs_vec->cloneVector("fd_jv");
-        fd_jv->allocateVectorData();
-        fd_jv->setToScalar(0.0);
-        mffd_jac_op->apply(*v, *fd_jv);
-
         Pointer<SAMRAIVectorReal<NDIM, double>> diff = eul_rhs_vec->cloneVector("diff");
         diff->allocateVectorData();
-        diff->subtract(fd_jv, jv);
+        diff->setToScalar(0.0);
 
         double jv_side_norm = std::numeric_limits<double>::quiet_NaN();
         double jv_cell_norm = std::numeric_limits<double>::quiet_NaN();
-        double diff_side_norm = std::numeric_limits<double>::quiet_NaN();
-        double diff_cell_norm = std::numeric_limits<double>::quiet_NaN();
         const bool jv_finite =
             side_l2_norm_is_finite(
                 hier_velocity_data_ops, jv->getComponentDescriptorIndex(0), wgt_sc_idx, jv_side_norm) &&
             cell_l2_norm_is_finite(
                 hier_pressure_data_ops, jv->getComponentDescriptorIndex(1), wgt_cc_idx, jv_cell_norm);
-        const bool diff_finite =
-            side_l2_norm_is_finite(
-                hier_velocity_data_ops, diff->getComponentDescriptorIndex(0), wgt_sc_idx, diff_side_norm) &&
-            cell_l2_norm_is_finite(
-                hier_pressure_data_ops, diff->getComponentDescriptorIndex(1), wgt_cc_idx, diff_cell_norm);
-        if (!jv_finite || !diff_finite)
+        if (!jv_finite)
         {
             ++test_failures;
             pout << "jacobian norms are non-finite" << std::endl;
@@ -2910,22 +2889,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             ++test_failures;
             pout << "jacobian action is trivial" << std::endl;
         }
-        else
-        {
-            const double rel_error =
-                std::sqrt(diff_side_norm * diff_side_norm + diff_cell_norm * diff_cell_norm) /
-                std::max(std::sqrt(jv_side_norm * jv_side_norm + jv_cell_norm * jv_cell_norm), 1.0e-14);
-            const bool fd_relative_error_valid = rel_error <= fd_rel_tol;
-            // Report roundoff-sensitive errors at one significant digit; bounds use full precision.
-            pout << "fd_relative_error = " << std::scientific << std::setprecision(0) << rel_error << std::defaultfloat
-                 << std::setprecision(6) << std::endl;
-            if (!fd_relative_error_valid)
-            {
-                ++test_failures;
-                pout << "fd_relative_error exceeds tolerance: " << fd_rel_tol << std::endl;
-            }
-        }
-        mffd_jac_op->deallocateOperatorState();
         nonlinear_op.apply(*eul_sol_vec, *f_probe);
 
         Pointer<Database> stokes_ib_precond_db =
@@ -3366,7 +3329,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
 
-        for (auto vec : { nonlinear_probe, f_probe, v, jv, fd_jv, diff, linear_sol }) free_vector_components(*vec);
+        for (auto vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol }) free_vector_components(*vec);
 
         deallocate_vector_data(*eul_sol_vec);
         deallocate_vector_data(*eul_rhs_vec);

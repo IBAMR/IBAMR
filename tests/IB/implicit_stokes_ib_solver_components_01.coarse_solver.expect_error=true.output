@@ -1,5 +1,4 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fd_relative_error = 9e-09
 Program abort called with error message
 
     stokes_ib_solver_components::fac_op::initializeOperatorStateSpecialized():

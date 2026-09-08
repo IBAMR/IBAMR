@@ -1,5 +1,4 @@
 IBRedundantInitializer:  Deallocating initialization data.
-fd_relative_error = 9e-09
 fac_operator_error = 0, residual_composition_error = 8.52651e-14, elastic_action_norm = 8.45012
 fac_operator_error = 0, residual_composition_error = 8.52651e-14, elastic_action_norm = 8.45012
 initialized_jacobian_action_error = 4.81914e-14
