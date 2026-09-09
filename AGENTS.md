@@ -45,13 +45,24 @@ alongside [CONTRIBUTING.md](CONTRIBUTING.md) and the surrounding code.
   use `s_`. Enum enumerators use uppercase names such as `SKEW_SYMMETRIC`; follow
   the existing `enum_to_string` and `string_to_enum` conventions when adding
   conversions. Follow the surrounding include style.
+- Use `NDIM` for spatial dimension. Introduce a separate dimension template
+  parameter only for an object whose dimension can actually differ from `NDIM`,
+  not for hypothetical reuse.
+- Use `auto` only when the exact type is evident from the declaration or
+  right-hand side, such as `std::make_shared<Foo>()`. Use the explicit index type
+  for `box.lower()`. Necessary deduction for lambdas or genuinely dependent
+  template types is a narrow exception; do not add elaborate machinery or type
+  erasure just to avoid `auto`.
 - Keep headers self-contained so they compile independently. Include the
   corresponding `ibamr/config.h` or `ibtk/config.h`. Use `namespaces.h` and
   `app_namespaces.h` only in source files, not library headers.
-- Public headers declare interfaces, not function bodies. Put ordinary
-  definitions in `.cpp` files; put visible template, `constexpr`, and inline
-  definitions in private inline headers included by the declaration header.
-  A one-line body is still an implementation.
+- Put class and struct definitions in declaration headers; an implementation-only
+  nested type may remain in its owner's private section. Ordinary `.cpp`-local
+  helper types stay in their owning implementation. Public headers declare
+  interfaces, not function bodies. Put ordinary function definitions in `.cpp`
+  files; put visible template, `constexpr`, and inline definitions in matching
+  private inline headers included by the declaration header. A one-line body is
+  still an implementation.
 - Keep algorithm-specific helper types in their owning implementation, not the
   public API. A source-private shared header is appropriate for two genuine
   implementation consumers. Do not install it merely to make inclusion easier.
@@ -67,6 +78,16 @@ alongside [CONTRIBUTING.md](CONTRIBUTING.md) and the surrounding code.
 - Order declarations `public`, `protected`, then `private`; keep definitions in
   declaration order. Avoid public member data. In declarations, omit top-level
   `const` on by-value parameters; definitions may use it for unchanged values.
+
+Assign directly to members rather than adding aliases such as `auto& dx = d_dx;`
+just to rename them. Spelling an explicit type for the same alias does not help:
+
+```cpp
+for (unsigned int d = 0; d < NDIM; ++d)
+{
+    d_dx[d] = dx0[d] / static_cast<double>(ratio(d));
+}
+```
 
 ## Comments and class documentation
 
@@ -142,9 +163,17 @@ repeated operation, not a wrapper that merely renames a single comparison.
 
 ## Errors, ownership, and numerical behavior
 
+- Prefer validating construction-time arguments and invariants during construction;
+  omit repeated checks of unchanged validated state. Continue checking new
+  arguments and state or lifecycle requirements that can change. Mutations must
+  preserve invariants.
+- Use `static_assert` at the earliest meaningful compile-time scope for compile-time
+  requirements. Retain `static_assert` checks of function-template arguments only
+  known at use; they have no runtime overhead.
 - Use `TBOX_ERROR()` for fatal IBAMR runtime errors, with the surrounding
   stream-style formatting. Avoid C++ exceptions and catch-and-rethrow/translate
   scaffolding unless an existing external interface requires that boundary.
+  Retain `TBOX_ERROR()` for invalid external input that must fail in Release.
 - Call `TBOX_ERROR()` on the rank that detects the error. Do not broadcast an
   error string or add a collective just so all ranks report it. Communication
   needed to establish successful shared state is a different matter.
