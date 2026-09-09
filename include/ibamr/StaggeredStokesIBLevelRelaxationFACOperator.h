@@ -176,12 +176,12 @@ public:
     /*!
      * \brief Set the Lagrangian force derivative A for the finest-level structure.
      */
-    void setIBForceJacobian(Mat& A);
+    void setIBForceJacobian(Mat A);
 
     /*!
      * \brief Set interpolation J from finest-level Eulerian data to Lagrangian velocity.
      */
-    void setIBInterpOp(Mat& J);
+    void setIBInterpOp(Mat J);
 
     //\}
 
@@ -358,14 +358,13 @@ private:
         /*! \brief Release existing vectors and take ownership of the source vectors. */
         LevelResidualWorkspace& operator=(LevelResidualWorkspace&& from) noexcept;
 
-        /*! \brief Collectively allocate an empty workspace on PETSC_COMM_WORLD, optionally with RHS storage. */
-        void initialize(PetscInt local_size, bool allocate_rhs);
+        /*! \brief Collectively allocate an empty workspace on PETSC_COMM_WORLD. */
+        void initialize(PetscInt local_size);
         /*! \brief Release all vectors and leave the workspace empty. */
         void deallocate();
 
         Vec solution = nullptr;
         Vec residual = nullptr;
-        Vec rhs = nullptr;
     };
 
     /*

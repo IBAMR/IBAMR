@@ -2817,7 +2817,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         ctx.u_synch_scheds = u_synch_scheds;
         ctx.u_ghost_fill_scheds = u_ghost_fill_scheds;
         ctx.f_prolongation_scheds = f_prolongation_scheds;
-        ctx.patch_level = patch_hierarchy->getPatchLevel(finest_ln);
         ctx.u_idx = u_scratch_idx;
         ctx.f_idx = f_scratch_idx;
         ctx.u_current_idx = u_current_idx;
@@ -3279,8 +3278,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         jac_op->formJacobian(*eul_sol_vec);
         if (finest_ln == 0)
         {
-            Mat SAJ = fac_op->getEulerianElasticityLevelOp(finest_ln);
-            jac_op->setIBCouplingJacobian(SAJ);
+            jac_op->setIBCouplingJacobian(fac_op->getEulerianElasticityLevelOp(finest_ln));
         }
         // Multilevel application deliberately uses the strategy action.
         jac_op->apply(*v, *diff);

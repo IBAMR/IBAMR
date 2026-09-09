@@ -16,7 +16,6 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBJacobianFACPreconditioner.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/FACPreconditionerStrategy.h>
 
@@ -38,64 +37,11 @@ StaggeredStokesIBJacobianFACPreconditioner::StaggeredStokesIBJacobianFACPrecondi
     Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
+    : StaggeredStokesFACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
     // intentionally blank
     return;
 } // StaggeredStokesIBJacobianFACPreconditioner
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::setVelocityPoissonSpecifications(
-    const PoissonSpecifications& U_problem_coefs)
-{
-    StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
-    }
-    return;
-} // setVelocityPoissonSpecifications
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::setComponentsHaveNullSpace(const bool has_velocity_nullspace,
-                                                                       const bool has_pressure_nullspace)
-{
-    StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-    }
-    return;
-} // setComponentsHaveNullSpace
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
-{
-    StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    }
-    return;
-} // setPhysicalBcCoefs
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
-{
-    StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
-    }
-    return;
-} // setPhysicalBoundaryHelper
 
 void
 StaggeredStokesIBJacobianFACPreconditioner::setIBTimeSteppingType(const TimeSteppingType time_stepping_type)
@@ -109,7 +55,7 @@ StaggeredStokesIBJacobianFACPreconditioner::setIBTimeSteppingType(const TimeStep
 } // setIBTimeSteppingType
 
 void
-StaggeredStokesIBJacobianFACPreconditioner::setIBForceJacobian(Mat& A_mat)
+StaggeredStokesIBJacobianFACPreconditioner::setIBForceJacobian(Mat A_mat)
 {
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
     if (fac_strategy)
@@ -120,7 +66,7 @@ StaggeredStokesIBJacobianFACPreconditioner::setIBForceJacobian(Mat& A_mat)
 } // setIBForceJacobian
 
 void
-StaggeredStokesIBJacobianFACPreconditioner::setIBInterpOp(Mat& J_mat)
+StaggeredStokesIBJacobianFACPreconditioner::setIBInterpOp(Mat J_mat)
 {
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
     if (fac_strategy)
