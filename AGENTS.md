@@ -365,10 +365,13 @@ appropriate to the change. Use joined job syntax such as `-j2` if needed.
   formatting was run.
 - Run `git diff --check`, stage only intended paths/hunks, and inspect both the
   staged diff and complete PR diff, including comments and fixtures. Review changed
-  comments for clarity and accuracy; the presence of a Doxygen block is not
-  sufficient. Keep generated artifacts and logs out of commits. Preserve the
-  contributor's established Git identity; do not invent author information or
-  assistance/co-author tags.
+  comments for clarity and accuracy. Apply the two questions to the actual changed
+  API documentation, comparing it with documentation where the API is defined and
+  in relevant sibling classes. Remove unnecessary inherited or internal repetition
+  while preserving needed differences and caller/subclass guarantees. A Doxygen
+  block alone is not sufficient. Keep generated artifacts and logs out of commits.
+  Preserve the contributor's established Git identity; do not invent author
+  information or assistance/co-author tags.
 - Keep PR descriptions to one or two concrete sentences. Retain the repository's
   PR template when applicable and keep detailed build/test evidence in the task
   return, not a long PR body.
