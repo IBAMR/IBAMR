@@ -29,6 +29,8 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <petscao.h>
+#include <petscis.h>
 #include <petsclog.h>
 #include <petscvec.h>
 
@@ -79,22 +81,17 @@ level_covers_entire_physical_domain(const Pointer<PatchLevel<NDIM>>& level)
     return uncovered_domain.isEmpty();
 }
 
-/*! \brief Cache the named field's local coupled DOF indices. */
+/*! \brief Construct the named field's local coupled DOF indices. */
 void
-construct_cached_field_is(const std::vector<std::set<int>>& field_is,
-                          const std::vector<std::string>& field_names,
-                          const std::string& field_name,
-                          IS& local_is)
+construct_field_is(const std::vector<std::set<int>>& field_is,
+                   const std::vector<std::string>& field_names,
+                   const std::string& field_name,
+                   IS& local_is)
 {
-    if (local_is)
-    {
-        return;
-    }
-
     const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
     if (field_name_it == field_names.end())
     {
-        TBOX_ERROR("construct_cached_field_is():\n"
+        TBOX_ERROR("construct_field_is():\n"
                    << "  unable to locate " << field_name << " field DOFs.\n");
     }
 
@@ -110,15 +107,10 @@ construct_cached_field_is(const std::vector<std::set<int>>& field_is,
     return;
 }
 
-/*! \brief Cache the mapping from compact velocity indices to coupled indices. */
+/*! \brief Construct the mapping from compact velocity indices to coupled indices. */
 void
-construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_block_mat, AO& velocity_field_ao)
+construct_velocity_field_ao(IS velocity_field_is_local, Mat velocity_block_mat, AO& velocity_field_ao)
 {
-    if (velocity_field_ao)
-    {
-        return;
-    }
-
     PetscInt n_velocity_local = 0;
     PetscInt row_start = 0;
     PetscInt row_end = 0;
@@ -128,7 +120,7 @@ construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_bloc
     IBTK_CHKERRQ(ierr);
     if (n_velocity_local != row_end - row_start)
     {
-        TBOX_ERROR("construct_cached_velocity_field_ao():\n"
+        TBOX_ERROR("construct_velocity_field_ao():\n"
                    << "  local velocity-field DOF count (" << n_velocity_local
                    << ") does not match local velocity-block row count (" << row_end - row_start << ").\n");
     }
@@ -148,6 +140,41 @@ construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_bloc
     IBTK_CHKERRQ(ierr);
 
     return;
+}
+
+/*! \brief Insert compact velocity rows into coupled numbering. */
+void
+insert_velocity_block_rows(Mat source, AO mapping, Mat destination)
+{
+    PetscInt row_start = 0, row_end = 0;
+    int ierr = MatGetOwnershipRange(source, &row_start, &row_end);
+    IBTK_CHKERRQ(ierr);
+    std::vector<PetscInt> mapped_cols;
+    for (PetscInt row = row_start; row < row_end; ++row)
+    {
+        PetscInt ncols = 0;
+        const PetscInt* cols = nullptr;
+        const PetscScalar* vals = nullptr;
+        ierr = MatGetRow(source, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+
+        mapped_cols.resize(static_cast<std::size_t>(ncols));
+        for (PetscInt k = 0; k < ncols; ++k)
+        {
+            mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+        }
+        ierr = AOApplicationToPetsc(mapping, ncols, mapped_cols.data());
+        IBTK_CHKERRQ(ierr);
+
+        PetscInt full_row = row;
+        ierr = AOApplicationToPetsc(mapping, 1, &full_row);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = MatSetValues(destination, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatRestoreRow(source, row, &ncols, &cols, &vals);
+        IBTK_CHKERRQ(ierr);
+    }
 }
 
 } // namespace
@@ -326,12 +353,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                          d_level);
     }
 
-    std::vector<std::set<int>> field_is;
-    std::vector<std::string> field_names;
-    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
-        field_is, field_names, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
-    construct_cached_field_is(field_is, field_names, "velocity", d_velocity_field_is_local);
-
     if (d_augmented_operator_mat)
     {
         PetscInt full_m = 0, full_n = 0, aug_m = 0, aug_n = 0;
@@ -347,8 +368,15 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
         }
         else
         {
+            std::vector<std::set<int>> field_is;
+            std::vector<std::string> field_names;
+            StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+                field_is, field_names, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+            IS velocity_field_is_local = nullptr;
+            AO velocity_field_ao = nullptr;
+            construct_field_is(field_is, field_names, "velocity", velocity_field_is_local);
             PetscInt n_velocity_global = 0;
-            ierr = ISGetSize(d_velocity_field_is_local, &n_velocity_global);
+            ierr = ISGetSize(velocity_field_is_local, &n_velocity_global);
             IBTK_CHKERRQ(ierr);
             if (aug_m != n_velocity_global || aug_n != n_velocity_global)
             {
@@ -359,12 +387,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                            << ").\n");
             }
 
-            construct_cached_velocity_field_ao(
-                d_velocity_field_is_local, d_augmented_operator_mat, d_velocity_field_ao);
+            construct_velocity_field_ao(velocity_field_is_local, d_augmented_operator_mat, velocity_field_ao);
 
-            PetscInt row_start = 0, row_end = 0;
-            ierr = MatGetOwnershipRange(d_augmented_operator_mat, &row_start, &row_end);
-            IBTK_CHKERRQ(ierr);
             PetscInt full_m_local = 0, full_n_local = 0;
             ierr = MatGetLocalSize(d_petsc_mat, &full_m_local, &full_n_local);
             IBTK_CHKERRQ(ierr);
@@ -379,32 +403,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             ierr = MatSetUp(preallocator);
             IBTK_CHKERRQ(ierr);
 
-            std::vector<PetscInt> mapped_cols;
-            for (PetscInt row = row_start; row < row_end; ++row)
-            {
-                PetscInt ncols = 0;
-                const PetscInt* cols = nullptr;
-                const PetscScalar* vals = nullptr;
-                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-
-                mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k)
-                {
-                    mapped_cols[static_cast<std::size_t>(k)] = cols[k];
-                }
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
-                IBTK_CHKERRQ(ierr);
-
-                PetscInt full_row = row;
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
-                IBTK_CHKERRQ(ierr);
-
-                ierr = MatSetValues(preallocator, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-            }
+            insert_velocity_block_rows(d_augmented_operator_mat, velocity_field_ao, preallocator);
             ierr = MatAssemblyBegin(preallocator, MAT_FINAL_ASSEMBLY);
             IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(preallocator, MAT_FINAL_ASSEMBLY);
@@ -422,32 +421,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             ierr = MatDestroy(&preallocator);
             IBTK_CHKERRQ(ierr);
 
-            for (PetscInt row = row_start; row < row_end; ++row)
-            {
-                PetscInt ncols = 0;
-                const PetscInt* cols = nullptr;
-                const PetscScalar* vals = nullptr;
-                ierr = MatGetRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-
-                mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k)
-                {
-                    mapped_cols[static_cast<std::size_t>(k)] = cols[k];
-                }
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
-                IBTK_CHKERRQ(ierr);
-
-                PetscInt full_row = row;
-                ierr = AOApplicationToPetsc(d_velocity_field_ao, 1, &full_row);
-                IBTK_CHKERRQ(ierr);
-
-                ierr = MatSetValues(
-                    embedded_augmented_operator_mat, 1, &full_row, ncols, mapped_cols.data(), vals, INSERT_VALUES);
-                IBTK_CHKERRQ(ierr);
-                ierr = MatRestoreRow(d_augmented_operator_mat, row, &ncols, &cols, &vals);
-                IBTK_CHKERRQ(ierr);
-            }
+            insert_velocity_block_rows(d_augmented_operator_mat, velocity_field_ao, embedded_augmented_operator_mat);
             ierr = MatAssemblyBegin(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
             IBTK_CHKERRQ(ierr);
             ierr = MatAssemblyEnd(embedded_augmented_operator_mat, MAT_FINAL_ASSEMBLY);
@@ -456,6 +430,10 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             ierr = MatAXPY(d_petsc_mat, 1.0, embedded_augmented_operator_mat, DIFFERENT_NONZERO_PATTERN);
             IBTK_CHKERRQ(ierr);
             ierr = MatDestroy(&embedded_augmented_operator_mat);
+            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&velocity_field_ao);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&velocity_field_is_local);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -512,16 +490,6 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
-    if (d_velocity_field_is_local)
-    {
-        int ierr = ISDestroy(&d_velocity_field_is_local);
-        IBTK_CHKERRQ(ierr);
-    }
-    if (d_velocity_field_ao)
-    {
-        int ierr = AODestroy(&d_velocity_field_ao);
-        IBTK_CHKERRQ(ierr);
-    }
     return;
 } // deallocateSolverStateSpecialized
 
