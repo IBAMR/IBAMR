@@ -57,16 +57,13 @@ public:
      * \brief Register a side-centered interpolation-matrix evaluator.
      *
      * The evaluator must satisfy the requirements of
-     * PETScMatUtilities::constructPatchLevelSCInterpOp(). It is moved into
-     * registry-owned storage and used as const for later matrix construction;
-     * the caller need not keep it alive. Move-only evaluators are supported.
+     * PETScMatUtilities::constructPatchLevelSCInterpOp(). The registry owns the
+     * evaluator and invokes it as const; move-only evaluators are supported.
      *
      * Register each kernel combination on every MPI rank that uses it.
-     * Duplicate registration is a fatal error. Registration order does not
-     * affect kernel identity.
+     * Duplicate registration is a fatal error.
      * No factor may be IBKernel::UNKNOWN. The evaluator must implement the
-     * mathematical kernel named by kernel; registration cannot verify that
-     * correspondence.
+     * mathematical kernel named by kernel.
      */
     template <class Evaluator>
     static void register_interpolation_matrix_sc(const IBKernelTensorProduct& kernel, Evaluator evaluator);
