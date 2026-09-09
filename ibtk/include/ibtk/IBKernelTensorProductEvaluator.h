@@ -64,18 +64,18 @@ public:
     static constexpr std::array<int, NDIM> get_stencil_widths();
 
     /*!
-     * \brief Return a tuple of one-dimensional weight arrays in coordinate order.
+     * \brief Return the tensor-product coefficients with coordinate zero varying fastest.
      *
      * Each scalar evaluator is called once per corresponding direction.
      */
     template <int Axis>
-    auto evaluateFactors(const std::array<double, NDIM>& r) const;
-
-    /*! \brief Return the tensor-product coefficients with coordinate zero varying fastest. */
-    template <int Axis>
     auto evaluate(const std::array<double, NDIM>& r) const;
 
 private:
+    /*! \brief Return a tuple of one-dimensional weight arrays in coordinate order. */
+    template <int Axis>
+    auto evaluateFactors(const std::array<double, NDIM>& r) const;
+
     //! Normal kernel weights.
     using NormalWeights = std::invoke_result_t<const NormalEvaluator&, double>;
     //! Tangential kernel weights.
