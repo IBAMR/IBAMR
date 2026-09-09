@@ -102,8 +102,7 @@ public:
      * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices() for this
      * level, on PETSC_COMM_WORLD. Its boundary treatment must match the solver's
      * boundary configuration, and any configured nullspace must be a nullspace
-     * of the supplied system. Its PETSc type must support the operations required
-     * by the chosen solver/preconditioner and any configured augmentation.
+     * of the supplied system.
      * Without augmentation the solver uses the exact supplied matrix handle.
      * Passing nullptr restores rediscretization without clearing an augmentation.
      *
@@ -111,9 +110,8 @@ public:
      * reference after this call. The matrix must not be modified or reassembled
      * through any alias while installed. The retained reference survives
      * deallocateSolverState() and is released on replacement, clearing with
-     * nullptr, or destruction of the solver, even if it was never initialized.
-     * Set, replace, or clear this handle only while the solver is deallocated;
-     * setting the same handle again leaves its reference count unchanged.
+     * nullptr, or destruction of the solver.
+     * Set, replace, or clear this handle only while the solver is deallocated.
      */
     void setOperatorMat(Mat operator_mat);
 
