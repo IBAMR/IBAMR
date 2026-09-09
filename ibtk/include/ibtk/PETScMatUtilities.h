@@ -153,8 +153,7 @@ public:
      * point, divided by the grid spacing. Result entries correspond to the
      * stencil points with coordinate zero varying fastest; grid-spacing
      * factors are not applied. The evaluator must supply weights consistent
-     * with this ordering and the stencil placement below. These mathematical
-     * requirements are the caller's responsibility, not compile-time checks.
+     * with this ordering and the stencil placement below.
      * IBKernelTensorProductEvaluator implements this interface.
      *
      * Odd widths use the nearest grid point, choosing the higher index at a

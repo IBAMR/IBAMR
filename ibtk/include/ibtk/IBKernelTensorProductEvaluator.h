@@ -67,8 +67,6 @@ public:
      * \brief Return a tuple of one-dimensional weight arrays in coordinate order.
      *
      * Each scalar evaluator is called once per corresponding direction.
-     * Consumers may form products while accumulating values without storing
-     * the full tensor product.
      */
     template <int Axis>
     auto evaluateFactors(const std::array<double, NDIM>& r) const;
