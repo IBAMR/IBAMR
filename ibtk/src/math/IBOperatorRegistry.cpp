@@ -30,6 +30,17 @@ make_bspline_kernels(std::index_sequence<I...>)
     return std::make_tuple(
         std::make_pair(IBTK::IBKernel("BSPLINE_" + std::to_string(I + 1)), IBTK::IBKernelEvaluatorBSpline<I + 1>{})...);
 }
+const auto&
+supplied_kernels()
+{
+    static const auto kernels =
+        std::tuple_cat(make_bspline_kernels(std::make_index_sequence<IBTK_MAX_BSPLINE_ORDER>{}),
+                       std::make_tuple(std::make_pair(IBTK::IBKernel::IB_3, IBTK::IBKernelEvaluatorIB3{}),
+                                       std::make_pair(IBTK::IBKernel::IB_4, IBTK::IBKernelEvaluatorIB4{}),
+                                       std::make_pair(IBTK::IBKernel::IB_5, IBTK::IBKernelEvaluatorIB5{}),
+                                       std::make_pair(IBTK::IBKernel::IB_6, IBTK::IBKernelEvaluatorIB6{})));
+    return kernels;
+}
 } // namespace
 
 namespace IBTK
@@ -37,27 +48,40 @@ namespace IBTK
 std::map<IBKernelTensorProduct, IBOperatorRegistry::Builder>&
 IBOperatorRegistry::get_builders()
 {
-    static auto builders = []
-    {
-        std::map<IBKernelTensorProduct, Builder> result;
-        const auto kernels = std::tuple_cat(make_bspline_kernels(std::make_index_sequence<IBTK_MAX_BSPLINE_ORDER>{}),
-                                            std::make_tuple(std::make_pair(IBKernel::IB_3, IBKernelEvaluatorIB3{}),
-                                                            std::make_pair(IBKernel::IB_4, IBKernelEvaluatorIB4{}),
-                                                            std::make_pair(IBKernel::IB_5, IBKernelEvaluatorIB5{}),
-                                                            std::make_pair(IBKernel::IB_6, IBKernelEvaluatorIB6{})));
-        const auto add_normal = [&](const auto& normal)
-        {
-            const auto add_tangential = [&](const auto& tangential)
-            {
-                result.emplace(IBKernelTensorProduct{ normal.first, tangential.first },
-                               make_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second }));
-            };
-            std::apply([&](const auto&... tangential) { (add_tangential(tangential), ...); }, kernels);
-        };
-        std::apply([&](const auto&... normal) { (add_normal(normal), ...); }, kernels);
-        return result;
-    }();
+    static std::map<IBKernelTensorProduct, Builder> builders;
     return builders;
+}
+
+bool
+IBOperatorRegistry::is_supplied_kernel(const IBKernelTensorProduct& kernel)
+{
+    const auto& kernels = supplied_kernels();
+    for (std::size_t d = 0; d < kernel.size(); ++d)
+    {
+        const bool supplied =
+            std::apply([&](const auto&... scalar) { return ((kernel[d] == scalar.first) || ...); }, kernels);
+        if (!supplied) return false;
+    }
+    return true;
+}
+
+IBOperatorRegistry::Builder
+IBOperatorRegistry::make_supplied_builder(const IBKernelTensorProduct& kernel)
+{
+    const auto& kernels = supplied_kernels();
+    Builder builder;
+    const auto select_normal = [&](const auto& normal)
+    {
+        if (normal.first != kernel[0]) return;
+        const auto select_tangential = [&](const auto& tangential)
+        {
+            if (tangential.first == kernel[kernel.size() - 1])
+                builder = make_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second });
+        };
+        std::apply([&](const auto&... tangential) { (select_tangential(tangential), ...); }, kernels);
+    };
+    std::apply([&](const auto&... normal) { (select_normal(normal), ...); }, kernels);
+    return builder;
 }
 
 void
@@ -74,8 +98,13 @@ IBOperatorRegistry::construct_interpolation_matrix_sc(Mat& mat,
             TBOX_ERROR("IBOperatorRegistry::construct_interpolation_matrix_sc(): unspecified kernel " << kernel
                                                                                                       << '\n');
     }
-    const auto& builders = get_builders();
-    const auto builder = builders.find(kernel);
+    std::map<IBKernelTensorProduct, Builder>& builders = get_builders();
+    std::map<IBKernelTensorProduct, Builder>::iterator builder = builders.find(kernel);
+    if (builder == builders.end())
+    {
+        Builder supplied = make_supplied_builder(kernel);
+        if (supplied) builder = builders.emplace(kernel, std::move(supplied)).first;
+    }
     if (builder == builders.end())
     {
         TBOX_ERROR("IBOperatorRegistry::construct_interpolation_matrix_sc(): no registered evaluator for kernel "

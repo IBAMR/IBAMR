@@ -26,12 +26,12 @@ namespace IBTK
  * \brief Evaluate a tensor product of one-dimensional IB kernels.
  *
  * Each scalar evaluator must accept a double through a const call operator
- * and return std::array<double, N> with its natural stencil width. A single evaluator
- * applies in every direction; with two evaluators, the first applies along
- * the selected axis and the second in the remaining directions.
- * Evaluators are stored by value. Dim must be two or three, and Axis identifies
- * x (0), y (1), or z (2), with Axis < Dim. For side-centered data, Axis is the
- * face-normal direction.
+ * and return std::array<double, N>, where N > 0 is its natural stencil width.
+ * A single evaluator applies in every direction; with two evaluators, the
+ * first applies along the selected axis and the second in the remaining
+ * directions. Evaluators are stored by value. Axis identifies x (0), y (1),
+ * or z (2), with Axis < NDIM. For side-centered data, Axis is the face-normal
+ * direction.
  *
  * The input contains displacements from the lower stencil point in grid
  * units, following \ref IBKernelEvaluators. The caller must account for the
@@ -42,8 +42,11 @@ namespace IBTK
  * For example:
  * \code
  * IBKernelTensorProductEvaluator evaluator{IBKernelEvaluatorIB4{}, IBKernelEvaluatorIB3{}};
- * const auto weights = evaluator.evaluate<1>(std::array<double, 3>{1.0, 1.5, 1.0});
- * // weights contains 3 * 4 * 3 coefficients.
+ * std::array<double, NDIM> r;
+ * r.fill(1.0);
+ * r[1] = 1.5;
+ * const auto weights = evaluator.evaluate<1>(r);
+ * // weights contains 3 * 4 coefficients in 2D, or 3 * 4 * 3 in 3D.
  * \endcode
  */
 template <class NormalEvaluator, class TangentialEvaluator = NormalEvaluator>
@@ -57,8 +60,8 @@ public:
     IBKernelTensorProductEvaluator(NormalEvaluator normal_evaluator, TangentialEvaluator tangential_evaluator);
 
     /*! \brief Return the stencil width in each coordinate direction. */
-    template <int Axis, std::size_t Dim>
-    static constexpr std::array<int, Dim> get_stencil_widths();
+    template <int Axis>
+    static constexpr std::array<int, NDIM> get_stencil_widths();
 
     /*!
      * \brief Return a tuple of one-dimensional weight arrays in coordinate order.
@@ -67,18 +70,24 @@ public:
      * Consumers may form products while accumulating values without storing
      * the full tensor product.
      */
-    template <int Axis, std::size_t Dim>
-    auto evaluateFactors(const std::array<double, Dim>& r) const;
+    template <int Axis>
+    auto evaluateFactors(const std::array<double, NDIM>& r) const;
 
     /*! \brief Return the tensor-product coefficients with coordinate zero varying fastest. */
-    template <int Axis, std::size_t Dim>
-    auto evaluate(const std::array<double, Dim>& r) const;
+    template <int Axis>
+    auto evaluate(const std::array<double, NDIM>& r) const;
 
 private:
     //! Normal kernel weights.
     using NormalWeights = std::invoke_result_t<const NormalEvaluator&, double>;
     //! Tangential kernel weights.
     using TangentialWeights = std::invoke_result_t<const TangentialEvaluator&, double>;
+
+    static_assert(std::tuple_size<NormalWeights>::value > 0 && std::tuple_size<TangentialWeights>::value > 0,
+                  "Kernel stencils must be nonempty");
+    static_assert(std::is_same_v<NormalWeights, std::array<double, std::tuple_size<NormalWeights>::value>> &&
+                      std::is_same_v<TangentialWeights, std::array<double, std::tuple_size<TangentialWeights>::value>>,
+                  "Kernel evaluators must return std::array<double, N>");
 
     //! Owned normal kernel evaluator.
     NormalEvaluator d_normal;

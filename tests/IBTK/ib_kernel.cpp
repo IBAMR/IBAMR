@@ -12,7 +12,9 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/IBKernel.h>
+#include <ibtk/IBKernelEvaluators.h>
 #include <ibtk/IBKernelTensorProduct.h>
+#include <ibtk/IBKernelTensorProductEvaluator.h>
 #include <ibtk/IBTKInit.h>
 
 #include <tbox/Utilities.h>
@@ -20,6 +22,7 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iterator>
@@ -68,6 +71,76 @@ IBKernelTensorProduct
 copy_product(IBKernelTensorProduct kernel)
 {
     return kernel;
+}
+
+template <int Axis>
+double
+tensor_product_error()
+{
+    using namespace IBTK;
+    const IBKernelTensorProductEvaluator product{ IBKernelEvaluatorIB4{}, IBKernelEvaluatorIB3{} };
+    std::array<double, NDIM> r;
+    r.fill(1.0);
+    r[Axis] = 1.5;
+    const auto weights = product.template evaluate<Axis>(r);
+    const auto factors = product.template evaluateFactors<Axis>(r);
+    constexpr auto widths = product.template get_stencil_widths<Axis>();
+    static_assert(weights.size() == (NDIM == 2 ? 12 : 36), "Natural tensor stencil size");
+    const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
+    const std::array<double, 4> normal = { a, b, b, a };
+    const std::array<double, 3> tangent = { 1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0 };
+    double error = 0.0;
+    const auto check_factor = [&](auto direction)
+    {
+        constexpr int d = decltype(direction)::value;
+        const auto& factor = std::get<d>(factors);
+        static_assert(std::tuple_size<std::remove_reference_t<decltype(factor)>>::value == (d == Axis ? 4 : 3),
+                      "Natural factor width");
+        for (std::size_t j = 0; j < factor.size(); ++j)
+            error = std::max(error, std::abs(factor[j] - (d == Axis ? normal[j] : tangent[j])));
+    };
+    check_factor(std::integral_constant<int, 0>{});
+    check_factor(std::integral_constant<int, 1>{});
+#if NDIM == 3
+    check_factor(std::integral_constant<int, 2>{});
+#endif
+    for (std::size_t entry = 0; entry < weights.size(); ++entry)
+    {
+        std::size_t index = entry;
+        double expected = 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const int j = index % widths[d];
+            index /= widths[d];
+            expected *= d == Axis ? normal[j] : tangent[j];
+        }
+        if (!std::isfinite(weights[entry])) TBOX_ERROR("Nonfinite tensor weight\n");
+        error = std::max(error, std::abs(weights[entry] - expected));
+    }
+    return error;
+}
+
+double
+check_tensor_products()
+{
+    using namespace IBTK;
+    double error = std::max(tensor_product_error<0>(), tensor_product_error<1>());
+#if NDIM == 3
+    error = std::max(error, tensor_product_error<2>());
+#endif
+    const IBKernelTensorProductEvaluator bspline3{ IBKernelEvaluatorBSpline<3>{} };
+    const IBKernelTensorProductEvaluator bspline5{ IBKernelEvaluatorBSpline<5>{} };
+    std::array<double, NDIM> r;
+    r.fill(1.0);
+    const auto weights3 = bspline3.template evaluate<0>(r);
+    r.fill(1.5);
+    const auto weights5 = bspline5.template evaluate<NDIM - 1>(r);
+    static_assert(weights3.size() == (NDIM == 2 ? 9 : 27), "Natural three-point tensor stencil size");
+    static_assert(weights5.size() == (NDIM == 2 ? 25 : 125), "Natural five-point tensor stencil size");
+    error = std::max({ error,
+                       std::abs(weights3[weights3.size() / 2] - std::pow(0.75, NDIM)),
+                       std::abs(weights5[0] - std::pow(1.0 / 24.0, NDIM)) });
+    return error;
 }
 } // namespace
 
@@ -378,6 +451,7 @@ main(int argc, char* argv[])
         TBOX_ASSERT(ordered[slot] == expected);
     }
 
+    const double tensor_error = check_tensor_products();
     if (rank == 0)
     {
         std::ofstream out("output");
@@ -390,8 +464,9 @@ main(int argc, char* argv[])
         {
             out << composite.name << " = " << IBKernelTensorProduct(composite.name) << '\n';
         }
+        out << "tensor_product_max_error = " << tensor_error << '\n';
         out << "unspecified kernel = " << IBKernel::UNKNOWN.getName() << '\n';
         out << "unspecified products = " << unspecified << ' ' << unknown_normal << ' ' << unknown_transverse << '\n';
     }
-    return 0;
+    return !std::isfinite(tensor_error) || tensor_error > 1.0e-12;
 }

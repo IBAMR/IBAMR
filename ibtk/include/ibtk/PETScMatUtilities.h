@@ -28,9 +28,12 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <Box.h>
+#include <Index.h>
 #include <PoissonSpecifications.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -129,7 +132,7 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
-     * \brief Construct a matrix mapping side-centered velocity to IB points.
+     * \brief Construct a matrix mapping side-centered velocity on patch_level to IB points.
      *
      * X_vec contains consecutive NDIM coordinates for each IB point and
      * determines the matrix row ordering. The side-centered data at
@@ -138,13 +141,21 @@ public:
      * box, and local index data must cover the stencils of local IB points.
      * Insufficient DOF ghost storage is a fatal error.
      *
-     * For each velocity component Axis, Evaluator::get_stencil_widths<Axis, NDIM>()
-     * supplies a constexpr std::array<int, NDIM> of positive stencil widths.
-     * evaluator.evaluate<Axis>(r) returns std::array<double, N>, where N is
-     * the product of the stencil widths. Coefficients are ordered with
-     * coordinate zero varying fastest. Each
-     * r[d] is the point's grid-unit distance from the first stencil point.
-     * IBKernelTensorProductEvaluator satisfies this interface.
+     * For every velocity component 0 <= Axis < NDIM, Evaluator must provide:
+     *
+     * - static constexpr get_stencil_widths<Axis>(), returning
+     *   std::array<int, NDIM> with strictly positive entries;
+     * - evaluate<Axis>(const std::array<double, NDIM>&), callable on a const
+     *   evaluator and returning exactly std::array<double, N>, where N is
+     *   the product of those widths.
+     *
+     * Each r[d] is the displacement from the first stencil point to the IB
+     * point, divided by the grid spacing. Result entries correspond to the
+     * stencil points with coordinate zero varying fastest; grid-spacing
+     * factors are not applied. The evaluator must supply weights consistent
+     * with this ordering and the stencil placement below. These mathematical
+     * requirements are the caller's responsibility, not compile-time checks.
+     * IBKernelTensorProductEvaluator implements this interface.
      *
      * Odd widths use the nearest grid point, choosing the higher index at a
      * tie. Even widths bracket the point using the component's grid centering.
@@ -201,7 +212,44 @@ public:
 
 protected:
 private:
-    struct SCInterpOpData;
+    /*! \brief Interpolation stencil geometry and borrowed IB positions. */
+    struct SCInterpOpData
+    {
+        /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
+        SCInterpOpData(Mat& mat,
+                       Vec X,
+                       const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
+                       const std::vector<int>& num_dofs_per_proc,
+                       int dof_index_idx,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+        /*! \brief Restore the borrowed position array. */
+        ~SCInterpOpData();
+        /*! \brief Disallow copying borrowed array access. */
+        SCInterpOpData(const SCInterpOpData&) = delete;
+        /*! \brief Disallow assigning borrowed array access. */
+        SCInterpOpData& operator=(const SCInterpOpData&) = delete;
+        /*! \brief Finish matrix assembly. */
+        void assemble();
+
+        //! Caller-owned matrix handle.
+        Mat& d_mat;
+        //! Borrowed vector; must remain alive through restoration of d_positions.
+        Vec d_X;
+        //! Array borrowed from VecGetArray until the matching VecRestoreArray.
+        double* d_positions = nullptr;
+        //! Grid spacings and physical domain origin.
+        std::array<double, NDIM> d_dx, d_x_lower;
+        //! Lower index of the physical domain.
+        SAMRAI::hier::Index<NDIM> d_domain_lower;
+        //! Number of local IB points and first local matrix row.
+        int d_n_local_points = 0, d_row_lower = 0;
+        //! Local patches and component stencil boxes for each IB point.
+        std::vector<int> d_patch_numbers;
+        std::vector<std::vector<SAMRAI::hier::Box<NDIM>>> d_stencil_boxes;
+        //! Borrowed hierarchy data used to read global column indices.
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+        int d_dof_index_idx;
+    };
 
     /*! \brief Assemble matrix rows for one velocity component. */
     template <int Axis, class Evaluator>

@@ -137,9 +137,8 @@ public:
     /*!
      * \brief Construct a matrix mapping side-centered velocity to IB points at data_time.
      *
-     * A single kernel factor is isotropic; a pair selects face-normal and
-     * face-tangential kernels, respectively. The kernel must have an evaluator
-     * registered with IBTK::IBOperatorRegistry::register_interpolation_matrix_sc().
+     * The kernel must be available through IBTK::IBOperatorRegistry.
+     * See IBTK::IBKernelTensorProduct for the kernel specification.
      * An existing J is destroyed and replaced. The caller owns the new matrix.
      *
      * \see IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp() for degree-of-freedom
