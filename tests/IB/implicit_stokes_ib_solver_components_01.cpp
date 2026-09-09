@@ -1028,13 +1028,13 @@ run_operators(Pointer<AppInitializer> app)
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
         TBOX_ERROR("Operator fixture requires one patch on one rank\n");
 
-    auto* variables = VariableDatabase<NDIM>::getDatabase();
-    auto context = variables->getContext("operators");
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = variables->getContext("operators");
     Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
     Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
     Pointer<SideVariable<NDIM, int>> u_dof_var = new SideVariable<NDIM, int>("u_dof");
     Pointer<CellVariable<NDIM, int>> p_dof_var = new CellVariable<NDIM, int>("p_dof");
-    const auto ghosts = method->getMinimumGhostCellWidth();
+    const IntVector<NDIM> ghosts = method->getMinimumGhostCellWidth();
     std::vector<int> allocated;
     auto register_data =
         [&](Pointer<SAMRAI::hier::Variable<NDIM>> variable, const std::string& name, IntVector<NDIM> width)
@@ -1098,16 +1098,17 @@ run_operators(Pointer<AppInitializer> app)
     std::vector<Pointer<HierarchyVector>> vectors = { base };
     auto clone = [&](const std::string& name)
     {
-        auto vector = base->cloneVector(name);
+        Pointer<HierarchyVector> vector = base->cloneVector(name);
         vector->allocateVectorData();
         vector->setToScalar(0.0);
         vectors.push_back(vector);
         return vector;
     };
-    auto direction = clone("direction"), residual = clone("residual"), expected = clone("expected"),
-         action = clone("action"), finite_difference = clone("finite_difference"), plus = clone("plus"),
-         minus = clone("minus"), work = clone("work"), difference = clone("difference"),
-         first_action = clone("first_action"), mffd_base = clone("mffd_base"), mffd_direction = clone("mffd_direction");
+    Pointer<HierarchyVector> direction = clone("direction"), residual = clone("residual"), expected = clone("expected"),
+                             action = clone("action"), finite_difference = clone("finite_difference"),
+                             plus = clone("plus"), minus = clone("minus"), work = clone("work"),
+                             difference = clone("difference"), first_action = clone("first_action"),
+                             mffd_base = clone("mffd_base"), mffd_direction = clone("mffd_direction");
     set_operator_velocity(direction->getComponentDescriptorIndex(0), level, 0.2, 0.8);
     cell_ops->setToScalar(direction->getComponentDescriptorIndex(1), -0.25);
 
@@ -1202,7 +1203,7 @@ run_operators(Pointer<AppInitializer> app)
         ierr = VecDestroy(&physical_position);
         IBTK_CHKERRQ(ierr);
         method->postprocessIntegrateData(current, next, 1);
-        for (auto& vector : vectors) free_vector_components(*vector);
+        for (Pointer<HierarchyVector>& vector : vectors) free_vector_components(*vector);
         for (int idx : allocated)
         {
             level->deallocatePatchData(idx);
@@ -1526,21 +1527,22 @@ run_operators(Pointer<AppInitializer> app)
     // Check operator accuracy, not equality of cancellation-sensitive errors.
     pout << "Accuracy checks use error_inf <= tolerance * max(1, reference_inf); attained roundoff may vary.\n";
     int failures = 0;
-    for (const auto& check : { std::make_tuple("nonlinear_residual", residual_valid, RESIDUAL_TOL),
-                               std::make_tuple("assembled_jacobian", assembled_valid, JACOBIAN_TOL),
-                               std::make_tuple("centered_fd", derivative_valid, FD_TOL),
-                               std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
-                               std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
-                               std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
-                               std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
-                               std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
-                               std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
+    for (const std::tuple<const char*, bool, double>& check :
+         { std::make_tuple("nonlinear_residual", residual_valid, RESIDUAL_TOL),
+           std::make_tuple("assembled_jacobian", assembled_valid, JACOBIAN_TOL),
+           std::make_tuple("centered_fd", derivative_valid, FD_TOL),
+           std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
+           std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
+           std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
+           std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
+           std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
+           std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
     {
         pout << std::get<0>(check) << " = " << (std::get<1>(check) ? "true" : "false")
              << ", tolerance = " << std::get<2>(check) << '\n';
         failures += !std::get<1>(check);
     }
-    for (const auto& check :
+    for (const std::pair<std::string, bool>& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
                                                     { "nontrivial_coupling_valid", nontrivial },
                                                     { "updated_base_state_valid", base_valid },
@@ -1560,7 +1562,7 @@ run_operators(Pointer<AppInitializer> app)
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&J);
     IBTK_CHKERRQ(ierr);
-    for (auto& vector : vectors) free_vector_components(*vector);
+    for (Pointer<HierarchyVector>& vector : vectors) free_vector_components(*vector);
     for (int idx : allocated)
     {
         level->deallocatePatchData(idx);

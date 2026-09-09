@@ -74,7 +74,7 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
-    const auto step_parameters = get_staggered_stokes_ib_time_step_parameters(
+    const StaggeredStokesIBTimeStepParameters step_parameters = get_staggered_stokes_ib_time_step_parameters(
         d_ctx.time_stepping_type, current_time, new_time, d_object_name + "::apply()");
 
     const int u_new_idx = x.getComponentDescriptorIndex(0);
