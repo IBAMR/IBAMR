@@ -80,15 +80,13 @@ public:
     /*!
      * \brief Set the IB velocity-coupling contribution in coupled velocity-pressure ordering.
      *
-     * The assembled matrix must include the sign and time/grid factors;
-     * apply() adds it directly to the Stokes action without further scaling.
+     * The assembled velocity contribution must include its sign and time/grid factors.
      * It must use the full coupled global numbering, communicator, and local
      * ownership of the single patch level and DOF fields in the Context (see
      * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices()).
-     * Only velocity entries may be nonzero: pressure rows and columns are not
-     * masked by apply(). Multilevel supplied-matrix application is unsupported.
-     * Passing nullptr selects the strategy action instead. formJacobian() does
-     * not rebuild or rescale this matrix.
+     * Only velocity entries may be nonzero. Multilevel supplied-matrix application
+     * is unsupported. Passing nullptr selects the strategy action instead.
+     * formJacobian() does not update this matrix.
      * The operator retains a PETSc reference until replacement or deallocation.
      * Reinitialization releases the retained matrix; install a current matrix
      * after any enclosing solver has initialized this operator.
@@ -138,12 +136,9 @@ public:
      *
      * Enables and updates fixed coupling on the shared IB strategy regardless
      * of StaggeredStokesIBOperator::Context::use_fixed_le_operators, and initializes the shared Stokes
-     * operator. The caller must first prepare the strategy's time-step data;
-     * see StaggeredStokesIBOperator::Context.
+     * operator.
      * Reinitialization deallocates the previous state, including the Jacobian
-     * base and supplied coupling matrix. After enclosing solver initialization,
-     * call formJacobian() at the intended base before using the strategy action,
-     * and install any supplied coupling matrix after its construction is complete.
+     * base and supplied coupling matrix; see formJacobian() and setIBCouplingJacobian().
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
@@ -152,8 +147,7 @@ public:
      * \brief Deallocate hierarchy-dependent operator state.
      *
      * Releases the cached base and retained coupling matrix and deallocates the
-     * shared Stokes operator. A subsequent initialization requires fresh setup
-     * as described by initializeOperatorState().
+     * shared Stokes operator.
      */
     void deallocateOperatorState() override;
 
