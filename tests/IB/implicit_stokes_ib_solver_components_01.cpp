@@ -210,45 +210,9 @@ check_kernels()
                                       moment_error(IBKernelEvaluatorIB5{}),
                                       moment_error(IBKernelEvaluatorIB6{}) });
 
-    // Exercise every component axis of a 3D tensor product in this 2D executable.
-    // These are evaluator checks, not a 3D hierarchy or matrix test.
-    const IBKernelTensorProductEvaluator product{ IBKernelEvaluatorIB4{}, IBKernelEvaluatorIB3{} };
-    const IBKernelTensorProductEvaluator isotropic3{ IBKernelEvaluatorBSpline<3>{} };
-    const IBKernelTensorProductEvaluator isotropic5{ IBKernelEvaluatorBSpline<5>{} };
-    const auto weights27 = isotropic3.evaluate<0>(std::array<double, 3>{ 1.0, 1.0, 1.0 });
-    const auto weights125 = isotropic5.evaluate<2>(std::array<double, 3>{ 1.5, 1.5, 1.5 });
-    static_assert(weights27.size() == 27 && weights125.size() == 125, "Natural 3D stencil sizes");
-    const auto w0 = product.evaluate<0>(std::array<double, 3>{ 1.5, 1.0, 1.0 });
-    const auto w1 = product.evaluate<1>(std::array<double, 3>{ 1.0, 1.5, 1.0 });
-    const auto w2 = product.evaluate<2>(std::array<double, 3>{ 1.0, 1.0, 1.5 });
-    const auto factors = product.evaluateFactors<1>(std::array<double, 3>{ 1.0, 1.5, 1.0 });
-    static_assert(std::tuple_size<std::remove_reference_t<decltype(std::get<0>(factors))>>::value == 3,
-                  "Natural factor width");
-    static_assert(w0.size() == 36 && w1.size() == 36 && w2.size() == 36, "No tensor-product padding");
-    const std::array<double, 4> normal = { a, b, b, a };
-    const std::array<double, 3> tangent = { 1.0 / 6, 2.0 / 3, 1.0 / 6 };
-    double tensor_error = 0.0;
-    tensor_error =
-        std::max(std::abs(weights27[13] - 0.75 * 0.75 * 0.75), std::abs(weights125[0] - 1.0 / (24.0 * 24.0 * 24.0)));
-    for (int i = 0; i < 3; ++i)
-        tensor_error = std::max({ tensor_error,
-                                  std::abs(std::get<0>(factors)[i] - tangent[i]),
-                                  std::abs(std::get<2>(factors)[i] - tangent[i]) });
-    for (int i = 0; i < 4; ++i) tensor_error = std::max(tensor_error, std::abs(std::get<1>(factors)[i] - normal[i]));
-    for (int i = 0; i < 4; ++i)
-        for (int j = 0; j < 3; ++j)
-            for (int k = 0; k < 3; ++k)
-            {
-                const double expected = normal[i] * tangent[j] * tangent[k];
-                tensor_error = std::max({ tensor_error,
-                                          std::abs(w0[i + 4 * (j + 3 * k)] - expected),
-                                          std::abs(w1[j + 3 * (i + 4 * k)] - expected),
-                                          std::abs(w2[j + 3 * (k + 3 * i)] - expected) });
-            }
     pout << "kernel_sample_max_error = " << error << '\n';
     pout << "kernel_moment_max_error = " << moments << '\n';
-    pout << "tensor_product_3d_max_error = " << tensor_error << '\n';
-    return error > 1.0e-12 || moments > 1.0e-12 || tensor_error > 1.0e-12;
+    return error > 1.0e-12 || moments > 1.0e-12;
 }
 
 void
@@ -391,6 +355,136 @@ check_matrix(Mat matrix,
     IBTK_CHKERRQ(ierr);
     return valid;
 }
+
+int
+check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<PatchLevel<NDIM>> level)
+{
+    // Use only interior DOF entries for the reference; assembly reads ghost entries.
+    Pointer<SideData<NDIM, int>> dofs = level->getPatch(0)->getPatchData(dof);
+    constexpr int cells = 16, points = 4;
+    const std::array<double, 2> locations = { 0.25, 15.75 };
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateSeq(PETSC_COMM_SELF, NDIM * points, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    for (int point = 0; point < points; ++point)
+        for (int d = 0; d < NDIM; ++d) coordinates[NDIM * point + d] = locations[(point >> d) & 1] / cells;
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    double weight_error = 0.0, action_error = 0.0;
+    int column_mismatches = 0;
+    for (bool normal_odd : { true, false })
+    {
+        Mat matrix = nullptr;
+        if (normal_odd)
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                matrix,
+                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<3>{}, IBKernelEvaluatorBSpline<2>{} },
+                X,
+                counts,
+                dof,
+                level);
+        else
+            PETScMatUtilities::constructPatchLevelSCInterpOp(
+                matrix,
+                IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<2>{}, IBKernelEvaluatorBSpline<3>{} },
+                X,
+                counts,
+                dof,
+                level);
+        Vec field = nullptr, result = nullptr;
+        ierr = MatCreateVecs(matrix, &field, &result);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecSet(field, 0.0);
+        IBTK_CHKERRQ(ierr);
+        const auto field_value = [](int axis, int i, int j) { return 1.0 + axis + 0.125 * i + 0.03125 * j * j; };
+        for (int axis = 0; axis < NDIM; ++axis)
+            for (int j = 0; j < cells; ++j)
+                for (int i = 0; i < cells; ++i)
+                {
+                    hier::Index<NDIM> index;
+                    index(0) = i;
+                    index(1) = j;
+                    const int column = (*dofs)(SideIndex<NDIM>(index, axis, SideIndex<NDIM>::Lower));
+                    if (column < 0) TBOX_ERROR("Missing interior periodic DOF\n");
+                    ierr = VecSetValue(field, column, field_value(axis, i, j), INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+        ierr = VecAssemblyBegin(field);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(field);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(matrix, field, result);
+        IBTK_CHKERRQ(ierr);
+        const PetscScalar* actual;
+        ierr = VecGetArrayRead(result, &actual);
+        IBTK_CHKERRQ(ierr);
+        for (int point = 0; point < points; ++point)
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                std::array<int, NDIM> widths, lower;
+                std::array<double, NDIM> q;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    widths[d] = (d == axis) == normal_odd ? 3 : 2;
+                    q[d] = locations[(point >> d) & 1] - (d == axis ? 0.0 : 0.5);
+                    lower[d] = widths[d] == 3 ? static_cast<int>(std::floor(q[d] + 0.5)) - 1 :
+                                                static_cast<int>(std::floor(q[d]));
+                }
+                std::map<PetscInt, double> expected;
+                double expected_action = 0.0;
+                for (int j = 0; j < widths[1]; ++j)
+                    for (int i = 0; i < widths[0]; ++i)
+                    {
+                        const int ix = lower[0] + i, iy = lower[1] + j;
+                        hier::Index<NDIM> wrapped;
+                        wrapped(0) = (ix % cells + cells) % cells;
+                        wrapped(1) = (iy % cells + cells) % cells;
+                        const int column = (*dofs)(SideIndex<NDIM>(wrapped, axis, SideIndex<NDIM>::Lower));
+                        const double weight = expected_weight(widths[0], i, q[0] - ix, true) *
+                                              expected_weight(widths[1], j, q[1] - iy, true);
+                        expected[column] += weight;
+                        expected_action += weight * field_value(axis, wrapped(0), wrapped(1));
+                    }
+                const int row = NDIM * point + axis;
+                PetscInt count;
+                const PetscInt* columns;
+                const PetscScalar* values;
+                ierr = MatGetRow(matrix, row, &count, &columns, &values);
+                IBTK_CHKERRQ(ierr);
+                column_mismatches += count != static_cast<PetscInt>(expected.size());
+                for (PetscInt j = 0; j < count; ++j)
+                {
+                    const std::map<PetscInt, double>::const_iterator found = expected.find(columns[j]);
+                    if (found == expected.end())
+                        ++column_mismatches;
+                    else
+                        weight_error = std::max(weight_error, std::abs(PetscRealPart(values[j]) - found->second));
+                    if (!std::isfinite(PetscRealPart(values[j]))) TBOX_ERROR("Nonfinite periodic weight\n");
+                }
+                ierr = MatRestoreRow(matrix, row, &count, &columns, &values);
+                IBTK_CHKERRQ(ierr);
+                if (!std::isfinite(PetscRealPart(actual[row]))) TBOX_ERROR("Nonfinite periodic interpolation\n");
+                action_error = std::max(action_error, std::abs(PetscRealPart(actual[row]) - expected_action));
+            }
+        ierr = VecRestoreArrayRead(result, &actual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&field);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&result);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&matrix);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    pout << "periodic_column_mismatches = " << column_mismatches << '\n'
+         << "periodic_weight_max_error = " << weight_error << '\n'
+         << "periodic_action_max_error = " << action_error << '\n';
+    return column_mismatches != 0 || weight_error > 1.0e-12 || action_error > 1.0e-12;
+}
 } // namespace
 
 int
@@ -400,12 +494,13 @@ main(int argc, char* argv[])
     // Keep optional visualization warnings out of the compared test output.
     Logger::getInstance()->setWarning(false);
     const std::string input_file = argc > 1 ? argv[1] : "";
+    const bool duplicate_after_use = input_file.find("registration.duplicate_after_use") != std::string::npos;
     if (input_file.find("registration.") != std::string::npos)
     {
         Pointer<Logger::Appender> appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(appender);
         PIO::logOnlyNodeZero("output");
-        if (input_file.find("duplicate") != std::string::npos ||
+        if ((!duplicate_after_use && input_file.find("duplicate") != std::string::npos) ||
             input_file.find("registration.unknown") != std::string::npos)
         {
             std::ifstream input(input_file);
@@ -433,7 +528,7 @@ main(int argc, char* argv[])
         }
         constexpr int max_bspline_order = IBTK_MAX_BSPLINE_ORDER;
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
-        if (!unsupported && !setup_probe) failures += check_kernels();
+        if (!unsupported && !duplicate_after_use && !setup_probe) failures += check_kernels();
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         method->setUseFixedLEOperators(!late_fixed);
         Pointer<IBStandardForceGen> force = new IBStandardForceGen();
@@ -523,18 +618,29 @@ main(int argc, char* argv[])
             return failures;
         }
 
-        if (unsupported)
+        if (unsupported || duplicate_after_use)
         {
             method->preprocessIntegrateData(0.0, 0.125, 1);
             method->updateFixedLEOperators();
             Mat matrix = nullptr;
             method->constructInterpOp(
                 matrix, IBKernel(app->getInputDatabase()->getString("matrix_kernel")), counts, dof, 0.125);
+            if (duplicate_after_use)
+                IBOperatorRegistry::register_interpolation_matrix_sc(
+                    IBKernel::IB_4, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
             ierr = MatDestroy(&matrix);
             IBTK_CHKERRQ(ierr);
             method->postprocessIntegrateData(0.0, 0.125, 1);
             method->postprocessData();
         }
+
+        if (duplicate_after_use) return 0;
+
+        // A configured bank does not reserve higher-order kernel specifications.
+        IBOperatorRegistry::register_interpolation_matrix_sc(
+            IBKernel("BSPLINE_" + std::to_string(IBTK_MAX_BSPLINE_ORDER + 1)),
+            IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<IBTK_MAX_BSPLINE_ORDER + 1>{} });
+        failures += check_periodic_interpolation(counts, dof, level);
 
         const std::array<IBKernel, 4> kernel = {
             IBKernel::BSPLINE_1, IBKernel::BSPLINE_2, IBKernel("PROBE"), IBKernel::IB_4

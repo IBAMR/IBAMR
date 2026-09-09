@@ -791,13 +791,6 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
     : d_mat(mat), d_X(X_vec), d_level(patch_level), d_dof_index_idx(dof_index_idx)
 {
-    for (const auto& widths : stencil_widths)
-        for (int width : widths)
-            if (width <= 0)
-            {
-                TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp(): stencil sizes must be positive\n");
-            }
-
     int ierr;
     if (mat)
     {
@@ -811,17 +804,15 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
     std::copy(x_lower, x_lower + NDIM, d_x_lower.begin());
     const double* const dx0 = grid_geom->getDx();
     const IntVector<NDIM>& ratio = patch_level->getRatio();
-    auto& dx = d_dx;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        dx[d] = dx0[d] / static_cast<double>(ratio(d));
+        d_dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
     d_domain_lower = domain_boxes[0].lower();
-    const auto& domain_lower = d_domain_lower;
 
     // The processor mapping determines which patches are assigned to which processors.
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
@@ -846,30 +837,28 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
     // compute the nonzero structure of the matrix.
     d_row_lower = i_lower;
     d_n_local_points = m_local / NDIM;
-    const int n_local_points = d_n_local_points;
-    auto& X_arr = d_positions;
-    ierr = VecGetArray(X_vec, &X_arr);
+    ierr = VecGetArray(X_vec, &d_positions);
     IBTK_CHKERRQ(ierr);
-    d_patch_numbers.resize(n_local_points);
-    auto& patch_num = d_patch_numbers;
-    d_stencil_boxes.assign(n_local_points, std::vector<Box<NDIM>>(NDIM));
-    auto& stencil_box = d_stencil_boxes;
+    d_patch_numbers.resize(d_n_local_points);
+    d_stencil_boxes.assign(d_n_local_points, std::vector<Box<NDIM>>(NDIM));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
-    for (int k = 0; k < n_local_points; ++k)
+    for (int k = 0; k < d_n_local_points; ++k)
     {
-        const double* const X = &X_arr[NDIM * k];
+        const double* const X = &d_positions[NDIM * k];
         const hier::Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.
 #if (NDIM == 2)
-        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - domain_lower(0)) + 0.5) * dx[0] + x_lower[0],
-                                      (static_cast<double>(X_idx(1) - domain_lower(1)) + 0.5) * dx[1] + x_lower[1] };
+        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - d_domain_lower(0)) + 0.5) * d_dx[0] + x_lower[0],
+                                      (static_cast<double>(X_idx(1) - d_domain_lower(1)) + 0.5) * d_dx[1] +
+                                          x_lower[1] };
 #endif
 #if (NDIM == 3)
-        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - domain_lower(0)) + 0.5) * dx[0] + x_lower[0],
-                                      (static_cast<double>(X_idx(1) - domain_lower(1)) + 0.5) * dx[1] + x_lower[1],
-                                      (static_cast<double>(X_idx(2) - domain_lower(2)) + 0.5) * dx[2] + x_lower[2] };
+        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - d_domain_lower(0)) + 0.5) * d_dx[0] + x_lower[0],
+                                      (static_cast<double>(X_idx(1) - d_domain_lower(1)) + 0.5) * d_dx[1] + x_lower[1],
+                                      (static_cast<double>(X_idx(2) - d_domain_lower(2)) + 0.5) * d_dx[2] +
+                                          x_lower[2] };
 #endif
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
@@ -885,7 +874,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 const int n = patch_num_arr[j];
                 if (proc_mapping.isMappingLocal(n))
                 {
-                    patch_num[k] = n;
+                    d_patch_numbers[k] = n;
                     found_local_patch = true;
                 }
             }
@@ -893,7 +882,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
 #if !defined(NDEBUG)
         TBOX_ASSERT(found_local_patch);
 #endif
-        Pointer<Patch<NDIM>> patch = patch_level->getPatch(patch_num[k]);
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(d_patch_numbers[k]);
         Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
@@ -903,8 +892,8 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         for (int axis = 0; axis < NDIM; ++axis)
         {
             // Determine the stencil box.
-            const auto& interp_stencil = stencil_widths[axis];
-            Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
+            const std::array<int, NDIM>& interp_stencil = stencil_widths[axis];
+            Box<NDIM>& stencil_box_axis = d_stencil_boxes[k][axis];
             hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
             hier::Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
             for (int d = 0; d < NDIM; ++d)
@@ -913,7 +902,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 {
                     const double centering_offset = d == axis ? 0.0 : 0.5;
                     const double grid_position =
-                        (X[d] - x_lower[d]) / dx[d] + static_cast<double>(domain_lower(d)) - centering_offset;
+                        (X[d] - x_lower[d]) / d_dx[d] + static_cast<double>(d_domain_lower(d)) - centering_offset;
                     const int stencil_center = static_cast<int>(std::floor(grid_position + 0.5));
                     stencil_box_lower(d) = stencil_center - interp_stencil[d] / 2;
                     stencil_box_upper(d) = stencil_center + interp_stencil[d] / 2;

@@ -39,31 +39,25 @@ inline IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::IBK
 }
 
 template <class NormalEvaluator, class TangentialEvaluator>
-template <int Axis, std::size_t Dim>
-inline constexpr std::array<int, Dim>
+template <int Axis>
+inline constexpr std::array<int, NDIM>
 IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::get_stencil_widths()
 {
-    static_assert(Dim == 2 || Dim == 3, "Tensor products support two or three dimensions");
-    static_assert(Axis >= 0 && Axis < static_cast<int>(Dim), "Invalid tensor-product axis");
+    static_assert(Axis >= 0 && Axis < NDIM, "Invalid tensor-product axis");
     constexpr int normal_width = std::tuple_size<NormalWeights>::value;
     constexpr int tangential_width = std::tuple_size<TangentialWeights>::value;
-    static_assert(normal_width > 0 && tangential_width > 0, "Kernel stencils must be nonempty");
-    static_assert(std::is_same_v<NormalWeights, std::array<double, normal_width>> &&
-                      std::is_same_v<TangentialWeights, std::array<double, tangential_width>>,
-                  "Kernel evaluators must return std::array<double, N>");
-    std::array<int, Dim> widths = {};
-    for (std::size_t d = 0; d < Dim; ++d) widths[d] = d == Axis ? normal_width : tangential_width;
+    std::array<int, NDIM> widths = {};
+    for (std::size_t d = 0; d < NDIM; ++d) widths[d] = d == Axis ? normal_width : tangential_width;
     return widths;
 }
 
 template <class NormalEvaluator, class TangentialEvaluator>
-template <int Axis, std::size_t Dim>
+template <int Axis>
 inline auto
 IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluateFactors(
-    const std::array<double, Dim>& r) const
+    const std::array<double, NDIM>& r) const
 {
-    // Instantiate the stencil checks even when the consumer only requests factors.
-    (void)get_stencil_widths<Axis, Dim>();
+    static_assert(Axis >= 0 && Axis < NDIM, "Invalid tensor-product axis");
     const auto evaluate_direction = [&](auto direction)
     {
         constexpr int d = decltype(direction)::value;
@@ -72,7 +66,7 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluateFa
         else
             return d_tangential(r[d]);
     };
-    if constexpr (Dim == 2)
+    if constexpr (NDIM == 2)
         return std::make_tuple(evaluate_direction(std::integral_constant<int, 0>{}),
                                evaluate_direction(std::integral_constant<int, 1>{}));
     else
@@ -82,16 +76,16 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluateFa
 }
 
 template <class NormalEvaluator, class TangentialEvaluator>
-template <int Axis, std::size_t Dim>
+template <int Axis>
 inline auto
-IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(const std::array<double, Dim>& r) const
+IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(const std::array<double, NDIM>& r) const
 {
-    constexpr auto widths = get_stencil_widths<Axis, Dim>();
+    constexpr auto widths = get_stencil_widths<Axis>();
     const auto factors = evaluateFactors<Axis>(r);
     const auto& wx = std::get<0>(factors);
     const auto& wy = std::get<1>(factors);
     constexpr int nx = widths[0], ny = widths[1];
-    if constexpr (Dim == 2)
+    if constexpr (NDIM == 2)
     {
         std::array<double, nx * ny> weights;
         for (int j = 0; j < ny; ++j)
