@@ -269,8 +269,8 @@ public:
      *
      * \param periodic_shift Periodic shift in each direction.
      *
-     * \return The linear mapping of an AMR index to a continuous non-negative
-     * integer space.
+     * \return The nonnegative linear index, or -1 if the index is outside
+     * the supplied array extent after periodic adjustment.
      */
     static int
     mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,

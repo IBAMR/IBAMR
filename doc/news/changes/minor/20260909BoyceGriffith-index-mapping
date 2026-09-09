@@ -1,0 +1,3 @@
+Fix: Correct out-of-domain index mappings and side prolongation boundary weights.
+<br>
+(Boyce Griffith, 2026/09/09)
