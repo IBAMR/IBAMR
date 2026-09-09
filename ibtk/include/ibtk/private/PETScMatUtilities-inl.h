@@ -96,7 +96,7 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
                 data.d_x_lower[d];
             r[d] = (X[d] - x_lower) / data.d_dx[d];
         }
-        const auto values = evaluator.template evaluate<Axis>(r);
+        const std::array<double, nvalues> values = evaluator.template evaluate<Axis>(r);
 
         std::array<int, nvalues> columns;
 

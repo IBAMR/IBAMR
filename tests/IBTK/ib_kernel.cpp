@@ -82,9 +82,9 @@ tensor_product_error()
     std::array<double, NDIM> r;
     r.fill(1.0);
     r[Axis] = 1.5;
-    const auto weights = product.template evaluate<Axis>(r);
+    const std::array<double, NDIM == 2 ? 12 : 36> weights = product.template evaluate<Axis>(r);
     const auto factors = product.template evaluateFactors<Axis>(r);
-    constexpr auto widths = product.template get_stencil_widths<Axis>();
+    constexpr std::array<int, NDIM> widths = product.template get_stencil_widths<Axis>();
     static_assert(weights.size() == (NDIM == 2 ? 12 : 36), "Natural tensor stencil size");
     const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
     const std::array<double, 4> normal = { a, b, b, a };
@@ -93,11 +93,15 @@ tensor_product_error()
     const auto check_factor = [&](auto direction)
     {
         constexpr int d = decltype(direction)::value;
-        const auto& factor = std::get<d>(factors);
+        const std::array<double, d == Axis ? 4 : 3>& factor = std::get<d>(factors);
         static_assert(std::tuple_size<std::remove_reference_t<decltype(factor)>>::value == (d == Axis ? 4 : 3),
                       "Natural factor width");
         for (std::size_t j = 0; j < factor.size(); ++j)
-            error = std::max(error, std::abs(factor[j] - (d == Axis ? normal[j] : tangent[j])));
+        {
+            const double entry_error = std::abs(factor[j] - (d == Axis ? normal[j] : tangent[j]));
+            if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Kernel factor error = " << entry_error << '\n');
+            error = std::max(error, entry_error);
+        }
     };
     check_factor(std::integral_constant<int, 0>{});
     check_factor(std::integral_constant<int, 1>{});
@@ -114,8 +118,9 @@ tensor_product_error()
             index /= widths[d];
             expected *= d == Axis ? normal[j] : tangent[j];
         }
-        if (!std::isfinite(weights[entry])) TBOX_ERROR("Nonfinite tensor weight\n");
-        error = std::max(error, std::abs(weights[entry] - expected));
+        const double entry_error = std::abs(weights[entry] - expected);
+        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Tensor weight error = " << entry_error << '\n');
+        error = std::max(error, entry_error);
     }
     return error;
 }
@@ -132,14 +137,16 @@ check_tensor_products()
     const IBKernelTensorProductEvaluator bspline5{ IBKernelEvaluatorBSpline<5>{} };
     std::array<double, NDIM> r;
     r.fill(1.0);
-    const auto weights3 = bspline3.template evaluate<0>(r);
+    const std::array<double, NDIM == 2 ? 9 : 27> weights3 = bspline3.template evaluate<0>(r);
     r.fill(1.5);
-    const auto weights5 = bspline5.template evaluate<NDIM - 1>(r);
+    const std::array<double, NDIM == 2 ? 25 : 125> weights5 = bspline5.template evaluate<NDIM - 1>(r);
     static_assert(weights3.size() == (NDIM == 2 ? 9 : 27), "Natural three-point tensor stencil size");
     static_assert(weights5.size() == (NDIM == 2 ? 25 : 125), "Natural five-point tensor stencil size");
-    error = std::max({ error,
-                       std::abs(weights3[weights3.size() / 2] - std::pow(0.75, NDIM)),
-                       std::abs(weights5[0] - std::pow(1.0 / 24.0, NDIM)) });
+    const double error3 = std::abs(weights3[weights3.size() / 2] - std::pow(0.75, NDIM));
+    const double error5 = std::abs(weights5[0] - std::pow(1.0 / 24.0, NDIM));
+    if (!(error3 <= 1.0e-12 && error5 <= 1.0e-12))
+        TBOX_ERROR("B-spline tensor weight errors = " << error3 << ", " << error5 << '\n');
+    error = std::max({ error, error3, error5 });
     return error;
 }
 } // namespace
@@ -468,5 +475,5 @@ main(int argc, char* argv[])
         out << "unspecified kernel = " << IBKernel::UNKNOWN.getName() << '\n';
         out << "unspecified products = " << unspecified << ' ' << unknown_normal << ' ' << unknown_transverse << '\n';
     }
-    return !std::isfinite(tensor_error) || tensor_error > 1.0e-12;
+    return !(tensor_error <= 1.0e-12);
 }
