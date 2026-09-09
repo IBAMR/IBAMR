@@ -143,7 +143,10 @@ void
 StaggeredStokesIBOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                    const SAMRAIVectorReal<NDIM, double>& out)
 {
-    if (getIsInitialized()) deallocateOperatorState();
+    if (getIsInitialized())
+    {
+        deallocateOperatorState();
+    }
 
     if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op)
     {
@@ -159,7 +162,10 @@ StaggeredStokesIBOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
 void
 StaggeredStokesIBOperator::deallocateOperatorState()
 {
-    if (d_ctx.stokes_op) d_ctx.stokes_op->deallocateOperatorState();
+    if (d_ctx.stokes_op)
+    {
+        d_ctx.stokes_op->deallocateOperatorState();
+    }
     GeneralOperator::deallocateOperatorState();
     return;
 } // deallocateOperatorState
@@ -167,7 +173,10 @@ StaggeredStokesIBOperator::deallocateOperatorState()
 void
 StaggeredStokesIBOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_ctx.stokes_op) TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
+    if (!d_ctx.stokes_op)
+    {
+        TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
+    }
     d_ctx.stokes_op->setTimeInterval(getTimeInterval().first, getTimeInterval().second);
     d_ctx.stokes_op->setSolutionTime(getSolutionTime());
     d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
@@ -178,7 +187,10 @@ StaggeredStokesIBOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 void
 StaggeredStokesIBOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
-    if (!d_ctx.stokes_op) TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
+    if (!d_ctx.stokes_op)
+    {
+        TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
+    }
     d_ctx.stokes_op->setTimeInterval(getTimeInterval().first, getTimeInterval().second);
     d_ctx.stokes_op->setSolutionTime(getSolutionTime());
     d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());

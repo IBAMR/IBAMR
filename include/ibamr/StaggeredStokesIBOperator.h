@@ -142,7 +142,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesIBOperator(const std::string& object_name, bool homogeneous_bc = false);
+    explicit StaggeredStokesIBOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -216,8 +216,11 @@ public:
     void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
 private:
+    /*! \brief Default construction is disabled. */
     StaggeredStokesIBOperator() = delete;
+    /*! \brief Copy construction is disabled. */
     StaggeredStokesIBOperator(const StaggeredStokesIBOperator& from) = delete;
+    /*! \brief Copy assignment is disabled. */
     StaggeredStokesIBOperator& operator=(const StaggeredStokesIBOperator& that) = delete;
 
     Context d_ctx;
