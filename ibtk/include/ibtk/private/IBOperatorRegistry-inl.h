@@ -33,8 +33,8 @@ IBOperatorRegistry::register_interpolation_matrix_sc(const IBKernelTensorProduct
         if (kernel[d] == IBKernel::UNKNOWN)
             TBOX_ERROR("IBOperatorRegistry::register_interpolation_matrix_sc(): unspecified kernel " << kernel << '\n');
     }
-    auto& builders = get_builders();
-    if (builders.find(kernel) != builders.end())
+    std::map<IBKernelTensorProduct, Builder>& builders = get_builders();
+    if (is_supplied_kernel(kernel) || builders.find(kernel) != builders.end())
     {
         TBOX_ERROR("IBOperatorRegistry::register_interpolation_matrix_sc(): kernel " << kernel
                                                                                      << " is already registered\n");

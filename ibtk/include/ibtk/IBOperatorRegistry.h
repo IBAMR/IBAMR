@@ -43,10 +43,12 @@ namespace IBTK
  *
  * Supplied registrations include B-splines through the order selected by the
  * IBTK_MAX_BSPLINE_ORDER CMake setting, IB_3 through IB_6, and their ordered
- * normal/tangential combinations. Explicit application registrations are not
- * restricted by this build setting.
- * Other kernels require an application-provided evaluator, even if their
- * names appear in the kernel catalog.
+ * normal/tangential combinations. Other kernels require an application-provided
+ * evaluator, even if their names appear in the kernel catalog. Explicit
+ * registrations are not restricted by this build setting.
+ *
+ * This registry constructs interpolation matrices; it does not register
+ * interpolation or spreading functions with LEInteractor.
  */
 class IBOperatorRegistry
 {
@@ -62,16 +64,18 @@ public:
      * Register each kernel combination on every MPI rank that uses it.
      * Duplicate registration is a fatal error. Registration order does not
      * affect kernel identity.
-     * No factor may be IBKernel::UNKNOWN.
+     * No factor may be IBKernel::UNKNOWN. The evaluator must implement the
+     * mathematical kernel named by kernel; registration cannot verify that
+     * correspondence.
      */
     template <class Evaluator>
     static void register_interpolation_matrix_sc(const IBKernelTensorProduct& kernel, Evaluator evaluator);
 
     /*!
-     * \brief Construct a side-centered interpolation matrix using a registered evaluator.
+     * \brief Construct a side-centered interpolation matrix on the supplied patch level.
      *
-     * A single factor is isotropic; two factors are face-normal and
-     * face-tangential, respectively. Missing registration is a fatal error.
+     * Kernels outside the supplied set require explicit registration before
+     * this call; missing registration is a fatal error.
      * No factor may be IBKernel::UNKNOWN.
      * Matrix layout, replacement, and boundary limitations are described in
      * PETScMatUtilities::constructPatchLevelSCInterpOp().
@@ -88,10 +92,16 @@ private:
     using Builder = std::function<
         void(Mat&, Vec&, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
 
-    /*! \brief Return the registry initialized with supplied evaluators. */
+    /*! \brief Return the explicitly registered and cached supplied builders. */
     static std::map<IBKernelTensorProduct, Builder>& get_builders();
 
-    /*! \brief Store the evaluator for later matrix construction. */
+    /*! \brief Return whether the kernel belongs to the configured supplied set. */
+    static bool is_supplied_kernel(const IBKernelTensorProduct& kernel);
+
+    /*! \brief Return a supplied builder, or an empty function for an unsupported kernel. */
+    static Builder make_supplied_builder(const IBKernelTensorProduct& kernel);
+
+    /*! \brief Return a matrix builder that owns a const evaluator. */
     template <class Evaluator>
     static Builder make_builder(Evaluator evaluator);
 
