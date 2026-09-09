@@ -18,6 +18,9 @@ alongside [CONTRIBUTING.md](CONTRIBUTING.md) and the surrounding code.
 - Start with the requested behavior and a few concrete examples. Choose the
   simplest design that meets those needs; do not build machinery for hypothetical
   future uses.
+- Where existing conventions are inconsistent, prefer modern C++ within the
+  supported language standard and choices that improve clarity and efficiency.
+  Preserve required interfaces and keep modernization within the change's scope.
 - Put an operation in the class or library that is responsible for it. Reuse
   suitable existing code and standard-library facilities instead of duplicating
   them or adding unnecessary dependencies. Share definitions of the same
@@ -53,6 +56,25 @@ alongside [CONTRIBUTING.md](CONTRIBUTING.md) and the surrounding code.
   for `box.lower()`. Necessary deduction for lambdas or genuinely dependent
   template types is a narrow exception; do not add elaborate machinery or type
   erasure just to avoid `auto`.
+- Use braces for all `if`, `else`, `for`, `while`, and `do` bodies, including
+  single-statement and empty bodies. Ordinary `else if` chains are permitted.
+- Prefer `using` aliases over `typedef`, and use `nullptr` and C++ named casts.
+  Initialize variables when declared and use `const` for values that should not
+  change. Choose initialization syntax for its meaning; braces are not mandatory
+  for initialization, since container constructions such as `{n}` and `(n)` differ.
+- Use `explicit` for constructors callable with one argument and conversion
+  operators unless implicit conversion is an intentional part of the interface.
+  Require `override` on overrides; use `final` only when preventing further
+  inheritance or overriding is intentional.
+- Prefer `enum class` for new enumerations, preserving established API and
+  dependency requirements. Do not convert unrelated existing enums.
+- Prefer the rule of zero: let members manage their resources and let the compiler
+  supply special member functions when their behavior is appropriate. Use
+  `= default` or `= delete` when explicitly specifying or disabling those operations;
+  these declarations may appear with the interface in the declaration header.
+- Prefer range-based loops when an index is unnecessary. Otherwise choose the
+  index type appropriate to the container, numerical index, or called interface;
+  no single signed or unsigned type fits every loop.
 - Keep headers self-contained so they compile independently. Include the
   corresponding `ibamr/config.h` or `ibtk/config.h`. Use `namespaces.h` and
   `app_namespaces.h` only in source files, not library headers.
@@ -187,15 +209,28 @@ repeated operation, not a wrapper that merely renames a single comparison.
   stream-style formatting. Avoid C++ exceptions and catch-and-rethrow/translate
   scaffolding unless an existing external interface requires that boundary.
   Retain `TBOX_ERROR()` for invalid external input that must fail in Release.
+- Use `noexcept` when required by an interface or when it has a concrete
+  performance benefit, such as enabling standard-library containers to move
+  elements instead of copying them. Verify that all operations performed support
+  the nonthrowing guarantee. Do not annotate ordinary functions solely because
+  IBAMR avoids exceptions, or add error-handling machinery just to make an
+  operation `noexcept`.
 - Call `TBOX_ERROR()` on the rank that detects the error. Do not broadcast an
   error string or add a collective just so all ranks report it. Communication
   needed to establish successful shared state is a different matter.
 - Handle PETSc failures through `IBTK_CHKERRQ()` or the established local macro.
   Make owned versus borrowed objects explicit, preserve lifetime requirements,
   and release owned resources through the normal teardown path.
+- Prefer RAII and `std::unique_ptr` for new exclusive ownership. Use
+  `std::shared_ptr` only for actual shared ownership. Borrowed pointers and
+  references remain appropriate; preserve established SAMRAI and PETSc ownership
+  conventions rather than imposing standard smart pointers on their interfaces.
 - Preserve numerical contracts, signs, scaling, and boundary conditions unless
   intentionally correcting them. Explain and test an approved correction rather
   than preserving a known defect or silently changing an expected result.
+- Choose exact, absolute-tolerance, or relative-tolerance floating-point comparisons
+  according to the mathematical requirement. Reuse suitable existing helpers;
+  do not prescribe one comparison helper or tolerance for every quantity.
 - Review frequently called code affected by the change for repeated conversions,
   lookups, allocations, and indirect calls. Move invariant work outside loops
   when practical, and use profiling when an uncertain cost could matter to the
@@ -218,6 +253,9 @@ Avoid throwing `std::runtime_error`, catching it in the caller, broadcasting
 - Check existing input keys and their meanings before adding a new mechanism.
   Keep related settings with the component they configure and preserve established
   precedence, including command-line PETSc overrides.
+- Preserve and document each component's precedence between restart data and
+  input settings. An intentional change needs justification and tests; do not
+  impose a universal restart/input ordering on existing components.
 - Validate the rules IBAMR introduces. Let SAMRAI handle database syntax and PETSc
   handle PETSc option syntax and values instead of implementing a second parser
   or a more restrictive set of rules in IBAMR.
