@@ -24,6 +24,8 @@
 
 #include <tbox/Pointer.h>
 
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <SAMRAIVectorReal.h>
 #include <StaggeredStokesIBTimeSteppingUtilities.h>
 
@@ -56,7 +58,7 @@ StaggeredStokesIBJacobianOperator::setOperatorContext(const StaggeredStokesIBOpe
 } // setOperatorContext
 
 void
-StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat& SAJ_mat)
+StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat SAJ_mat)
 {
     if (d_SAJ_mat == SAJ_mat)
     {
@@ -109,16 +111,13 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
 
     const int u_new_idx = x.getComponentDescriptorIndex(0);
 
-    switch (step_parameters.velocity_state)
+    if (d_ctx.time_stepping_type == MIDPOINT_RULE)
     {
-    case StaggeredStokesIBVelocityState::NEW:
-        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        break;
-    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
         d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, d_ctx.u_current_idx);
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::formJacobian(): unsupported velocity state\n");
+    }
+    else
+    {
+        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
     }
 
     if (!d_solver_X || !d_solver_X0)
@@ -137,7 +136,7 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
             d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
         }
         d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
-            d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
+            d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
         d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
         // The position residual is X_current - dt*U; reflect it to obtain X_new.
         PetscErrorCode ierr = VecAXPBY(d_solver_X, 2.0, -1.0, d_solver_X0);
@@ -154,7 +153,7 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
             d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
         }
         d_ctx.ib_implicit_ops->interpolateVelocity(
-            d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
+            d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
         // The position residual at X_current is -dt*U_half. Recover and restore
         // the endpoint, then select the force evaluation position separately.
         d_ctx.ib_implicit_ops->setUpdatedPosition(d_solver_X0);
@@ -166,7 +165,7 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
         ierr = VecAXPBY(d_solver_X, 1.0 - fraction, fraction, d_solver_X0);
         IBTK_CHKERRQ(ierr);
     }
-    d_ctx.ib_implicit_ops->setLinearizedPosition(d_solver_X, step_parameters.velocity_time);
+    d_ctx.ib_implicit_ops->setLinearizedPosition(d_solver_X, step_parameters.evaluation_time);
     return;
 } // formJacobian
 
@@ -184,10 +183,6 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
 #endif
     if (d_SAJ_mat)
     {
-        if (!d_ctx.patch_level)
-        {
-            TBOX_ERROR(d_object_name << "::apply(): SAJ apply path requires a valid patch level\n");
-        }
         if (d_ctx.u_dof_index_idx == IBTK::invalid_index || d_ctx.p_dof_index_idx == IBTK::invalid_index)
         {
             TBOX_ERROR(d_object_name << "::apply(): SAJ apply path requires valid DOF-index patch data indices\n");
@@ -201,6 +196,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
             TBOX_ERROR(d_object_name << "::apply(): SAJ apply path requires Stokes operator\n");
         }
 
+        Pointer<PatchLevel<NDIM>> level = x.getPatchHierarchy()->getPatchLevel(x.getCoarsestLevelNumber());
         PetscErrorCode ierr = 0;
         if (!d_input_vec || !d_output_vec)
         {
@@ -213,7 +209,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                               d_ctx.u_dof_index_idx,
                                                               x.getComponentDescriptorIndex(1),
                                                               d_ctx.p_dof_index_idx,
-                                                              d_ctx.patch_level);
+                                                              level);
         d_ctx.stokes_op->setTimeInterval(getTimeInterval().first, getTimeInterval().second);
         d_ctx.stokes_op->setSolutionTime(getSolutionTime());
         d_ctx.stokes_op->setHomogeneousBc(true);
@@ -223,7 +219,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                               d_ctx.u_dof_index_idx,
                                                               y.getComponentDescriptorIndex(1),
                                                               d_ctx.p_dof_index_idx,
-                                                              d_ctx.patch_level);
+                                                              level);
         // The supplied coupling matrix already includes its sign and time-step
         // factors: add it directly to the Stokes action in coupled DOF ordering.
         ierr = MatMultAdd(d_SAJ_mat, d_input_vec, d_output_vec, d_output_vec);
@@ -233,7 +229,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                                 d_ctx.u_dof_index_idx,
                                                                 y.getComponentDescriptorIndex(1),
                                                                 d_ctx.p_dof_index_idx,
-                                                                d_ctx.patch_level,
+                                                                level,
                                                                 nullptr,
                                                                 nullptr);
         return;
@@ -277,7 +273,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
-        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
+        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
     d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
 
     // Apply the force derivative K at the position cached by formJacobian(),
@@ -286,7 +282,7 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
     // For trapezoidal the two halves are the position and force weights; for
     // midpoint their product accounts for both velocity and position averaging.
     // The Stokes pressure/divergence action is unchanged.
-    d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, step_parameters.force_time);
+    d_ctx.ib_implicit_ops->computeLinearizedLagrangianForce(d_solver_X, step_parameters.evaluation_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)
     {
@@ -294,20 +290,11 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->spreadLinearizedForce(
-        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, step_parameters.force_time);
+        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, step_parameters.evaluation_time);
     d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -step_parameters.jacobian_force_scale, d_ctx.f_idx, f_u_idx);
 
     return;
 } // apply
-
-void
-StaggeredStokesIBJacobianOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                                            SAMRAIVectorReal<NDIM, double>& y,
-                                            SAMRAIVectorReal<NDIM, double>& z)
-{
-    GeneralOperator::applyAdd(x, y, z);
-    return;
-} // applyAdd
 
 void
 StaggeredStokesIBJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,

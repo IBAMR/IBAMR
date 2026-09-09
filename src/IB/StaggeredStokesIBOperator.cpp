@@ -88,16 +88,13 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_ctx.stokes_op->apply(x, y);
     // Interpolate u_new for backward Euler/trapezoidal stepping, or the
     // Eulerian average (u_current + u_new)/2 for midpoint stepping.
-    switch (step_parameters.velocity_state)
+    if (d_ctx.time_stepping_type == MIDPOINT_RULE)
     {
-    case StaggeredStokesIBVelocityState::NEW:
-        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
-        break;
-    case StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE:
         d_ctx.hier_velocity_data_ops->linearSum(d_ctx.u_idx, 0.5, u_new_idx, 0.5, d_ctx.u_current_idx);
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::apply(): unsupported velocity state\n");
+    }
+    else
+    {
+        d_ctx.hier_velocity_data_ops->copyData(d_ctx.u_idx, u_new_idx);
     }
 
     if (d_ctx.u_phys_bdry_op)
@@ -106,7 +103,7 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
         d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
     }
     d_ctx.ib_implicit_ops->interpolateVelocity(
-        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.velocity_time);
+        d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
 
     // Eliminate the position unknown with the strategy's time step. The force
     // is evaluated at X_new for backward Euler/trapezoidal and X_half for
@@ -116,7 +113,7 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 
     // Subtract S F(X): weight 1 for backward Euler/midpoint and 1/2 for
     // trapezoidal. Known current-time terms belong to the caller's RHS.
-    d_ctx.ib_implicit_ops->computeLagrangianForce(step_parameters.force_time);
+    d_ctx.ib_implicit_ops->computeLagrangianForce(step_parameters.evaluation_time);
     d_ctx.hier_velocity_data_ops->setToScalar(d_ctx.f_idx, 0.0, /*interior_only*/ false);
     if (d_ctx.u_phys_bdry_op)
     {
@@ -124,20 +121,11 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
         d_ctx.u_phys_bdry_op->setHomogeneousBc(true);
     }
     d_ctx.ib_implicit_ops->spreadForce(
-        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, step_parameters.force_time);
+        d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, step_parameters.evaluation_time);
     d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -step_parameters.nonlinear_force_scale, d_ctx.f_idx, f_u_idx);
 
     return;
 } // apply
-
-void
-StaggeredStokesIBOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                                    SAMRAIVectorReal<NDIM, double>& y,
-                                    SAMRAIVectorReal<NDIM, double>& z)
-{
-    GeneralOperator::applyAdd(x, y, z);
-    return;
-} // applyAdd
 
 void
 StaggeredStokesIBOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,

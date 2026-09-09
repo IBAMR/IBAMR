@@ -930,7 +930,40 @@ public:
     void apply(HierarchyVector& x, HierarchyVector& y) override
     {
         ++evaluations;
+        // Stokes fills the whole hierarchy even for a single-level vector.
+        // Its coarsening transactions populate these coarse input values.
+        std::vector<std::pair<int, int>> support;
+        for (int ln = 0; ln < x.getCoarsestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = x.getPatchHierarchy()->getPatchLevel(ln);
+            for (int component = 0; component < 2; ++component)
+            {
+                const int idx = x.getComponentDescriptorIndex(component);
+                if (!level->checkAllocated(idx))
+                {
+                    level->allocatePatchData(idx);
+                    support.emplace_back(ln, idx);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        if (component == 0)
+                        {
+                            Pointer<SideData<NDIM, double>> data = level->getPatch(p())->getPatchData(idx);
+                            data->fillAll(0.0);
+                        }
+                        else
+                        {
+                            Pointer<CellData<NDIM, double>> data = level->getPatch(p())->getPatchData(idx);
+                            data->fillAll(0.0);
+                        }
+                    }
+                }
+            }
+        }
         StaggeredStokesOperator::apply(x, y);
+        for (const auto& allocation : support)
+        {
+            x.getPatchHierarchy()->getPatchLevel(allocation.first)->deallocatePatchData(allocation.second);
+        }
     }
     void modifyRhsForBcs(HierarchyVector& y) override
     {
@@ -1008,6 +1041,7 @@ int
 run_operators(Pointer<AppInitializer> app)
 {
     PetscErrorCode ierr;
+    const int level_num = app->getInputDatabase()->getIntegerWithDefault("operator_level", 0);
     bool physical_boundary = app->getInputDatabase()->getBoolWithDefault("physical_boundary", false);
     const TimeSteppingType type =
         IBAMR::string_to_enum<TimeSteppingType>(app->getInputDatabase()->getString("time_stepping"));
@@ -1035,12 +1069,17 @@ run_operators(Pointer<AppInitializer> app)
         "GriddingAlgorithm", app->getComponentDatabase("GriddingAlgorithm"), tagger, boxes, balancer);
     Pointer<IBRedundantInitializer> initializer =
         new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
-    initializer->setStructureNamesOnLevel(0, { "curve" });
+    initializer->setStructureNamesOnLevel(level_num, { "curve" });
     initializer->registerInitStructureFunction(generate_operator_structure, &physical_boundary);
     initializer->registerInitSpringDataFunction(generate_operator_springs);
     method->registerLInitStrategy(initializer);
     gridding->makeCoarsestLevel(hierarchy, current);
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+    for (int ln = 0; ln < level_num; ++ln)
+    {
+        gridding->makeFinerLevel(hierarchy, current, true, 1);
+    }
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_num);
+    TBOX_ASSERT(level->getLevelNumber() == level_num);
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
     {
         TBOX_ERROR("Operator fixture requires one patch on one rank\n");
@@ -1068,8 +1107,8 @@ run_operators(Pointer<AppInitializer> app)
     const int u_dof = register_data(u_dof_var, "dofs", ghosts);
     const int p_dof = register_data(p_dof_var, "dofs", IntVector<NDIM>(0));
     set_operator_velocity(u_current, level, 0.03, 0.2);
-    std::vector<Pointer<CoarsenSchedule<NDIM>>> synch(1);
-    std::vector<Pointer<RefineSchedule<NDIM>>> fill(1), prolong(1);
+    std::vector<Pointer<CoarsenSchedule<NDIM>>> synch(level_num + 1);
+    std::vector<Pointer<RefineSchedule<NDIM>>> fill(level_num + 1), prolong(level_num + 1);
     std::vector<Pointer<LocationIndexRobinBcCoefs<NDIM>>> physical_coefs(NDIM);
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
     Pointer<CartSideRobinPhysBdryOp> physical_bc;
@@ -1103,17 +1142,17 @@ run_operators(Pointer<AppInitializer> app)
         physical_bc->setPatchDataIndex(scratch);
         RefineAlgorithm<NDIM> ghost_fill;
         ghost_fill.registerRefine(scratch, scratch, scratch, nullptr);
-        fill[0] = ghost_fill.createSchedule(level, physical_bc.getPointer());
+        fill[level_num] = ghost_fill.createSchedule(level, physical_bc.getPointer());
     }
 
     Pointer<HierarchySideDataOpsReal<NDIM, double>> side_ops =
-        new HierarchySideDataOpsReal<NDIM, double>(hierarchy, 0, 0);
+        new HierarchySideDataOpsReal<NDIM, double>(hierarchy, level_num, level_num);
     Pointer<HierarchyCellDataOpsReal<NDIM, double>> cell_ops =
-        new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, 0);
+        new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, level_num, level_num);
     HierarchyMathOps math_ops("operator_test::math", hierarchy);
     const int u = variables->registerVariableAndContext(u_var, context, ghosts);
     const int p = variables->registerVariableAndContext(p_var, context, IntVector<NDIM>(1));
-    Pointer<HierarchyVector> base = new HierarchyVector("base", hierarchy, 0, 0);
+    Pointer<HierarchyVector> base = new HierarchyVector("base", hierarchy, level_num, level_num);
     base->addComponent(u_var, u, math_ops.getSideWeightPatchDescriptorIndex(), side_ops);
     base->addComponent(p_var, p, math_ops.getCellWeightPatchDescriptorIndex(), cell_ops);
     base->allocateVectorData();
@@ -1133,6 +1172,67 @@ run_operators(Pointer<AppInitializer> app)
                              mffd_base = clone("mffd_base"), mffd_direction = clone("mffd_direction");
     set_operator_velocity(direction->getComponentDescriptorIndex(0), level, 0.2, 0.8);
     cell_ops->setToScalar(direction->getComponentDescriptorIndex(1), -0.25);
+
+    if (app->getInputDatabase()->getBoolWithDefault("supplied_action_only", false))
+    {
+        TBOX_ASSERT(level_num == 1 && direction->getCoarsestLevelNumber() == 1 &&
+                    direction->getFinestLevelNumber() == 1);
+        Pointer<PatchLevel<NDIM>> coarse_level = hierarchy->getPatchLevel(0);
+        TBOX_ASSERT(!coarse_level->checkAllocated(u_dof));
+        std::vector<int> counts;
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, u_dof, p_dof, level);
+        Mat coupling = nullptr;
+        ierr = MatCreateAIJ(
+            PETSC_COMM_WORLD, counts[0], counts[0], counts[0], counts[0], 1, nullptr, 0, nullptr, &coupling);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt row = 0; row < counts[0]; ++row)
+        {
+            ierr = MatSetValue(coupling, row, row, 2.0, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+        ierr = MatAssemblyBegin(coupling, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(coupling, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        Pointer<BoundaryCheckedStokesOperator> stokes = new BoundaryCheckedStokesOperator();
+        PoissonSpecifications coefs("supplied_level_coefs");
+        coefs.setCConstant(2.0);
+        coefs.setDConstant(-0.01);
+        stokes->setVelocityPoissonSpecifications(coefs);
+        StaggeredStokesIBOperator::Context ctx;
+        ctx.ib_implicit_ops = method;
+        ctx.stokes_op = stokes;
+        ctx.u_dof_index_idx = u_dof;
+        ctx.p_dof_index_idx = p_dof;
+        StaggeredStokesIBJacobianOperator jacobian("supplied_level_jacobian");
+        jacobian.setOperatorContext(ctx);
+        jacobian.setTimeInterval(current, next);
+        jacobian.setSolutionTime(force_time);
+        jacobian.initializeOperatorState(*direction, *action);
+        jacobian.setIBCouplingJacobian(coupling);
+        jacobian.apply(*direction, *action);
+        stokes->apply(*direction, *expected);
+        expected->axpy(2.0, direction, expected);
+        difference->subtract(action, expected);
+        const double error = difference->maxNorm();
+        const double scale = std::max(1.0, expected->maxNorm());
+        TBOX_ASSERT(std::isfinite(error) && error <= 1.0e-12 * scale);
+        pout << "supplied_action_level = " << level_num << '\n' << "supplied_action_error = " << error << '\n';
+        jacobian.deallocateOperatorState();
+        ierr = MatDestroy(&coupling);
+        IBTK_CHKERRQ(ierr);
+        method->postprocessIntegrateData(current, next, 1);
+        for (auto& vector : vectors)
+        {
+            free_vector_components(*vector);
+        }
+        for (int idx : allocated)
+        {
+            level->deallocatePatchData(idx);
+            variables->removePatchDataIndex(idx);
+        }
+        return 0;
+    }
 
     if (physical_boundary)
     {
@@ -1166,7 +1266,7 @@ run_operators(Pointer<AppInitializer> app)
             op->setSolutionTime(next);
         }
         Vec physical_position = nullptr;
-        Vec X0 = method->getLDataManager()->getLData("X", 0)->getVec();
+        Vec X0 = method->getLDataManager()->getLData("X", level_num)->getVec();
         ierr = VecDuplicate(X0, &physical_position);
         IBTK_CHKERRQ(ierr);
         double fd_error = 0.0, boundary_position_change = 0.0, coupling_norm = 0.0;
@@ -1184,7 +1284,7 @@ run_operators(Pointer<AppInitializer> app)
                 std::vector<Pointer<LData>>* positions = nullptr;
                 bool* needs_fill = nullptr;
                 method->getPositionData(&positions, &needs_fill, TimePoint::NEW_TIME);
-                ierr = VecCopy((*positions)[0]->getVec(), physical_position);
+                ierr = VecCopy((*positions)[level_num]->getVec(), physical_position);
                 IBTK_CHKERRQ(ierr);
                 // A zero-boundary control proves the marker interpolation sees the wall data.
                 for (int face = 0; face < 2; ++face)
@@ -1192,7 +1292,7 @@ run_operators(Pointer<AppInitializer> app)
                     physical_coefs[1]->setBoundaryValue(face, 0.0);
                 }
                 nonlinear.apply(*base, *expected);
-                ierr = VecAXPY(physical_position, -1.0, (*positions)[0]->getVec());
+                ierr = VecAXPY(physical_position, -1.0, (*positions)[level_num]->getVec());
                 IBTK_CHKERRQ(ierr);
                 PetscReal position_change = 0.0;
                 ierr = VecNorm(physical_position, NORM_INFINITY, &position_change);
@@ -1258,9 +1358,10 @@ run_operators(Pointer<AppInitializer> app)
     IBTK_CHKERRQ(ierr);
     ierr = VecDuplicate(position, &expected_position);
     IBTK_CHKERRQ(ierr);
-    Vec X0 = method->getLDataManager()->getLData("X", 0)->getVec();
+    Vec X0 = method->getLDataManager()->getLData("X", level_num)->getVec();
     Pointer<LData> expected_force = new LData("expected_force", 16, NDIM);
-    const double cell_volume = geometry->getDx()[0] * geometry->getDx()[1];
+    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = level->getPatch(0)->getPatchGeometry();
+    const double cell_volume = patch_geometry->getDx()[0] * patch_geometry->getDx()[1];
     Pointer<BoundaryCheckedStokesOperator> stokes = new BoundaryCheckedStokesOperator();
     PoissonSpecifications coefs("coefs");
     coefs.setCConstant(2.0);
@@ -1274,7 +1375,6 @@ run_operators(Pointer<AppInitializer> app)
     ctx.u_synch_scheds = synch;
     ctx.u_ghost_fill_scheds = fill;
     ctx.f_prolongation_scheds = prolong;
-    ctx.patch_level = level;
     ctx.u_idx = scratch;
     ctx.f_idx = f_scratch;
     ctx.u_current_idx = u_current;
@@ -1353,7 +1453,7 @@ run_operators(Pointer<AppInitializer> app)
             {
                 std::vector<Pointer<LData>>* U_current_data;
                 method->getVelocityData(&U_current_data, TimePoint::CURRENT_TIME);
-                ierr = VecAXPY(position, dt / 2, (*U_current_data)[0]->getVec());
+                ierr = VecAXPY(position, dt / 2, (*U_current_data)[level_num]->getVec());
                 IBTK_CHKERRQ(ierr);
             }
             ierr = VecCopy(position, expected_position);
@@ -1363,7 +1463,7 @@ run_operators(Pointer<AppInitializer> app)
             const TimePoint force_point = midpoint ? TimePoint::HALF_TIME : TimePoint::NEW_TIME;
             method->getPositionData(&X_data, &X_ghost, force_point);
             method->getVelocityData(&U_data, force_point);
-            ierr = VecAXPY(position, -1.0, (*X_data)[0]->getVec());
+            ierr = VecAXPY(position, -1.0, (*X_data)[level_num]->getVec());
             IBTK_CHKERRQ(ierr);
             PetscReal position_error;
             ierr = VecNorm(position, NORM_INFINITY, &position_error);
@@ -1372,8 +1472,13 @@ run_operators(Pointer<AppInitializer> app)
             stokes->apply(*base, *expected);
             ierr = VecSet(expected_force->getVec(), 0.0);
             IBTK_CHKERRQ(ierr);
-            force->computeLagrangianForce(
-                expected_force, (*X_data)[0], (*U_data)[0], hierarchy, 0, force_time, method->getLDataManager());
+            force->computeLagrangianForce(expected_force,
+                                          (*X_data)[level_num],
+                                          (*U_data)[level_num],
+                                          hierarchy,
+                                          level_num,
+                                          force_time,
+                                          method->getLDataManager());
             ierr = MatMultTranspose(J, expected_force->getVec(), spread);
             IBTK_CHKERRQ(ierr);
             copy_to_petsc(eulerian, expected);
@@ -1395,11 +1500,11 @@ run_operators(Pointer<AppInitializer> app)
             force->computeLagrangianForceJacobian(A,
                                                   MAT_FINAL_ASSEMBLY,
                                                   1.0,
-                                                  (*X_data)[0],
+                                                  (*X_data)[level_num],
                                                   0.0,
                                                   nullptr,
                                                   hierarchy,
-                                                  0,
+                                                  level_num,
                                                   force_time,
                                                   method->getLDataManager());
             Mat coupling = nullptr;
@@ -1414,7 +1519,7 @@ run_operators(Pointer<AppInitializer> app)
             if (type != BACKWARD_EULER)
             {
                 method->getPositionData(&X_data, &X_ghost, force_point);
-                ierr = VecWAXPY(position, -1.0, expected_position, (*X_data)[0]->getVec());
+                ierr = VecWAXPY(position, -1.0, expected_position, (*X_data)[level_num]->getVec());
                 IBTK_CHKERRQ(ierr);
                 ierr = VecNorm(position, NORM_INFINITY, &position_error);
                 IBTK_CHKERRQ(ierr);
@@ -1441,8 +1546,7 @@ run_operators(Pointer<AppInitializer> app)
             jacobian.setIBCouplingJacobian(coupling_alias);
             jacobian.apply(*direction, *expected);
             assembled_valid = close(action, expected, JACOBIAN_TOL, "assembled Jacobian") && assembled_valid;
-            Mat no_coupling = nullptr;
-            jacobian.setIBCouplingJacobian(no_coupling);
+            jacobian.setIBCouplingJacobian(nullptr);
 
             const double h = 1.0e-5;
             plus->linearSum(1.0, base, h, direction);
@@ -1473,9 +1577,21 @@ run_operators(Pointer<AppInitializer> app)
             nonlinear.applyAdd(*base, *direction, *expected);
             work->add(residual, direction);
             nonlinear_add_valid = close(expected, work, RESIDUAL_TOL, "nonlinear applyAdd") && nonlinear_add_valid;
+            expected->copyVector(direction);
+            nonlinear.applyAdd(*base, *expected, *expected);
+            nonlinear_add_valid = close(expected, work, RESIDUAL_TOL, "nonlinear applyAdd y=z") && nonlinear_add_valid;
+            expected->copyVector(base);
+            nonlinear.applyAdd(*expected, *direction, *expected);
+            nonlinear_add_valid = close(expected, work, RESIDUAL_TOL, "nonlinear applyAdd x=z") && nonlinear_add_valid;
             jacobian.applyAdd(*direction, *base, *expected);
             work->add(action, base);
             jacobian_add_valid = close(expected, work, JACOBIAN_TOL, "Jacobian applyAdd") && jacobian_add_valid;
+            expected->copyVector(base);
+            jacobian.applyAdd(*direction, *expected, *expected);
+            jacobian_add_valid = close(expected, work, JACOBIAN_TOL, "Jacobian applyAdd y=z") && jacobian_add_valid;
+            expected->copyVector(direction);
+            jacobian.applyAdd(*expected, *base, *expected);
+            jacobian_add_valid = close(expected, work, JACOBIAN_TOL, "Jacobian applyAdd x=z") && jacobian_add_valid;
         }
         for (GeneralOperator* op :
              { static_cast<GeneralOperator*>(&nonlinear), static_cast<GeneralOperator*>(&jacobian) })
@@ -1543,8 +1659,7 @@ run_operators(Pointer<AppInitializer> app)
     lifecycle_valid = !jacobian.getBaseVector() && lifecycle_valid;
     jacobian.formJacobian(*base);
     jacobian.apply(*direction, *action);
-    Mat no_coupling = nullptr;
-    jacobian.setIBCouplingJacobian(no_coupling);
+    jacobian.setIBCouplingJacobian(nullptr);
     jacobian.apply(*direction, *expected);
     difference->subtract(action, first_action);
     const double selection_difference = difference->maxNorm();
