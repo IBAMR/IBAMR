@@ -91,7 +91,7 @@ public:
      * Reinitialization releases the retained matrix; install a current matrix
      * after any enclosing solver has initialized this operator.
      */
-    void setIBCouplingJacobian(Mat& SAJ_mat);
+    void setIBCouplingJacobian(Mat SAJ_mat);
 
     /*!
      * \brief Form and cache Jacobian state at the specified point.
@@ -123,13 +123,6 @@ public:
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
-
-    /*!
-     * \brief Compute \f$z = J[x] + y\f$.
-     */
-    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z) override;
 
     /*!
      * \brief Initialize hierarchy-dependent operator state.

@@ -29,25 +29,16 @@ namespace IBAMR
 // Time-stepping parameters shared by the nonlinear and Jacobian operators.
 namespace
 {
-enum class StaggeredStokesIBVelocityState
-{
-    NEW,
-    MIDPOINT_AVERAGE
-};
-
 struct StaggeredStokesIBTimeStepParameters
 {
-    double half_time = std::numeric_limits<double>::quiet_NaN();
-    double velocity_time = std::numeric_limits<double>::quiet_NaN();
-    double force_time = std::numeric_limits<double>::quiet_NaN();
-    StaggeredStokesIBVelocityState velocity_state = StaggeredStokesIBVelocityState::NEW;
+    double evaluation_time = std::numeric_limits<double>::quiet_NaN();
     double nonlinear_force_scale = std::numeric_limits<double>::quiet_NaN();
     double jacobian_force_scale = std::numeric_limits<double>::quiet_NaN();
     // Location of force evaluation between current and updated positions.
     double force_position_fraction = std::numeric_limits<double>::quiet_NaN();
 };
 
-/*! \brief Select coupling times, velocity state, and force scaling for the time-stepping rule. */
+/*! \brief Select the coupling time and force scaling for the time-stepping rule. */
 inline StaggeredStokesIBTimeStepParameters
 get_staggered_stokes_ib_time_step_parameters(const TimeSteppingType time_stepping_type,
                                              const double current_time,
@@ -55,29 +46,22 @@ get_staggered_stokes_ib_time_step_parameters(const TimeSteppingType time_steppin
                                              const std::string& caller)
 {
     StaggeredStokesIBTimeStepParameters parameters;
-    parameters.half_time = current_time + 0.5 * (new_time - current_time);
     switch (time_stepping_type)
     {
     case BACKWARD_EULER:
-        parameters.velocity_time = new_time;
-        parameters.force_time = new_time;
-        parameters.velocity_state = StaggeredStokesIBVelocityState::NEW;
+        parameters.evaluation_time = new_time;
         parameters.nonlinear_force_scale = 1.0;
         parameters.jacobian_force_scale = 1.0;
         parameters.force_position_fraction = 1.0;
         break;
     case TRAPEZOIDAL_RULE:
-        parameters.velocity_time = new_time;
-        parameters.force_time = new_time;
-        parameters.velocity_state = StaggeredStokesIBVelocityState::NEW;
+        parameters.evaluation_time = new_time;
         parameters.nonlinear_force_scale = 0.5;
         parameters.jacobian_force_scale = 0.5;
         parameters.force_position_fraction = 1.0;
         break;
     case MIDPOINT_RULE:
-        parameters.velocity_time = parameters.half_time;
-        parameters.force_time = parameters.half_time;
-        parameters.velocity_state = StaggeredStokesIBVelocityState::MIDPOINT_AVERAGE;
+        parameters.evaluation_time = current_time + 0.5 * (new_time - current_time);
         parameters.nonlinear_force_scale = 1.0;
         parameters.jacobian_force_scale = 0.5;
         parameters.force_position_fraction = 0.5;

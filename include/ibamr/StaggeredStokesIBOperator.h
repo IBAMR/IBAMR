@@ -45,11 +45,6 @@ namespace math
 template <int DIM, class TYPE>
 class HierarchyDataOpsReal;
 } // namespace math
-namespace hier
-{
-template <int DIM>
-class PatchLevel;
-} // namespace hier
 namespace solv
 {
 template <int DIM, class TYPE>
@@ -111,8 +106,8 @@ public:
      * and must remain valid during use; omit it only if the boundary setup needs
      * no such strategy, e.g. a periodic domain.
      *
-     * The supplied-matrix Jacobian action additionally requires patch_level and
-     * the coupled velocity/pressure DOF fields u_dof_index_idx/p_dof_index_idx;
+     * The supplied-matrix Jacobian action additionally requires coupled velocity/pressure
+     * DOF fields u_dof_index_idx/p_dof_index_idx on the input vector's single level;
      * see StaggeredStokesIBJacobianOperator::setIBCouplingJacobian().
      * Copying Context copies handles and indices, not the shared objects or
      * patch data. Keep that shared state valid throughout operator use.
@@ -126,7 +121,6 @@ public:
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> u_synch_scheds;
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> u_ghost_fill_scheds;
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> f_prolongation_scheds;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level = nullptr;
         int u_idx = IBTK::invalid_index;
         int f_idx = IBTK::invalid_index;
         int u_current_idx = IBTK::invalid_index;
@@ -167,13 +161,6 @@ public:
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
-
-    /*!
-     * \brief Compute \f$z = A[x] + y\f$.
-     */
-    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z) override;
 
     /*!
      * \brief Initialize hierarchy-dependent operator state.
