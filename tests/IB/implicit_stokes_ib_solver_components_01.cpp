@@ -3029,8 +3029,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             IBTK_CHKERRQ(log_ierr);
 #else
             // Older PETSc versions expose the object callbacks directly.
-            const auto saved_create = PetscLogPHC;
-            const auto saved_destroy = PetscLogPHD;
+            PetscErrorCode (*const saved_create)(PetscObject) = PetscLogPHC;
+            PetscErrorCode (*const saved_destroy)(PetscObject) = PetscLogPHD;
             PetscLogPHC = count_petsc_vec_creation;
             PetscLogPHD = count_petsc_vec_destruction;
 #endif
@@ -3090,7 +3090,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 IBTK_CHKERRQ(check_ierr);
                 check_ierr = VecDuplicate(expected, &actual);
                 IBTK_CHKERRQ(check_ierr);
-                const auto level = patch_hierarchy->getPatchLevel(ln);
+                const Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
                 StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(solution,
                                                                       nonlinear_probe->getComponentDescriptorIndex(0),
                                                                       u_dof_index_idx,
@@ -3357,7 +3357,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
 
-        for (auto vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol }) free_vector_components(*vec);
+        for (Pointer<SAMRAIVectorReal<NDIM, double>> vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol })
+            free_vector_components(*vec);
 
         deallocate_vector_data(*eul_sol_vec);
         deallocate_vector_data(*eul_rhs_vec);
