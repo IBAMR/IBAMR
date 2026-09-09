@@ -128,8 +128,7 @@ public:
      * \brief Initialize hierarchy-dependent operator state.
      *
      * Enables and updates fixed coupling on the shared IB strategy regardless
-     * of StaggeredStokesIBOperator::Context::use_fixed_le_operators, and initializes the shared Stokes
-     * operator.
+     * of StaggeredStokesIBOperator::Context::use_fixed_le_operators.
      * Reinitialization deallocates the previous state, including the Jacobian
      * base and supplied coupling matrix; see formJacobian() and setIBCouplingJacobian().
      */
@@ -139,8 +138,7 @@ public:
     /*!
      * \brief Deallocate hierarchy-dependent operator state.
      *
-     * Releases the cached base and retained coupling matrix and deallocates the
-     * shared Stokes operator.
+     * Releases the cached base and retained coupling matrix.
      */
     void deallocateOperatorState() override;
 

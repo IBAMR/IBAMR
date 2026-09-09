@@ -126,15 +126,16 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
     }
     d_ctx.ib_implicit_ops->setupSolverVecs(&d_solver_X0, nullptr);
 
+    if (d_ctx.u_phys_bdry_op)
+    {
+        d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
+        d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
+    }
+
     if (d_ctx.time_stepping_type == BACKWARD_EULER)
     {
         // Interpolate the physical base, including inhomogeneous boundary data.
         // Negating u before interpolation would not negate the boundary contribution.
-        if (d_ctx.u_phys_bdry_op)
-        {
-            d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-            d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
-        }
         d_ctx.ib_implicit_ops->interpolateLinearizedVelocity(
             d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
         d_ctx.ib_implicit_ops->computeLinearizedResidual(d_solver_X0, d_solver_X);
@@ -147,11 +148,6 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
         // Populate the same nonlinear velocity state as apply() before changing
         // positions. In particular, trapezoidal stepping retains the stored
         // Lagrangian current velocity, not a new interpolation at the endpoint.
-        if (d_ctx.u_phys_bdry_op)
-        {
-            d_ctx.u_phys_bdry_op->setPatchDataIndex(d_ctx.u_idx);
-            d_ctx.u_phys_bdry_op->setHomogeneousBc(false);
-        }
         d_ctx.ib_implicit_ops->interpolateVelocity(
             d_ctx.u_idx, d_ctx.u_synch_scheds, d_ctx.u_ghost_fill_scheds, step_parameters.evaluation_time);
         // The position residual at X_current is -dt*U_half. Recover and restore
