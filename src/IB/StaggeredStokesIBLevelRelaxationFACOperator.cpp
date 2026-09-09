@@ -253,10 +253,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
 #if !defined(NDEBUG)
         TBOX_ASSERT(ln >= 0 && static_cast<std::size_t>(ln) < d_residual_work_vecs.size());
 #endif
-        auto& work_vecs = d_residual_work_vecs[ln];
-        Vec solution_vec = work_vecs.solution;
-        Vec residual_vec = work_vecs.residual;
-        Vec rhs_vec = use_rhs_vec ? work_vecs.rhs : nullptr;
+        Vec solution_vec = d_residual_work_vecs[ln].solution;
+        Vec residual_vec = d_residual_work_vecs[ln].residual;
+        Vec rhs_vec = use_rhs_vec ? d_residual_work_vecs[ln].rhs : nullptr;
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
 
 #if !defined(NDEBUG)
