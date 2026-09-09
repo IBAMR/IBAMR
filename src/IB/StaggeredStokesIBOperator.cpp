@@ -16,6 +16,7 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities.h>
 
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 
@@ -23,8 +24,6 @@
 
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
-
-#include "./StaggeredStokesIBTimeSteppingUtilities.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
