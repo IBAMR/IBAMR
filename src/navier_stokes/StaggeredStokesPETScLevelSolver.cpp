@@ -86,7 +86,8 @@ construct_cached_field_is(const std::vector<std::set<int>>& field_is,
 {
     if (local_is) return;
 
-    const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
+    const std::vector<std::string>::const_iterator field_name_it =
+        std::find(field_names.begin(), field_names.end(), field_name);
     if (field_name_it == field_names.end())
     {
         TBOX_ERROR("construct_cached_field_is():\n"
