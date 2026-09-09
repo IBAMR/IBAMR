@@ -98,7 +98,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 
     // Indicate that this subclass handles initializaing the coarse-grid solver.
     d_coarse_solver_init_subclass = true;
-    if (!input_db || !input_db->keyExists("coarse_solver_type")) d_coarse_solver_type = "PETSC_LEVEL_SOLVER";
+    if (!input_db || !input_db->keyExists("coarse_solver_type"))
+    {
+        d_coarse_solver_type = "PETSC_LEVEL_SOLVER";
+    }
 
     // Get values from the input database.
     if (input_db)

@@ -206,8 +206,7 @@ public:
     /*!
      * \brief Get the Staggered Stokes IB level solver.
      *
-     * ln must lie between the initialized coarsest and finest levels. Retaining
-     * the solver Pointer keeps the object alive, but does not preserve its
+     * Retaining the solver Pointer keeps the object alive, but does not preserve its
      * initialized state independently of FAC teardown or rebuilding.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPETScLevelSolver> getStaggeredStokesPETScLevelSolver(int ln) const;
@@ -215,8 +214,7 @@ public:
     /*!
      * \brief Get the Eulerian elasticity level operator.
      *
-     * ln must lie between the initialized coarsest and finest levels. Returns
-     * the scaled Eulerian contribution described in setIBForceJacobian(), or its
+     * Returns the scaled Eulerian contribution described in setIBForceJacobian(), or its
      * coarse-level projection, not the Lagrangian matrix A or the full Stokes matrix.
      */
     Mat getEulerianElasticityLevelOp(int ln) const;
@@ -364,7 +362,9 @@ private:
         LevelResidualWorkspace() = default;
         /*! \brief Release the owned vectors. */
         ~LevelResidualWorkspace();
+        /*! \brief Copy construction is disabled. */
         LevelResidualWorkspace(const LevelResidualWorkspace&) = delete;
+        /*! \brief Copy assignment is disabled. */
         LevelResidualWorkspace& operator=(const LevelResidualWorkspace&) = delete;
         /*! \brief Take ownership of the source vectors, leaving the source empty. */
         LevelResidualWorkspace(LevelResidualWorkspace&& from) noexcept;

@@ -2415,8 +2415,14 @@ count_petsc_vec_creation(PetscObject object)
 {
     PetscClassId class_id;
     const PetscErrorCode ierr = PetscObjectGetClassId(object, &class_id);
-    if (ierr) return ierr;
-    if (class_id == VEC_CLASSID) ++petsc_vec_creation_count;
+    if (ierr)
+    {
+        return ierr;
+    }
+    if (class_id == VEC_CLASSID)
+    {
+        ++petsc_vec_creation_count;
+    }
     return 0;
 }
 
@@ -2425,8 +2431,14 @@ count_petsc_vec_destruction(PetscObject object)
 {
     PetscClassId class_id;
     const PetscErrorCode ierr = PetscObjectGetClassId(object, &class_id);
-    if (ierr) return ierr;
-    if (class_id == VEC_CLASSID) ++petsc_vec_destruction_count;
+    if (ierr)
+    {
+        return ierr;
+    }
+    if (class_id == VEC_CLASSID)
+    {
+        ++petsc_vec_destruction_count;
+    }
     return 0;
 }
 #endif
@@ -2487,12 +2499,18 @@ generate_springs(
     {
         TBOX_ERROR("generate_springs(): missing structure specification context\n");
     }
-    if (ln != spec->finest_ln || strct_num != 0) return;
+    if (ln != spec->finest_ln || strct_num != 0)
+    {
+        return;
+    }
 
     for (int k = 0; k < spec->num_curve_points; ++k)
     {
         IBRedundantInitializer::Edge edge = { k, (k + 1) % spec->num_curve_points };
-        if (edge.first > edge.second) std::swap(edge.first, edge.second);
+        if (edge.first > edge.second)
+        {
+            std::swap(edge.first, edge.second);
+        }
         spring_map.insert(std::make_pair(edge.first, edge));
 
         IBRedundantInitializer::SpringSpec spec_data;
@@ -2671,7 +2689,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (const int data_idx : allocated_patch_data_indices) level->allocatePatchData(data_idx, current_time);
+            for (const int data_idx : allocated_patch_data_indices)
+            {
+                level->allocatePatchData(data_idx, current_time);
+            }
         }
 
         Pointer<HierarchySideDataOpsReal<NDIM, double>> hier_velocity_data_ops =
@@ -2699,7 +2720,9 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         RefineAlgorithm<NDIM> velocity_ghost_fill;
         velocity_ghost_fill.registerRefine(u_scratch_idx, u_scratch_idx, u_scratch_idx, nullptr);
         for (int ln = 0; ln <= finest_ln; ++ln)
+        {
             u_ghost_fill_scheds[ln] = velocity_ghost_fill.createSchedule(patch_hierarchy->getPatchLevel(ln));
+        }
 
         // Populate the Lagrangian ghost-node/periodic-image distribution before spreading.
         ib_method_ops->beginDataRedistribution(patch_hierarchy, gridding_algorithm);
@@ -2929,7 +2952,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 const double beta = ctx.time_stepping_type == BACKWARD_EULER ? 1.0 : 0.5;
                 double scale = -dt * beta * beta;
                 const IntVector<NDIM> ratio = patch_hierarchy->getPatchLevel(ln)->getRatio();
-                for (int d = 0; d < NDIM; ++d) scale *= ratio(d) / grid_geometry->getDx()[d];
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    scale *= ratio(d) / grid_geometry->getDx()[d];
+                }
                 ierr = MatScale(coupling_reference[ln], scale);
                 IBTK_CHKERRQ(ierr);
             }
@@ -3029,8 +3055,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             IBTK_CHKERRQ(log_ierr);
 #else
             // Older PETSc versions expose the object callbacks directly.
-            PetscErrorCode (*const saved_create)(PetscObject) = PetscLogPHC;
-            PetscErrorCode (*const saved_destroy)(PetscObject) = PetscLogPHD;
+            const auto saved_create = PetscLogPHC;
+            const auto saved_destroy = PetscLogPHD;
             PetscLogPHC = count_petsc_vec_creation;
             PetscLogPHD = count_petsc_vec_destruction;
 #endif
@@ -3173,7 +3199,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         double fac_residual_work_vector_reuse_error = 0.0;
         const bool fac_residual_repeat_valid =
             check_fac_residual_work_vector_cache(fac_residual_work_vector_reuse_error);
-        if (!fac_residual_repeat_valid) ++test_failures;
+        if (!fac_residual_repeat_valid)
+        {
+            ++test_failures;
+        }
 
         bool galerkin_operator_available_valid = !verify_galerkin_operator_borrowing;
         bool galerkin_operator_creator_lifetime_valid = !verify_galerkin_operator_borrowing;
@@ -3202,7 +3231,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             coarse_level_solver->setOperatorMat(nullptr);
             galerkin_operator_creator_lifetime_valid =
                 matrix_references(supplied_operator) == 1 && galerkin_operator_creator_lifetime_valid;
-            if (!galerkin_operator_available_valid || !galerkin_operator_creator_lifetime_valid) ++test_failures;
+            if (!galerkin_operator_available_valid || !galerkin_operator_creator_lifetime_valid)
+            {
+                ++test_failures;
+            }
         }
 
         bool fac_reinitialization_valid = true;
@@ -3223,7 +3255,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             IBTK_CHKERRQ(ierr);
             fac_reinitialization_valid = supplied_operator != nullptr && reference_count > 1;
         }
-        if (!fac_residual_repeat_reinitialize_valid || !fac_reinitialization_valid) ++test_failures;
+        if (!fac_residual_repeat_reinitialize_valid || !fac_reinitialization_valid)
+        {
+            ++test_failures;
+        }
 
         Pointer<PETScKrylovLinearSolver> linear_solver =
             new PETScKrylovLinearSolver("stokes_ib_solver_components::linear_solver", nullptr, "ib_");
@@ -3357,8 +3392,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
         ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
 
-        for (Pointer<SAMRAIVectorReal<NDIM, double>> vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol })
+        for (auto vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol })
+        {
             free_vector_components(*vec);
+        }
 
         deallocate_vector_data(*eul_sol_vec);
         deallocate_vector_data(*eul_rhs_vec);
@@ -3370,7 +3407,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (const int data_idx : allocated_patch_data_indices)
             {
-                if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
+                if (level->checkAllocated(data_idx))
+                {
+                    level->deallocatePatchData(data_idx);
+                }
             }
         }
 
@@ -3379,7 +3419,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         ierr = MatDestroy(&J);
         IBTK_CHKERRQ(ierr);
 
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            delete u_bc_coefs[d];
+        }
 
         pout << "test_failures = " << test_failures << std::endl;
     }
@@ -3445,7 +3488,10 @@ main(int argc, char* argv[])
     {
         return run_level_state(app);
     }
-    if (test_case == "foundation") return run_foundation(app);
+    if (test_case == "foundation")
+    {
+        return run_foundation(app);
+    }
     if (test_case == "foundation_coarse_solver")
     {
         Pointer<Logger::Appender> abort_appender = new TestAppender();

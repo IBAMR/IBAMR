@@ -165,8 +165,11 @@ public:
     SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> getIBFACPreconditionerStrategy() const;
 
 private:
+    /*! \brief Default construction is disabled. */
     StaggeredStokesIBJacobianFACPreconditioner() = delete;
+    /*! \brief Copy construction is disabled. */
     StaggeredStokesIBJacobianFACPreconditioner(const StaggeredStokesIBJacobianFACPreconditioner& from) = delete;
+    /*! \brief Copy assignment is disabled. */
     StaggeredStokesIBJacobianFACPreconditioner&
     operator=(const StaggeredStokesIBJacobianFACPreconditioner& that) = delete;
 
