@@ -1802,7 +1802,10 @@ struct LevelFixture
 
     LevelFixture(Pointer<Database> geometry_db, int ln = 0, bool full = true)
     {
-        if (IBTK_MPI::getNodes() != 1) TBOX_ERROR("Level fixture requires one rank\n");
+        if (IBTK_MPI::getNodes() != 1)
+        {
+            TBOX_ERROR("Level fixture requires one rank\n");
+        }
         Pointer<CartesianGridGeometry<NDIM>> geometry = new CartesianGridGeometry<NDIM>("level_geometry", geometry_db);
         hierarchy = new PatchHierarchy<NDIM>("level_hierarchy", geometry);
         BoxArray<NDIM> boxes(1);
@@ -1821,8 +1824,14 @@ struct LevelFixture
         Pointer<VariableContext> context = db->getContext("level_fixture");
         Pointer<SideVariable<NDIM, double>> u = new SideVariable<NDIM, double>("level_u");
         Pointer<CellVariable<NDIM, double>> p = new CellVariable<NDIM, double>("level_p");
-        if (db->checkVariableExists("level_u")) u = db->getVariable("level_u");
-        if (db->checkVariableExists("level_p")) p = db->getVariable("level_p");
+        if (db->checkVariableExists("level_u"))
+        {
+            u = db->getVariable("level_u");
+        }
+        if (db->checkVariableExists("level_p"))
+        {
+            p = db->getVariable("level_p");
+        }
         const int ui = db->registerVariableAndContext(u, context, IntVector<NDIM>(1));
         const int pi = db->registerVariableAndContext(p, context, IntVector<NDIM>(1));
         x = new HierarchyVector("level_x", hierarchy, ln, ln);
@@ -1835,20 +1844,33 @@ struct LevelFixture
         b->setToScalar(0.0);
         Pointer<SideVariable<NDIM, int>> ud = new SideVariable<NDIM, int>("level_ud");
         Pointer<CellVariable<NDIM, int>> pd = new CellVariable<NDIM, int>("level_pd");
-        if (db->checkVariableExists("level_ud")) ud = db->getVariable("level_ud");
-        if (db->checkVariableExists("level_pd")) pd = db->getVariable("level_pd");
+        if (db->checkVariableExists("level_ud"))
+        {
+            ud = db->getVariable("level_ud");
+        }
+        if (db->checkVariableExists("level_pd"))
+        {
+            pd = db->getVariable("level_pd");
+        }
         const int udi = db->registerVariableAndContext(ud, context, IntVector<NDIM>(1));
         const int pdi = db->registerVariableAndContext(pd, context, IntVector<NDIM>(1));
         indices = { udi, pdi };
-        for (int idx : indices) level->allocatePatchData(idx);
+        for (int idx : indices)
+        {
+            level->allocatePatchData(idx);
+        }
         std::vector<int> counts;
         StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, udi, pdi, level);
         full_size = counts[0];
         std::set<int> velocity;
         Pointer<SideData<NDIM, int>> data = level->getPatch(0)->getPatchData(udi);
         for (int axis = 0; axis < NDIM; ++axis)
+        {
             for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(level->getPatch(0)->getBox(), axis)); i; i++)
+            {
                 velocity.insert((*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower)));
+            }
+        }
         velocity_ids.assign(velocity.begin(), velocity.end());
     }
     ~LevelFixture()
@@ -1938,7 +1960,10 @@ check_level_solve(PETScLevelSolver& solver)
     PetscScalar* values;
     ierr = VecGetArray(exact, &values);
     IBTK_CHKERRQ(ierr);
-    for (PetscInt i = 0; i < n; ++i) values[i] = std::sin(0.13 * i) + 0.5;
+    for (PetscInt i = 0; i < n; ++i)
+    {
+        values[i] = std::sin(0.13 * i) + 0.5;
+    }
     ierr = VecRestoreArray(exact, &values);
     IBTK_CHKERRQ(ierr);
     ierr = MatMult(matrix, exact, rhs);
@@ -2104,10 +2129,16 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
             IBTK_CHKERRQ(ierr);
         }
         solver.setAugmentedOperatorMat(augmented);
-        if (augmentation) references_valid = matrix_references(augmented) == 2 && references_valid;
+        if (augmentation)
+        {
+            references_valid = matrix_references(augmented) == 2 && references_valid;
+        }
         // Reject missing retention before testing caller release, so that a
         // regression reports failure instead of dereferencing a dangling Mat.
-        if (!references_valid) TBOX_ERROR("Installed matrix references were not retained correctly.\n");
+        if (!references_valid)
+        {
+            TBOX_ERROR("Installed matrix references were not retained correctly.\n");
+        }
         const Mat operator_alias = creator, augmentation_alias = augmented;
         ierr = MatDestroy(&creator);
         IBTK_CHKERRQ(ierr);
@@ -2117,7 +2148,10 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
         {
             // No caller-owned reference remains, even before initialization.
             references_valid = matrix_references(operator_alias) == 1 && references_valid;
-            if (augmentation) references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            if (augmentation)
+            {
+                references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            }
             solver.initializeSolverState(*fixture.x, *fixture.b);
             Mat installed;
             ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
@@ -2127,7 +2161,10 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
                        solver.referencesBeforeKSP() == 1;
             values_valid = matrices_equal(installed, augmentation ? expected : original) && values_valid;
             creator_valid = matrices_equal(operator_alias, original) && creator_valid;
-            if (augmentation) creator_valid = matrices_equal(augmentation_alias, augmented_original) && creator_valid;
+            if (augmentation)
+            {
+                creator_valid = matrices_equal(augmentation_alias, augmented_original) && creator_valid;
+            }
             solves = check_level_solve(solver) && solves;
             solves = check_stokes_vector_mapping(solver, fixture) && solves;
             solver.deallocateSolverState();
@@ -2136,7 +2173,10 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
             solver.setOperatorMat(operator_alias);
             solver.setAugmentedOperatorMat(augmentation_alias);
             references_valid = matrix_references(operator_alias) == 1 && references_valid;
-            if (augmentation) references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            if (augmentation)
+            {
+                references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            }
         }
         // Retain observer references to check that clearing releases exactly
         // the solver's references, without destroying another owner's data.
@@ -2184,12 +2224,19 @@ run_initialized_matrix_setter(Pointer<AppInitializer> app, bool augmentation)
     solver.setSolutionTime(1.0);
     Mat matrix = level_test_matrix(fixture.full_size, 4.0);
     solver.setOperatorMat(matrix);
-    if (augmentation) solver.setAugmentedOperatorMat(matrix);
+    if (augmentation)
+    {
+        solver.setAugmentedOperatorMat(matrix);
+    }
     solver.initializeSolverState(*fixture.x, *fixture.b);
     if (augmentation)
+    {
         solver.setAugmentedOperatorMat(matrix);
+    }
     else
+    {
         solver.setOperatorMat(matrix);
+    }
     // Even same-handle setters must reject initialized state. Returning zero
     // on unexpected continuation makes this expect_error=true case fail attest.
     solver.deallocateSolverState();
@@ -2238,7 +2285,10 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             ierr = VecDestroy(&v);
             IBTK_CHKERRQ(ierr);
         }
-        if (max_references != 1) pout << "unreleased_shell_vector_references = " << max_references << std::endl;
+        if (max_references != 1)
+        {
+            pout << "unreleased_shell_vector_references = " << max_references << std::endl;
+        }
     }
     return valid;
 }
@@ -2380,11 +2430,26 @@ main(int argc, char* argv[])
     {
         return run_operators(app);
     }
-    if (test_case == "level_borrowing") return run_level_operator(app, false);
-    if (test_case == "level_augmentation") return run_level_operator(app, true);
-    if (test_case == "set_operator_initialized") return run_initialized_matrix_setter(app, false);
-    if (test_case == "set_augmentation_initialized") return run_initialized_matrix_setter(app, true);
-    if (test_case == "level_state") return run_level_state(app);
+    if (test_case == "level_borrowing")
+    {
+        return run_level_operator(app, false);
+    }
+    if (test_case == "level_augmentation")
+    {
+        return run_level_operator(app, true);
+    }
+    if (test_case == "set_operator_initialized")
+    {
+        return run_initialized_matrix_setter(app, false);
+    }
+    if (test_case == "set_augmentation_initialized")
+    {
+        return run_initialized_matrix_setter(app, true);
+    }
+    if (test_case == "level_state")
+    {
+        return run_level_state(app);
+    }
     TBOX_ERROR("Unknown component test case: " << test_case << '\n');
     return 1;
 }

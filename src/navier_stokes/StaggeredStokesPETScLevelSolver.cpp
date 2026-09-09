@@ -70,6 +70,7 @@ static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
 
+/*! \brief Determine whether the level's boxes cover its physical domain. */
 bool
 level_covers_entire_physical_domain(const Pointer<PatchLevel<NDIM>>& level)
 {
@@ -78,16 +79,19 @@ level_covers_entire_physical_domain(const Pointer<PatchLevel<NDIM>>& level)
     return uncovered_domain.isEmpty();
 }
 
+/*! \brief Cache the named field's local coupled DOF indices. */
 void
 construct_cached_field_is(const std::vector<std::set<int>>& field_is,
                           const std::vector<std::string>& field_names,
                           const std::string& field_name,
                           IS& local_is)
 {
-    if (local_is) return;
+    if (local_is)
+    {
+        return;
+    }
 
-    const std::vector<std::string>::const_iterator field_name_it =
-        std::find(field_names.begin(), field_names.end(), field_name);
+    const auto field_name_it = std::find(field_names.begin(), field_names.end(), field_name);
     if (field_name_it == field_names.end())
     {
         TBOX_ERROR("construct_cached_field_is():\n"
@@ -106,10 +110,14 @@ construct_cached_field_is(const std::vector<std::set<int>>& field_is,
     return;
 }
 
+/*! \brief Cache the mapping from compact velocity indices to coupled indices. */
 void
 construct_cached_velocity_field_ao(IS velocity_field_is_local, Mat velocity_block_mat, AO& velocity_field_ao)
 {
-    if (velocity_field_ao) return;
+    if (velocity_field_ao)
+    {
+        return;
+    }
 
     PetscInt n_velocity_local = 0;
     PetscInt row_start = 0;
@@ -381,7 +389,10 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                 IBTK_CHKERRQ(ierr);
 
                 mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                for (PetscInt k = 0; k < ncols; ++k)
+                {
+                    mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                }
                 ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
                 IBTK_CHKERRQ(ierr);
 
@@ -420,7 +431,10 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                 IBTK_CHKERRQ(ierr);
 
                 mapped_cols.resize(static_cast<std::size_t>(ncols));
-                for (PetscInt k = 0; k < ncols; ++k) mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                for (PetscInt k = 0; k < ncols; ++k)
+                {
+                    mapped_cols[static_cast<std::size_t>(k)] = cols[k];
+                }
                 ierr = AOApplicationToPetsc(d_velocity_field_ao, ncols, mapped_cols.data());
                 IBTK_CHKERRQ(ierr);
 
