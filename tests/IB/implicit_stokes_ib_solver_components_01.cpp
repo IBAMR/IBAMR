@@ -1813,8 +1813,8 @@ struct LevelFixture
             hierarchy->makeNewPatchLevel(1, IntVector<NDIM>(2), boxes, mapping);
         }
         level = hierarchy->getPatchLevel(ln);
-        auto* db = VariableDatabase<NDIM>::getDatabase();
-        auto context = db->getContext("level_fixture");
+        VariableDatabase<NDIM>* db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<VariableContext> context = db->getContext("level_fixture");
         Pointer<SideVariable<NDIM, double>> u = new SideVariable<NDIM, double>("level_u");
         Pointer<CellVariable<NDIM, double>> p = new CellVariable<NDIM, double>("level_p");
         if (db->checkVariableExists("level_u")) u = db->getVariable("level_u");
@@ -2218,7 +2218,7 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             overlap_total += n;
         }
         valid = check_level_solve(solver) && valid;
-        auto retained = solver.retainShellVectors();
+        std::vector<Vec> retained = solver.retainShellVectors();
         valid = valid && retained.size() == 16;
         solver.deallocateSolverState();
         valid = solver.shellStorageEmpty() && valid;
@@ -2249,7 +2249,7 @@ run_level_state(Pointer<AppInitializer> app)
         Pointer<HierarchyVector> sc_x = new HierarchyVector("sc_x", fixture.hierarchy, 0, 0);
         cc_x->addComponent(fixture.x->getComponentVariable(1), fixture.x->getComponentDescriptorIndex(1));
         sc_x->addComponent(fixture.x->getComponentVariable(0), fixture.x->getComponentDescriptorIndex(0));
-        auto cc_b = cc_x->cloneVector("cc_b"), sc_b = sc_x->cloneVector("sc_b");
+        Pointer<HierarchyVector> cc_b = cc_x->cloneVector("cc_b"), sc_b = sc_x->cloneVector("sc_b");
         cc_b->allocateVectorData();
         sc_b->allocateVectorData();
         PoissonSpecifications coefs("state_coefs");
@@ -2258,7 +2258,7 @@ run_level_state(Pointer<AppInitializer> app)
         PetscInt cc_previous = 0, sc_previous = 0, stokes_previous = 0;
         for (int width : { 0, 2 })
         {
-            auto db = level_solver_database("shell", width);
+            Pointer<Database> db = level_solver_database("shell", width);
             // Exercise both existing shell compositions across these lifetimes.
             db->putString("shell_pc_type", width == 0 ? "multiplicative" : "additive");
             LevelSolverProbe<CCPoissonPETScLevelSolver> cc("state_cc", db);
