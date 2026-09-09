@@ -58,7 +58,10 @@ StaggeredStokesIBJacobianOperator::setOperatorContext(const StaggeredStokesIBOpe
 void
 StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat& SAJ_mat)
 {
-    if (d_SAJ_mat == SAJ_mat) return;
+    if (d_SAJ_mat == SAJ_mat)
+    {
+        return;
+    }
     if (d_SAJ_mat)
     {
         PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
@@ -310,7 +313,10 @@ void
 StaggeredStokesIBJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                            const SAMRAIVectorReal<NDIM, double>& out)
 {
-    if (getIsInitialized()) deallocateOperatorState();
+    if (getIsInitialized())
+    {
+        deallocateOperatorState();
+    }
 
     if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op)
     {
@@ -332,7 +338,10 @@ StaggeredStokesIBJacobianOperator::deallocateOperatorState()
         free_vector_components(*d_base_vector);
         d_base_vector.setNull();
     }
-    if (d_ctx.stokes_op) d_ctx.stokes_op->deallocateOperatorState();
+    if (d_ctx.stokes_op)
+    {
+        d_ctx.stokes_op->deallocateOperatorState();
+    }
     if (d_input_vec)
     {
         PetscErrorCode ierr = VecDestroy(&d_input_vec);
@@ -365,7 +374,10 @@ StaggeredStokesIBJacobianOperator::deallocateOperatorState()
 void
 StaggeredStokesIBJacobianOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_ctx.stokes_op) TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
+    if (!d_ctx.stokes_op)
+    {
+        TBOX_ERROR(d_object_name << "::modifyRhsForBcs(): missing Stokes operator\n");
+    }
     d_ctx.stokes_op->setTimeInterval(getTimeInterval().first, getTimeInterval().second);
     d_ctx.stokes_op->setSolutionTime(getSolutionTime());
     d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());
@@ -376,7 +388,10 @@ StaggeredStokesIBJacobianOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double
 void
 StaggeredStokesIBJacobianOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
-    if (!d_ctx.stokes_op) TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
+    if (!d_ctx.stokes_op)
+    {
+        TBOX_ERROR(d_object_name << "::imposeSolBcs(): missing Stokes operator\n");
+    }
     d_ctx.stokes_op->setTimeInterval(getTimeInterval().first, getTimeInterval().second);
     d_ctx.stokes_op->setSolutionTime(getSolutionTime());
     d_ctx.stokes_op->setHomogeneousBc(getHomogeneousBc());

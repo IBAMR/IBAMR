@@ -14,6 +14,8 @@
 #ifndef included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
 #define included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
 
+#include <ibamr/config.h>
+
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
@@ -46,6 +48,7 @@ struct StaggeredStokesIBTimeStepParameters
     double force_position_fraction = std::numeric_limits<double>::quiet_NaN();
 };
 
+/*! \brief Select coupling times, velocity state, and force scaling for the time-stepping rule. */
 inline StaggeredStokesIBTimeStepParameters
 get_staggered_stokes_ib_time_step_parameters(const TimeSteppingType time_stepping_type,
                                              const double current_time,
@@ -86,6 +89,7 @@ get_staggered_stokes_ib_time_step_parameters(const TimeSteppingType time_steppin
     return parameters;
 }
 
+/*! \brief Advance the strategy's positions with the selected time-stepping rule. */
 inline void
 advance_staggered_stokes_ib_strategy(IBImplicitStrategy& ib_implicit_ops,
                                      const TimeSteppingType time_stepping_type,
