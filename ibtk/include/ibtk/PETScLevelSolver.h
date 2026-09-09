@@ -230,10 +230,6 @@ protected:
 
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
-     *
-     * Concrete solvers own their subdomain geometry and parse the corresponding
-     * input options. This base class does not provide box-size or overlap-size
-     * members; subclasses supply that state when constructing their index sets.
      */
     virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                        std::vector<std::set<int>>& nonoverlap_is);
