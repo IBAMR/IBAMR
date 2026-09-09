@@ -26,8 +26,7 @@
 
 namespace IBAMR
 {
-// Implementation shared only by the nonlinear and Jacobian operators. This
-// header is not installed; each translation unit keeps its own internal helpers.
+// Time-stepping parameters shared by the nonlinear and Jacobian operators.
 namespace
 {
 enum class StaggeredStokesIBVelocityState

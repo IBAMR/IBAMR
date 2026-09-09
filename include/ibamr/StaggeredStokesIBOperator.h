@@ -93,9 +93,8 @@ public:
      * \brief Shared coupling state for the nonlinear and Jacobian operators.
      *
      * Operator vectors have side-centered velocity as component 0 and
-     * cell-centered pressure as component 1. Their allocated data, hierarchy,
-     * and level range must satisfy IBTK::GeneralOperator's vector requirements.
-     * The data operations and schedules below must refer to the same hierarchy.
+     * cell-centered pressure as component 1. The vectors, data operations, and
+     * schedules below must refer to the same hierarchy.
      *
      * Configure stokes_op's coefficients and boundary objects before use. Both
      * operators initialize and deallocate its state and set its times and
@@ -155,16 +154,6 @@ public:
      * Copies ctx; later edits to the caller's Context do not update this copy.
      * Deallocate before replacing dependencies or hierarchy-dependent data,
      * then initialize with vectors matching the new Context.
-     * After preparing Context and the strategy's time-step data, the ordinary
-     * sequence is:
-     * \code
-     * op.setOperatorContext(ctx);
-     * op.setTimeInterval(current_time, new_time);
-     * op.setSolutionTime(force_time);
-     * op.initializeOperatorState(x, y);
-     * op.apply(x, y);
-     * op.deallocateOperatorState();
-     * \endcode
      */
     void setOperatorContext(const Context& ctx);
 
@@ -190,9 +179,7 @@ public:
      * \brief Initialize hierarchy-dependent operator state.
      *
      * Sets the strategy's fixed-coupling flag from Context::use_fixed_le_operators
-     * and initializes the shared Stokes operator. Existing state is deallocated
-     * first; preparation of the strategy's time-step data remains the caller's
-     * responsibility (see Context).
+     * and initializes the shared Stokes operator.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
