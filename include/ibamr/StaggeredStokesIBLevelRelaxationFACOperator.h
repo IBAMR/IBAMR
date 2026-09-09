@@ -121,21 +121,14 @@ namespace IBAMR
  *
  * A and J must be nonnull, assembled PETSc matrices compatible with this product
  * on PETSC_COMM_WORLD. Both setters borrow handles without retaining PETSc
- * references and may be called only while deallocated. Keep the matrices alive
- * and unchanged during use and for subsequent initialization: deallocation does
- * not clear the borrowed inputs. Deallocate, update the matrices, and reinitialize
- * after changing their entries, linearization data, or associated hierarchy.
- * The operator does not refresh the supplied matrices.
+ * references and require deallocated state. Keep the matrices alive and unchanged
+ * during use and subsequent initialization; deallocation does not clear them.
+ * Deallocate before updating the matrices, linearization data, or hierarchy,
+ * then reinitialize.
  *
  * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
  * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
- * For example, select PETSc solvers for the coarse level and finer levels with
- * the following input:
- * \verbatim
- level_solver_type = "PETSC_LEVEL_SOLVER"
- coarse_solver_type = "PETSC_LEVEL_SOLVER"
- \endverbatim
-*/
+ */
 class StaggeredStokesIBLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
@@ -211,29 +204,24 @@ public:
     SAMRAI::tbox::Pointer<StaggeredStokesPETScLevelSolver> getStaggeredStokesPETScLevelSolver(int ln) const;
 
     /*!
-     * \brief Get the Eulerian elasticity level operator.
+     * \brief Return the scaled Eulerian elasticity contribution on level \em ln.
      *
-     * Returns the scaled Eulerian contribution described in \ref stokes_ib_fac_matrices, or its
-     * coarse-level projection, not the Lagrangian matrix A or the full Stokes matrix.
+     * \see \ref stokes_ib_fac_matrices
      */
     Mat getEulerianElasticityLevelOp(int ln) const;
 
     /*!
-     * \brief Get the prolongation level operator. The prolongation
-     * operator prolongs data from level \em ln to level \em ln + 1.
-     * This is the transfer used for the elasticity contribution, not necessarily
-     * the transfer used for the full Stokes-IB operator. Requires an adjacent
-     * pair of initialized levels.
+     * \brief Return the elasticity prolongation from level \em ln to level \em ln + 1.
+     *
+     * Requires an adjacent pair of initialized levels.
      */
     Mat getProlongationOp(int ln) const;
 
     /*!
-     * \brief Get the scaling for level restriction operator. The restriction
-     * operator restricts data from level \em ln + 1 to level \em ln.
-     * Restriction op is defined to be the scaled adjoint of prolongation
-     * operator, i.e., R = L P^T. Returns the diagonal of L for the elasticity
-     * transfer P from getProlongationOp(), not a restriction matrix. Requires
-     * an adjacent pair of initialized levels.
+     * \brief Return the diagonal of L in the elasticity restriction R = L P^T.
+     *
+     * P is the prolongation from getProlongationOp(). Requires an adjacent pair
+     * of initialized levels \em ln and \em ln + 1.
      */
     Vec getRestrictionScalingOp(int ln) const;
 
@@ -381,9 +369,7 @@ private:
     };
 
     /*
-     * Full-level PETSc vectors reused at the SAMRAI/PETSc residual boundary.
-     * Their layout is hierarchy-dependent, so they are rebuilt with operator
-     * state and invalidated by the same deallocation/regrid path as the DOFs.
+     * Residual work vectors for each hierarchy level.
      */
     std::vector<LevelResidualWorkspace> d_residual_work_vecs;
 
