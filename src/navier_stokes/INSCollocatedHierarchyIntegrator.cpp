@@ -1665,6 +1665,8 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
     TBOX_ASSERT(d_hierarchy == hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
+#else
+    NULL_USE(hierarchy);
 #endif
 
     if (d_using_vorticity_tagging)

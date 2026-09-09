@@ -174,6 +174,7 @@ void
 apply_initial_jacobian(EquationSystems& es, const string& system_name)
 {
     libmesh_assert_equal_to(system_name, "JacobianDeterminant");
+    NULL_USE(system_name);
     ExplicitSystem& system = es.get_system<ExplicitSystem>("JacobianDeterminant");
     es.parameters.set<Real>("time") = system.time = 0;
     system.project_solution(initial_jacobian, nullptr, es.parameters);
