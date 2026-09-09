@@ -171,8 +171,11 @@ public:
     void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
 private:
+    /*! \brief Default construction is disabled. */
     StaggeredStokesIBJacobianOperator() = delete;
+    /*! \brief Copy construction is disabled. */
     StaggeredStokesIBJacobianOperator(const StaggeredStokesIBJacobianOperator& from) = delete;
+    /*! \brief Copy assignment is disabled. */
     StaggeredStokesIBJacobianOperator& operator=(const StaggeredStokesIBJacobianOperator& that) = delete;
 
     StaggeredStokesIBOperator::Context d_ctx;

@@ -958,7 +958,10 @@ generate_operator_springs(
     for (int k = 0; k < 16; ++k)
     {
         IBRedundantInitializer::Edge edge = { k, (k + 1) % 16 };
-        if (edge.first > edge.second) std::swap(edge.first, edge.second);
+        if (edge.first > edge.second)
+        {
+            std::swap(edge.first, edge.second);
+        }
         edges.emplace(edge.first, edge);
         IBRedundantInitializer::SpringSpec spring;
         spring.force_fcn_idx = 0;
@@ -977,6 +980,7 @@ set_operator_velocity(int idx, Pointer<PatchLevel<NDIM>> level, double amplitude
         Pointer<SideData<NDIM, double>> data = patch->getPatchData(idx);
         Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
         for (int axis = 0; axis < NDIM; ++axis)
+        {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(data->getGhostBox(), axis)); b; b++)
             {
                 const int other = 1 - axis;
@@ -985,6 +989,7 @@ set_operator_velocity(int idx, Pointer<PatchLevel<NDIM>> level, double amplitude
                 (*data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)) =
                     amplitude * (axis == 0 ? 1.0 : -0.7) * std::sin(2.0 * M_PI * q + phase);
             }
+        }
     }
 }
 
@@ -1026,7 +1031,9 @@ run_operators(Pointer<AppInitializer> app)
     gridding->makeCoarsestLevel(hierarchy, current);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
+    {
         TBOX_ERROR("Operator fixture requires one patch on one rank\n");
+    }
 
     VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = variables->getContext("operators");
@@ -1061,12 +1068,16 @@ run_operators(Pointer<AppInitializer> app)
         {
             physical_coefs[axis] = new LocationIndexRobinBcCoefs<NDIM>("velocity_bc", nullptr);
             for (int face = 0; face < 2 * NDIM; ++face)
+            {
                 physical_coefs[axis]->setBoundaryValue(face, axis == 1 && face < 2 ? 0.3 : 0.0);
+            }
             bc_coefs[axis] = physical_coefs[axis];
         }
         physical_bc = new CartSideRobinPhysBdryOp(u_current, bc_coefs, false);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
             physical_bc->setPhysicalBoundaryConditions(*level->getPatch(p()), current, ghosts);
+        }
         method->beginDataRedistribution(hierarchy, gridding);
         method->endDataRedistribution(hierarchy, gridding);
     }
@@ -1165,7 +1176,10 @@ run_operators(Pointer<AppInitializer> app)
                 ierr = VecCopy((*positions)[0]->getVec(), physical_position);
                 IBTK_CHKERRQ(ierr);
                 // A zero-boundary control proves the marker interpolation sees the wall data.
-                for (int face = 0; face < 2; ++face) physical_coefs[1]->setBoundaryValue(face, 0.0);
+                for (int face = 0; face < 2; ++face)
+                {
+                    physical_coefs[1]->setBoundaryValue(face, 0.0);
+                }
                 nonlinear.apply(*base, *expected);
                 ierr = VecAXPY(physical_position, -1.0, (*positions)[0]->getVec());
                 IBTK_CHKERRQ(ierr);
@@ -1173,7 +1187,10 @@ run_operators(Pointer<AppInitializer> app)
                 ierr = VecNorm(physical_position, NORM_INFINITY, &position_change);
                 IBTK_CHKERRQ(ierr);
                 boundary_position_change = std::max(boundary_position_change, position_change);
-                for (int face = 0; face < 2; ++face) physical_coefs[1]->setBoundaryValue(face, 0.3);
+                for (int face = 0; face < 2; ++face)
+                {
+                    physical_coefs[1]->setBoundaryValue(face, 0.3);
+                }
                 nonlinear.apply(*base, *residual);
                 jacobian.formJacobian(*base);
                 jacobian.apply(*direction, *action);
@@ -1203,7 +1220,10 @@ run_operators(Pointer<AppInitializer> app)
         ierr = VecDestroy(&physical_position);
         IBTK_CHKERRQ(ierr);
         method->postprocessIntegrateData(current, next, 1);
-        for (Pointer<HierarchyVector>& vector : vectors) free_vector_components(*vector);
+        for (auto& vector : vectors)
+        {
+            free_vector_components(*vector);
+        }
         for (int idx : allocated)
         {
             level->deallocatePatchData(idx);
@@ -1276,8 +1296,10 @@ run_operators(Pointer<AppInitializer> app)
         const double bound = tol * std::max(1.0, norm);
         const bool valid = std::isfinite(error) && std::isfinite(norm) && error <= bound;
         if (!valid && label)
+        {
             pout << label << ": error = " << std::setprecision(17) << error << ", bound = " << bound
                  << std::setprecision(6) << '\n';
+        }
         return valid;
     };
     constexpr double RESIDUAL_TOL = 1.0e-11, JACOBIAN_TOL = 1.0e-9, FD_TOL = 1.0e-6, INITIALIZATION_TOL = 1.0e-12;
@@ -1392,9 +1414,13 @@ run_operators(Pointer<AppInitializer> app)
             stokes->apply(*direction, *expected);
             nontrivial = nontrivial && !close(action, expected, 1.0e-5);
             if (state == 0)
+            {
                 first_action->copyVector(action);
+            }
             else
+            {
                 nontrivial = nontrivial && !close(action, first_action, 1.0e-7);
+            }
             jacobian.setIBCouplingJacobian(coupling);
             // Release the creator's reference, then reinstall the borrowed handle.
             // The operator must retain its own reference throughout replacement.
@@ -1442,6 +1468,7 @@ run_operators(Pointer<AppInitializer> app)
         }
         for (GeneralOperator* op :
              { static_cast<GeneralOperator*>(&nonlinear), static_cast<GeneralOperator*>(&jacobian) })
+        {
             for (bool homogeneous : { false, true })
             {
                 op->setHomogeneousBc(homogeneous);
@@ -1462,6 +1489,7 @@ run_operators(Pointer<AppInitializer> app)
                                  stokes->getHomogeneousBc() == homogeneous;
                 op->setSolutionTime(force_time);
             }
+        }
         const std::array<int, 4> base_indices = { jacobian.getBaseVector()->getComponentDescriptorIndex(0),
                                                   jacobian.getBaseVector()->getComponentDescriptorIndex(1),
                                                   mffd.getBaseVector()->getComponentDescriptorIndex(0),
@@ -1527,22 +1555,21 @@ run_operators(Pointer<AppInitializer> app)
     // Check operator accuracy, not equality of cancellation-sensitive errors.
     pout << "Accuracy checks use error_inf <= tolerance * max(1, reference_inf); attained roundoff may vary.\n";
     int failures = 0;
-    for (const std::tuple<const char*, bool, double>& check :
-         { std::make_tuple("nonlinear_residual", residual_valid, RESIDUAL_TOL),
-           std::make_tuple("assembled_jacobian", assembled_valid, JACOBIAN_TOL),
-           std::make_tuple("centered_fd", derivative_valid, FD_TOL),
-           std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
-           std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
-           std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
-           std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
-           std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
-           std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
+    for (const auto& check : { std::make_tuple("nonlinear_residual", residual_valid, RESIDUAL_TOL),
+                               std::make_tuple("assembled_jacobian", assembled_valid, JACOBIAN_TOL),
+                               std::make_tuple("centered_fd", derivative_valid, FD_TOL),
+                               std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
+                               std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
+                               std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
+                               std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
+                               std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
+                               std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
     {
         pout << std::get<0>(check) << " = " << (std::get<1>(check) ? "true" : "false")
              << ", tolerance = " << std::get<2>(check) << '\n';
         failures += !std::get<1>(check);
     }
-    for (const std::pair<std::string, bool>& check :
+    for (const auto& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
                                                     { "nontrivial_coupling_valid", nontrivial },
                                                     { "updated_base_state_valid", base_valid },
@@ -1562,7 +1589,10 @@ run_operators(Pointer<AppInitializer> app)
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&J);
     IBTK_CHKERRQ(ierr);
-    for (Pointer<HierarchyVector>& vector : vectors) free_vector_components(*vector);
+    for (auto& vector : vectors)
+    {
+        free_vector_components(*vector);
+    }
     for (int idx : allocated)
     {
         level->deallocatePatchData(idx);
@@ -1607,8 +1637,14 @@ main(int argc, char* argv[])
     }
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "components.log");
     const std::string test_case = app->getInputDatabase()->getStringWithDefault("test_case", "interpolation");
-    if (test_case == "interpolation") return run_interpolation(app, input_file);
-    if (test_case == "operators") return run_operators(app);
+    if (test_case == "interpolation")
+    {
+        return run_interpolation(app, input_file);
+    }
+    if (test_case == "operators")
+    {
+        return run_operators(app);
+    }
     TBOX_ERROR("Unknown component test case: " << test_case << '\n');
     return 1;
 }
