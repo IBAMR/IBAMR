@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
-#define included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
+#ifndef included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_h
+#define included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_h
 
 #include <ibamr/config.h>
 
@@ -99,4 +99,4 @@ advance_staggered_stokes_ib_strategy(IBImplicitStrategy& ib_implicit_ops,
 } // namespace
 } // namespace IBAMR
 
-#endif // #ifndef included_IBAMR_source_StaggeredStokesIBTimeSteppingUtilities_h
+#endif // #ifndef included_IBAMR_private_StaggeredStokesIBTimeSteppingUtilities_h

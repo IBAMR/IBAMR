@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/private/StaggeredStokesIBTimeSteppingUtilities.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -27,8 +28,6 @@
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <SAMRAIVectorReal.h>
-
-#include "./StaggeredStokesIBTimeSteppingUtilities.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
