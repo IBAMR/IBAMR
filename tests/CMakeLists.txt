@@ -203,6 +203,7 @@ SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
 # IB:
 SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
 TARGET_COMPILE_DEFINITIONS(tests-IB_implicit_stokes_ib_solver_components_01 PRIVATE
   IBTK_MAX_BSPLINE_ORDER=${IBTK_MAX_BSPLINE_ORDER})

@@ -544,7 +544,8 @@ main(int argc, char* argv[])
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create the IB FAC op/pc and StokesIBSolver.
-        Pointer<Database> stokes_ib_precond_db = input_db->getDatabase("stokes_ib_precond_db");
+        Pointer<Database> stokes_ib_precond_db =
+            input_db->getDatabase("IBHierarchyIntegrator")->getDatabase("stokes_ib_precond_db");
         Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
             "StaggeredStokesIBBoxRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StaggeredStokesFACPreconditioner> fac_pc =
