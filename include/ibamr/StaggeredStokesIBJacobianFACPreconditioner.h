@@ -77,8 +77,6 @@ class StaggeredStokesIBJacobianFACPreconditioner : public IBTK::FACPreconditione
 public:
     /*!
      * \brief Constructor.
-     *
-     * fac_strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.
      */
     StaggeredStokesIBJacobianFACPreconditioner(const std::string& object_name,
                                                SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,

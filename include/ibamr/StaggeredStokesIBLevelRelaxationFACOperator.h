@@ -105,6 +105,28 @@ namespace IBAMR
  * Vectors contain side-centered velocity followed by cell-centered pressure on
  * the configured hierarchy and level range.
  *
+ * \anchor stokes_ib_fac_matrices
+ * \par IB matrices
+ * A is the unscaled Lagrangian force derivative with respect to position at the
+ * desired linearization configuration and force time. J interpolates finest-level
+ * Eulerian velocity to the Lagrangian mesh at the desired fixed coupling
+ * configuration. Its columns use the full coupled velocity-pressure numbering
+ * and local distribution from
+ * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(); pressure
+ * columns are zero. Its row ordering and distribution match those of A.
+ * Initialization constructs the finest-level Eulerian contribution
+ * \f$-\beta^2\Delta t\,J^T A J/\Delta V\f$, where \f$\Delta V\f$ is the cell
+ * volume and \f$\beta=1\f$ for backward Euler or \f$1/2\f$ for trapezoidal and
+ * midpoint stepping. Do not include these factors in A.
+ *
+ * A and J must be nonnull, assembled PETSc matrices compatible with this product
+ * on PETSC_COMM_WORLD. Both setters borrow handles without retaining PETSc
+ * references and may be called only while deallocated. Keep the matrices alive
+ * and unchanged during use and for subsequent initialization: deallocation does
+ * not clear the borrowed inputs. Deallocate, update the matrices, and reinitialize
+ * after changing their entries, linearization data, or associated hierarchy.
+ * The operator does not refresh the supplied matrices.
+ *
  * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
  * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
  * For example, select PETSc solvers for the coarse level and finer levels with
@@ -160,34 +182,11 @@ public:
 
     /*!
      * \brief Set the Lagrangian force derivative A for the finest-level structure.
-     *
-     * A is the unscaled derivative of Lagrangian force with respect to position
-     * at the desired linearization configuration and force time. Its row and
-     * column ordering/distribution must match the Lagrangian output of J from
-     * setIBInterpOp(). At the finest level, initialization constructs the Eulerian
-     * contribution \f$-\beta^2\Delta t\,J^T A J/\Delta V\f$, where \f$\Delta V\f$
-     * is the cell volume and \f$\beta=1\f$ for backward Euler or \f$1/2\f$ for
-     * trapezoidal and midpoint stepping. Do not include these factors in A.
-     *
-     * A and J must be nonnull, assembled PETSc matrices compatible with this
-     * product on PETSC_COMM_WORLD. Both setters borrow handles without retaining
-     * PETSc references and may be called only while deallocated. Keep the matrices
-     * alive and unchanged during use and for any later initialization that reuses
-     * them: deallocation does not clear the borrowed inputs. Deallocate, update
-     * the matrices, and reinitialize when their entries, linearization data, or
-     * associated hierarchy change; the operator does not refresh them itself.
      */
     void setIBForceJacobian(Mat& A);
 
     /*!
      * \brief Set interpolation J from finest-level Eulerian data to Lagrangian velocity.
-     *
-     * Columns use the full coupled velocity-pressure numbering and local
-     * distribution from StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices()
-     * on the finest level; pressure columns are zero. Rows use the Lagrangian
-     * ordering/distribution of A. Supply J for the desired fixed coupling
-     * configuration. The borrowed-handle and rebuilding requirements in
-     * setIBForceJacobian() apply to J as well.
      */
     void setIBInterpOp(Mat& J);
 
@@ -214,7 +213,7 @@ public:
     /*!
      * \brief Get the Eulerian elasticity level operator.
      *
-     * Returns the scaled Eulerian contribution described in setIBForceJacobian(), or its
+     * Returns the scaled Eulerian contribution described in \ref stokes_ib_fac_matrices, or its
      * coarse-level projection, not the Lagrangian matrix A or the full Stokes matrix.
      */
     Mat getEulerianElasticityLevelOp(int ln) const;
