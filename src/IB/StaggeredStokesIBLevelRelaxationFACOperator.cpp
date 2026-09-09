@@ -530,9 +530,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             d_num_dofs_per_proc[ln], d_u_dof_index_idx, d_p_dof_index_idx, level);
     }
 
-    // Cache the full-level PETSc representation used by computeResidual().
-    // Reusing these vectors avoids repeated allocation while preserving the
-    // existing copies at the SAMRAI/PETSc representation boundary.
+    // Allocate the PETSc work vectors reused by computeResidual().
     const int rank = IBTK_MPI::getRank();
     d_residual_work_vecs.resize(d_finest_ln + 1);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
