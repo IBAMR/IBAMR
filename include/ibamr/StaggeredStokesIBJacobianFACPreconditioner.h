@@ -21,24 +21,18 @@
 #include <ibamr/config.h>
 
 #include <ibamr/IBImplicitStrategy.h>
-#include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/ibamr_enums.h>
-
-#include <ibtk/FACPreconditioner.h>
 
 #include <tbox/Pointer.h>
 
 #include <petscmat.h>
 
-#include <PoissonSpecifications.h>
-
 #include <string>
-#include <vector>
 
 namespace IBAMR
 {
 class StaggeredStokesIBLevelRelaxationFACOperator;
-class StaggeredStokesPhysicalBoundaryHelper;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -46,11 +40,6 @@ class FACPreconditionerStrategy;
 } // namespace IBTK
 namespace SAMRAI
 {
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
 namespace tbox
 {
 class Database;
@@ -68,7 +57,7 @@ namespace IBAMR
  * The supplied strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.
  * See that class for configuration and matrix requirements.
  */
-class StaggeredStokesIBJacobianFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
+class StaggeredStokesIBJacobianFACPreconditioner : public StaggeredStokesFACPreconditioner
 {
 public:
     /*!
@@ -85,27 +74,6 @@ public:
     ~StaggeredStokesIBJacobianFACPreconditioner() override = default;
 
     /*!
-     * \brief Set the velocity block Poisson coefficients.
-     */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override;
-
-    /*!
-     * \brief Set whether velocity and pressure each contain a null space.
-     */
-    void setComponentsHaveNullSpace(bool has_velocity_nullspace, bool has_pressure_nullspace) override;
-
-    /*!
-     * \brief Set physical boundary condition coefficient objects.
-     */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
-
-    /*!
-     * \brief Set helper object used for physical-boundary operations.
-     */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
-
-    /*!
      * \brief Set IB time stepping type used by preconditioning operators.
      *
      * Must be called before initialization; see
@@ -118,14 +86,14 @@ public:
      *
      * \see StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian
      */
-    void setIBForceJacobian(Mat& A_mat);
+    void setIBForceJacobian(Mat A_mat);
 
     /*!
      * \brief Set the Lagrangian-Eulerian interpolation matrix.
      *
      * \see StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp
      */
-    void setIBInterpOp(Mat& J_mat);
+    void setIBInterpOp(Mat J_mat);
 
     /*!
      * \brief Set an optional IB strategy whose fixed coupling is enabled and updated at initialization.
