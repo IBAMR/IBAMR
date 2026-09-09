@@ -87,7 +87,10 @@ sample_error(const Evaluator& evaluator, double r, const std::array<double, N>& 
     for (std::size_t i = 0; i < N; ++i)
     {
         const double entry_error = std::abs(weights[i] - expected[i]);
-        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Kernel sample error = " << entry_error << '\n');
+        if (!(entry_error <= 1.0e-12))
+        {
+            TBOX_ERROR("Kernel sample error = " << entry_error << '\n');
+        }
         error = std::max(error, entry_error);
     }
     return error;
@@ -111,7 +114,9 @@ moment_error(const Evaluator& evaluator)
         }
         const double sum_error = std::abs(sum - 1.0), first_moment_error = std::abs(moment - r);
         if (!(sum_error <= 1.0e-12 && first_moment_error <= 1.0e-12))
+        {
             TBOX_ERROR("Kernel moment errors = " << sum_error << ", " << first_moment_error << '\n');
+        }
         error = std::max({ error, sum_error, first_moment_error });
     }
     return error;
@@ -248,18 +253,23 @@ generate_probes(const unsigned int& structure,
     {
         count = 1;
         positions.resize(1);
-        for (int d = 0; d < NDIM; ++d) positions[0](d) = 0.25 / 16.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            positions[0](d) = 0.25 / 16.0;
+        }
         return;
     }
     TBOX_ASSERT(structure == 0 && level == 0);
     count = probe.size() * probe.size();
     positions.resize(count);
     for (unsigned int j = 0; j < probe.size(); ++j)
+    {
         for (unsigned int i = 0; i < probe.size(); ++i)
         {
             positions[j * probe.size() + i](0) = probe[i] / 16.0;
             positions[j * probe.size() + i](1) = probe[j] / 16.0;
         }
+    }
 }
 
 double
@@ -270,7 +280,10 @@ expected_weight(int width, int offset, double distance, bool bspline = false)
         // Independent truncated-power definition of the centered cardinal
         // B-spline, rather than the production knot-interval recurrence.
         double result = 0.0, binomial = 1.0, factorial = 1.0;
-        for (int i = 2; i < width; ++i) factorial *= i;
+        for (int i = 2; i < width; ++i)
+        {
+            factorial *= i;
+        }
         for (int k = 0; k <= width; ++k)
         {
             const double x = std::max(0.0, distance + 0.5 * width - k);
@@ -279,8 +292,14 @@ expected_weight(int width, int offset, double distance, bool bspline = false)
         }
         return result;
     }
-    if (width == 1) return 1.0;
-    if (width == 2) return std::max(0.0, 1.0 - std::abs(distance));
+    if (width == 1)
+    {
+        return 1.0;
+    }
+    if (width == 2)
+    {
+        return std::max(0.0, 1.0 - std::abs(distance));
+    }
     if (width == 3)
     {
         const double r_lower = distance + offset;
@@ -288,7 +307,10 @@ expected_weight(int width, int offset, double distance, bool bspline = false)
     }
     // The symmetric radial definition of the original even-width IB_4 kernel.
     const double r = std::abs(distance);
-    if (r <= 1.0) return (3.0 - 2.0 * r + std::sqrt(1.0 + 4.0 * r - 4.0 * r * r)) / 8.0;
+    if (r <= 1.0)
+    {
+        return (3.0 - 2.0 * r + std::sqrt(1.0 + 4.0 * r - 4.0 * r * r)) / 8.0;
+    }
     return (5.0 - 2.0 * r - std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r)) / 8.0;
 }
 
@@ -304,7 +326,10 @@ check_matrix(Mat matrix,
     PetscInt begin, end;
     ierr = MatGetOwnershipRange(matrix, &begin, &end);
     IBTK_CHKERRQ(ierr);
-    if (begin != 0 || end != static_cast<PetscInt>(NDIM * probe.size() * probe.size())) return false;
+    if (begin != 0 || end != static_cast<PetscInt>(NDIM * probe.size() * probe.size()))
+    {
+        return false;
+    }
     const PetscScalar* coordinates;
     ierr = VecGetArrayRead(positions, &coordinates);
     IBTK_CHKERRQ(ierr);
@@ -317,16 +342,27 @@ check_matrix(Mat matrix,
         {
             const double q = 16.0 * PetscRealPart(coordinates[(row - begin) / NDIM * NDIM + d]);
             sample[d] = 0;
-            while (sample[d] < static_cast<int>(probe.size()) && q != probe[sample[d]]) ++sample[d];
-            if (sample[d] == static_cast<int>(probe.size())) TBOX_ERROR("Unexpected interpolation probe\n");
+            while (sample[d] < static_cast<int>(probe.size()) && q != probe[sample[d]])
+            {
+                ++sample[d];
+            }
+            if (sample[d] == static_cast<int>(probe.size()))
+            {
+                TBOX_ERROR("Unexpected interpolation probe\n");
+            }
             width[d] = d == axis ? component_width : transverse_width;
             if (width[d] % 2)
+            {
                 lower[d] = (d == axis ? side_nearest : cell_nearest)[sample[d]] - width[d] / 2;
+            }
             else
+            {
                 lower[d] = (d == axis ? side_even_lower : cell_even_lower)[sample[d]] - (width[d] / 2 - 1);
+            }
         }
         std::map<PetscInt, double> expected;
         for (int j = 0; j < width[1]; ++j)
+        {
             for (int i = 0; i < width[0]; ++i)
             {
                 SAMRAI::hier::Index<NDIM> index;
@@ -339,6 +375,7 @@ check_matrix(Mat matrix,
                 valid = valid && column >= 0;
                 expected[column] = expected_weight(width[0], i, x, bspline) * expected_weight(width[1], j, y, bspline);
             }
+        }
         PetscInt count;
         const PetscInt* columns;
         const PetscScalar* values;
@@ -347,7 +384,7 @@ check_matrix(Mat matrix,
         valid = valid && count == static_cast<PetscInt>(expected.size());
         for (PetscInt k = 0; k < count; ++k)
         {
-            const std::map<PetscInt, double>::const_iterator found = expected.find(columns[k]);
+            const auto found = expected.find(columns[k]);
             valid = valid && found != expected.end() && std::abs(PetscRealPart(values[k]) - found->second) < 1.0e-12;
         }
         ierr = MatRestoreRow(matrix, row, &count, &columns, &values);
@@ -372,7 +409,12 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
     ierr = VecGetArray(X, &coordinates);
     IBTK_CHKERRQ(ierr);
     for (int point = 0; point < points; ++point)
-        for (int d = 0; d < NDIM; ++d) coordinates[NDIM * point + d] = locations[(point >> d) & 1] / cells;
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            coordinates[NDIM * point + d] = locations[(point >> d) & 1] / cells;
+        }
+    }
     ierr = VecRestoreArray(X, &coordinates);
     IBTK_CHKERRQ(ierr);
     double weight_error = 0.0, action_error = 0.0;
@@ -381,6 +423,7 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
     {
         Mat matrix = nullptr;
         if (normal_odd)
+        {
             PETScMatUtilities::constructPatchLevelSCInterpOp(
                 matrix,
                 IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<3>{}, IBKernelEvaluatorBSpline<2>{} },
@@ -388,7 +431,9 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                 counts,
                 dof,
                 level);
+        }
         else
+        {
             PETScMatUtilities::constructPatchLevelSCInterpOp(
                 matrix,
                 IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<2>{}, IBKernelEvaluatorBSpline<3>{} },
@@ -396,6 +441,7 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                 counts,
                 dof,
                 level);
+        }
         Vec field = nullptr, result = nullptr;
         ierr = MatCreateVecs(matrix, &field, &result);
         IBTK_CHKERRQ(ierr);
@@ -403,17 +449,24 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
         IBTK_CHKERRQ(ierr);
         const auto field_value = [](int axis, int i, int j) { return 1.0 + axis + 0.125 * i + 0.03125 * j * j; };
         for (int axis = 0; axis < NDIM; ++axis)
+        {
             for (int j = 0; j < cells; ++j)
+            {
                 for (int i = 0; i < cells; ++i)
                 {
                     hier::Index<NDIM> index;
                     index(0) = i;
                     index(1) = j;
                     const int column = (*dofs)(SideIndex<NDIM>(index, axis, SideIndex<NDIM>::Lower));
-                    if (column < 0) TBOX_ERROR("Missing interior periodic DOF\n");
+                    if (column < 0)
+                    {
+                        TBOX_ERROR("Missing interior periodic DOF\n");
+                    }
                     ierr = VecSetValue(field, column, field_value(axis, i, j), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
+            }
+        }
         ierr = VecAssemblyBegin(field);
         IBTK_CHKERRQ(ierr);
         ierr = VecAssemblyEnd(field);
@@ -424,6 +477,7 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
         ierr = VecGetArrayRead(result, &actual);
         IBTK_CHKERRQ(ierr);
         for (int point = 0; point < points; ++point)
+        {
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 std::array<int, NDIM> widths, lower;
@@ -438,6 +492,7 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                 std::map<PetscInt, double> expected;
                 double expected_action = 0.0;
                 for (int j = 0; j < widths[1]; ++j)
+                {
                     for (int i = 0; i < widths[0]; ++i)
                     {
                         const int ix = lower[0] + i, iy = lower[1] + j;
@@ -450,6 +505,7 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                         expected[column] += weight;
                         expected_action += weight * field_value(axis, wrapped(0), wrapped(1));
                     }
+                }
                 const int row = NDIM * point + axis;
                 PetscInt count;
                 const PetscInt* columns;
@@ -459,22 +515,31 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                 column_mismatches += count != static_cast<PetscInt>(expected.size());
                 for (PetscInt j = 0; j < count; ++j)
                 {
-                    const std::map<PetscInt, double>::const_iterator found = expected.find(columns[j]);
+                    const auto found = expected.find(columns[j]);
                     if (found == expected.end())
+                    {
                         ++column_mismatches;
+                    }
                     else
                     {
                         const double entry_error = std::abs(PetscRealPart(values[j]) - found->second);
-                        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Periodic weight error = " << entry_error << '\n');
+                        if (!(entry_error <= 1.0e-12))
+                        {
+                            TBOX_ERROR("Periodic weight error = " << entry_error << '\n');
+                        }
                         weight_error = std::max(weight_error, entry_error);
                     }
                 }
                 ierr = MatRestoreRow(matrix, row, &count, &columns, &values);
                 IBTK_CHKERRQ(ierr);
                 const double row_error = std::abs(PetscRealPart(actual[row]) - expected_action);
-                if (!(row_error <= 1.0e-12)) TBOX_ERROR("Periodic interpolation error = " << row_error << '\n');
+                if (!(row_error <= 1.0e-12))
+                {
+                    TBOX_ERROR("Periodic interpolation error = " << row_error << '\n');
+                }
                 action_error = std::max(action_error, row_error);
             }
+        }
         ierr = VecRestoreArrayRead(result, &actual);
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&field);
@@ -534,7 +599,10 @@ main(int argc, char* argv[])
         }
         constexpr int max_bspline_order = IBTK_MAX_BSPLINE_ORDER;
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
-        if (!unsupported && !duplicate_after_use && !setup_probe) failures += check_kernels();
+        if (!unsupported && !duplicate_after_use && !setup_probe)
+        {
+            failures += check_kernels();
+        }
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         method->setUseFixedLEOperators(!late_fixed);
         Pointer<IBStandardForceGen> force = new IBStandardForceGen();
@@ -558,7 +626,9 @@ main(int argc, char* argv[])
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
         // Interior probes check centering; setup probes exercise periodic ghost support.
         if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
+        {
             TBOX_ERROR("Interpolation fixture requires one patch on one rank\n");
+        }
         VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = variables->getContext("interpolation");
         Pointer<SideVariable<NDIM, double>> velocity = new SideVariable<NDIM, double>("velocity");
@@ -582,14 +652,19 @@ main(int argc, char* argv[])
         if (setup_probe)
         {
             method->preprocessIntegrateData(0.0, 0.125, 1);
-            if (late_fixed) method->setUseFixedLEOperators(true);
+            if (late_fixed)
+            {
+                method->setUseFixedLEOperators(true);
+            }
             method->updateFixedLEOperators();
             if (setup_test == "wide_kernel")
             {
                 // Applications may still register this evaluator with a smaller built-in catalog.
                 if (max_bspline_order < 8)
+                {
                     IBOperatorRegistry::register_interpolation_matrix_sc(
                         IBKernel("BSPLINE_8"), IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<8>{} });
+                }
                 Mat matrix = nullptr;
                 method->constructInterpOp(matrix, IBKernel("BSPLINE_8"), counts, dof, 0.125);
                 Vec ones = nullptr, residual = nullptr;
@@ -632,15 +707,20 @@ main(int argc, char* argv[])
             method->constructInterpOp(
                 matrix, IBKernel(app->getInputDatabase()->getString("matrix_kernel")), counts, dof, 0.125);
             if (duplicate_after_use)
+            {
                 IBOperatorRegistry::register_interpolation_matrix_sc(
                     IBKernel::IB_4, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            }
             ierr = MatDestroy(&matrix);
             IBTK_CHKERRQ(ierr);
             method->postprocessIntegrateData(0.0, 0.125, 1);
             method->postprocessData();
         }
 
-        if (duplicate_after_use) return 0;
+        if (duplicate_after_use)
+        {
+            return 0;
+        }
 
         // A configured bank does not reserve higher-order kernel specifications.
         IBOperatorRegistry::register_interpolation_matrix_sc(
@@ -682,19 +762,31 @@ main(int argc, char* argv[])
             PetscBool equal;
             ierr = MatEqual(direct, builtin, &equal);
             IBTK_CHKERRQ(ierr);
-            if (equal) ++failures;
-            if (step == 0) register_probe_kernels();
+            if (equal)
+            {
+                ++failures;
+            }
+            if (step == 0)
+            {
+                register_probe_kernels();
+            }
             method->constructInterpOp(registered, { IBKernel("PROBE"), IBKernel::BSPLINE_2 }, counts, dof, new_time);
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
-            if (!equal) ++failures;
+            if (!equal)
+            {
+                ++failures;
+            }
             if (max_bspline_order >= 3)
             {
                 method->constructInterpOp(
                     registered, { IBKernel::BSPLINE_3, IBKernel::BSPLINE_2 }, counts, dof, new_time);
                 ierr = MatEqual(builtin, registered, &equal);
                 IBTK_CHKERRQ(ierr);
-                if (!equal) ++failures;
+                if (!equal)
+                {
+                    ++failures;
+                }
             }
 
             // Direct evaluation is independent of the configured registrations.
@@ -708,14 +800,19 @@ main(int argc, char* argv[])
                 level);
             placement = check_matrix(direct, X, dofs, 7, 2, true) && placement;
             if (step == 0 && max_bspline_order < 7)
+            {
                 IBOperatorRegistry::register_interpolation_matrix_sc(
                     { IBKernel("BSPLINE_7"), IBKernel::BSPLINE_2 },
                     IBKernelTensorProductEvaluator{ IBKernelEvaluatorBSpline<7>{}, IBKernelEvaluatorBSpline<2>{} });
+            }
             method->constructInterpOp(
                 registered, { IBKernel("BSPLINE_7"), IBKernel::BSPLINE_2 }, counts, dof, new_time);
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
-            if (!equal) ++failures;
+            if (!equal)
+            {
+                ++failures;
+            }
 
             // The B-spline limit does not restrict the other supplied kernels.
             PETScMatUtilities::constructPatchLevelSCInterpOp(
@@ -723,7 +820,10 @@ main(int argc, char* argv[])
             method->constructInterpOp(registered, IBKernel::IB_6, counts, dof, new_time);
             ierr = MatEqual(direct, registered, &equal);
             IBTK_CHKERRQ(ierr);
-            if (!equal) ++failures;
+            if (!equal)
+            {
+                ++failures;
+            }
             ierr = MatDestroy(&direct);
             IBTK_CHKERRQ(ierr);
             ierr = MatDestroy(&builtin);
@@ -731,9 +831,13 @@ main(int argc, char* argv[])
             ierr = MatDestroy(&registered);
             IBTK_CHKERRQ(ierr);
             for (int cw = 1; cw <= 4; ++cw)
+            {
                 for (int tw = 1; tw <= 4; ++tw)
                 {
-                    if (max_bspline_order < 2 && (cw == 2 || tw == 2)) continue;
+                    if (max_bspline_order < 2 && (cw == 2 || tw == 2))
+                    {
+                        continue;
+                    }
                     Mat matrix = nullptr;
                     IBImplicitStrategy& strategy = *method;
                     strategy.constructInterpOp(matrix, { kernel[cw - 1], kernel[tw - 1] }, counts, dof, new_time);
@@ -757,6 +861,7 @@ main(int argc, char* argv[])
                     ierr = MatDestroy(&matrix);
                     IBTK_CHKERRQ(ierr);
                 }
+            }
             // Keep the highest-order sample inside this fixed patch geometry.
             const int highest_order = std::min(max_bspline_order, 8);
             const int transverse_order = std::min(max_bspline_order, 2);
@@ -778,9 +883,13 @@ main(int argc, char* argv[])
             // Natural named odd widths in both orientations, including mixed
             // parity, checked against independent scalar B-spline values.
             for (int cw : { 2, 3, 5 })
+            {
                 for (int tw : { 2, 3, 5 })
                 {
-                    if (cw > max_bspline_order || tw > max_bspline_order) continue;
+                    if (cw > max_bspline_order || tw > max_bspline_order)
+                    {
+                        continue;
+                    }
                     Mat matrix = nullptr;
                     method->constructInterpOp(
                         matrix,
@@ -792,6 +901,7 @@ main(int argc, char* argv[])
                     ierr = MatDestroy(&matrix);
                     IBTK_CHKERRQ(ierr);
                 }
+            }
             Mat half = nullptr;
             method->constructInterpOp(half, kernel[0], counts, dof, current_time + 0.0625);
             lifecycle = check_matrix(half, X, dofs, 1, 1) && lifecycle;

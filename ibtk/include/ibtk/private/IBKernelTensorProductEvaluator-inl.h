@@ -47,7 +47,10 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::get_stenci
     constexpr int normal_width = std::tuple_size<NormalWeights>::value;
     constexpr int tangential_width = std::tuple_size<TangentialWeights>::value;
     std::array<int, NDIM> widths = {};
-    for (std::size_t d = 0; d < NDIM; ++d) widths[d] = d == Axis ? normal_width : tangential_width;
+    for (std::size_t d = 0; d < NDIM; ++d)
+    {
+        widths[d] = d == Axis ? normal_width : tangential_width;
+    }
     return widths;
 }
 
@@ -62,17 +65,25 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluateFa
     {
         constexpr int d = decltype(direction)::value;
         if constexpr (d == Axis)
+        {
             return d_normal(r[d]);
+        }
         else
+        {
             return d_tangential(r[d]);
+        }
     };
     if constexpr (NDIM == 2)
+    {
         return std::make_tuple(evaluate_direction(std::integral_constant<int, 0>{}),
                                evaluate_direction(std::integral_constant<int, 1>{}));
+    }
     else
+    {
         return std::make_tuple(evaluate_direction(std::integral_constant<int, 0>{}),
                                evaluate_direction(std::integral_constant<int, 1>{}),
                                evaluate_direction(std::integral_constant<int, 2>{}));
+    }
 }
 
 template <class NormalEvaluator, class TangentialEvaluator>
@@ -89,7 +100,12 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(c
     {
         std::array<double, nx * ny> weights;
         for (int j = 0; j < ny; ++j)
-            for (int i = 0; i < nx; ++i) weights[i + nx * j] = wx[i] * wy[j];
+        {
+            for (int i = 0; i < nx; ++i)
+            {
+                weights[i + nx * j] = wx[i] * wy[j];
+            }
+        }
         return weights;
     }
     else
@@ -98,8 +114,15 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(c
         constexpr int nz = widths[2];
         std::array<double, nx * ny * nz> weights;
         for (int k = 0; k < nz; ++k)
+        {
             for (int j = 0; j < ny; ++j)
-                for (int i = 0; i < nx; ++i) weights[i + nx * (j + ny * k)] = wx[i] * wy[j] * wz[k];
+            {
+                for (int i = 0; i < nx; ++i)
+                {
+                    weights[i + nx * (j + ny * k)] = wx[i] * wy[j] * wz[k];
+                }
+            }
+        }
         return weights;
     }
 }

@@ -54,8 +54,15 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         [widths]
         {
             for (const std::array<int, NDIM>& axis_widths : widths)
+            {
                 for (int width : axis_widths)
-                    if (width <= 0) return false;
+                {
+                    if (width <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
             return true;
         }(),
         "Evaluator stencil widths must be positive");
@@ -76,7 +83,10 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
     constexpr int nvalues = []
     {
         int size = 1;
-        for (int width : Evaluator::template get_stencil_widths<Axis>()) size *= width;
+        for (int width : Evaluator::template get_stencil_widths<Axis>())
+        {
+            size *= width;
+        }
         return size;
     }();
     using Values = decltype(std::declval<const Evaluator&>().template evaluate<Axis>(
@@ -102,12 +112,11 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
 
         tbox::Pointer<hier::Patch<NDIM>> patch = data.d_level->getPatch(data.d_patch_numbers[point]);
         tbox::Pointer<pdat::SideData<NDIM, int>> indices = patch->getPatchData(data.d_dof_index_idx);
-#if !defined(NDEBUG)
-        TBOX_ASSERT(indices->getDepth() == 1);
-#endif
         int entry = 0;
         for (typename hier::Box<NDIM>::Iterator b(box); b; b++, ++entry)
+        {
             columns[entry] = (*indices)(pdat::SideIndex<NDIM>(b(), Axis, pdat::SideIndex<NDIM>::Lower));
+        }
         const int row = data.d_row_lower + NDIM * point + Axis;
         const int ierr = MatSetValues(data.d_mat, 1, &row, nvalues, columns.data(), values.data(), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);

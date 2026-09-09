@@ -424,7 +424,10 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
     const int integrator_step = d_ib_solver ? d_ib_solver->getIntegratorStep() : 0;
 
     // Update the instrumentation data.
-    if (d_ib_solver) updateIBInstrumentationData(integrator_step + 1, new_time);
+    if (d_ib_solver)
+    {
+        updateIBInstrumentationData(integrator_step + 1, new_time);
+    }
     if (d_instrument_panel->isInstrumented())
     {
         const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
@@ -1347,7 +1350,10 @@ IBMethod::interpolatePressure(int p_data_idx,
 void
 IBMethod::postprocessData()
 {
-    if (!d_post_processor || !d_ib_solver) return;
+    if (!d_post_processor || !d_ib_solver)
+    {
+        return;
+    }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx =
@@ -1965,7 +1971,10 @@ IBMethod::resetLagrangianSourceFunction(const double init_data_time, const bool 
 void
 IBMethod::updateIBInstrumentationData(const int timestep_num, const double data_time)
 {
-    if (!d_ib_solver || !d_instrument_panel->isInstrumented()) return;
+    if (!d_ib_solver || !d_instrument_panel->isInstrumented())
+    {
+        return;
+    }
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
