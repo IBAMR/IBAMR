@@ -187,14 +187,6 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
-    if (input_db && input_db->keyExists("subdomain_box_size"))
-    {
-        input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
-    }
-    if (input_db && input_db->keyExists("subdomain_overlap_size"))
-    {
-        input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
-    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
