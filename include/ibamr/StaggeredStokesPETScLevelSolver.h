@@ -28,8 +28,6 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
-#include <petscao.h>
-#include <petscis.h>
 #include <petscmat.h>
 #include <petscvec.h>
 
@@ -224,8 +222,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
-    IS d_velocity_field_is_local = nullptr;
-    AO d_velocity_field_ao = nullptr;
     // Owned references to the installed inputs, independent of solver state.
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
