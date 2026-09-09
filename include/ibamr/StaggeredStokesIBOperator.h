@@ -165,8 +165,7 @@ public:
     /*!
      * \brief Initialize hierarchy-dependent operator state.
      *
-     * Sets the strategy's fixed-coupling flag from Context::use_fixed_le_operators
-     * and initializes the shared Stokes operator.
+     * Sets the strategy's fixed-coupling flag from Context::use_fixed_le_operators.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
