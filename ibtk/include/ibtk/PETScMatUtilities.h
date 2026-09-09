@@ -158,7 +158,7 @@ public:
      *
      * Odd widths use the nearest grid point, choosing the higher index at a
      * tie. Even widths bracket the point using the component's grid centering.
-     * No kernel registration is required. The evaluator is borrowed for this call.
+     * No kernel registration is required. The evaluator and X_vec are borrowed for this call.
      * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
      * \warning Physical boundary conditions are not handled.
@@ -166,7 +166,7 @@ public:
     template <class Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
                                               const Evaluator& evaluator,
-                                              Vec& X_vec,
+                                              Vec X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -244,7 +244,7 @@ private:
         int d_n_local_points = 0, d_row_lower = 0;
         //! Local patches and component stencil boxes for each IB point.
         std::vector<int> d_patch_numbers;
-        std::vector<std::vector<SAMRAI::hier::Box<NDIM>>> d_stencil_boxes;
+        std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
         //! Borrowed hierarchy data used to read global column indices.
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
         int d_dof_index_idx;

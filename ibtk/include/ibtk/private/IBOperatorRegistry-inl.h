@@ -52,7 +52,7 @@ IBOperatorRegistry::make_builder(Evaluator evaluator)
     // selection calls it once per matrix, not once per stencil coefficient.
     const auto owned_evaluator = std::make_shared<const Evaluator>(std::move(evaluator));
     return [owned_evaluator](Mat& mat,
-                             Vec& X,
+                             Vec X,
                              const std::vector<int>& num_dofs,
                              int dof_idx,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level)

@@ -95,7 +95,7 @@ IBOperatorRegistry::make_supplied_builder(const IBKernelTensorProduct& kernel)
 void
 IBOperatorRegistry::construct_interpolation_matrix_sc(Mat& mat,
                                                       const IBKernelTensorProduct& kernel,
-                                                      Vec& X_vec,
+                                                      Vec X_vec,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       int dof_index_idx,
                                                       Pointer<PatchLevel<NDIM>> patch_level)
