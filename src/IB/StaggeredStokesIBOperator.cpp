@@ -23,7 +23,8 @@
 
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
-#include <StaggeredStokesIBTimeSteppingUtilities.h>
+
+#include "./StaggeredStokesIBTimeSteppingUtilities.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
