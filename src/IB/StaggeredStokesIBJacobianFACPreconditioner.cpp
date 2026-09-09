@@ -50,7 +50,10 @@ StaggeredStokesIBJacobianFACPreconditioner::setVelocityPoissonSpecifications(
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
+    if (fac_strategy)
+    {
+        fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
+    }
     return;
 } // setVelocityPoissonSpecifications
 
@@ -74,7 +77,10 @@ StaggeredStokesIBJacobianFACPreconditioner::setPhysicalBcCoefs(
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
+    if (fac_strategy)
+    {
+        fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
+    }
     return;
 } // setPhysicalBcCoefs
 
@@ -84,7 +90,10 @@ StaggeredStokesIBJacobianFACPreconditioner::setPhysicalBoundaryHelper(
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
+    if (fac_strategy)
+    {
+        fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
+    }
     return;
 } // setPhysicalBoundaryHelper
 
@@ -92,7 +101,10 @@ void
 StaggeredStokesIBJacobianFACPreconditioner::setIBTimeSteppingType(const TimeSteppingType time_stepping_type)
 {
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setIBTimeSteppingType(time_stepping_type);
+    if (fac_strategy)
+    {
+        fac_strategy->setIBTimeSteppingType(time_stepping_type);
+    }
     return;
 } // setIBTimeSteppingType
 
@@ -100,7 +112,10 @@ void
 StaggeredStokesIBJacobianFACPreconditioner::setIBForceJacobian(Mat& A_mat)
 {
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setIBForceJacobian(A_mat);
+    if (fac_strategy)
+    {
+        fac_strategy->setIBForceJacobian(A_mat);
+    }
     return;
 } // setIBForceJacobian
 
@@ -108,7 +123,10 @@ void
 StaggeredStokesIBJacobianFACPreconditioner::setIBInterpOp(Mat& J_mat)
 {
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy) fac_strategy->setIBInterpOp(J_mat);
+    if (fac_strategy)
+    {
+        fac_strategy->setIBInterpOp(J_mat);
+    }
     return;
 } // setIBInterpOp
 
