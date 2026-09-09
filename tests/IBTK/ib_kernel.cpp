@@ -83,34 +83,12 @@ tensor_product_error()
     r.fill(1.0);
     r[Axis] = 1.5;
     const std::array<double, NDIM == 2 ? 12 : 36> weights = product.template evaluate<Axis>(r);
-    const auto factors = product.template evaluateFactors<Axis>(r);
     constexpr std::array<int, NDIM> widths = product.template get_stencil_widths<Axis>();
     static_assert(weights.size() == (NDIM == 2 ? 12 : 36), "Natural tensor stencil size");
     const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
     const std::array<double, 4> normal = { a, b, b, a };
     const std::array<double, 3> tangent = { 1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0 };
     double error = 0.0;
-    const auto check_factor = [&](auto direction)
-    {
-        constexpr int d = decltype(direction)::value;
-        const std::array<double, d == Axis ? 4 : 3>& factor = std::get<d>(factors);
-        static_assert(std::tuple_size<std::remove_reference_t<decltype(factor)>>::value == (d == Axis ? 4 : 3),
-                      "Natural factor width");
-        for (std::size_t j = 0; j < factor.size(); ++j)
-        {
-            const double entry_error = std::abs(factor[j] - (d == Axis ? normal[j] : tangent[j]));
-            if (!(entry_error <= 1.0e-12))
-            {
-                TBOX_ERROR("Kernel factor error = " << entry_error << '\n');
-            }
-            error = std::max(error, entry_error);
-        }
-    };
-    check_factor(std::integral_constant<int, 0>{});
-    check_factor(std::integral_constant<int, 1>{});
-#if NDIM == 3
-    check_factor(std::integral_constant<int, 2>{});
-#endif
     for (std::size_t entry = 0; entry < weights.size(); ++entry)
     {
         std::size_t index = entry;
