@@ -37,7 +37,7 @@ template <class Evaluator>
 inline void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                  const Evaluator& evaluator,
-                                                 Vec& X_vec,
+                                                 Vec X_vec,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level)

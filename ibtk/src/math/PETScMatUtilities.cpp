@@ -840,7 +840,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
     ierr = VecGetArray(X_vec, &d_positions);
     IBTK_CHKERRQ(ierr);
     d_patch_numbers.resize(d_n_local_points);
-    d_stencil_boxes.assign(d_n_local_points, std::vector<Box<NDIM>>(NDIM));
+    d_stencil_boxes.resize(d_n_local_points);
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
     for (int k = 0; k < d_n_local_points; ++k)
     {

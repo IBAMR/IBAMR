@@ -79,7 +79,7 @@ public:
      */
     static void construct_interpolation_matrix_sc(Mat& mat,
                                                   const IBKernelTensorProduct& kernel,
-                                                  Vec& X,
+                                                  Vec X,
                                                   const std::vector<int>& num_dofs,
                                                   int dof_idx,
                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
@@ -87,7 +87,7 @@ public:
 private:
     //! Construct a matrix with a stored evaluator.
     using Builder = std::function<
-        void(Mat&, Vec&, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
+        void(Mat&, Vec, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
 
     /*! \brief Return the explicitly registered and cached supplied builders. */
     static std::map<IBKernelTensorProduct, Builder>& get_builders();
