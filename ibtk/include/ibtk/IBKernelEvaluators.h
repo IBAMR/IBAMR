@@ -38,8 +38,7 @@ namespace IBTK
 /*!
  * \brief Evaluate the N-point cardinal B-spline kernel of degree N - 1.
  *
- * N must be positive. The order is fixed at compile time, independently of
- * which kernels are registered for named operations.
+ * N must be positive.
  */
 template <std::size_t N>
 class IBKernelEvaluatorBSpline
