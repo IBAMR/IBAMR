@@ -99,7 +99,10 @@ tensor_product_error()
         for (std::size_t j = 0; j < factor.size(); ++j)
         {
             const double entry_error = std::abs(factor[j] - (d == Axis ? normal[j] : tangent[j]));
-            if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Kernel factor error = " << entry_error << '\n');
+            if (!(entry_error <= 1.0e-12))
+            {
+                TBOX_ERROR("Kernel factor error = " << entry_error << '\n');
+            }
             error = std::max(error, entry_error);
         }
     };
@@ -119,7 +122,10 @@ tensor_product_error()
             expected *= d == Axis ? normal[j] : tangent[j];
         }
         const double entry_error = std::abs(weights[entry] - expected);
-        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Tensor weight error = " << entry_error << '\n');
+        if (!(entry_error <= 1.0e-12))
+        {
+            TBOX_ERROR("Tensor weight error = " << entry_error << '\n');
+        }
         error = std::max(error, entry_error);
     }
     return error;
@@ -145,7 +151,9 @@ check_tensor_products()
     const double error3 = std::abs(weights3[weights3.size() / 2] - std::pow(0.75, NDIM));
     const double error5 = std::abs(weights5[0] - std::pow(1.0 / 24.0, NDIM));
     if (!(error3 <= 1.0e-12 && error5 <= 1.0e-12))
+    {
         TBOX_ERROR("B-spline tensor weight errors = " << error3 << ", " << error5 << '\n');
+    }
     error = std::max({ error, error3, error5 });
     return error;
 }

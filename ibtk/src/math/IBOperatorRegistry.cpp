@@ -60,7 +60,10 @@ IBOperatorRegistry::is_supplied_kernel(const IBKernelTensorProduct& kernel)
     {
         const bool supplied =
             std::apply([&](const auto&... scalar) { return ((kernel[d] == scalar.first) || ...); }, kernels);
-        if (!supplied) return false;
+        if (!supplied)
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -72,11 +75,16 @@ IBOperatorRegistry::make_supplied_builder(const IBKernelTensorProduct& kernel)
     Builder builder;
     const auto select_normal = [&](const auto& normal)
     {
-        if (normal.first != kernel[0]) return;
+        if (normal.first != kernel[0])
+        {
+            return;
+        }
         const auto select_tangential = [&](const auto& tangential)
         {
             if (tangential.first == kernel[kernel.size() - 1])
+            {
                 builder = make_builder(IBKernelTensorProductEvaluator{ normal.second, tangential.second });
+            }
         };
         std::apply([&](const auto&... tangential) { (select_tangential(tangential), ...); }, kernels);
     };
@@ -95,15 +103,20 @@ IBOperatorRegistry::construct_interpolation_matrix_sc(Mat& mat,
     for (std::size_t d = 0; d < kernel.size(); ++d)
     {
         if (kernel[d] == IBKernel::UNKNOWN)
+        {
             TBOX_ERROR("IBOperatorRegistry::construct_interpolation_matrix_sc(): unspecified kernel " << kernel
                                                                                                       << '\n');
+        }
     }
     std::map<IBKernelTensorProduct, Builder>& builders = get_builders();
-    std::map<IBKernelTensorProduct, Builder>::iterator builder = builders.find(kernel);
+    auto builder = builders.find(kernel);
     if (builder == builders.end())
     {
         Builder supplied = make_supplied_builder(kernel);
-        if (supplied) builder = builders.emplace(kernel, std::move(supplied)).first;
+        if (supplied)
+        {
+            builder = builders.emplace(kernel, std::move(supplied)).first;
+        }
     }
     if (builder == builders.end())
     {
