@@ -81,13 +81,14 @@ template <class Evaluator, std::size_t N>
 double
 sample_error(const Evaluator& evaluator, double r, const std::array<double, N>& expected)
 {
-    const auto weights = evaluator(r);
+    const std::array<double, N> weights = evaluator(r);
     static_assert(std::tuple_size<decltype(weights)>::value == N, "Natural stencil size changed");
     double error = 0.0;
     for (std::size_t i = 0; i < N; ++i)
     {
-        if (!std::isfinite(weights[i])) TBOX_ERROR("Nonfinite kernel weight\n");
-        error = std::max(error, std::abs(weights[i] - expected[i]));
+        const double entry_error = std::abs(weights[i] - expected[i]);
+        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Kernel sample error = " << entry_error << '\n');
+        error = std::max(error, entry_error);
     }
     return error;
 }
@@ -101,15 +102,17 @@ moment_error(const Evaluator& evaluator)
     for (int k = 0; k < 64; ++k)
     {
         const double r = 0.5 * width - 1.0 + k / 64.0;
-        const auto w = evaluator(r);
+        const std::array<double, width> w = evaluator(r);
         double sum = 0.0, moment = 0.0;
         for (int i = 0; i < width; ++i)
         {
             sum += w[i];
             moment += i * w[i];
         }
-        if (!std::isfinite(sum) || !std::isfinite(moment)) TBOX_ERROR("Nonfinite kernel moment\n");
-        error = std::max({ error, std::abs(sum - 1.0), std::abs(moment - r) });
+        const double sum_error = std::abs(sum - 1.0), first_moment_error = std::abs(moment - r);
+        if (!(sum_error <= 1.0e-12 && first_moment_error <= 1.0e-12))
+            TBOX_ERROR("Kernel moment errors = " << sum_error << ", " << first_moment_error << '\n');
+        error = std::max({ error, sum_error, first_moment_error });
     }
     return error;
 }
@@ -344,9 +347,8 @@ check_matrix(Mat matrix,
         valid = valid && count == static_cast<PetscInt>(expected.size());
         for (PetscInt k = 0; k < count; ++k)
         {
-            const auto found = expected.find(columns[k]);
-            valid = valid && found != expected.end() && std::isfinite(PetscRealPart(values[k])) &&
-                    std::abs(PetscRealPart(values[k]) - found->second) < 1.0e-12;
+            const std::map<PetscInt, double>::const_iterator found = expected.find(columns[k]);
+            valid = valid && found != expected.end() && std::abs(PetscRealPart(values[k]) - found->second) < 1.0e-12;
         }
         ierr = MatRestoreRow(matrix, row, &count, &columns, &values);
         IBTK_CHKERRQ(ierr);
@@ -461,13 +463,17 @@ check_periodic_interpolation(const std::vector<int>& counts, int dof, Pointer<Pa
                     if (found == expected.end())
                         ++column_mismatches;
                     else
-                        weight_error = std::max(weight_error, std::abs(PetscRealPart(values[j]) - found->second));
-                    if (!std::isfinite(PetscRealPart(values[j]))) TBOX_ERROR("Nonfinite periodic weight\n");
+                    {
+                        const double entry_error = std::abs(PetscRealPart(values[j]) - found->second);
+                        if (!(entry_error <= 1.0e-12)) TBOX_ERROR("Periodic weight error = " << entry_error << '\n');
+                        weight_error = std::max(weight_error, entry_error);
+                    }
                 }
                 ierr = MatRestoreRow(matrix, row, &count, &columns, &values);
                 IBTK_CHKERRQ(ierr);
-                if (!std::isfinite(PetscRealPart(actual[row]))) TBOX_ERROR("Nonfinite periodic interpolation\n");
-                action_error = std::max(action_error, std::abs(PetscRealPart(actual[row]) - expected_action));
+                const double row_error = std::abs(PetscRealPart(actual[row]) - expected_action);
+                if (!(row_error <= 1.0e-12)) TBOX_ERROR("Periodic interpolation error = " << row_error << '\n');
+                action_error = std::max(action_error, row_error);
             }
         ierr = VecRestoreArrayRead(result, &actual);
         IBTK_CHKERRQ(ierr);
@@ -598,7 +604,7 @@ main(int argc, char* argv[])
                 PetscReal error = 0.0;
                 ierr = VecNorm(residual, NORM_INFINITY, &error);
                 IBTK_CHKERRQ(ierr);
-                failures += !std::isfinite(error) || error > 1.0e-12;
+                failures += !(error <= 1.0e-12);
                 pout << "dof_ghost_width = " << method->getMinimumGhostCellWidth()(0) << '\n'
                      << "constant_interpolation_error = " << error << '\n';
                 ierr = VecDestroy(&ones);

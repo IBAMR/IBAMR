@@ -45,7 +45,7 @@ namespace IBTK
  * std::array<double, NDIM> r;
  * r.fill(1.0);
  * r[1] = 1.5;
- * const auto weights = evaluator.evaluate<1>(r);
+ * const std::array<double, NDIM == 2 ? 12 : 36> weights = evaluator.evaluate<1>(r);
  * // weights contains 3 * 4 coefficients in 2D, or 3 * 4 * 3 in 3D.
  * \endcode
  */
