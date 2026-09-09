@@ -80,10 +80,10 @@ template <int Axis>
 inline auto
 IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(const std::array<double, NDIM>& r) const
 {
-    constexpr auto widths = get_stencil_widths<Axis>();
+    constexpr std::array<int, NDIM> widths = get_stencil_widths<Axis>();
     const auto factors = evaluateFactors<Axis>(r);
-    const auto& wx = std::get<0>(factors);
-    const auto& wy = std::get<1>(factors);
+    const std::array<double, widths[0]>& wx = std::get<0>(factors);
+    const std::array<double, widths[1]>& wy = std::get<1>(factors);
     constexpr int nx = widths[0], ny = widths[1];
     if constexpr (NDIM == 2)
     {
@@ -94,7 +94,7 @@ IBKernelTensorProductEvaluator<NormalEvaluator, TangentialEvaluator>::evaluate(c
     }
     else
     {
-        const auto& wz = std::get<2>(factors);
+        const std::array<double, widths[2]>& wz = std::get<2>(factors);
         constexpr int nz = widths[2];
         std::array<double, nx * ny * nz> weights;
         for (int k = 0; k < nz; ++k)
