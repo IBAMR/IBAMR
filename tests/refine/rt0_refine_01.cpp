@@ -25,28 +25,128 @@
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <SAMRAIVectorReal.h>
+#include <SideGeometry.h>
 #include <SideVariable.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
+#include <algorithm>
+#include <cmath>
+
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
-// Verify that we can correctly refine a piecewise linear solution with the
+// Check specialized-linear refinement of constant and globally linear fields.
+// Also verify that we can correctly refine a piecewise linear solution with the
 // RT0 refinement class. Since the RT0 element is a vector-valued element that
 // is, on Cartesian grids,
 //
 //     RT0_K = (P^1(x) * P^0(y), P^0(x) * P^1(y))
 //
 // we expect refining a vector field which is in that space to have zero error.
+
+namespace
+{
+void
+test_specialized_linear_refine()
+{
+    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u", 2);
+    const int u_idx = var_db->registerVariableAndContext(u_var, var_db->getContext("specialized"), IntVector<NDIM>(1));
+    CartSideDoubleSpecializedLinearRefine refine_op;
+    constexpr double SENTINEL = 1.e30;
+
+    for (int ratio_number = 0; ratio_number < 3; ++ratio_number)
+    {
+        IntVector<NDIM> ratio(ratio_number == 0 ? 2 : 4);
+        Box<NDIM> fine_box;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (ratio_number == 2) ratio(d) = d + 2;
+            fine_box.lower(d) = (-3 + d) * ratio(d);
+            fine_box.upper(d) = (2 + d) * ratio(d) - 1;
+        }
+        const Box<NDIM> fine_ghost_box = Box<NDIM>::grow(fine_box, IntVector<NDIM>(1));
+        // Cover the requested fine ghosts before adding the coarse slope stencil.
+        const Box<NDIM> coarse_box = Box<NDIM>::coarsen(fine_ghost_box, ratio);
+        Patch<NDIM> coarse(coarse_box, var_db->getPatchDescriptor());
+        Patch<NDIM> fine(fine_box, var_db->getPatchDescriptor());
+        coarse.allocatePatchData(u_idx, 0.0);
+        fine.allocatePatchData(u_idx, 0.0);
+        Pointer<SideData<NDIM, double>> coarse_data = coarse.getPatchData(u_idx);
+        Pointer<SideData<NDIM, double>> fine_data = fine.getPatchData(u_idx);
+
+        for (const bool linear : { false, true })
+        {
+            // Side coordinates are integral in the normal direction and half-integral otherwise.
+            auto exact = [&](const hier::Index<NDIM>& i, const int axis, const int depth, const IntVector<NDIM>& scale)
+            {
+                double value = 10.0 * (axis + 1) + depth;
+                if (linear)
+                    for (int d = 0; d < NDIM; ++d)
+                        value += (axis + 1) * (d + 2) * (depth + 1) * (i(d) + (d == axis ? 0.0 : 0.5)) / scale(d);
+                return value;
+            };
+            for (int axis = 0; axis < NDIM; ++axis)
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(coarse_data->getGhostBox(), axis)); it; it++)
+                    for (int depth = 0; depth < coarse_data->getDepth(); ++depth)
+                        (*coarse_data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower), depth) =
+                            exact(it(), axis, depth, IntVector<NDIM>(1));
+
+            double max_error = 0.0, upper_plane_max_error = 0.0;
+            int outside_errors = 0;
+            // Test the interior, the full ghost box, and each lower/upper ghost slab.
+            for (int region = 0; region < 2 + 2 * NDIM; ++region)
+            {
+                Box<NDIM> destination = region == 0 ? fine_box : fine_ghost_box;
+                if (region >= 2)
+                {
+                    const int normal = (region - 2) / 2;
+                    const int boundary = region % 2 == 0 ? fine_ghost_box.lower(normal) : fine_ghost_box.upper(normal);
+                    destination.lower(normal) = destination.upper(normal) = boundary;
+                }
+                fine_data->fillAll(SENTINEL);
+                refine_op.refine(fine, coarse, u_idx, u_idx, destination, ratio);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(destination, axis);
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(fine_data->getGhostBox(), axis)); it;
+                         it++)
+                        for (int depth = 0; depth < fine_data->getDepth(); ++depth)
+                        {
+                            const double value =
+                                (*fine_data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower), depth);
+                            if (side_box.contains(it()))
+                            {
+                                if (!std::isfinite(value)) TBOX_ERROR("Refinement produced a nonfinite value.\n");
+                                const double error = std::abs(value - exact(it(), axis, depth, ratio));
+                                max_error = std::max(max_error, error);
+                                if (it()(axis) == side_box.upper(axis))
+                                    upper_plane_max_error = std::max(upper_plane_max_error, error);
+                            }
+                            else
+                            {
+                                outside_errors += value != SENTINEL;
+                            }
+                        }
+                }
+            }
+            plog << (linear ? "linear" : "constant") << " ratio " << ratio << ": max error = " << max_error
+                 << ", upper plane max error = " << upper_plane_max_error << ", outside writes = " << outside_errors
+                 << '\n';
+        }
+    }
+}
+} // namespace
 
 int
 main(int argc, char* argv[])
@@ -62,6 +162,11 @@ main(int argc, char* argv[])
     {
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+        if (input_db->getBoolWithDefault("test_specialized_linear_refine", false))
+        {
+            test_specialized_linear_refine();
+            return 0;
+        }
 
         // Create major algorithm and data objects that comprise the
         // application.
@@ -147,7 +252,18 @@ main(int argc, char* argv[])
 
             const IntVector<NDIM> ratio = level_1->getRatioToCoarserLevel();
             IBTK::CartSideDoubleRT0Refine refine_op;
+            constexpr double SENTINEL = 1.e30;
+            u_sc_1_data->fillAll(SENTINEL);
             refine_op.refine(*level_1->getPatch(0), *level_0->getPatch(0), u_sc_idx, u_sc_idx, patch_box_1, ratio);
+
+            for (int axis = 0; axis < NDIM; ++axis)
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box_1, axis)); it; it++)
+                {
+                    const SideIndex<NDIM> side(it(), axis, SideIndex<NDIM>::Lower);
+                    const double value = (*u_sc_1_data)(side);
+                    if (!std::isfinite(value) || value == SENTINEL)
+                        TBOX_ERROR("RT0 refinement left a destination side unfilled.\n");
+                }
 
             solv::SAMRAIVectorReal<NDIM, double> exact_vec("e", patch_hierarchy, coarse_level_n, fine_level_n);
             exact_vec.addComponent(exact_sc_var, exact_sc_idx);
