@@ -26,18 +26,5 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES
-    input3d sphere3d.vertex
-  )
-
-IBAMR_ADD_EXAMPLE(
-  TARGET_NAME
-    "ConstraintIB-spheregen"
-  OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/ConstraintIB/falling_sphere"
-  OUTPUT_NAME
-    sphereGen3d
-  EXAMPLE_GROUP
-    examples-ConstraintIB
-  SOURCES
-    sphereGen3d.cpp
+    input3d
   )

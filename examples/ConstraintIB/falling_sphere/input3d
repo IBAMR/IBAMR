@@ -1,4 +1,5 @@
 R  = 0.3125
+num_points_per_diameter = 20 // Lagrangian spacing is 2*R/num_points_per_diameter
 MU = 0.05       // the viscosity required to attain the specified Reynolds number
 RHO = 2.0
 
@@ -15,7 +16,7 @@ DX_FINEST = L/NFINEST
 DELTA_FUNCTION       = "IB_4"
 SOLVER_TYPE          = "STAGGERED"                // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME           = 0.0e0                      // initial simulation time
-END_TIME             = 50.0                       // final simulation time
+END_TIME             = 100.0                      // final simulation time
 MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
 GROW_DT              = 2.0e0                      // growth factor for timesteps
 NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration
@@ -38,6 +39,11 @@ ENABLE_LOGGING       = TRUE
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 USE_EXACT_PROJECTION_METHOD = FALSE
+
+// Open the lower-y boundary and deactivate the sphere when it reaches that outlet.
+OPEN_BOUNDARY = TRUE
+// Faces are lower x, upper x, lower y, upper y, lower z, upper z.
+open_boundaries = FALSE, FALSE, OPEN_BOUNDARY, FALSE, FALSE, FALSE
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
@@ -65,14 +71,14 @@ VelocityBcCoefs_0 {
 VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
+   acoef_function_2 = (OPEN_BOUNDARY ? "0.0" : "1.0")
    acoef_function_3 = "1.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
+   bcoef_function_2 = (OPEN_BOUNDARY ? "1.0" : "0.0")
    bcoef_function_3 = "0.0"
    bcoef_function_4 = "0.0"
    bcoef_function_5 = "0.0"
@@ -167,7 +173,7 @@ ConstraintIBKinematics {
 }
 
 
-IBStandardInitializer {
+IBRedundantInitializer {
    max_levels      = MAX_LEVELS
    structure_names = "sphere3d"
 
