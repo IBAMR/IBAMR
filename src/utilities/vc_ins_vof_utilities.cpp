@@ -28,8 +28,7 @@ namespace IBAMR
 
 namespace VCINSVOFUtilities
 {
-static double
-vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
+double vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
 {
 #if (NDIM == 2)
     const double ax = std::abs(dPhi[0]);

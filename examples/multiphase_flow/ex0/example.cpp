@@ -30,7 +30,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -297,7 +297,7 @@ main(int argc, char* argv[])
 
         // Set up the surface tension force
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+            new LevelSetSurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
                                             phi_var);

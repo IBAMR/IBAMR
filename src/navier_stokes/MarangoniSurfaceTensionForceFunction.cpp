@@ -189,7 +189,7 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
                                                                            Pointer<Variable<NDIM>> level_set_var,
                                                                            Pointer<Variable<NDIM>> T_var,
                                                                            RobinBcCoefStrategy<NDIM>* T_bc_coef)
-    : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
+    : LevelSetSurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
 {
     d_T_var = T_var;
     d_T_bc_coef = T_bc_coef;
@@ -279,7 +279,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
 
     T_fill_op->fillData(data_time);
 
-    SurfaceTensionForceFunction::setDataOnPatchHierarchy(
+    LevelSetSurfaceTensionForceFunction::setDataOnPatchHierarchy(
         data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
 
     // Deallocate and remove scratch/smooth phi.
@@ -314,7 +314,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 
     if (initial_time) return;
 
-    SurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
+    LevelSetSurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
 
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
     if (f_sc_data)

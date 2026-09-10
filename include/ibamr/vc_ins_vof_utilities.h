@@ -37,6 +37,8 @@ namespace IBAMR
 
 namespace VCINSVOFUtilities
 {
+
+    double vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi);
 /*!
  * \brief VOF initial condition derived from an existing level set initial condition.
  *

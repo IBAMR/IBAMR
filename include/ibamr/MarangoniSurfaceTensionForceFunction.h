@@ -20,7 +20,7 @@
 
 #include <ibamr/config.h>
 
-#include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 
 namespace IBAMR
 {
@@ -66,7 +66,7 @@ namespace IBAMR
  * the indicator variable can either be a level set function, a volume fraction function,
  * or a phase field function.
  */
-class MarangoniSurfaceTensionForceFunction : public SurfaceTensionForceFunction
+class MarangoniSurfaceTensionForceFunction : public LevelSetSurfaceTensionForceFunction
 {
 public:
     /*!
@@ -154,7 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    MarangoniSurfaceTensionForceFunction(const SurfaceTensionForceFunction& from) = delete;
+    MarangoniSurfaceTensionForceFunction(const LevelSetSurfaceTensionForceFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -165,7 +165,7 @@ private:
      *
      * \return A reference to this object.
      */
-    MarangoniSurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that) = delete;
+    MarangoniSurfaceTensionForceFunction& operator=(const LevelSetSurfaceTensionForceFunction& that) = delete;
 
     /*!
      * Set the data on the patch interior.

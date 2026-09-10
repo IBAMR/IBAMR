@@ -121,6 +121,7 @@ SET(CXX_SRC
   navier_stokes/StokesBcCoefStrategy.cpp
   navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp
   navier_stokes/SurfaceTensionForceFunction.cpp
+  navier_stokes/LevelSetSurfaceTensionForceFunction.cpp
   navier_stokes/StaggeredStokesLevelRelaxationFACOperator.cpp
   navier_stokes/INSVCStaggeredPressureBcCoef.cpp
   navier_stokes/StaggeredStokesProjectionPreconditioner.cpp

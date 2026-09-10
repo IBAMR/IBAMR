@@ -33,7 +33,7 @@
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -694,7 +694,7 @@ main(int argc, char* argv[])
 
         // Register surface tension force.
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+            new LevelSetSurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
                                             ls_var);
@@ -708,8 +708,8 @@ main(int argc, char* argv[])
         mask_surface_tension_force_ctx.lf_var = lf_extrap_var; // Using extrapolated lf in the surface tension force.
         mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef.get();
 
-        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
-                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
+        //surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
+          //                                                        static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register gravity force.
         std::vector<double> grav_const(NDIM);

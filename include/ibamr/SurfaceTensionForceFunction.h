@@ -35,6 +35,8 @@
 
 #include <string>
 
+
+
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;
@@ -47,6 +49,8 @@ template <int DIM>
 class Variable;
 template <int DIM>
 class Patch;
+template <int DIM>
+class PatchHierarchy;
 } // namespace hier
 namespace pdat
 {
@@ -92,58 +96,30 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~SurfaceTensionForceFunction() = default;
+     ~SurfaceTensionForceFunction() override = default;
+
+
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the Heaviside function.
      */
-    virtual void setSmoother(const std::string& kernel_fcn);
+    //  void setSmoother(const std::string& kernel_fcn);
 
     /*!
      * \brief Set the constant surface tension coefficient.
      */
-    virtual void setSurfaceTensionCoef(double sigma);
+    virtual void setSurfaceTensionCoef(double sigma) = 0; // make it virtual
 
-    /*!
-     * \brief Set the number of interface cells m over which the surface tension force will be applied.
-     * The surface tension will take effect in the band -m*h to m*h around the interface,
-     * where h = (dx*dy)^(1/2) in 2D and h = (dx*dy*dz)^(1/3) in 3D.
-     */
-    virtual void setNumberOfInterfaceCells(double m);
-
-    /*!
-     * \brief Get the smoother (kernel function) to mollify the Heaviside function.
-     */
-    std::string getSmoother() const
-    {
-        return d_kernel_fcn;
-    } // getSmoother
 
     /*!
      * \brief Get the constant surface tension coefficient.
      */
-    double getSurfaceTensionCoef() const
-    {
-        return d_sigma;
-    } // getSurfaceTensionCoef
-
-    /*!
-     * \brief Get the number of interface cells over which the surface tension force will be applied.
-     */
-    double getNumberOfInterfaceCells() const
-    {
-        return d_num_interface_cells;
-    } // getNumberOfInterfaceCells
-
-    /*!
-     * \name Methods to set the data.
-     */
-    //\{
+    virtual double getSurfaceTensionCoef() const = 0; //make it virtual
 
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const override;
+    bool isTimeDependent() const override = 0;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -158,7 +134,7 @@ public:
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = IBTK::invalid_level_number,
-                                 int finest_ln = IBTK::invalid_level_number) override;
+                                 int finest_ln = IBTK::invalid_level_number) override= 0;
 
     /*!
      * Set the data on the patch interior.
@@ -169,7 +145,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override= 0;
 
     /*!
      * \brief Function to Mask surface tension force to act only on the liquid-gas interface.
@@ -185,7 +161,7 @@ public:
     /*!
      * \brief Register function to limit the surface tension force.
      */
-    void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx);
+    virtual void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx) = 0;
 
     /*!
      * \brief Function to compute the variable surface tension coefficient.
@@ -201,24 +177,16 @@ public:
     /*!
      * \brief Register function to compute the variable surface tension coefficient.
      */
-    void registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback, void* ctx);
+    virtual void registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback, void* ctx) = 0;
 
     //\}
 protected:
-    /*!
-     * Get the ghost cell width of scratch data.
-     */
-    int getMinimumGhostWidth(const std::string& kernel_fcn);
-
+   
+        // common to both the derived classes
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
+
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_ls_var;
-    TimeSteppingType d_ts_type;
-    int d_C_idx = IBTK::invalid_index, d_phi_idx = IBTK::invalid_index;
-    std::string d_kernel_fcn;
-    double d_sigma = std::numeric_limits<double>::signaling_NaN(),
-           d_num_interface_cells = std::numeric_limits<double>::signaling_NaN();
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>> d_hier_sc_data_ops;
+    
 
 private:
     /*!
@@ -248,52 +216,6 @@ private:
      */
     SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that) = delete;
 
-    /*!
-     * Convert the level set variable to a smoothed heaviside function.
-     */
-    void convertToHeaviside(int phi_idx,
-                            int coarsest_ln,
-                            int finest_ln,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
-
-    /*!
-     * Mollify data.
-     */
-    void mollifyData(int phi_idx,
-                     int coarsest_ln,
-                     int finest_ln,
-                     double data_time,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
-
-    /*!
-     * Set the data on the patch interior.
-     */
-    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                            const double data_time,
-                            const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
-
-    /*!
-     * Set the data on the patch interior.
-     */
-    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                            const double data_time,
-                            const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
-
-    /*!
-     * Get the stencil size for the kernel.
-     */
-    int getStencilSize(const std::string& kernel_fcn);
-
-    MaskSurfaceTensionForcePtr d_mask_surface_tension_force = nullptr;
-    void* d_mask_surface_tension_force_ctx = nullptr;
-
-    ComputeSurfaceTensionCoefficientPtr d_compute_surface_tension_coef = nullptr;
-    void* d_compute_surface_tension_coef_ctx = nullptr;
 };
 } // namespace IBAMR
 
