@@ -246,6 +246,15 @@ public:
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *
+     * With the "RT0_COARSEN" velocity restriction method, the restriction uses a
+     * copy of the source data on the next finer level, because it reads ghost cells
+     * there. Ghost cells of the copy next to another patch of that level take that
+     * patch's values, and cells beyond a physical boundary take values from
+     * homogeneous boundary conditions. Ghost cells next to a coarse-fine interface
+     * keep the values of src, so the restricted residual there depends on them. The
+     * next finer level data of src are unchanged; the data of the destination level
+     * are overwritten, including when src and dst alias.
+     *
      * \param src source residual
      * \param dst destination residual
      * \param dst_ln destination level number
