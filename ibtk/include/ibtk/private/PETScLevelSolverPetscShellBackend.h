@@ -43,13 +43,30 @@ public:
                                Vec b,
                                const std::vector<IS>& overlap,
                                const std::vector<IS>& nonoverlap,
-                               const std::string& options_prefix) override;
+                               const std::string& options_prefix,
+                               bool use_multiplicative = false) override;
     /*! \copydoc PETScLevelSolverShellBackend::deallocateSolverState */
     void deallocateSolverState() override;
-    /*! \copydoc PETScLevelSolverShellBackend::apply */
-    void apply(Vec x, Vec y) override;
+
+protected:
+    /*! \copydoc PETScLevelSolverShellBackend::getNumberOfSubdomains */
+    std::size_t getNumberOfSubdomains() const override;
+    /*! \copydoc PETScLevelSolverShellBackend::beginSubdomainRhs */
+    void beginSubdomainRhs(std::size_t i, Vec source) override;
+    /*! \copydoc PETScLevelSolverShellBackend::endSubdomainRhs */
+    void endSubdomainRhs(std::size_t i, Vec source) override;
+    /*! \copydoc PETScLevelSolverShellBackend::solveSubdomain */
+    void solveSubdomain(std::size_t i) override;
+    /*! \copydoc PETScLevelSolverShellBackend::accumulateSubdomainCorrection */
+    void accumulateSubdomainCorrection(std::size_t i, Vec y) override;
+    /*! \copydoc PETScLevelSolverShellBackend::getSubdomainCorrectionDofs */
+    const std::vector<PetscInt>& getSubdomainCorrectionDofs(std::size_t i) const override;
+    /*! \copydoc PETScLevelSolverShellBackend::copySubdomainCorrection */
+    void copySubdomainCorrection(std::size_t i, PetscScalar* values) override;
 
 private:
+    bool d_multiplicative = false;
+    std::vector<std::vector<PetscInt>> d_correction_dofs;
     std::vector<KSP> d_sub_ksp;
     std::vector<Vec> d_sub_x, d_sub_y;
     std::vector<VecScatter> d_restriction, d_prolongation;

@@ -1,0 +1,4 @@
+stage_rhs = 10 21 31
+correction = 1 1 1 0
+row_reads = 5
+matmult_calls = 0

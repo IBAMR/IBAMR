@@ -28,39 +28,112 @@
 
 namespace IBTK
 {
-/*! \brief Additive shell preconditioner implemented on geometric ASM subdomains.
+/*! \brief Shared additive and forward multiplicative shell composition.
  *
  * initializeSolverState() receives sorted overlapping index sets and matching
- * nonoverlapping subsets that partition the locally owned DOFs. The matrix and
- * vectors share the level solver's parallel layout. Inputs are borrowed during
- * initialization; implementations retain any objects needed by apply(). Rebuild
- * state after changing the matrix or subdomains. deallocateSolverState() releases
- * owned state and may be called repeatedly. apply() overwrites its distinct output
- * vector with the restricted additive correction, without modifying its input.
- * Call apply() only while solver state is initialized. Solver-state operations
- * and application are collective over the level communicator.
+ * nonoverlapping subsets. Additive application solves independent overlapping
+ * systems and writes the subsets, which must partition locally owned DOFs.
+ * Multiplicative application ignores the subsets, adds each full overlapping
+ * correction, and updates
+ * the original residual before the next subdomain. Parallel ranks advance through
+ * the same number of stages, summing all corrections in each stage.
+ *
+ * Inputs are borrowed during initialization; implementations retain objects they
+ * need afterwards. Reinitialize after changing the operator or subdomains.
+ * apply() overwrites its distinct output without modifying its input and requires
+ * initialized state. Operations are collective over the level communicator.
+ * deallocateSolverState() may be called repeatedly, including during destruction.
  */
 class PETScLevelSolverShellBackend
 {
 public:
-    /*! \brief Release the backend. */
-    virtual ~PETScLevelSolverShellBackend() = default;
+    /*! \brief Construct uninitialized composition state. */
+    PETScLevelSolverShellBackend() = default;
+    /*! \brief Disable copying of owned PETSc objects. */
+    PETScLevelSolverShellBackend(const PETScLevelSolverShellBackend&) = delete;
+    /*! \brief Disable assignment of owned PETSc objects. */
+    PETScLevelSolverShellBackend& operator=(const PETScLevelSolverShellBackend&) = delete;
+    /*! \brief Release composition state. */
+    virtual ~PETScLevelSolverShellBackend();
     /*! \brief Initialize local solves and communication for the supplied layout. */
     virtual void initializeSolverState(Mat mat,
                                        Vec x,
                                        Vec b,
                                        const std::vector<IS>& overlap,
                                        const std::vector<IS>& nonoverlap,
-                                       const std::string& options_prefix) = 0;
+                                       const std::string& options_prefix,
+                                       bool use_multiplicative = false) = 0;
     /*! \brief Release the initialized state. */
     virtual void deallocateSolverState() = 0;
-    /*! \brief Apply the restricted additive correction. */
-    virtual void apply(Vec x, Vec y) = 0;
+    /*! \brief Apply the shared correction sequence. */
+    void apply(Vec x, Vec y);
+
+protected:
+    /*! \brief Retain the operator and allocate residual scratch before local setup.
+     *
+     * Finalize composition after local correction views exist. Release composition
+     * before destroying those views. Row-access application reads current values
+     * at cached offsets and rejects changed columns at those offsets; this is not
+     * a detector for arbitrary sparsity changes. Reassembly requires reinitialization.
+     */
+    void initializeComposition(Mat mat, Vec x, Vec b, bool use_multiplicative);
+    /*! \brief Construct residual-update metadata after local setup. */
+    void finalizeComposition();
+    /*! \brief Release composition scratch and references. */
+    void deallocateComposition();
+    /*! \brief Return the collective number of stages, including empty local stages. */
+    virtual std::size_t getNumberOfSubdomains() const = 0;
+    /*! \brief Begin gathering this stage's RHS from the supplied residual or RHS. */
+    virtual void beginSubdomainRhs(std::size_t i, Vec source) = 0;
+    /*! \brief Complete the matching RHS gather. */
+    virtual void endSubdomainRhs(std::size_t i, Vec source) = 0;
+    /*! \brief Solve the gathered local system. */
+    virtual void solveSubdomain(std::size_t i) = 0;
+    /*! \brief Accumulate the stage correction using the initialized composition. */
+    virtual void accumulateSubdomainCorrection(std::size_t i, Vec y) = 0;
+    /*! \brief Return sorted, unique global correction indices, empty for an empty stage.
+     *
+     * Keep indices unchanged until teardown. They describe every value accumulated
+     * by a multiplicative stage, including nonlocal overlapping contributions.
+     */
+    virtual const std::vector<PetscInt>& getSubdomainCorrectionDofs(std::size_t i) const = 0;
+    /*! \brief Copy correction values in getSubdomainCorrectionDofs() order. */
+    virtual void copySubdomainCorrection(std::size_t i, PetscScalar* values) = 0;
+
+private:
+    struct UpdateEntry
+    {
+        PetscInt matrix_entry;
+        PetscInt correction_entry;
+    };
+    struct UpdateRow
+    {
+        PetscInt global_row;
+        std::size_t entry_begin;
+        std::size_t entry_end;
+    };
+    struct SubdomainUpdate
+    {
+        std::size_t row_begin;
+        std::size_t row_end;
+    };
+    /*! \brief Cache flat affected-row offsets for serial row-access matrices. */
+    void initializeAffectedRows();
+    /*! \brief Subtract the actual accumulated stage action from the residual. */
+    void updateResidual(std::size_t i);
+
+    Mat d_mat = nullptr;
+    Vec d_residual = nullptr, d_correction = nullptr, d_action = nullptr;
+    bool d_multiplicative = false, d_initialized = false, d_use_rows = false;
+    std::vector<SubdomainUpdate> d_updates;
+    std::vector<UpdateRow> d_rows;
+    std::vector<UpdateEntry> d_entries;
+    std::vector<PetscScalar> d_values;
 };
 
-/*! \brief Factories selected by the suffix of shell_pc_type = "additive-KEY".
+/*! \brief Factories selected by the backend suffix of shell_pc_type.
  *
- * The built-in "petsc" factory is also selected by "additive". Register other
+ * The built-in "petsc" factory is also selected by bare composition names. Register other
  * factories before initializing a level solver. Keys are case-sensitive and
  * must be nonempty; registering an existing key replaces its factory.
  */

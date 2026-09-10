@@ -1,5 +1,5 @@
 Program abort called with error message
 
     PETScLevelSolverShellBackendManager::allocateBackend():
-  unknown additive shell backend: unknown
+  unknown shell backend: unknown
 
