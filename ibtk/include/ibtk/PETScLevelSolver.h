@@ -343,6 +343,18 @@ protected:
                                        std::vector<std::set<int>>& nonoverlap_is);
 
     /*!
+     * \brief Validate the preconditioner type in effect for this initialization.
+     *
+     * Called by initializeSolverState() after the PETSc options database has been applied, so that
+     * d_pc_type is the type that will be used, including a command-line override of the type from
+     * the input database. The default accepts every type; a derived class that requires a particular
+     * type reports a violation.
+     */
+    virtual void validatePreconditionerType()
+    {
+    }
+
+    /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
@@ -439,6 +451,8 @@ protected:
     std::optional<SubdomainGrouping> d_subdomain_grouping;
     std::optional<SubdomainOutput> d_subdomain_output;
     SubdomainTraversal d_subdomain_traversal = SubdomainTraversal::FORWARD;
+    //! Whether initialization checks that the subdomains cover the DOFs.
+    bool d_check_subdomain_coverage = default_check_dof_coverage();
     //\}
 
     /*!
@@ -518,8 +532,6 @@ private:
     //! Whether initializeSolverState() created d_overlap_is and d_nonoverlap_is, so that deallocateSolverState()
     //! destroys them.
     bool d_generated_subdomain_is = false;
-    //! Whether initialization checks that the subdomains cover the DOFs.
-    bool d_check_subdomain_coverage = default_check_dof_coverage();
 
     /*!
      * \name Groups of multiplicative subdomain relaxation.

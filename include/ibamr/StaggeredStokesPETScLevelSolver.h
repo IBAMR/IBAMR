@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
@@ -37,6 +38,7 @@
 #include <SideVariable.h>
 #include <VariableContext.h>
 
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -63,6 +65,33 @@ namespace IBAMR
  * \brief Class StaggeredStokesPETScLevelSolver is a concrete PETScLevelSolver
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
+ *
+ * <b>Subdomains</b>
+ *
+ * subdomain_construction chooses the subdomains of the ASM and shell preconditioners:
+ *
+ * - GEOMETRICAL (default): subdomains defined by the geometry of the level.
+ * - COUPLING_AWARE: subdomains grown from seed velocity DOFs along the couplings of the level operator,
+ *   so that strongly coupled velocity DOFs share a subdomain. It requires pc_type = asm or shell, in
+ *   effect after the PETSc options are applied, and is available on one MPI rank only.
+ *
+ * A coupling-aware subdomain starts from a seed DOF and adds the velocity DOFs coupled to it, those
+ * with matrix entries above the relative_zero_tol threshold. It then joins the standard Vanka patches
+ * (a cell's pressure DOF and the velocity DOFs on its faces) of the cells that the closure policy
+ * selects. RELAXED takes every cell that touches an added velocity DOF (Gruninger and Griffith,
+ * arXiv:2608.14310); STRICT takes only the cells whose whole velocity stencil was added. The precise
+ * rules are those of StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
+ *
+ * The optional coupling_aware_subdomains database overrides these coupling-aware settings, which are read
+ * at construction:
+ *
+ * - seed_axis (default 0): the velocity component whose DOFs are the seeds.
+ * - seed_stride (default 1): use every seed_stride-th seed. A stride above 1 can leave DOFs out of
+ *   every subdomain, which Vanka smoothing does not allow; check_subdomain_coverage detects this.
+ * - seed_traversal_order (default I_J, or I_J_K in 3D; also J_I, J_K_I, or K_I_J): the order of the
+ *   seeds, slowest coordinate first.
+ * - closure_policy (default RELAXED): RELAXED or STRICT.
+ * - relative_zero_tol (default 1.0e-14): the relative threshold below which couplings are ignored.
  *
  * <b>Subdomain solver "eigen-schur-complement"</b>
  *
@@ -154,6 +183,11 @@ public:
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
 protected:
+    /*!
+     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware.
+     */
+    void validatePreconditionerType() override;
+
     /*!
      * \brief Generate IS/subdomains for Schwarz type preconditioners.
      */
@@ -247,6 +281,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    //\}
+
+    /*!
+     * \name Subdomain construction settings, read at construction.
+     */
+    //\{
+    ASMSubdomainConstructionMode d_asm_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    int d_ca_seed_axis = 0, d_ca_seed_stride = 1;
+#if (NDIM == 2)
+    CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J;
+#else
+    CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J_K;
+#endif
+    CouplingAwareASMClosurePolicy d_ca_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    double d_ca_relative_zero_tol = 1.0e-14;
     //\}
 
     /*!
