@@ -15,8 +15,8 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/LevelSetSurfaceTensionForceFunction.h>
-#include <ibtk/HierarchyGhostCellInterpolation.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 
 #include <BasePatchLevel.h>
 #include <Box.h>
@@ -163,14 +163,16 @@ extern "C"
     );
 }
 
-namespace IBAMR {
-    LevelSetSurfaceTensionForceFunction::LevelSetSurfaceTensionForceFunction(const std::string& object_name,
-        Pointer<Database> input_db,
-        const AdvDiffHierarchyIntegrator* adv_diff_solver,
-        const Pointer<Variable<NDIM>> level_set_var)
-        : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
-    {
-        //  Set some default values
+namespace IBAMR
+{
+LevelSetSurfaceTensionForceFunction::LevelSetSurfaceTensionForceFunction(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const AdvDiffHierarchyIntegrator* adv_diff_solver,
+    const Pointer<Variable<NDIM>> level_set_var)
+    : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
+{
+    //  Set some default values
     d_ts_type = MIDPOINT_RULE;
     d_kernel_fcn = "none";
     d_sigma = 1.0;
@@ -193,8 +195,8 @@ namespace IBAMR {
 
         d_num_interface_cells = input_db->getDoubleWithDefault("num_interface_cells", d_num_interface_cells);
         // intentionally blank
-}
     }
+}
 
 bool
 LevelSetSurfaceTensionForceFunction::isTimeDependent() const
@@ -204,16 +206,16 @@ LevelSetSurfaceTensionForceFunction::isTimeDependent() const
 
 void
 LevelSetSurfaceTensionForceFunction::setDataOnPatchHierarchy(int data_idx,
-    Pointer<Variable<NDIM>> var,
-    Pointer<PatchHierarchy<NDIM>> hierarchy,
-    double data_time,
-    bool initial_time,
-    int coarsest_ln_in,
-    int finest_ln_in)
+                                                             Pointer<Variable<NDIM>> var,
+                                                             Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                             double data_time,
+                                                             bool initial_time,
+                                                             int coarsest_ln_in,
+                                                             int finest_ln_in)
 {
-    #if !defined(NDEBUG)
-        TBOX_ASSERT(hierarchy);
-    #endif
+#if !defined(NDEBUG)
+    TBOX_ASSERT(hierarchy);
+#endif
 
     const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -223,26 +225,27 @@ LevelSetSurfaceTensionForceFunction::setDataOnPatchHierarchy(int data_idx,
     // Get the newest patch data index for the level set variable
     Pointer<CellVariable<NDIM, double>> phi_cc_var = d_ls_var; // Common for both classes
 
-    #if !defined(NDEBUG)
+#if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
-        #endif
+#endif
 
-VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     int phi_new_idx = var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getNewContext());
     int phi_current_idx = var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getCurrentContext());
 
-    #if !defined(NDEBUG)
+#if !defined(NDEBUG)
     TBOX_ASSERT(phi_new_idx >= 0);
     TBOX_ASSERT(phi_current_idx >= 0);
-    #endif
+#endif
 
-    const IntVector<NDIM> cell_ghosts( getMinimumGhostWidth(d_kernel_fcn));
+    const IntVector<NDIM> cell_ghosts(getMinimumGhostWidth(d_kernel_fcn));
 
-d_phi_idx = var_db->registerVariableAndContext( phi_cc_var, var_db->getContext(d_object_name + "::Phi"),cell_ghosts);
+    d_C_idx = var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::C"), cell_ghosts);
 
-d_C_idx =var_db->registerVariableAndContext(phi_cc_var,var_db->getContext( d_object_name + "::C"), cell_ghosts);
+    d_phi_idx =
+        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
 
-for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_C_idx, data_time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_phi_idx, data_time);
@@ -262,13 +265,13 @@ for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     else if (d_ts_type == BACKWARD_EULER)
     {
         hier_cc_data_ops.copyData(d_phi_idx,
-            phi_new_idx,
+                                  phi_new_idx,
                                   /*interior_only*/ true);
     }
     else if (d_ts_type == FORWARD_EULER)
     {
         hier_cc_data_ops.copyData(d_phi_idx,
-            phi_current_idx,
+                                  phi_current_idx,
                                   /*interior_only*/ true);
     }
     else
@@ -332,14 +335,13 @@ for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     var_db->removePatchDataIndex(d_C_idx);
 }
 
-
 void
 LevelSetSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
-                                            Pointer<Variable<NDIM>> /*var*/,
-                                            Pointer<Patch<NDIM>> patch,
-                                            const double data_time,
-                                            const bool initial_time,
-                                            Pointer<PatchLevel<NDIM>> level)
+                                                    Pointer<Variable<NDIM>> /*var*/,
+                                                    Pointer<Patch<NDIM>> patch,
+                                                    const double data_time,
+                                                    const bool initial_time,
+                                                    Pointer<PatchLevel<NDIM>> level)
 {
     Pointer<PatchData<NDIM>> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -358,7 +360,8 @@ LevelSetSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
     if (f_sc_data)
     {
-        // runtime polymorphism to call the child class (vof or level set) function to set the data on the patch interior
+        // runtime polymorphism to call the child class (vof or level set) function to set the data on the patch
+        // interior
         setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
 
         PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
@@ -384,164 +387,149 @@ LevelSetSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     return;
 } // setDataOnPatch
 
+void
+LevelSetSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double>> F_data,
+                                                        Pointer<Patch<NDIM>> patch,
+                                                        const double /*data_time*/,
+                                                        const bool /*initial_time*/,
+                                                        Pointer<PatchLevel<NDIM>> /*patch_level*/)
+{
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const double* dx = pgeom->getDx();
 
-void LevelSetSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                                             Pointer<Patch<NDIM> > patch,
-                                                             const double /*data_time*/,
-                                                             const bool /*initial_time*/,
-                                                             Pointer<PatchLevel<NDIM> > /*patch_level*/)
+    Pointer<CellData<NDIM, double>> Phi = patch->getPatchData(d_phi_idx);
+
+    const int required_gcw = getMinimumGhostWidth(d_kernel_fcn);
+
+    const int phi_gcw = Phi->getGhostCellWidth().max();
+
+    if (phi_gcw < required_gcw)
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        const double* dx = pgeom->getDx();
-
-
-
-        Pointer<CellData<NDIM, double>> Phi = patch->getPatchData(d_phi_idx);
-
-        const int required_gcw = getMinimumGhostWidth(d_kernel_fcn);
-        
-        const int phi_gcw = Phi->getGhostCellWidth().max();
-
-        if (phi_gcw < required_gcw)
-        {
-            TBOX_ERROR(
-                d_object_name
-                << "::setDataOnPatchSide():\n"
-                << "Level set scratch data requires at least "
-                << required_gcw
-                << " ghost cells, but only "
-                << phi_gcw
-                << " were allocated.\n");
-        }
-
-        SideData<NDIM, double> N(patch_box, NDIM, IntVector<NDIM>(2));
-
-        SC_NORMAL_FC(
-            N.getPointer(0,0),
-            N.getPointer(0,1),
-            #if (NDIM == 3)
-            N.getPointer(0,2),
-            #endif
-            N.getPointer(1,0),
-            N.getPointer(1,1),
-            #if (NDIM == 3)
-            N.getPointer(1,2),
-            N.getPointer(2,0),
-            N.getPointer(2,1),
-            N.getPointer(2,2),
-            #endif
-            N.getGhostCellWidth().max(),
-            Phi->getPointer(),
-            Phi->getGhostCellWidth().max(),
-            patch_box.lower(0),
-            patch_box.upper(0),
-            patch_box.lower(1),
-            patch_box.upper(1),
-            #if (NDIM == 3)
-            patch_box.lower(2),
-            patch_box.upper(2),
-            #endif
-            dx
-        ); 
-
-        // Kappa = -dv N/|N|
-
-        CellData<NDIM, double> K(patch_box, 1, IntVector<NDIM>(1));
-
-        CC_CURVATURE_FC(
-            K.getPointer(),
-            K.getGhostCellWidth().max(),
-            N.getPointer(0,0),
-            N.getPointer(0,1),
-            #if (NDIM == 3)
-            N.getPointer(0,2),
-            #endif
-            N.getPointer(1,0),
-            N.getPointer(1,1),
-            #if (NDIM == 3)
-            N.getPointer(1,2),
-            N.getPointer(2,0),
-            N.getPointer(2,1),
-            N.getPointer(2,2),
-            #endif
-            N.getGhostCellWidth().max(),
-            patch_box.lower(0),
-            patch_box.upper(0),
-            patch_box.lower(1),
-            patch_box.upper(1),
-            #if (NDIM == 3)
-            patch_box.lower(2),
-            patch_box.upper(2),
-            #endif
-            dx
-        );
-
-        Pointer<CellData<NDIM, double>> C= patch->getPatchData(d_C_idx);
-        // N = Grad C 
-        SC_NORMAL_FC(
-            N.getPointer(0,0),
-            N.getPointer(0,1),
-            #if (NDIM == 3)
-            N.getPointer(0,2),
-            #endif
-            N.getPointer(1,0),
-            N.getPointer(1,1),
-            #if (NDIM == 3)
-            N.getPointer(1,2),
-            N.getPointer(2,0),
-            N.getPointer(2,1),
-            N.getPointer(2,2),
-            #endif
-            N.getGhostCellWidth().max(),
-            C->getPointer(),
-            C->getGhostCellWidth().max(),
-            patch_box.lower(0),
-            patch_box.upper(0),
-            patch_box.lower(1),
-            patch_box.upper(1),
-            #if (NDIM == 3)
-            patch_box.lower(2),
-            patch_box.upper(2),
-            #endif
-            dx
-        );
-
-        // F = kappa gradC
-
-        SC_SURFACE_TENSION_FORCE_FC(
-            F_data->getPointer(0),
-            F_data->getPointer(1),
-        #if (NDIM == 3)
-            F_data->getPointer(2),
-        #endif
-            F_data->getGhostCellWidth().max(),
-            K.getPointer(),
-            K.getGhostCellWidth().max(),
-            N.getPointer(0, 0),
-            N.getPointer(1, 1),
-        #if (NDIM == 3)
-            N.getPointer(2, 2),
-        #endif
-            N.getGhostCellWidth().max(),
-            patch_box.lower(0),
-            patch_box.upper(0),
-            patch_box.lower(1),
-            patch_box.upper(1)
-        #if (NDIM == 3)
-            ,
-            patch_box.lower(2),
-            patch_box.upper(2)
-        #endif
-        );
+        TBOX_ERROR(d_object_name << "::setDataOnPatchSide():\n"
+                                 << "Level set scratch data requires at least " << required_gcw
+                                 << " ghost cells, but only " << phi_gcw << " were allocated.\n");
     }
-    
 
-    void
+    SideData<NDIM, double> N(patch_box, NDIM, IntVector<NDIM>(2));
+
+    SC_NORMAL_FC(N.getPointer(0, 0),
+                 N.getPointer(0, 1),
+#if (NDIM == 3)
+                 N.getPointer(0, 2),
+#endif
+                 N.getPointer(1, 0),
+                 N.getPointer(1, 1),
+#if (NDIM == 3)
+                 N.getPointer(1, 2),
+                 N.getPointer(2, 0),
+                 N.getPointer(2, 1),
+                 N.getPointer(2, 2),
+#endif
+                 N.getGhostCellWidth().max(),
+                 Phi->getPointer(),
+                 Phi->getGhostCellWidth().max(),
+                 patch_box.lower(0),
+                 patch_box.upper(0),
+                 patch_box.lower(1),
+                 patch_box.upper(1),
+#if (NDIM == 3)
+                 patch_box.lower(2),
+                 patch_box.upper(2),
+#endif
+                 dx);
+
+    // Kappa = -dv N/|N|
+
+    CellData<NDIM, double> K(patch_box, 1, IntVector<NDIM>(1));
+
+    CC_CURVATURE_FC(K.getPointer(),
+                    K.getGhostCellWidth().max(),
+                    N.getPointer(0, 0),
+                    N.getPointer(0, 1),
+#if (NDIM == 3)
+                    N.getPointer(0, 2),
+#endif
+                    N.getPointer(1, 0),
+                    N.getPointer(1, 1),
+#if (NDIM == 3)
+                    N.getPointer(1, 2),
+                    N.getPointer(2, 0),
+                    N.getPointer(2, 1),
+                    N.getPointer(2, 2),
+#endif
+                    N.getGhostCellWidth().max(),
+                    patch_box.lower(0),
+                    patch_box.upper(0),
+                    patch_box.lower(1),
+                    patch_box.upper(1),
+#if (NDIM == 3)
+                    patch_box.lower(2),
+                    patch_box.upper(2),
+#endif
+                    dx);
+
+    Pointer<CellData<NDIM, double>> C = patch->getPatchData(d_C_idx);
+    // N = Grad C
+    SC_NORMAL_FC(N.getPointer(0, 0),
+                 N.getPointer(0, 1),
+#if (NDIM == 3)
+                 N.getPointer(0, 2),
+#endif
+                 N.getPointer(1, 0),
+                 N.getPointer(1, 1),
+#if (NDIM == 3)
+                 N.getPointer(1, 2),
+                 N.getPointer(2, 0),
+                 N.getPointer(2, 1),
+                 N.getPointer(2, 2),
+#endif
+                 N.getGhostCellWidth().max(),
+                 C->getPointer(),
+                 C->getGhostCellWidth().max(),
+                 patch_box.lower(0),
+                 patch_box.upper(0),
+                 patch_box.lower(1),
+                 patch_box.upper(1),
+#if (NDIM == 3)
+                 patch_box.lower(2),
+                 patch_box.upper(2),
+#endif
+                 dx);
+
+    // F = kappa gradC
+
+    SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
+                                F_data->getPointer(1),
+#if (NDIM == 3)
+                                F_data->getPointer(2),
+#endif
+                                F_data->getGhostCellWidth().max(),
+                                K.getPointer(),
+                                K.getGhostCellWidth().max(),
+                                N.getPointer(0, 0),
+                                N.getPointer(1, 1),
+#if (NDIM == 3)
+                                N.getPointer(2, 2),
+#endif
+                                N.getGhostCellWidth().max(),
+                                patch_box.lower(0),
+                                patch_box.upper(0),
+                                patch_box.lower(1),
+                                patch_box.upper(1)
+#if (NDIM == 3)
+                                    ,
+                                patch_box.lower(2),
+                                patch_box.upper(2)
+#endif
+    );
+}
+
+void
 LevelSetSurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
-                                                int coarsest_ln,
-                                                int finest_ln,
-                                                Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
+                                                        int coarsest_ln,
+                                                        int finest_ln,
+                                                        Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -570,11 +558,11 @@ LevelSetSurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
 
 void
 LevelSetSurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
-                                         int coarsest_ln,
-                                         int finest_ln,
-                                         double data_time,
-                                         Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                         Pointer<HierarchyGhostCellInterpolation> fill_op)
+                                                 int coarsest_ln,
+                                                 int finest_ln,
+                                                 double data_time,
+                                                 Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                 Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
@@ -627,10 +615,10 @@ LevelSetSurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 
 void
 LevelSetSurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double>> /*F_data*/,
-                                                Pointer<Patch<NDIM>> /*patch*/,
-                                                const double /*data_time*/,
-                                                const bool /*initial_time*/,
-                                                Pointer<PatchLevel<NDIM>> /*level*/)
+                                                        Pointer<Patch<NDIM>> /*patch*/,
+                                                        const double /*data_time*/,
+                                                        const bool /*initial_time*/,
+                                                        Pointer<PatchLevel<NDIM>> /*level*/)
 {
     TBOX_ERROR(
         "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
@@ -639,8 +627,6 @@ LevelSetSurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, d
 
     return;
 } // setDataOnPatchCell
-
-
 
 int
 LevelSetSurfaceTensionForceFunction::getStencilSize(const std::string& kernel_fcn) const
@@ -666,18 +652,14 @@ LevelSetSurfaceTensionForceFunction::getMinimumGhostWidth(const std::string& ker
 } // getMinimumGhostWidth
 
 void
-LevelSetSurfaceTensionForceFunction::
-registerSurfaceTensionForceMasking(
-    MaskSurfaceTensionForcePtr callback,
-    void* ctx)
+LevelSetSurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx)
 {
     d_mask_surface_tension_force = callback;
     d_mask_surface_tension_force_ctx = ctx;
 }
 
 void
-LevelSetSurfaceTensionForceFunction::
-registerSurfaceTensionCoefficientFunction(
+LevelSetSurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(
     ComputeSurfaceTensionCoefficientPtr callback,
     void* ctx)
 {
@@ -685,4 +667,4 @@ registerSurfaceTensionCoefficientFunction(
     d_compute_surface_tension_coef_ctx = ctx;
 }
 
-}
+} // namespace IBAMR

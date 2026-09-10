@@ -28,12 +28,12 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/MarangoniSurfaceTensionForceFunction.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -410,7 +410,7 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register Heaviside
+        // register pcm vof
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
@@ -418,7 +418,7 @@ main(int argc, char* argv[])
         // set Level set
         enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
 
-        // set Heaviside
+        // set pcm vof
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
@@ -686,7 +686,7 @@ main(int argc, char* argv[])
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
+        Pointer<LevelSetSurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
             "MarangoniSurfaceTensionForceFunction",
             app_initializer->getComponentDatabase("MarangoniSurfaceTensionForceFunction"),
             adv_diff_integrator,
@@ -842,7 +842,7 @@ main(int argc, char* argv[])
             const double U_ref = std::abs(dsigma_dT_0) * temperature_gradient * circle.R / mu_liquid;
             const double t_ref = circle.R / U_ref;
 
-            // Calculate Heaviside function and compute the rise velocity.
+            // Calculate vof function and compute the rise velocity.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);

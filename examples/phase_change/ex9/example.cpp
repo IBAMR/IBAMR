@@ -277,12 +277,12 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register Heaviside
+        // register pcm vof
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
 
-        // set Heaviside
+        // set pcm vof
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
@@ -309,8 +309,6 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> pcm_vof_init =
             new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("pcm_vof_init", ls_init);
         adv_diff_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);
-
-        // Since H is synchronized with ls, the initial conditions for H is not rquired.
 
         Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
             "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);

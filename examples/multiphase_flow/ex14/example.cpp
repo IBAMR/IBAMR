@@ -27,10 +27,10 @@
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/MarangoniSurfaceTensionForceFunction.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -429,7 +429,7 @@ main(int argc, char* argv[])
                                                         static_cast<void*>(&SetFluidProperties));
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
+        Pointer<LevelSetSurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
             "MarangoniSurfaceTensionForceFunction",
             app_initializer->getComponentDatabase("MarangoniSurfaceTensionForceFunction"),
             adv_diff_integrator,

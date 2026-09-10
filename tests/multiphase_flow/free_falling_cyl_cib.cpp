@@ -35,9 +35,9 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -367,11 +367,11 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> grav_force =
             new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            phi_var_gas);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+            "SurfaceTensionForceFunction",
+            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+            adv_diff_integrator,
+            phi_var_gas);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(grav_force);

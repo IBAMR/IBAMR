@@ -28,10 +28,11 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -172,6 +173,10 @@ main(int argc, char* argv[])
         // Set the advection velocity of the bubble.
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
+        Pointer<CellVariable<NDIM, double>> vof_var = new CellVariable<NDIM, double>("vof_var");
+        adv_diff_integrator->registerTransportedQuantity(vof_var);
+        adv_diff_integrator->setDiffusionCoefficient(vof_var, 0.0);
+
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
         LSLocateColumnInterface setLSLocateColumnInterface(
@@ -185,6 +190,18 @@ main(int argc, char* argv[])
         // LS initial conditions
         Pointer<CartGridFunction> phi_init = new LevelSetInitialCondition("ls_init", column);
         adv_diff_integrator->setInitialConditions(phi_var, phi_init);
+
+        Pointer<CartGridFunction> vof_init =
+            new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("vof_init", phi_init);
+        adv_diff_integrator->setInitialConditions(vof_var, vof_init);
+
+        IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer vof_from_ls(
+            "vof_from_ls", adv_diff_integrator, phi_var, vof_var);
+
+        vof_from_ls.registerIntegrateHierarchyCallback();
+
+        adv_diff_integrator->setResetPriority(phi_var, 0);
+        adv_diff_integrator->setResetPriority(vof_var, 1);
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM>> rho_var;
@@ -211,18 +228,12 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
         // Note that these will set the initial conditions for density and viscosity, based on level set information
-        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
-                                                                        adv_diff_integrator,
-                                                                        phi_var,
-                                                                        rho_outside,
-                                                                        rho_inside,
-                                                                        mu_outside,
-                                                                        mu_inside,
-                                                                        num_interface_cells);
-        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
-                                                      static_cast<void*>(&setSetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
-                                                        static_cast<void*>(&setSetFluidProperties));
+        IBAMR::VCINSVOFUtilities::SetVOFBasedFluidProperties SetFluidProperties(
+            "SetVOFBasedFluidProperties", adv_diff_integrator, vof_var, rho_outside, rho_inside, mu_outside, mu_inside);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSVOFUtilities::callSetVOFBasedDensity,
+                                                      static_cast<void*>(&SetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSVOFUtilities::callSetVOFBasedViscosity,
+                                                        static_cast<void*>(&SetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
@@ -300,11 +311,11 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> grav_force =
             new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const);
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            phi_var);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+            "SurfaceTensionForceFunction",
+            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+            adv_diff_integrator,
+            phi_var);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);
@@ -320,6 +331,7 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+        vof_from_ls.computeVOFFromLevelSet(time_integrator->getIntegratorTime(), /*use_new_context=*/false);
 
         // Remove the AppInitializer
         app_initializer.setNull();

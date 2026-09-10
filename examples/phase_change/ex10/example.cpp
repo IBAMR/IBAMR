@@ -29,11 +29,11 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -52,60 +52,6 @@
 #include "LevelSetInitialCondition.h"
 #include "LiquidFractionInitialCondition.h"
 #include "TemperatureInitialCondition.h"
-
-struct SynchronizeLevelSetCtx
-{
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<CellVariable<NDIM, double>> ls_var;
-    Pointer<CellVariable<NDIM, double>> H_var;
-    double num_interface_cells;
-};
-
-void
-synchronize_levelset_with_heaviside_fcn(int H_current_idx,
-                                        Pointer<HierarchyMathOps> hier_math_ops,
-                                        int /*integrator_step*/,
-                                        double /*time*/,
-                                        bool /*initial_time*/,
-                                        bool /*regrid_time*/,
-                                        void* ctx)
-{
-    SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ls_ctx->ls_var, sync_ls_ctx->adv_diff_hier_integrator->getCurrentContext());
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-            const double* patch_dx = patch_geom->getDx();
-            double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
-            const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-
-            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_current_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*ls_data)(ci);
-
-                (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-            }
-        }
-    }
-}
 
 struct MaskSurfaceTensionForceCtx
 {
@@ -415,7 +361,7 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register Heaviside
+        // register pcm vof
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
@@ -423,7 +369,7 @@ main(int argc, char* argv[])
         // set Level set
         enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
 
-        // set Heaviside
+        // set pcm vof
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
@@ -452,7 +398,6 @@ main(int argc, char* argv[])
             "ls_init", initial_horizontal_interface_position, bubbles_position, center_bubble_required);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
-        // Since H is synchronized with ls, the initial conditions for H is not rquired.
         const double initial_liquid_solid_interface_position =
             input_db->getDouble("INITIAL_LIQUID_SOLID_INTERFACE_POSITION");
         const double initial_liquid_temperature = input_db->getDouble("INITIAL_LIQUID_TEMPERATURE");
@@ -483,12 +428,6 @@ main(int argc, char* argv[])
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             time_integrator->registerPressureInitialConditions(p_init);
         }
-
-        // SynchronizeLevelSetCtx sync_ls_ctx;
-        // sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        // sync_ls_ctx.ls_var = ls_var;
-        // sync_ls_ctx.H_var = H_var;
-        // sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
 
         IBAMR::VCINSVOFUtilities::VOFFromLevelSetInitializer pcm_vof_from_ls(
             "pcm_vof_from_ls", adv_diff_integrator, ls_var, pcm_vof_var);
@@ -678,26 +617,17 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                           static_cast<void*>(&setSetFluidProperties));
 
-        // Register H Div U term in the Heaviside equation. // Is this needed? I do not think so
-        // Pointer<CellVariable<NDIM, double>> pcm_vof_F_var = new CellVariable<NDIM, double>(pcm_vof_var->getName() +
-        // "_F"); adv_diff_integrator->registerSourceTerm(pcm_vof_F_var, true); Pointer<CartGridFunction>
-        // pcm_vof_forcing_fcn = new HeavisideForcingFunction(
-        //     "pcm_vof_forcing_fcn", adv_diff_integrator, pcm_vof_var,
-        //     time_integrator->getAdvectionVelocityVariable());
-        // adv_diff_integrator->setSourceTermFunction(pcm_vof_F_var, pcm_vof_forcing_fcn);
-        // adv_diff_integrator->setSourceTerm(pcm_vof_var, pcm_vof_F_var);
-
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new LevelSetSurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            ls_var);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+            "SurfaceTensionForceFunction",
+            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+            adv_diff_integrator,
+            ls_var);
 
         // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
@@ -708,8 +638,8 @@ main(int argc, char* argv[])
         mask_surface_tension_force_ctx.lf_var = lf_extrap_var; // Using extrapolated lf in the surface tension force.
         mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef.get();
 
-        //surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
-          //                                                        static_cast<void*>(&mask_surface_tension_force_ctx));
+        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
+                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register gravity force.
         std::vector<double> grav_const(NDIM);

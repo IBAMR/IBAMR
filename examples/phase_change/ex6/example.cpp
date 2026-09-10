@@ -29,11 +29,11 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -558,11 +558,11 @@ main(int argc, char* argv[])
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            ls_var);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+            "SurfaceTensionForceFunction",
+            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+            adv_diff_integrator,
+            ls_var);
 
         // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;

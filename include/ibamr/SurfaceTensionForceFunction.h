@@ -35,8 +35,6 @@
 
 #include <string>
 
-
-
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;
@@ -96,9 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-     ~SurfaceTensionForceFunction() override = default;
-
-
+    ~SurfaceTensionForceFunction() override = default;
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the Heaviside function.
@@ -110,11 +106,10 @@ public:
      */
     virtual void setSurfaceTensionCoef(double sigma) = 0; // make it virtual
 
-
     /*!
      * \brief Get the constant surface tension coefficient.
      */
-    virtual double getSurfaceTensionCoef() const = 0; //make it virtual
+    virtual double getSurfaceTensionCoef() const = 0; // make it virtual
 
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
@@ -134,7 +129,7 @@ public:
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = IBTK::invalid_level_number,
-                                 int finest_ln = IBTK::invalid_level_number) override= 0;
+                                 int finest_ln = IBTK::invalid_level_number) override = 0;
 
     /*!
      * Set the data on the patch interior.
@@ -145,7 +140,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override= 0;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override = 0;
 
     /*!
      * \brief Function to Mask surface tension force to act only on the liquid-gas interface.
@@ -181,12 +176,10 @@ public:
 
     //\}
 protected:
-   
-        // common to both the derived classes
+    // common to both the derived classes
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
 
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_ls_var;
-    
 
 private:
     /*!
@@ -215,7 +208,6 @@ private:
      * \return A reference to this object.
      */
     SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that) = delete;
-
 };
 } // namespace IBAMR
 

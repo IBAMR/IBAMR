@@ -203,7 +203,7 @@ main(int argc, char* argv[])
         const double rho_liquid = input_db->getDouble("RHO_L");
         const double rho_solid = input_db->getDouble("RHO_S");
 
-        // There are no gas phase in this example. So Heaviside is already set to 1 to denote PCM. So the properties in
+        // There are no gas phase in this example. So pcm vof is already set to 1 to denote PCM. So the properties in
         // the gas phase are arbitrary.
         const double kappa_gas = 0.0;
         const double Cp_gas = 0.0;

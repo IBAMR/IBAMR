@@ -256,7 +256,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
                     (*rho_data)(ci) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
                                       (heaviside - liquid_fraction) * d_rho_solid;
-
                 }
             }
         }
@@ -326,7 +325,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
                         (*rho_data)(si) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
                                           (heaviside - liquid_fraction) * d_rho_solid;
-
                     }
                 }
             }
@@ -402,14 +400,13 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
             {
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
-                const double liquid_fraction = (*lf_data)(ci); 
-                // harmonic? 
+                const double liquid_fraction = (*lf_data)(ci);
+                // harmonic?
 
-                (*kappa_data)(ci) = (d_kappa_gas * d_kappa_liquid * d_kappa_solid) / 
-                ((1.0 - heaviside) * d_kappa_liquid * d_kappa_solid + 
-                liquid_fraction * d_kappa_gas * d_kappa_solid + 
-                (heaviside - liquid_fraction) * d_kappa_gas * d_kappa_liquid);
-
+                (*kappa_data)(ci) = (d_kappa_gas * d_kappa_liquid * d_kappa_solid) /
+                                    ((1.0 - heaviside) * d_kappa_liquid * d_kappa_solid +
+                                     liquid_fraction * d_kappa_gas * d_kappa_solid +
+                                     (heaviside - liquid_fraction) * d_kappa_gas * d_kappa_liquid);
             }
         }
     }
@@ -480,7 +477,6 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
                 (*specific_heat_data)(ci) = (1.0 - heaviside) * d_specific_heat_gas +
                                             liquid_fraction * d_specific_heat_liquid +
                                             (heaviside - liquid_fraction) * d_specific_heat_solid;
-
             }
         }
     }
@@ -549,7 +545,6 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                 const double liquid_fraction = (*lf_data)(ci);
                 (*mu_data)(ci) = (1.0 - heaviside) * d_mu_gas + liquid_fraction * d_mu_liquid +
                                  (heaviside - liquid_fraction) * d_mu_solid;
-
             }
         }
     }

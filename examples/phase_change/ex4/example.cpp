@@ -29,11 +29,11 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -322,6 +322,7 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
+        // register pcm vof
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
@@ -339,12 +340,6 @@ main(int argc, char* argv[])
         const ConvectiveDifferencingType ls_difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("LS_CONVECTIVE_FORM"));
         adv_diff_integrator->setConvectiveDifferencingType(ls_var, ls_difference_form);
-
-        // adv_diff_integrator->setAdvectionVelocity( pcm_vof_var, time_integrator->getAdvectionVelocityVariable());
-
-        // const ConvectiveDifferencingType pcm_vof_difference_form =
-        //     IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("H_CONVECTIVE_FORM"));
-        // adv_diff_integrator->setConvectiveDifferencingType(pcm_vof_var, pcm_vof_difference_form);
 
         adv_diff_integrator->setResetPriority(ls_var, 0);
         adv_diff_integrator->setResetPriority(pcm_vof_var, 1);
@@ -555,29 +550,17 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                           static_cast<void*>(&setSetFluidProperties));
 
-        // Pointer<CellVariable<NDIM, double>> pcm_vof_F_var =
-        //     new CellVariable<NDIM, double>(pcm_vof_var->getName() + "_F");
-        // adv_diff_integrator->registerSourceTerm(pcm_vof_F_var, true);
-
-        // Pointer<CartGridFunction> pcm_vof_forcing_fcn = new HeavisideForcingFunction(
-        //     "pcm_vof_forcing_fcn",
-        //     adv_diff_integrator,
-        //     pcm_vof_var,
-        //     time_integrator->getAdvectionVelocityVariable());
-        // adv_diff_integrator->setSourceTermFunction(pcm_vof_F_var, pcm_vof_forcing_fcn);
-        // adv_diff_integrator->setSourceTerm(pcm_vof_var, pcm_vof_F_var);
-
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            ls_var);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+            "SurfaceTensionForceFunction",
+            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+            adv_diff_integrator,
+            ls_var);
 
         // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;

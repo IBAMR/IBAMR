@@ -590,7 +590,6 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
                                  d_updated_rho_idx,
                                  /*interior_only*/ true);
 
-
     // update thermal conductivity
     const double StateApplyTime = new_time;
     for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
@@ -625,7 +624,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     double T_relative_iteration_error = 1.0;
     // Inner iterations for the Newton-Ralphson scheme.
-    while ((lf_relative_iteration_error >= d_lf_iteration_error_tolerance) && inner_iterations <= d_max_inner_iterations)
+    while ((lf_relative_iteration_error >= d_lf_iteration_error_tolerance) &&
+           inner_iterations <= d_max_inner_iterations)
     {
         // Setup the problem coefficients for the linear solve
         double alpha = 0.0;
@@ -1147,10 +1147,12 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
                 }
                 else
                 {
-                    (*h_data)(ci) = ((1.0 - (*H_data)(ci)) * d_rho_gas * d_specific_heat_gas * ((*T_data)(ci)-d_reference_temperature) +
+                    (*h_data)(ci) = ((1.0 - (*H_data)(ci)) * d_rho_gas * d_specific_heat_gas *
+                                         ((*T_data)(ci)-d_reference_temperature) +
                                      ((*H_data)(ci) - (*lf_data)(ci)) * d_rho_solid * h_s +
-                                     (*lf_data)(ci)*d_rho_liquid * (h_s + d_latent_heat +
-                                    d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature))) /
+                                     (*lf_data)(ci)*d_rho_liquid *
+                                         (h_s + d_latent_heat +
+                                          d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature))) /
                                     ((*rho_data)(ci));
                 }
             }

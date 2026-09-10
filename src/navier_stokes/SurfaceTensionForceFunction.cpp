@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
 #include <ibamr/SurfaceTensionForceFunction.h>
 
 #include <BasePatchLevel.h>
@@ -44,14 +43,11 @@
 namespace IBAMR
 {
 
-SurfaceTensionForceFunction::SurfaceTensionForceFunction(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const AdvDiffHierarchyIntegrator* adv_diff_solver,
-    const Pointer<Variable<NDIM>> level_set_var)
-    : CartGridFunction(object_name),
-      d_adv_diff_solver(adv_diff_solver),
-      d_ls_var(level_set_var)
+SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
+                                                         Pointer<Database> input_db,
+                                                         const AdvDiffHierarchyIntegrator* adv_diff_solver,
+                                                         const Pointer<Variable<NDIM>> level_set_var)
+    : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Intentionally blank.
 }

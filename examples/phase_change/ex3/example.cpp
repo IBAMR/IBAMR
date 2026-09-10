@@ -233,12 +233,12 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register Heaviside
+        // register pcm vof variable
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
 
-        // set Heaviside
+        // set pcm vof
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // register temperature
@@ -261,7 +261,6 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> ls_init = new LevelSetInitialCondition("ls_init", initial_gas_pcm_interface_position);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
-        // Since H is synchronized with ls, the initial conditions for H is not rquired.
         const double initial_liquid_solid_interface_position =
             input_db->getDouble("INITIAL_LIQUID_SOLID_INTERFACE_POSITION");
         const double initial_liquid_temperature = input_db->getDouble("INITIAL_LIQUID_TEMPERATURE");
