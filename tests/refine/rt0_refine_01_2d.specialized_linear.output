@@ -1,0 +1,6 @@
+constant ratio (2,2): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (2,2): max error = 0, upper plane max error = 0, outside writes = 0
+constant ratio (4,4): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (4,4): max error = 0, upper plane max error = 0, outside writes = 0
+constant ratio (2,3): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (2,3): max error = 0, upper plane max error = 0, outside writes = 0

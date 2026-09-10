@@ -1,0 +1,10 @@
+cell scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+node scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+side scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+face scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+edge scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+partial side scalar errors (initialize, transform, patch sum, level sum): 0 0 0 0
+node vector errors (initialize, transform, patch sum, level sum): 0 0 0 0
+face general errors (initialize, transform, patch sum, level sum): 0 0 0 0
+cell full tensor errors (initialize, transform, patch sum, level sum): 0 0 0 0
+side symmetric tensor errors (initialize, transform, patch sum, level sum): 0 0 0 0

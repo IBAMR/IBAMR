@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LSiloDataWriter.h>
 
@@ -29,12 +30,20 @@
 #include <tbox/Utilities.h>
 
 #include <petsclog.h>
+#include <petscoptions.h>
 #include <petscsys.h>
 
 #include <VisItDataWriter.h>
 
+#include <charconv>
+#include <cstddef>
+#include <filesystem>
+#include <limits>
 #include <ostream>
+#include <set>
 #include <string>
+#include <string_view>
+#include <system_error>
 #include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -44,6 +53,151 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+constexpr std::string_view PETSC_SETTINGS_KEY = "petsc_settings";
+constexpr std::string_view TAGGED_PETSC_SETTINGS_PREFIX = "petsc_settings_";
+
+std::filesystem::path
+resolve_petsc_options_file(const std::filesystem::path& advertised_path, const std::filesystem::path& input_filename)
+{
+    constexpr int ROOT_RANK = 0;
+    std::string resolved_path_string;
+    if (IBTK_MPI::getRank() == ROOT_RANK)
+    {
+        std::error_code error_code;
+        bool path_exists = std::filesystem::exists(advertised_path, error_code);
+        if (error_code)
+            TBOX_ERROR("IBTK_PETSC_OPTIONS_FILESYSTEM_ERROR: could not inspect PETSc options file '"
+                       << advertised_path.string() << "': " << error_code.message() << '\n');
+
+        std::filesystem::path resolved_path = advertised_path;
+        if (!path_exists)
+        {
+            resolved_path = input_filename.parent_path() / advertised_path;
+            path_exists = std::filesystem::exists(resolved_path, error_code);
+            if (error_code)
+                TBOX_ERROR("IBTK_PETSC_OPTIONS_FILESYSTEM_ERROR: could not inspect PETSc options file '"
+                           << resolved_path.string() << "': " << error_code.message() << '\n');
+        }
+
+        if (!path_exists)
+            TBOX_ERROR("IBTK_PETSC_OPTIONS_FILE_MISSING: could not open PETSc options file '"
+                       << advertised_path.string() << "'\n");
+        resolved_path_string = resolved_path.string();
+    }
+
+    int resolved_path_size = IBTK_MPI::getRank() == ROOT_RANK ? static_cast<int>(resolved_path_string.size()) : 0;
+    resolved_path_size = IBTK_MPI::bcast(resolved_path_size, ROOT_RANK);
+    resolved_path_string.resize(resolved_path_size);
+    if (resolved_path_size > 0) IBTK_MPI::bcast(resolved_path_string.data(), resolved_path_size, ROOT_RANK);
+    return std::filesystem::path(resolved_path_string);
+}
+
+bool
+is_settings_key(const std::string& key)
+{
+    return key == PETSC_SETTINGS_KEY.data() ||
+           key.compare(0, TAGGED_PETSC_SETTINGS_PREFIX.size(), TAGGED_PETSC_SETTINGS_PREFIX.data()) == 0;
+}
+
+template <class T>
+std::string
+floating_point_to_string(const T value)
+{
+    constexpr std::size_t FLOATING_POINT_FORMAT_OVERHEAD = 16;
+    // max_digits10 preserves round trips instead of rounding small tolerances to zero as std::to_string() can.
+    char buffer[std::numeric_limits<T>::max_digits10 + FLOATING_POINT_FORMAT_OVERHEAD];
+    const auto result = std::to_chars(
+        buffer, buffer + sizeof(buffer), value, std::chars_format::general, std::numeric_limits<T>::max_digits10);
+    if (result.ec != std::errc{}) TBOX_ERROR("Could not format a floating-point PETSc setting\n");
+    return std::string(buffer, result.ptr);
+}
+
+void
+insert_petsc_options(const std::string& options_file, int argc, char* argv[])
+{
+    // PetscOptionsInsert() may change argc and argv, so work with local copies.
+    std::vector<std::string> argument_storage;
+    argument_storage.reserve(argc);
+    for (int k = 0; k < argc; ++k) argument_storage.emplace_back(argv[k]);
+    std::vector<char*> arguments;
+    arguments.reserve(argc + 1);
+    for (std::string& argument : argument_storage) arguments.push_back(argument.data());
+    arguments.push_back(nullptr);
+    int local_argc = argc;
+    char** local_argv = arguments.data();
+
+    int ierr =
+        PetscOptionsInsert(nullptr, &local_argc, &local_argv, options_file.empty() ? nullptr : options_file.c_str());
+    IBTK_CHKERRQ(ierr);
+}
+
+bool
+insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_names)
+{
+    bool found_settings = false;
+    const Array<std::string> database_keys = input_db->getAllKeys();
+    for (int database_key_n = 0; database_key_n < database_keys.size(); ++database_key_n)
+    {
+        const std::string& database_key = database_keys[database_key_n];
+        if (!is_settings_key(database_key))
+        {
+            if (input_db->isDatabase(database_key) &&
+                insert_petsc_settings(input_db->getDatabase(database_key), option_names))
+                found_settings = true;
+            continue;
+        }
+
+        found_settings = true;
+        if (!input_db->isDatabase(database_key))
+            TBOX_ERROR("PETSc settings entry '" << database_key << "' must be a database\n");
+        Pointer<Database> settings_db = input_db->getDatabase(database_key);
+        const std::string prefix = database_key == PETSC_SETTINGS_KEY.data() ?
+                                       "" :
+                                       database_key.substr(TAGGED_PETSC_SETTINGS_PREFIX.size()) + "_";
+        const Array<std::string> keys = settings_db->getAllKeys();
+        for (int key_n = 0; key_n < keys.size(); ++key_n)
+        {
+            const std::string& key = keys[key_n];
+            if (settings_db->isDatabase(key) || settings_db->getArraySize(key) != 1)
+                TBOX_ERROR("PETSc setting '" << key << "' must be a scalar value\n");
+
+            std::string value;
+            switch (settings_db->getArrayType(key))
+            {
+            case Database::SAMRAI_BOOL:
+                value = settings_db->getBool(key) ? "true" : "false";
+                break;
+            case Database::SAMRAI_INT:
+                value = std::to_string(settings_db->getInteger(key));
+                break;
+            case Database::SAMRAI_FLOAT:
+                value = floating_point_to_string(settings_db->getFloat(key));
+                break;
+            case Database::SAMRAI_DOUBLE:
+                value = floating_point_to_string(settings_db->getDouble(key));
+                break;
+            case Database::SAMRAI_STRING:
+                value = settings_db->getString(key);
+                break;
+            default:
+                TBOX_ERROR("PETSc setting '" << key
+                                             << "' must be a Boolean, integer, floating-point value, or string\n");
+            }
+
+            const std::string name = "-" + prefix + key;
+            if (!option_names.insert(name).second)
+                TBOX_ERROR("PETSc option '" << name << "' is defined more than once in inline settings\n");
+            int ierr = PetscOptionsSetValue(nullptr, name.c_str(), value.c_str());
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    return found_settings;
+}
+
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -84,18 +238,31 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     d_input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
-    // Set custom PETSc options file when one is specified.
-    if (d_input_db->keyExists("petsc_options_file"))
-    {
-        std::string petsc_options_file = d_input_db->getString("petsc_options_file");
-        PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
-    }
-
     // Process "Main" section of the input database.
     Pointer<Database> main_db = new NullDatabase();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
+    }
+
+    // Configure PETSc options and then reapply normal PETSc sources so command-line options win.
+    std::set<std::string> option_names;
+    const bool found_settings = insert_petsc_settings(d_input_db, option_names);
+    const bool has_options_file =
+        d_input_db->keyExists("PETSC_OPTIONS_FILE") || d_input_db->keyExists("petsc_options_file");
+    if (found_settings && has_options_file)
+        TBOX_ERROR("Inline PETSc settings and a PETSc options file cannot both be specified\n");
+    if (has_options_file)
+    {
+        const std::string key =
+            d_input_db->keyExists("PETSC_OPTIONS_FILE") ? "PETSC_OPTIONS_FILE" : "petsc_options_file";
+        const std::filesystem::path options_file =
+            resolve_petsc_options_file(d_input_db->getString(key), input_filename);
+        insert_petsc_options(options_file.string(), argc, argv);
+    }
+    else if (found_settings)
+    {
+        insert_petsc_options("", argc, argv);
     }
 
     // Configure logging options.

@@ -1,0 +1,7 @@
+Improved: The minmod() and median() functions were completely rewritten to both
+improve performance and enable inlining. These improvements make calling
+functions (e.g., slope limiters like
+IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator())
+about 15\% faster.
+<br>
+(David Wells, 2026/06/21)

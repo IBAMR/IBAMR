@@ -1,0 +1,4 @@
+Removed: IBAMR no longer bundles Boost. A system or user-provided Boost 1.66 or
+newer installation is now required.
+<br>
+(Nikulin Nikita, 2026/07/30)

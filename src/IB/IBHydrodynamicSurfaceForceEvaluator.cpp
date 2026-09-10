@@ -224,6 +224,11 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                    << " Forces are evalauted at only current or new time. \n");
     }
 
+    // Get the side weight patch data index that contains the correct volume element for each side-centered degree of
+    // freedom. This is used to compute the area element for each side-centered DoF.
+    Pointer<HierarchyMathOps> hierarchy_math_ops = d_fluid_solver->getHierarchyMathOps();
+    const int wgt_sc_idx = hierarchy_math_ops->getSideWeightPatchDescriptorIndex();
+
     // Allocate required patch data
     Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_fluid_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -263,13 +268,12 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            double cell_vol = 1.0;
-            for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
 
             // Get the required patch data
             Pointer<CellData<NDIM, double>> ls_solid_data = patch->getPatchData(d_ls_solid_idx);
             Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(d_u_idx);
             Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(d_p_idx);
+            Pointer<SideData<NDIM, double>> wgt_sc_data = patch->getPatchData(wgt_sc_idx);
             Pointer<CellData<NDIM, double>> mu_data;
             if (!d_mu_is_const) mu_data = patch->getPatchData(d_mu_idx);
 
@@ -277,9 +281,6 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                // Compute the required area element
-                const double dS = cell_vol / patch_dx[axis];
-
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
                     SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
@@ -290,6 +291,9 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
 
                     // If not within a band near the body, do not use this cell in the force calculation
                     if ((phi_lower - d_surface_contour_value) * (phi_upper - d_surface_contour_value) >= 0.0) continue;
+
+                    // Compute the required area element
+                    const double dS = (*wgt_sc_data)(s_i) / patch_dx[axis];
 
                     // Compute the required unit normal
                     IBTK::Vector3d n = IBTK::Vector3d::Zero();

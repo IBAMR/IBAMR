@@ -27,10 +27,12 @@
 #include <tbox/Pointer.h>
 #include <tbox/Timer.h>
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
 #include <libmesh/petsc_matrix.h>
 #include <libmesh/petsc_vector.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
 #include <string>

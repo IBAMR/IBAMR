@@ -26,8 +26,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
-#include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -44,6 +44,8 @@
 #include "CartGridBodyForce.h"
 #include "ForceProjector.h"
 #include "RigidBodyKinematics.h"
+#include "generate_sphere.h"
+#include "inactivate_structures.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -133,8 +135,9 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
+        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+            "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
+        ib_initializer->registerInitStructureFunction(generate_sphere, input_db.getPointer());
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
@@ -157,6 +160,8 @@ main(int argc, char* argv[])
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const auto open_boundaries = get_open_boundaries(input_db, periodic_shift);
+
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -232,6 +237,8 @@ main(int argc, char* argv[])
         // associate volume element with force projector.
         ptr_gravityforce->associateVolumeElement(ib_method_ops->getVolumeElement()[0]);
 
+        const double radius = input_db->getDouble("R");
+
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -264,6 +271,9 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
+
+            inactivate_structures_at_outlets(
+                *ib_method_ops, *grid_geometry, open_boundaries, radius, patch_hierarchy->getFinestLevelNumber());
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);

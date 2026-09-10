@@ -800,6 +800,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(local_dof_count == nonoverlap_dof_counter);
+#else
+    NULL_USE(local_dof_count);
+    NULL_USE(nonoverlap_dof_counter);
 #endif
 
     // Deallocate patch_num variable data.

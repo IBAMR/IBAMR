@@ -156,7 +156,7 @@ SETUP(multiphase_flow migration_of_bubble_with_zero_ma.cpp IBAMR2d)
 # navier_stokes:
 SETUP_2D(navier_stokes navier_stokes_01.cpp)
 SETUP_3D(navier_stokes navier_stokes_01.cpp)
-SETUP_2D(navier_stokes poiseuille_flow_2d.cpp)
+SETUP(navier_stokes poiseuille_flow_2d.cpp IBAMR2d)
 SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
@@ -261,6 +261,7 @@ SETUP(IBTK ibtk_init.cpp IBAMR2d)
 SETUP(IBTK ibtk_mpi.cpp IBAMR2d)
 SETUP(IBTK ldata_01.cpp IBAMR2d)
 SETUP(IBTK mpi_type_wrappers.cpp IBAMR2d)
+SETUP(IBTK petsc_options_file.cpp IBAMR2d)
 SETUP(IBTK child_integrators.cpp IBAMR2d)
 SETUP(IBTK version_macros.cpp IBAMR2d)
 SETUP(IBTK restart_cleaner_interface_test.cpp IBAMR2d)
@@ -298,6 +299,8 @@ SETUP_2D(IBTK secondary_hierarchy_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 SETUP_2D(IBTK helmholtz.cpp)
 SETUP_2D(IBTK index_utilities.cpp)
+SETUP_2D(IBTK patchwise_function.cpp)
+SETUP_2D(IBTK pointwise_function.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
@@ -322,14 +325,16 @@ SETUP_3D(IBTK samraidatacache_01.cpp)
 SETUP_3D(IBTK vc_viscous_solver.cpp)
 SETUP_3D(IBTK helmholtz.cpp)
 SETUP_3D(IBTK index_utilities.cpp)
+SETUP_3D(IBTK patchwise_function.cpp)
+SETUP_3D(IBTK pointwise_function.cpp)
 SETUP_3D(IBTK cf_interface.cpp)
 
 ADD_CUSTOM_COMMAND(TARGET tests
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/attest ${CMAKE_BINARY_DIR}/attest)
 
-# Set up the input and output files. Since the input and output files aren't
-# really used by the build system we use a shell script to find them every time
+# Set up the input, output, and PETSc options files. Since these files aren't
+# used by the build system we use a shell script to find them every time
 # 'make test' is run rather than evaluating the glob when cmake generates the
 # build system.
 FOREACH(_dir ${TEST_DIRECTORIES})
@@ -337,6 +342,14 @@ FOREACH(_dir ${TEST_DIRECTORIES})
     POST_BUILD
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
     ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
+    VERBATIM)
+ENDFOREACH()
+
+# These cases violate a patch-data precondition checked only without NDEBUG.
+FOREACH(_case centering data_type)
+  ADD_CUSTOM_COMMAND(TARGET tests-IBTK POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:${CMAKE_BINARY_DIR}/tests/IBTK/pointwise_function_2d.${_case}.expect_error=true.input>"
     VERBATIM)
 ENDFOREACH()
 

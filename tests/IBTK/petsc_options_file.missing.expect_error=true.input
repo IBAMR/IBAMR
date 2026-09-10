@@ -1,0 +1,2 @@
+PETSC_OPTIONS_FILE = "r00-deliberately-missing.opts"
+Main { }

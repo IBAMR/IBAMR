@@ -122,7 +122,6 @@ static const int CELLG = 1;
 // physical boundary ghost cell values.
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
-static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.

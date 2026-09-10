@@ -264,9 +264,9 @@ c
 
       do i2=ilower2,iupper2
          coarsen_index(i2,i_c2,i_f2,ratio(2))
-         do i1=ilower1,iupper1
+         do i1=ilower1,iupper1+1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
 
                i_f0 = i_c0*ratio(0)
@@ -292,11 +292,11 @@ c
          enddo
       enddo
 
-      do i2=ilower2,iupper2
+      do i2=ilower2,iupper2+1
          coarsen_index(i2,i_c2,i_f2,ratio(2))
          do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,i_f1,ratio(1))
-            do i0=ilower0,iupper0+1
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
 
                i_f0 = i_c0*ratio(0)
