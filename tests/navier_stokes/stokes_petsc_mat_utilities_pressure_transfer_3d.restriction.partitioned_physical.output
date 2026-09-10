@@ -1,0 +1,5 @@
+input norm = 3.31421356237
+matrix norm = 2.71459259574
+schedule norm = 2.71459259574
+transfer error = 8.881784197e-16
+volume adjoint error = 3.81639164715e-17

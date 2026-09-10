@@ -114,6 +114,143 @@ static const std::string RT0 = "RT0";
 static const std::string LINEAR = "LINEAR";
 
 #define SCD(a) static_cast<double>(a)
+
+void
+compute_linear_axis_stencil(const int fine_index,
+                            const int coarse_index,
+                            const int coarse_domain_lower,
+                            const int coarse_domain_upper,
+                            const int ratio,
+                            const bool periodic,
+                            int coarse_stencil[2],
+                            double weights[2])
+{
+    const int fine_lower = coarse_index * ratio;
+    const double xi = (static_cast<double>(fine_index - fine_lower) + 0.5) / static_cast<double>(ratio) - 0.5;
+
+    if (coarse_domain_lower == coarse_domain_upper)
+    {
+        coarse_stencil[0] = coarse_stencil[1] = coarse_index;
+        weights[0] = 1.0;
+        weights[1] = 0.0;
+    }
+    else if (!periodic && coarse_index == coarse_domain_lower && xi <= 0.0)
+    {
+        coarse_stencil[0] = coarse_index;
+        coarse_stencil[1] = coarse_index + 1;
+        weights[0] = 1.0;
+        weights[1] = 0.0;
+    }
+    else if (!periodic && coarse_index == coarse_domain_upper && xi >= 0.0)
+    {
+        coarse_stencil[0] = coarse_index - 1;
+        coarse_stencil[1] = coarse_index;
+        weights[0] = 0.0;
+        weights[1] = 1.0;
+    }
+    else if (xi <= 0.0)
+    {
+        coarse_stencil[0] = coarse_index - 1;
+        coarse_stencil[1] = coarse_index;
+        weights[0] = -xi;
+        weights[1] = 1.0 + xi;
+    }
+    else
+    {
+        coarse_stencil[0] = coarse_index;
+        coarse_stencil[1] = coarse_index + 1;
+        weights[0] = 1.0 - xi;
+        weights[1] = xi;
+    }
+}
+
+void
+count_row_nnz(const std::vector<int>& cols,
+              const int local_row,
+              const int j_coarse_lower,
+              const int j_coarse_upper,
+              const int n_local,
+              const int n_total,
+              std::vector<int>& d_nnz,
+              std::vector<int>& o_nnz)
+{
+    std::vector<int> unique_cols = cols;
+    std::sort(unique_cols.begin(), unique_cols.end());
+    unique_cols.erase(std::unique(unique_cols.begin(), unique_cols.end()), unique_cols.end());
+    for (const int col : unique_cols)
+    {
+        if (col < 0)
+        {
+            continue;
+        }
+        if (col >= j_coarse_lower && col < j_coarse_upper)
+        {
+            ++d_nnz[local_row];
+        }
+        else
+        {
+            ++o_nnz[local_row];
+        }
+    }
+    d_nnz[local_row] = std::min(n_local, d_nnz[local_row]);
+    o_nnz[local_row] = std::min(n_total - n_local, o_nnz[local_row]);
+    return;
+}
+
+void
+compute_linear_cell_prolongation_row_entries(const CellIndex<NDIM>& i_fine,
+                                             const unsigned depth_idx,
+                                             const IntVector<NDIM>& fine_coarse_ratio,
+                                             const hier::Index<NDIM>& coarse_domain_lower,
+                                             const hier::Index<NDIM>& coarse_domain_upper,
+                                             const hier::Index<NDIM>& coarse_num_cells,
+                                             const IntVector<NDIM>& periodic_shift,
+                                             AO coarse_level_ao,
+                                             const int coarse_ao_offset,
+                                             std::vector<int>& cols,
+                                             std::vector<PetscScalar>& vals)
+{
+    constexpr int n_stencil = 1 << NDIM;
+    const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
+    std::array<std::array<int, 2>, NDIM> coarse_stencil;
+    std::array<std::array<double, 2>, NDIM> weights;
+
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        compute_linear_axis_stencil(i_fine(axis),
+                                    i_coarse(axis),
+                                    coarse_domain_lower(axis),
+                                    coarse_domain_upper(axis),
+                                    fine_coarse_ratio(axis),
+                                    periodic_shift(axis) != 0,
+                                    coarse_stencil[axis].data(),
+                                    weights[axis].data());
+    }
+
+    cols.reserve(n_stencil);
+    vals.reserve(n_stencil);
+    for (int entry = 0; entry < n_stencil; ++entry)
+    {
+        CellIndex<NDIM> i_stencil;
+        double weight = 1.0;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const int side = (entry >> axis) & 1;
+            i_stencil(axis) = coarse_stencil[axis][side];
+            weight *= weights[axis][side];
+        }
+        if (weight == 0.0)
+        {
+            continue;
+        }
+        cols.push_back(IndexUtilities::mapIndexToInteger(
+            i_stencil, coarse_domain_lower, coarse_num_cells, depth_idx, coarse_ao_offset, periodic_shift));
+        vals.push_back(weight);
+    }
+    PetscErrorCode ierr = AOApplicationToPetsc(coarse_level_ao, static_cast<int>(cols.size()), cols.data());
+    IBTK_CHKERRQ(ierr);
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -1006,12 +1143,23 @@ PETScMatUtilities::constructProlongationOp(Mat& mat,
                                                      coarse_level_ao,
                                                      coarse_ao_offset);
         }
+        else if (op_type == LINEAR)
+        {
+            construct_linear_prolongation_op_cell(mat,
+                                                  dof_index_idx,
+                                                  num_fine_dofs_per_proc,
+                                                  num_coarse_dofs_per_proc,
+                                                  fine_patch_level,
+                                                  coarse_patch_level,
+                                                  coarse_level_ao,
+                                                  coarse_ao_offset);
+        }
         else
         {
             TBOX_ERROR(
                 "PETScMatUtilities::constructProlongationOp(): Unsupported prolongation operator for cc-variable. "
                 "Given operator is "
-                << op_type << ". Supported ops are: " << CONSERVATIVE << std::endl);
+                << op_type << ". Supported ops are: " << CONSERVATIVE << ", " << LINEAR << std::endl);
         }
     }
     else if (dof_index_sc_var)
@@ -1322,6 +1470,139 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     return;
 
 } // constructConservativeProlongationOp_cell
+
+void
+PETScMatUtilities::construct_linear_prolongation_op_cell(Mat& mat,
+                                                         int dof_index_idx,
+                                                         const std::vector<int>& num_fine_dofs_per_proc,
+                                                         const std::vector<int>& num_coarse_dofs_per_proc,
+                                                         Pointer<PatchLevel<NDIM>> fine_patch_level,
+                                                         Pointer<PatchLevel<NDIM>> coarse_patch_level,
+                                                         AO coarse_level_ao,
+                                                         const int coarse_ao_offset)
+{
+    int ierr = 0;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const BoxArray<NDIM>& coarse_domain_boxes = coarse_patch_level->getPhysicalDomain();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarse_domain_boxes.size() == 1);
+#endif
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    hier::Index<NDIM> coarse_num_cells = 1;
+    coarse_num_cells += coarse_domain_upper - coarse_domain_lower;
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = coarse_patch_level->getGridGeometry();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
+
+    const IntVector<NDIM>& coarse_ratio = coarse_patch_level->getRatio();
+    const IntVector<NDIM>& fine_ratio = fine_patch_level->getRatio();
+    const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
+
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int m_local = num_fine_dofs_per_proc[mpi_rank];
+    const int n_local = num_coarse_dofs_per_proc[mpi_rank];
+    const int i_fine_lower =
+        std::accumulate(num_fine_dofs_per_proc.begin(), num_fine_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_fine_upper = i_fine_lower + m_local;
+    const int j_coarse_lower =
+        std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
+    const int j_coarse_upper = j_coarse_lower + n_local;
+    const int n_total = std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.end(), 0);
+
+    std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
+    for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> fine_patch = fine_patch_level->getPatch(p());
+        const Box<NDIM>& fine_patch_box = fine_patch->getBox();
+        Pointer<CellData<NDIM, int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
+        const unsigned depth = dof_fine_data->getDepth();
+        std::vector<int> local_row(depth);
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(fine_patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i_fine = b();
+            for (unsigned d = 0; d < depth; ++d)
+            {
+                local_row[d] = (*dof_fine_data)(i_fine, d);
+#if !defined(NDEBUG)
+                TBOX_ASSERT(local_row[d] >= i_fine_lower && local_row[d] < i_fine_upper);
+#else
+                NULL_USE(i_fine_upper);
+#endif
+                local_row[d] -= i_fine_lower;
+            }
+
+            for (unsigned d = 0; d < depth; ++d)
+            {
+                std::vector<int> cols;
+                std::vector<PetscScalar> vals;
+                compute_linear_cell_prolongation_row_entries(i_fine,
+                                                             d,
+                                                             fine_coarse_ratio,
+                                                             coarse_domain_lower,
+                                                             coarse_domain_upper,
+                                                             coarse_num_cells,
+                                                             periodic_shift,
+                                                             coarse_level_ao,
+                                                             coarse_ao_offset,
+                                                             cols,
+                                                             vals);
+                count_row_nnz(cols, local_row[d], j_coarse_lower, j_coarse_upper, n_local, n_total, d_nnz, o_nnz);
+            }
+        }
+    }
+
+    ierr = MatCreateAIJ(
+        PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, d_nnz.data(), 0, o_nnz.data(), &mat);
+    IBTK_CHKERRQ(ierr);
+
+    for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> fine_patch = fine_patch_level->getPatch(p());
+        const Box<NDIM>& fine_patch_box = fine_patch->getBox();
+        Pointer<CellData<NDIM, int>> dof_fine_data = fine_patch->getPatchData(dof_index_idx);
+        const unsigned depth = dof_fine_data->getDepth();
+        std::vector<int> rows(depth);
+
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(fine_patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i_fine = b();
+            for (unsigned d = 0; d < depth; ++d)
+            {
+                rows[d] = (*dof_fine_data)(i_fine, d);
+            }
+            for (unsigned d = 0; d < depth; ++d)
+            {
+                std::vector<int> cols;
+                std::vector<PetscScalar> vals;
+                compute_linear_cell_prolongation_row_entries(i_fine,
+                                                             d,
+                                                             fine_coarse_ratio,
+                                                             coarse_domain_lower,
+                                                             coarse_domain_upper,
+                                                             coarse_num_cells,
+                                                             periodic_shift,
+                                                             coarse_level_ao,
+                                                             coarse_ao_offset,
+                                                             cols,
+                                                             vals);
+                ierr = MatSetValues(
+                    mat, 1, &rows[d], static_cast<int>(cols.size()), cols.data(), vals.data(), INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+}
 
 void
 PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,

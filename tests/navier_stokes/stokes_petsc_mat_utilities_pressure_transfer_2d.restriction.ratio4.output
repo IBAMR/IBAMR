@@ -1,0 +1,6 @@
+input norm = 2.0706917559
+matrix norm = 1.43516677376
+schedule norm = 1.43516677376
+transfer error = 4.4408920985e-16
+write range error = 0
+volume adjoint error = 0

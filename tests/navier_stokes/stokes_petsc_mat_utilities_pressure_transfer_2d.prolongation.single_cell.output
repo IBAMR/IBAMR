@@ -1,0 +1,4 @@
+input norm = 1.9
+matrix norm = 1.9
+schedule norm = 1.9
+transfer error = 0

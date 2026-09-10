@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    CartCellDoubleLinearCoarsen: stencil width must be nonnegative.
+
