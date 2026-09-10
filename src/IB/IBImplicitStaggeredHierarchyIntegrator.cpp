@@ -90,11 +90,11 @@ constexpr int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<IBImplicitStrategy> ib_implicit_ops,
+    Pointer<IBImplicitStrategy> ib_method_ops,
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
-    : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
-      d_ib_implicit_ops(ib_implicit_ops)
+    : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart),
+      d_ib_implicit_ops(ib_method_ops)
 {
     d_ib_implicit_ops->setUseFixedLEOperators(true);
 
@@ -153,9 +153,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator()
 {
     deallocateOperatorsAndSolvers();
-    if (d_eul_rhs_vec)
+    if (d_rhs_vec)
     {
-        free_vector_components(*d_eul_rhs_vec);
+        free_vector_components(*d_rhs_vec);
     }
     return;
 } // ~IBImplicitStaggeredHierarchyIntegrator
@@ -203,11 +203,11 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 
     if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
-        d_ib_implicit_ops->computeLagrangianForce(current_time);
+        d_ib_method_ops->computeLagrangianForce(current_time);
         d_hier_velocity_data_ops->setToScalar(d_f_current_idx, 0.0, false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_current_idx);
         d_u_phys_bdry_op->setHomogeneousBc(true);
-        d_ib_implicit_ops->spreadForce(
+        d_ib_method_ops->spreadForce(
             d_f_current_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
     }
 
@@ -217,7 +217,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         {
             plog << d_object_name << "::preprocessIntegrateHierarchy(): Lagrangian forward Euler predictor\n";
         }
-        d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
+        d_ib_method_ops->forwardEulerStep(current_time, new_time);
     }
 
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -240,10 +240,10 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     }
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
-    d_ib_implicit_ops->interpolateVelocity(d_u_idx,
-                                           getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                           getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           new_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                         getGhostfillRefineSchedules(d_object_name + "::u"),
+                                         new_time);
 
     deallocateOperatorsAndSolvers();
 
@@ -257,9 +257,9 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     {
         finest_level->deallocatePatchData(d_p_dof_index_idx);
     }
-    if (d_eul_rhs_vec)
+    if (d_rhs_vec)
     {
-        d_eul_rhs_vec->deallocateVectorData();
+        d_rhs_vec->deallocateVectorData();
     }
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -314,49 +314,49 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const doub
         d_time_stepping_type, current_time, new_time, d_object_name + "::integrateHierarchySpecialized()");
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
-    Pointer<Variable<NDIM>> u_var = ins_hier_integrator->getVelocityVariable();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                                   d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
 
+    // Solve the coupled velocity-pressure equations.
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
-    TBOX_ASSERT(d_eul_sol_vec && d_eul_rhs_vec);
+    TBOX_ASSERT(d_sol_vec && d_rhs_vec);
 
-    ins_hier_integrator->setupSolverVectors(d_eul_sol_vec, d_eul_rhs_vec, current_time, new_time, cycle_num);
+    ins_hier_integrator->setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
     if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
-        d_hier_velocity_data_ops->axpy(d_eul_rhs_vec->getComponentDescriptorIndex(0),
-                                       0.5,
-                                       d_f_current_idx,
-                                       d_eul_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_velocity_data_ops->axpy(
+            d_rhs_vec->getComponentDescriptorIndex(0), 0.5, d_f_current_idx, d_rhs_vec->getComponentDescriptorIndex(0));
     }
     reinitializeOperatorsAndSolvers(current_time, new_time);
 
-    d_ib_implicit_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     // Keep the hierarchy Jacobian analytic and matrix-free; FAC owns assembled level coupling.
-    d_ib_solver->initializeSolverState(*d_eul_sol_vec, *d_eul_rhs_vec);
-    if (!d_ib_solver->solveSystem(*d_eul_sol_vec, *d_eul_rhs_vec))
+    d_ib_solver->initializeSolverState(*d_sol_vec, *d_rhs_vec);
+    if (!d_ib_solver->solveSystem(*d_sol_vec, *d_rhs_vec))
     {
         TBOX_ERROR(d_object_name << "::integrateHierarchySpecialized(): nonlinear Stokes-IB solve failed\n");
     }
 
-    d_stokes_op->imposeSolBcs(*d_eul_sol_vec);
+    d_stokes_op->imposeSolBcs(*d_sol_vec);
     if (d_has_velocity_nullspace || d_has_pressure_nullspace)
     {
-        ins_hier_integrator->removeNullSpace(d_eul_sol_vec);
+        ins_hier_integrator->removeNullSpace(d_sol_vec);
     }
-    d_ib_implicit_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
-    ins_hier_integrator->resetSolverVectors(d_eul_sol_vec, d_eul_rhs_vec, current_time, new_time, cycle_num);
+    ins_hier_integrator->resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
     deallocateOperatorsAndSolvers();
 
+    // Interpolate the Eulerian velocity to the Lagrangian mesh.
     if (d_enable_logging)
     {
         plog << d_object_name
              << "::integrateHierarchySpecialized(): interpolating "
                 "Eulerian velocity to the Lagrangian mesh\n";
     }
-    const int u_new_idx = d_eul_sol_vec->getComponentDescriptorIndex(0);
     if (d_time_stepping_type == MIDPOINT_RULE)
     {
         d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
@@ -367,11 +367,12 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const doub
     }
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
-    d_ib_implicit_ops->interpolateVelocity(d_u_idx,
-                                           getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                           getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           schedule.evaluation_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                         getGhostfillRefineSchedules(d_object_name + "::u"),
+                                         schedule.evaluation_time);
 
+    // Update the positions of the Lagrangian structure.
     advance_staggered_stokes_ib_strategy(*d_ib_implicit_ops,
                                          d_time_stepping_type,
                                          current_time,
@@ -444,27 +445,26 @@ IBImplicitStaggeredHierarchyIntegrator::setupSolverVectors(const double current_
     Pointer<Variable<NDIM>> p_var = ins_hier_integrator->getPressureVariable();
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
 
-    const bool reset_solver_vecs = d_vectors_need_init || !d_eul_sol_vec || !d_eul_rhs_vec ||
-                                   d_eul_sol_vec->getCoarsestLevelNumber() != coarsest_ln ||
-                                   d_eul_sol_vec->getFinestLevelNumber() != finest_ln ||
-                                   d_eul_sol_vec->getComponentDescriptorIndex(0) != u_scratch_idx ||
-                                   d_eul_sol_vec->getComponentDescriptorIndex(1) != p_scratch_idx;
+    const bool reset_solver_vecs =
+        d_vectors_need_init || !d_sol_vec || !d_rhs_vec || d_sol_vec->getCoarsestLevelNumber() != coarsest_ln ||
+        d_sol_vec->getFinestLevelNumber() != finest_ln || d_sol_vec->getComponentDescriptorIndex(0) != u_scratch_idx ||
+        d_sol_vec->getComponentDescriptorIndex(1) != p_scratch_idx;
     if (reset_solver_vecs)
     {
-        if (d_eul_rhs_vec)
+        if (d_rhs_vec)
         {
-            free_vector_components(*d_eul_rhs_vec);
+            free_vector_components(*d_rhs_vec);
         }
-        d_eul_sol_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_sol_vec = new SAMRAIVectorReal<NDIM, double>(
             d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-        d_eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
-        d_eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
+        d_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
+        d_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-        d_eul_rhs_vec = d_eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
+        d_rhs_vec = d_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
         d_vectors_need_init = false;
     }
 
-    d_eul_rhs_vec->allocateVectorData(current_time);
+    d_rhs_vec->allocateVectorData(current_time);
     return;
 } // setupSolverVectors
 
@@ -480,7 +480,7 @@ IBImplicitStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const do
         deallocateOperatorsAndSolvers();
     }
 
-    TBOX_ASSERT(d_eul_sol_vec && d_eul_rhs_vec);
+    TBOX_ASSERT(d_sol_vec && d_rhs_vec);
 
     const double dt = new_time - current_time;
 
