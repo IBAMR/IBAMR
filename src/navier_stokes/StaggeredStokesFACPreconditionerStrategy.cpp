@@ -20,6 +20,8 @@
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
+#include <ibtk/CartCellDoubleLinearCoarsen.h>
+#include <ibtk/CartCellDoubleLinearRefine.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
@@ -735,7 +737,9 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
                   geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
                   geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-                  geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
+                  geometry->addSpatialCoarsenOperator(new CartCellDoubleLinearCoarsen());
+                  geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine());
+                  geometry->addSpatialRefineOperator(new CartCellDoubleLinearRefine()));
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> var;
 
