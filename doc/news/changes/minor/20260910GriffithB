@@ -1,0 +1,4 @@
+Fix: Safeguard phase-volume correction and diagnose invalid or unconverged
+requests before changing the field; increase the default trial budget to 64.
+<br>
+(Boyce Griffith, 2026/09/10)

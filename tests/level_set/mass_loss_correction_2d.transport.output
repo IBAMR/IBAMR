@@ -1,0 +1,3 @@
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+transported target, corrected volume, control volume: 0.1260765208273378 0.1260765208273628 0.125212369417857
+near-interface distance L1, control L1, field difference: 0.0002297242311271049 0.0002890526994176248 0.0006862424320308591
