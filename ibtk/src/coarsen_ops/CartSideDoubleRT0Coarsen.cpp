@@ -192,17 +192,17 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
         TBOX_ERROR("CartSideDoubleRT0Coarsen::coarsen():\n"
                    << "   coarse patch data does not have uniform ghost cell widths" << std::endl);
     }
+#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_gcw(d) + 1 < ratio(d))
         {
-            TBOX_ERROR(
-                "CartSideDoubleRT0Coarsen::coarsen():\n"
-                << "   invalid refinement ratio between coarse and fine index spaces for specified ghost cell width"
-                << std::endl);
+            TBOX_ERROR("CartSideDoubleRT0Coarsen::coarsen():\n"
+                       << "  the refinement ratio " << ratio(d) << " in direction " << d
+                       << " needs a stencil width of at least " << ratio(d) - 1 << ", but the operator declares "
+                       << d_gcw(d) << ".\n");
         }
     }
-#endif
     const int data_depth = cdata->getDepth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());

@@ -45,9 +45,34 @@ class Variable;
 namespace IBTK
 {
 /*!
+ * \brief Refinement ratio supported by the default ghost width of CartSideDoubleRT0Coarsen.
+ *
+ * The default constructor argument declares a ghost width of MAX_RT0_COARSEN_REFINEMENT_RATIO
+ * - 1, which coarsen() requires to cover the refinement ratio minus one in every direction. A
+ * hierarchy that refines by more than this ratio needs an explicitly wider ghost width; pass it
+ * to the constructor, and to the operator that StaggeredStokesFACPreconditionerStrategy
+ * self-registers with the grid geometry if that instance is the one selected by name.
+ */
+inline constexpr int MAX_RT0_COARSEN_REFINEMENT_RATIO = 2;
+
+/*!
  * \brief Class CartSideDoubleRT0Coarsen is a concrete
  * SAMRAI::xfer::CoarsenOperator for restricting side-centered double precision
- * patch data via the adjoint of RT0 interpolation.
+ * patch data.
+ *
+ * With the cell-volume inner products on the two levels, the result is P^T / prod(ratio), the adjoint of RT0
+ * interpolation P, on faces with a complete stencil and on faces of a coarse-fine interface (fine ghost cells
+ * outside the fine level must be zero, so that fine faces that do not exist contribute nothing). On faces of the
+ * physical boundary, whose stencil is also truncated, it instead normalizes the weights of the fine faces inside
+ * the domain to sum to one, which preserves constants but is not the adjoint there. The matrix restriction built
+ * from PETScMatUtilities::constructProlongationOp() and PETScMatUtilities::constructRestrictionScalingOp() agrees
+ * with this operator on these two face classes, except at a coarse-fine interface, where the matrix restriction
+ * also normalizes its weights to sum to one and this operator does not (0.75 for a constant in 2D with a
+ * refinement ratio of 2). A composite-grid treatment of the interface, and a full composite adjoint, are not
+ * attempted here: this does not arise on a uniformly refined level, and is left to a separate investigation.
+ *
+ * The declared ghost width must cover the refinement ratio minus one in every direction, checked unconditionally;
+ * see MAX_RT0_COARSEN_REFINEMENT_RATIO for the refinement ratio the default ghost width supports.
  */
 class CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
@@ -55,7 +80,8 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartSideDoubleRT0Coarsen(SAMRAI::hier::IntVector<NDIM> gcw = SAMRAI::hier::IntVector<NDIM>(1));
+    CartSideDoubleRT0Coarsen(
+        SAMRAI::hier::IntVector<NDIM> gcw = SAMRAI::hier::IntVector<NDIM>(MAX_RT0_COARSEN_REFINEMENT_RATIO - 1));
 
     /*!
      * \brief Destructor.

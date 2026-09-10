@@ -246,6 +246,20 @@ public:
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *
+     * If a restriction operator reads ghost cells of the fine data, that is, its
+     * stencil width is positive, as for "RT0_COARSEN", the restriction uses a copy
+     * of the source data on the next finer level. Ghost cells of the copy next to
+     * another patch of that level take that patch's values, cells beyond a
+     * physical boundary take values from homogeneous boundary conditions, and
+     * cells next to a coarse-fine interface are zero, because the finer level has
+     * no DOFs there; the restriction then does not depend on the values of src in
+     * those cells. See IBTK::CartSideDoubleRT0Coarsen for the restriction
+     * convention that "RT0_COARSEN" implements, and
+     * IBTK::MAX_RT0_COARSEN_REFINEMENT_RATIO for the refinement ratio that the
+     * "RT0_COARSEN" operator this class registers supports. The next finer level
+     * data of src are unchanged; the data of the destination level are
+     * overwritten, including when src and dst alias.
+     *
      * \param src source residual
      * \param dst destination residual
      * \param dst_ln destination level number
