@@ -502,6 +502,21 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::AdvDiffConservativeMassScala
         }
     }
 
+    switch (d_density_convective_limiter)
+    {
+    case PPM:
+        d_density_limiter_gcw = GPPMG;
+        break;
+    case CUI:
+        d_density_limiter_gcw = GCUIG;
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::AdvDiffConservativeMassScalarTransportRKIntegrator():\n"
+                                 << "  unsupported density convective limiter: "
+                                 << enum_to_string<LimiterType>(d_density_convective_limiter) << "\n"
+                                 << "  valid choices are: PPM, CUI\n");
+    }
+
     switch (d_transport_quantity_convective_limiter)
     {
     case PPM:
@@ -1235,7 +1250,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredTransportQuan
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredDensityBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* rho_cc_bc_coefs)
 {
     d_rho_cc_bc_coefs = rho_cc_bc_coefs;
     return;
@@ -1243,7 +1258,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredDensityBounda
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredMaterialPropertyBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* gamma_cc_bc_coefs)
 {
     d_gamma_cc_bc_coefs = gamma_cc_bc_coefs;
     return;
@@ -1251,7 +1266,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredMaterialPrope
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredTransportQuantityBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* Q_cc_bc_coefs)
 {
     d_Q_cc_bc_coefs = Q_cc_bc_coefs;
     return;
