@@ -1,0 +1,14 @@
+prolongation input norm = 1.9
+prolongation matrix norm = 1.9
+prolongation schedule norm = 1.9
+prolongation transfer error = 0
+prolongation constant error = 0
+prolongation affine interior error = 0
+restriction input norm = 5.9
+restriction matrix norm = 1.9
+restriction schedule norm = 1.9
+restriction transfer error = 0
+restriction constant error = 0
+restriction affine interior error = 0
+restriction write range error = 0
+restriction volume adjoint error = 0

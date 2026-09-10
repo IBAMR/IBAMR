@@ -1,0 +1,4 @@
+test {
+   invalid_width = -1
+}
+Main { log_file_name = "output" }
