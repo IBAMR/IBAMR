@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    Eigen shell backends require one MPI rank.
+

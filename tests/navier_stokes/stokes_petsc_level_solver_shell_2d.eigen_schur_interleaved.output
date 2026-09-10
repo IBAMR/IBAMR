@@ -1,0 +1,2 @@
+eigen-schur-complement FULL_PIV_HOUSEHOLDER_QR solution = 1 -2 3
+failures = 0

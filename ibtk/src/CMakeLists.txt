@@ -153,6 +153,9 @@ SET(CXX_SRC
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
   solvers/impls/PETScLevelSolverShellBackend.cpp
+  solvers/impls/EigenLocalSolver.cpp
+  solvers/impls/PETScLevelSolverEigenShellBackendBase.cpp
+  solvers/impls/PETScLevelSolverEigenShellBackend.cpp
   solvers/impls/PETScLevelSolverPetscShellBackend.cpp
   solvers/impls/PETScLevelSolverBlasLapackShellBackend.cpp
   solvers/impls/CCPoissonSolverManager.cpp
@@ -250,6 +253,9 @@ ENDIF()
 
 SET_PROPERTY(SOURCE math/IBOperatorRegistry.cpp APPEND PROPERTY COMPILE_DEFINITIONS
   IBTK_MAX_BSPLINE_ORDER=${IBTK_MAX_BSPLINE_ORDER})
+
+SET_PROPERTY(SOURCE solvers/impls/EigenLocalSolver.cpp APPEND PROPERTY INCLUDE_DIRECTORIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/solvers/impls)
 
 # TARGET_SOURCES needs to use private - if we used public then dependencies on
 # this target will also compile the source files

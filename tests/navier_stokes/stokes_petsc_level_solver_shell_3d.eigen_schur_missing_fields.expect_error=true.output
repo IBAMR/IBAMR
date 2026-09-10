@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    Eigen Schur shell backend requires Stokes velocity and pressure field IDs.
+
