@@ -272,13 +272,11 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         if (d_res_rediscretized_stokes)
         {
             // Subtract the IB contribution from the rediscretized Stokes residual.
+            int ierr = MatMult(d_SAJ_mat[ln], solution_vec, residual_vec);
+            IBTK_CHKERRQ(ierr);
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level);
-            int ierr = VecScale(residual_vec, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(d_SAJ_mat[ln], solution_vec, residual_vec, residual_vec);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScale(residual_vec, -1.0);
+                solution_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level);
+            ierr = VecAYPX(residual_vec, -1.0, solution_vec);
             IBTK_CHKERRQ(ierr);
         }
         else
@@ -413,7 +411,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
         level_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 
         bool initial_guess_nonzero = true;
-        const KSP& petsc_ksp = level_solver->getPETScKSP();
+        const KSP petsc_ksp = level_solver->getPETScKSP();
         KSPType ksp_type;
         KSPGetType(petsc_ksp, &ksp_type);
         if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
@@ -604,7 +602,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
-        const KSP& level_ksp = level_solver->getPETScKSP();
+        const KSP level_ksp = level_solver->getPETScKSP();
 
         if (!d_rediscretize_stokes)
         {

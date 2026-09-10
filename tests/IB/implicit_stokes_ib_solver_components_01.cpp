@@ -19,6 +19,7 @@
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
+#include <ibamr/StaggeredStokesLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
@@ -3458,6 +3459,15 @@ main(int argc, char* argv[])
     }
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "components.log");
     const std::string test_case = app->getInputDatabase()->getStringWithDefault("test_case", "interpolation");
+    if (test_case == "foundation_wrong_strategy")
+    {
+        Pointer<Logger::Appender> appender = new TestAppender();
+        Logger::getInstance()->setAbortAppender(appender);
+        Pointer<FACPreconditionerStrategy> strategy =
+            new StaggeredStokesLevelRelaxationFACOperator("stokes_fac", nullptr, "");
+        StaggeredStokesIBJacobianFACPreconditioner solver("wrong_strategy", strategy, nullptr, "");
+        return 0;
+    }
     if (test_case == "interpolation")
     {
         return run_interpolation(app, input_file);

@@ -126,6 +126,14 @@ namespace IBAMR
  * Deallocate before updating the matrices, linearization data, or hierarchy,
  * then reinitialize.
  *
+ * rediscretize_stokes selects rediscretized Stokes operators plus the IB
+ * contribution; false selects Galerkin operators below the finest level.
+ * Independently, res_rediscretized_stokes selects the hierarchy Stokes residual
+ * minus the IB contribution; false uses the installed level matrices. Both
+ * default to true. The finest-level operator uses rediscretized Stokes plus the
+ * IB contribution, including on a one-level hierarchy. See
+ * StaggeredStokesFACPreconditionerStrategy for shared FAC settings.
+ *
  * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
  * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
  */
@@ -233,8 +241,7 @@ public:
     //\{
 
     /*!
-     * \brief Compute the composite-grid residual on the specified range of
-     * levels of the patch hierarchy.
+     * \brief Compute the configured Stokes-IB residual on the specified level range.
      */
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,

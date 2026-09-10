@@ -54,7 +54,8 @@ namespace IBAMR
  * \brief FAC preconditioner for the Stokes-IB Jacobian.
  *
  * Uses the velocity-pressure formulation described by \ref StaggeredStokesIBOperator.
- * The supplied strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.
+ * The supplied strategy must be nonnull and a StaggeredStokesIBLevelRelaxationFACOperator.
+ * Subclasses must preserve this requirement when replacing the protected strategy.
  * See that class for configuration and matrix requirements.
  */
 class StaggeredStokesIBJacobianFACPreconditioner : public StaggeredStokesFACPreconditioner
@@ -115,8 +116,6 @@ public:
 
     /*!
      * \brief Return the installed strategy as a StaggeredStokesIBLevelRelaxationFACOperator.
-     *
-     * Returns nullptr if it has another type.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> getIBFACPreconditionerStrategy() const;
 
