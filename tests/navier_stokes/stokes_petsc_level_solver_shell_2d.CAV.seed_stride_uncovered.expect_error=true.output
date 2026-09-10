@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::generateASMSubdomains():
+  the subdomains do not cover the DOFs as required: 18 DOFs are in no subdomain; the lowest DOF that fails is 11.
+

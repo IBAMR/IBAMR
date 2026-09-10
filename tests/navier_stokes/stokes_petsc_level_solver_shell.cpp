@@ -47,6 +47,7 @@
 #include <vector>
 
 #include "../tests.h"
+#include "coupling_aware_asm_test_utilities.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -613,6 +614,75 @@ check_eigen_local(Pointer<Database> test)
     IBTK_CHKERRQ(ierr);
     return 0;
 }
+// The application fixture has one distant face edge initially and a complete
+// remote velocity stencil after reinitialization. Enumerate logical cell supports
+// independently of the production geometry owner and its global-index closure.
+std::vector<std::set<int>>
+cav_application_patches(const CAFields& fields, const int n, const bool strict, const int cycle, Mat elasticity)
+{
+    const CACell origin{};
+    CACell remote{};
+    remote.fill(2);
+    const int source = fields.at(origin)[0];
+    std::set<int> targets{ fields.at(remote)[0] };
+    if (cycle == 1)
+    {
+        targets = ca_cell_stencil(fields, remote, n);
+        targets.erase(fields.at(remote)[NDIM]);
+    }
+    int ierr = MatZeroEntries(elasticity);
+    IBTK_CHKERRQ(ierr);
+    for (const int target : targets)
+    {
+        // A symmetric positive semidefinite spring couples the two velocities.
+        ierr = MatSetValue(elasticity, source, source, 0.25, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetValue(elasticity, target, target, 0.25, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetValue(elasticity, source, target, -0.25, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetValue(elasticity, target, source, -0.25, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(elasticity, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(elasticity, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    std::vector<std::set<int>> patches;
+    for (const auto& seed : fields)
+    {
+        std::set<int> patch = ca_cell_stencil(fields, seed.first, n);
+        std::set<int> velocities = patch;
+        velocities.erase(seed.second[NDIM]);
+        const std::set<int> original = velocities;
+        if (original.count(source))
+        {
+            velocities.insert(targets.begin(), targets.end());
+        }
+        if (std::any_of(targets.begin(), targets.end(), [&](int dof) { return original.count(dof); }))
+        {
+            velocities.insert(source);
+        }
+        if (velocities != original)
+        {
+            for (const auto& candidate : fields)
+            {
+                const std::set<int> stencil = ca_cell_stencil(fields, candidate.first, n);
+                int incident = 0;
+                for (const int dof : stencil)
+                {
+                    incident += velocities.count(dof);
+                }
+                if (strict ? incident == 2 * NDIM : incident > 0)
+                {
+                    patch.insert(stencil.begin(), stencil.end());
+                }
+            }
+        }
+        patches.push_back(std::move(patch));
+    }
+    return patches;
+}
 } // namespace
 
 int
@@ -628,7 +698,9 @@ main(int argc, char* argv[])
     {
         return check_eigen_local(test);
     }
-    const bool lifetime = test->getBoolWithDefault("lifetime", false);
+    const bool cav = test->keyExists("cav_application");
+    const std::string cav_scenario = cav ? test->getString("cav_application") : "";
+    const bool lifetime = cav || test->getBoolWithDefault("lifetime", false);
     const bool application_subdomain_solver = test->getBoolWithDefault("application_subdomain_solver", false);
     const bool null_subdomain_solver = test->getBoolWithDefault("null_subdomain_solver", false);
     const bool subdomain_solver_unused = test->getBoolWithDefault("subdomain_solver_unused", false);
@@ -688,8 +760,33 @@ main(int argc, char* argv[])
             }
         }
     }
+    CAFields cav_fields;
     std::vector<int> dofs;
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(dofs, udi, pdi, level);
+    if (cav)
+    {
+        for (PatchLevel<NDIM>::Iterator patch_number(level); patch_number; patch_number++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(patch_number());
+            Pointer<SideData<NDIM, int>> velocity = patch->getPatchData(udi);
+            Pointer<CellData<NDIM, int>> pressure = patch->getPatchData(pdi);
+            Pointer<CellData<NDIM, double>> pressure_rhs = patch->getPatchData(hi);
+            for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+            {
+                CACell cell{};
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    cell[axis] = it()(axis);
+                }
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    cav_fields[cell][axis] = (*velocity)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower));
+                }
+                cav_fields[cell][NDIM] = (*pressure)(it());
+                (*pressure_rhs)(it()) = 0.125 * std::sin(wavenumber * it()(0));
+            }
+        }
+    }
     Vec rhs = nullptr, expected = nullptr, actual = nullptr;
     int ierr = VecCreateMPI(PETSC_COMM_WORLD, dofs[IBTK_MPI::getRank()], PETSC_DETERMINE, &rhs);
     IBTK_CHKERRQ(ierr);
@@ -706,8 +803,18 @@ main(int argc, char* argv[])
         db->putString("pc_type", "shell");
     }
     db->putBool("initial_guess_nonzero", false);
-    db->putBool("check_subdomain_coverage", true);
+    if (!db->keyExists("check_subdomain_coverage"))
+    {
+        db->putBool("check_subdomain_coverage", true);
+    }
     db->putInteger("max_iterations", 1);
+    // The CAV cases select pressure-cell patches through the default seed type, and the patches that the test
+    // expects follow the closure policy of the input.
+    const bool cav_strict =
+        read_setting(db->keyExists("coupling_aware_subdomains") ? db->getDatabase("coupling_aware_subdomains") :
+                                                                  Pointer<Database>(),
+                     "closure_policy",
+                     "RELAXED") == "STRICT";
     int box_size[NDIM];
     std::fill_n(box_size, NDIM, 4);
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
@@ -750,6 +857,12 @@ main(int argc, char* argv[])
         {
             solver_db->putString("blas_lapack_subdomain_solver_type", solver_type);
         }
+        if (test->keyExists("pc_type_option"))
+        {
+            // Override the preconditioner type through the PETSc options database, which initialization applies.
+            ierr = PetscOptionsSetValue(nullptr, "-shell_pc_type", test->getString("pc_type_option").c_str());
+            IBTK_CHKERRQ(ierr);
+        }
         // The level solver owns its subdomain solver, so the counters must outlive it.
         SubdomainSolverCounters application_counters, replacement_counters;
         CommunicationProbe solver("shell_solver", db, "shell_", factories);
@@ -780,6 +893,39 @@ main(int argc, char* argv[])
             PETScLevelSolverSubdomainSolver taken(std::move(spent));
             solver.setSubdomainSolver(std::move(spent));
             return 0;
+        }
+        Mat elasticity = nullptr, fixed_augmentation = nullptr;
+        std::vector<std::set<int>> cav_expected, previous_patches;
+        if (cav)
+        {
+            ierr = MatCreateSeqDense(PETSC_COMM_WORLD, dofs.front(), dofs.front(), nullptr, &elasticity);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyBegin(elasticity, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(elasticity, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            cav_expected = cav_application_patches(cav_fields, input->getInteger("N"), cav_strict, 0, elasticity);
+            if (cav_scenario != "missing_matrix")
+            {
+                PetscInt before = 0, after = 0;
+                ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(elasticity), &before);
+                IBTK_CHKERRQ(ierr);
+                solver.setCouplingAwareASMConstructionMat(elasticity);
+                ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(elasticity), &after);
+                IBTK_CHKERRQ(ierr);
+                if (before != after)
+                {
+                    TBOX_ERROR("Supplying the construction matrix changed its reference count.\n");
+                }
+            }
+            // The solve matrix is augmented with the elasticity matrix, or, to show that the construction matrix
+            // is a separate input, with a copy that stays fixed while the construction matrix changes.
+            if (test->getBoolWithDefault("fixed_augmentation", false))
+            {
+                ierr = MatDuplicate(elasticity, MAT_COPY_VALUES, &fixed_augmentation);
+                IBTK_CHKERRQ(ierr);
+            }
+            solver.setAugmentedOperatorMat(fixed_augmentation ? fixed_augmentation : elasticity);
         }
         Mat supplied = nullptr;
         if (diagonal_operator)
@@ -888,7 +1034,20 @@ main(int argc, char* argv[])
             }
             return 0;
         }
-        if (lifetime && !diagonal_operator)
+        if (cav_scenario == "initialized_setter")
+        {
+            solver.setCouplingAwareASMConstructionMat(elasticity);
+        }
+        if (cav && cav_scenario != "apply")
+        {
+            solver.deallocateSolverState();
+            ierr = MatDestroy(&elasticity);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&fixed_augmentation);
+            IBTK_CHKERRQ(ierr);
+            return 0;
+        }
+        if (lifetime && !diagonal_operator && !cav)
         {
             Mat assembled = nullptr;
             ierr = KSPGetOperators(solver.getPETScKSP(), &assembled, nullptr);
@@ -936,7 +1095,7 @@ main(int argc, char* argv[])
             ierr = PCShellGetName(pc, &shell_name);
             IBTK_CHKERRQ(ierr);
             if (std::string(pc_type) != "shell" || std::string(shell_name) != "subdomain_relaxation" ||
-                (lifetime && mat != supplied))
+                (lifetime && !cav && mat != supplied))
             {
                 TBOX_ERROR(
                     "Failed check: the preconditioner is not the subdomain_relaxation shell, or the operator "
@@ -979,6 +1138,19 @@ main(int argc, char* argv[])
                         TBOX_ERROR("Failed check: uneven_subdomains && min_count == max_count.\n");
                     }
                 }
+                if (cav)
+                {
+                    const std::vector<std::set<int>> patches = ca_read_sets(*overlap);
+                    if (!partition->empty() || patches != cav_expected || (cycle == 1 && patches == previous_patches))
+                    {
+                        TBOX_ERROR(
+                            "Failed check: !partition->empty() || patches != cav_expected || (cycle == 1 && "
+                            "patches == previous_patches).\n");
+                    }
+                    previous_patches = patches;
+                    plog << "pressure_patches = " << patches.size() << "\npartition_size = " << partition->size()
+                         << '\n';
+                }
                 // The supplied subdomain solver, not the built-in one, determines the action.
                 const double scale = counts ? application_scale : 1.0;
                 reference_action(
@@ -991,7 +1163,9 @@ main(int argc, char* argv[])
                     {
                         for (const bool other_owned_output : { false, true })
                         {
-                            if (other_multiplicative == multiplicative && other_owned_output == owned_output)
+                            // OWNED output needs the nonoverlapping sets, which CAV patches do not have.
+                            if ((other_multiplicative == multiplicative && other_owned_output == owned_output) ||
+                                (other_owned_output && partition->size() != overlap->size()))
                             {
                                 continue;
                             }
@@ -1046,6 +1220,25 @@ main(int argc, char* argv[])
             }
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
             const double action_norm = norm_inf(actual);
+            if (cav)
+            {
+                PetscScalar pressure_sum = 0.0;
+                const PetscScalar* values = nullptr;
+                ierr = VecGetArrayRead(actual, &values);
+                IBTK_CHKERRQ(ierr);
+                for (const auto& cell : cav_fields)
+                {
+                    pressure_sum += values[cell.second[NDIM]];
+                }
+                ierr = VecRestoreArrayRead(actual, &values);
+                IBTK_CHKERRQ(ierr);
+                const double pressure_mean = static_cast<double>(PetscRealPart(pressure_sum)) / cav_fields.size();
+                if (!std::isfinite(pressure_mean) || std::abs(pressure_mean) > 1.0e-9)
+                {
+                    TBOX_ERROR("Failed check: !std::isfinite(pressure_mean) || std::abs(pressure_mean) > 1.0e-9.\n");
+                }
+                plog << "pressure_mean = " << pressure_mean << '\n';
+            }
             ierr = VecAXPY(actual, -1.0, expected);
             IBTK_CHKERRQ(ierr);
             const double error = norm_inf(actual);
@@ -1072,6 +1265,13 @@ main(int argc, char* argv[])
                 }
                 plog << label << "repeated_error = " << repeated_error << '\n';
             }
+            std::vector<IS>* cav_overlap = nullptr;
+            std::vector<IS>* cav_partition = nullptr;
+            if (cav)
+            {
+                // Query while initialized; the returned containers outlive solver state.
+                solver.getASMSubdomains(&cav_partition, &cav_overlap);
+            }
             solver.deallocateSolverState();
             if (replacement)
             {
@@ -1086,7 +1286,32 @@ main(int argc, char* argv[])
                         "replacement.\n");
                 }
             }
-            if (lifetime)
+            if (cav)
+            {
+                if (!cav_overlap->empty() || !cav_partition->empty())
+                {
+                    TBOX_ERROR("Failed check: !cav_overlap->empty() || !cav_partition->empty().\n");
+                }
+                {
+                    PetscReal matrix_norm = 0.0;
+                    ierr = MatNorm(elasticity, NORM_INFINITY, &matrix_norm);
+                    IBTK_CHKERRQ(ierr);
+                    if (matrix_norm != 0.5 * (cycle == 0 ? 1 : 2 * NDIM))
+                    {
+                        TBOX_ERROR("Failed check: matrix_norm != 0.5 * (cycle == 0 ? 1 : 2 * NDIM).\n");
+                    }
+                }
+                if (cycle == 0)
+                {
+                    solver.setAugmentedOperatorMat(nullptr);
+                    cav_expected =
+                        cav_application_patches(cav_fields, input->getInteger("N"), cav_strict, 1, elasticity);
+                    solver.setCouplingAwareASMConstructionMat(elasticity);
+                    solver.setAugmentedOperatorMat(fixed_augmentation ? fixed_augmentation : elasticity);
+                    solver.initializeSolverState(x, b);
+                }
+            }
+            else if (lifetime)
             {
                 PetscReal matrix_norm = 0.0;
                 ierr = MatNorm(supplied, NORM_INFINITY, &matrix_norm);
@@ -1130,6 +1355,10 @@ main(int argc, char* argv[])
         {
             TBOX_ERROR("Failed check: the other level solver's subdomain solver was used.\n");
         }
+        ierr = MatDestroy(&elasticity);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&fixed_augmentation);
+        IBTK_CHKERRQ(ierr);
         ierr = MatDestroy(&supplied);
         IBTK_CHKERRQ(ierr);
     }
