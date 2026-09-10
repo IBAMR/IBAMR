@@ -14,6 +14,10 @@
 #ifndef included_IBTK_CartGridPointwiseFunction_inl
 #define included_IBTK_CartGridPointwiseFunction_inl
 
+#include <ibtk/config.h>
+
+#include <ibtk/CartGridPointwiseFunction.h>
+
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <EdgeData.h>
