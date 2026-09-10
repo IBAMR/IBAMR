@@ -431,7 +431,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     if (d_pc_type == "shell" && (d_shell_pc_type == "additive" || d_shell_pc_type.rfind("additive-", 0) == 0))
     {
         const std::string backend_key = d_shell_pc_type == "additive" ? "petsc" : d_shell_pc_type.substr(9);
-        d_shell_backend = PETScLevelSolverShellBackendManager::get_manager().allocateBackend(backend_key);
+        d_shell_backend = PETScLevelSolverShellBackendManager::get_manager().allocateBackend(backend_key, d_input_db);
         std::vector<std::set<int>> overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
         if (d_overlap_is.empty())
@@ -750,6 +750,7 @@ PETScLevelSolver::deallocateSolverState()
 void
 PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
 {
+    d_input_db = input_db;
     d_options_prefix = default_options_prefix;
     if (input_db)
     {

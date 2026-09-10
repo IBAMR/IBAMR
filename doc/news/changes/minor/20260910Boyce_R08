@@ -1,0 +1,3 @@
+New: Add BLAS/LAPACK local solves for shell smoothers.
+<br>
+(Boyce Griffith, 2026/09/10)

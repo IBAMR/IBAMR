@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    BLAS/LAPACK Cholesky is not supported for indefinite Stokes subdomain matrices; use 'symmetric-indefinite' when a symmetry-specific factorization is required.
+
