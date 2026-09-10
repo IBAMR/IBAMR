@@ -246,6 +246,13 @@ public:
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *
+     * The result does not depend on the ghost values of src. A restriction
+     * operator that reads ghost cells of the fine data uses homogeneous boundary
+     * conditions, so the values of src on boundary sides with prescribed normal
+     * velocity do not contribute. The data of src on the next finer level are
+     * unchanged; dst is overwritten on level dst_ln, including when src and dst
+     * alias.
+     *
      * \param src source residual
      * \param dst destination residual
      * \param dst_ln destination level number
