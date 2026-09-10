@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
+#include <ibamr/private/CouplingAwareASMSubdomains.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -64,10 +65,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
+#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -810,6 +814,420 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     patch_level->deallocatePatchData(u_mastr_loc_idx);
     return;
 } // constructPatchLevelASMSubdomains
+
+template <>
+ASMSubdomainConstructionMode
+string_to_enum<ASMSubdomainConstructionMode>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "GEOMETRICAL") == 0)
+    {
+        return ASMSubdomainConstructionMode::GEOMETRICAL;
+    }
+    if (strcasecmp(val.c_str(), "COUPLING_AWARE") == 0)
+    {
+        return ASMSubdomainConstructionMode::COUPLING_AWARE;
+    }
+    return ASMSubdomainConstructionMode::UNKNOWN;
+}
+
+template <>
+std::string
+enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val)
+{
+    if (val == ASMSubdomainConstructionMode::GEOMETRICAL)
+    {
+        return "GEOMETRICAL";
+    }
+    if (val == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        return "COUPLING_AWARE";
+    }
+    return "UNKNOWN";
+}
+
+template <>
+CouplingAwareASMClosurePolicy
+string_to_enum<CouplingAwareASMClosurePolicy>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "RELAXED") == 0)
+    {
+        return CouplingAwareASMClosurePolicy::RELAXED;
+    }
+    if (strcasecmp(val.c_str(), "STRICT") == 0)
+    {
+        return CouplingAwareASMClosurePolicy::STRICT;
+    }
+    return CouplingAwareASMClosurePolicy::UNKNOWN;
+}
+
+template <>
+std::string
+enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val)
+{
+    if (val == CouplingAwareASMClosurePolicy::RELAXED)
+    {
+        return "RELAXED";
+    }
+    if (val == CouplingAwareASMClosurePolicy::STRICT)
+    {
+        return "STRICT";
+    }
+    return "UNKNOWN";
+}
+
+template <>
+CouplingAwareASMSeedTraversalOrder
+string_to_enum<CouplingAwareASMSeedTraversalOrder>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "I_J") == 0)
+    {
+        return CouplingAwareASMSeedTraversalOrder::I_J;
+    }
+    if (strcasecmp(val.c_str(), "J_I") == 0)
+    {
+        return CouplingAwareASMSeedTraversalOrder::J_I;
+    }
+    if (strcasecmp(val.c_str(), "I_J_K") == 0)
+    {
+        return CouplingAwareASMSeedTraversalOrder::I_J_K;
+    }
+    if (strcasecmp(val.c_str(), "J_K_I") == 0)
+    {
+        return CouplingAwareASMSeedTraversalOrder::J_K_I;
+    }
+    if (strcasecmp(val.c_str(), "K_I_J") == 0)
+    {
+        return CouplingAwareASMSeedTraversalOrder::K_I_J;
+    }
+    return CouplingAwareASMSeedTraversalOrder::UNKNOWN;
+}
+
+template <>
+std::string
+enum_to_string<CouplingAwareASMSeedTraversalOrder>(CouplingAwareASMSeedTraversalOrder val)
+{
+    if (val == CouplingAwareASMSeedTraversalOrder::I_J)
+    {
+        return "I_J";
+    }
+    if (val == CouplingAwareASMSeedTraversalOrder::J_I)
+    {
+        return "J_I";
+    }
+    if (val == CouplingAwareASMSeedTraversalOrder::I_J_K)
+    {
+        return "I_J_K";
+    }
+    if (val == CouplingAwareASMSeedTraversalOrder::J_K_I)
+    {
+        return "J_K_I";
+    }
+    if (val == CouplingAwareASMSeedTraversalOrder::K_I_J)
+    {
+        return "K_I_J";
+    }
+    return "UNKNOWN";
+}
+
+CouplingAwareASMSubdomains::CouplingAwareASMSubdomains(const int u_idx,
+                                                       const int p_idx,
+                                                       Pointer<PatchLevel<NDIM>> level)
+    : d_level(level), d_u_idx(u_idx)
+{
+    if (!level || u_idx < 0 || p_idx < 0 || !level->checkAllocated(u_idx) || !level->checkAllocated(p_idx))
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains: allocated level DOF data are required.\n");
+    }
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(u_idx);
+        Pointer<CellData<NDIM, int>> pressure = patch->getPatchData(p_idx);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> sides = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+            for (Box<NDIM>::Iterator b(sides); b; b++)
+            {
+                const SideIndex<NDIM> side(b(), axis, SideIndex<NDIM>::Lower);
+                const int velocity = (*u)(side);
+                if (velocity < 0)
+                {
+                    continue;
+                }
+                d_velocity_dofs.insert(velocity);
+                for (int face = 0; face < 2; ++face)
+                {
+                    const int cell = (*pressure)(side.toCell(face));
+                    if (cell >= 0)
+                    {
+                        d_adjacent_cells[velocity].insert(cell);
+                    }
+                }
+            }
+        }
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            const int cell = (*pressure)(b());
+            if (cell < 0)
+            {
+                continue;
+            }
+            d_cell_closures[cell].insert(cell);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (int face = 0; face < 2; ++face)
+                {
+                    const int velocity = (*u)(SideIndex<NDIM>(b(), axis, face));
+                    if (velocity >= 0)
+                    {
+                        d_cell_closures[cell].insert(velocity);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
+CouplingAwareASMSubdomains::buildSeedPairs()
+{
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(d_u_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int seed = (*u)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+                if (seed < 0)
+                {
+                    continue;
+                }
+                for (int other = 0; other < NDIM; ++other)
+                {
+                    const int paired = (*u)(SideIndex<NDIM>(b(), other, SideIndex<NDIM>::Lower));
+                    if (other != axis && paired >= 0)
+                    {
+                        d_seed_pairs[seed].insert(paired);
+                    }
+                }
+            }
+        }
+    }
+    d_pairs_built = true;
+}
+
+void
+CouplingAwareASMSubdomains::constructSubdomains(std::vector<std::set<int>>& overlap,
+                                                std::vector<std::set<int>>& nonoverlap,
+                                                const std::vector<int>& num_dofs_per_proc,
+                                                Mat matrix,
+                                                const int seed_axis,
+                                                const int seed_stride,
+                                                const CouplingAwareASMSeedTraversalOrder order,
+                                                const CouplingAwareASMClosurePolicy policy,
+                                                const double relative_zero_tol)
+{
+    std::array<int, NDIM> axis_order{};
+#if (NDIM == 2)
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J)
+    {
+        axis_order = { 0, 1 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_I)
+    {
+        axis_order = { 1, 0 };
+    }
+#else
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J_K)
+    {
+        axis_order = { 0, 1, 2 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_K_I)
+    {
+        axis_order = { 1, 2, 0 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::K_I_J)
+    {
+        axis_order = { 2, 0, 1 };
+    }
+#endif
+    else
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains: invalid logical traversal order.\n");
+    }
+    if (seed_axis < 0 || seed_axis >= NDIM || seed_stride < 1 ||
+        (policy != CouplingAwareASMClosurePolicy::RELAXED && policy != CouplingAwareASMClosurePolicy::STRICT) ||
+        !std::isfinite(relative_zero_tol) || relative_zero_tol < 0.0 || !matrix ||
+        num_dofs_per_proc.size() != static_cast<std::size_t>(IBTK_MPI::getNodes()))
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains: invalid construction arguments.\n");
+    }
+    PetscInt nrows = 0, ncols = 0, first = 0, last = 0;
+    int ierr = MatGetSize(matrix, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(matrix, &first, &last);
+    IBTK_CHKERRQ(ierr);
+    const int rank = IBTK_MPI::getRank();
+    const int local_begin = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + rank, 0);
+    const int local_end = local_begin + num_dofs_per_proc[rank];
+    if (nrows != ncols || nrows != std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0) ||
+        first != local_begin || last != local_end)
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains: matrix must use full coupled numbering and ownership.\n");
+    }
+    if (policy == CouplingAwareASMClosurePolicy::STRICT && !d_pairs_built)
+    {
+        buildSeedPairs();
+    }
+    // Sort geometric records before removing periodic/shared-side duplicates.
+    std::vector<std::pair<std::array<int, NDIM>, int>> records;
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(d_u_idx);
+        const Box<NDIM> sides = SideGeometry<NDIM>::toSideBox(patch->getBox(), seed_axis);
+        for (Box<NDIM>::Iterator b(sides); b; b++)
+        {
+            const int seed = (*u)(SideIndex<NDIM>(b(), seed_axis, SideIndex<NDIM>::Lower));
+            if (seed < 0)
+            {
+                continue;
+            }
+            std::array<int, NDIM> index{};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                index[d] = b()(axis_order[d]);
+            }
+            records.emplace_back(index, seed);
+        }
+    }
+    std::sort(records.begin(), records.end());
+    std::set<int> seen;
+    overlap.clear();
+    for (const auto& record : records)
+    {
+        if (!seen.insert(record.second).second || (seen.size() - 1) % seed_stride != 0)
+        {
+            continue;
+        }
+        std::set<int> seeds{ record.second };
+        if (policy == CouplingAwareASMClosurePolicy::STRICT)
+        {
+            const auto pair = d_seed_pairs.find(record.second);
+            if (pair != d_seed_pairs.end())
+            {
+                seeds.insert(pair->second.begin(), pair->second.end());
+            }
+        }
+        std::set<int> expanded = seeds;
+        for (const int seed : seeds)
+        {
+            if (seed < first || seed >= last)
+            {
+                continue;
+            }
+            PetscInt count = 0;
+            const PetscInt* columns = nullptr;
+            const PetscScalar* values = nullptr;
+            ierr = MatGetRow(matrix, seed, &count, &columns, &values);
+            IBTK_CHKERRQ(ierr);
+            PetscInt velocity_count = 0;
+            double row_max = 0.0;
+            for (PetscInt k = 0; k < count; ++k)
+            {
+                if (d_velocity_dofs.count(columns[k]))
+                {
+                    ++velocity_count; // Stored velocity zeros contribute to the roundoff threshold.
+                    row_max = std::max(row_max, static_cast<double>(PetscAbsScalar(values[k])));
+                }
+            }
+            const double threshold =
+                std::max(velocity_count * std::numeric_limits<double>::epsilon(), relative_zero_tol) * row_max;
+            for (PetscInt k = 0; k < count; ++k)
+            {
+                if (d_velocity_dofs.count(columns[k]) && PetscAbsScalar(values[k]) > threshold)
+                {
+                    expanded.insert(columns[k]);
+                }
+            }
+            ierr = MatRestoreRow(matrix, seed, &count, &columns, &values);
+            IBTK_CHKERRQ(ierr);
+        }
+        std::set<int> cells;
+        for (const int velocity : expanded)
+        {
+            const auto adjacent = d_adjacent_cells.find(velocity);
+            if (adjacent != d_adjacent_cells.end())
+            {
+                cells.insert(adjacent->second.begin(), adjacent->second.end());
+            }
+        }
+        std::set<int> closure;
+        for (const int cell : cells)
+        {
+            const auto found = d_cell_closures.find(cell);
+            if (found == d_cell_closures.end())
+            {
+                continue;
+            }
+            if (policy == CouplingAwareASMClosurePolicy::STRICT &&
+                std::any_of(found->second.begin(),
+                            found->second.end(),
+                            [&](const int dof) { return d_velocity_dofs.count(dof) && !expanded.count(dof); }))
+            {
+                continue;
+            }
+            closure.insert(found->second.begin(), found->second.end());
+        }
+        if (policy == CouplingAwareASMClosurePolicy::RELAXED)
+        {
+            closure.insert(expanded.begin(), expanded.end());
+            if (closure.size() < 2 * NDIM + 1)
+            {
+                TBOX_ERROR("CouplingAwareASMSubdomains: incomplete relaxed cell closure.\n");
+            }
+        }
+        overlap.push_back(std::move(closure));
+    }
+    nonoverlap.assign(overlap.size(), {});
+    std::set<int> assigned;
+    for (std::size_t k = 0; k < overlap.size(); ++k)
+    {
+        for (const int dof : overlap[k])
+        {
+            if (dof >= local_begin && dof < local_end && assigned.insert(dof).second)
+            {
+                nonoverlap[k].insert(dof);
+            }
+        }
+    }
+    if (assigned.size() != static_cast<std::size_t>(local_end - local_begin))
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains: overlap subdomains do not cover every locally owned DOF.\n");
+    }
+}
+
+void
+StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
+    std::vector<std::set<int>>& overlap,
+    std::vector<std::set<int>>& nonoverlap,
+    const std::vector<int>& num_dofs_per_proc,
+    const int u_idx,
+    const int p_idx,
+    Pointer<PatchLevel<NDIM>> level,
+    Mat matrix,
+    const int seed_axis,
+    const int seed_stride,
+    const CouplingAwareASMSeedTraversalOrder order,
+    const CouplingAwareASMClosurePolicy policy,
+    const double relative_zero_tol)
+{
+    CouplingAwareASMSubdomains maps(u_idx, p_idx, level);
+    maps.constructSubdomains(
+        overlap, nonoverlap, num_dofs_per_proc, matrix, seed_axis, seed_stride, order, policy, relative_zero_tol);
+}
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelFields(

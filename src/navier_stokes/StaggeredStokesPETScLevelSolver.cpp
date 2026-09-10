@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/private/CouplingAwareASMSubdomains.h>
 #include <ibamr/private/StaggeredStokesEigenSchurComplementShellBackend.h>
 
 #include <ibtk/GeneralSolver.h>
@@ -55,6 +56,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -199,6 +201,33 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
+    if (input_db)
+    {
+        d_asm_mode = string_to_enum<ASMSubdomainConstructionMode>(
+            input_db->getStringWithDefault("asm_subdomain_construction_mode", "GEOMETRICAL"));
+        d_ca_seed_axis = input_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", d_ca_seed_axis);
+        d_ca_seed_stride = input_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", d_ca_seed_stride);
+        d_ca_order = string_to_enum<CouplingAwareASMSeedTraversalOrder>(
+            input_db->getStringWithDefault("coupling_aware_asm_seed_traversal_order", enum_to_string(d_ca_order)));
+        d_ca_policy = string_to_enum<CouplingAwareASMClosurePolicy>(
+            input_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED"));
+        d_ca_relative_zero_tol =
+            input_db->getDoubleWithDefault("coupling_aware_asm_relative_zero_tol", d_ca_relative_zero_tol);
+    }
+#if (NDIM == 2)
+    const bool valid_order =
+        d_ca_order == CouplingAwareASMSeedTraversalOrder::I_J || d_ca_order == CouplingAwareASMSeedTraversalOrder::J_I;
+#else
+    const bool valid_order = d_ca_order == CouplingAwareASMSeedTraversalOrder::I_J_K ||
+                             d_ca_order == CouplingAwareASMSeedTraversalOrder::J_K_I ||
+                             d_ca_order == CouplingAwareASMSeedTraversalOrder::K_I_J;
+#endif
+    if (d_asm_mode == ASMSubdomainConstructionMode::UNKNOWN || d_ca_policy == CouplingAwareASMClosurePolicy::UNKNOWN ||
+        !valid_order || d_ca_seed_axis < 0 || d_ca_seed_axis >= NDIM || d_ca_seed_stride < 1 ||
+        !std::isfinite(d_ca_relative_zero_tol) || d_ca_relative_zero_tol < 0.0)
+    {
+        TBOX_ERROR(d_object_name << ": invalid coupling-aware ASM construction settings.\n");
+    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -326,6 +355,24 @@ void
 StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                                        std::vector<std::set<int>>& nonoverlap_is)
 {
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        if (!d_ca_subdomains)
+        {
+            d_ca_subdomains =
+                std::make_unique<CouplingAwareASMSubdomains>(d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        }
+        d_ca_subdomains->constructSubdomains(overlap_is,
+                                             nonoverlap_is,
+                                             d_num_dofs_per_proc,
+                                             d_petsc_mat,
+                                             d_ca_seed_axis,
+                                             d_ca_seed_stride,
+                                             d_ca_order,
+                                             d_ca_policy,
+                                             d_ca_relative_zero_tol);
+        return;
+    }
     // Construct subdomains for ASM and MSM preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(overlap_is,
                                                                        nonoverlap_is,
@@ -527,6 +574,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
         d_petsc_mat = nullptr;
         d_petsc_pc = nullptr;
     }
+
+    d_ca_subdomains.reset();
 
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);

@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/ibamr_enums.h>
+
 #include <tbox/Pointer.h>
 
 #include <petscao.h>
@@ -93,6 +95,44 @@ public:
                                      int p_dof_index_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
+
+    /*! \brief Construct velocity-seeded coupling-aware ASM subdomains.
+     *
+     * The borrowed matrix uses the full coupled DOF numbering of the supplied
+     * level and supports local row access. Only stored velocity columns enter
+     * the numerical row graph: an entry is retained when its magnitude exceeds
+     * max(n * epsilon, relative_zero_tol) times the velocity-row maximum, where
+     * n includes stored velocity zeros. Pressure entries do not affect this test.
+     * RELAXED closes all incident cells and retains expanded velocities. STRICT
+     * adds lower-face seed components of the same cell and retains only cells
+     * whose full velocity stencil is present after one row-neighbor expansion.
+     *
+     * Seeds of seed_axis are ordered by logical coordinates, de-duplicated and
+     * then sampled by seed_stride. seed_axis must be in [0, NDIM), seed_stride
+     * must be positive, and relative_zero_tol must be finite and nonnegative.
+     * The traversal order must match NDIM. The outer vector preserves that order. Each
+     * inner set uses global coupled IDs; nonoverlap assigns each locally owned
+     * DOF to its first containing overlap. Incomplete local coverage is an error.
+     * DOF data must have valid adjacent-cell ghosts and remain unchanged during
+     * construction. This routine constructs subdomains; it does not apply them.
+     */
+    static void construct_patch_level_coupling_aware_asm_subdomains(
+        std::vector<std::set<int>>& overlap,
+        std::vector<std::set<int>>& nonoverlap,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        Mat matrix,
+        int seed_axis = 0,
+        int seed_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J,
+#else
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J_K,
+#endif
+        CouplingAwareASMClosurePolicy policy = CouplingAwareASMClosurePolicy::RELAXED,
+        double relative_zero_tol = 1.0e-14);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for

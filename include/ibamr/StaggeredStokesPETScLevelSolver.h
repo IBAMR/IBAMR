@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
@@ -37,6 +38,7 @@
 #include <SideVariable.h>
 #include <VariableContext.h>
 
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -59,10 +61,21 @@ class SAMRAIVectorReal;
 
 namespace IBAMR
 {
+class CouplingAwareASMSubdomains;
 /*!
  * \brief Class StaggeredStokesPETScLevelSolver is a concrete PETScLevelSolver
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
+ *
+ * asm_subdomain_construction_mode defaults to GEOMETRICAL; COUPLING_AWARE
+ * selects velocity-seeded subdomains with the construction contract in
+ * StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
+ * coupling_aware_asm_seed_axis defaults to 0, seed_stride to 1, closure_policy
+ * to RELAXED and relative_zero_tol to 1.0e-14 (all with the
+ * coupling_aware_asm_ prefix). coupling_aware_asm_seed_traversal_order
+ * defaults to I_J in 2D and I_J_K in 3D; J_I and J_K_I/K_I_J are alternatives.
+ * Construction settings are read at construction. Cached geometry is rebuilt
+ * with solver state; velocity pairing is built only for STRICT construction.
  *
  * \see INSStaggeredHierarchyIntegrator
  *
@@ -232,6 +245,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    ASMSubdomainConstructionMode d_asm_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    int d_ca_seed_axis = 0, d_ca_seed_stride = 1;
+#if (NDIM == 2)
+    CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J;
+#else
+    CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J_K;
+#endif
+    CouplingAwareASMClosurePolicy d_ca_policy = CouplingAwareASMClosurePolicy::RELAXED;
+    double d_ca_relative_zero_tol = 1.0e-14;
+    std::unique_ptr<CouplingAwareASMSubdomains> d_ca_subdomains;
     // Owned references to the installed inputs, independent of solver state.
     Mat d_operator_mat = nullptr;
     Mat d_augmented_operator_mat = nullptr;
