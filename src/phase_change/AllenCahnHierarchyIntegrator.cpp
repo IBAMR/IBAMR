@@ -1466,6 +1466,17 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                                                            const int liquid_fraction_idx,
                                                            const int T_idx)
 {
+    // QUARTIC is q'(f) for q(f) = f^3(6f^2 - 15f + 10). The endpoint overrides
+    // below implement the phase-change initiation rule of Huang, Lin, and Ardekani,
+    // J. Comput. Phys. 449 (2022), 110795, Eq. (4): https://arxiv.org/abs/2102.06863.
+    // This implementation uses a 1e-10 endpoint tolerance and includes equality
+    // at the melting temperature in both tests.
+    // QUADRATIC is the derivative of q(f) = 3f^2 - 2f^3.
+    // The LINEAR_m options are hybrid derivatives: m*f near zero, m*(1-f)
+    // near one, and the quartic derivative between them. The lower transition
+    // is the smallest positive root of 30*f*(1-f)^2 = m, obtained by matching
+    // the quartic derivative to m*f; the upper transition is its reflection
+    // about f = 1/2. The constants below retain the original rounded roots.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1488,12 +1499,12 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
 
                 if (d_interpolation_function_profile == "QUARTIC")
                 {
-                    // Ziyang's profile
+                    // q'(f) = 30*f^2*(1-f)^2.
                     (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                 }
                 else if (d_interpolation_function_profile == "QUADRATIC")
                 {
-                    // Li's profile
+                    // q'(f) = 6*f*(1-f).
                     (*q_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
                 }
                 else if (d_interpolation_function_profile == "LINEAR_3")

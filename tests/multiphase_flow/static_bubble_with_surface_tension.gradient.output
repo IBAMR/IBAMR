@@ -1,0 +1,9 @@
+Input ghost width 1, output ghost width 1: maximum gradient error = 0
+Input ghost width 1, output ghost width 2: maximum gradient error = 0
+Input ghost width 1, output ghost width 3: maximum gradient error = 0
+Input ghost width 2, output ghost width 1: maximum gradient error = 0
+Input ghost width 2, output ghost width 2: maximum gradient error = 0
+Input ghost width 2, output ghost width 3: maximum gradient error = 0
+Input ghost width 3, output ghost width 1: maximum gradient error = 0
+Input ghost width 3, output ghost width 2: maximum gradient error = 0
+Input ghost width 3, output ghost width 3: maximum gradient error = 0

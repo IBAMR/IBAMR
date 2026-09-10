@@ -17,6 +17,8 @@
 #define included_LSLocateInterface
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 namespace IBTK
@@ -28,11 +30,11 @@ class HierarchyMathOps;
  * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
  */
 
-void callLSLocateInterfaceCallbackFunction(int D_idx,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                           double time,
-                                           bool initial_time,
-                                           void* ctx);
+void call_ls_locate_interface_callback(int D_idx,
+                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                       double time,
+                                       bool initial_time,
+                                       void* ctx);
 
 class LSLocateInterface
 {
@@ -47,20 +49,20 @@ public:
     LSLocateInterface(const std::string& object_name,
                       SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
-                      const double initial_interface_position);
+                      double initial_interface_position);
 
     /*!
      * Destructor for this class.
      */
-    ~LSLocateInterface();
+    ~LSLocateInterface() = default;
 
     /*!
      * Reinitialize the level set information
      */
     void setLevelSetPatchData(int D_idx,
                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                              const double time,
-                              const bool initial_time);
+                              double time,
+                              bool initial_time);
 
 private:
     /*!

@@ -34,14 +34,14 @@ public:
      * \brief Class constructor.
      */
     TemperatureInitialCondition(const std::string& object_name,
-                                const double initial_liquid_solid_interface_position,
-                                const double initial_liquid_temperature,
-                                const double initial_solid_temperature);
+                                double initial_liquid_solid_interface_position,
+                                double initial_liquid_temperature,
+                                double initial_solid_temperature);
 
     /*!
      * \brief Empty destructor.
      */
-    ~TemperatureInitialCondition() = default;
+    ~TemperatureInitialCondition() override = default;
 
     /*!
      * \brief Indicates whether the concrete TemperatureInitialCondition object is
@@ -52,12 +52,12 @@ public:
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void setDataOnPatch(const int data_idx,
+    void setDataOnPatch(int data_idx,
                         Pointer<SAMRAI::hier::Variable<NDIM>> var,
                         Pointer<Patch<NDIM>> patch,
-                        const double data_time,
-                        const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM>> patch_level = Pointer<PatchLevel<NDIM>>(NULL)) override;
+                        double data_time,
+                        bool initial_time = false,
+                        Pointer<PatchLevel<NDIM>> patch_level = Pointer<PatchLevel<NDIM>>(nullptr)) override;
 
     //\}
 
@@ -85,17 +85,17 @@ private:
     /*!
      * Initial position of liquid-solid interface.
      */
-    const double d_initial_liquid_solid_interface_position;
+    double d_initial_liquid_solid_interface_position;
 
     /*!
      * Initial temperature of the liquid.
      */
-    const double d_initial_liquid_temperature;
+    double d_initial_liquid_temperature;
 
     /*!
      * Initial temperature of the solid.
      */
-    const double d_initial_solid_temperature;
+    double d_initial_solid_temperature;
 };
 //////////////////////////////////////////////////////////////////////////////
 

@@ -89,6 +89,26 @@ extern "C"
 
 namespace IBAMR
 {
+namespace
+{
+// The gradient needs two ghost layers; IB_4 smoothing needs one more.
+int
+get_minimum_ghost_width(const std::string& kernel_fcn)
+{
+    if (kernel_fcn == "none")
+    {
+        return 2;
+    }
+    if (kernel_fcn == "IB_4")
+    {
+        return 3;
+    }
+    TBOX_ERROR("LaserSourceFunction:\n"
+               << "  Unknown kernel function " << kernel_fcn << '\n');
+    return -1;
+}
+} // namespace
+
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LaserSourceFunction::LaserSourceFunction(const std::string& object_name,
@@ -156,7 +176,7 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     IntVector<NDIM> no_ghosts = 0;
-    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
+    IntVector<NDIM> cell_ghosts = get_minimum_ghost_width(d_kernel_fcn);
     d_H_scratch_idx =
         var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::H"), cell_ghosts);
     d_grad_H_scratch_idx =
@@ -173,33 +193,20 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Based on time stepping copy H index into H_scratch index.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    if (d_ts_type == MIDPOINT_RULE)
+    switch (d_ts_type)
     {
-        hier_cc_data_ops.linearSum(phi_scratch_idx,
-                                   0.5,
-                                   phi_new_idx,
-                                   0.5,
-                                   phi_current_idx,
-                                   /*interior_only*/ true);
-    }
-    else if (d_ts_type == BACKWARD_EULER)
-    {
-        hier_cc_data_ops.copyData(phi_scratch_idx,
-                                  phi_new_idx,
-                                  /*interior_only*/ true);
-    }
-    else if (d_ts_type == FORWARD_EULER)
-    {
-        hier_cc_data_ops.copyData(phi_scratch_idx,
-                                  phi_current_idx,
-                                  /*interior_only*/ true);
-    }
-    else
-    {
-        TBOX_ERROR("LaserSourceFunction::setDataOnPatchHierarchy : "
-                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and "
-                      "MIDPOINT_RULE"
-                   << std::endl);
+    case MIDPOINT_RULE:
+        hier_cc_data_ops.linearSum(phi_scratch_idx, 0.5, phi_new_idx, 0.5, phi_current_idx, true);
+        break;
+    case BACKWARD_EULER:
+        hier_cc_data_ops.copyData(phi_scratch_idx, phi_new_idx, true);
+        break;
+    case FORWARD_EULER:
+        hier_cc_data_ops.copyData(phi_scratch_idx, phi_current_idx, true);
+        break;
+    default:
+        TBOX_ERROR("LaserSourceFunction::setDataOnPatchHierarchy():\n"
+                   << "  Supported time stepping types are BACKWARD_EULER, FORWARD_EULER, and MIDPOINT_RULE.\n");
     }
 
     convertToHeaviside(d_H_scratch_idx, phi_scratch_idx, coarsest_ln, finest_ln, hierarchy);
@@ -218,7 +225,8 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     mollifyData(d_H_scratch_idx, coarsest_ln, finest_ln, data_time, hierarchy, H_fill_op);
 
     // Find grad H.
-    HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    Pointer<HierarchyMathOps> hier_math_ops =
+        new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
     hier_math_ops->grad(d_grad_H_scratch_idx, d_grad_H_var, 1.0, d_H_scratch_idx, phi_cc_var, nullptr, data_time);
 
     // Fill data on each patch level
@@ -262,7 +270,10 @@ LaserSourceFunction::setDataOnPatch(const int data_idx,
 #endif
     f_cc_data->fillAll(0.0);
 
-    if (initial_time) return;
+    if (initial_time)
+    {
+        return;
+    }
 
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CellData<NDIM, double>> grad_H_data = patch->getPatchData(d_grad_H_scratch_idx);
@@ -313,7 +324,10 @@ LaserSourceFunction::convertToHeaviside(int H_idx,
             Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                vol_cell *= patch_dx[d];
+            }
             const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const Box<NDIM>& patch_box = patch->getBox();
@@ -338,7 +352,10 @@ LaserSourceFunction::mollifyData(int smooth_H_idx,
                                  Pointer<PatchHierarchy<NDIM>> hierarchy,
                                  Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
-    if (d_kernel_fcn == "none") return;
+    if (d_kernel_fcn == "none")
+    {
+        return;
+    }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -383,33 +400,13 @@ LaserSourceFunction::mollifyData(int smooth_H_idx,
         }
     }
 
-    if (fill_op) fill_op->fillData(data_time);
+    if (fill_op)
+    {
+        fill_op->fillData(data_time);
+    }
 
     return;
 } // mollifyData
-
-int
-LaserSourceFunction::getStencilSize(const std::string& kernel_fcn)
-{
-    if (kernel_fcn == "IB_4") return 4;
-    TBOX_ERROR("LaserSourceFunction::getStencilSize()\n"
-               << "  Unknown kernel function " << kernel_fcn << std::endl);
-    return -1;
-
-} // getStencilSize
-
-int
-LaserSourceFunction::getMinimumGhostWidth(const std::string& kernel_fcn)
-{
-    if (kernel_fcn == "none")
-    {
-        return 2;
-    }
-    else
-    {
-        return std::max(2, static_cast<int>(floor(0.5 * getStencilSize(kernel_fcn))) + 1);
-    }
-} // getMinimumGhostWidth
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

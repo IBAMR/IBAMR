@@ -30,7 +30,7 @@ class HierarchyMathOps;
 }
 
 /*
- * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
+ * Pre processing call back function to be hooked into IBAMR:LInitStrategy
  *
  * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */

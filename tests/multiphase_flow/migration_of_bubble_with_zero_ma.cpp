@@ -39,11 +39,13 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <sstream>
+
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include <SetFluidProperties.h>
-#include <SetLSProperties.h>
+#include <ibamr/LevelSetUtilities.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include "LSLocateCircularInterface.h"
 
@@ -112,9 +114,9 @@ struct ComputeVariableSurfaceTensionCoefCtx
 
 void
 compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<HierarchyMathOps> hier_math_ops,
+                                      Pointer<Patch<NDIM>> patch,
                                       int /*integrator_step*/,
-                                      double time,
+                                      double /*time*/,
                                       double /*current_time*/,
                                       double /*new_time*/,
                                       void* ctx)
@@ -122,73 +124,38 @@ compute_surface_tension_coef_function(int F_idx,
     ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
         static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
     // parameters
     const double sigma_0 = compute_variable_surface_tension_coef_ctx->sigma0;
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
     const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getNewContext());
     const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
         compute_variable_surface_tension_coef_ctx->T_var,
         compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getScratchContext());
 
-    // ghost cell filling for liquid fraction variable.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    T_transaction_comps[0] = InterpolationTransactionComponent(
-        T_scratch_idx,
-        T_new_idx,
-        "CONSERVATIVE_LINEAR_REFINE",
-        false,
-        "CONSERVATIVE_COARSEN",
-        "LINEAR",
-        false,
-        compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getPhysicalBcCoefs(
-            compute_variable_surface_tension_coef_ctx->T_var));
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_scratch_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
-    Pointer<HierarchyGhostCellInterpolation> T_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    T_hier_bdry_fill->initializeOperatorState(T_transaction_comps, patch_hierarchy);
-    T_hier_bdry_fill->fillData(time);
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (unsigned int axis = 0; axis < NDIM; axis++)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_scratch_idx);
-            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-
-                    const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
-
-                    (*F_data)(si) *= sigma;
-                }
-            }
+            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
+            const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
+            (*F_data)(si) *= sigma;
         }
     }
+
     return;
 }
 
 void
 compute_marangoni_coef_function(int F_idx,
-                                Pointer<HierarchyMathOps> hier_math_ops,
+                                Pointer<Patch<NDIM>> patch,
                                 int /*integrator_step*/,
                                 double /*time*/,
                                 double /*current_time*/,
@@ -198,35 +165,19 @@ compute_marangoni_coef_function(int F_idx,
     ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
         static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
 
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    // parameters
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (unsigned int axis = 0; axis < NDIM; axis++)
     {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double marangoni_coef = dsigma_dT0;
-                    (*F_data)(si) *= marangoni_coef; // marangoni_coef is constant for this example. So it can be set
-                                                     // through input file as well instead of
-                                                     // using this callback function.
-                }
-            }
+            const double marangoni_coef = dsigma_dT0;
+            (*F_data)(si) *= marangoni_coef; // Since marangoni_coef is constant for this example, it can be set
+                                             // through input file as well.
         }
     }
     return;
@@ -331,9 +282,9 @@ main(int argc, char* argv[])
             new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, ls_var, &circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", NULL, level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties set_ls_properties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&set_ls_properties));
 
         // register temperature
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
@@ -387,7 +338,7 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -400,7 +351,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -417,7 +368,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -425,7 +376,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -433,7 +384,7 @@ main(int argc, char* argv[])
             time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* ls_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
         {
             ls_bc_coef = new muParserRobinBcCoefs(
@@ -454,20 +405,19 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            ls_var,
-                                                                            rho_liquid,
-                                                                            rho_gas,
-                                                                            mu_liquid,
-                                                                            mu_gas,
-                                                                            1 /*ls_reinit_interval*/,
-                                                                            num_interface_cells);
+        IBAMR::VCINSUtilities::SetFluidProperties set_fluid_properties("SetFluidProperties",
+                                                                       adv_diff_integrator,
+                                                                       ls_var,
+                                                                       rho_liquid,
+                                                                       rho_gas,
+                                                                       mu_liquid,
+                                                                       mu_gas,
+                                                                       num_interface_cells);
 
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&set_fluid_properties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&set_fluid_properties));
 
         // Register surface tension force.
         Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
@@ -563,7 +513,7 @@ main(int argc, char* argv[])
         }
 
         // File to write to for fluid mass data
-        ofstream output_file("output");
+        std::ostringstream output_file;
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -613,7 +563,10 @@ main(int argc, char* argv[])
                     const double* patch_dx = patch_geom->getDx();
 
                     double vol_cell = 1.0;
-                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        vol_cell *= patch_dx[d];
+                    }
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                     Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(U_cc_idx);
@@ -669,7 +622,8 @@ main(int argc, char* argv[])
             }
         }
 
-        output_file.close();
+        PIO::logOnlyNodeZero("output");
+        plog << output_file.str();
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -680,11 +634,12 @@ main(int argc, char* argv[])
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            delete u_bc_coefs[d];
+        }
 
         // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
         delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown

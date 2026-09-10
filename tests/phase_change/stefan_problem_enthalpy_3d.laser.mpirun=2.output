@@ -1,0 +1,6 @@
+Laser none FORWARD_EULER: initial norm = 0, integral = 2, centroid = 0.25
+Laser none MIDPOINT_RULE: initial norm = 0, integral = 2, centroid = 0.5
+Laser none BACKWARD_EULER: initial norm = 0, integral = 2, centroid = 0.75
+Laser IB_4 FORWARD_EULER: initial norm = 0, integral = 2, centroid = 0.25
+Laser IB_4 MIDPOINT_RULE: initial norm = 0, integral = 2, centroid = 0.5
+Laser IB_4 BACKWARD_EULER: initial norm = 0, integral = 2, centroid = 0.75

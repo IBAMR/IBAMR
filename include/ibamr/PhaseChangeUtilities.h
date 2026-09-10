@@ -31,10 +31,7 @@ class HierarchyMathOps;
 namespace IBAMR
 {
 /*!
- * \brief The PhaseChangeUtilities class can be utilized to set fluid properties such as density and viscosity
- * for both two-phase and three-phase flows throughout the entire domain.
- *
- * \note Various options are available for computing the side-centered density within this class.
+ * \brief Material-property updates and refinement callbacks for phase-change flows.
  */
 namespace PhaseChangeUtilities
 {
@@ -46,14 +43,14 @@ namespace PhaseChangeUtilities
  * \param ctx is the pointer to SetFluidProperties class object.
  */
 
-void callSetDensityCallbackFunction(int rho_idx,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> rho_var,
-                                    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                    int cycle_num,
-                                    double time,
-                                    double current_time,
-                                    double new_time,
-                                    void* ctx);
+void call_set_density_callback(int rho_idx,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> rho_var,
+                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               int cycle_num,
+                               double time,
+                               double current_time,
+                               double new_time,
+                               void* ctx);
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::AdvDiffHierarchyIntegrator class.
@@ -62,14 +59,14 @@ void callSetDensityCallbackFunction(int rho_idx,
  * \param ctx is the pointer to SetFluidProperties class object.
  */
 
-void callSetThermalConductivityCallbackFunction(int kappa_idx,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> kappa_var,
-                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                int cycle_num,
-                                                double time,
-                                                double current_time,
-                                                double new_time,
-                                                void* ctx);
+void call_set_thermal_conductivity_callback(int kappa_idx,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> kappa_var,
+                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                            int cycle_num,
+                                            double time,
+                                            double current_time,
+                                            double new_time,
+                                            void* ctx);
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::AdvDiffHierarchyIntegrator class.
@@ -78,14 +75,14 @@ void callSetThermalConductivityCallbackFunction(int kappa_idx,
  * \param ctx is the pointer to SetFluidProperties class object.
  */
 
-void callSetSpecificHeatCallbackFunction(int specific_heat_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> specific_heat_var,
-                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                         int cycle_num,
-                                         double time,
-                                         double current_time,
-                                         double new_time,
-                                         void* ctx);
+void call_set_specific_heat_callback(int specific_heat_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> specific_heat_var,
+                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                     int cycle_num,
+                                     double time,
+                                     double current_time,
+                                     double new_time,
+                                     void* ctx);
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::AdvDiffHierarchyIntegrator class.
@@ -94,15 +91,23 @@ void callSetSpecificHeatCallbackFunction(int specific_heat_idx,
  * \param ctx is the pointer to SetFluidProperties class object.
  */
 
-void callSetViscosityCallbackFunction(int mu_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
-                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                      int cycle_num,
-                                      double time,
-                                      double current_time,
-                                      double new_time,
-                                      void* ctx);
+void call_set_viscosity_callback(int mu_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
+                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                 int cycle_num,
+                                 double time,
+                                 double current_time,
+                                 double new_time,
+                                 void* ctx);
 
+/*!
+ * \brief Blend gas, solid, and liquid properties from the PCM indicator H and
+ * liquid fraction. H = 0 denotes gas and H = 1 denotes phase-change material.
+ *
+ * The variables must be maintained by the supplied integrator. Boundary-condition
+ * objects are borrowed and must outlive this object. Register the corresponding
+ * callbacks with this object as their context.
+ */
 class SetFluidProperties
 {
 public:
@@ -202,17 +207,17 @@ private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    SetFluidProperties();
+    SetFluidProperties() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    SetFluidProperties& operator=(const SetFluidProperties& that);
+    SetFluidProperties& operator=(const SetFluidProperties& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    SetFluidProperties(const SetFluidProperties& from);
+    SetFluidProperties(const SetFluidProperties& from) = delete;
 
     /*!
      * Name of this object.
@@ -259,7 +264,9 @@ private:
 }; // SetFluidProperties
 
 /*!
- * \brief A lightweight class to tag grid cells based on the liquid fraction gradient value for grid refinement.
+ * \brief Tag the inclusive liquid-fraction interval at initialization and cells
+ * with a nonzero liquid-fraction gradient thereafter. Existing tags are preserved.
+ * The supplied fraction and gradient must be registered with the integrator.
  */
 class TagLiquidFractionRefinementCells
 {
@@ -271,15 +278,7 @@ public:
                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_grad_var,
                                      double tag_min_value = 0.0,
-                                     double tag_max_value = 0.0)
-        : d_adv_diff_solver(adv_diff_integrator),
-          d_lf_var(lf_var),
-          d_lf_grad_var(lf_grad_var),
-          d_tag_min_value(tag_min_value),
-          d_tag_max_value(tag_max_value)
-    {
-        // intentionally left blank
-    } // TagLevelSetRefinementCells
+                                     double tag_max_value = 0.0);
 
     /*!
      * Tag the liquid-solid interface cells based on the liquid fraction and/or liquid fraction gradient value.
@@ -304,18 +303,18 @@ private:
  * \brief Preprocessing call back function to be hooked into IBAMR::HierarchyIntegrator class
  * to tag the cells for grid refinement based on the given tagging criteria.
  *
- * This static member should be registered with an appropriate hierarchy integrator
+ * This callback should be registered with an appropriate hierarchy integrator
  * via registerApplyGradientDetectorCallback().
  *
  * \param ctx is the pointer to the TagLiquidFractionRefinementCells class object.
  */
-void callTagLiquidFractionCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
-                                                int level_number,
-                                                double error_data_time,
-                                                int tag_index,
-                                                bool initial_time,
-                                                bool uses_richardson_extrapolation_too,
-                                                void* ctx);
+void call_tag_liquid_fraction_cells_callback(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                             int level_number,
+                                             double error_data_time,
+                                             int tag_index,
+                                             bool initial_time,
+                                             bool uses_richardson_extrapolation_too,
+                                             void* ctx);
 
 } // namespace PhaseChangeUtilities
 
