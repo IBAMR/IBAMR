@@ -1,0 +1,9 @@
+result norm = 4.97174972243
+interpolation error = 8.881784197e-16
+pressure leakage = 0
+schedule error = 0
+minimum transfer norm = 4.06436311691
+RT0 prolongation error = 0
+RT0 restriction error = 1.33226762955e-15
+RIDP row sum error = 0
+RIDP column sum error = 0
