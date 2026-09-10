@@ -162,7 +162,7 @@ protected:
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
-    //! Strategy advanced by the coupled solve.
+    //! Typed view of d_ib_method_ops for implicit strategy operations.
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
 
 private:
@@ -211,9 +211,9 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> d_ib_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_stokes_bc_helper;
     //! References INS-owned velocity/pressure scratch components.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_eul_sol_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_sol_vec;
     //! Owns cloned components whose descriptors persist between advances.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_eul_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_rhs_vec;
     //! Owned matrices borrowed by FAC until solver state is deallocated.
     Mat d_ib_force_jac = nullptr;
     Mat d_ib_interp_op = nullptr;
