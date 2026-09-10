@@ -224,36 +224,20 @@ tensor_idx_to_voigt(const std::pair<int, int>& idx)
 }
 
 /*!
- * Smooth heaviside function.
+ * Regularized Heaviside function with smoothing half-width alpha.
+ * For finite phi and finite positive alpha, values lie in [0, 1], with exact
+ * saturation at both cutoffs. Use smooth_heaviside(-phi, alpha) for a small
+ * complementary fraction that subtraction from one would lose.
  */
-inline double
-smooth_heaviside(const double& phi, const double& alpha)
-{
-    double Hphi = 1.0;
-    if (phi < -alpha)
-    {
-        Hphi = 0.0;
-    }
-    else if (std::abs(phi) <= alpha)
-    {
-        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-    }
-    return Hphi;
-}
+inline double smooth_heaviside(const double& phi, const double& alpha);
 
 /*!
- * Smooth delta function.
+ * Analytic derivative of smooth_heaviside(), with the same half-width alpha.
+ * Values are nonnegative and exactly zero at and outside both cutoffs.
+ * Requires finite phi and finite positive alpha; the result may underflow or
+ * overflow when the derivative is not representable.
  */
-inline double
-smooth_delta(const double& phi, const double& alpha)
-{
-    double delta = 0.0;
-    if (std::abs(phi) <= alpha)
-    {
-        delta = 0.5 / alpha + 1.0 / (2.0 * alpha) * std::cos(M_PI * phi / alpha);
-    }
-    return delta;
-}
+inline double smooth_delta(const double& phi, const double& alpha);
 
 /*!
  * Discontinuous heaviside function.
@@ -411,5 +395,7 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
+
+#include <ibtk/private/ibtk_utilities-inl.h>
 
 #endif // #ifndef included_IBTK_ibtk_utilities
