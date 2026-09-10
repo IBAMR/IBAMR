@@ -1,0 +1,5 @@
+fine_rhs_change = 0
+fine_rhs_change = 0
+coarse_rhs_difference = -0
+correction_difference = -0
+restriction_matrix_check = passed
