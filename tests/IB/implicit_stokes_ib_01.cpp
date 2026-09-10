@@ -64,6 +64,17 @@ CustomKernel::operator()(const double r) const
 }
 
 void
+count_integration_cycles(double /*current_time*/, double /*new_time*/, const int cycle_num, void* ctx)
+{
+    int* callback_count = static_cast<int*>(ctx);
+    if (cycle_num != *callback_count)
+    {
+        TBOX_ERROR("Integration callback did not run exactly once per cycle.\n");
+    }
+    ++*callback_count;
+}
+
+void
 generate_structure(const unsigned int& structure,
                    const int& level,
                    int& num_vertices,
@@ -126,6 +137,8 @@ main(int argc, char* argv[])
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
             "IBHierarchyIntegrator", app->getComponentDatabase("IBHierarchyIntegrator"), method, ins);
+        int callback_count = 0;
+        integrator->registerIntegrateHierarchyCallback(count_integration_cycles, &callback_count);
         Pointer<CartesianGridGeometry<NDIM>> geometry =
             new CartesianGridGeometry<NDIM>("CartesianGeometry", app->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", geometry);
@@ -162,8 +175,13 @@ main(int argc, char* argv[])
         for (int step = 0; step < 3; ++step)
         {
             const int previous_calls = evaluator_calls;
+            callback_count = 0;
             // A shorter final step also exercises timestep-dependent matrix setup.
             integrator->advanceHierarchy(step < 2 ? 0.001 : 0.0005);
+            if (callback_count != integrator->getNumberOfCycles())
+            {
+                TBOX_ERROR("Integration callback count does not match the number of cycles.\n");
+            }
             // Geometric norms are independent of redistribution's Lagrangian vector ordering.
             ierr = VecCopy(method->getLDataManager()->getLData("X", 0)->getVec(), centered_positions);
             IBTK_CHKERRQ(ierr);
