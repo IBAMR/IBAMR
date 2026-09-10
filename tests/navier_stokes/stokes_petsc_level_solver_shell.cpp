@@ -511,6 +511,381 @@ check_ca_construction(Pointer<AppInitializer> app, Pointer<Database> test)
     return failures ? 1 : 0;
 }
 
+/*! \brief Check pressure-seeded patches against small periodic cell stencils. */
+int
+check_cav_construction(Pointer<AppInitializer> app, Pointer<Database> test)
+{
+    const auto hierarchy_data = setup_hierarchy<NDIM>(app);
+    Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = variables->getContext("cav_test");
+    Pointer<SideVariable<NDIM, int>> u_dof = new SideVariable<NDIM, int>("cav_u_dof");
+    Pointer<CellVariable<NDIM, int>> p_dof = new CellVariable<NDIM, int>("cav_p_dof");
+    const int udi = variables->registerVariableAndContext(u_dof, context, IntVector<NDIM>(1));
+    const int pdi = variables->registerVariableAndContext(p_dof, context, IntVector<NDIM>(1));
+    level->allocatePatchData(udi);
+    level->allocatePatchData(pdi);
+    std::vector<int> counts;
+    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, udi, pdi, level);
+    std::vector<std::set<int>> patches;
+    std::vector<int> seeds;
+    const std::string scenario = test->getString("cav_construction");
+    if (scenario == "parallel")
+    {
+        // Valid distributed DOF setup reaches the serial guard before matrix access.
+        StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+            patches, seeds, counts, udi, pdi, level, nullptr);
+        level->deallocatePatchData(udi);
+        level->deallocatePatchData(pdi);
+        return 0;
+    }
+    const int total = counts.front();
+    const int n = app->getInputDatabase()->getInteger("N");
+    CAFields fields;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(udi);
+        Pointer<CellData<NDIM, int>> pressure = patch->getPatchData(pdi);
+        // Interleave the full coupled IDs, including all shared/periodic ghosts.
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> sides = SideGeometry<NDIM>::toSideBox(u->getGhostBox(), axis);
+            for (Box<NDIM>::Iterator b(sides); b; b++)
+            {
+                int& dof = (*u)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+                if (dof >= 0)
+                {
+                    dof = (5 * dof + 1) % total;
+                }
+            }
+        }
+        for (Box<NDIM>::Iterator b(pressure->getGhostBox()); b; b++)
+        {
+            int& dof = (*pressure)(b());
+            if (dof >= 0)
+            {
+                dof = (5 * dof + 1) % total;
+            }
+        }
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            CACell cell{};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell[d] = b()(d);
+            }
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                fields[cell][axis] = (*u)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+            }
+            fields[cell][NDIM] = (*pressure)(b());
+        }
+    }
+    int failures = 0;
+    Mat elasticity = nullptr;
+    int ierr = MatCreateSeqAIJ(PETSC_COMM_WORLD, total, total, 2 * NDIM + 3, nullptr, &elasticity);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(elasticity, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(elasticity, MAT_IGNORE_ZERO_ENTRIES, PETSC_FALSE);
+    IBTK_CHKERRQ(ierr);
+    const auto assemble = [&]()
+    {
+        int error = MatAssemblyBegin(elasticity, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(error);
+        error = MatAssemblyEnd(elasticity, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(error);
+    };
+    const CACell origin{};
+    const int origin_velocity = fields.at(origin)[0];
+    if (scenario == "pressure_row" || scenario == "pressure_column")
+    {
+        const int pressure = fields.at(origin)[NDIM];
+        ierr = MatSetValue(elasticity,
+                           scenario == "pressure_row" ? pressure : origin_velocity,
+                           scenario == "pressure_row" ? origin_velocity : pressure,
+                           1.0,
+                           INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        assemble();
+        StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+            patches, seeds, counts, udi, pdi, level, elasticity);
+        ierr = MatDestroy(&elasticity);
+        IBTK_CHKERRQ(ierr);
+        level->deallocatePatchData(udi);
+        level->deallocatePatchData(pdi);
+        return 0;
+    }
+    assemble();
+#if (NDIM == 2)
+    const CouplingAwareASMSeedTraversalOrder default_order = CouplingAwareASMSeedTraversalOrder::I_J;
+    const CouplingAwareASMSeedTraversalOrder alternate_order = CouplingAwareASMSeedTraversalOrder::J_I;
+#else
+    const CouplingAwareASMSeedTraversalOrder default_order = CouplingAwareASMSeedTraversalOrder::I_J_K;
+    const CouplingAwareASMSeedTraversalOrder alternate_order = CouplingAwareASMSeedTraversalOrder::J_K_I;
+#endif
+    std::vector<std::set<int>> standard;
+    std::vector<int> expected_seeds;
+    for (const auto& cell : fields)
+    {
+        standard.push_back(ca_cell_stencil(fields, cell.first, n));
+        expected_seeds.push_back(cell.second[NDIM]);
+    }
+    // Exact outer-vector equality detects missing, duplicated, or reordered patches.
+    for (const CouplingAwareASMClosurePolicy policy :
+         { CouplingAwareASMClosurePolicy::RELAXED, CouplingAwareASMClosurePolicy::STRICT })
+    {
+        for (const CouplingAwareASMSeedTraversalOrder order : { default_order, alternate_order })
+        {
+            std::vector<CACell> ordered;
+            for (const auto& cell : fields)
+            {
+                ordered.push_back(cell.first);
+            }
+            if (order == alternate_order)
+            {
+                std::sort(ordered.begin(),
+                          ordered.end(),
+                          [](const CACell& a, const CACell& b)
+                          {
+                              for (int d = 0; d < NDIM; ++d)
+                              {
+                                  const int axis = (d + 1) % NDIM;
+                                  if (a[axis] != b[axis])
+                                  {
+                                      return a[axis] < b[axis];
+                                  }
+                              }
+                              return false;
+                          });
+            }
+            for (const int stride : { 1, 2 })
+            {
+                std::vector<int> ordered_seeds;
+                std::vector<std::set<int>> expected;
+                for (std::size_t k = 0; k < ordered.size(); k += stride)
+                {
+                    ordered_seeds.push_back(fields.at(ordered[k])[NDIM]);
+                    expected.push_back(ca_cell_stencil(fields, ordered[k], n));
+                }
+                StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+                    patches, seeds, counts, udi, pdi, level, elasticity, stride, order, policy);
+                if (patches != expected || seeds != ordered_seeds)
+                {
+                    ++failures;
+                }
+            }
+        }
+    }
+    std::vector<std::set<int>> velocity_patches, partition;
+    StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
+        velocity_patches, partition, counts, udi, pdi, level, elasticity);
+    if (velocity_patches == standard)
+    {
+        ++failures;
+    }
+
+    CACell remote{}, weak{};
+    remote.fill(2);
+    weak.fill(1);
+    const int remote_velocity = fields.at(remote)[0];
+    const int weak_velocity = fields.at(weak)[0];
+    std::vector<std::set<int>> expected_relaxed;
+    // A single distant face edge affects precisely the cells touching either end.
+    for (const auto& cell : fields)
+    {
+        std::set<int> expected = ca_cell_stencil(fields, cell.first, n);
+        const bool at_origin = expected.count(origin_velocity);
+        const bool at_remote = expected.count(remote_velocity);
+        if (at_origin || at_remote)
+        {
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (const int sign : { -1, 1 })
+                {
+                    CACell neighbor = cell.first;
+                    neighbor[axis] += sign;
+                    const std::set<int> stencil = ca_cell_stencil(fields, neighbor, n);
+                    expected.insert(stencil.begin(), stencil.end());
+                }
+            }
+            const std::set<int> extra = ca_face_stencil(fields, at_origin ? remote : origin, 0, n);
+            expected.insert(extra.begin(), extra.end());
+        }
+        expected_relaxed.push_back(std::move(expected));
+    }
+    for (const bool column_edge : { false, true })
+    {
+        ierr = MatZeroEntries(elasticity);
+        IBTK_CHKERRQ(ierr);
+        const int row = column_edge ? remote_velocity : origin_velocity;
+        const int column = column_edge ? origin_velocity : remote_velocity;
+        ierr = MatSetValue(elasticity, row, column, 1.0, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        // Omit this row-relative weak edge, even though it is structurally present.
+        ierr = MatSetValue(elasticity, row, weak_velocity, 5.0e-4, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        assemble();
+        for (const CouplingAwareASMClosurePolicy policy :
+             { CouplingAwareASMClosurePolicy::RELAXED, CouplingAwareASMClosurePolicy::STRICT })
+        {
+            StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+                patches, seeds, counts, udi, pdi, level, elasticity, 1, default_order, policy, 1.0e-3);
+            if (seeds != expected_seeds ||
+                patches != (policy == CouplingAwareASMClosurePolicy::RELAXED ? expected_relaxed : standard))
+            {
+                ++failures;
+            }
+        }
+    }
+    if (expected_relaxed == standard || !expected_relaxed.front().count(remote_velocity) ||
+        standard.front().count(remote_velocity))
+    {
+        ++failures;
+    }
+    // Changing the same borrowed matrix must remove the previous expansion.
+    ierr = MatZeroEntries(elasticity);
+    IBTK_CHKERRQ(ierr);
+    assemble();
+    StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+        patches, seeds, counts, udi, pdi, level, elasticity);
+    if (patches != standard || seeds != expected_seeds)
+    {
+        ++failures;
+    }
+    const std::set<int> remote_patch = ca_cell_stencil(fields, remote, n);
+    for (const int dof : remote_patch)
+    {
+        if (dof != fields.at(remote)[NDIM])
+        {
+            ierr = MatSetValue(elasticity, origin_velocity, dof, 1.0, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    // A second-hop edge must not expand the origin seed recursively.
+    ierr = MatSetValue(elasticity, remote_velocity, weak_velocity, 1.0, INSERT_VALUES);
+    IBTK_CHKERRQ(ierr);
+    assemble();
+    StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+        patches, seeds, counts, udi, pdi, level, elasticity, 1, default_order, CouplingAwareASMClosurePolicy::STRICT);
+    std::set<int> complete = standard.front();
+    complete.insert(remote_patch.begin(), remote_patch.end());
+    if (patches.size() != standard.size() || seeds != expected_seeds || patches.front() != complete)
+    {
+        ++failures;
+    }
+    // In RELAXED, the one-hop stencil closes neighboring cells around both cells.
+    std::set<int> complete_relaxed = complete;
+    for (const CACell center : { origin, remote })
+    {
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (const int sign : { -1, 1 })
+            {
+                CACell neighbor = center;
+                neighbor[axis] += sign;
+                const std::set<int> stencil = ca_cell_stencil(fields, neighbor, n);
+                complete_relaxed.insert(stencil.begin(), stencil.end());
+            }
+        }
+    }
+    StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+        patches, seeds, counts, udi, pdi, level, elasticity);
+    if (patches.size() != standard.size() || seeds != expected_seeds || patches.front() != complete_relaxed)
+    {
+        ++failures;
+    }
+
+    PoissonSpecifications coefficients("cav_mac");
+    coefficients.setCConstant(1.0);
+    coefficients.setDConstant(-1.0);
+    std::vector<RobinBcCoefStrategy<NDIM>*> boundary(NDIM, nullptr);
+    Mat mac = nullptr;
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
+        mac, coefficients, boundary, 0.0, counts, udi, pdi, level);
+    double pressure_row_error = 0.0;
+    for (const auto& cell : fields)
+    {
+        std::map<int, double> expected;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            CACell upper = cell.first;
+            ++upper[axis];
+            expected[cell.second[axis]] = n;
+            expected[fields.at(ca_wrap(upper, n))[axis]] = -n;
+        }
+        PetscInt count = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(mac, cell.second[NDIM], &count, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            pressure_row_error =
+                std::max(pressure_row_error, static_cast<double>(PetscAbsScalar(values[k] - expected[columns[k]])));
+            expected.erase(columns[k]);
+        }
+        for (const auto& missing : expected)
+        {
+            pressure_row_error = std::max(pressure_row_error, std::abs(missing.second));
+        }
+        ierr = MatRestoreRow(mac, cell.second[NDIM], &count, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+    plog << "pressure_row_error = " << pressure_row_error << '\n';
+#if (NDIM == 3)
+    Vec pressure_shift = nullptr, action = nullptr;
+    ierr = MatCreateVecs(mac, &pressure_shift, &action);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(pressure_shift, 0.0);
+    IBTK_CHKERRQ(ierr);
+    for (const auto& cell : fields)
+    {
+        ierr = VecSetValue(pressure_shift, cell.second[NDIM], 1.0, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecAssemblyBegin(pressure_shift);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(pressure_shift);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecNormalize(pressure_shift, nullptr);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(mac, pressure_shift, action);
+    IBTK_CHKERRQ(ierr);
+    PetscReal shift_error = 0.0;
+    ierr = VecNorm(action, NORM_INFINITY, &shift_error);
+    IBTK_CHKERRQ(ierr);
+    MatNullSpace nullspace = nullptr;
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, PETSC_FALSE, 1, &pressure_shift, &nullspace);
+    IBTK_CHKERRQ(ierr);
+    PetscBool valid = PETSC_FALSE;
+    ierr = MatNullSpaceTest(nullspace, mac, &valid);
+    IBTK_CHKERRQ(ierr);
+    if (!valid)
+    {
+        ++failures;
+    }
+    plog << "pressure_shift_error = " << shift_error << '\n';
+    ierr = MatNullSpaceDestroy(&nullspace);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&pressure_shift);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&action);
+    IBTK_CHKERRQ(ierr);
+#endif
+    ierr = MatDestroy(&mac);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&elasticity);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(udi);
+    level->deallocatePatchData(pdi);
+    plog << "pressure_patches = " << standard.size() << '\n';
+    plog << "failures = " << failures << '\n';
+    return failures ? 1 : 0;
+}
+
 double
 norm_inf(Vec x)
 {
@@ -1298,6 +1673,10 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
     Pointer<Database> input = app->getInputDatabase();
     Pointer<Database> test = input->getDatabase("test");
+    if (test->keyExists("cav_construction"))
+    {
+        return check_cav_construction(app, test);
+    }
     if (test->keyExists("ca_construction"))
     {
         return check_ca_construction(app, test);
