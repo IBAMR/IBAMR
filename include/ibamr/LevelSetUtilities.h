@@ -30,6 +30,7 @@
 #include <CellVariable.h>
 
 #include <limits>
+#include <optional>
 #include <string>
 
 namespace IBTK
@@ -181,15 +182,33 @@ void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hi
                 void* ctx);
 
 /*!
- * \brief A lightweight class that stores the current value of the Lagrange multiplier
- *  for the level set variable.
+ * \brief Correct a regularized phase volume by a uniform level-set shift.
+ *
+ * The two-phase correction targets gas volume \f$\int H(-(\phi+q))\,dV\f$;
+ * the three-phase correction targets liquid volume \f$\int H(\phi+q)H(\psi)\,dV\f$.
+ * Set the initial volume after hierarchy initialization; setTargetVolume() may
+ * update the target before a later correction. The half-width is half_width
+ * times the geometric mean cell spacing on each patch.
+ *
+ * The volume tolerance is abs_tol + rel_tol*abs(target). The default rel_tol
+ * is 1e-12; omitted abs_tol means 64 machine epsilons times the current fluid
+ * capacity. Require finite 0 <= rel_tol < 1 and nonnegative finite abs_tol.
+ * max_its (default 64) is a positive trial-evaluation budget, excluding the
+ * initial check, at most two bracket endpoints, and final field verification.
+ * A safeguarded Newton/bisection solve either accepts a finite field within
+ * tolerance or reports TBOX_ERROR before changing the corrected interiors.
+ *
+ * Restart restores the initial volume, target, and half-width. Logging state
+ * is transient; interval, iteration budget, and tolerances use current input
+ * or defaults. correction_interval must be positive. With interval two, the
+ * callbacks correct pre-advance steps 0 and 2 (the first and third advances).
  */
 class LevelSetMassLossFixer : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
      * \brief Constructor of the class.
-     * @param input_db provides parameters such as enable_logging, correction_interval, max_its, rel_tol, and
+     * @param input_db provides parameters enable_logging, correction_interval, max_its, rel_tol, abs_tol, and
      * half_width.
      */
     LevelSetMassLossFixer(std::string object_name,
@@ -273,6 +292,16 @@ public:
         return d_enable_logging;
     } // enableLogging
 
+    /*!
+     * \brief Correct NEW-context interiors at a due correction event.
+     *
+     * All ranks participate with identical controls. NEW data must be allocated.
+     * three_phase selects liquid volume with the second level set demarcating
+     * solid; otherwise correct gas volume using the first level set alone.
+     * A skipped event leaves the field and last-correction logging unchanged.
+     */
+    void correctVolume(double new_time, bool three_phase);
+
 private:
     std::string d_object_name;
     LevelSetContainer d_ls_container;
@@ -295,25 +324,26 @@ private:
 
     double d_time = 0.0;
 
-    int d_interval = 1, d_max_its = 4;
+    int d_interval = 1, d_max_its = 64;
 
     double d_rel_tol = 1e-12;
 
+    // An omitted absolute tolerance scales with the current fluid capacity.
+    std::optional<double> d_abs_tol;
+
+    /*! \brief Restore the initial volume, target, and interface half-width. */
     void getFromRestart();
 
+    /*! \brief Read correction controls and the input interface half-width. */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 };
 
 /*!
- * \brief Compute the value of the Lagrange multiplier \f$ q \f$ and use that to adjust the flow level set variable
- * \f$ \tilde{\phi} \f$ to satisfy the constraint: \f$ f(q) = \int_{\Omega} H(\tilde{\phi} + q) \text{d}\Omega - V^0
- * = 0 \f$. where, \f$ \tilde{\phi} \f$ is the level set field obtained from the reinitialization procedure, \f$ V^0
- * \f$ is the volume of the fluid at \f$ t = 0 \f$ s which needs to be conserved. Here, \f$ q \f$ is computed using
- * the Newton's method till required tolerance. In practice the level set mass loss would be fixed during the
- * postprocess integrate hierarchy stage. Hence the application time would be the new time and the variable context
- * would be the new context.
+ * \brief Postprocess-integration callback correcting NEW gas volume.
  *
- * \param ctx is the pointer to the LevelSetMassLossFixer class object.
+ * Register with registerPostprocessIntegrateHierarchyCallback(). ctx points to
+ * a LevelSetMassLossFixer; its target must be set before the callback.
+ * \see LevelSetMassLossFixer::correctVolume
  */
 void fixMassLoss2PhaseFlows(double current_time,
                             double new_time,
@@ -322,16 +352,12 @@ void fixMassLoss2PhaseFlows(double current_time,
                             void* ctx);
 
 /*!
- * \brief Compute the value of the Lagrange multiplier \f$ q \f$ and use that to adjust the flow level set \f$
- * \tilde{\phi \f$ when there is a solid phase in the domain with level set \f$ \psi < 0 \f$. Satisfies the
- * constraint: \f$ f(q) = \int_{\Omega} H(\tilde{\phi} + q) H(\psi) \text{d}\Omega - V^0 = 0 \f$. where, \f$
- * \tilde{\phi} \f$ is the level set field obtained from the reinitialization procedure, \f$ V^0 \f$ is the volume
- * of the fluid at \f$ t = 0 \f$ s which needs to be conserved. Here, \f$ q \f$ is computed using the Newton's
- * method till required tolerance. In practice the level set mass loss would be fixed during the postprocess
- * integrate hierarchy stage. Hence the application time would be the new time and the variable context would be the
- * new context.
+ * \brief Postprocess-integration callback correcting NEW liquid volume in a
+ * three-phase flow, preserving the second (solid) level-set field.
  *
- * \param ctx is the pointer to the LevelSetMassLossFixer class object.
+ * Register with registerPostprocessIntegrateHierarchyCallback(). ctx points to
+ * a LevelSetMassLossFixer; its target must be set before the callback.
+ * \see LevelSetMassLossFixer::correctVolume
  */
 void fixMassLoss3PhaseFlows(double current_time,
                             double new_time,
@@ -348,7 +374,8 @@ void fixMassLoss3PhaseFlows(double current_time,
  * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
  *
  * Physically, these three integrals represent volume of the gas region, liquid region, and
- * surface area of the interface, respectively.
+ * a regularized interface-area estimate, respectively. The delta integral
+ * represents area when phi is a resolved signed-distance field.
  */
 std::vector<double> computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc);
 
@@ -360,7 +387,8 @@ std::vector<double> computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer
  * the Heaviside function demarcating solid and fluid (fluid = liquid and gas) domains.
  *
  * Physically, these four integrals represents volume of the gas region, liquid region, solid region, and
- * surface area of the fluid interface, respectively.
+ * a regularized fluid-interface-area estimate, respectively. The delta integral
+ * represents area when phi is a resolved signed-distance field.
  *
  * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
  *

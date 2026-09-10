@@ -24,6 +24,10 @@
 #include <tbox/Database.h>
 #include <tbox/RestartManager.h>
 
+#include <algorithm>
+#include <cmath>
+#include <iterator>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -36,7 +40,10 @@ namespace IBAMR
 namespace
 {
 std::vector<double>
-compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, double ncells)
+compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops,
+                            const int phi_idx,
+                            const double ncells,
+                            const double shift = 0.0)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
     Pointer<PatchHierarchy<NDIM>> patch_hier = hier_math_ops->getPatchHierarchy();
@@ -60,7 +67,10 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
             Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
-            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell_size *= patch_dx[d];
+            }
             cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
             const double alpha = ncells * cell_size;
 
@@ -68,7 +78,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
             {
                 CellIndex<NDIM> ci(it());
 
-                const double phi = (*phi_data)(ci);
+                const double phi = (*phi_data)(ci) + shift;
                 const double dv = (*wgt_data)(ci);
 
                 // smoothed delta and Heaviside functions
@@ -89,7 +99,11 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 } // compute_heaviside_integrals
 
 std::vector<double>
-compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, int psi_idx, double ncells)
+compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops,
+                            const int phi_idx,
+                            const int psi_idx,
+                            const double ncells,
+                            const double shift = 0.0)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
     Pointer<PatchHierarchy<NDIM>> patch_hier = hier_math_ops->getPatchHierarchy();
@@ -115,7 +129,10 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
             Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
-            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell_size *= patch_dx[d];
+            }
             cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
             const double alpha = ncells * cell_size;
 
@@ -123,7 +140,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
             {
                 CellIndex<NDIM> ci(it());
 
-                const double phi = (*phi_data)(ci);
+                const double phi = (*phi_data)(ci) + shift;
                 const double psi = (*psi_data)(ci);
                 const double dv = (*wgt_data)(ci);
 
@@ -226,10 +243,18 @@ LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
         getFromInput(input_db);
     }
 
-    bool is_from_restart = RestartManager::getManager()->isFromRestart();
-    if (is_from_restart)
+    if (RestartManager::getManager()->isFromRestart())
     {
         getFromRestart();
+    }
+    const double ncells = d_ls_container.getInterfaceHalfWidth();
+    if (d_interval <= 0 || d_max_its <= 0 || !std::isfinite(d_rel_tol) || d_rel_tol < 0.0 || d_rel_tol >= 1.0 ||
+        (d_abs_tol && (!std::isfinite(*d_abs_tol) || *d_abs_tol < 0.0)) || !std::isfinite(ncells) || ncells <= 0.0)
+    {
+        TBOX_ERROR(d_object_name
+                   << "::LevelSetMassLossFixer(): invalid correction controls\n"
+                   << "  correction_interval and max_its must be positive; half_width must be finite and positive;\n"
+                   << "  rel_tol must be finite in [0,1), and abs_tol must be finite and nonnegative.\n");
     }
     return;
 } // LevelSetMassLossFixer
@@ -267,6 +292,252 @@ LevelSetMassLossFixer::setInitialVolume(double v0)
 } // setInitialVolume
 
 void
+LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_phase)
+{
+    Pointer<AdvDiffHierarchyIntegrator> integrator = d_ls_container.getAdvDiffHierarchyIntegrator();
+    const int step = integrator->getIntegratorStep();
+    if (IBTK_MPI::minReduction(d_interval) != IBTK_MPI::maxReduction(d_interval))
+    {
+        TBOX_ERROR(d_object_name << "::correctVolume(): inconsistent correction intervals across ranks\n");
+    }
+    if (step % d_interval != 0)
+    {
+        return;
+    }
+
+    double capacity = std::numeric_limits<double>::quiet_NaN();
+    double residual = std::numeric_limits<double>::quiet_NaN();
+    int trials = 0;
+    const auto fail = [&](const char* reason)
+    {
+        TBOX_ERROR(d_object_name << "::correctVolume(): " << reason << '\n'
+                                 << "  phase = " << (three_phase ? "three-phase liquid" : "two-phase gas")
+                                 << ", target = " << d_vol_target << ", capacity = " << capacity
+                                 << ", residual = " << residual << ", trials = " << trials << '\n');
+    };
+    const double ncells = d_ls_container.getInterfaceHalfWidth();
+    if (!std::isfinite(ncells) || ncells <= 0.0)
+    {
+        fail("half_width must be finite and positive");
+    }
+    if (!std::isfinite(d_vol_target))
+    {
+        fail("target volume must be finite");
+    }
+    double controls_min[] = { ncells,
+                              d_vol_target,
+                              d_rel_tol,
+                              d_abs_tol.value_or(-1.0),
+                              static_cast<double>(d_max_its),
+                              static_cast<double>(three_phase) };
+    double controls_max[6];
+    std::copy(std::begin(controls_min), std::end(controls_min), controls_max);
+    IBTK_MPI::minReduction(controls_min, 6);
+    IBTK_MPI::maxReduction(controls_max, 6);
+    if (!std::equal(std::begin(controls_min), std::end(controls_min), controls_max))
+    {
+        fail("inconsistent correction controls across ranks");
+    }
+
+    Pointer<PatchHierarchy<NDIM>> hierarchy = integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> ops = integrator->getHierarchyMathOps();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<CellVariable<NDIM, double>> variable = d_ls_container.getLevelSetVariable();
+    const int phi_idx = var_db->mapVariableAndContextToIndex(variable, integrator->getNewContext());
+    const int psi_idx = three_phase ? var_db->mapVariableAndContextToIndex(d_ls_container.getLevelSetVariable(1),
+                                                                           integrator->getNewContext()) :
+                                      -1;
+    const int weight_idx = ops->getCellWeightPatchDescriptorIndex();
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    double lower = std::numeric_limits<double>::infinity();
+    double upper = -std::numeric_limits<double>::infinity();
+    double local_capacity = 0.0;
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(phi_idx) || (three_phase && !level->checkAllocated(psi_idx)))
+        {
+            fail("NEW level-set data are not allocated");
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> phi = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> psi = three_phase ? patch->getPatchData(psi_idx) : nullptr;
+            Pointer<CellData<NDIM, double>> weight = patch->getPatchData(weight_idx);
+            Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+            double cell_volume = 1.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell_volume *= geom->getDx()[d];
+            }
+            const double alpha = ncells * std::pow(cell_volume, 1.0 / NDIM);
+            if (!std::isfinite(alpha) || alpha <= 0.0)
+            {
+                fail("smoothing half-width is not representable");
+            }
+            for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+            {
+                const double value = (*phi)(i());
+                const double dv = (*weight)(i());
+                if (!std::isfinite(value) || !std::isfinite(dv) || dv < 0.0 ||
+                    (three_phase && !std::isfinite((*psi)(i()))))
+                {
+                    fail("nonfinite level-set data or invalid composite weight");
+                }
+                const double fluid_fraction = three_phase ? IBTK::smooth_heaviside((*psi)(i()), alpha) : 1.0;
+                local_capacity += fluid_fraction * dv;
+                if (fluid_fraction * dv > 0.0)
+                {
+                    lower = std::min(lower, -alpha - value);
+                    upper = std::max(upper, alpha - value);
+                }
+            }
+        }
+    }
+    capacity = IBTK_MPI::sumReduction(local_capacity);
+    if (!std::isfinite(capacity) || capacity < 0.0)
+    {
+        fail("invalid fluid capacity");
+    }
+    const double abs_tol = d_abs_tol.value_or(64.0 * std::numeric_limits<double>::epsilon() * capacity);
+    const double tolerance = abs_tol + d_rel_tol * std::abs(d_vol_target);
+    if (!std::isfinite(tolerance))
+    {
+        fail("volume tolerance is not representable");
+    }
+    if (d_vol_target < -tolerance || (d_vol_target > capacity && d_vol_target - capacity > tolerance))
+    {
+        fail("target volume is outside the fluid capacity");
+    }
+    const auto evaluate = [&](const int idx, const double q)
+    {
+        return three_phase ? compute_heaviside_integrals(ops, idx, psi_idx, ncells, q) :
+                             compute_heaviside_integrals(ops, idx, ncells, q);
+    };
+    const int phase = three_phase ? 1 : 0;
+    const double orientation = three_phase ? 1.0 : -1.0;
+    std::vector<double> integrals = evaluate(phi_idx, 0.0);
+    residual = integrals[phase] - d_vol_target;
+    if (!std::isfinite(residual))
+    {
+        fail("nonfinite phase volume");
+    }
+    double q = 0.0;
+    if (std::abs(residual) > tolerance)
+    {
+        lower = std::nextafter(IBTK_MPI::minReduction(lower), -std::numeric_limits<double>::infinity());
+        upper = std::nextafter(IBTK_MPI::maxReduction(upper), std::numeric_limits<double>::infinity());
+        if (!std::isfinite(lower) || !std::isfinite(upper) || !(lower < upper))
+        {
+            fail("cannot form a finite correction bracket");
+        }
+        const double internal_target = std::max(0.0, std::min(capacity, d_vol_target));
+        const double v_lower = evaluate(phi_idx, lower)[phase];
+        const double v_upper = evaluate(phi_idx, upper)[phase];
+        if (!std::isfinite(v_lower) || !std::isfinite(v_upper) || orientation * (v_upper - v_lower) < 0.0 ||
+            orientation * (v_lower - internal_target) > tolerance ||
+            orientation * (v_upper - internal_target) < -tolerance)
+        {
+            fail("invalid correction bracket volumes");
+        }
+        if (std::abs(v_lower - d_vol_target) <= tolerance)
+        {
+            q = lower;
+            residual = v_lower - d_vol_target;
+        }
+        else if (std::abs(v_upper - d_vol_target) <= tolerance)
+        {
+            q = upper;
+            residual = v_upper - d_vol_target;
+        }
+        while (std::abs(residual) > tolerance && trials < d_max_its)
+        {
+            if (q > lower && q < upper)
+            {
+                if (orientation * (integrals[phase] - internal_target) < 0.0)
+                {
+                    lower = q;
+                }
+                else
+                {
+                    upper = q;
+                }
+            }
+            double candidate = 0.5 * lower + 0.5 * upper;
+            const double derivative = orientation * integrals.back();
+            if (std::isfinite(derivative) && derivative != 0.0)
+            {
+                const double newton = q - (integrals[phase] - internal_target) / derivative;
+                if (std::isfinite(newton) && newton > lower && newton < upper && newton != q &&
+                    std::abs(newton - q) <= 0.5 * upper - 0.5 * lower)
+                {
+                    candidate = newton;
+                }
+            }
+            if (!(candidate > lower && candidate < upper) || candidate == q)
+            {
+                fail("correction stagnated before satisfying the volume tolerance");
+            }
+            q = candidate;
+            integrals = evaluate(phi_idx, q);
+            ++trials;
+            residual = integrals[phase] - d_vol_target;
+            if (!std::isfinite(residual))
+            {
+                fail("nonfinite correction trial volume");
+            }
+        }
+        if (std::abs(residual) > tolerance)
+        {
+            fail("correction trial budget exhausted");
+        }
+
+        const int candidate_idx = var_db->registerClonedPatchDataIndex(variable, phi_idx);
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(candidate_idx, new_time);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> original = patch->getPatchData(phi_idx);
+                Pointer<CellData<NDIM, double>> candidate = patch->getPatchData(candidate_idx);
+                for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                {
+                    const double value = (*original)(i()) + q;
+                    if (!std::isfinite(value))
+                    {
+                        fail("nonfinite candidate level-set value");
+                    }
+                    (*candidate)(i()) = value;
+                }
+            }
+        }
+        residual = evaluate(candidate_idx, 0.0)[phase] - d_vol_target;
+        if (!std::isfinite(residual) || std::abs(residual) > tolerance)
+        {
+            fail("candidate field does not satisfy the volume tolerance");
+        }
+        HierarchyCellDataOpsReal<NDIM, double> data_ops(hierarchy, 0, finest_ln);
+        data_ops.copyData(phi_idx, candidate_idx, true);
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(candidate_idx);
+        }
+        var_db->removePatchDataIndex(candidate_idx);
+    }
+    d_q = q;
+    d_time = new_time;
+    if (d_enable_logging)
+    {
+        plog << d_object_name << "::correctVolume(): phase = " << (three_phase ? "three-phase liquid" : "two-phase gas")
+             << ", target = " << d_vol_target << ", capacity = " << capacity << ", residual = " << residual
+             << ", tolerance = " << tolerance << ", trials = " << trials << ", shift = " << q << '\n';
+    }
+}
+
+void
 SetLSProperties::setLSData(int ls_idx,
                            SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                            const int integrator_step,
@@ -292,61 +563,7 @@ fixMassLoss2PhaseFlows(double /*current_time*/,
 #if !defined(NDEBUG)
     TBOX_ASSERT(mass_fixer);
 #endif
-    const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
-    const int integrator_step = adv_diff_integrator->getIntegratorStep();
-    const int mass_correction_interval = mass_fixer->getCorrectionInterval();
-
-    if (integrator_step % mass_correction_interval != 0) return;
-
-    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
-
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-    const double vol_target = mass_fixer->getTargetVolume();
-    const double ncells = ls_container.getInterfaceHalfWidth();
-
-    // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
-    // Hence the application time would be the new time and the variable context would be the new context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_idx =
-        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(), adv_diff_integrator->getNewContext());
-
-    // Carry out the Newton iterations
-    double rel_error = 1.0e12;
-    int current_iter = 0;
-
-    const double min_rel_error = mass_fixer->getErrorRelTolerance();
-    const int max_its = mass_fixer->getMaxIterations();
-
-    double q = 0.0;
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hier, 0, hier_finest_ln);
-    while (rel_error > min_rel_error && current_iter < max_its)
-    {
-        std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
-        const double& vol_phase1 = integrals[0]; // Target the gas volume
-        const double& integral_delta = integrals[2];
-
-        rel_error = std::abs(vol_phase1 / vol_target - 1.0);
-
-        if (mass_fixer->enableLogging())
-        {
-            plog << "fixMassLoss2PhaseFlows():: current iter = " << current_iter << " , rel error  = " << rel_error
-                 << std::endl;
-        }
-
-        const double delta_q = (vol_phase1 - vol_target) / integral_delta;
-        hier_cc_ops.addScalar(ls_idx, ls_idx, delta_q);
-
-        q += delta_q;
-        current_iter += 1;
-    }
-
-    // For logging purposes.
-    mass_fixer->setLagrangeMultiplier(q);
-    mass_fixer->setTime(new_time);
-
-    return;
+    mass_fixer->correctVolume(new_time, false);
 } // fixMassLoss2PhaseFlows
 
 void
@@ -360,63 +577,7 @@ fixMassLoss3PhaseFlows(double /*current_time*/,
 #if !defined(NDEBUG)
     TBOX_ASSERT(mass_fixer);
 #endif
-    const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
-    const int integrator_step = adv_diff_integrator->getIntegratorStep();
-    const int mass_correction_interval = mass_fixer->getCorrectionInterval();
-
-    if (integrator_step % mass_correction_interval != 0) return;
-
-    Pointer<PatchHierarchy<NDIM>> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
-
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-    const double vol_target = mass_fixer->getTargetVolume();
-    const double ncells = ls_container.getInterfaceHalfWidth();
-
-    // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
-    // Hence the application time would be the new time and the variable context would be the new context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int fluid_ls_idx =
-        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(0), adv_diff_integrator->getNewContext());
-    const int solid_ls_idx =
-        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(1), adv_diff_integrator->getNewContext());
-
-    // Carry out the Newton iterations
-    double rel_error = 1.0e12;
-    int current_iter = 0;
-
-    const double min_rel_error = mass_fixer->getErrorRelTolerance();
-    const int max_its = mass_fixer->getMaxIterations();
-
-    double q = 0.0;
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hier, 0, hier_finest_ln);
-    while (rel_error > min_rel_error && current_iter < max_its)
-    {
-        std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, fluid_ls_idx, solid_ls_idx, ncells);
-        const double& vol_phase2 = integrals[1]; // Target the liquid volume
-        const double& integral_delta = integrals[3];
-
-        rel_error = std::abs(vol_phase2 / vol_target - 1.0);
-
-        if (mass_fixer->enableLogging())
-        {
-            plog << "fixMassLoss3PhaseFlows():: current iter = " << current_iter << " , rel error  = " << rel_error
-                 << std::endl;
-        }
-
-        const double delta_q = -(vol_phase2 - vol_target) / integral_delta;
-        hier_cc_ops.addScalar(fluid_ls_idx, fluid_ls_idx, delta_q);
-
-        q += delta_q;
-        current_iter += 1;
-    }
-
-    // For logging purposes.
-    mass_fixer->setLagrangeMultiplier(q);
-    mass_fixer->setTime(new_time);
-
-    return;
+    mass_fixer->correctVolume(new_time, true);
 } // fixMassLoss3PhaseFlows
 
 std::vector<double>
@@ -478,20 +639,6 @@ setLSDataPatchHierarchy(int ls_idx,
 ////////////////////////////// PROTECTED ///////////////////////////////////////
 
 void
-LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
-{
-    d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
-    d_interval = input_db->getIntegerWithDefault("correction_interval", 1);
-    d_max_its = input_db->getIntegerWithDefault("max_its", 4);
-    d_rel_tol = input_db->getDoubleWithDefault("rel_tol", 1e-12);
-
-    LevelSetContainer& ls_container = getLevelSetContainer();
-    ls_container.setInterfaceHalfWidth(input_db->getDoubleWithDefault("half_width", 1.0));
-
-    return;
-} // getFromInput
-
-void
 LevelSetMassLossFixer::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
@@ -514,6 +661,24 @@ LevelSetMassLossFixer::getFromRestart()
 
     return;
 } // getFromRestart
+
+void
+LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
+{
+    d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
+    d_interval = input_db->getIntegerWithDefault("correction_interval", 1);
+    d_max_its = input_db->getIntegerWithDefault("max_its", 64);
+    d_rel_tol = input_db->getDoubleWithDefault("rel_tol", 1e-12);
+    if (input_db->keyExists("abs_tol"))
+    {
+        d_abs_tol = input_db->getDouble("abs_tol");
+    }
+
+    LevelSetContainer& ls_container = getLevelSetContainer();
+    ls_container.setInterfaceHalfWidth(input_db->getDoubleWithDefault("half_width", 1.0));
+
+    return;
+} // getFromInput
 
 } // namespace LevelSetUtilities
 

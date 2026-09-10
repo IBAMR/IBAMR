@@ -1,0 +1,13 @@
+interval_zero: invalid correction controls
+interval_negative: invalid correction controls
+width_input: invalid correction controls
+relative_tolerance: invalid correction controls
+absolute_tolerance: invalid correction controls
+budget_zero: invalid correction controls
+budget_exhausted: correction trial budget exhausted
+width_setter: half_width must be finite and positive
+width_restart: invalid correction controls
+target_nonfinite: target volume must be finite
+target_restart: target volume must be finite
+target_infeasible: target volume is outside the fluid capacity
+rank_nonfinite: nonfinite level-set data or invalid composite weight
