@@ -502,6 +502,21 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::AdvDiffConservativeMassScala
         }
     }
 
+    switch (d_density_convective_limiter)
+    {
+    case PPM:
+        d_density_limiter_gcw = GPPMG;
+        break;
+    case CUI:
+        d_density_limiter_gcw = GCUIG;
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::AdvDiffConservativeMassScalarTransportRKIntegrator():\n"
+                                 << "  unsupported density convective limiter: "
+                                 << enum_to_string<LimiterType>(d_density_convective_limiter) << "\n"
+                                 << "  valid choices are: PPM, CUI\n");
+    }
+
     switch (d_transport_quantity_convective_limiter)
     {
     case PPM:

@@ -472,6 +472,8 @@ protected:
         d_u_adv_scratch_idx = IBTK::invalid_index;
     int d_T_F_current_idx = IBTK::invalid_index, d_T_F_new_idx = IBTK::invalid_index,
         d_T_F_scratch_idx = IBTK::invalid_index;
+    int d_Div_U_F_idx = IBTK::invalid_index, d_Div_U_F_new_idx = IBTK::invalid_index,
+        d_Div_U_F_scratch_idx = IBTK::invalid_index;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -483,7 +485,6 @@ protected:
     int d_lf_pre_idx = IBTK::invalid_index, d_H_pre_idx = IBTK::invalid_index;
     int d_C_rhs_scratch_idx = IBTK::invalid_index;
     int d_updated_rho_idx = IBTK::invalid_index;
-    int d_Div_U_F_idx = IBTK::invalid_index;
     int d_T_diffusion_coef_rhs_scratch_idx = IBTK::invalid_index;
     int d_T_rhs_scratch_idx = IBTK::invalid_index;
     int d_T_N_scratch_idx = IBTK::invalid_index;

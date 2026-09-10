@@ -125,7 +125,16 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER grad_gcw
       REAL fac0,fac1
+
+c     Both arrays need one ghost layer for the tangential interpolation.
+c     Keep their allocated strides and limit work to available input data.
+      if (min(N_gcw,U_gcw).lt.1) then
+         print *,'sc_normal: at least one ghost cell is required'
+         call abort
+      endif
+      grad_gcw = min(N_gcw,U_gcw)
       
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))      
@@ -135,8 +144,8 @@ c     Find face normal gradients first and then interpolate
 c     face tangential gradients
 
 c     Do N00.
-      do i1 = ilower1 - N_gcw, iupper1 + N_gcw
-         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw
+      do i1 = ilower1 - grad_gcw, iupper1 + grad_gcw
+         do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw
              
             N00(i0,i1) = fac0*(U(i0,i1) - U(i0-1,i1))
 
@@ -144,8 +153,8 @@ c     Do N00.
       enddo
       
 c     Do N11.
-      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw
-         do i0 = ilower0 - N_gcw, iupper0 + N_gcw
+      do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw
+         do i0 = ilower0 - grad_gcw, iupper0 + grad_gcw
              
             N11(i0,i1) = fac1*(U(i0,i1) - U(i0,i1-1))
 
@@ -153,8 +162,8 @@ c     Do N11.
       enddo
 
 c     Interpolate N11 to N01
-      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw - 1
-         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw
+      do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw - 1
+         do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw
              
             N01(i0,i1) = fourth*(N11(i0-1,i1) + N11(i0,i1) + 
      &                    N11(i0-1,i1+1) + N11(i0,i1+1)) 
@@ -163,8 +172,8 @@ c     Interpolate N11 to N01
       enddo
 
 c     Interpolate N00 to N10
-      do i1 = ilower1 + 1 - N_gcw, iupper1 + N_gcw
-         do i0 = ilower0 + 1 - N_gcw, iupper0 + N_gcw - 1
+      do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw
+         do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw - 1
 
             N10(i0,i1) = fourth*(N00(i0,i1) + N00(i0+1,i1) +
      &                   N00(i0,i1-1) + N00(i0+1,i1-1))

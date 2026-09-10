@@ -26,14 +26,14 @@ namespace IBAMR
 namespace PhaseChangeUtilities
 {
 void
-callSetDensityCallbackFunction(int rho_idx,
-                               Pointer<Variable<NDIM>> rho_var,
-                               Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                               const int cycle_num,
-                               const double time,
-                               const double current_time,
-                               const double new_time,
-                               void* ctx)
+call_set_density_callback(int rho_idx,
+                          Pointer<Variable<NDIM>> rho_var,
+                          Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                          const int cycle_num,
+                          const double time,
+                          const double current_time,
+                          const double new_time,
+                          void* ctx)
 {
     // Set the density from the level set information
     auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
@@ -41,17 +41,17 @@ callSetDensityCallbackFunction(int rho_idx,
         rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
-} // callSetDensityCallBackFunction
+} // call_set_density_callback
 
 void
-callSetThermalConductivityCallbackFunction(int kappa_idx,
-                                           Pointer<Variable<NDIM>> kappa_var,
-                                           Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                           const int cycle_num,
-                                           const double time,
-                                           const double current_time,
-                                           const double new_time,
-                                           void* ctx)
+call_set_thermal_conductivity_callback(int kappa_idx,
+                                       Pointer<Variable<NDIM>> kappa_var,
+                                       Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                       const int cycle_num,
+                                       const double time,
+                                       const double current_time,
+                                       const double new_time,
+                                       void* ctx)
 {
     // Set the density from the level set information
     auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
@@ -59,17 +59,17 @@ callSetThermalConductivityCallbackFunction(int kappa_idx,
         kappa_idx, kappa_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
-} // callSetThermalConductivityCallbackFunction
+} // call_set_thermal_conductivity_callback
 
 void
-callSetSpecificHeatCallbackFunction(int specific_heat_idx,
-                                    Pointer<Variable<NDIM>> specific_heat_var,
-                                    Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                    const int cycle_num,
-                                    const double time,
-                                    const double current_time,
-                                    const double new_time,
-                                    void* ctx)
+call_set_specific_heat_callback(int specific_heat_idx,
+                                Pointer<Variable<NDIM>> specific_heat_var,
+                                Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                const int cycle_num,
+                                const double time,
+                                const double current_time,
+                                const double new_time,
+                                void* ctx)
 {
     // Set the density from the level set information
     auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
@@ -77,17 +77,17 @@ callSetSpecificHeatCallbackFunction(int specific_heat_idx,
         specific_heat_idx, specific_heat_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
-} // callSetSpecificHeatCallbackFunction
+} // call_set_specific_heat_callback
 
 void
-callSetViscosityCallbackFunction(int mu_idx,
-                                 Pointer<Variable<NDIM>> mu_var,
-                                 Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                 const int cycle_num,
-                                 const double time,
-                                 const double current_time,
-                                 const double new_time,
-                                 void* ctx)
+call_set_viscosity_callback(int mu_idx,
+                            Pointer<Variable<NDIM>> mu_var,
+                            Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                            const int cycle_num,
+                            const double time,
+                            const double current_time,
+                            const double new_time,
+                            void* ctx)
 {
     // Set the density from the level set information
     auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
@@ -95,24 +95,7 @@ callSetViscosityCallbackFunction(int mu_idx,
         mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
-} // callSetViscosityCallBackFunction
-
-void
-callTagLiquidFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
-                                           const int level_number,
-                                           const double error_data_time,
-                                           const int tag_index,
-                                           const bool initial_time,
-                                           const bool uses_richardson_extrapolation_too,
-                                           void* ctx)
-{
-    // Set the density from the level set information
-    auto ptr_tagLiquidFractionCells = static_cast<TagLiquidFractionRefinementCells*>(ctx);
-    ptr_tagLiquidFractionCells->tagLiquidFractionCells(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too, ctx);
-
-    return;
-} // callTagLiquidFractionCellsCallbackFunction
+} // call_set_viscosity_callback
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
@@ -546,6 +529,20 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
     return;
 } // setViscosityPatchData
 
+TagLiquidFractionRefinementCells::TagLiquidFractionRefinementCells(
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+    Pointer<CellVariable<NDIM, double>> lf_var,
+    Pointer<CellVariable<NDIM, double>> lf_grad_var,
+    const double tag_min_value,
+    const double tag_max_value)
+    : d_adv_diff_solver(adv_diff_integrator),
+      d_lf_var(lf_var),
+      d_lf_grad_var(lf_grad_var),
+      d_tag_min_value(tag_min_value),
+      d_tag_max_value(tag_max_value)
+{
+}
+
 void
 TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                          const int level_number,
@@ -583,7 +580,10 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
 
             if (initial_time)
             {
-                if (liquid_fraction >= d_tag_min_value && liquid_fraction <= d_tag_max_value) (*tags_data)(i) = 1;
+                if (liquid_fraction >= d_tag_min_value && liquid_fraction <= d_tag_max_value)
+                {
+                    (*tags_data)(i) = 1;
+                }
             }
             else
             {
@@ -596,13 +596,33 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
                         break;
                     }
                 }
-                if (non_zero_gradient) (*tags_data)(i) = 1;
+                if (non_zero_gradient)
+                {
+                    (*tags_data)(i) = 1;
+                }
             }
         }
     }
 
     return;
 } // tagLiquidFractionCells
+
+void
+call_tag_liquid_fraction_cells_callback(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+                                        const int level_number,
+                                        const double error_data_time,
+                                        const int tag_index,
+                                        const bool initial_time,
+                                        const bool uses_richardson_extrapolation_too,
+                                        void* ctx)
+{
+    // Set the density from the level set information
+    auto ptr_tagLiquidFractionCells = static_cast<TagLiquidFractionRefinementCells*>(ctx);
+    ptr_tagLiquidFractionCells->tagLiquidFractionCells(
+        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too, ctx);
+
+    return;
+} // call_tag_liquid_fraction_cells_callback
 
 //////////////////////////////////////////////////////////////////////////////
 

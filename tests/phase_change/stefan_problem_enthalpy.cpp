@@ -29,6 +29,7 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LaserSourceFunction.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/RelaxationLSMethod.h>
 
@@ -39,17 +40,120 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/MemoryDatabase.h>
+
+#include <sstream>
+
+#include "PhaseChangeTestUtilities.cpp"
+
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include <ibamr/LevelSetUtilities.h>
+#include <ibamr/PhaseChangeUtilities.h>
+
 #include "LSLocateInterface.cpp"
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.cpp"
 #include "LevelSetInitialCondition.h"
-#include "SetFluidProperties.cpp"
-#include "SetFluidProperties.h"
-#include "SetLSProperties.cpp"
-#include "SetLSProperties.h"
+
+void
+scale_laser_flux(int data_idx, Pointer<HierarchyMathOps> math_ops, int, double, double, double, void*)
+{
+    HierarchyCellDataOpsReal<NDIM, double> ops(math_ops->getPatchHierarchy());
+    ops.scale(data_idx, 2.0, data_idx);
+}
+
+void
+check_laser_source(Pointer<EnthalpyHierarchyIntegrator> integrator,
+                   Pointer<CellVariable<NDIM, double>> phi_var,
+                   Pointer<PatchHierarchy<NDIM>> hierarchy,
+                   Pointer<CartesianGridGeometry<NDIM>> geometry,
+                   std::ostream& results)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int current_idx = var_db->mapVariableAndContextToIndex(phi_var, integrator->getCurrentContext());
+    const int new_idx = var_db->mapVariableAndContextToIndex(phi_var, integrator->getNewContext());
+    const int scratch_idx = var_db->mapVariableAndContextToIndex(phi_var, integrator->getScratchContext());
+    Pointer<CellVariable<NDIM, double>> source_var = new CellVariable<NDIM, double>("laser_source");
+    const int source_idx = var_db->registerVariableAndContext(source_var, var_db->getContext("laser_test"));
+    const int moment_idx = var_db->registerClonedPatchDataIndex(source_var, source_idx);
+    const double x_lower = geometry->getXLower()[0];
+    const double length = geometry->getXUpper()[0] - x_lower;
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(new_idx, 0.0);
+        level->allocatePatchData(scratch_idx, 0.0);
+        level->allocatePatchData(source_idx, 0.0);
+        level->allocatePatchData(moment_idx, 0.0);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+            Pointer<CellData<NDIM, double>> current = patch->getPatchData(current_idx);
+            Pointer<CellData<NDIM, double>> next = patch->getPatchData(new_idx);
+            for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+            {
+                const CellIndex<NDIM> ci(it());
+                const double x = geom->getXLower()[0] + (ci(0) - patch->getBox().lower(0) + 0.5) * geom->getDx()[0];
+                (*current)(ci) = x - (x_lower + 0.25 * length);
+                (*next)(ci) = x - (x_lower + 0.75 * length);
+            }
+        }
+    }
+    HierarchyMathOps math_ops("laser_math_ops", hierarchy);
+    const int weight_idx = math_ops.getCellWeightPatchDescriptorIndex();
+    HierarchyCellDataOpsReal<NDIM, double> ops(hierarchy);
+    const std::string time_types[] = { "FORWARD_EULER", "MIDPOINT_RULE", "BACKWARD_EULER" };
+    for (const std::string kernel : { "none", "IB_4" })
+    {
+        for (int t = 0; t < 3; ++t)
+        {
+            Pointer<Database> db = new MemoryDatabase("laser");
+            db->putString("kernel", kernel);
+            db->putString("time_stepping_type", time_types[t]);
+            LaserSourceFunction laser("laser_" + kernel + time_types[t], db, integrator, phi_var);
+            laser.registerHeatFlux(&scale_laser_flux, nullptr);
+            laser.setDataOnPatchHierarchy(source_idx, source_var, hierarchy, 0.0, true);
+            const double initial_norm = ops.L1Norm(source_idx, weight_idx);
+            laser.setDataOnPatchHierarchy(source_idx, source_var, hierarchy, 0.5, false);
+            for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+                    Pointer<CellData<NDIM, double>> source = patch->getPatchData(source_idx);
+                    Pointer<CellData<NDIM, double>> moment = patch->getPatchData(moment_idx);
+                    for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+                    {
+                        const CellIndex<NDIM> ci(it());
+                        const double x =
+                            geom->getXLower()[0] + (ci(0) - patch->getBox().lower(0) + 0.5) * geom->getDx()[0];
+                        (*moment)(ci) = x * (*source)(ci);
+                    }
+                }
+            }
+            const double total = ops.integral(source_idx, weight_idx);
+            const double centroid = ops.integral(moment_idx, weight_idx) / total;
+            results << std::setprecision(13) << "Laser " << kernel << " " << time_types[t]
+                    << ": initial norm = " << initial_norm << ", integral = " << total << ", centroid = " << centroid
+                    << '\n';
+        }
+    }
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(new_idx);
+        level->deallocatePatchData(scratch_idx);
+        level->deallocatePatchData(source_idx);
+        level->deallocatePatchData(moment_idx);
+    }
+    var_db->removePatchDataIndex(source_idx);
+    var_db->removePatchDataIndex(moment_idx);
+}
 
 struct SynchronizeLevelSetCtx
 {
@@ -71,7 +175,7 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
     SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
     Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_current_idx = var_db->mapVariableAndContextToIndex(
@@ -87,7 +191,10 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
             const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                vol_cell *= patch_dx[d];
+            }
             const double num_interface_cells = sync_ls_ctx->num_interface_cells;
             const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
@@ -132,6 +239,11 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+        const bool check_restart = input_db->getBoolWithDefault("check_restart", false);
+        const bool check_amr = input_db->getBoolWithDefault("check_amr", false);
+        const bool check_source_transfer = input_db->getBoolWithDefault("check_source_transfer", false);
+        const bool from_restart = RestartManager::getManager()->isFromRestart();
+        const bool check_extrapolation = input_db->getBoolWithDefault("check_extrapolation", false);
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -160,8 +272,9 @@ main(int argc, char* argv[])
             "INSVCStaggeredConservativeHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
 
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new EnthalpyHierarchyIntegrator(
-            "EnthalpyHierarchyIntegrator", app_initializer->getComponentDatabase("EnthalpyHierarchyIntegrator"));
+        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
+            new RegridCountingIntegrator<EnthalpyHierarchyIntegrator>(
+                "EnthalpyHierarchyIntegrator", app_initializer->getComponentDatabase("EnthalpyHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -188,21 +301,35 @@ main(int argc, char* argv[])
         adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
 
         const double initial_liquid_gas_interface_position = input_db->getDouble("INITIAL_INTERFACE_POSITION");
-        ;
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateInterface* ptr_LSLocateInterface = new LSLocateInterface(
+        LSLocateInterface locate_interface(
             "LSLocateInterface", adv_diff_integrator, ls_var, initial_liquid_gas_interface_position);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&call_ls_locate_interface_callback, &locate_interface);
+        IBAMR::LevelSetUtilities::SetLSProperties set_ls_properties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&set_ls_properties));
 
         // register liquid fraction
         Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
+        Pointer<CellVariable<NDIM, double>> lf_gradient_var;
+        if (check_amr || check_restart)
+        {
+            lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient", NDIM);
+            enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
+        }
+
+        Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
+        enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
+        Pointer<CellVariable<NDIM, double>> lf_extrap_var;
+        if (check_extrapolation)
+        {
+            lf_extrap_var = new CellVariable<NDIM, double>("lf_extrap");
+            enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
+            enthalpy_hier_integrator->registerLiquidFractionVariableForExtrapolation(lf_extrap_var);
+        }
 
         // register Heaviside
         Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
@@ -288,7 +415,7 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        RobinBcCoefStrategy<NDIM>* H_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* H_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
         {
             H_bc_coef = new muParserRobinBcCoefs(
@@ -296,7 +423,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(H_var, H_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -304,7 +431,7 @@ main(int argc, char* argv[])
             enthalpy_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* h_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* h_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("EnthalpyBcCoefs"))
         {
             h_bc_coef = new muParserRobinBcCoefs(
@@ -312,14 +439,14 @@ main(int argc, char* argv[])
             enthalpy_hier_integrator->setEnthalpyBcCoef(h_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* lf_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* lf_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
         {
             lf_bc_coef = new muParserRobinBcCoefs(
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
         }
 
-        RobinBcCoefStrategy<NDIM>* k_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* k_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
         {
             k_bc_coef = new muParserRobinBcCoefs(
@@ -332,7 +459,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -349,7 +476,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -358,7 +485,7 @@ main(int argc, char* argv[])
             enthalpy_hier_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -366,7 +493,7 @@ main(int argc, char* argv[])
             time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* ls_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
         {
             ls_bc_coef = new muParserRobinBcCoefs(
@@ -390,38 +517,42 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            lf_var,
-                                                                            lf_bc_coef,
-                                                                            H_var,
-                                                                            H_bc_coef,
-                                                                            rho_liquid,
-                                                                            rho_solid,
-                                                                            rho_gas,
-                                                                            kappa_liquid,
-                                                                            kappa_solid,
-                                                                            kappa_gas,
-                                                                            Cp_liquid,
-                                                                            Cp_solid,
-                                                                            Cp_gas,
-                                                                            mu_liquid,
-                                                                            mu_solid,
-                                                                            mu_gas);
+        IBAMR::PhaseChangeUtilities::SetFluidProperties set_fluid_properties("SetFluidProperties",
+                                                                             adv_diff_integrator,
+                                                                             H_var,
 
-        time_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetLiquidGasSolidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+                                                                             H_bc_coef,
+
+                                                                             lf_var,
+
+                                                                             lf_bc_coef,
+                                                                             rho_liquid,
+                                                                             rho_solid,
+                                                                             rho_gas,
+                                                                             kappa_liquid,
+                                                                             kappa_solid,
+                                                                             kappa_gas,
+                                                                             Cp_liquid,
+                                                                             Cp_solid,
+                                                                             Cp_gas,
+                                                                             mu_liquid,
+                                                                             mu_solid,
+                                                                             mu_gas);
+
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::call_set_density_callback,
+                                                      static_cast<void*>(&set_fluid_properties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::call_set_viscosity_callback,
+                                                        static_cast<void*>(&set_fluid_properties));
 
         enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
-            &callSetLiquidSolidGasConductivityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::PhaseChangeUtilities::call_set_thermal_conductivity_callback,
+            static_cast<void*>(&set_fluid_properties));
 
-        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidGasSpecificHeatCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::call_set_specific_heat_callback, static_cast<void*>(&set_fluid_properties));
 
-        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                          static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::call_set_density_callback,
+                                                          static_cast<void*>(&set_fluid_properties));
 
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double>> F_var = new CellVariable<NDIM, double>("F");
@@ -454,8 +585,18 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
+        RefinementRegion refinement_region(input_db->getDoubleWithDefault("DT_MAX", 1.0));
+        if (check_amr || check_source_transfer)
+        {
+            time_integrator->registerApplyGradientDetectorCallback(&tag_moving_refinement_region, &refinement_region);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+        Pointer<RegridCountingIntegrator<EnthalpyHierarchyIntegrator>> counting_integrator = enthalpy_hier_integrator;
+        const int initial_reset_count = counting_integrator->getConfigurationResetCount();
+        const int initial_mesh_change_count = counting_integrator->getMeshChangeCount();
+        const int initial_step = time_integrator->getIntegratorStep();
 
         // Remove the AppInitializer
         app_initializer.setNull();
@@ -481,7 +622,7 @@ main(int argc, char* argv[])
         const int pcm_mass_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
 
         const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(pcm_mass_idx, loop_time);
@@ -489,12 +630,31 @@ main(int argc, char* argv[])
 
         Pointer<HierarchyCellDataOpsReal<NDIM, double>> hier_cc_data_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
-        std::ofstream pcm_mass_file;
-        pcm_mass_file.open("output");
+        std::ostringstream results;
+        if (check_source_transfer)
+        {
+            check_divergence_source_transfer(
+                time_integrator, enthalpy_hier_integrator, patch_hierarchy, refinement_region, results);
+            if (IBTK_MPI::sumReduction(counting_integrator->getMeshChangeCount() - initial_mesh_change_count) == 0)
+            {
+                TBOX_ERROR("Source transfer test did not move the refined region.\n");
+            }
+        }
+        const bool check_laser = input_db->getBoolWithDefault("check_laser", false);
+        if (check_laser)
+        {
+            check_laser_source(enthalpy_hier_integrator, ls_var, patch_hierarchy, grid_geometry, results);
+        }
+        const bool check_tags = input_db->getBoolWithDefault("check_tags", false);
+        if (check_tags)
+        {
+            check_liquid_fraction_tags(enthalpy_hier_integrator, patch_hierarchy);
+        }
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        while (!check_source_transfer && !check_laser && !check_tags &&
+               !MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
@@ -506,6 +666,11 @@ main(int argc, char* argv[])
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
+            if (check_amr)
+            {
+                check_liquid_fraction_gradient(
+                    enthalpy_hier_integrator, patch_hierarchy, lf_var, lf_gradient_var, results);
+            }
             loop_time += dt;
 
             pout << "\n";
@@ -514,11 +679,49 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
+            finest_ln = patch_hierarchy->getFinestLevelNumber();
+            hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(pcm_mass_idx))
+                {
+                    level->allocatePatchData(pcm_mass_idx, loop_time);
+                }
+            }
             hier_cc_data_ops->multiply(pcm_mass_idx, rho_idx, H_idx);
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
-            pcm_mass_file << std::setprecision(13) << loop_time << "\t" << mass << "\n";
+            if (!check_restart && !check_extrapolation)
+            {
+                results << std::setprecision(13) << loop_time << "\t" << mass << "\n";
+            }
+            else if (check_restart)
+            {
+                const std::vector<int> cell_indices = {
+                    enthalpy_hier_integrator->getVelocityDivergencePatchDataIndex(),
+                    var_db->mapVariableAndContextToIndex(lf_gradient_var,
+                                                         enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(T_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(lf_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(H_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(rho_cc_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(Cp_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(h_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(ls_var, enthalpy_hier_integrator->getCurrentContext()),
+                    var_db->mapVariableAndContextToIndex(time_integrator->getPressureVariable(),
+                                                         time_integrator->getCurrentContext())
+                };
+                check_restart_fields(patch_hierarchy,
+                                     cell_indices,
+                                     { var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
+                                                                            time_integrator->getCurrentContext()) },
+                                     iteration_num + 1,
+                                     loop_time,
+                                     from_restart,
+                                     results);
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -549,11 +752,92 @@ main(int argc, char* argv[])
         }
 
         var_db->removePatchDataIndex(pcm_mass_idx);
+        if (check_extrapolation)
+        {
+            const int extrap_idx =
+                var_db->mapVariableAndContextToIndex(lf_extrap_var, adv_diff_integrator->getCurrentContext());
+            const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
+            const int T_idx = var_db->mapVariableAndContextToIndex(T_var, adv_diff_integrator->getCurrentContext());
+            const double gas_fraction =
+                input_db->getDatabase("EnthalpyHierarchyIntegrator")->getDouble("gas_liquid_fraction");
+            int checked_pcm = 0, checked_gas = 0;
+            double temperature_error = 0.0, pcm_error = 0.0, gas_error = 0.0;
+            double minimum = std::numeric_limits<double>::max(), maximum = -minimum;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+                    Pointer<CellData<NDIM, double>> extrap = patch->getPatchData(extrap_idx);
+                    Pointer<CellData<NDIM, double>> fraction = patch->getPatchData(lf_idx);
+                    Pointer<CellData<NDIM, double>> temperature = patch->getPatchData(T_idx);
+                    for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+                    {
+                        const CellIndex<NDIM> ci(it());
+                        const double x =
+                            geom->getXLower()[0] + (ci(0) - patch->getBox().lower(0) + 0.5) * geom->getDx()[0];
+                        const double value = (*extrap)(ci);
+                        if (!std::isfinite(value) || !std::isfinite((*temperature)(ci)) ||
+                            !std::isfinite((*fraction)(ci)))
+                        {
+                            TBOX_ERROR("Nonfinite extrapolated fraction, temperature, or liquid fraction.\n");
+                        }
+                        minimum = std::min(minimum, value);
+                        maximum = std::max(maximum, value);
+                        temperature_error = std::max(temperature_error, std::abs((*temperature)(ci)-1.0));
+                        if (x > 0.5 + 2.0 * geom->getDx()[0])
+                        {
+                            pcm_error =
+                                std::max(pcm_error, std::max(std::abs(value - 0.5), std::abs((*fraction)(ci)-0.5)));
+                            ++checked_pcm;
+                        }
+                        if (x < 0.5 && x > 0.5 - geom->getDx()[0])
+                        {
+                            gas_error = std::max(
+                                gas_error, std::max(std::abs(value - 0.5), std::abs((*fraction)(ci)-gas_fraction)));
+                            ++checked_gas;
+                        }
+                    }
+                }
+            }
+            if (IBTK_MPI::sumReduction(checked_pcm) == 0 || IBTK_MPI::sumReduction(checked_gas) == 0)
+            {
+                TBOX_ERROR("Extrapolation test did not cover both phases.\n");
+            }
+            results << std::setprecision(13)
+                    << "Maximum temperature error = " << IBTK_MPI::maxReduction(temperature_error) << '\n'
+                    << "Maximum PCM fraction error = " << IBTK_MPI::maxReduction(pcm_error) << '\n'
+                    << "Maximum gas extension error = " << IBTK_MPI::maxReduction(gas_error) << '\n'
+                    << "Extended fraction range = " << IBTK_MPI::minReduction(minimum) << " "
+                    << IBTK_MPI::maxReduction(maximum) << '\n';
+        }
+
+        if (check_amr)
+        {
+            if (patch_hierarchy->getFinestLevelNumber() != 1 ||
+                counting_integrator->getConfigurationResetCount() <= initial_reset_count)
+            {
+                TBOX_ERROR("The phase-change operators were not reset on a refined hierarchy.\n");
+            }
+            if (IBTK_MPI::sumReduction(counting_integrator->getMeshChangeCount() - initial_mesh_change_count) == 0)
+            {
+                TBOX_ERROR("The refined region did not move during integration.\n");
+            }
+        }
+        if (check_restart)
+        {
+            if (time_integrator->getIntegratorStep() <= initial_step)
+            {
+                TBOX_ERROR("Restart test did not advance the hierarchy.\n");
+            }
+        }
+        PIO::logOnlyNodeZero("output");
+        plog << results.str();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
-        delete ptr_SetFluidProperties;
-        pcm_mass_file.close();
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

@@ -63,11 +63,14 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief Class LaserSourceFunction can be used to account the laser beam effects as a source term into the energy
- * equation.
+ * \brief Apply an interfacial heat flux as a cell-centered energy source.
  *
- * \note Presently, this class assumes that the indicator function is a cell centered
- * Heaviside variable that is maintained by the advection-diffusion integrator.
+ * Supply a cell-centered level set registered with the phase-change integrator;
+ * its nonnegative side denotes the heated material. The heat-flux callback scales the interfacial weights in place. The
+ * solver and variable are retained; the callback context is borrowed and must remain valid during evaluation.
+ *
+ * Call setDataOnPatchHierarchy() to prepare the level-set-derived interfacial
+ * weights before patch evaluation. Initial-time evaluation supplies zero weights to the callback.
  *
  * Reference
  * Thirumalaisamy and Bhalla, <A
@@ -88,7 +91,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~LaserSourceFunction() = default;
+    ~LaserSourceFunction() override = default;
 
     /*!
      * \name Methods to set the data.
@@ -101,11 +104,7 @@ public:
     bool isTimeDependent() const override;
 
     /*!
-     * \brief Evaluate the function on the patch interiors on the specified
-     * levels of the patch hierarchy using the virtual function
-     * setDataOnPatch().
-     *
-     * \see setDataOnPatch
+     * \brief Form interfacial weights and apply the registered heat flux.
      */
     void setDataOnPatchHierarchy(int data_idx,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
@@ -116,7 +115,7 @@ public:
                                  int finest_ln = -1) override;
 
     /*!
-     * Set the data on the patch interior.
+     * \brief Evaluate the magnitude of the prepared Heaviside gradient on a patch.
      */
     void setDataOnPatch(int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
@@ -124,7 +123,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(NULL)) override;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) override;
 
     /*!
      * \brief Callback function to compute the imposed heat flux.
@@ -143,31 +142,10 @@ public:
     void registerHeatFlux(HeatFluxPtr callback, void* ctx);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
     LaserSourceFunction() = delete;
 
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
     LaserSourceFunction(const LaserSourceFunction& from) = delete;
 
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
     LaserSourceFunction& operator=(const LaserSourceFunction& that) = delete;
 
     /*!
@@ -215,16 +193,6 @@ private:
      * Time stepping type.
      */
     TimeSteppingType d_ts_type;
-
-    /*!
-     * Get the stencil size for the kernel.
-     */
-    int getStencilSize(const std::string& kernel_fcn);
-
-    /*!
-     * Get the ghost cell width of scratch data.
-     */
-    int getMinimumGhostWidth(const std::string& kernel_fcn);
 
     std::string d_kernel_fcn;
 

@@ -29,7 +29,7 @@ class HierarchyMathOps;
 }
 
 /*
- * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
+ * Pre processing call back function to be hooked into IBAMR:LInitStrategy
  */
 
 void callLSLocateLayerInterfaceCallbackFunction(int D_idx,

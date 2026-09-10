@@ -37,13 +37,144 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <sstream>
+
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include <SetFluidProperties.h>
-#include <SetLSProperties.h>
+#include <ibamr/LevelSetUtilities.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include "LSLocateCircularInterface.h"
+
+#if (NDIM == 2)
+#define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_2d, SC_NORMAL_2D)
+#else
+#define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_3d, SC_NORMAL_3D)
+#endif
+
+extern "C"
+{
+    void SC_NORMAL_FC(double* N00,
+                      double* N01,
+#if (NDIM == 3)
+                      double* N02,
+#endif
+                      double* N10,
+                      double* N11,
+#if (NDIM == 3)
+                      double* N12,
+                      double* N20,
+                      double* N21,
+                      double* N22,
+#endif
+                      const int& N_gcw,
+                      const double* U,
+                      const int& U_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+#if (NDIM == 3)
+                      const int& ilower2,
+                      const int& iupper2,
+#endif
+                      const double* dx);
+}
+
+// Exercise the library kernel with actual SAMRAI cell and side data, including
+// the unequal ghost widths used for the Marangoni temperature gradient.
+void
+check_surface_tension_gradient()
+{
+    const Box<NDIM> box(hier::Index<NDIM>(-3), hier::Index<NDIM>(4));
+    const double dx[3] = { 0.2, 0.3, 0.4 };
+    for (int input_gcw = 1; input_gcw <= 3; ++input_gcw)
+    {
+        CellData<NDIM, double> scalar(box, 1, IntVector<NDIM>(input_gcw));
+        for (Box<NDIM>::Iterator it(scalar.getGhostBox()); it; it++)
+        {
+            const CellIndex<NDIM> ci(it());
+            double value = 0.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                const double x = (ci(d) + 0.5) * dx[d];
+                value += (d + 1.0) * x * x + (d + 2.0) * x;
+            }
+            value += (ci(0) + 0.5) * dx[0] * (ci(1) + 0.5) * dx[1];
+            scalar(ci) = value;
+        }
+        for (int output_gcw = 1; output_gcw <= 3; ++output_gcw)
+        {
+            SideData<NDIM, double> gradient(box, NDIM, IntVector<NDIM>(output_gcw));
+            gradient.fillAll(std::numeric_limits<double>::quiet_NaN());
+            SC_NORMAL_FC(gradient.getPointer(0, 0),
+                         gradient.getPointer(0, 1),
+#if (NDIM == 3)
+                         gradient.getPointer(0, 2),
+#endif
+                         gradient.getPointer(1, 0),
+                         gradient.getPointer(1, 1),
+#if (NDIM == 3)
+                         gradient.getPointer(1, 2),
+                         gradient.getPointer(2, 0),
+                         gradient.getPointer(2, 1),
+                         gradient.getPointer(2, 2),
+#endif
+                         output_gcw,
+                         scalar.getPointer(),
+                         input_gcw,
+                         box.lower(0),
+                         box.upper(0),
+                         box.lower(1),
+                         box.upper(1),
+#if (NDIM == 3)
+                         box.lower(2),
+                         box.upper(2),
+#endif
+                         dx);
+            double max_error = 0.0;
+            Box<NDIM> valid_box = box;
+            valid_box.grow(std::min(input_gcw, output_gcw) - 1);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(valid_box, axis)); it; it++)
+                {
+                    const SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                    double x[NDIM];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        x[d] = (si(d) + (d == axis ? 0.0 : 0.5)) * dx[d];
+                    }
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        double expected = 2.0 * (d + 1.0) * x[d] + d + 2.0;
+                        if (d == 0)
+                        {
+                            expected += x[1];
+                        }
+                        else if (d == 1)
+                        {
+                            expected += x[0];
+                        }
+                        const double computed = gradient(si, d);
+                        if (!std::isfinite(computed))
+                        {
+                            TBOX_ERROR("Incorrect surface-tension gradient with input ghost width "
+                                       << input_gcw << " and output ghost width " << output_gcw << "\n");
+                        }
+                        max_error = std::max(max_error, std::abs(computed - expected));
+                    }
+                }
+            }
+            plog << std::setprecision(13) << "Input ghost width " << input_gcw << ", output ghost width " << output_gcw
+                 << ": maximum gradient error = " << max_error << '\n';
+        }
+    }
+}
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -63,6 +194,31 @@ void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
+template <class BaseIntegrator>
+class ProjectionTestIntegrator : public BaseIntegrator
+{
+public:
+    using BaseIntegrator::BaseIntegrator;
+
+    int getRegridProjectionCount() const
+    {
+        return d_regrid_projection_count;
+    }
+
+protected:
+    void regridProjection(const bool initial_time) override
+    {
+        BaseIntegrator::regridProjection(initial_time);
+        if (!initial_time)
+        {
+            ++d_regrid_projection_count;
+        }
+    }
+
+private:
+    int d_regrid_projection_count = 0;
+};
+
 int
 main(int argc, char* argv[])
 {
@@ -79,6 +235,13 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        if (input_db->getBoolWithDefault("check_gradient", false))
+        {
+            PIO::logOnlyNodeZero("output");
+            check_surface_tension_gradient();
+            return 0;
+        }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -103,19 +266,20 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
+        const bool check_regrid = input_db->getBoolWithDefault("check_regrid_projection", false);
         Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator;
         const string discretization_form =
             app_initializer->getComponentDatabase("Main")->getString("discretization_form");
         const bool conservative_form = (discretization_form == "CONSERVATIVE");
         if (conservative_form)
         {
-            time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
+            time_integrator = new ProjectionTestIntegrator<INSVCStaggeredConservativeHierarchyIntegrator>(
                 "INSVCStaggeredConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
         }
         else if (!conservative_form)
         {
-            time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
+            time_integrator = new ProjectionTestIntegrator<INSVCStaggeredNonConservativeHierarchyIntegrator>(
                 "INSVCStaggeredNonConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredNonConservativeHierarchyIntegrator"));
         }
@@ -185,9 +349,9 @@ main(int argc, char* argv[])
             new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, &circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", NULL, level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties set_ls_properties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&set_ls_properties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -217,23 +381,21 @@ main(int argc, char* argv[])
         const double rho_outside = input_db->getDouble("RHO_O");
         const double mu_inside = input_db->getDouble("MU_I");
         const double mu_outside = input_db->getDouble("MU_O");
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
 
         // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            phi_var,
-                                                                            rho_outside,
-                                                                            rho_inside,
-                                                                            mu_outside,
-                                                                            mu_inside,
-                                                                            ls_reinit_interval,
-                                                                            num_interface_cells);
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties set_fluid_properties("SetFluidProperties",
+                                                                       adv_diff_integrator,
+                                                                       phi_var,
+                                                                       rho_outside,
+                                                                       rho_inside,
+                                                                       mu_outside,
+                                                                       mu_inside,
+                                                                       num_interface_cells);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&set_fluid_properties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&set_fluid_properties));
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -256,7 +418,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -273,7 +435,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -281,7 +443,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(phi_var, phi_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("RhoBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -289,7 +451,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("MuBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -333,7 +495,7 @@ main(int argc, char* argv[])
         }
 
         // File to write errors.
-        ofstream out("output");
+        std::ostringstream out;
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -383,8 +545,13 @@ main(int argc, char* argv[])
             const double Umax = hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx);
             const double UL1 = hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx);
 
+            if (!std::isfinite(fluid_mass) || !std::isfinite(dP) || !std::isfinite(Umax) || !std::isfinite(UL1))
+            {
+                TBOX_ERROR("The bubble diagnostics must be finite.\n");
+            }
+
             // Write to file.
-            if (!IBTK_MPI::getRank())
+            if (!check_regrid && !IBTK_MPI::getRank())
             {
                 out << std::setprecision(16) << loop_time << "\t"
                     << "Relative pressure error = |dP - dP_exact|/dP_exact = " << std::abs(dP - dP_exact) / dP_exact
@@ -421,16 +588,40 @@ main(int argc, char* argv[])
             }
         }
 
-        // Close file.
-        out.close();
+        if (check_regrid)
+        {
+            const int projection_count =
+                conservative_form ?
+                    dynamic_cast<ProjectionTestIntegrator<INSVCStaggeredConservativeHierarchyIntegrator>*>(
+                        time_integrator.getPointer())
+                        ->getRegridProjectionCount() :
+                    dynamic_cast<ProjectionTestIntegrator<INSVCStaggeredNonConservativeHierarchyIntegrator>*>(
+                        time_integrator.getPointer())
+                        ->getRegridProjectionCount();
+            if (projection_count == 0)
+            {
+                TBOX_ERROR("The test must perform a projection after regridding.\n");
+            }
+        }
+
+        PIO::logOnlyNodeZero("output");
+        if (check_regrid)
+        {
+            plog << "Regrid projection completed with finite bubble diagnostics.\n";
+        }
+        else
+        {
+            plog << out.str();
+        }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            delete u_bc_coefs[d];
+        }
 
         // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
         delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
@@ -449,7 +640,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
+    snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

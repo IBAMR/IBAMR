@@ -457,7 +457,15 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     registerVariable(d_updated_rho_idx, d_updated_rho_var, no_ghosts, getCurrentContext());
 
     d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F_var");
-    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
+    // The flow integrator needs this source during regridding, before the next
+    // phase-change update. Transfer it with the other persistent state data.
+    registerVariable(d_Div_U_F_idx,
+                     d_Div_U_F_new_idx,
+                     d_Div_U_F_scratch_idx,
+                     d_Div_U_F_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -593,6 +601,10 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Source callbacks use the current index during coupled iterations. Preserve
+    // the final value when the new and current state are exchanged after the step.
+    d_hier_cc_data_ops->copyData(d_Div_U_F_new_idx, d_Div_U_F_idx);
 
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

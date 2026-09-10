@@ -33,12 +33,12 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LevelSetInitialCondition(const std::string& object_name, const double initial_interface_position);
+    LevelSetInitialCondition(const std::string& object_name, double initial_interface_position);
 
     /*!
      * \brief Empty destructor.
      */
-    ~LevelSetInitialCondition() = default;
+    ~LevelSetInitialCondition() override = default;
 
     /*!
      * \brief Indicates whether the concrete TemperatureInitialCondition object is
@@ -49,12 +49,12 @@ public:
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void setDataOnPatch(const int data_idx,
+    void setDataOnPatch(int data_idx,
                         Pointer<SAMRAI::hier::Variable<NDIM>> var,
                         Pointer<Patch<NDIM>> patch,
-                        const double data_time,
-                        const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM>> patch_level = Pointer<PatchLevel<NDIM>>(NULL)) override;
+                        double data_time,
+                        bool initial_time = false,
+                        Pointer<PatchLevel<NDIM>> patch_level = Pointer<PatchLevel<NDIM>>(nullptr)) override;
 
     //\}
 
@@ -82,7 +82,7 @@ private:
     /*!
      * Liquid and mold temperature.
      */
-    const double d_initial_interface_position;
+    double d_initial_interface_position;
 };
 
 //////////////////////////////////////////////////////////////////////////////

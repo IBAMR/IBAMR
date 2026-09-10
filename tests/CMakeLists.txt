@@ -151,6 +151,7 @@ SETUP(multiphase_flow check_hydro_force.cpp IBAMR2d)
 SETUP(multiphase_flow high_density_droplet.cpp IBAMR2d)
 SETUP(multiphase_flow water_entry_circular_cylinder.cpp IBAMR2d)
 SETUP(multiphase_flow static_bubble_with_surface_tension.cpp IBAMR2d)
+SETUP_3D(multiphase_flow static_bubble_with_surface_tension.cpp)
 SETUP(multiphase_flow migration_of_bubble_with_zero_ma.cpp IBAMR2d)
 
 # navier_stokes:
@@ -191,6 +192,7 @@ SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
 # phase_change:
 SETUP_2D(phase_change stefan_problem_enthalpy.cpp)
+SETUP_3D(phase_change stefan_problem_enthalpy.cpp)
 SETUP_2D(phase_change stefan_problem_ac.cpp)
 
 # wave_tank:

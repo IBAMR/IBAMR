@@ -20,18 +20,18 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-callLSLocateInterfaceCallbackFunction(int D_idx,
-                                      Pointer<HierarchyMathOps> hier_math_ops,
-                                      double time,
-                                      bool initial_time,
-                                      void* ctx)
+call_ls_locate_interface_callback(int D_idx,
+                                  Pointer<HierarchyMathOps> hier_math_ops,
+                                  double time,
+                                  bool initial_time,
+                                  void* ctx)
 {
     // Set the level set information
-    static LSLocateInterface* ptr_LSLocateInterface = static_cast<LSLocateInterface*>(ctx);
+    LSLocateInterface* ptr_LSLocateInterface = static_cast<LSLocateInterface*>(ctx);
     ptr_LSLocateInterface->setLevelSetPatchData(D_idx, hier_math_ops, time, initial_time);
 
     return;
-} // callLSLocateInterfaceCallbackFunction
+} // call_ls_locate_interface_callback
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateInterface::LSLocateInterface(const std::string& object_name,
@@ -46,12 +46,6 @@ LSLocateInterface::LSLocateInterface(const std::string& object_name,
     // intentionally left blank
     return;
 } // LSLocateInterface
-
-LSLocateInterface::~LSLocateInterface()
-{
-    // intentionally left blank
-    return;
-}
 
 void
 LSLocateInterface::setLevelSetPatchData(int D_idx,

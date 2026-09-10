@@ -228,8 +228,17 @@ private:
     /*!
      * \brief The surface tension force is multiplied by a liquid fraction to zero out the surface tension
      * contribution in the liquid-solid and gas-solid interfaces. However, the liquid fraction is arbitrary in the gas
-     * phase. so extrapolation of liquid fraction from PCM into the gas is necessary to get the correct results. Forward
-     * Euler time stepping scheme is used to perfom constant extrapolation with fixed 15 iterations and CFL = 0.3.
+     * phase, so the liquid fraction is extended from PCM into the gas before evaluating this force.
+     * Forward Euler pseudo-time stepping uses dt = 0.3 * lf_extrap_cell_size and
+     * lf_extrap_max_num_time_steps iterations. Set lf_extrap_cell_size to the smallest mesh spacing.
+     * For a unit interface normal, the nominal extension distance is
+     * 0.3 * lf_extrap_cell_size * lf_extrap_max_num_time_steps; the smoothed gas indicator
+     * reduces the speed near the interface. Choose enough iterations to cover the force stencil.
+     * The example choice of 15 iterations corresponds to a nominal 4.5-cell extension,
+     * rather than a convergence criterion. The fixed Courant factor 0.3 limits each update
+     * to a fraction of a cell; it does not replace checking convergence with extension distance.
+     * These estimates assume that the level set remains approximately a signed-distance function:
+     * the extrapolation velocity uses its gradient without explicit normalization.
      */
     void extrapolateLiquidFractionToGasRegion(int lf_new_idx);
 
