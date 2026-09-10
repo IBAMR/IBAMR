@@ -1,0 +1,98 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2018 - 2019 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
+#ifndef included_SetLSProperties
+#define included_SetLSProperties
+
+///////////////////////////// INCLUDES ///////////////////////////////////
+#include <ibamr/LSInitStrategy.h>
+
+namespace IBTK
+{
+class HierarchyMathOps;
+}
+
+/*!
+ * Pre processing call back function to be hooked into
+ * IBAMR::AdvDiffHierarchyIntegrator class.
+ *
+ * \param ls_idx a patch data index for the current level set variable
+ * maintained by the integrator. \param ctx is the pointer to SetLSProperties
+ * class object.
+ */
+
+void callSetLSCallbackFunction(int ls_idx,
+                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               const int integrator_step,
+                               const double current_time,
+                               const bool initial_time,
+                               const bool regrid_time,
+                               void* ctx);
+class SetLSProperties
+{
+    /*!
+     * \brief Class SetLSProperties is a utility class which sets level set values
+     * on the patch hierarchy
+     */
+public:
+    /*!
+     * The only constructor of this class.
+     */
+    SetLSProperties(const std::string& object_name, SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops);
+
+    /*!
+     * Destructor for this class.
+     */
+    ~SetLSProperties();
+
+    /*!
+     * Set the density based on the current level set information
+     */
+    void setLSPatchData(int ls_idx,
+                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                        const int integrator_step,
+                        const double current_time,
+                        const bool initial_time,
+                        const bool regrid_time);
+
+private:
+    /*!
+     * Deleted default constructor.
+     */
+    SetLSProperties() = delete;
+
+    /*!
+     * Deleted copy constructor.
+     */
+    SetLSProperties(const SetLSProperties& from) = delete;
+
+    /*!
+     * Deleted assignment operator.
+     */
+    SetLSProperties& operator=(const SetLSProperties& that) = delete;
+
+    /*!
+     * Name of this object.
+     */
+    std::string d_object_name;
+
+    /*!
+     * Pointer to LSInitStrategy.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
+
+}; // SetLSProperties
+
+#endif // #ifndef included_SetLSProperties
