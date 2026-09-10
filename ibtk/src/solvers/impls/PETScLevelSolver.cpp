@@ -17,6 +17,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/PETScLevelSolverShellBackend.h>
 
 #include <tbox/Database.h>
 #include <tbox/PIO.h>
@@ -427,7 +428,27 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
     }
 
-    if (d_pc_type == "shell")
+    if (d_pc_type == "shell" && (d_shell_pc_type == "additive" || d_shell_pc_type.rfind("additive-", 0) == 0))
+    {
+        const std::string backend_key = d_shell_pc_type == "additive" ? "petsc" : d_shell_pc_type.substr(9);
+        d_shell_backend = PETScLevelSolverShellBackendManager::get_manager().allocateBackend(backend_key);
+        std::vector<std::set<int>> overlap_is, nonoverlap_is;
+        generateASMSubdomains(overlap_is, nonoverlap_is);
+        if (d_overlap_is.empty())
+        {
+            generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+        }
+        d_shell_backend->initializeSolverState(
+            d_petsc_mat, d_petsc_x, d_petsc_b, d_overlap_is, d_nonoverlap_is, d_options_prefix);
+        ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
+        IBTK_CHKERRQ(ierr);
+        ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::pc_apply_additive);
+        IBTK_CHKERRQ(ierr);
+        const std::string pc_name = d_options_prefix + "PC_Additive";
+        ierr = PCShellSetName(ksp_pc, pc_name.c_str());
+        IBTK_CHKERRQ(ierr);
+    }
+    else if (d_pc_type == "shell")
     {
         Mat diagonal_mat_block;
         ierr = MatGetDiagonalBlock(d_petsc_mat, &diagonal_mat_block);
@@ -602,15 +623,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         IBTK_CHKERRQ(ierr);
         ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
         IBTK_CHKERRQ(ierr);
-        if (d_shell_pc_type == "additive")
-        {
-            ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Additive);
-            IBTK_CHKERRQ(ierr);
-            std::string pc_name = d_options_prefix + "PC_Additive";
-            ierr = PCShellSetName(ksp_pc, pc_name.c_str());
-            IBTK_CHKERRQ(ierr);
-        }
-        else if (d_shell_pc_type == "multiplicative")
+        if (d_shell_pc_type == "multiplicative")
         {
             ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Multiplicative);
             IBTK_CHKERRQ(ierr);
@@ -641,6 +654,12 @@ PETScLevelSolver::deallocateSolverState()
 
     IBTK_TIMER_START(t_deallocate_solver_state);
 
+    if (d_shell_backend)
+    {
+        d_shell_backend->deallocateSolverState();
+        d_shell_backend.reset();
+    }
+
     // Perform specialized operations to deallocate solver state.
     deallocateSolverStateSpecialized();
 
@@ -666,7 +685,7 @@ PETScLevelSolver::deallocateSolverState()
     IBTK_CHKERRQ(ierr);
 
     // Deallocate PETSc objects for shell preconditioner.
-    if (d_pc_type == "shell")
+    if (d_pc_type == "shell" && d_shell_pc_type == "multiplicative")
     {
         for (int i = 0; i < d_n_local_subdomains; ++i)
         {
@@ -811,49 +830,19 @@ PETScLevelSolver::setupNullSpace()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 PetscErrorCode
-PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
+PETScLevelSolver::pc_apply_additive(PC pc, Vec x, Vec y)
 {
     PetscFunctionBeginUser;
-    int ierr;
-    void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
+    void* ctx = nullptr;
+    const int ierr = PCShellGetContext(pc, &ctx);
     CHKERRQ(ierr);
     auto solver = static_cast<PETScLevelSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-    const int n_local_subdomains = solver->d_n_local_subdomains;
-    const int n_subdomains_max = solver->d_n_subdomains_max;
-    std::vector<VecScatter>& restriction = solver->d_restriction;
-    std::vector<VecScatter>& prolongation = solver->d_prolongation;
-    std::vector<KSP>& sub_ksp = solver->d_sub_ksp;
-    std::vector<Vec>& sub_x = solver->d_sub_x;
-    std::vector<Vec>& sub_y = solver->d_sub_y;
-
-    // Restrict the global vector to the local vectors, solve the local systems, and
-    // prolong the data back into the global vector.
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
-        ierr = VecScatterBegin(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        CHKERRQ(ierr);
-    }
-    for (int i = 0; i < n_subdomains_max; ++i)
-    {
-        ierr = VecScatterEnd(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        CHKERRQ(ierr);
-        if (i < n_local_subdomains)
-        {
-            ierr = KSPSolve(sub_ksp[i], sub_x[i], sub_y[i]);
-            CHKERRQ(ierr);
-        }
-        ierr = VecScatterBegin(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        CHKERRQ(ierr);
-        // Complete this write to the common destination before starting another.
-        ierr = VecScatterEnd(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        CHKERRQ(ierr);
-    }
+    solver->d_shell_backend->apply(x, y);
     PetscFunctionReturn(0);
-} // PCApply_Additive
+} // pc_apply_additive
 
 PetscErrorCode
 PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
