@@ -1,0 +1,13 @@
+prolongation input norm = 3.00622
+prolongation matrix norm = 2.25466
+prolongation schedule norm = 2.25466
+prolongation transfer error = 4.44089e-16
+prolongation constant error = 2.22045e-16
+prolongation affine interior error = 3.33067e-16
+restriction input norm = 2.47456
+restriction matrix norm = 1.45843
+restriction schedule norm = 1.45843
+restriction transfer error = 1.33227e-15
+restriction constant error = 4.44089e-16
+restriction affine interior error = 3.33067e-16
+restriction volume adjoint error = 2.25514e-17

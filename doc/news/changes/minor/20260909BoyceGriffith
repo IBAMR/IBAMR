@@ -1,0 +1,7 @@
+New: Add IBTK::CartCellDoubleLinearRefine and IBTK::CartCellDoubleLinearCoarsen,
+which apply tensor-product linear interpolation and its cell-volume adjoint to
+cell-centered data, and the matching PETSc matrices from
+IBTK::PETScMatUtilities::constructProlongationOp() for cell-centered data with the
+"LINEAR" operator type.
+<br>
+(Boyce Griffith, 2026/09/09)

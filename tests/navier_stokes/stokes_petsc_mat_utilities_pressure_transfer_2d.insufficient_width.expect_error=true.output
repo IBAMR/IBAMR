@@ -1,0 +1,10 @@
+prolongation input norm = 1.65189
+prolongation matrix norm = 1.65189
+prolongation schedule norm = 1.65189
+prolongation transfer error = 4.44089e-16
+prolongation constant error = 2.22045e-16
+prolongation affine interior error = 2.22045e-16
+Program abort called with error message
+
+    CartCellDoubleLinearCoarsen::coarsen(): insufficient declared or allocated fine-cell stencil width.
+

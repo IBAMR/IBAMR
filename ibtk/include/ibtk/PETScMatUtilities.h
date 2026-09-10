@@ -170,6 +170,21 @@ public:
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
      * prolongation from a coarser level to a finer level.
+     *
+     * The data centering is that of the variable dof_index_idx. Cell-centered
+     * data support the op_type "CONSERVATIVE" and "LINEAR", and side-centered
+     * data support "RT0" and "LINEAR". For cell-centered data, "LINEAR" is the
+     * matrix of IBTK::CartCellDoubleLinearRefine: it interpolates linearly in
+     * each coordinate between the two nearest coarse cell centers, extends the
+     * nearest coarse value as a constant between a physical boundary and the
+     * first coarse cell center, and wraps at periodic boundaries.
+     *
+     * The rows are the fine-level DOFs and the columns are the coarse-level DOFs,
+     * each numbered as in dof_index_idx; coarse_level_ao and coarse_ao_offset map
+     * the coarse level's application ordering to the PETSc ordering. The AO is
+     * borrowed and must remain valid during the call. The physical domain of the
+     * coarse level must consist of a single box, which is checked only in debug
+     * builds. Any existing mat is destroyed and replaced.
      */
     static void constructProlongationOp(Mat& mat,
                                         const std::string& op_type,
@@ -289,6 +304,22 @@ private:
                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
                                              const AO& coarse_level_ao,
                                              const int coarse_ao_offset);
+    /*!
+     * \brief Construct the cell-centered "LINEAR" case of constructProlongationOp().
+     *
+     * The boundary behavior, numbering, AO lifetime, and replacement of mat are
+     * those documented there.
+     */
+    static void
+    constructLinearProlongationOp_cell(Mat& mat,
+                                       int dof_index_idx,
+                                       const std::vector<int>& num_fine_dofs_per_proc,
+                                       const std::vector<int>& num_coarse_dofs_per_proc,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
+                                       AO coarse_level_ao,
+                                       int coarse_ao_offset);
+
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to sc-data
      * and RT0 prolongation from a coarser level to a finer level.
