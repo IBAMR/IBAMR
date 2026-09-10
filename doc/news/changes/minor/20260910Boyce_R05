@@ -1,0 +1,3 @@
+Fixed: Correct 3D spreading with the five-point IB kernel.
+<br>
+(Boyce Griffith, 2026/09/10)
