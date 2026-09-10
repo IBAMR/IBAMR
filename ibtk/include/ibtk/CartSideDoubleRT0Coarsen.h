@@ -48,12 +48,21 @@ namespace IBTK
  * \brief Class CartSideDoubleRT0Coarsen is a concrete
  * SAMRAI::xfer::CoarsenOperator for restricting side-centered double precision
  * patch data via the adjoint of RT0 interpolation.
+ *
+ * With P the RT0 interpolation, the result is P^T / prod(ratio) wherever the stencil lies inside the domain. Fine
+ * ghost values outside the fine level must be zero; the weights of a coarse side on a coarse-fine interface then sum
+ * to less than one. On a physical boundary only the fine sides inside the domain contribute, with weights normalized
+ * to sum to one.
  */
 class CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
+     *
+     * \param gcw Stencil width, which must be at least the refinement ratio
+     * minus one in every direction. The default supports a refinement ratio of
+     * 2.
      */
     CartSideDoubleRT0Coarsen(SAMRAI::hier::IntVector<NDIM> gcw = SAMRAI::hier::IntVector<NDIM>(1));
 
