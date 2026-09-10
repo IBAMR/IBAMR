@@ -1,0 +1,3 @@
+IBRedundantInitializer:  Deallocating initialization data.
+fine coupling max entry = 6.14301966531
+coarse matrix/schedule max entry error = 2.22044604925e-16
