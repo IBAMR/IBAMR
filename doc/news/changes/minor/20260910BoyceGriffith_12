@@ -1,0 +1,3 @@
+New: The Stokes-IB FAC level relaxation can smooth with coupling-aware Vanka patches, on one MPI rank.
+<br>
+(Boyce Griffith, 2026/09/10)

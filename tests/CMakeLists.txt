@@ -221,6 +221,7 @@ SETUP(IB implicit_ib_jacobian_interpolation_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_coarse_saj_transfer_parity_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
+SETUP_3D(IB implicit_stokes_ib_solver_components_01.cpp)
 
 # IBFE:
 IF(${IBAMR_HAVE_LIBMESH})
