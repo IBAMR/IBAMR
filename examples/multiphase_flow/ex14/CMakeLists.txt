@@ -13,47 +13,34 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "multiphase_flow-ex8-2d"
+    "multiphase_flow-ex14-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/multiphase_flow/ex8"
+    "${CMAKE_BINARY_DIR}/examples/multiphase_flow/ex14"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp example.cpp
+    example.cpp ../../LSLocateInterface.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d.cyl cylinder2d.vertex
+    input2d.amr
   )
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "multiphase_flow-ex8-3d"
+    "multiphase_flow-ex14-3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/multiphase_flow/ex8"
+    "${CMAKE_BINARY_DIR}/examples/multiphase_flow/ex14"
   OUTPUT_NAME
     main3d
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp example.cpp
+    example.cpp ../../LSLocateInterface.cpp
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES
-    input3d.sphere
-  )
-
-IBAMR_ADD_EXAMPLE(
-  TARGET_NAME
-    "multiphase_flow-ex8-spheregen"
-  OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/multiphase_flow/ex8"
-  OUTPUT_NAME
-    sphereGen
-  EXAMPLE_GROUP
-    examples-multiphase_flow
-  SOURCES
-    sphereGen.cpp
+    input3d.amr
   )

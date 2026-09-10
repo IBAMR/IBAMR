@@ -1,0 +1,1 @@
+This example simulates the pipe shrinkage problem. Initially liquid region occupies the bottom while the gas occupies the top of the domain. Solidification happens till all the liquid is converted into solid. The pipe shrinkage occurs because the liquid density is lower than the solid density.
