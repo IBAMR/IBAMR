@@ -1,0 +1,4 @@
+Fix: Handle absent interface support and reject nonfinite level-set
+redistribution updates before changing the field.
+<br>
+(Boyce Griffith, 2026/09/10)

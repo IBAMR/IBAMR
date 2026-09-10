@@ -33,10 +33,18 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include <tbox/MemoryDatabase.h>
 
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
+
+#include <fstream>
+#include <iomanip>
+#include <limits>
+#include <vector>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -88,6 +96,308 @@ circular_interface_neighborhood(int D_idx,
     }
     return;
 } // circular_interface_neighborhood
+
+namespace
+{
+enum class RedistributionField
+{
+    CONSTANT,
+    CUTOFF,
+    NEAR_CUTOFF,
+    STEEP,
+    PLANE,
+    CURVE
+};
+
+void
+copy_redistribution_distance(const int idx, Pointer<HierarchyMathOps> ops, double, bool, void* ctx)
+{
+    const int source_idx = *static_cast<int*>(ctx);
+    Pointer<PatchHierarchy<NDIM>> hierarchy = ops->getPatchHierarchy();
+    HierarchyCellDataOpsReal<NDIM, double> data_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
+    data_ops.copyData(idx, source_idx);
+}
+
+void
+check_redistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                     Pointer<CellVariable<NDIM, double>> variable,
+                     Pointer<VariableContext> context,
+                     Pointer<Database> input)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int phi_idx = var_db->mapVariableAndContextToIndex(variable, context);
+    int source_idx = var_db->registerClonedPatchDataIndex(variable, phi_idx);
+    const int control_idx = var_db->registerClonedPatchDataIndex(variable, phi_idx);
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    Pointer<HierarchyMathOps> ops = new HierarchyMathOps("RedistributionMath", hierarchy, 0, finest_ln);
+    const int weight_idx = ops->getCellWeightPatchDescriptorIndex();
+    HierarchyCellDataOpsReal<NDIM, double> data_ops(hierarchy, 0, finest_ln);
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->allocatePatchData(source_idx, 0.0);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(control_idx, 0.0);
+    }
+    const std::string field_name = input->getString("field");
+    RedistributionField field = RedistributionField::CONSTANT;
+    if (field_name == "cutoff")
+    {
+        field = RedistributionField::CUTOFF;
+    }
+    else if (field_name == "near_cutoff")
+    {
+        field = RedistributionField::NEAR_CUTOFF;
+    }
+    else if (field_name == "steep")
+    {
+        field = RedistributionField::STEEP;
+    }
+    else if (field_name == "plane")
+    {
+        field = RedistributionField::PLANE;
+    }
+    else if (field_name == "curve")
+    {
+        field = RedistributionField::CURVE;
+    }
+    else if (field_name != "constant")
+    {
+        TBOX_ERROR("Unknown redistribution field: " << field_name << '\n');
+    }
+    const std::string scheme = input->getString("scheme");
+    const double eps = std::numeric_limits<double>::epsilon();
+    Pointer<Database> reference_db;
+    if (input->isDatabase("Reference"))
+    {
+        reference_db = input->getDatabase("Reference");
+        // The stored fields use Box iterator order on one serial patch.
+        TBOX_ASSERT(IBTK_MPI::getNodes() == 1 && finest_ln == 0);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+        TBOX_ASSERT(level->getNumberOfPatches() == 1);
+    }
+    Pointer<CartesianGridGeometry<NDIM>> geometry = hierarchy->getGridGeometry();
+    double length = 0.0, domain_volume = 1.0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const double extent = geometry->getXUpper()[d] - geometry->getXLower()[d];
+        length = std::max(length, extent);
+        domain_volume *= extent;
+    }
+    LocationIndexRobinBcCoefs<NDIM> bc;
+    for (int face = 0; face < 2 * NDIM; ++face)
+    {
+        // The exact-distance plane has compatible normal derivatives; the
+        // steep case uses zero-slope boundaries to test absent interface support.
+        const double slope = field == RedistributionField::PLANE && face < 2 ? (face == 0 ? -1.0 : 1.0) : 0.0;
+        bc.setBoundarySlope(face, slope);
+    }
+    plog << std::setprecision(16);
+    for (const bool mass_constraint : { false, true })
+    {
+        double initial_volume = 0.0;
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> source = patch->getPatchData(source_idx);
+                Pointer<CellData<NDIM, double>> weight = patch->getPatchData(weight_idx);
+                Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+                const Box<NDIM>& box = patch->getBox();
+                double dv = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    dv *= geom->getDx()[d];
+                }
+                const double alpha = std::pow(dv, 1.0 / NDIM);
+                for (Box<NDIM>::Iterator i(box); i; i++)
+                {
+                    const double x = geom->getXLower()[0] + (i()(0) - box.lower(0) + 0.5) * geom->getDx()[0];
+                    const double y = geom->getXLower()[1] + (i()(1) - box.lower(1) + 0.5) * geom->getDx()[1];
+                    double value = -1.0;
+                    switch (field)
+                    {
+                    case RedistributionField::CONSTANT:
+                        break;
+                    case RedistributionField::CUTOFF:
+                        value = -alpha;
+                        break;
+                    case RedistributionField::NEAR_CUTOFF:
+                        value = -alpha * (1.0 - 1.0e-6);
+                        break;
+                    case RedistributionField::STEEP:
+                    case RedistributionField::PLANE:
+                        value = (field == RedistributionField::STEEP ? 4.0 : 1.0) * (x - 0.5);
+                        break;
+                    case RedistributionField::CURVE:
+                        value = (1.0 + 0.2 * std::cos(2.0 * M_PI * x) * std::cos(2.0 * M_PI * y)) *
+                                (std::hypot(x - 0.5, y - 0.5) - 0.23);
+                        break;
+                    default:
+                        TBOX_ERROR("Unknown redistribution geometry\n");
+                    }
+                    (*source)(i()) = value;
+                    initial_volume += IBTK::smooth_heaviside(-value, alpha) * (*weight)(i());
+                }
+            }
+        }
+        initial_volume = IBTK_MPI::sumReduction(initial_volume);
+        for (const bool redistribution : { false, true })
+        {
+            Pointer<Database> db = new MemoryDatabase("RedistributionInput");
+            db->putInteger("max_iterations", 1);
+            db->putString("order", "THIRD_ORDER_ENO");
+            db->putString("time_stepping_scheme", scheme);
+            db->putBool("apply_volume_redistribution", redistribution);
+            db->putBool("apply_mass_constraint", false);
+            RelaxationLSMethod relaxation("Redistribution", db, false);
+            relaxation.registerInterfaceNeighborhoodLocatingFcn(copy_redistribution_distance, &source_idx);
+            relaxation.registerPhysicalBoundaryCondition(&bc);
+            relaxation.initializeLSData(phi_idx, ops, 0, 0.0, true);
+            // A subsequent reinitialization exercises the local mass constraint.
+            relaxation.setApplyMassConstraint(mass_constraint);
+            relaxation.setReinitializeLSData(true);
+            relaxation.initializeLSData(phi_idx, ops, 1, 0.1, false);
+            const std::string reference_case = std::to_string(2 * mass_constraint + redistribution);
+            std::vector<double> reference_values;
+            double reference_volume = 0.0, reference_norm = 0.0, field_error = 0.0;
+            std::size_t reference_position = 0;
+            if (reference_db)
+            {
+                const std::string key = "phi_" + reference_case;
+                const int size = reference_db->getArraySize(key);
+                reference_values.resize(size);
+                reference_db->getDoubleArray(key, reference_values.data(), size);
+                reference_volume = reference_db->getDouble("volume_" + reference_case);
+                if (!std::isfinite(reference_volume))
+                {
+                    TBOX_ERROR("Redistribution regression: nonfinite H-reference volume\n");
+                }
+            }
+            double volume = 0.0, distance_error = 0.0, difference = 0.0;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double>> phi = patch->getPatchData(phi_idx);
+                    Pointer<CellData<NDIM, double>> control = patch->getPatchData(control_idx);
+                    Pointer<CellData<NDIM, double>> weight = patch->getPatchData(weight_idx);
+                    Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+                    const Box<NDIM>& box = patch->getBox();
+                    double dv = 1.0;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        dv *= geom->getDx()[d];
+                    }
+                    const double alpha = std::pow(dv, 1.0 / NDIM);
+                    for (Box<NDIM>::Iterator i(box); i; i++)
+                    {
+                        const double value = (*phi)(i());
+                        if (!std::isfinite(value))
+                        {
+                            TBOX_ERROR("Redistribution regression: nonfinite reinitialized field\n");
+                        }
+                        if (reference_db)
+                        {
+                            if (reference_position >= reference_values.size())
+                            {
+                                TBOX_ERROR("Redistribution regression: H-reference field size mismatch\n");
+                            }
+                            const double expected = reference_values[reference_position++];
+                            if (!std::isfinite(expected))
+                            {
+                                TBOX_ERROR("Redistribution regression: nonfinite H-reference field\n");
+                            }
+                            reference_norm = std::max(reference_norm, std::abs(expected));
+                            field_error = std::max(field_error, std::abs(value - expected));
+                        }
+                        volume += IBTK::smooth_heaviside(-value, alpha) * (*weight)(i());
+                        const double x = geom->getXLower()[0] + (i()(0) - box.lower(0) + 0.5) * geom->getDx()[0];
+                        const double y = geom->getXLower()[1] + (i()(1) - box.lower(1) + 0.5) * geom->getDx()[1];
+                        const double distance =
+                            field == RedistributionField::CURVE ? std::hypot(x - 0.5, y - 0.5) - 0.23 : x - 0.5;
+                        if (field == RedistributionField::CURVE || field == RedistributionField::PLANE ||
+                            field == RedistributionField::STEEP)
+                        {
+                            distance_error += std::abs(value - distance) * (*weight)(i());
+                        }
+                        if (redistribution)
+                        {
+                            difference = std::max(difference, std::abs(value - (*control)(i())));
+                        }
+                    }
+                }
+            }
+            volume = IBTK_MPI::sumReduction(volume);
+            distance_error = IBTK_MPI::sumReduction(distance_error);
+            difference = IBTK_MPI::maxReduction(difference);
+            if (reference_db)
+            {
+                if (reference_position != reference_values.size())
+                {
+                    TBOX_ERROR("Redistribution regression: H-reference field size mismatch\n");
+                }
+                if (!(field_error <= 128.0 * eps * std::max(length, reference_norm)))
+                {
+                    TBOX_ERROR("Redistribution regression: H-reference field mismatch in case " << reference_case
+                                                                                                << '\n');
+                }
+                if (!(std::abs(volume - reference_volume) <= 128.0 * eps * domain_volume))
+                {
+                    TBOX_ERROR("Redistribution regression: H-reference volume mismatch in case " << reference_case
+                                                                                                 << '\n');
+                }
+            }
+            if (field == RedistributionField::CURVE && redistribution && !(difference > 128.0 * eps))
+            {
+                TBOX_ERROR("Redistribution regression: resolved correction is inactive\n");
+            }
+            if ((field == RedistributionField::CONSTANT || field == RedistributionField::PLANE) && redistribution &&
+                difference > 128.0 * eps)
+            {
+                TBOX_ERROR("Redistribution regression: absent-source correction changed the field\n");
+            }
+            if (field == RedistributionField::PLANE && !(distance_error <= 128.0 * eps))
+            {
+                TBOX_ERROR("Redistribution regression: exact-distance plane changed\n");
+            }
+            const bool has_distance = field == RedistributionField::CURVE || field == RedistributionField::PLANE ||
+                                      field == RedistributionField::STEEP;
+            plog << "mass constraint = " << mass_constraint << "; redistribution = " << redistribution
+                 << "; volume, drift";
+            if (has_distance)
+            {
+                plog << ", distance L1";
+            }
+            plog << ", active difference: " << volume << ' ' << volume - initial_volume << ' ';
+            if (has_distance)
+            {
+                plog << distance_error << ' ';
+            }
+            plog << difference << '\n';
+            if (reference_db)
+            {
+                plog << "normalized H-reference field, volume errors: "
+                     << field_error / std::max(length, reference_norm) << ' '
+                     << std::abs(volume - reference_volume) / domain_volume << '\n';
+            }
+            if (!redistribution)
+            {
+                data_ops.copyData(control_idx, phi_idx);
+            }
+        }
+    }
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(control_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(source_idx);
+    }
+    var_db->removePatchDataIndex(control_idx);
+    var_db->removePatchDataIndex(source_idx);
+}
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -225,6 +535,15 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializeHierarchy();
+
+        if (input_db->isDatabase("RedistributionTests"))
+        {
+            check_redistribution(patch_hierarchy,
+                                 Q_var,
+                                 hyp_level_integrator->getCurrentContext(),
+                                 input_db->getDatabase("RedistributionTests"));
+            return 0;
+        }
 
         // Create inital level set
         CircularInterface circle;
