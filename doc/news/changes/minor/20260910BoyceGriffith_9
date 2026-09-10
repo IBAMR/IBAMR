@@ -1,0 +1,3 @@
+New: StaggeredStokesPETScLevelSolver can build ASM subdomains seeded at velocity components (asm_subdomain_construction_mode = COUPLING_AWARE), on one MPI rank.
+<br>
+(Boyce Griffith, 2026/09/10)

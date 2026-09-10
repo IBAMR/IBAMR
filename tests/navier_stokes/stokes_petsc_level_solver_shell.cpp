@@ -13,6 +13,7 @@
 
 #include <ibamr/StaggeredStokesEigenSchurComplementSubdomainSolver.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
+#include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 
 #include <ibtk/IBTKInit.h>
@@ -32,10 +33,13 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <deque>
 #include <iomanip>
+#include <limits>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
