@@ -92,10 +92,11 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
                                                          const std::vector<IS>& overlap,
                                                          const std::vector<IS>& nonoverlap,
                                                          const std::string& options_prefix,
-                                                         const bool use_multiplicative)
+                                                         const bool use_multiplicative,
+                                                         const PETScLevelSolverShellTraversal traversal)
 {
     deallocateSolverState();
-    initializeComposition(mat, x, b, use_multiplicative);
+    initializeComposition(mat, x, b, use_multiplicative, traversal);
     d_multiplicative = use_multiplicative;
     TBOX_ASSERT(overlap.size() == nonoverlap.size());
     const int n_local = static_cast<int>(overlap.size());

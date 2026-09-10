@@ -32,9 +32,11 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <memory>
+#include <numeric>
 
 #include "../tests.h"
 
@@ -113,23 +115,26 @@ class StageBackend : public PETScLevelSolverShellBackend
 {
 public:
     /*! \brief Record residual samples in test-owned storage. */
-    explicit StageBackend(std::vector<PetscScalar>& samples) : d_samples(samples)
+    StageBackend(std::vector<PetscScalar>& samples, std::vector<std::size_t>& visits, std::size_t stages)
+        : d_samples(samples), d_visits(visits), d_stages(stages)
     {
     }
     ~StageBackend() override
     {
         deallocateSolverState();
     }
-    void initializeSolverState(Mat mat,
-                               Vec x,
-                               Vec b,
-                               const std::vector<IS>&,
-                               const std::vector<IS>&,
-                               const std::string&,
-                               bool multiplicative = false) override
+    void
+    initializeSolverState(Mat mat,
+                          Vec x,
+                          Vec b,
+                          const std::vector<IS>&,
+                          const std::vector<IS>&,
+                          const std::string&,
+                          bool multiplicative = false,
+                          PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD) override
     {
         deallocateSolverState();
-        initializeComposition(mat, x, b, multiplicative);
+        initializeComposition(mat, x, b, multiplicative, traversal);
         finalizeComposition();
     }
     void deallocateSolverState() override
@@ -140,7 +145,7 @@ public:
 protected:
     std::size_t getNumberOfSubdomains() const override
     {
-        return 3;
+        return d_stages;
     }
     void beginSubdomainRhs(std::size_t i, Vec source) override
     {
@@ -148,6 +153,7 @@ protected:
         int ierr = VecGetValues(source, 1, d_dofs[i].data(), &value);
         IBTK_CHKERRQ(ierr);
         d_samples.push_back(value);
+        d_visits.push_back(i);
     }
     void endSubdomainRhs(std::size_t, Vec) override
     {
@@ -175,11 +181,16 @@ protected:
 
 private:
     std::vector<PetscScalar>& d_samples;
+    std::vector<std::size_t>& d_visits;
+    const std::size_t d_stages;
     const std::vector<std::vector<PetscInt>> d_dofs{ { 0 }, { 1 }, { 2 } };
 };
 
 int
-check_stages(const bool fallback, const bool invalidate)
+check_stages(const bool fallback,
+             const bool invalidate,
+             const PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD,
+             const std::size_t stages = 3)
 {
     RowMatrix context;
     Mat mat = nullptr;
@@ -208,11 +219,47 @@ check_stages(const bool fallback, const bool invalidate)
     ierr = VecAssemblyEnd(x);
     IBTK_CHKERRQ(ierr);
     std::vector<PetscScalar> samples;
-    StageBackend backend(samples);
+    std::vector<std::size_t> visits;
+    StageBackend backend(samples, visits, stages);
+    std::vector<std::size_t> expected_visits;
+    std::vector<PetscScalar> expected_samples;
+    std::vector<PetscScalar> expected_correction(4, 0.0);
+    int expected_reads = 0;
+    if (stages == 1)
+    {
+        expected_visits = { 0 };
+        expected_samples = { 10 };
+        expected_correction[0] = 1;
+    }
+    else if (stages == 3)
+    {
+        if (traversal == PETScLevelSolverShellTraversal::FORWARD)
+        {
+            expected_visits = { 0, 1, 2 };
+            expected_samples = { 10, 21, 31 };
+            expected_correction = { 1, 1, 1, 0 };
+            expected_reads = 5;
+        }
+        else if (traversal == PETScLevelSolverShellTraversal::REVERSE)
+        {
+            expected_visits = { 2, 1, 0 };
+            expected_samples = { 30, 21, 11 };
+            expected_correction = { 1, 1, 1, 0 };
+            expected_reads = 6;
+        }
+        else
+        {
+            expected_visits = { 0, 1, 2, 1, 0 };
+            expected_samples = { 10, 21, 31, 20, 10 };
+            expected_correction = { 2, 2, 1, 0 };
+            expected_reads = 11;
+        }
+    }
+    const int expected_multiplies = expected_visits.empty() ? 0 : static_cast<int>(expected_visits.size()) - 1;
     int failures = 0;
     for (int cycle = 0; cycle < 2; ++cycle)
     {
-        backend.initializeSolverState(mat, x, x, {}, {}, "", true);
+        backend.initializeSolverState(mat, x, x, {}, {}, "", true, traversal);
         // Application must read values at cached offsets, not an update-matrix copy.
         context.values = { { 2, -1 }, { -1, 2, -1 }, { -1, 2, -1 }, { -1, 2 } };
         if (invalidate)
@@ -222,6 +269,7 @@ check_stages(const bool fallback, const bool invalidate)
         for (int application = 0; application < 2; ++application)
         {
             samples.clear();
+            visits.clear();
             context.row_reads = context.multiplies = 0;
             backend.apply(x, y);
             if (invalidate)
@@ -235,23 +283,27 @@ check_stages(const bool fallback, const bool invalidate)
                 IBTK_CHKERRQ(ierr);
                 return 0;
             }
-            const std::vector<PetscScalar> expected{ 10, 21, 31 };
-            if (samples != expected || context.row_reads != (fallback ? 0 : 5) ||
-                context.multiplies != (fallback ? 2 : 0))
+            if (visits != expected_visits || samples != expected_samples ||
+                context.row_reads != (fallback ? 0 : expected_reads) ||
+                context.multiplies != (fallback ? expected_multiplies : 0))
             {
                 ++failures;
             }
             const PetscScalar* values = nullptr;
             ierr = VecGetArrayRead(y, &values);
             IBTK_CHKERRQ(ierr);
-            if (values[0] != 1 || values[1] != 1 || values[2] != 1 || values[3] != 0)
+            if (!std::equal(expected_correction.begin(), expected_correction.end(), values))
             {
                 ++failures;
             }
-            if (cycle == 0 && application == 0)
+            if (stages == 3 && cycle == 0 && application == 0)
             {
-                plog << "stage_rhs = " << samples[0] << ' ' << samples[1] << ' ' << samples[2]
-                     << "\ncorrection = " << values[0] << ' ' << values[1] << ' ' << values[2] << ' ' << values[3]
+                plog << "stage_rhs =";
+                for (PetscScalar sample : samples)
+                {
+                    plog << ' ' << sample;
+                }
+                plog << "\ncorrection = " << values[0] << ' ' << values[1] << ' ' << values[2] << ' ' << values[3]
                      << "\nrow_reads = " << context.row_reads << "\nmatmult_calls = " << context.multiplies << '\n';
             }
             ierr = VecRestoreArrayRead(y, &values);
@@ -270,7 +322,9 @@ check_stages(const bool fallback, const bool invalidate)
 }
 
 int
-check_hand_solve(const bool blas)
+check_hand_solve(const bool blas,
+                 const PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD,
+                 const bool traversal_case = false)
 {
     const int rank = IBTK_MPI::getRank();
     Mat mat = nullptr;
@@ -300,7 +354,16 @@ check_hand_solve(const bool blas)
     {
         ierr = VecSetValue(x, row, row + 1.0, INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
-        const PetscScalar target[] = { 4.0 / 3.0, 29.0 / 9.0, 28.0 / 9.0 };
+        const bool parallel = traversal_case && IBTK_MPI::getNodes() == 2;
+        const std::vector<PetscScalar> target =
+            traversal == PETScLevelSolverShellTraversal::REVERSE ?
+                (parallel ? std::vector<PetscScalar>{ 40.0 / 9.0, 41.0 / 9.0, 8.0 / 3.0 } :
+                            std::vector<PetscScalar>{ 20.0 / 9.0, 31.0 / 9.0, 8.0 / 3.0 }) :
+            traversal == PETScLevelSolverShellTraversal::SYMMETRIC ?
+                (parallel ? std::vector<PetscScalar>{ 64.0 / 27.0, 107.0 / 27.0, 32.0 / 9.0 } :
+                            std::vector<PetscScalar>{ 64.0 / 27.0, 101.0 / 27.0, 28.0 / 9.0 }) :
+                (parallel ? std::vector<PetscScalar>{ 8.0 / 3.0, 37.0 / 9.0, 32.0 / 9.0 } :
+                            std::vector<PetscScalar>{ 4.0 / 3.0, 29.0 / 9.0, 28.0 / 9.0 });
         ierr = VecSetValue(expected, row, target[row], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
@@ -312,10 +375,12 @@ check_hand_solve(const bool blas)
     IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(expected);
     IBTK_CHKERRQ(ierr);
-    // Rank 1 contributes to the first stage only, including off-rank index 1.
-    const std::vector<std::vector<PetscInt>> dofs = rank == 0 ?
-                                                        std::vector<std::vector<PetscInt>>{ { 0, 1 }, { 1, 2 } } :
-                                                        std::vector<std::vector<PetscInt>>{ { 1, 2 } };
+    // Rank 1 contributes only to stage zero; traversal cases duplicate rank zero
+    // there to distinguish the summed parallel correction from the serial result.
+    const std::vector<std::vector<PetscInt>> dofs =
+        rank == 0 ? std::vector<std::vector<PetscInt>>{ { 0, 1 }, { 1, 2 } } :
+                    std::vector<std::vector<PetscInt>>{ traversal_case ? std::vector<PetscInt>{ 0, 1 } :
+                                                                         std::vector<PetscInt>{ 1, 2 } };
     std::vector<IS> overlap(dofs.size()), partition(dofs.size());
     for (std::size_t i = 0; i < dofs.size(); ++i)
     {
@@ -331,7 +396,7 @@ check_hand_solve(const bool blas)
     int failures = 0;
     for (int cycle = 0; cycle < 2; ++cycle)
     {
-        backend->initializeSolverState(mat, x, y, overlap, partition, "r09_hand", true);
+        backend->initializeSolverState(mat, x, y, overlap, partition, "r09_hand", true, traversal);
         for (int application = 0; application < 2; ++application)
         {
             backend->apply(x, y);
@@ -372,14 +437,15 @@ check_hand_solve(const bool blas)
 }
 
 // Gather the RHS independently of the backend's restriction/prolongation
-// scatters. Additive writes use the partition; forward stages add full corrections.
+// scatters. Additive writes use the partition; multiplicative visits add full corrections.
 void
 reference_action(Mat mat,
                  Vec rhs,
                  Vec result,
                  const std::vector<IS>& overlap,
                  const std::vector<IS>& partition,
-                 const bool multiplicative)
+                 const bool multiplicative,
+                 const PETScLevelSolverShellTraversal traversal)
 {
     Vec residual = nullptr, gathered = nullptr;
     VecScatter gather = nullptr;
@@ -401,7 +467,20 @@ reference_action(Mat mat,
         IBTK_CHKERRQ(ierr);
     }
     const int n_stages = IBTK_MPI::maxReduction(static_cast<int>(overlap.size()));
-    for (int i = 0; i < n_stages; ++i)
+    std::vector<int> visits(n_stages);
+    std::iota(visits.begin(), visits.end(), 0);
+    if (multiplicative && traversal == PETScLevelSolverShellTraversal::REVERSE)
+    {
+        std::reverse(visits.begin(), visits.end());
+    }
+    else if (multiplicative && traversal == PETScLevelSolverShellTraversal::SYMMETRIC)
+    {
+        for (int i = n_stages - 2; i >= 0; --i)
+        {
+            visits.push_back(i);
+        }
+    }
+    for (const int i : visits)
     {
         if (multiplicative)
         {
@@ -524,12 +603,40 @@ main(int argc, char* argv[])
     const bool invalid = test->getBoolWithDefault("invalid", false);
     const std::string shell_type = test->getStringWithDefault("shell_pc_type", "multiplicative");
     const bool multiplicative = shell_type.rfind("multiplicative", 0) == 0;
+    std::string traversal_name = test->getStringWithDefault("shell_pc_subdomain_traversal", "FORWARD");
+    std::transform(traversal_name.begin(),
+                   traversal_name.end(),
+                   traversal_name.begin(),
+                   [](const unsigned char c) { return static_cast<char>(std::toupper(c)); });
+    const PETScLevelSolverShellTraversal traversal =
+        traversal_name == "REVERSE"   ? PETScLevelSolverShellTraversal::REVERSE :
+        traversal_name == "SYMMETRIC" ? PETScLevelSolverShellTraversal::SYMMETRIC :
+                                        PETScLevelSolverShellTraversal::FORWARD;
+    if (test->getBoolWithDefault("traversal_stages", false))
+    {
+        int failures = 0;
+        for (PETScLevelSolverShellTraversal order : { PETScLevelSolverShellTraversal::FORWARD,
+                                                      PETScLevelSolverShellTraversal::REVERSE,
+                                                      PETScLevelSolverShellTraversal::SYMMETRIC })
+        {
+            for (const bool fallback : { false, true })
+            {
+                failures += check_stages(fallback, false, order);
+                failures += check_stages(fallback, false, order, 0);
+                failures += check_stages(fallback, false, order, 1);
+            }
+        }
+        plog << "failures = " << failures << '\n';
+        return failures ? 1 : 0;
+    }
     if (test->getBoolWithDefault("stages", false))
     {
         return check_stages(test->getBoolWithDefault("fallback", false), test->getBoolWithDefault("invalidate", false));
     }
     const int hand_failures = test->getBoolWithDefault("hand_solve", false) ?
-                                  check_hand_solve(shell_type == "multiplicative-blas-lapack") :
+                                  check_hand_solve(shell_type == "multiplicative-blas-lapack",
+                                                   traversal,
+                                                   test->keyExists("shell_pc_subdomain_traversal")) :
                                   0;
     const bool diagonal_operator = test->getBoolWithDefault("diagonal_operator", false);
     const double small_diagonal = test->getDoubleWithDefault("small_diagonal", 1.0e-12);
@@ -661,6 +768,23 @@ main(int argc, char* argv[])
             IBTK_CHKERRQ(ierr);
             solver.setOperatorMat(supplied);
         }
+        Vec default_forward = nullptr;
+        if (test->getBoolWithDefault("compare_forward", false))
+        {
+            ierr = VecDuplicate(rhs, &default_forward);
+            IBTK_CHKERRQ(ierr);
+            solver.initializeSolverState(x, b);
+            if (!solver.solveSystem(x, b))
+            {
+                ++failures;
+            }
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(default_forward, ui, udi, pi, pdi, level);
+            solver.deallocateSolverState();
+        }
+        if (test->keyExists("shell_pc_subdomain_traversal"))
+        {
+            db->putString("shell_pc_subdomain_traversal", test->getString("shell_pc_subdomain_traversal"));
+        }
         solver.initializeSolverState(x, b);
         if (invalid)
         {
@@ -723,7 +847,7 @@ main(int argc, char* argv[])
                 std::vector<IS>* overlap = nullptr;
                 std::vector<IS>* partition = nullptr;
                 solver.getASMSubdomains(&partition, &overlap);
-                reference_action(mat, rhs, expected, *overlap, *partition, multiplicative);
+                reference_action(mat, rhs, expected, *overlap, *partition, multiplicative, traversal);
                 // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
                 MatNullSpace nullspace = nullptr;
                 ierr = MatGetNullSpace(mat, &nullspace);
@@ -741,6 +865,19 @@ main(int argc, char* argv[])
             }
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
             const double action_norm = norm_inf(actual);
+            if (default_forward)
+            {
+                ierr = VecAXPY(default_forward, -1.0, actual);
+                IBTK_CHKERRQ(ierr);
+                const double default_error = norm_inf(default_forward);
+                if (!std::isfinite(default_error) || default_error > 1.0e-12)
+                {
+                    ++failures;
+                }
+                plog << "default_forward_error = " << default_error << '\n';
+                ierr = VecCopy(actual, default_forward);
+                IBTK_CHKERRQ(ierr);
+            }
             if (boundary)
             {
                 // Constant velocity (1,2), pressure zero solves -Laplace(u)+u+grad(p)=u.
@@ -792,6 +929,8 @@ main(int argc, char* argv[])
                 }
             }
         }
+        ierr = VecDestroy(&default_forward);
+        IBTK_CHKERRQ(ierr);
         ierr = MatDestroy(&supplied);
         IBTK_CHKERRQ(ierr);
     }

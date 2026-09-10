@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver unknown shell_pc_subdomain_traversal: PALINDROMIC
+Valid values are FORWARD, REVERSE, and SYMMETRIC.
+

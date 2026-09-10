@@ -42,6 +42,7 @@
 #include <SAMRAIVectorReal.h>
 
 #include <algorithm>
+#include <cctype>
 #include <memory>
 #include <set>
 #include <string>
@@ -445,8 +446,34 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         {
             generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
         }
-        d_shell_backend->initializeSolverState(
-            d_petsc_mat, d_petsc_x, d_petsc_b, d_overlap_is, d_nonoverlap_is, d_options_prefix, multiplicative);
+        std::string traversal_name =
+            d_input_db ? d_input_db->getStringWithDefault("shell_pc_subdomain_traversal", "FORWARD") : "FORWARD";
+        std::transform(traversal_name.begin(),
+                       traversal_name.end(),
+                       traversal_name.begin(),
+                       [](const unsigned char c) { return static_cast<char>(std::toupper(c)); });
+        PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD;
+        if (traversal_name == "REVERSE")
+        {
+            traversal = PETScLevelSolverShellTraversal::REVERSE;
+        }
+        else if (traversal_name == "SYMMETRIC")
+        {
+            traversal = PETScLevelSolverShellTraversal::SYMMETRIC;
+        }
+        else if (traversal_name != "FORWARD")
+        {
+            TBOX_ERROR(d_object_name << " unknown shell_pc_subdomain_traversal: " << traversal_name
+                                     << "\nValid values are FORWARD, REVERSE, and SYMMETRIC.\n");
+        }
+        d_shell_backend->initializeSolverState(d_petsc_mat,
+                                               d_petsc_x,
+                                               d_petsc_b,
+                                               d_overlap_is,
+                                               d_nonoverlap_is,
+                                               d_options_prefix,
+                                               multiplicative,
+                                               traversal);
         ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
         IBTK_CHKERRQ(ierr);
         ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::pc_apply_shell);
