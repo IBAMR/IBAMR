@@ -1,0 +1,3 @@
+New: Added turbulence-statistics support for staggered INS, including delayed accumulation, live periodic-box examples, and manufactured verification tests.
+<br>
+(Boyce Griffith, 2026/03/25)

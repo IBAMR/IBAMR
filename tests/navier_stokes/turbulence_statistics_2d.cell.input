@@ -1,0 +1,109 @@
+MU = 1.0
+RHO = 1.0
+L = 1.0
+N = 16
+
+START_TIME = 0.0
+END_TIME = 1.0
+DT_MAX = 0.1
+
+Main {
+   viz_dump_interval = 0
+   viz_dump_dirname = "viz_dump"
+   restart_dump_interval = 0
+   restart_dump_dirname = "restart_dump"
+   timer_dump_interval = 0
+}
+
+ManufacturedStatistics {
+   sample_start_time = 0.0
+   sample_period = 1.0
+   num_samples = 8
+   verification_tol = 1.0e-10
+}
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu = MU
+   rho = RHO
+   start_time = START_TIME
+   end_time = END_TIME
+   grow_dt = 1.0
+   num_cycles = 1
+   convective_time_stepping_type = "MIDPOINT_RULE"
+   convective_op_type = "CUI"
+   convective_difference_form = "ADVECTIVE"
+   normalize_pressure = TRUE
+   cfl = 0.5
+   dt_max = DT_MAX
+   using_vorticity_tagging = FALSE
+   tag_buffer = 0
+   regrid_interval = 1000000
+   output_U = FALSE
+   output_P = FALSE
+   output_F = FALSE
+   output_Omega = FALSE
+   output_Div_U = FALSE
+   output_EE = FALSE
+   enable_logging = FALSE
+
+   TurbulenceStatistics {
+      statistics_type = "AVERAGED_VELOCITY"
+      period_start = 0.0
+      period_end = 0.0
+      threshold = 1.0e-14
+      num_snapshots = 1
+      enable_logging = FALSE
+      output_data = FALSE
+      analysis_centering = "CELL"
+      refine_type = "CONSERVATIVE_LINEAR_REFINE"
+   }
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0.0,0.0
+   x_up = L,L
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   ratio_to_coarser {
+      level_1 = 4,4
+   }
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1.0
+}
+
+TimerManager {
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBAMR::*::*","IBTK::*::*"
+}
