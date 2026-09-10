@@ -627,6 +627,115 @@ enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
     if (val == DISCONTINUOUS) return "DISCONTINUOUS";
     return "UNKNOWN_INDICATOR_FUNC_TYPE";
 } // enum_to_string
+
+/*! \brief Geometrical or velocity-coupling-based ASM construction. */
+enum class ASMSubdomainConstructionMode
+{
+    GEOMETRICAL,
+    COUPLING_AWARE
+};
+
+template <>
+inline ASMSubdomainConstructionMode
+string_to_enum<ASMSubdomainConstructionMode>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "GEOMETRICAL") == 0) return ASMSubdomainConstructionMode::GEOMETRICAL;
+    if (strcasecmp(val.c_str(), "COUPLING_AWARE") == 0) return ASMSubdomainConstructionMode::COUPLING_AWARE;
+    TBOX_ERROR("Unknown ASM subdomain construction mode \""
+               << val << "\".\nValid values are GEOMETRICAL and COUPLING_AWARE.\n");
+    return ASMSubdomainConstructionMode::GEOMETRICAL;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val)
+{
+    switch (val)
+    {
+    case ASMSubdomainConstructionMode::GEOMETRICAL:
+        return "GEOMETRICAL";
+    case ASMSubdomainConstructionMode::COUPLING_AWARE:
+        return "COUPLING_AWARE";
+    }
+    return "";
+} // enum_to_string
+
+/*! \brief Whether the standard Vanka patches of all incident cells (RELAXED) or only of cells with a complete
+ * velocity stencil (STRICT) are joined into a coupling-aware patch. */
+enum class CouplingAwareASMClosurePolicy
+{
+    RELAXED,
+    STRICT
+};
+
+template <>
+inline CouplingAwareASMClosurePolicy
+string_to_enum<CouplingAwareASMClosurePolicy>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "RELAXED") == 0) return CouplingAwareASMClosurePolicy::RELAXED;
+    if (strcasecmp(val.c_str(), "STRICT") == 0) return CouplingAwareASMClosurePolicy::STRICT;
+    TBOX_ERROR("Unknown coupling-aware closure policy \"" << val << "\".\nValid values are RELAXED and STRICT.\n");
+    return CouplingAwareASMClosurePolicy::RELAXED;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val)
+{
+    switch (val)
+    {
+    case CouplingAwareASMClosurePolicy::RELAXED:
+        return "RELAXED";
+    case CouplingAwareASMClosurePolicy::STRICT:
+        return "STRICT";
+    }
+    return "";
+} // enum_to_string
+
+/*! \brief Logical seed coordinates, from slowest to fastest varying. */
+enum class CouplingAwareASMSeedTraversalOrder
+{
+    I_J,
+    J_I,
+    I_J_K,
+    J_K_I,
+    K_I_J
+};
+
+template <>
+inline CouplingAwareASMSeedTraversalOrder
+string_to_enum<CouplingAwareASMSeedTraversalOrder>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "I_J") == 0) return CouplingAwareASMSeedTraversalOrder::I_J;
+    if (strcasecmp(val.c_str(), "J_I") == 0) return CouplingAwareASMSeedTraversalOrder::J_I;
+    if (strcasecmp(val.c_str(), "I_J_K") == 0) return CouplingAwareASMSeedTraversalOrder::I_J_K;
+    if (strcasecmp(val.c_str(), "J_K_I") == 0) return CouplingAwareASMSeedTraversalOrder::J_K_I;
+    if (strcasecmp(val.c_str(), "K_I_J") == 0) return CouplingAwareASMSeedTraversalOrder::K_I_J;
+    TBOX_ERROR("Unknown coupling-aware seed traversal order \""
+               << val << "\".\nValid values are I_J and J_I in 2D, and I_J_K, J_K_I and K_I_J in 3D.\n");
+    return CouplingAwareASMSeedTraversalOrder::I_J;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMSeedTraversalOrder>(CouplingAwareASMSeedTraversalOrder val)
+{
+    switch (val)
+    {
+    case CouplingAwareASMSeedTraversalOrder::I_J:
+        return "I_J";
+    case CouplingAwareASMSeedTraversalOrder::J_I:
+        return "J_I";
+    case CouplingAwareASMSeedTraversalOrder::I_J_K:
+        return "I_J_K";
+    case CouplingAwareASMSeedTraversalOrder::J_K_I:
+        return "J_K_I";
+    case CouplingAwareASMSeedTraversalOrder::K_I_J:
+        return "K_I_J";
+    }
+    return "";
+} // enum_to_string
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

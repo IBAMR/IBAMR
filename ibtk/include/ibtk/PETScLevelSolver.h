@@ -300,6 +300,18 @@ protected:
                                        std::vector<std::set<int>>& nonoverlap_is);
 
     /*!
+     * \brief Validate the preconditioner type in effect for this initialization.
+     *
+     * Called by initializeSolverState() after the PETSc options database has been applied, so that
+     * d_pc_type is the type that will be used, including a command-line override of the type from
+     * the input database. The default accepts every type; a derived class that requires a particular
+     * type reports a violation.
+     */
+    virtual void validatePreconditionerType()
+    {
+    }
+
+    /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,

@@ -64,10 +64,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
+#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -810,6 +813,469 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     patch_level->deallocatePatchData(u_mastr_loc_idx);
     return;
 } // constructPatchLevelASMSubdomains
+
+namespace
+{
+using CouplingAwareASMSeedRecord = std::pair<std::array<int, NDIM>, int>;
+
+// Rows of sorted, distinct integers in two flat arrays, numbered by DOF. On one rank the DOFs are the integers
+// from 0 up, so a row is found by indexing, without hashing or pointer chasing. The entries of a row are the range
+// begin(row) to end(row), which is empty for a row that was never given an entry.
+class DofRows
+{
+public:
+    // Build the rows from (row, entry) pairs. A pair that occurs more than once gives one entry.
+    void build(const std::vector<std::pair<int, int>>& pairs, const int n_rows)
+    {
+        d_offsets.assign(n_rows + 1, 0);
+        for (const auto& pair : pairs) ++d_offsets[pair.first + 1];
+        std::partial_sum(d_offsets.begin(), d_offsets.end(), d_offsets.begin());
+        d_entries.resize(pairs.size());
+        std::vector<int> cursor(d_offsets.begin(), d_offsets.end() - 1);
+        for (const auto& pair : pairs) d_entries[cursor[pair.first]++] = pair.second;
+        int write = 0;
+        for (int row = 0; row < n_rows; ++row)
+        {
+            const auto first = d_entries.begin() + d_offsets[row];
+            const auto last = d_entries.begin() + d_offsets[row + 1];
+            std::sort(first, last);
+            const int start = write;
+            for (auto entry = first; entry != last; ++entry)
+            {
+                if (write == start || d_entries[write - 1] != *entry) d_entries[write++] = *entry;
+            }
+            d_offsets[row] = start;
+        }
+        d_offsets[n_rows] = write;
+        d_entries.resize(write);
+    }
+
+    const int* begin(const int row) const
+    {
+        return d_entries.data() + (row < static_cast<int>(d_offsets.size()) - 1 ? d_offsets[row] : d_entries.size());
+    }
+
+    const int* end(const int row) const
+    {
+        return d_entries.data() +
+               (row < static_cast<int>(d_offsets.size()) - 1 ? d_offsets[row + 1] : d_entries.size());
+    }
+
+private:
+    std::vector<int> d_offsets, d_entries;
+};
+
+// Sort a vector and remove repeated entries.
+void
+sort_unique(std::vector<int>& values)
+{
+    std::sort(values.begin(), values.end());
+    values.erase(std::unique(values.begin(), values.end()), values.end());
+}
+
+// Sort the records geometrically, drop repeats of a DOF (a periodic or shared side is found more than once), and keep
+// every seed_stride-th of the rest.
+std::vector<int>
+select_coupling_aware_seeds(std::vector<CouplingAwareASMSeedRecord> records, const int n_dofs, const int seed_stride)
+{
+    std::sort(records.begin(), records.end());
+    std::vector<char> seen(n_dofs, 0);
+    int n_seen = 0;
+    std::vector<int> seeds;
+    for (const CouplingAwareASMSeedRecord& record : records)
+    {
+        if (seen[record.second])
+        {
+            continue;
+        }
+        seen[record.second] = 1;
+        if (n_seen++ % seed_stride == 0)
+        {
+            seeds.push_back(record.second);
+        }
+    }
+    return seeds;
+}
+
+// Matrix entries of a row at or below this size are not couplings: the larger of a roundoff bound for the number of
+// entries that were compared and the relative tolerance, times the largest entry of the row.
+double
+coupling_threshold(const PetscInt entries, const double row_max, const double relative_zero_tol)
+{
+    return std::max(entries * std::numeric_limits<double>::epsilon(), relative_zero_tol) * row_max;
+}
+
+// Require a square matrix that has the full coupled numbering and the ownership of this rank.
+void
+require_full_coupled_numbering(Mat matrix, const std::vector<int>& num_dofs_per_proc, const char* const name)
+{
+    PetscInt nrows = 0, ncols = 0, first = 0, last = 0;
+    int ierr = MatGetSize(matrix, &nrows, &ncols);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(matrix, &first, &last);
+    IBTK_CHKERRQ(ierr);
+    const int rank = IBTK_MPI::getRank();
+    const int local_begin = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + rank, 0);
+    const int local_end = local_begin + num_dofs_per_proc[rank];
+    if (nrows != ncols || nrows != std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0) ||
+        first != local_begin || last != local_end)
+    {
+        TBOX_ERROR("require_full_coupled_numbering():\n"
+                   << "  " << name << " must use full coupled numbering and ownership.\n");
+    }
+}
+
+/*! \brief Level geometry for velocity-seeded ASM construction, built from live DOF data.
+ *
+ * The supplied patch data must outlive this object. Only one MPI rank is supported. Construction semantics are
+ * defined by
+ * StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
+ */
+class CouplingAwareASMSubdomains
+{
+public:
+    /*! \brief Build velocity adjacency and cell closures from live DOF data. */
+    CouplingAwareASMSubdomains(int u_idx, int p_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
+
+    /*! \brief Construct ordered overlap sets and their first-owner partition. */
+    void constructSubdomains(std::vector<std::set<int>>& overlap,
+                             std::vector<std::set<int>>& nonoverlap,
+                             const std::vector<int>& num_dofs_per_proc,
+                             Mat matrix,
+                             int seed_axis,
+                             int seed_stride,
+                             CouplingAwareASMSeedTraversalOrder order,
+                             CouplingAwareASMClosurePolicy policy,
+                             double relative_zero_tol);
+
+private:
+    /*! \brief Add lower-face component pairing when STRICT first needs it. */
+    void buildSeedPairs();
+
+    /*! \brief Join the standard Vanka patches of the cells that touch the expanded velocity DOFs and of extra_cells.
+     *
+     * The STRICT policy skips a cell that has a velocity DOF outside expanded. The RELAXED policy also adds expanded.
+     */
+    std::vector<int> closeExpandedDOFs(const std::vector<int>& expanded,
+                                       std::vector<int> extra_cells,
+                                       CouplingAwareASMClosurePolicy policy) const;
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+    int d_u_idx;
+    bool isVelocity(const int dof) const
+    {
+        return dof >= 0 && dof < d_n_dofs && d_is_velocity[dof];
+    }
+
+    // The velocity DOFs are flagged by DOF, and the rows are numbered by DOF, up to d_n_dofs.
+    int d_n_dofs = 0;
+    std::vector<char> d_is_velocity;
+    DofRows d_adjacent_cells, d_cell_closures, d_seed_pairs;
+    bool d_pairs_built = false;
+};
+} // namespace
+
+CouplingAwareASMSubdomains::CouplingAwareASMSubdomains(const int u_idx,
+                                                       const int p_idx,
+                                                       Pointer<PatchLevel<NDIM>> level)
+    : d_level(level), d_u_idx(u_idx)
+{
+    if (!level || u_idx < 0 || p_idx < 0 || !level->checkAllocated(u_idx) || !level->checkAllocated(p_idx))
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::CouplingAwareASMSubdomains():\n"
+                   << "  allocated level DOF data are required.\n");
+    }
+    std::vector<std::pair<int, int>> adjacent_cells, cell_closures;
+    std::vector<int> velocities;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(u_idx);
+        Pointer<CellData<NDIM, int>> pressure = patch->getPatchData(p_idx);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> sides = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+            for (Box<NDIM>::Iterator b(sides); b; b++)
+            {
+                const SideIndex<NDIM> side(b(), axis, SideIndex<NDIM>::Lower);
+                const int velocity = (*u)(side);
+                if (velocity < 0)
+                {
+                    continue;
+                }
+                d_n_dofs = std::max(d_n_dofs, velocity + 1);
+                velocities.push_back(velocity);
+                for (int face = 0; face < 2; ++face)
+                {
+                    const int cell = (*pressure)(side.toCell(face));
+                    if (cell >= 0)
+                    {
+                        adjacent_cells.emplace_back(velocity, cell);
+                    }
+                }
+            }
+        }
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            const int cell = (*pressure)(b());
+            if (cell < 0)
+            {
+                continue;
+            }
+            d_n_dofs = std::max(d_n_dofs, cell + 1);
+            cell_closures.emplace_back(cell, cell);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (int face = 0; face < 2; ++face)
+                {
+                    const int velocity = (*u)(SideIndex<NDIM>(b(), axis, face));
+                    if (velocity >= 0)
+                    {
+                        d_n_dofs = std::max(d_n_dofs, velocity + 1);
+                        cell_closures.emplace_back(cell, velocity);
+                    }
+                }
+            }
+        }
+    }
+    d_is_velocity.assign(d_n_dofs, 0);
+    for (const int velocity : velocities) d_is_velocity[velocity] = 1;
+    d_adjacent_cells.build(adjacent_cells, d_n_dofs);
+    d_cell_closures.build(cell_closures, d_n_dofs);
+}
+
+void
+CouplingAwareASMSubdomains::buildSeedPairs()
+{
+    std::vector<std::pair<int, int>> seed_pairs;
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(d_u_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const int seed = (*u)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+                if (seed < 0)
+                {
+                    continue;
+                }
+                for (int other = 0; other < NDIM; ++other)
+                {
+                    const int paired = (*u)(SideIndex<NDIM>(b(), other, SideIndex<NDIM>::Lower));
+                    if (other != axis && paired >= 0)
+                    {
+                        seed_pairs.emplace_back(seed, paired);
+                    }
+                }
+            }
+        }
+    }
+    d_seed_pairs.build(seed_pairs, d_n_dofs);
+    d_pairs_built = true;
+}
+
+std::vector<int>
+CouplingAwareASMSubdomains::closeExpandedDOFs(const std::vector<int>& expanded,
+                                              std::vector<int> cells,
+                                              const CouplingAwareASMClosurePolicy policy) const
+{
+    for (const int velocity : expanded)
+    {
+        cells.insert(cells.end(), d_adjacent_cells.begin(velocity), d_adjacent_cells.end(velocity));
+    }
+    sort_unique(cells);
+    std::vector<int> closure;
+    for (const int cell : cells)
+    {
+        const int* const first = d_cell_closures.begin(cell);
+        const int* const last = d_cell_closures.end(cell);
+        if (policy == CouplingAwareASMClosurePolicy::STRICT &&
+            std::any_of(first,
+                        last,
+                        [&](const int dof)
+                        { return isVelocity(dof) && !std::binary_search(expanded.begin(), expanded.end(), dof); }))
+        {
+            continue;
+        }
+        closure.insert(closure.end(), first, last);
+    }
+    if (policy == CouplingAwareASMClosurePolicy::RELAXED)
+    {
+        closure.insert(closure.end(), expanded.begin(), expanded.end());
+    }
+    sort_unique(closure);
+    return closure;
+}
+
+void
+CouplingAwareASMSubdomains::constructSubdomains(std::vector<std::set<int>>& overlap,
+                                                std::vector<std::set<int>>& nonoverlap,
+                                                const std::vector<int>& num_dofs_per_proc,
+                                                Mat matrix,
+                                                const int seed_axis,
+                                                const int seed_stride,
+                                                const CouplingAwareASMSeedTraversalOrder order,
+                                                const CouplingAwareASMClosurePolicy policy,
+                                                const double relative_zero_tol)
+{
+    if (IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
+                   << "  velocity-seeded construction requires one MPI rank.\n");
+    }
+    std::array<int, NDIM> axis_order{};
+#if (NDIM == 2)
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J)
+    {
+        axis_order = { 0, 1 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_I)
+    {
+        axis_order = { 1, 0 };
+    }
+#else
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J_K)
+    {
+        axis_order = { 0, 1, 2 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_K_I)
+    {
+        axis_order = { 1, 2, 0 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::K_I_J)
+    {
+        axis_order = { 2, 0, 1 };
+    }
+#endif
+    else
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
+                   << "  invalid logical traversal order.\n");
+    }
+    if (seed_axis < 0 || seed_axis >= NDIM || seed_stride < 1 ||
+        (policy != CouplingAwareASMClosurePolicy::RELAXED && policy != CouplingAwareASMClosurePolicy::STRICT) ||
+        !std::isfinite(relative_zero_tol) || relative_zero_tol < 0.0 || !matrix ||
+        num_dofs_per_proc.size() != static_cast<std::size_t>(IBTK_MPI::getNodes()))
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
+                   << "  invalid construction arguments.\n");
+    }
+    require_full_coupled_numbering(matrix, num_dofs_per_proc, "matrix");
+    if (d_n_dofs > num_dofs_per_proc.front())
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
+                   << "  the DOF data numbers DOFs up to " << d_n_dofs - 1 << ", but the matrix has only "
+                   << num_dofs_per_proc.front() << " DOFs.\n");
+    }
+    int ierr;
+    if (policy == CouplingAwareASMClosurePolicy::STRICT && !d_pairs_built)
+    {
+        buildSeedPairs();
+    }
+    // Sort geometric records before removing periodic/shared-side duplicates.
+    std::vector<CouplingAwareASMSeedRecord> records;
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, int>> u = patch->getPatchData(d_u_idx);
+        const Box<NDIM> sides = SideGeometry<NDIM>::toSideBox(patch->getBox(), seed_axis);
+        for (Box<NDIM>::Iterator b(sides); b; b++)
+        {
+            const int seed = (*u)(SideIndex<NDIM>(b(), seed_axis, SideIndex<NDIM>::Lower));
+            if (seed < 0)
+            {
+                continue;
+            }
+            std::array<int, NDIM> index{};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                index[d] = b()(axis_order[d]);
+            }
+            records.emplace_back(index, seed);
+        }
+    }
+    overlap.clear();
+    for (const int seed_dof : select_coupling_aware_seeds(std::move(records), d_n_dofs, seed_stride))
+    {
+        std::vector<int> seeds{ seed_dof };
+        if (policy == CouplingAwareASMClosurePolicy::STRICT)
+        {
+            seeds.insert(seeds.end(), d_seed_pairs.begin(seed_dof), d_seed_pairs.end(seed_dof));
+        }
+        std::vector<int> expanded = seeds;
+        for (const int seed : seeds)
+        {
+            PetscInt count = 0;
+            const PetscInt* columns = nullptr;
+            const PetscScalar* values = nullptr;
+            ierr = MatGetRow(matrix, seed, &count, &columns, &values);
+            IBTK_CHKERRQ(ierr);
+            PetscInt velocity_count = 0;
+            double row_max = 0.0;
+            for (PetscInt k = 0; k < count; ++k)
+            {
+                if (isVelocity(columns[k]))
+                {
+                    ++velocity_count; // Stored velocity zeros contribute to the roundoff threshold.
+                    row_max = std::max(row_max, static_cast<double>(PetscAbsScalar(values[k])));
+                }
+            }
+            const double threshold = coupling_threshold(velocity_count, row_max, relative_zero_tol);
+            for (PetscInt k = 0; k < count; ++k)
+            {
+                if (isVelocity(columns[k]) && PetscAbsScalar(values[k]) > threshold)
+                {
+                    expanded.push_back(columns[k]);
+                }
+            }
+            ierr = MatRestoreRow(matrix, seed, &count, &columns, &values);
+            IBTK_CHKERRQ(ierr);
+        }
+        sort_unique(expanded);
+        std::vector<int> closure = closeExpandedDOFs(expanded, {}, policy);
+        if (policy == CouplingAwareASMClosurePolicy::RELAXED && closure.size() < 2 * NDIM + 1)
+        {
+            TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
+                       << "  incomplete relaxed cell closure.\n");
+        }
+        overlap.emplace_back(closure.begin(), closure.end());
+    }
+    nonoverlap.assign(overlap.size(), {});
+    std::vector<char> assigned(d_n_dofs, 0);
+    for (std::size_t k = 0; k < overlap.size(); ++k)
+    {
+        for (const int dof : overlap[k])
+        {
+            if (!assigned[dof])
+            {
+                assigned[dof] = 1;
+                nonoverlap[k].insert(nonoverlap[k].end(), dof);
+            }
+        }
+    }
+}
+
+void
+StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
+    std::vector<std::set<int>>& overlap,
+    std::vector<std::set<int>>& nonoverlap,
+    const std::vector<int>& num_dofs_per_proc,
+    const int u_idx,
+    const int p_idx,
+    Pointer<PatchLevel<NDIM>> level,
+    Mat matrix,
+    const int seed_axis,
+    const int seed_stride,
+    const CouplingAwareASMSeedTraversalOrder order,
+    const CouplingAwareASMClosurePolicy policy,
+    const double relative_zero_tol)
+{
+    CouplingAwareASMSubdomains maps(u_idx, p_idx, level);
+    maps.constructSubdomains(
+        overlap, nonoverlap, num_dofs_per_proc, matrix, seed_axis, seed_stride, order, policy, relative_zero_tol);
+}
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
