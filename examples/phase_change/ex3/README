@@ -1,0 +1,1 @@
+This example demonstrates that the enthalpy formulation conserves the mass of the PCM. Initially, the PCM (liquid_solid) region occupies the bottom of the domain while the gas occupies the top of the domain. Due to melting, the solid region is converted into liquid. But the overall mass of the PCM remains same.

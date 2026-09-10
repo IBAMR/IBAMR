@@ -1,0 +1,3 @@
+In this example, the migration of bubble in a non-isothermal system with finite Marangoni number is simulated. The energy equation is solved through AllenCahnHierarchyIntegrator class by setting Mobility M = 0, latent heat L =0, rho_solid=rho_liquid, cp_solid=cp_liquid, T_m<T at all times. With these parameters, there is no phase change and the energy equation reduces to the standard heat equation with variable thermophysical properties.
+
+This example compiles [`thermocapillary.cpp`](../thermocapillary.cpp), shared with ex7. The integrator is selected by the integrator database in the input file.
