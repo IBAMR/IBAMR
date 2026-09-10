@@ -1,0 +1,18 @@
+Main { log_file_name = "output" }
+AdvDiff { start_time = 0.0 end_time = 0.1 dt_max = 0.1 num_cycles = 1 enable_logging = FALSE }
+CartesianGeometry { domain_boxes = [(0,0,0),(15,15,15)] x_lo = 0,0,0 x_up = 1,1,1 periodic_dimension = 0,0,0 }
+GriddingAlgorithm {
+  max_levels = 1
+  ratio_to_coarser { level_1 = 2,2,2 }
+  largest_patch_size { level_0 = 8,8,8 }
+  smallest_patch_size { level_0 = 4,4,4 }
+}
+StandardTagAndInitialize { tagging_method = "REFINE_BOXES" RefineBoxes { level_0 = [(0,0,0),(7,7,7)] } }
+LoadBalancer { max_workload_factor = 1.0 }
+Velocity {
+  function_0 = "0.0"
+  function_1 = "0.0"
+  function_2 = "0.0"
+}
+Initial { function = "X_0 - 0.45" }
+exact_initial_success = TRUE
