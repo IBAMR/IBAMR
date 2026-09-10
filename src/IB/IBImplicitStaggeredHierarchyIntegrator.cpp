@@ -377,7 +377,6 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const doub
                                          current_time,
                                          new_time,
                                          d_object_name + "::integrateHierarchySpecialized()");
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchySpecialized
 
