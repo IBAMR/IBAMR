@@ -277,7 +277,8 @@ void
 PETScLevelSolverBlasLapackShellBackend::initializeQRSolver(SubdomainData& subdomain_data,
                                                            const std::size_t subdomain_num)
 {
-    const PetscBLASInt n = subdomain_data.local_size;
+    // Older PETSc LAPACK declarations require mutable dimension pointers.
+    PetscBLASInt n = subdomain_data.local_size;
     // For A = Q R, form A^{-1} = R^{-1} Q^T directly in the persistent
     // solve-data buffer. The QR factor and LAPACK work arrays are setup-only.
     std::vector<PetscScalar> qr_factor = std::move(subdomain_data.solve_data);
@@ -485,7 +486,7 @@ PETScLevelSolverBlasLapackShellBackend::solveSubdomainSystem(SubdomainData& subd
     {
         return;
     }
-    const PetscBLASInt nrhs = 1;
+    PetscBLASInt nrhs = 1;
     PetscBLASInt info = 0;
     switch (d_subdomain_solver_type)
     {
