@@ -21,9 +21,12 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <CellVariable.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
 #include <SAMRAIVectorReal.h>
 #include <SideGeometry.h>
 #include <SideVariable.h>
@@ -37,10 +40,12 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
@@ -146,6 +151,106 @@ test_specialized_linear_refine()
         }
     }
 }
+
+// The fine-cell divergence equals the parent-cell divergence for RT0 refinement.
+int
+test_rt0_schedule(Pointer<PatchHierarchy<NDIM>> hierarchy, int u_idx, int refined_idx)
+{
+    Pointer<PatchLevel<NDIM>> coarse = hierarchy->getPatchLevel(0);
+    Pointer<PatchLevel<NDIM>> fine = hierarchy->getPatchLevel(1);
+    if (coarse->getNumberOfPatches() != 1 || fine->getNumberOfPatches() != 1)
+    {
+        TBOX_ERROR("RT0 invariant fixture requires one patch per level.\n");
+    }
+    Pointer<Patch<NDIM>> coarse_patch = coarse->getPatch(0);
+    Pointer<Patch<NDIM>> fine_patch = fine->getPatch(0);
+    Pointer<SideData<NDIM, double>> coarse_data = coarse_patch->getPatchData(u_idx);
+    Pointer<SideData<NDIM, double>> refined_data = fine_patch->getPatchData(refined_idx);
+    Pointer<CartesianPatchGeometry<NDIM>> coarse_geom = coarse_patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> fine_geom = fine_patch->getPatchGeometry();
+    const IntVector<NDIM> ratio = fine->getRatioToCoarserLevel();
+    Pointer<RefineAlgorithm<NDIM>> algorithm = new RefineAlgorithm<NDIM>();
+    algorithm->registerRefine(refined_idx, u_idx, refined_idx, new CartSideDoubleRT0Refine());
+    Pointer<RefineSchedule<NDIM>> schedule = algorithm->createSchedule(fine, Pointer<PatchLevel<NDIM>>(), 0, hierarchy);
+    double affine_error = 0.0, divergence_error = 0.0, divergence_norm = 0.0;
+    for (int profile = 0; profile < 3; ++profile)
+    {
+        coarse_data->fillAll(0.0);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(coarse_patch->getBox(), axis)); b; b++)
+            {
+                double value = axis + 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    const double x = coarse_geom->getXLower()[d] +
+                                     coarse_geom->getDx()[d] *
+                                         (b()(d) - coarse_patch->getBox().lower()(d) + (d == axis ? 0.0 : 0.5));
+                    if (profile == 0 && d == axis)
+                    {
+                        value += 0.3 * (axis + 1) * x;
+                    }
+                    else if (profile == 1)
+                    {
+                        value += 0.2 * (d + 1) * std::sin(2.0 * std::acos(-1.0) * x);
+                    }
+                    else if (profile == 2)
+                    {
+                        value += d == axis ? 0.3 * std::abs(2.0 * x - 1.0) : 0.2 * std::floor(4.0 * x);
+                    }
+                }
+                (*coarse_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)) = value;
+            }
+        }
+        refined_data->fillAll(0.0);
+        schedule->fillData(0.0);
+        if (profile == 0)
+        {
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch->getBox(), axis)); b; b++)
+                {
+                    const double x = fine_geom->getXLower()[axis] +
+                                     fine_geom->getDx()[axis] * (b()(axis) - fine_patch->getBox().lower()(axis));
+                    const double exact = axis + 1.0 + 0.3 * (axis + 1) * x;
+                    const double error =
+                        std::abs((*refined_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)) - exact);
+                    if (!std::isfinite(error))
+                    {
+                        TBOX_ERROR("Nonfinite RT0 affine error.\n");
+                    }
+                    affine_error = std::max(affine_error, error);
+                }
+            }
+        }
+        for (Box<NDIM>::Iterator b(fine_patch->getBox()); b; b++)
+        {
+            const hier::Index<NDIM> coarse_index = IndexUtilities::coarsen(b(), ratio);
+            double coarse_div = 0.0, fine_div = 0.0;
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                coarse_div += ((*coarse_data)(SideIndex<NDIM>(coarse_index, axis, SideIndex<NDIM>::Upper)) -
+                               (*coarse_data)(SideIndex<NDIM>(coarse_index, axis, SideIndex<NDIM>::Lower))) /
+                              coarse_geom->getDx()[axis];
+                fine_div += ((*refined_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Upper)) -
+                             (*refined_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower))) /
+                            fine_geom->getDx()[axis];
+            }
+            const double error = std::abs(fine_div - coarse_div);
+            if (!std::isfinite(error))
+            {
+                TBOX_ERROR("Nonfinite RT0 divergence error.\n");
+            }
+            divergence_error = std::max(divergence_error, error);
+            divergence_norm = std::max(divergence_norm, std::abs(coarse_div));
+        }
+    }
+    plog << std::setprecision(12) << "affine schedule error = " << affine_error << '\n'
+         << "divergence error = " << divergence_error << '\n'
+         << "coarse divergence norm = " << divergence_norm << '\n';
+    return affine_error < 1.0e-12 && divergence_error < 1.0e-12 && divergence_norm > 0.0 ? 0 : 1;
+}
+
 } // namespace
 
 int
@@ -191,9 +296,10 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
         Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx);
+        const IntVector<NDIM> ghosts(input_db->getBoolWithDefault("test_rt0_schedule", false) ? 1 : 0);
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, ghosts);
         Pointer<SideVariable<NDIM, double>> exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
-        const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx);
+        const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx, ghosts);
         // u_cc_var is only for plotting (and testing): uncomment if output is desired
 // #define DO_PLOT
 #ifdef DO_PLOT
@@ -225,6 +331,11 @@ main(int argc, char* argv[])
         }
 
         Pointer<VisItDataWriter<NDIM>> visit_writer = app_initializer->getVisItDataWriter();
+
+        if (input_db->getBoolWithDefault("test_rt0_schedule", false))
+        {
+            return test_rt0_schedule(patch_hierarchy, u_sc_idx, exact_sc_idx);
+        }
 
         // The rest is just book-keeping, this is the actual test:
         auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n)
