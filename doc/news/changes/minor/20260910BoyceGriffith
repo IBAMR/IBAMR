@@ -1,0 +1,5 @@
+New: CartGridPointwiseFunction and make_cart_grid_pointwise_function provide
+functor-based initialization and transformation of scalar, vector, and tensor
+values on cell-, node-, side-, face-, and edge-centered patch data.
+<br>
+(Aaron Barrett and Boyce Griffith, 2026/09/10)
