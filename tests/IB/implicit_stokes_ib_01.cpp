@@ -28,6 +28,8 @@
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 
+#include <tbox/Logger.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
@@ -123,6 +125,10 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
+#ifndef IBTK_HAVE_SILO
+    // Suppress warnings caused by running without Silo.
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+#endif
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
         Pointer<Database> input = app->getInputDatabase();
