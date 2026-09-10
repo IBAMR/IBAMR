@@ -62,7 +62,8 @@ PetscErrorCode
 get_test_row(Mat mat, PetscInt row, PetscInt* n, const PetscInt** columns, const PetscScalar** values)
 {
     RowMatrix* context = nullptr;
-    PetscCall(MatShellGetContext(mat, &context));
+    int ierr = MatShellGetContext(mat, &context);
+    IBTK_CHKERRQ(ierr);
     ++context->row_reads;
     *n = static_cast<PetscInt>(context->columns[row].size());
     *columns = context->columns[row].data();
@@ -70,25 +71,28 @@ get_test_row(Mat mat, PetscInt row, PetscInt* n, const PetscInt** columns, const
     {
         *values = context->values[row].data();
     }
-    return PETSC_SUCCESS;
+    return 0;
 }
 
 PetscErrorCode
 restore_test_row(Mat, PetscInt, PetscInt*, const PetscInt**, const PetscScalar**)
 {
-    return PETSC_SUCCESS;
+    return 0;
 }
 
 PetscErrorCode
 multiply_test_matrix(Mat mat, Vec x, Vec y)
 {
     RowMatrix* context = nullptr;
-    PetscCall(MatShellGetContext(mat, &context));
+    int ierr = MatShellGetContext(mat, &context);
+    IBTK_CHKERRQ(ierr);
     ++context->multiplies;
     const PetscScalar* input = nullptr;
     PetscScalar* output = nullptr;
-    PetscCall(VecGetArrayRead(x, &input));
-    PetscCall(VecGetArray(y, &output));
+    ierr = VecGetArrayRead(x, &input);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(y, &output);
+    IBTK_CHKERRQ(ierr);
     for (std::size_t row = 0; row < context->columns.size(); ++row)
     {
         output[row] = 0.0;
@@ -97,9 +101,11 @@ multiply_test_matrix(Mat mat, Vec x, Vec y)
             output[row] += context->values[row][j] * input[context->columns[row][j]];
         }
     }
-    PetscCall(VecRestoreArray(y, &output));
-    PetscCall(VecRestoreArrayRead(x, &input));
-    return PETSC_SUCCESS;
+    ierr = VecRestoreArray(y, &output);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(x, &input);
+    IBTK_CHKERRQ(ierr);
+    return 0;
 }
 
 // Prescribed local corrections isolate the real shared composer's residual action.
