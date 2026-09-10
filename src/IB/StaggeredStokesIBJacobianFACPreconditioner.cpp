@@ -21,6 +21,7 @@
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -39,40 +40,32 @@ StaggeredStokesIBJacobianFACPreconditioner::StaggeredStokesIBJacobianFACPrecondi
     const std::string& default_options_prefix)
     : StaggeredStokesFACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
-    // intentionally blank
+    if (!getIBFACPreconditionerStrategy())
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesIBJacobianFACPreconditioner():\n"
+                                 << "  fac_strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.");
+    }
     return;
 } // StaggeredStokesIBJacobianFACPreconditioner
 
 void
 StaggeredStokesIBJacobianFACPreconditioner::setIBTimeSteppingType(const TimeSteppingType time_stepping_type)
 {
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setIBTimeSteppingType(time_stepping_type);
-    }
+    getIBFACPreconditionerStrategy()->setIBTimeSteppingType(time_stepping_type);
     return;
 } // setIBTimeSteppingType
 
 void
 StaggeredStokesIBJacobianFACPreconditioner::setIBForceJacobian(Mat A_mat)
 {
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setIBForceJacobian(A_mat);
-    }
+    getIBFACPreconditionerStrategy()->setIBForceJacobian(A_mat);
     return;
 } // setIBForceJacobian
 
 void
 StaggeredStokesIBJacobianFACPreconditioner::setIBInterpOp(Mat J_mat)
 {
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy = getIBFACPreconditionerStrategy();
-    if (fac_strategy)
-    {
-        fac_strategy->setIBInterpOp(J_mat);
-    }
+    getIBFACPreconditionerStrategy()->setIBInterpOp(J_mat);
     return;
 } // setIBInterpOp
 
