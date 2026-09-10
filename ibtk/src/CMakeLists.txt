@@ -254,9 +254,6 @@ ENDIF()
 SET_PROPERTY(SOURCE math/IBOperatorRegistry.cpp APPEND PROPERTY COMPILE_DEFINITIONS
   IBTK_MAX_BSPLINE_ORDER=${IBTK_MAX_BSPLINE_ORDER})
 
-SET_PROPERTY(SOURCE solvers/impls/EigenLocalSolver.cpp APPEND PROPERTY INCLUDE_DIRECTORIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/solvers/impls)
-
 # TARGET_SOURCES needs to use private - if we used public then dependencies on
 # this target will also compile the source files
 TARGET_SOURCES(IBTK2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})
