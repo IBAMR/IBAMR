@@ -22,6 +22,16 @@
 
 #include <string>
 #include <type_traits>
+#include <utility>
+
+namespace SAMRAI
+{
+namespace geom
+{
+template <int DIM>
+class CartesianPatchGeometry;
+}
+} // namespace SAMRAI
 
 namespace IBTK
 {
@@ -72,7 +82,6 @@ inline std::string enum_to_string<TensorStorage>(TensorStorage value);
  * Ghost values are neither read nor modified. Shared patch-boundary values are
  * evaluated on each patch holding them; no synchronization is performed.
  * Callbacks must not modify other patch values through captured references.
- * The concrete functor type is retained throughout the evaluation kernel.
  *
  * \see make_cart_grid_pointwise_function()
  */
@@ -95,6 +104,7 @@ public:
      */
     bool isTimeDependent() const override;
 
+    /*! \brief Apply the callback to the allocated double-precision patch data. */
     void setDataOnPatch(int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -103,6 +113,69 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level = nullptr) override;
 
 private:
+    static_assert(std::is_same_v<Value, double> || std::is_same_v<Value, VectorNd> || std::is_same_v<Value, VectorXd> ||
+                      std::is_same_v<Value, MatrixNd>,
+                  "Pointwise values must be double, VectorNd, VectorXd, or MatrixNd.");
+    static constexpr bool s_initializes = std::is_invocable_r_v<Value, Function&, const VectorNd&, double, int, int>;
+    static constexpr bool s_transforms =
+        std::is_invocable_r_v<Value, Function&, const Value&, const VectorNd&, double, int, int>;
+    static_assert(s_initializes != s_transforms,
+                  "A pointwise functor must match exactly one initialization or transformation signature.");
+
+    template <typename Data>
+    struct Centering
+    {
+        /*! \brief Whether the centering has oriented data arrays. */
+        static constexpr bool is_staggered();
+
+        /*! \brief Whether the data allocate the requested orientation. */
+        static bool has_axis(const Data& data, int axis);
+
+        /*! \brief Iterate over the specified patch interior and orientation. */
+        static typename Data::Iterator begin(const SAMRAI::hier::Box<NDIM>& box, int axis);
+
+        /*! \brief Locate the data relative to the lower corner of its cell. */
+        static VectorNd offset(int axis);
+
+        /*! \brief Convert a centered index to Cartesian coordinate order. */
+        template <typename Index>
+        static SAMRAI::hier::Index<NDIM> cartesian_index(const Index& index);
+    };
+
+    struct Values
+    {
+        /*! \brief Validate tensor storage and return its required depth. */
+        static int tensor_depth(TensorStorage storage);
+
+        /*! \brief Check the allocated depth against the callback value type. */
+        static void validate_depth(int depth, TensorStorage storage);
+
+        /*! \brief Allocate scratch space for one collocated value. */
+        static Value make_value(int depth);
+
+        /*! \brief Map a stored tensor component to matrix coordinates. */
+        static std::pair<int, int> tensor_index(int component, TensorStorage storage);
+
+        /*! \brief Check the result shape and evaluate it before scattering. */
+        template <typename Result>
+        static void assign_result(Value& value, Result&& result, int depth);
+
+        /*! \brief Gather the collocated value from patch-data depths. */
+        template <typename Data, typename Index>
+        static void load(Value& value, const Data& data, const Index& index, int depth, TensorStorage storage);
+
+        /*! \brief Scatter the evaluated value to patch-data depths. */
+        template <typename Data, typename Index>
+        static void store(const Value& value, Data& data, const Index& index, int depth, TensorStorage storage);
+    };
+
+    /*! \brief Evaluate the callback with centering resolved for the whole patch. */
+    template <typename Data>
+    void applyPointwise(Data& data,
+                        const SAMRAI::hier::Box<NDIM>& box,
+                        const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
+                        double time);
+
     Function d_function;
     TensorStorage d_tensor_storage;
 };
@@ -115,6 +188,7 @@ private:
  * requirements. MatrixNd functions require the overload with TensorStorage.
  *
  * \code
+ * const double factor = 2.0;
  * auto f = make_cart_grid_pointwise_function<double>(
  *     "scale", [factor](double q, const VectorNd&, double, int, int) { return factor*q; });
  * f->setDataOnPatchHierarchy(data_idx, var, hierarchy, time);

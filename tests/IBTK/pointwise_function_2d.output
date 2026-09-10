@@ -1,91 +1,30 @@
-TensorStorage conversions: PASS
-cell scalar initialization: PASS
-cell scalar identity: PASS
-cell scalar transformation: PASS
-node scalar initialization: PASS
-node scalar identity: PASS
-node scalar transformation: PASS
-side scalar initialization: PASS
-side scalar identity: PASS
-side scalar transformation: PASS
-face scalar initialization: PASS
-face scalar identity: PASS
-face scalar transformation: PASS
-edge scalar initialization: PASS
-edge scalar identity: PASS
-edge scalar transformation: PASS
-partial side scalar initialization: PASS
-partial side scalar identity: PASS
-partial side scalar transformation: PASS
-cell vector initialization: PASS
-cell vector identity: PASS
-cell vector transformation: PASS
-node vector initialization: PASS
-node vector identity: PASS
-node vector transformation: PASS
-side vector initialization: PASS
-side vector identity: PASS
-side vector transformation: PASS
-face vector initialization: PASS
-face vector identity: PASS
-face vector transformation: PASS
-edge vector initialization: PASS
-edge vector identity: PASS
-edge vector transformation: PASS
-partial side vector initialization: PASS
-partial side vector identity: PASS
-partial side vector transformation: PASS
-cell general initialization: PASS
-cell general identity: PASS
-cell general transformation: PASS
-node general initialization: PASS
-node general identity: PASS
-node general transformation: PASS
-side general initialization: PASS
-side general identity: PASS
-side general transformation: PASS
-face general initialization: PASS
-face general identity: PASS
-face general transformation: PASS
-edge general initialization: PASS
-edge general identity: PASS
-edge general transformation: PASS
-partial side general initialization: PASS
-partial side general identity: PASS
-partial side general transformation: PASS
-cell full tensor initialization: PASS
-cell full tensor identity: PASS
-cell full tensor transformation: PASS
-node full tensor initialization: PASS
-node full tensor identity: PASS
-node full tensor transformation: PASS
-side full tensor initialization: PASS
-side full tensor identity: PASS
-side full tensor transformation: PASS
-face full tensor initialization: PASS
-face full tensor identity: PASS
-face full tensor transformation: PASS
-edge full tensor initialization: PASS
-edge full tensor identity: PASS
-edge full tensor transformation: PASS
-partial side full tensor initialization: PASS
-partial side full tensor identity: PASS
-partial side full tensor transformation: PASS
-cell symmetric tensor initialization: PASS
-cell symmetric tensor identity: PASS
-cell symmetric tensor transformation: PASS
-node symmetric tensor initialization: PASS
-node symmetric tensor identity: PASS
-node symmetric tensor transformation: PASS
-side symmetric tensor initialization: PASS
-side symmetric tensor identity: PASS
-side symmetric tensor transformation: PASS
-face symmetric tensor initialization: PASS
-face symmetric tensor identity: PASS
-face symmetric tensor transformation: PASS
-edge symmetric tensor initialization: PASS
-edge symmetric tensor identity: PASS
-edge symmetric tensor transformation: PASS
-partial side symmetric tensor initialization: PASS
-partial side symmetric tensor identity: PASS
-partial side symmetric tensor transformation: PASS
+cell scalar errors (initialize, identity, transform): 0 0 0
+node scalar errors (initialize, identity, transform): 0 0 0
+side scalar errors (initialize, identity, transform): 0 0 0
+face scalar errors (initialize, identity, transform): 0 0 0
+edge scalar errors (initialize, identity, transform): 0 0 0
+partial side scalar errors (initialize, identity, transform): 0 0 0
+cell vector errors (initialize, identity, transform): 0 0 0
+node vector errors (initialize, identity, transform): 0 0 0
+side vector errors (initialize, identity, transform): 0 0 0
+face vector errors (initialize, identity, transform): 0 0 0
+edge vector errors (initialize, identity, transform): 0 0 0
+partial side vector errors (initialize, identity, transform): 0 0 0
+cell general errors (initialize, identity, transform): 0 0 0
+node general errors (initialize, identity, transform): 0 0 0
+side general errors (initialize, identity, transform): 0 0 0
+face general errors (initialize, identity, transform): 0 0 0
+edge general errors (initialize, identity, transform): 0 0 0
+partial side general errors (initialize, identity, transform): 0 0 0
+cell full tensor errors (initialize, identity, transform): 0 0 0
+node full tensor errors (initialize, identity, transform): 0 0 0
+side full tensor errors (initialize, identity, transform): 0 0 0
+face full tensor errors (initialize, identity, transform): 0 0 0
+edge full tensor errors (initialize, identity, transform): 0 0 0
+partial side full tensor errors (initialize, identity, transform): 0 0 0
+cell symmetric tensor errors (initialize, identity, transform): 0 0 0
+node symmetric tensor errors (initialize, identity, transform): 0 0 0
+side symmetric tensor errors (initialize, identity, transform): 0 0 0
+face symmetric tensor errors (initialize, identity, transform): 0 0 0
+edge symmetric tensor errors (initialize, identity, transform): 0 0 0
+partial side symmetric tensor errors (initialize, identity, transform): 0 0 0

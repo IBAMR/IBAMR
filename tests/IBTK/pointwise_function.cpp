@@ -25,9 +25,11 @@
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <memory>
 #include <string>
@@ -242,10 +244,10 @@ set_reference(Pointer<PatchHierarchy<NDIM>> hierarchy,
     reference.setDataOnPatchHierarchy(data_idx, var, hierarchy, time);
 }
 
-int
-compare_arrays(const ArrayData<NDIM, double>& data, const ArrayData<NDIM, double>& reference)
+double
+array_error(const ArrayData<NDIM, double>& data, const ArrayData<NDIM, double>& reference)
 {
-    int failures = 0;
+    double error = 0.0;
     for (Box<NDIM>::Iterator it(data.getBox()); it; it++)
     {
         for (int d = 0; d < data.getDepth(); ++d)
@@ -254,26 +256,23 @@ compare_arrays(const ArrayData<NDIM, double>& data, const ArrayData<NDIM, double
             const double expected = reference(it(), d);
             if (std::isnan(expected))
             {
-                failures += !std::isnan(actual);
+                TBOX_ASSERT(std::isnan(actual));
             }
             else
             {
-                failures +=
-                    !std::isfinite(actual) || std::abs(actual - expected) > 2.0e-12 * (1.0 + std::abs(expected));
+                TBOX_ASSERT(std::isfinite(actual));
+                error = std::max(error, std::abs(actual - expected));
             }
         }
     }
-    return failures;
+    return error;
 }
 
 template <typename Data>
-void
-check_data(Pointer<PatchHierarchy<NDIM>> hierarchy,
-           const int data_idx,
-           const int reference_idx,
-           const std::string& label)
+double
+compute_error(Pointer<PatchHierarchy<NDIM>> hierarchy, const int data_idx, const int reference_idx)
 {
-    int failures = 0;
+    double error = 0.0;
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
@@ -283,7 +282,7 @@ check_data(Pointer<PatchHierarchy<NDIM>> hierarchy,
             Pointer<Data> reference = level->getPatch(it())->getPatchData(reference_idx);
             if constexpr (std::is_same_v<Data, CellData<NDIM, double>> || std::is_same_v<Data, NodeData<NDIM, double>>)
             {
-                failures += compare_arrays(data->getArrayData(), reference->getArrayData());
+                error = std::max(error, array_error(data->getArrayData(), reference->getArrayData()));
             }
             else
             {
@@ -296,17 +295,12 @@ check_data(Pointer<PatchHierarchy<NDIM>> hierarchy,
                             continue;
                         }
                     }
-                    failures += compare_arrays(data->getArrayData(axis), reference->getArrayData(axis));
+                    error = std::max(error, array_error(data->getArrayData(axis), reference->getArrayData(axis)));
                 }
             }
         }
     }
-    failures = IBTK_MPI::sumReduction(failures);
-    plog << label << ": " << (failures == 0 ? "PASS" : "FAIL") << '\n';
-    if (failures)
-    {
-        TBOX_ERROR(label << ": incorrect data or modified ghost values\n");
-    }
+    return IBTK_MPI::maxReduction(error);
 }
 
 template <typename Data, typename Var>
@@ -319,8 +313,8 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
          const bool partial = false)
 {
     const std::string name = centering + " " + kind;
-    auto* var_db = VariableDatabase<NDIM>::getDatabase();
-    auto context = var_db->getContext("pointwise");
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = var_db->getContext("pointwise");
     Pointer<Var> var;
     if constexpr (std::is_same_v<Var, SideVariable<NDIM, double>>)
     {
@@ -353,17 +347,19 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
     set_reference(
         hierarchy, reference_idx, reference_var, reference_expressions(kind, depth, staggered, false), INITIAL_TIME);
     functions[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, INITIAL_TIME, true);
-    check_data<Data>(hierarchy, data_idx, reference_idx, name + " initialization");
+    const double initialization_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
     // Exercise the inherited level entry point independently of hierarchy traversal.
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         functions[1]->setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(ln), TRANSFORM_TIME);
     }
-    check_data<Data>(hierarchy, data_idx, reference_idx, name + " identity");
+    const double identity_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
     functions[2]->setDataOnPatchHierarchy(data_idx, var, hierarchy, TRANSFORM_TIME);
     set_reference(
         hierarchy, reference_idx, reference_var, reference_expressions(kind, depth, staggered, true), TRANSFORM_TIME);
-    check_data<Data>(hierarchy, data_idx, reference_idx, name + " transformation");
+    const double transformation_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
+    plog << name << " errors (initialize, identity, transform): " << initialization_error << ' ' << identity_error
+         << ' ' << transformation_error << '\n';
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         hierarchy->getPatchLevel(ln)->deallocatePatchData(data_idx);
@@ -377,6 +373,7 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
 class ErrorAppender : public Logger::Appender
 {
 public:
+    /*! \brief Flush the abort diagnostic directly to the test output before termination. */
     void logMessage(const std::string& message, const std::string&, const int) override
     {
         if (IBTK_MPI::getRank() == 0)
@@ -438,7 +435,7 @@ run_error_case(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::string& error
     {
         TBOX_ERROR("Unknown error case\n");
     }
-    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> var;
     if (error == "data_type")
     {
@@ -480,7 +477,7 @@ main(int argc, char* argv[])
     Pointer<GriddingAlgorithm<NDIM>> gridding = new GriddingAlgorithm<NDIM>(
         "gridding", app->getComponentDatabase("GriddingAlgorithm"), error_detector, boxes, load);
     // Register the maximum test ghost width before constructing the hierarchy.
-    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<CellVariable<NDIM, double>> width_var = new CellVariable<NDIM, double>("ghost width");
     var_db->registerVariableAndContext(width_var, var_db->getContext("width"), IntVector<NDIM>(2));
     gridding->makeCoarsestLevel(hierarchy, 0.0);
@@ -504,13 +501,11 @@ main(int argc, char* argv[])
     {
         TBOX_ERROR("This test requires two hierarchy levels\n");
     }
-    if (enum_to_string(TensorStorage::FULL) != "FULL" || enum_to_string(TensorStorage::SYMMETRIC) != "SYMMETRIC" ||
-        string_to_enum<TensorStorage>("full") != TensorStorage::FULL ||
-        string_to_enum<TensorStorage>("symmetric") != TensorStorage::SYMMETRIC)
-    {
-        TBOX_ERROR("TensorStorage conversion failed\n");
-    }
-    plog << "TensorStorage conversions: PASS\n";
+    TBOX_ASSERT(enum_to_string(TensorStorage::FULL) == "FULL");
+    TBOX_ASSERT(enum_to_string(TensorStorage::SYMMETRIC) == "SYMMETRIC");
+    TBOX_ASSERT(string_to_enum<TensorStorage>("full") == TensorStorage::FULL);
+    TBOX_ASSERT(string_to_enum<TensorStorage>("symmetric") == TensorStorage::SYMMETRIC);
+    plog << std::scientific << std::setprecision(12);
     const std::array<std::string, 5> kinds{ "scalar", "vector", "general", "full tensor", "symmetric tensor" };
     const std::array<int, 5> depths{ NDIM + 2, NDIM, 2 * NDIM + 1, NDIM * NDIM, NDIM * (NDIM + 1) / 2 };
     const std::array<Functions, 5> functions{ make_scalar_functions(),
