@@ -65,6 +65,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <numeric>
@@ -925,11 +926,12 @@ require_full_coupled_numbering(Mat matrix, const std::vector<int>& num_dofs_per_
     }
 }
 
-/*! \brief Level geometry for velocity-seeded ASM construction, built from live DOF data.
+/*! \brief Level geometry for coupling-aware patch construction, built from live DOF data.
  *
  * The supplied patch data must outlive this object. Only one MPI rank is supported. Construction semantics are
  * defined by
- * StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
+ * StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains()
+ * and StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
  */
 class CouplingAwareASMSubdomains
 {
@@ -948,6 +950,18 @@ public:
                              CouplingAwareASMClosurePolicy policy,
                              double relative_zero_tol);
 
+    /*! \brief Construct pressure patches as defined by
+     * StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+     */
+    void constructPressureCellPatches(std::vector<std::set<int>>& patches,
+                                      std::vector<int>& pressure_seeds,
+                                      const std::vector<int>& num_dofs_per_proc,
+                                      Mat elasticity,
+                                      int seed_stride,
+                                      CouplingAwareASMSeedTraversalOrder order,
+                                      CouplingAwareASMClosurePolicy policy,
+                                      double relative_zero_tol);
+
 private:
     /*! \brief Add lower-face component pairing when STRICT first needs it. */
     void buildSeedPairs();
@@ -960,25 +974,60 @@ private:
                                        std::vector<int> extra_cells,
                                        CouplingAwareASMClosurePolicy policy) const;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
-    int d_u_idx;
     bool isVelocity(const int dof) const
     {
         return dof >= 0 && dof < d_n_dofs && d_is_velocity[dof];
     }
 
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+    int d_u_idx, d_p_idx;
     // The velocity DOFs are flagged by DOF, and the rows are numbered by DOF, up to d_n_dofs.
     int d_n_dofs = 0;
     std::vector<char> d_is_velocity;
     DofRows d_adjacent_cells, d_cell_closures, d_seed_pairs;
     bool d_pairs_built = false;
 };
+
+std::array<int, NDIM>
+get_coupling_aware_axis_order(const CouplingAwareASMSeedTraversalOrder order)
+{
+    std::array<int, NDIM> axis_order{};
+#if (NDIM == 2)
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J)
+    {
+        axis_order = { 0, 1 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_I)
+    {
+        axis_order = { 1, 0 };
+    }
+#else
+    if (order == CouplingAwareASMSeedTraversalOrder::I_J_K)
+    {
+        axis_order = { 0, 1, 2 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::J_K_I)
+    {
+        axis_order = { 1, 2, 0 };
+    }
+    else if (order == CouplingAwareASMSeedTraversalOrder::K_I_J)
+    {
+        axis_order = { 2, 0, 1 };
+    }
+#endif
+    else
+    {
+        TBOX_ERROR("get_coupling_aware_axis_order():\n"
+                   << "  invalid logical traversal order.\n");
+    }
+    return axis_order;
+}
 } // namespace
 
 CouplingAwareASMSubdomains::CouplingAwareASMSubdomains(const int u_idx,
                                                        const int p_idx,
                                                        Pointer<PatchLevel<NDIM>> level)
-    : d_level(level), d_u_idx(u_idx)
+    : d_level(level), d_u_idx(u_idx), d_p_idx(p_idx)
 {
     if (!level || u_idx < 0 || p_idx < 0 || !level->checkAllocated(u_idx) || !level->checkAllocated(p_idx))
     {
@@ -1125,35 +1174,7 @@ CouplingAwareASMSubdomains::constructSubdomains(std::vector<std::set<int>>& over
         TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
                    << "  velocity-seeded construction requires one MPI rank.\n");
     }
-    std::array<int, NDIM> axis_order{};
-#if (NDIM == 2)
-    if (order == CouplingAwareASMSeedTraversalOrder::I_J)
-    {
-        axis_order = { 0, 1 };
-    }
-    else if (order == CouplingAwareASMSeedTraversalOrder::J_I)
-    {
-        axis_order = { 1, 0 };
-    }
-#else
-    if (order == CouplingAwareASMSeedTraversalOrder::I_J_K)
-    {
-        axis_order = { 0, 1, 2 };
-    }
-    else if (order == CouplingAwareASMSeedTraversalOrder::J_K_I)
-    {
-        axis_order = { 1, 2, 0 };
-    }
-    else if (order == CouplingAwareASMSeedTraversalOrder::K_I_J)
-    {
-        axis_order = { 2, 0, 1 };
-    }
-#endif
-    else
-    {
-        TBOX_ERROR("CouplingAwareASMSubdomains::constructSubdomains():\n"
-                   << "  invalid logical traversal order.\n");
-    }
+    const std::array<int, NDIM> axis_order = get_coupling_aware_axis_order(order);
     if (seed_axis < 0 || seed_axis >= NDIM || seed_stride < 1 ||
         (policy != CouplingAwareASMClosurePolicy::RELAXED && policy != CouplingAwareASMClosurePolicy::STRICT) ||
         !std::isfinite(relative_zero_tol) || relative_zero_tol < 0.0 || !matrix ||
@@ -1258,6 +1279,134 @@ CouplingAwareASMSubdomains::constructSubdomains(std::vector<std::set<int>>& over
 }
 
 void
+CouplingAwareASMSubdomains::constructPressureCellPatches(std::vector<std::set<int>>& patches,
+                                                         std::vector<int>& pressure_seeds,
+                                                         const std::vector<int>& num_dofs_per_proc,
+                                                         Mat elasticity,
+                                                         const int seed_stride,
+                                                         const CouplingAwareASMSeedTraversalOrder order,
+                                                         const CouplingAwareASMClosurePolicy policy,
+                                                         const double relative_zero_tol)
+{
+    if (IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructPressureCellPatches():\n"
+                   << "  pressure-cell CAV construction requires one MPI rank.\n");
+    }
+    const std::array<int, NDIM> axis_order = get_coupling_aware_axis_order(order);
+    if (!elasticity || num_dofs_per_proc.size() != 1 || seed_stride < 1 ||
+        (policy != CouplingAwareASMClosurePolicy::RELAXED && policy != CouplingAwareASMClosurePolicy::STRICT) ||
+        !std::isfinite(relative_zero_tol) || relative_zero_tol < 0.0)
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructPressureCellPatches():\n"
+                   << "  invalid pressure-cell CAV construction arguments.\n");
+    }
+    require_full_coupled_numbering(elasticity, num_dofs_per_proc, "elasticity");
+    const PetscInt rows = num_dofs_per_proc.front();
+    if (d_n_dofs > rows)
+    {
+        TBOX_ERROR("CouplingAwareASMSubdomains::constructPressureCellPatches():\n"
+                   << "  the DOF data numbers DOFs up to " << d_n_dofs - 1 << ", but the elasticity matrix has only "
+                   << rows << " DOFs.\n");
+    }
+    int ierr;
+
+    // Each retained entry adds both directions without materializing a transpose.
+    std::vector<std::pair<int, int>> adjacency_pairs;
+    for (PetscInt row = 0; row < rows; ++row)
+    {
+        PetscInt count = 0;
+        const PetscInt* cols = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(elasticity, row, &count, &cols, &values);
+        IBTK_CHKERRQ(ierr);
+        double row_max = 0.0;
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            row_max = std::max(row_max, static_cast<double>(PetscAbsScalar(values[k])));
+        }
+        const double threshold = coupling_threshold(count, row_max, relative_zero_tol);
+        bool invalid_pressure_entry = false;
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            if (PetscAbsScalar(values[k]) <= threshold)
+            {
+                continue;
+            }
+            if (!isVelocity(row) || !isVelocity(cols[k]))
+            {
+                invalid_pressure_entry = true;
+                break;
+            }
+            adjacency_pairs.emplace_back(row, cols[k]);
+            adjacency_pairs.emplace_back(cols[k], row);
+        }
+        ierr = MatRestoreRow(elasticity, row, &count, &cols, &values);
+        IBTK_CHKERRQ(ierr);
+        if (invalid_pressure_entry)
+        {
+            TBOX_ERROR("CouplingAwareASMSubdomains::constructPressureCellPatches():\n"
+                       << "  elasticity pressure rows and columns must be numerically zero.\n");
+        }
+    }
+    DofRows adjacency;
+    adjacency.build(adjacency_pairs, rows);
+
+    std::vector<CouplingAwareASMSeedRecord> records;
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<CellData<NDIM, int>> pressure = patch->getPatchData(d_p_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            const int seed = (*pressure)(b());
+            if (seed < 0)
+            {
+                continue;
+            }
+            std::array<int, NDIM> index{};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                index[d] = b()(axis_order[d]);
+            }
+            records.emplace_back(index, seed);
+        }
+    }
+    patches.clear();
+    pressure_seeds.clear();
+    for (const int seed : select_coupling_aware_seeds(std::move(records), d_n_dofs, seed_stride))
+    {
+        const int* const standard_first = d_cell_closures.begin(seed);
+        const int* const standard_last = d_cell_closures.end(seed);
+        std::vector<int> velocities;
+        std::copy_if(standard_first,
+                     standard_last,
+                     std::back_inserter(velocities),
+                     [&](const int dof) { return isVelocity(dof); });
+        if (velocities.size() != 2 * NDIM)
+        {
+            TBOX_ERROR("CouplingAwareASMSubdomains::constructPressureCellPatches():\n"
+                       << "  a pressure seed requires a complete MAC velocity stencil.\n");
+        }
+        std::vector<int> expanded = velocities;
+        for (const int velocity : velocities)
+        {
+            expanded.insert(expanded.end(), adjacency.begin(velocity), adjacency.end(velocity));
+        }
+        sort_unique(expanded);
+        pressure_seeds.push_back(seed);
+        // Even RELAXED must not close neighboring cells when elasticity adds nothing.
+        if (expanded == velocities)
+        {
+            patches.emplace_back(standard_first, standard_last);
+            continue;
+        }
+        const std::vector<int> closure = closeExpandedDOFs(expanded, { seed }, policy);
+        patches.emplace_back(closure.begin(), closure.end());
+    }
+}
+
+void
 StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
     std::vector<std::set<int>>& overlap,
     std::vector<std::set<int>>& nonoverlap,
@@ -1275,6 +1424,25 @@ StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdo
     CouplingAwareASMSubdomains maps(u_idx, p_idx, level);
     maps.constructSubdomains(
         overlap, nonoverlap, num_dofs_per_proc, matrix, seed_axis, seed_stride, order, policy, relative_zero_tol);
+}
+
+void
+StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+    std::vector<std::set<int>>& patches,
+    std::vector<int>& pressure_seeds,
+    const std::vector<int>& num_dofs_per_proc,
+    const int u_idx,
+    const int p_idx,
+    Pointer<PatchLevel<NDIM>> level,
+    Mat elasticity,
+    const int seed_stride,
+    const CouplingAwareASMSeedTraversalOrder order,
+    const CouplingAwareASMClosurePolicy policy,
+    const double relative_zero_tol)
+{
+    CouplingAwareASMSubdomains maps(u_idx, p_idx, level);
+    maps.constructPressureCellPatches(
+        patches, pressure_seeds, num_dofs_per_proc, elasticity, seed_stride, order, policy, relative_zero_tol);
 }
 
 void

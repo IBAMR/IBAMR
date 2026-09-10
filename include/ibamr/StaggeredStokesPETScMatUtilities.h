@@ -137,6 +137,63 @@ public:
         CouplingAwareASMClosurePolicy policy = CouplingAwareASMClosurePolicy::RELAXED,
         double relative_zero_tol = 1.0e-14);
 
+    /*! \brief Construct ordered pressure-cell-seeded coupling-aware Vanka (CAV) patches.
+     *
+     * The standard Vanka patch of a cell consists of its pressure DOF and the
+     * velocity DOFs on its faces. Following Gruninger and Griffith
+     * (arXiv:2608.14310), a CAV patch is a union of standard Vanka patches, selected
+     * using the coupling graph of the elasticity matrix.
+     *
+     * The borrowed elasticity matrix uses full global velocity-pressure IDs,
+     * supports row access, and has numerically zero pressure rows and columns.
+     * An entry is retained when its magnitude exceeds
+     * max(n * epsilon, relative_zero_tol) times its row maximum, where n counts
+     * all stored entries, including zeros. Each seed's incident MAC velocities
+     * expand once through the retained row-or-column graph. Without expansion,
+     * both policies return the standard Vanka patch. Otherwise RELAXED joins the
+     * standard Vanka patch of every cell incident to an expanded velocity DOF and
+     * retains the expanded velocities; this is the construction of the paper.
+     * STRICT retains only cells whose complete velocity stencil is supported. The
+     * graph is that of the matrix entries above the threshold, not of its structural
+     * nonzeros.
+     *
+     * The requirement that the supplied matrix have numerically zero pressure rows and
+     * columns is what lets a patch reduce to the standard Vanka patch away from elastic
+     * coupling (Gruninger and Griffith, Section 3.2): the MAC-grid divergence stencil alone
+     * supplies a seed's geometric closure, and the matrix is read only to test for coupling
+     * beyond it. construct_patch_level_coupling_aware_asm_subdomains() has no such
+     * geometry-only baseline for its velocity seeds: it discovers a seed's own neighbors
+     * directly from the supplied matrix's rows, so it needs the full assembled operator, not
+     * an elasticity-only matrix, to find anything to close a patch around; that construction
+     * is not described in the paper.
+     *
+     * Pressure seeds are sorted in logical traversal order and de-duplicated
+     * before applying the positive seed_stride. pressure_seeds returns the pressure
+     * DOF of each patch, so that patches[k] corresponds to pressure_seeds[k]; each
+     * set contains increasing unique global IDs.
+     * The traversal order must match NDIM and relative_zero_tol must be finite
+     * and nonnegative. DOF data need valid adjacent-cell ghosts and must remain
+     * unchanged during construction. Only one MPI rank is supported.
+     * The matrix is read anew on each call and is not retained. This operation
+     * constructs patches, without partitioning ownership or applying corrections.
+     */
+    static void construct_patch_level_pressure_cell_seeded_cav_patches(
+        std::vector<std::set<int>>& patches,
+        std::vector<int>& pressure_seeds,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        Mat elasticity,
+        int seed_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J,
+#else
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J_K,
+#endif
+        CouplingAwareASMClosurePolicy policy = CouplingAwareASMClosurePolicy::RELAXED,
+        double relative_zero_tol = 1.0e-14);
+
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * PCFieldSplit preconditioner.
