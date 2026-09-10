@@ -1,3 +1,4 @@
+error_case = "centering"
 N = 8*2
 
 Main {
@@ -15,7 +16,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 2
+   max_levels = 1
 
    ratio_to_coarser {
       level_1 = 2,2

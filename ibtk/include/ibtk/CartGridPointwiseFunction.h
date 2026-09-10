@@ -20,6 +20,12 @@
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <CellData.h>
+#include <EdgeData.h>
+#include <FaceData.h>
+#include <NodeData.h>
+#include <SideData.h>
+
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -56,6 +62,12 @@ inline std::string enum_to_string<TensorStorage>(TensorStorage value);
 /*!
  * \brief Initialize or transform Cartesian patch-interior values with a functor.
  *
+ * Data must be CellData, NodeData, SideData, FaceData, or EdgeData with
+ * dimension NDIM and scalar type double. Each object supports that centering;
+ * data indices supplied at evaluation must refer to allocated data of the
+ * corresponding type. This precondition is checked in Debug builds; Release
+ * builds use an unchecked static_cast.
+ *
  * Value must be double, VectorNd, VectorXd, or MatrixNd. A double callback is
  * evaluated independently for every depth. VectorNd requires depth NDIM;
  * VectorXd uses the complete depth vector. MatrixNd requires an explicit
@@ -85,7 +97,7 @@ inline std::string enum_to_string<TensorStorage>(TensorStorage value);
  *
  * \see make_cart_grid_pointwise_function()
  */
-template <typename Value, typename Function>
+template <typename Value, typename Data, typename Function>
 class CartGridPointwiseFunction : public CartGridFunction
 {
 public:
@@ -113,6 +125,12 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level = nullptr) override;
 
 private:
+    static_assert(std::is_same_v<Data, SAMRAI::pdat::CellData<NDIM, double>> ||
+                      std::is_same_v<Data, SAMRAI::pdat::NodeData<NDIM, double>> ||
+                      std::is_same_v<Data, SAMRAI::pdat::SideData<NDIM, double>> ||
+                      std::is_same_v<Data, SAMRAI::pdat::FaceData<NDIM, double>> ||
+                      std::is_same_v<Data, SAMRAI::pdat::EdgeData<NDIM, double>>,
+                  "Pointwise patch data must use a supported double-precision Cartesian centering.");
     static_assert(std::is_same_v<Value, double> || std::is_same_v<Value, VectorNd> || std::is_same_v<Value, VectorXd> ||
                       std::is_same_v<Value, MatrixNd>,
                   "Pointwise values must be double, VectorNd, VectorXd, or MatrixNd.");
@@ -122,7 +140,6 @@ private:
     static_assert(s_initializes != s_transforms,
                   "A pointwise functor must match exactly one initialization or transformation signature.");
 
-    template <typename Data>
     struct Centering
     {
         /*! \brief Whether the centering has oriented data arrays. */
@@ -161,16 +178,15 @@ private:
         static void assign_result(Value& value, Result&& result, int depth);
 
         /*! \brief Gather the collocated value from patch-data depths. */
-        template <typename Data, typename Index>
+        template <typename Index>
         static void load(Value& value, const Data& data, const Index& index, int depth, TensorStorage storage);
 
         /*! \brief Scatter the evaluated value to patch-data depths. */
-        template <typename Data, typename Index>
+        template <typename Index>
         static void store(const Value& value, Data& data, const Index& index, int depth, TensorStorage storage);
     };
 
-    /*! \brief Evaluate the callback with centering resolved for the whole patch. */
-    template <typename Data>
+    /*! \brief Evaluate the callback on patch-interior data of the selected centering. */
     void applyPointwise(Data& data,
                         const SAMRAI::hier::Box<NDIM>& box,
                         const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
@@ -183,6 +199,13 @@ private:
 /*!
  * \brief Construct a scalar or vector pointwise function, deducing the functor type.
  *
+ * var must be nonnull. Its patch-data factory selects the centering at
+ * construction and must allocate double-precision cell, node, side, face, or
+ * edge data.
+ * The variable is not retained. The returned function may be applied to other
+ * variables or contexts with the same data type and a compatible depth.
+ * Side directions and data depth are taken from each patch at evaluation.
+ *
  * The functor is copied from an lvalue or moved from an rvalue. Move-only
  * functors are supported. Reference captures retain their usual lifetime
  * requirements. MatrixNd functions require the overload with TensorStorage.
@@ -190,19 +213,27 @@ private:
  * \code
  * const double factor = 2.0;
  * auto f = make_cart_grid_pointwise_function<double>(
- *     "scale", [factor](double q, const VectorNd&, double, int, int) { return factor*q; });
+ *     "scale", var, [factor](double q, const VectorNd&, double, int, int) { return factor*q; });
  * f->setDataOnPatchHierarchy(data_idx, var, hierarchy, time);
  * \endcode
  */
 template <typename Value, typename Function>
-SAMRAI::tbox::Pointer<CartGridFunction> make_cart_grid_pointwise_function(std::string object_name, Function&& function);
+SAMRAI::tbox::Pointer<CartGridFunction>
+make_cart_grid_pointwise_function(std::string object_name,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                  Function&& function);
 
 /*!
  * \brief Construct a MatrixNd pointwise function with explicit tensor storage.
+ *
+ * Variable selection and functor ownership follow the scalar/vector overload.
  */
 template <typename Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
-make_cart_grid_pointwise_function(std::string object_name, Function&& function, TensorStorage storage);
+make_cart_grid_pointwise_function(std::string object_name,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                  Function&& function,
+                                  TensorStorage storage);
 } // namespace IBTK
 
 #include <ibtk/private/CartGridPointwiseFunction-inl.h>

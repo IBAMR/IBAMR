@@ -337,6 +337,14 @@ FOREACH(_dir ${TEST_DIRECTORIES})
     VERBATIM)
 ENDFOREACH()
 
+# These cases violate a patch-data precondition checked only without NDEBUG.
+FOREACH(_case centering data_type)
+  ADD_CUSTOM_COMMAND(TARGET tests-IBTK POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:${CMAKE_BINARY_DIR}/tests/IBTK/pointwise_function_2d.${_case}.expect_error=true.input>"
+    VERBATIM)
+ENDFOREACH()
+
 # Find numdiff, if possible (we only need it for tests so its not essential that
 # we find it now)
 FIND_PROGRAM(NUMDIFF_EXECUTABLE NAMES numdiff HINTS ${NUMDIFF_ROOT} PATH_SUFFIXES bin)
