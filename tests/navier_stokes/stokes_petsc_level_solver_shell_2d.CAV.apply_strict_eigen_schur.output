@@ -1,0 +1,15 @@
+velocity_dofs = 32 pressure_dofs = 16
+pressure_patches = 16
+partition_size = 0
+pressure_mean = -1.73472347598e-18
+action_norm = 0.233941349699
+error = 1.11022302463e-14
+repeated_error = 1.11022302463e-14
+velocity_dofs = 32 pressure_dofs = 16
+pressure_patches = 16
+partition_size = 0
+pressure_mean = -4.33680868994e-18
+action_norm = 0.238584215378
+error = 1.05193631583e-14
+repeated_error = 1.05193631583e-14
+failures = 0

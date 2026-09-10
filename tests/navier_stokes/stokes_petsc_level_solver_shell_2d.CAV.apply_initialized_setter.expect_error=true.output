@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    shell_solver::setCouplingAwareASMConstructionMat(): deallocate solver state before changing the matrix.
+
