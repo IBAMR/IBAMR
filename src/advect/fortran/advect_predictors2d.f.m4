@@ -25,8 +25,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       REAL function minmod(a,b)
       implicit none
-      REAL a,b
-      minmod = 0.5d0*(sign(0.5d0,a)+sign(0.5d0,b))*(abs(a+b)-abs(a-b))
+      REAL, intent(in) :: a,b
+      minmod = max(0.0d0,min(a,b))+min(0.0d0,max(a,b))
       return
       end
 c
@@ -38,9 +38,11 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       REAL function median(a,b,c)
       implicit none
-      REAL a,b,c
-      REAL minmod
-      median = a + minmod(b-a,c-a)
+      REAL, intent(in) :: a,b,c
+      REAL lo,hi
+      lo = merge(a,b,a<=b)
+      hi = merge(b,a,a<=b)
+      median = max(lo,min(hi,c))
       return
       end
 c

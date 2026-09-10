@@ -92,11 +92,6 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
     case SNES_CONVERGED_ITS:
         os << object_name << ": converged: maximum number of iterations reached.\n";
         break;
-#if PETSC_VERSION_LT(3, 12, 0)
-    case SNES_CONVERGED_TR_DELTA:
-        os << object_name << ": converged: trust-region delta.\n";
-        break;
-#endif
     case SNES_DIVERGED_FUNCTION_DOMAIN:
         os << object_name << ": diverged: new x location passed to the function is not in the function domain.\n";
         break;
@@ -106,9 +101,15 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
     case SNES_DIVERGED_LINEAR_SOLVE:
         os << object_name << ": diverged: the linear solve failed.\n";
         break;
+#if PETSC_VERSION_LT(3, 25, 0)
     case SNES_DIVERGED_FNORM_NAN:
         os << object_name << ": diverged: |F| is NaN.\n";
         break;
+#else
+    case SNES_DIVERGED_FUNCTION_NANORINF:
+        os << object_name << ": diverged: |F| is NaN or infinity.\n";
+        break;
+#endif
     case SNES_DIVERGED_MAX_IT:
         os << object_name << ": diverged: exceeded maximum number of iterations.\n";
         break;
@@ -121,11 +122,9 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
     case SNES_DIVERGED_LOCAL_MIN:
         os << object_name << ": diverged: attained non-zero local minimum.\n";
         break;
-#if PETSC_VERSION_GE(3, 12, 0)
     case SNES_DIVERGED_TR_DELTA:
         os << object_name << ": diverged: trust-region delta.\n";
         break;
-#endif
     case SNES_CONVERGED_ITERATING:
         os << object_name << ": iterating.\n";
         break;

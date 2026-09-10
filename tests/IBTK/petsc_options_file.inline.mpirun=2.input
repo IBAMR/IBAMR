@@ -1,0 +1,43 @@
+Main {
+    petsc_settings {
+        ksp_type = "fgmres"
+        r00_bool = TRUE
+        r00_string = "ilu:level=2, with spaces"
+    }
+    petsc_settings_SP {
+        pc_type = "none"
+    }
+    petsc_settings_poisson {
+        rtol = 1.0e-12
+        atol = "0.0"
+    }
+}
+
+PoissonKrylovSolver {
+    petsc_options_prefix = "poisson"
+    petsc_settings {
+        poisson_ksp_type = "cg"
+        poisson_max_it = 30
+    }
+}
+
+PoissonMultigridPreconditioner {
+    petsc_options_prefix = "poisson_mg"
+    petsc_settings_poisson_mg {
+        ksp_type = "preonly"
+        max_it = 1
+    }
+}
+
+Expected {
+    ksp_type = "fgmres"
+    r00_bool = TRUE
+    r00_string = "ilu:level=2, with spaces"
+    SP_pc_type = "jacobi"
+    poisson_rtol = 1.0e-12
+    poisson_atol = "0.0"
+    poisson_ksp_type = "cg"
+    poisson_max_it = 30
+    poisson_mg_ksp_type = "preonly"
+    poisson_mg_max_it = 1
+}

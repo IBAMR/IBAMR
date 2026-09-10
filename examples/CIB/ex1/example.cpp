@@ -132,13 +132,6 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Read default Petsc options
-        if (input_db->keyExists("petsc_options_file"))
-        {
-            std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
-        }
-
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();

@@ -575,8 +575,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
         Vec& e = d_box_e[level_num];
         Vec& r = d_box_r[level_num];
         KSP& ksp = d_box_ksp[level_num];
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<SideData<NDIM, double>> U_error_data = error.getComponentPatchData(0, *patch);

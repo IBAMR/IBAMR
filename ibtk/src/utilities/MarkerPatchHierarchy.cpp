@@ -1127,6 +1127,8 @@ MarkerPatchHierarchy::pruneAndRedistribute()
                        << " patches. The most likely cause of this error is that the CFL number is greater than 1.");
         }
     }
+#else
+    NULL_USE(num_emplaced_markers);
 #endif
     IBTK_TIMER_STOP(t_prune_and_redistribute);
 }

@@ -448,21 +448,12 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
 
         // Get the local submatrices.
-#if PETSC_VERSION_GE(3, 8, 0)
         ierr = MatCreateSubMatrices(d_petsc_mat,
                                     d_n_local_subdomains,
                                     d_overlap_is.data(),
                                     d_overlap_is.data(),
                                     MAT_INITIAL_MATRIX,
                                     &d_sub_mat);
-#else
-        ierr = MatGetSubMatrices(d_petsc_mat,
-                                 d_n_local_subdomains,
-                                 d_overlap_is.data(),
-                                 d_overlap_is.data(),
-                                 MAT_INITIAL_MATRIX,
-                                 &d_sub_mat);
-#endif
         IBTK_CHKERRQ(ierr);
 
         // Setup data for communicating values between local and global representations.
@@ -556,21 +547,12 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-#if PETSC_VERSION_GE(3, 8, 0)
             ierr = MatCreateSubMatrices(d_petsc_mat,
                                         d_n_local_subdomains,
                                         get_data_or_null(d_overlap_is),
                                         get_data_or_null(local_idxs),
                                         MAT_INITIAL_MATRIX,
                                         &d_sub_bc_mat);
-#else
-            ierr = MatGetSubMatrices(d_petsc_mat,
-                                     d_n_local_subdomains,
-                                     get_data_or_null(d_overlap_is),
-                                     get_data_or_null(local_idxs),
-                                     MAT_INITIAL_MATRIX,
-                                     &d_sub_bc_mat);
-#endif
             IBTK_CHKERRQ(ierr);
             for (int i = 0; i < d_n_local_subdomains; ++i)
             {

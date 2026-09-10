@@ -27,7 +27,19 @@ L = N*DX                       // length of domain
 DT = 1e-16                     // maximum timestep size
 
 // solver parameters
-petsc_options_file   = "petsc_options.dat"
+petsc_settings_SP {
+   ksp_type = "fgmres"
+   ksp_rtol = 1.0e-14
+   ksp_pc_side = "right"
+   ksp_gmres_restart = 60
+   ksp_max_it = 1000
+}
+petsc_settings_LInv {
+   ksp_type = "richardson"
+   ksp_rtol = 1.0e-08
+   ksp_max_it = 2
+   ksp_norm_type = "none"
+}
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time

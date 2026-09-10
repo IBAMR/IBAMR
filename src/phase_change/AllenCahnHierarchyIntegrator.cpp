@@ -1198,6 +1198,8 @@ AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariab
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lf_var);
+#else
+    NULL_USE(lf_var);
 #endif
     d_lf_bc_coef = lf_bc_coef;
     return;
