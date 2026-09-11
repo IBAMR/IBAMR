@@ -1,0 +1,3 @@
+Program abort called with error message
+
+initialized_setter::setOperatorMat(): deallocate solver state before changing the matrix.

@@ -28,6 +28,7 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+#include <petscmat.h>
 #include <petscvec.h>
 
 #include <CellVariable.h>
@@ -90,6 +91,48 @@ public:
     {
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * \brief Set a full-level PETSc matrix instead of rediscretizing the Stokes operator.
+     *
+     * The assembled matrix must use the full coupled velocity-pressure numbering
+     * and local row/column distribution defined by
+     * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices() for this
+     * level, on PETSC_COMM_WORLD. Its boundary treatment must match the solver's
+     * boundary configuration, and any configured nullspace must be a nullspace
+     * of the supplied system.
+     * Without augmentation the solver uses the exact supplied matrix handle.
+     * Passing nullptr restores rediscretization without clearing an augmentation.
+     *
+     * The solver retains a PETSc reference, so the caller may release its own
+     * reference after this call. The matrix must not be modified or reassembled
+     * through any alias while installed. The retained reference survives
+     * deallocateSolverState() and is released on replacement, clearing with
+     * nullptr, or destruction of the solver.
+     * Set, replace, or clear this handle only while the solver is deallocated.
+     */
+    void setOperatorMat(Mat operator_mat);
+
+    /*!
+     * \brief Set a matrix contribution to add to the supplied or rediscretized level operator.
+     *
+     * The assembled contribution may use either the full coupled numbering and
+     * distribution in setOperatorMat(), or a compact velocity-only numbering.
+     * For the latter, each rank owns a contiguous range with one row per locally
+     * owned velocity DOF, ordered by increasing coupled global index within the
+     * velocity field from StaggeredStokesPETScMatUtilities::constructPatchLevelFields().
+     * Columns use the same global compact-to-coupled mapping. All contributions
+     * must use PETSC_COMM_WORLD. The compact velocity matrix must support PETSc
+     * row access, and the base matrix must support addition of the full-system
+     * or embedded velocity contribution.
+     *
+     * Addition preserves both installed matrices' entries. Configure boundary
+     * conditions and nullspaces consistently with the resulting system.
+     * Passing nullptr clears only the augmentation. The installed-reference,
+     * immutability, and deallocated-state requirements of setOperatorMat() apply
+     * independently to this handle.
+     */
+    void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
 protected:
     /*!
@@ -178,6 +221,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    // Owned references to the installed inputs, independent of solver state.
+    Mat d_operator_mat = nullptr;
+    Mat d_augmented_operator_mat = nullptr;
 
     //\}
 };
