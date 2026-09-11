@@ -600,6 +600,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             level_solver->setOperatorMat(nullptr);
             level_solver->setAugmentedOperatorMat(d_SAJ_mat[ln]);
         }
+        level_solver->setCouplingAwareASMConstructionMat(d_SAJ_mat[ln]);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
         const KSP level_ksp = level_solver->getPETScKSP();
@@ -661,6 +662,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             p_coarse_petsc_solver->setOperatorMat(d_galerkin_stokesib_mat[d_coarsest_ln]);
             p_coarse_petsc_solver->setAugmentedOperatorMat(nullptr);
         }
+        p_coarse_petsc_solver->setCouplingAwareASMConstructionMat(d_SAJ_mat[d_coarsest_ln]);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }

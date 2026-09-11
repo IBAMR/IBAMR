@@ -1,0 +1,88 @@
+test_case = "foundation"
+CAV_APPLICATION_ONLY = FALSE
+VERIFY_FGMRES_PHYSICAL_RESIDUALS = TRUE
+N = 4
+MAX_LEVELS = 2
+MU = 0.01
+RHO = 1.0
+DT = 0.005
+DS = 1.0/8.0
+SPRING_STIFFNESS = 8
+IB_TIME_STEPPING = "BACKWARD_EULER"
+TAG_BUFFER = 2
+USE_FIXED_LE_OPERATORS = TRUE
+stokes_ib_precond_db {
+   num_pre_sweeps = 1
+   num_post_sweeps = 1
+   U_prolongation_method = "RT0_REFINE"
+   U_restriction_method = "RT0_COARSEN"
+   rediscretize_stokes = TRUE
+   res_rediscretized_stokes = TRUE
+   level_solver_type = "PETSC_LEVEL_SOLVER"
+   level_solver_max_iterations = 1
+   level_solver_db {
+      use_ksp_as_smoother = TRUE
+      initial_guess_nonzero = FALSE
+      ksp_type = "preonly"
+      pc_type = "shell"
+      shell_pc_type = "multiplicative"
+      shell_pc_subdomain_traversal = "FORWARD"
+      shell_pc_relaxation_factor = 1.0
+      asm_subdomain_construction_mode = "COUPLING_AWARE"
+      coupling_aware_asm_patch_seed_type = "PRESSURE_CELL"
+      coupling_aware_asm_closure_policy = "RELAXED"
+      coupling_aware_asm_seed_stride = 1
+   }
+   coarse_solver_type = "PETSC_LEVEL_SOLVER"
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      ksp_type = "preonly"
+      pc_type = "svd"
+      initial_guess_nonzero = FALSE
+   }
+}
+IBMethod { delta_fcn = "IB_4" }
+IBRedundantInitializer {
+   max_levels = MAX_LEVELS
+   base_filenames_0 = "curve"
+   base_filenames_1 = "curve"
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   petsc_settings {
+      stokes_ib_pc_level_1__subpc_type = "svd"
+      ib_ksp_type = "fgmres"
+      ib_ksp_rtol = "1e-11"
+      ib_ksp_atol = "1e-13"
+      ib_ksp_max_it = "200"
+      ib_ksp_gmres_restart = "100"
+   }
+}
+CartesianGeometry {
+   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N * 1, N * 1
+      level_1 = N * 2, N * 2
+   }
+   smallest_patch_size {
+      level_0 = N * 1, N * 1
+      level_1 = N * 2, N * 2
+   }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N * 1 - 1, N * 1 - 1)]
+   }
+}
+LoadBalancer { bin_pack_method = "SPATIAL" }

@@ -76,14 +76,32 @@ count_integration_cycles(double /*current_time*/, double /*new_time*/, const int
     ++*callback_count;
 }
 
+struct RegridState
+{
+    int count = 0;
+    int expected_levels = 1;
+};
+
+void
+count_regrids(Pointer<BasePatchHierarchy<NDIM>> hierarchy, double /*data_time*/, bool /*initial_time*/, void* ctx)
+{
+    auto* state = static_cast<RegridState*>(ctx);
+    if (hierarchy->getNumberOfLevels() != state->expected_levels)
+    {
+        TBOX_ERROR("Regrid did not retain the assigned hierarchy levels.\n");
+    }
+    ++state->count;
+}
+
 void
 generate_structure(const unsigned int& structure,
                    const int& level,
                    int& num_vertices,
                    std::vector<IBTK::Point>& positions,
-                   void*)
+                   void* ctx)
 {
-    num_vertices = (structure == 0 && level == 0) ? NUM_POINTS : 0;
+    const int finest_level = *static_cast<const int*>(ctx);
+    num_vertices = (structure == 0 && level == finest_level) ? NUM_POINTS : 0;
     positions.resize(num_vertices);
     for (int k = 0; k < num_vertices; ++k)
     {
@@ -99,9 +117,10 @@ generate_springs(
     const int& level,
     std::multimap<int, IBRedundantInitializer::Edge>& spring_map,
     std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>& specs,
-    void*)
+    void* ctx)
 {
-    if (structure != 0 || level != 0)
+    const int finest_level = *static_cast<const int*>(ctx);
+    if (structure != 0 || level != finest_level)
     {
         return;
     }
@@ -125,10 +144,8 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
-#ifndef IBTK_HAVE_SILO
-    // Suppress warnings caused by running without Silo.
+    // Keep optional-library warnings and build paths out of compared output.
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
-#endif
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
         Pointer<Database> input = app->getInputDatabase();
@@ -143,6 +160,14 @@ main(int argc, char* argv[])
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
             "IBHierarchyIntegrator", app->getComponentDatabase("IBHierarchyIntegrator"), method, ins);
+        int finest_level = input->getIntegerWithDefault("MAX_LEVELS", 1) - 1;
+        const bool verify_regrid = input->getBoolWithDefault("VERIFY_REGRID", false);
+        RegridState regrid_state;
+        regrid_state.expected_levels = finest_level + 1;
+        if (verify_regrid)
+        {
+            integrator->registerRegridHierarchyCallback(count_regrids, &regrid_state);
+        }
         int callback_count = 0;
         integrator->registerIntegrateHierarchyCallback(count_integration_cycles, &callback_count);
         Pointer<CartesianGridGeometry<NDIM>> geometry =
@@ -157,9 +182,9 @@ main(int argc, char* argv[])
             "GriddingAlgorithm", app->getComponentDatabase("GriddingAlgorithm"), tagging, boxes, load_balancer);
         Pointer<IBRedundantInitializer> initializer =
             new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
-        initializer->setStructureNamesOnLevel(0, { "ellipse" });
-        initializer->registerInitStructureFunction(generate_structure);
-        initializer->registerInitSpringDataFunction(generate_springs);
+        initializer->setStructureNamesOnLevel(finest_level, { "ellipse" });
+        initializer->registerInitStructureFunction(generate_structure, &finest_level);
+        initializer->registerInitSpringDataFunction(generate_springs, &finest_level);
         method->registerLInitStrategy(initializer);
         method->registerIBLagrangianForceFunction(new IBStandardForceGen());
         ins->registerVelocityInitialConditions(new muParserCartGridFunction(
@@ -171,12 +196,9 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
         const int u = variables->mapVariableAndContextToIndex(ins->getVelocityVariable(), ins->getCurrentContext());
         const int p = variables->mapVariableAndContextToIndex(ins->getPressureVariable(), ins->getCurrentContext());
-        HierarchySideDataOpsReal<NDIM, double> velocity_ops(hierarchy, 0, 0);
-        HierarchyCellDataOpsReal<NDIM, double> pressure_ops(hierarchy, 0, 0);
+        HierarchySideDataOpsReal<NDIM, double> velocity_ops(hierarchy, 0, finest_level);
+        HierarchyCellDataOpsReal<NDIM, double> pressure_ops(hierarchy, 0, finest_level);
         Pointer<HierarchyMathOps> math_ops = ins->getHierarchyMathOps();
-        Vec centered_positions = nullptr;
-        PetscErrorCode ierr = VecDuplicate(method->getLDataManager()->getLData("X", 0)->getVec(), &centered_positions);
-        IBTK_CHKERRQ(ierr);
         plog << std::scientific << std::setprecision(8);
         for (int step = 0; step < 3; ++step)
         {
@@ -189,24 +211,44 @@ main(int argc, char* argv[])
                 TBOX_ERROR("Integration callback count does not match the number of cycles.\n");
             }
             // Geometric norms are independent of redistribution's Lagrangian vector ordering.
-            ierr = VecCopy(method->getLDataManager()->getLData("X", 0)->getVec(), centered_positions);
+            finest_level = hierarchy->getFinestLevelNumber();
+            velocity_ops.resetLevels(0, finest_level);
+            pressure_ops.resetLevels(0, finest_level);
+            Vec positions = method->getLDataManager()->getLData("X", finest_level)->getVec();
+            Vec centered_positions = nullptr;
+            PetscErrorCode ierr = VecDuplicate(positions, &centered_positions);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(positions, centered_positions);
             IBTK_CHKERRQ(ierr);
             ierr = VecShift(centered_positions, -0.5);
             IBTK_CHKERRQ(ierr);
             double radius_norm = 0.0;
             ierr = VecNorm(centered_positions, NORM_2, &radius_norm);
             IBTK_CHKERRQ(ierr);
+            const double velocity_norm = velocity_ops.L2Norm(u, math_ops->getSideWeightPatchDescriptorIndex());
+            const double pressure_norm = pressure_ops.L2Norm(p, math_ops->getCellWeightPatchDescriptorIndex());
+            if (!std::isfinite(radius_norm) || radius_norm <= 0.0 || !std::isfinite(velocity_norm) ||
+                !std::isfinite(pressure_norm))
+            {
+                TBOX_ERROR("Non-finite or trivial state after hierarchy advancement.\n");
+            }
+            ierr = VecDestroy(&centered_positions);
+            IBTK_CHKERRQ(ierr);
             plog << "step " << step + 1 << " time " << integrator->getIntegratorTime() << " velocity_L2 "
-                 << velocity_ops.L2Norm(u, math_ops->getSideWeightPatchDescriptorIndex()) << " pressure_L2 "
-                 << pressure_ops.L2Norm(p, math_ops->getCellWeightPatchDescriptorIndex()) << " radius_L2 "
-                 << radius_norm << '\n';
+                 << velocity_norm << " pressure_L2 " << pressure_norm << " radius_L2 " << radius_norm << '\n';
             if (custom_kernel && evaluator_calls == previous_calls)
             {
                 TBOX_ERROR("The selected application evaluator was not used during advancement.\n");
             }
         }
-        ierr = VecDestroy(&centered_positions);
-        IBTK_CHKERRQ(ierr);
+        if (verify_regrid)
+        {
+            if (regrid_state.count != 3)
+            {
+                TBOX_ERROR("Expected the initial automatic regrid and two subsequent regrids.\n");
+            }
+            plog << "regrids " << regrid_state.count << " levels " << hierarchy->getNumberOfLevels() << '\n';
+        }
     }
     return 0;
 }

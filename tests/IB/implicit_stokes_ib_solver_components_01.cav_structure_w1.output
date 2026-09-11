@@ -1,0 +1,4 @@
+IBRedundantInitializer:  Deallocating initialization data.
+lifetime 1 levels 1 dofs 12288 patches 4096 correction_L2 1.16189 elasticity_L2 540298 reconstruction_error 0 elasticity_error 0
+lifetime 2 levels 1 dofs 12288 patches 4096 correction_L2 1.16189 elasticity_L2 540298 reconstruction_error 0 elasticity_error 0
+test_failures = 0

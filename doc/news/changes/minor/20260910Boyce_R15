@@ -1,0 +1,3 @@
+New: Integrate multiplicative CAV smoothing with the Stokes-IB FAC preconditioner.
+<br>
+(Boyce Griffith, 2026/09/10)
