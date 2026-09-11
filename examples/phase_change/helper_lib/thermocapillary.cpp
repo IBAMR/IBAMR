@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "Applications.h"
+
 // Config files
 #include <SAMRAI_config.h>
 
@@ -47,8 +49,13 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "../LSLocateInterface.h"
+#include <LSLocateInterface.h>
 
+using MultiphaseExamples::call_locate_interface;
+using MultiphaseExamples::LSLocateInterface;
+
+namespace PhaseChangeExamples
+{
 struct SynchronizeLevelSetCtx
 {
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
@@ -282,7 +289,7 @@ compute_marangoni_coef_function(int F_idx,
  *                                                                             *
  *******************************************************************************/
 int
-main(int argc, char* argv[])
+run_thermocapillary(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object
     // as well.
@@ -910,4 +917,7 @@ main(int argc, char* argv[])
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
-} // main
+    return 0;
+}
+
+} // namespace PhaseChangeExamples

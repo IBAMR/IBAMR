@@ -21,9 +21,9 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-phase_change
   SOURCES
-    example.cpp ../../LSLocateInterface.cpp
+    example.cpp
   LINK_TARGETS
-    IBAMR2d
+    phase_change_helpers_2d
   INPUT_FILES
     input2d_2phase.amr input2d_3phase.amr
   )
