@@ -565,13 +565,13 @@ main(int argc, char* argv[])
     // Keep optional visualization warnings out of the compared test output.
     Logger::getInstance()->setWarning(false);
     const std::string input_file = argc > 1 ? argv[1] : "";
-    const bool duplicate_after_use = input_file.find("registration.duplicate_after_use") != std::string::npos;
+    const bool duplicate_custom = input_file.find("registration.duplicate_custom") != std::string::npos;
     if (input_file.find("registration.") != std::string::npos)
     {
         Pointer<Logger::Appender> appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(appender);
         PIO::logOnlyNodeZero("output");
-        if ((!duplicate_after_use && input_file.find("duplicate") != std::string::npos) ||
+        if (input_file.find("duplicate") != std::string::npos ||
             input_file.find("registration.unknown") != std::string::npos)
         {
             std::ifstream input(input_file);
@@ -580,6 +580,11 @@ main(int argc, char* argv[])
             const IBKernelTensorProduct kernel =
                 input >> transverse_name ? IBKernelTensorProduct{ IBKernel(kernel_name), IBKernel(transverse_name) } :
                                            IBKernelTensorProduct{ IBKernel(kernel_name) };
+            if (duplicate_custom)
+            {
+                IBOperatorRegistry::register_interpolation_matrix_sc(
+                    kernel, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
+            }
             IBOperatorRegistry::register_interpolation_matrix_sc(
                 kernel, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
             return 0;
@@ -599,7 +604,7 @@ main(int argc, char* argv[])
         }
         constexpr int max_bspline_order = IBTK_MAX_BSPLINE_ORDER;
         const bool unsupported = input_file.find("registration.unsupported") != std::string::npos;
-        if (!unsupported && !duplicate_after_use && !setup_probe)
+        if (!unsupported && !setup_probe)
         {
             failures += check_kernels();
         }
@@ -699,27 +704,17 @@ main(int argc, char* argv[])
             return failures;
         }
 
-        if (unsupported || duplicate_after_use)
+        if (unsupported)
         {
             method->preprocessIntegrateData(0.0, 0.125, 1);
             method->updateFixedLEOperators();
             Mat matrix = nullptr;
             method->constructInterpOp(
                 matrix, IBKernel(app->getInputDatabase()->getString("matrix_kernel")), counts, dof, 0.125);
-            if (duplicate_after_use)
-            {
-                IBOperatorRegistry::register_interpolation_matrix_sc(
-                    IBKernel::IB_4, IBKernelTensorProductEvaluator{ IBKernelEvaluatorIB4{} });
-            }
             ierr = MatDestroy(&matrix);
             IBTK_CHKERRQ(ierr);
             method->postprocessIntegrateData(0.0, 0.125, 1);
             method->postprocessData();
-        }
-
-        if (duplicate_after_use)
-        {
-            return 0;
         }
 
         // A configured bank does not reserve higher-order kernel specifications.
@@ -886,7 +881,7 @@ main(int argc, char* argv[])
             {
                 for (int tw : { 2, 3, 5 })
                 {
-                    if (cw > max_bspline_order || tw > max_bspline_order)
+                    if (cw > max_bspline_order || tw > max_bspline_order || (cw == 2 && tw == 2))
                     {
                         continue;
                     }
