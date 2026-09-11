@@ -49,234 +49,17 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include <CapillaryForces.h>
 #include <LSLocateInterface.h>
+
+#include "HeavisideFromLevelSet.h"
+#include "LiquidFractionForceMask.h"
 
 using MultiphaseExamples::call_locate_interface;
 using MultiphaseExamples::LSLocateInterface;
 
 namespace PhaseChangeExamples
 {
-struct SynchronizeLevelSetCtx
-{
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<CellVariable<NDIM, double>> ls_var;
-    Pointer<CellVariable<NDIM, double>> H_var;
-    double num_interface_cells;
-};
-
-void
-synchronize_levelset_with_heaviside_fcn(int H_current_idx,
-                                        Pointer<HierarchyMathOps> hier_math_ops,
-                                        int /*integrator_step*/,
-                                        double /*time*/,
-                                        bool /*initial_time*/,
-                                        bool /*regrid_time*/,
-                                        void* ctx)
-{
-    SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ls_ctx->ls_var, sync_ls_ctx->adv_diff_hier_integrator->getCurrentContext());
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-            const double* patch_dx = patch_geom->getDx();
-            double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                vol_cell *= patch_dx[d];
-            }
-            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
-            const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-
-            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_current_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*ls_data)(ci);
-
-                (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-            }
-        }
-    }
-    return;
-}
-
-struct MaskSurfaceTensionForceCtx
-{
-    Pointer<CellVariable<NDIM, double>> lf_var;
-    RobinBcCoefStrategy<NDIM>* lf_bc_coef;
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double rho_liquid;
-    double rho_gas;
-};
-
-void
-mask_surface_tension_force(int F_idx,
-                           Pointer<HierarchyMathOps> hier_math_ops,
-                           int /*integrator_step*/,
-                           double time,
-                           double /*current_time*/,
-                           double /*new_time*/,
-                           void* ctx)
-{
-    MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int lf_new_idx =
-        var_db->mapVariableAndContextToIndex(mask_surface_tension_force_ctx->lf_var,
-                                             mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(
-        mask_surface_tension_force_ctx->lf_var,
-        mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
-
-    // ghost cell filling for liquid fraction variable.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                lf_new_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                "LINEAR",
-                                                                false,
-                                                                mask_surface_tension_force_ctx->lf_bc_coef);
-
-    Pointer<HierarchyGhostCellInterpolation> lf_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps, patch_hierarchy);
-    lf_hier_bdry_fill->fillData(time);
-
-    int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-
-            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
-            Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
-            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double lf_sc_value = 0.5 * ((*lf_data)(si.toCell(0)) + (*lf_data)(si.toCell(1)));
-
-                    const double multiplier_term =
-                        2.0 * (*rho_data)(si) /
-                        (mask_surface_tension_force_ctx->rho_liquid + mask_surface_tension_force_ctx->rho_gas) *
-                        lf_sc_value;
-                    (*F_data)(si) *= multiplier_term;
-                }
-            }
-        }
-    }
-    return;
-}
-
-struct ComputeVariableSurfaceTensionCoefCtx
-{
-    Pointer<CellVariable<NDIM, double>> T_var;
-    Pointer<PhaseChangeHierarchyIntegrator> phase_change_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double sigma0;
-    double dsigma_dT0;
-    double T_ref;
-};
-
-void
-compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<Patch<NDIM>> patch,
-                                      int /*integrator_step*/,
-                                      double /*time*/,
-                                      double /*current_time*/,
-                                      double /*new_time*/,
-                                      void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    // parameters
-    const double sigma_0 = compute_variable_surface_tension_coef_ctx->sigma0;
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getScratchContext());
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_scratch_idx);
-    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-            const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
-            (*F_data)(si) *= sigma;
-        }
-    }
-    return;
-}
-
-void
-compute_marangoni_coef_function(int F_idx,
-                                Pointer<Patch<NDIM>> patch,
-                                int /*integrator_step*/,
-                                double /*time*/,
-                                double /*current_time*/,
-                                double /*new_time*/,
-                                void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double marangoni_coef = dsigma_dT0;
-            (*F_data)(si) *= marangoni_coef; // Since marangoni_coef is constant for this example, it can be set
-                                             // through input file as well.
-        }
-    }
-    return;
-}
-
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -466,14 +249,13 @@ run_thermocapillary(int argc, char* argv[])
             time_integrator->registerPressureInitialConditions(p_init);
         }
 
-        SynchronizeLevelSetCtx sync_ls_ctx;
-        sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        sync_ls_ctx.ls_var = ls_var;
-        sync_ls_ctx.H_var = H_var;
-        sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
+        PhaseChangeExamples::HeavisideFromLevelSet sync_ls_ctx(
+            adv_diff_integrator, ls_var, input_db->getDouble("NUMBER_OF_INTERFACE_CELLS"));
 
         adv_diff_integrator->registerResetFunction(
-            H_var, &synchronize_levelset_with_heaviside_fcn, static_cast<void*>(&sync_ls_ctx));
+            H_var,
+            &PhaseChangeExamples::HeavisideFromLevelSet::synchronize_levelset_with_heaviside_fcn,
+            static_cast<void*>(&sync_ls_ctx));
 
         // Setup the INS maintained material properties.
         Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
@@ -691,33 +473,26 @@ run_thermocapillary(int argc, char* argv[])
 
         // Register callback function to multiply the surface tension term with the
         // coefficient.
-        MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
-        mask_surface_tension_force_ctx.ins_hier_integrator = time_integrator;
-        mask_surface_tension_force_ctx.rho_liquid = rho_liquid;
-        mask_surface_tension_force_ctx.rho_gas = rho_gas;
-        mask_surface_tension_force_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        mask_surface_tension_force_ctx.lf_var = lf_extrap_var; // Using extrapolated lf in the surface tension force.
-        mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef.get();
+        PhaseChangeExamples::LiquidFractionForceMask mask_surface_tension_force_ctx(
+            lf_extrap_var, lf_bc_coef.get(), adv_diff_integrator, time_integrator, rho_liquid, rho_gas);
 
-        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
-                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
+        surface_tension_force->registerSurfaceTensionForceMasking(
+            &PhaseChangeExamples::LiquidFractionForceMask::mask_surface_tension_force,
+            static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register variable coefficient surface tension.
-        ComputeVariableSurfaceTensionCoefCtx compute_variable_surface_tension_coef_ctx;
-        compute_variable_surface_tension_coef_ctx.T_var = T_var;
-        compute_variable_surface_tension_coef_ctx.phase_change_hier_integrator = phase_change_integrator;
-        compute_variable_surface_tension_coef_ctx.ins_hier_integrator = time_integrator;
-        compute_variable_surface_tension_coef_ctx.sigma0 = sigma_0;
-        compute_variable_surface_tension_coef_ctx.dsigma_dT0 = dsigma_dT_0;
-        compute_variable_surface_tension_coef_ctx.T_ref = ref_temperature;
+        MultiphaseExamples::SurfaceTensionCoefficients compute_variable_surface_tension_coef_ctx(
+            T_var, adv_diff_integrator->getScratchContext(), sigma_0, dsigma_dT_0, ref_temperature);
 
         surface_tension_force->registerSurfaceTensionCoefficientFunction(
-            &compute_surface_tension_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            &MultiphaseExamples::SurfaceTensionCoefficients::compute_surface_tension_coef_function,
+            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
 
         // Register variable marangoni coefficient dsigma_dT.
         Pointer<MarangoniSurfaceTensionForceFunction> marangoni_force = surface_tension_force;
         marangoni_force->registerMarangoniCoefficientFunction(
-            &compute_marangoni_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            &MultiphaseExamples::SurfaceTensionCoefficients::compute_marangoni_coef_function,
+            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);

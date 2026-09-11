@@ -44,144 +44,11 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include <CapillaryForces.h>
 #include <LSLocateInterface.h>
 
 using MultiphaseExamples::call_locate_interface;
 using MultiphaseExamples::LSLocateInterface;
-
-struct MaskSurfaceTensionForceCtx
-{
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double rho_liquid;
-    double rho_gas;
-};
-
-void
-mask_surface_tension_force(int F_idx,
-                           Pointer<HierarchyMathOps> hier_math_ops,
-                           int /*integrator_step*/,
-                           double /*time*/,
-                           double /*current_time*/,
-                           double /*new_time*/,
-                           void* ctx)
-{
-    MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-
-            Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
-            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double multiplier_term =
-                        2.0 * (*rho_data)(si) /
-                        (mask_surface_tension_force_ctx->rho_liquid + mask_surface_tension_force_ctx->rho_gas);
-                    (*F_data)(si) *= multiplier_term;
-                }
-            }
-        }
-    }
-    return;
-}
-
-struct ComputeVariableSurfaceTensionCoefCtx
-{
-    Pointer<CellVariable<NDIM, double>> T_var;
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double sigma0;
-    double dsigma_dT0;
-    double T_ref;
-};
-
-void
-compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<Patch<NDIM>> patch,
-                                      int /*integrator_step*/,
-                                      double /*time*/,
-                                      double /*current_time*/,
-                                      double /*new_time*/,
-                                      void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    // parameters
-    const double sigma_0 = compute_variable_surface_tension_coef_ctx->sigma0;
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getScratchContext());
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_scratch_idx);
-    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-            const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
-            (*F_data)(si) *= sigma;
-        }
-    }
-
-    return;
-}
-
-void
-compute_marangoni_coef_function(int F_idx,
-                                Pointer<Patch<NDIM>> patch,
-                                int /*integrator_step*/,
-                                double /*time*/,
-                                double /*current_time*/,
-                                double /*new_time*/,
-                                void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double marangoni_coef = dsigma_dT0;
-            (*F_data)(si) *= marangoni_coef; // Since marangoni_coef is constant for this example, it can be set
-                                             // through input file as well.
-        }
-    }
-    return;
-}
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -431,31 +298,25 @@ main(int argc, char* argv[])
 
         // Register callback function to multiply the surface tension term with the
         // coefficient.
-        MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
-        mask_surface_tension_force_ctx.ins_hier_integrator = time_integrator;
-        mask_surface_tension_force_ctx.rho_liquid = rho_liquid;
-        mask_surface_tension_force_ctx.rho_gas = rho_gas;
-        mask_surface_tension_force_ctx.adv_diff_hier_integrator = adv_diff_integrator;
+        MultiphaseExamples::DensityForceMask mask_surface_tension_force_ctx(time_integrator, rho_liquid, rho_gas);
 
-        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
-                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
+        surface_tension_force->registerSurfaceTensionForceMasking(
+            &MultiphaseExamples::DensityForceMask::mask_surface_tension_force,
+            static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register variable coefficient surface tension.
-        ComputeVariableSurfaceTensionCoefCtx compute_variable_surface_tension_coef_ctx;
-        compute_variable_surface_tension_coef_ctx.T_var = T_var;
-        compute_variable_surface_tension_coef_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        compute_variable_surface_tension_coef_ctx.ins_hier_integrator = time_integrator;
-        compute_variable_surface_tension_coef_ctx.sigma0 = sigma_0;
-        compute_variable_surface_tension_coef_ctx.dsigma_dT0 = dsigma_dT_0;
-        compute_variable_surface_tension_coef_ctx.T_ref = ref_temperature;
+        MultiphaseExamples::SurfaceTensionCoefficients compute_variable_surface_tension_coef_ctx(
+            T_var, adv_diff_integrator->getScratchContext(), sigma_0, dsigma_dT_0, ref_temperature);
 
         surface_tension_force->registerSurfaceTensionCoefficientFunction(
-            &compute_surface_tension_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            &MultiphaseExamples::SurfaceTensionCoefficients::compute_surface_tension_coef_function,
+            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
 
         // Register variable marangoni coefficient dsigma_dT.
         Pointer<MarangoniSurfaceTensionForceFunction> marangoni_force = surface_tension_force;
         marangoni_force->registerMarangoniCoefficientFunction(
-            &compute_marangoni_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            &MultiphaseExamples::SurfaceTensionCoefficients::compute_marangoni_coef_function,
+            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);

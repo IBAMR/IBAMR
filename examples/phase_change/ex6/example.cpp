@@ -47,149 +47,13 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include <HeavisideFromLevelSet.h>
 #include <LSLocateInterface.h>
+#include <LiquidFractionForceMask.h>
 
 using MultiphaseExamples::call_locate_interface;
 using MultiphaseExamples::LSLocateInterface;
 
-struct SynchronizeLevelSetCtx
-{
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<CellVariable<NDIM, double>> ls_var;
-    Pointer<CellVariable<NDIM, double>> H_var;
-    double num_interface_cells;
-};
-
-void
-synchronize_levelset_with_heaviside_fcn(int H_current_idx,
-                                        Pointer<HierarchyMathOps> hier_math_ops,
-                                        int /*integrator_step*/,
-                                        double /*time*/,
-                                        bool /*initial_time*/,
-                                        bool /*regrid_time*/,
-                                        void* ctx)
-{
-    SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(
-        sync_ls_ctx->ls_var, sync_ls_ctx->adv_diff_hier_integrator->getCurrentContext());
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-            const double* patch_dx = patch_geom->getDx();
-            double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                vol_cell *= patch_dx[d];
-            }
-            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
-            const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-
-            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_current_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*ls_data)(ci);
-
-                (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-            }
-        }
-    }
-}
-
-struct MaskSurfaceTensionForceCtx
-{
-    Pointer<CellVariable<NDIM, double>> lf_var;
-    RobinBcCoefStrategy<NDIM>* lf_bc_coef;
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double rho_liquid;
-    double rho_gas;
-};
-
-void
-mask_surface_tension_force(int F_idx,
-                           Pointer<HierarchyMathOps> hier_math_ops,
-                           int /*integrator_step*/,
-                           double time,
-                           double /*current_time*/,
-                           double /*new_time*/,
-                           void* ctx)
-{
-    MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int lf_new_idx =
-        var_db->mapVariableAndContextToIndex(mask_surface_tension_force_ctx->lf_var,
-                                             mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(
-        mask_surface_tension_force_ctx->lf_var,
-        mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
-
-    // ghost cell filling for liquid fraction variable.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                lf_new_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                "LINEAR",
-                                                                false,
-                                                                mask_surface_tension_force_ctx->lf_bc_coef);
-
-    Pointer<HierarchyGhostCellInterpolation> lf_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps, patch_hierarchy);
-    lf_hier_bdry_fill->fillData(time);
-
-    int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-
-            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
-            Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
-            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double lf_sc_value = 0.5 * ((*lf_data)(si.toCell(0)) + (*lf_data)(si.toCell(1)));
-
-                    const double multiplier_term =
-                        2.0 * (*rho_data)(si) /
-                        (mask_surface_tension_force_ctx->rho_liquid + mask_surface_tension_force_ctx->rho_gas) *
-                        lf_sc_value;
-                    (*F_data)(si) *= multiplier_term;
-                }
-            }
-        }
-    }
-}
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -344,14 +208,13 @@ main(int argc, char* argv[])
             time_integrator->registerPressureInitialConditions(p_init);
         }
 
-        SynchronizeLevelSetCtx sync_ls_ctx;
-        sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        sync_ls_ctx.ls_var = ls_var;
-        sync_ls_ctx.H_var = H_var;
-        sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
+        PhaseChangeExamples::HeavisideFromLevelSet sync_ls_ctx(
+            adv_diff_integrator, ls_var, input_db->getDouble("NUMBER_OF_INTERFACE_CELLS"));
 
         adv_diff_integrator->registerResetFunction(
-            H_var, &synchronize_levelset_with_heaviside_fcn, static_cast<void*>(&sync_ls_ctx));
+            H_var,
+            &PhaseChangeExamples::HeavisideFromLevelSet::synchronize_levelset_with_heaviside_fcn,
+            static_cast<void*>(&sync_ls_ctx));
 
         // Setup the INS maintained material properties.
         Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
@@ -531,16 +394,12 @@ main(int argc, char* argv[])
                                             ls_var);
 
         // Register callback function to multiply the surface tension term with the coefficient.
-        MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
-        mask_surface_tension_force_ctx.ins_hier_integrator = time_integrator;
-        mask_surface_tension_force_ctx.rho_liquid = rho_liquid;
-        mask_surface_tension_force_ctx.rho_gas = rho_gas;
-        mask_surface_tension_force_ctx.adv_diff_hier_integrator = adv_diff_integrator;
-        mask_surface_tension_force_ctx.lf_var = lf_var;
-        mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef.get();
+        PhaseChangeExamples::LiquidFractionForceMask mask_surface_tension_force_ctx(
+            lf_var, lf_bc_coef.get(), adv_diff_integrator, time_integrator, rho_liquid, rho_gas);
 
-        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
-                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
+        surface_tension_force->registerSurfaceTensionForceMasking(
+            &PhaseChangeExamples::LiquidFractionForceMask::mask_surface_tension_force,
+            static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register gravity force.
         std::vector<double> grav_const(NDIM);
