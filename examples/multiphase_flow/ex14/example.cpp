@@ -44,7 +44,10 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "../../LSLocateInterface.h"
+#include <LSLocateInterface.h>
+
+using MultiphaseExamples::call_locate_interface;
+using MultiphaseExamples::LSLocateInterface;
 
 struct MaskSurfaceTensionForceCtx
 {

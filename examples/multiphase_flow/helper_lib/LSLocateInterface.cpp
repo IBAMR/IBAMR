@@ -20,6 +20,8 @@
 
 #include <ibamr/app_namespaces.h>
 
+namespace MultiphaseExamples
+{
 void
 call_locate_interface(const int data_idx,
                       Pointer<HierarchyMathOps> hier_math_ops,
@@ -57,3 +59,5 @@ LSLocateInterface::setLevelSetPatchData(const int data_idx,
         data_ops.copyData(data_idx, current_idx);
     }
 }
+
+} // namespace MultiphaseExamples

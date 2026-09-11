@@ -25,6 +25,8 @@ namespace IBTK
 class HierarchyMathOps;
 }
 
+namespace MultiphaseExamples
+{
 // Supply the initial interface to LSInitStrategy, and preserve the advected
 // interface on subsequent resets. The initializer defines the example geometry.
 class LSLocateInterface
@@ -52,5 +54,7 @@ void call_locate_interface(int data_idx,
                            double time,
                            bool initial_time,
                            void* ctx);
+
+} // namespace MultiphaseExamples
 
 #endif

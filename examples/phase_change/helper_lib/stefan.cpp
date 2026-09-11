@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+#include "Applications.h"
+
 // Config files
 #include <SAMRAI_config.h>
 
@@ -37,6 +39,8 @@
 
 #include <ibamr/app_namespaces.h>
 
+namespace PhaseChangeExamples
+{
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -49,7 +53,7 @@
  *                                                                             *
  *******************************************************************************/
 int
-main(int argc, char* argv[])
+run_stefan(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object
     // as well.
@@ -338,4 +342,7 @@ main(int argc, char* argv[])
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
-} // main
+    return 0;
+}
+
+} // namespace PhaseChangeExamples

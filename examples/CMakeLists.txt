@@ -97,6 +97,9 @@ MACRO(IBAMR_ADD_EXAMPLE)
   ENDIF()
 ENDMACRO()
 
+ADD_SUBDIRECTORY(multiphase_flow/helper_lib)
+ADD_SUBDIRECTORY(phase_change/helper_lib)
+
 #
 # Add example subdirectories:
 #
