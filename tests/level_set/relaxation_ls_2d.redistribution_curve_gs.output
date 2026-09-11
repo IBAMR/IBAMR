@@ -1,0 +1,7 @@
+NOT using subcycled timestepping.
+advection velocity u is discretely divergence free.
+solving the advection equation in ADVECTIVE form.
+mass constraint = 0; redistribution = 0; volume, drift, distance L1, active difference: 0.1667268966649459 -0.001439862275080001 0.01133159954657103 0
+mass constraint = 0; redistribution = 1; volume, drift, distance L1, active difference: 0.1675757616043283 -0.0005909973356975351 0.01131530208219059 0.000707836572972886
+mass constraint = 1; redistribution = 0; volume, drift, distance L1, active difference: 0.1679022305873633 -0.0002645283526626074 0.01125494062114041 0
+mass constraint = 1; redistribution = 1; volume, drift, distance L1, active difference: 0.168938067606226 0.0007713086662000934 0.01131075638116386 0.0008681402599892462

@@ -1,0 +1,13 @@
+Main { log_file_name = "output" timestepping = "SYNCHRONIZED" u_is_div_free = TRUE }
+AdvectorExplicitPredictorPatchOps { limiter_type = "MC_LIMITED" }
+AdvectorPredictorCorrectorHyperbolicPatchOps { }
+QInitFunction { function = "X_0 - 0.5" }
+HyperbolicLevelIntegrator { cfl = 0.5 cfl_init = 0.5 use_ghosts_to_compute_dt = FALSE lag_dt_computation = TRUE }
+TimeRefinementIntegrator { start_time = 0.0 end_time = 0.1 grow_dt = 2.0 max_integrator_steps = 10 tag_buffer = 0 }
+LoadBalancer { max_workload_factor = 1.0 }
+StandardTagAndInitialize { tagging_method = "REFINE_BOXES" RefineBoxes { level_0 = [(0,0,0),(7,7,7)] } }
+AdvectionVelocityFunction { function_0 = "0.0" function_1 = "0.0" function_2 = "0.0" }
+LocationIndexRobinBcCoefs { boundary_0 = "slope","0.0" boundary_1 = "slope","0.0" boundary_2 = "slope","0.0" boundary_3 = "slope","0.0" boundary_4 = "slope","0.0" boundary_5 = "slope","0.0" }
+CartesianGeometry { domain_boxes = [(0,0,0),(15,15,15)] x_lo = 0,0,0 x_up = 1,1,1 periodic_dimension = 0,0,0 }
+GriddingAlgorithm { max_levels = 1 largest_patch_size { level_0 = 16,16,16 } smallest_patch_size { level_0 = 4,4,4 } }
+RedistributionTests { field = "steep" scheme = "GAUSS_SEIDEL" }

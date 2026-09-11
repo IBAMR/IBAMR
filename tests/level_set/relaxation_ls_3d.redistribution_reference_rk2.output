@@ -1,0 +1,11 @@
+NOT using subcycled timestepping.
+advection velocity u is discretely divergence free.
+solving the advection equation in ADVECTIVE form.
+mass constraint = 0; redistribution = 0; volume, drift, distance L1, active difference: 0.1695871174851438 -0.006138781207658511 0.008836934611270294 0
+normalized H-reference field, volume errors: 0 0
+mass constraint = 0; redistribution = 1; volume, drift, distance L1, active difference: 0.1723555773655985 -0.003370321327203774 0.008616599183395609 0.002354019945788551
+normalized H-reference field, volume errors: 0 0
+mass constraint = 1; redistribution = 0; volume, drift, distance L1, active difference: 0.1753871544950452 -0.0003387441977570904 0.008936940574382808 0
+normalized H-reference field, volume errors: 0 0
+mass constraint = 1; redistribution = 1; volume, drift, distance L1, active difference: 0.1779961194928943 0.002270220800092065 0.009232783546748252 0.00210480213125265
+normalized H-reference field, volume errors: 0 0
