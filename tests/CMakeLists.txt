@@ -293,6 +293,7 @@ SETUP_2D(IBTK secondary_hierarchy_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 SETUP_2D(IBTK helmholtz.cpp)
 SETUP_2D(IBTK index_utilities.cpp)
+SETUP_2D(IBTK pointwise_function.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
@@ -317,6 +318,7 @@ SETUP_3D(IBTK samraidatacache_01.cpp)
 SETUP_3D(IBTK vc_viscous_solver.cpp)
 SETUP_3D(IBTK helmholtz.cpp)
 SETUP_3D(IBTK index_utilities.cpp)
+SETUP_3D(IBTK pointwise_function.cpp)
 SETUP_3D(IBTK cf_interface.cpp)
 
 ADD_CUSTOM_COMMAND(TARGET tests
@@ -332,6 +334,14 @@ FOREACH(_dir ${TEST_DIRECTORIES})
     POST_BUILD
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
     ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
+    VERBATIM)
+ENDFOREACH()
+
+# These cases violate a patch-data precondition checked only without NDEBUG.
+FOREACH(_case centering data_type)
+  ADD_CUSTOM_COMMAND(TARGET tests-IBTK POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:${CMAKE_BINARY_DIR}/tests/IBTK/pointwise_function_2d.${_case}.expect_error=true.input>"
     VERBATIM)
 ENDFOREACH()
 
