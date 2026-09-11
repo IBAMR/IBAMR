@@ -13,6 +13,8 @@
 
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
+#include <ibamr/StaggeredStokesFACPreconditioner.h>
+#include <ibamr/StaggeredStokesLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
@@ -20,17 +22,23 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <tbox/Logger.h>
 
 #include <petscsys.h>
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
+
+#include <cmath>
 
 #include <ibamr/app_namespaces.h>
 
@@ -186,7 +194,61 @@ main(int argc, char* argv[])
         const double C = input_db->getDouble("C");
         poisson_spec.setDConstant(D);
         poisson_spec.setCConstant(C);
-        if (periodic_shift.min() > 0)
+        if (input_db->isDatabase("FACPreconditioner"))
+        {
+            // Ratio-two residual ghost fills use the documented conservative
+            // fallback for cubic coarsening; omit its source-location warnings.
+            Logger::getInstance()->setWarning(false);
+            Pointer<Database> fac_db = input_db->getDatabase("FACPreconditioner");
+            Pointer<StaggeredStokesLevelRelaxationFACOperator> fac_op =
+                new StaggeredStokesLevelRelaxationFACOperator("fac_op", fac_db, "fac_");
+            StaggeredStokesFACPreconditioner fac("fac", fac_op, fac_db, "fac_");
+            fac.setVelocityPoissonSpecifications(poisson_spec);
+            fac.setComponentsHaveNullSpace(false, true);
+            fac.setPhysicalBcCoefs(u_bc_coefs, nullptr);
+            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+            bc_helper->cacheBcCoefData(u_bc_coefs, 1.0, patch_hierarchy);
+            fac.setPhysicalBoundaryHelper(bc_helper);
+            fac.setTimeInterval(0.0, 1.0);
+            fac.setSolutionTime(1.0);
+
+            SAMRAIScopedVectorDuplicate<double> first_rhs_storage(f_vec);
+            Pointer<SAMRAIVectorReal<NDIM, double>> first_rhs = first_rhs_storage;
+            for (int trial = 0; trial < 2; ++trial)
+            {
+                // The two right-hand sides differ only in their fine velocity ghosts.
+                f_vec.setToScalar(0.0, false);
+                HierarchySideDataOpsReal<NDIM, double> fine_ops(patch_hierarchy, 1, 1);
+                fine_ops.setToScalar(f_sc_idx, trial == 0 ? -7.0 : 11.0, false);
+                f_u_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
+                f_p_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
+                const bool solved = fac.solveSystem(u_vec, f_vec);
+                const double correction_norm = u_vec.L2Norm();
+                if (!solved || !std::isfinite(correction_norm) || correction_norm <= 1.0e-12)
+                {
+                    TBOX_ERROR("FAC produced an invalid correction\n");
+                }
+                if (trial == 0)
+                {
+                    first_rhs->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false));
+                    e_vec.copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
+                }
+            }
+
+            // Zero-pre FAC overwrites the coarse RHS. Its covered-level weights
+            // vanish, so compare coarse interiors without hierarchy weights.
+            if (fac.getNumPreSmoothingSweeps() == 0)
+            {
+                first_rhs->subtract(first_rhs, Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false));
+                HierarchySideDataOpsReal<NDIM, double> coarse_ops(patch_hierarchy, 0, 0);
+                plog << "coarse_rhs_difference = " << coarse_ops.maxNorm(first_rhs->getComponentDescriptorIndex(0))
+                     << '\n';
+            }
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
+            plog << "correction_difference = " << e_vec.maxNorm() << '\n';
+        }
+        else if (periodic_shift.min() > 0)
         {
             StaggeredStokesOperator stokes_op("stokes_op", true);
 
@@ -211,13 +273,16 @@ main(int argc, char* argv[])
             stokes_op.apply(u_vec, f_vec);
         }
 
-        // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false));
-        // print out the errors in each norm
-        pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
-        pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
-        pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
+        if (!input_db->isDatabase("FACPreconditioner"))
+        {
+            // Compute error and print error norms.
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false));
+            // print out the errors in each norm
+            pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
+            pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
+            pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
+        }
 
         // Deallocate level data
         // Allocate data on each level of the patch hierarchy.
