@@ -13,6 +13,7 @@
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/private/PETScLevelSolverBlasLapackShellBackend.h>
 #include <ibtk/private/PETScLevelSolverPetscShellBackend.h>
 
 #include <tbox/Utilities.h>
@@ -25,9 +26,15 @@ namespace IBTK
 namespace
 {
 std::unique_ptr<PETScLevelSolverShellBackend>
-allocate_petsc_backend()
+allocate_petsc_backend(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*input_db*/)
 {
     return std::make_unique<PETScLevelSolverPetscShellBackend>();
+}
+
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_blas_lapack_backend(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+{
+    return std::make_unique<PETScLevelSolverBlasLapackShellBackend>(input_db);
 }
 } // namespace
 
@@ -50,7 +57,8 @@ PETScLevelSolverShellBackendManager::registerFactory(const std::string& key, Fac
 }
 
 std::unique_ptr<PETScLevelSolverShellBackend>
-PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key) const
+PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) const
 {
     const std::map<std::string, Factory>::const_iterator factory = d_factories.find(key);
     if (factory == d_factories.end())
@@ -58,7 +66,7 @@ PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key) con
         TBOX_ERROR("PETScLevelSolverShellBackendManager::allocateBackend():\n"
                    << "  unknown additive shell backend: " << key << "\n");
     }
-    std::unique_ptr<PETScLevelSolverShellBackend> backend = factory->second();
+    std::unique_ptr<PETScLevelSolverShellBackend> backend = factory->second(input_db);
     if (!backend)
     {
         TBOX_ERROR("PETScLevelSolverShellBackendManager::allocateBackend():\n"
@@ -68,7 +76,7 @@ PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key) con
 }
 
 PETScLevelSolverShellBackendManager::PETScLevelSolverShellBackendManager()
-    : d_factories{ { "petsc", allocate_petsc_backend } }
+    : d_factories{ { "petsc", allocate_petsc_backend }, { "blas-lapack", allocate_blas_lapack_backend } }
 {
 }
 

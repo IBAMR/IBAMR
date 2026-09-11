@@ -16,6 +16,9 @@
 
 #include <ibtk/config.h>
 
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
 #include <petscksp.h>
 
 #include <map>
@@ -64,16 +67,18 @@ public:
 class PETScLevelSolverShellBackendManager
 {
 public:
-    using Factory = std::unique_ptr<PETScLevelSolverShellBackend> (*)();
+    using Factory =
+        std::unique_ptr<PETScLevelSolverShellBackend> (*)(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
     /*! \brief Return the process-local registry. */
     static PETScLevelSolverShellBackendManager& get_manager();
     /*! \brief Register or replace a factory with a nonnull function. */
     void registerFactory(const std::string& key, Factory factory);
     /*! \brief Construct the named backend; unknown keys are fatal errors. */
-    std::unique_ptr<PETScLevelSolverShellBackend> allocateBackend(const std::string& key) const;
+    std::unique_ptr<PETScLevelSolverShellBackend>
+    allocateBackend(const std::string& key, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db) const;
 
 private:
-    /*! \brief Register the built-in PETSc backend. */
+    /*! \brief Register the built-in backends. */
     PETScLevelSolverShellBackendManager();
     std::map<std::string, Factory> d_factories;
 };

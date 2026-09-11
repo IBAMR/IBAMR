@@ -194,6 +194,13 @@ main(int argc, char* argv[])
     const bool invalid = test->getBoolWithDefault("invalid", false);
     const std::string shell_type = test->getString("shell_pc_type");
     const bool legacy = shell_type == "multiplicative";
+    const bool diagonal_operator = test->getBoolWithDefault("diagonal_operator", false);
+    const double small_diagonal = test->getDoubleWithDefault("small_diagonal", 1.0e-12);
+    const bool all_blas_modes = test->getBoolWithDefault("all_blas_modes", false);
+    const std::vector<std::string> solver_types =
+        all_blas_modes ?
+            std::vector<std::string>{ "", "svd", "lu", "symmetric-indefinite", "qr" } :
+            std::vector<std::string>{ test->getStringWithDefault("blas_lapack_subdomain_solver_type", "") };
     const auto hierarchy_data = setup_hierarchy<NDIM>(app);
     Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
@@ -256,138 +263,198 @@ main(int argc, char* argv[])
     int box_size[NDIM];
     std::fill_n(box_size, NDIM, boundary ? input->getInteger("N") : 4);
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
-    StaggeredStokesPETScLevelSolver solver("shell_solver", db, "shell_");
-    PoissonSpecifications coefficients("coefficients");
-    coefficients.setCConstant(1.0);
-    coefficients.setDConstant(-1.0);
-    solver.setVelocityPoissonSpecifications(coefficients);
-    solver.setComponentsHaveNullSpace(false, true);
-    std::vector<std::unique_ptr<LocationIndexRobinBcCoefs<NDIM>>> bc_storage;
-    std::vector<RobinBcCoefStrategy<NDIM>*> bcs(NDIM, nullptr);
-    if (boundary)
-    {
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            bc_storage.push_back(std::make_unique<LocationIndexRobinBcCoefs<NDIM>>("bc", nullptr));
-            for (int face = 0; face < 2 * NDIM; ++face)
-            {
-                bc_storage.back()->setBoundaryValue(face, axis + 1.0);
-            }
-            bcs[axis] = bc_storage.back().get();
-        }
-        Pointer<StaggeredStokesPhysicalBoundaryHelper> helper = new StaggeredStokesPhysicalBoundaryHelper();
-        helper->cacheBcCoefData(bcs, 0.0, hierarchy);
-        solver.setPhysicalBcCoefs(bcs, nullptr);
-        solver.setPhysicalBoundaryHelper(helper);
-        solver.setHomogeneousBc(false);
-    }
-    solver.initializeSolverState(x, b);
-    if (invalid)
-    {
-        solver.deallocateSolverState();
-        return 0;
-    }
-    Mat supplied = nullptr;
-    if (lifetime)
-    {
-        Mat assembled = nullptr;
-        ierr = KSPGetOperators(solver.getPETScKSP(), &assembled, nullptr);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatDuplicate(assembled, MAT_COPY_VALUES, &supplied);
-        IBTK_CHKERRQ(ierr);
-        solver.deallocateSolverState();
-        solver.setOperatorMat(supplied);
-        solver.setOperatorMat(supplied);
-        solver.initializeSolverState(x, b);
-    }
     int failures = 0;
     plog << std::setprecision(12);
-    for (int cycle = 0; cycle < (lifetime ? 2 : 1); ++cycle)
+    for (const std::string& solver_type : solver_types)
     {
-        Mat mat = nullptr;
-        PC pc = nullptr;
-        ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPGetPC(solver.getPETScKSP(), &pc);
-        IBTK_CHKERRQ(ierr);
-        PCType pc_type = nullptr;
-        ierr = PCGetType(pc, &pc_type);
-        IBTK_CHKERRQ(ierr);
-        if (std::string(pc_type) != "shell" || (lifetime && mat != supplied))
+        if (!solver_type.empty())
         {
-            ++failures;
+            db->putString("blas_lapack_subdomain_solver_type", solver_type);
         }
-        if (!boundary)
+        if (test->keyExists("blas_lapack_subdomain_solver_rcond"))
         {
-            std::vector<IS>* overlap = nullptr;
-            std::vector<IS>* partition = nullptr;
-            solver.getASMSubdomains(&partition, &overlap);
-            reference_action(mat, rhs, expected, *overlap, *partition, legacy);
-            // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
-            MatNullSpace nullspace = nullptr;
-            ierr = MatGetNullSpace(mat, &nullspace);
-            IBTK_CHKERRQ(ierr);
-            if (nullspace)
-            {
-                ierr = MatNullSpaceRemove(nullspace, expected);
-                IBTK_CHKERRQ(ierr);
-            }
+            db->putDouble("blas_lapack_subdomain_solver_rcond", test->getDouble("blas_lapack_subdomain_solver_rcond"));
         }
-        x.setToScalar(0.0);
-        if (!solver.solveSystem(x, b))
-        {
-            ++failures;
-        }
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
-        const double action_norm = norm_inf(actual);
+        StaggeredStokesPETScLevelSolver solver("shell_solver", db, "shell_");
+        PoissonSpecifications coefficients("coefficients");
+        coefficients.setCConstant(1.0);
+        coefficients.setDConstant(-1.0);
+        solver.setVelocityPoissonSpecifications(coefficients);
+        solver.setComponentsHaveNullSpace(false, !diagonal_operator);
+        std::vector<std::unique_ptr<LocationIndexRobinBcCoefs<NDIM>>> bc_storage;
+        std::vector<RobinBcCoefStrategy<NDIM>*> bcs(NDIM, nullptr);
         if (boundary)
         {
-            // Constant velocity (1,2), pressure zero solves -Laplace(u)+u+grad(p)=u.
-            // Its Dirichlet values are prescribed on every face, independently of RHS packing.
-            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                bc_storage.push_back(std::make_unique<LocationIndexRobinBcCoefs<NDIM>>("bc", nullptr));
+                for (int face = 0; face < 2 * NDIM; ++face)
+                {
+                    bc_storage.back()->setBoundaryValue(face, axis + 1.0);
+                }
+                bcs[axis] = bc_storage.back().get();
+            }
+            Pointer<StaggeredStokesPhysicalBoundaryHelper> helper = new StaggeredStokesPhysicalBoundaryHelper();
+            helper->cacheBcCoefData(bcs, 0.0, hierarchy);
+            solver.setPhysicalBcCoefs(bcs, nullptr);
+            solver.setPhysicalBoundaryHelper(helper);
+            solver.setHomogeneousBc(false);
         }
-        ierr = VecAXPY(actual, -1.0, expected);
-        IBTK_CHKERRQ(ierr);
-        const double error = norm_inf(actual);
-        if (!std::isfinite(error) || error > 1.0e-9 || action_norm <= 0.0)
+        Mat supplied = nullptr;
+        if (diagonal_operator)
         {
-            ++failures;
+            // A diagonal operator has an analytic truncated pseudoinverse: entries
+            // below the requested cutoff contribute zero, and the others divide by two.
+            PetscInt n = 0;
+            ierr = VecGetSize(rhs, &n);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, n, n, 1, nullptr, &supplied);
+            IBTK_CHKERRQ(ierr);
+            for (PetscInt j = 0; j < n; ++j)
+            {
+                ierr = MatSetValue(supplied, j, j, j % 2 == 0 ? 2.0 : small_diagonal, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            solver.setOperatorMat(supplied);
         }
-        plog << "action_norm = " << action_norm << "\nerror = " << error << '\n';
-        if (lifetime)
+        solver.initializeSolverState(x, b);
+        if (invalid)
         {
+            solver.deallocateSolverState();
+            return 0;
+        }
+        if (lifetime && !diagonal_operator)
+        {
+            Mat assembled = nullptr;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &assembled, nullptr);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(assembled, MAT_COPY_VALUES, &supplied);
+            IBTK_CHKERRQ(ierr);
+            solver.deallocateSolverState();
+            solver.setOperatorMat(supplied);
+            solver.setOperatorMat(supplied);
+            solver.initializeSolverState(x, b);
+        }
+        if (all_blas_modes)
+        {
+            plog << "solver_type = " << (solver_type.empty() ? "default" : solver_type) << '\n';
+        }
+        for (int cycle = 0; cycle < (lifetime ? 2 : 1); ++cycle)
+        {
+            Mat mat = nullptr;
+            PC pc = nullptr;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPGetPC(solver.getPETScKSP(), &pc);
+            IBTK_CHKERRQ(ierr);
+            PCType pc_type = nullptr;
+            ierr = PCGetType(pc, &pc_type);
+            IBTK_CHKERRQ(ierr);
+            if (std::string(pc_type) != "shell" || (lifetime && mat != supplied))
+            {
+                ++failures;
+            }
+            if (diagonal_operator)
+            {
+                const PetscScalar* rhs_values = nullptr;
+                PetscScalar* expected_values = nullptr;
+                PetscInt n = 0;
+                ierr = VecGetSize(rhs, &n);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGetArrayRead(rhs, &rhs_values);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(expected, &expected_values);
+                IBTK_CHKERRQ(ierr);
+                for (PetscInt j = 0; j < n; ++j)
+                {
+                    expected_values[j] = j % 2 == 0 ? rhs_values[j] / (cycle == 0 ? 2.0 : 4.0) : 0.0;
+                }
+                ierr = VecRestoreArray(expected, &expected_values);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArrayRead(rhs, &rhs_values);
+                IBTK_CHKERRQ(ierr);
+            }
+            else if (!boundary)
+            {
+                std::vector<IS>* overlap = nullptr;
+                std::vector<IS>* partition = nullptr;
+                solver.getASMSubdomains(&partition, &overlap);
+                reference_action(mat, rhs, expected, *overlap, *partition, legacy);
+                // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
+                MatNullSpace nullspace = nullptr;
+                ierr = MatGetNullSpace(mat, &nullspace);
+                IBTK_CHKERRQ(ierr);
+                if (nullspace)
+                {
+                    ierr = MatNullSpaceRemove(nullspace, expected);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            x.setToScalar(0.0);
             if (!solver.solveSystem(x, b))
             {
                 ++failures;
             }
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+            const double action_norm = norm_inf(actual);
+            if (boundary)
+            {
+                // Constant velocity (1,2), pressure zero solves -Laplace(u)+u+grad(p)=u.
+                // Its Dirichlet values are prescribed on every face, independently of RHS packing.
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
+            }
             ierr = VecAXPY(actual, -1.0, expected);
             IBTK_CHKERRQ(ierr);
-            const double repeated_error = norm_inf(actual);
-            if (!std::isfinite(repeated_error) || repeated_error > 1.0e-9)
+            const double error = norm_inf(actual);
+            if (!std::isfinite(error) || error > 1.0e-9 || action_norm <= 0.0)
             {
                 ++failures;
             }
-            plog << "repeated_error = " << repeated_error << '\n';
-        }
-        solver.deallocateSolverState();
-        if (lifetime)
-        {
-            PetscReal matrix_norm = 0.0;
-            ierr = MatNorm(supplied, NORM_INFINITY, &matrix_norm);
-            IBTK_CHKERRQ(ierr);
-            if (!(matrix_norm > 0.0))
+            plog << "action_norm = " << action_norm << "\nerror = " << error << '\n';
+            if (lifetime)
             {
-                ++failures;
+                if (!solver.solveSystem(x, b))
+                {
+                    ++failures;
+                }
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+                ierr = VecAXPY(actual, -1.0, expected);
+                IBTK_CHKERRQ(ierr);
+                const double repeated_error = norm_inf(actual);
+                if (!std::isfinite(repeated_error) || repeated_error > 1.0e-9)
+                {
+                    ++failures;
+                }
+                plog << "repeated_error = " << repeated_error << '\n';
             }
-            if (cycle == 0)
+            solver.deallocateSolverState();
+            if (lifetime)
             {
-                solver.initializeSolverState(x, b);
+                PetscReal matrix_norm = 0.0;
+                ierr = MatNorm(supplied, NORM_INFINITY, &matrix_norm);
+                IBTK_CHKERRQ(ierr);
+                if (!(matrix_norm > 0.0))
+                {
+                    ++failures;
+                }
+                if (cycle == 0)
+                {
+                    if (shell_type == "additive-blas-lapack")
+                    {
+                        ierr = MatScale(supplied, 2.0);
+                        IBTK_CHKERRQ(ierr);
+                    }
+                    solver.initializeSolverState(x, b);
+                }
             }
         }
+        ierr = MatDestroy(&supplied);
+        IBTK_CHKERRQ(ierr);
     }
-    ierr = MatDestroy(&supplied);
-    IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&rhs);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&expected);

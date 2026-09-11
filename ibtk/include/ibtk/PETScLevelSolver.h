@@ -79,6 +79,15 @@ class PETScLevelSolverShellBackend;
  * retains the existing shell action. shell_pc_type must be specified when
  * selecting a shell preconditioner, including through PETSc options.
  *
+ * The input database is retained; backend factories read it when solver state
+ * is initialized or rebuilt. The serial real-scalar "blas-lapack" backend accepts
+ * blas_lapack_subdomain_solver_type = "svd" (default), "lu",
+ * "symmetric-indefinite", or "qr". SVD constructs a pseudoinverse; explicit LU
+ * failures are fatal. Cholesky is unsupported for indefinite Stokes subdomains.
+ * blas_lapack_subdomain_solver_rcond must be finite and defaults to -1.0
+ * (LAPACK's SVD default). Nonnegative values set the relative SVD cutoff or QR
+ * diagonal rank threshold; QR is a full-rank solver.
+ *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
@@ -337,6 +346,7 @@ protected:
     //\}
 
 private:
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
     std::unique_ptr<PETScLevelSolverShellBackend> d_shell_backend;
 
     /*!
