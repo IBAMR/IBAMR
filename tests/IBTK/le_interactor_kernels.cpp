@@ -33,7 +33,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
+#include <iomanip>
 #include <string>
 #include <vector>
 
@@ -122,6 +122,10 @@ check_patch(Pointer<Patch<NDIM>> patch,
         return;
     }
 
+    double interpolation_error = 0.0, spreading_error = 0.0;
+    double reference_interpolation_error = 0.0, reference_spreading_error = 0.0;
+    double masked_interpolation_error = 0.0, masked_spreading_error = 0.0;
+    bool callbacks_used = true;
     for (const std::string name : { "IB_4", "piecewise_constant", "discontinuous_linear", "composite_bspline_23" })
     {
         const IBKernelTensorProduct kernel(name);
@@ -129,7 +133,10 @@ check_patch(Pointer<Patch<NDIM>> patch,
         TBOX_ASSERT(LEInteractor::getStencilSize(name) == LEInteractor::getStencilSize(kernel));
         LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, name);
         LEInteractor::interpolate(typed_value, NDIM, X, NDIM, field, patch, box, kernel);
-        TBOX_ASSERT(string_value == typed_value);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            interpolation_error += std::abs(string_value[d] - typed_value[d]);
+        }
         string_spread->fillAll(0.0);
         typed_spread->fillAll(0.0);
         LEInteractor::spread(string_spread, force, NDIM, X, NDIM, patch, box, name);
@@ -138,7 +145,7 @@ check_patch(Pointer<Patch<NDIM>> patch,
         {
             for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
             {
-                TBOX_ASSERT((*string_spread)(i()) == (*typed_spread)(i()));
+                spreading_error += std::abs((*string_spread)(i()) - (*typed_spread)(i()));
             }
         }
     }
@@ -166,9 +173,9 @@ check_patch(Pointer<Patch<NDIM>> patch,
                 weight *= d == component ? std::max(0.0, 1.0 - distance) : (distance < 0.5 ? 1.0 : 0.0);
             }
             expected_value += weight * (*field)(i());
-            TBOX_ASSERT(std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight) < 1.0e-12);
+            reference_spreading_error += std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight);
         }
-        TBOX_ASSERT(std::abs(string_value[component] - expected_value) < 1.0e-12);
+        reference_interpolation_error += std::abs(string_value[component] - expected_value);
     }
 
     const auto saved_kernel = LEInteractor::s_kernel_fcn;
@@ -182,18 +189,22 @@ check_patch(Pointer<Patch<NDIM>> patch,
     user_defined_calls = 0;
     LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, "USER_DEFINED");
     LEInteractor::interpolate(typed_value, NDIM, X, NDIM, field, patch, box, user_defined);
-    TBOX_ASSERT(user_defined_calls > 0 && string_value == typed_value);
+    callbacks_used = callbacks_used && user_defined_calls > 0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        interpolation_error += std::abs(string_value[d] - typed_value[d]);
+    }
     string_spread->fillAll(0.0);
     typed_spread->fillAll(0.0);
     user_defined_calls = 0;
     LEInteractor::spread(string_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
     LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, user_defined);
-    TBOX_ASSERT(user_defined_calls > 0);
+    callbacks_used = callbacks_used && user_defined_calls > 0;
     for (int component = 0; component < NDIM; ++component)
     {
         for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
         {
-            TBOX_ASSERT((*string_spread)(i()) == (*typed_spread)(i()));
+            spreading_error += std::abs((*string_spread)(i()) - (*typed_spread)(i()));
         }
     }
 
@@ -204,7 +215,10 @@ check_patch(Pointer<Patch<NDIM>> patch,
     std::vector<double> string_masked_value(NDIM), typed_masked_value(NDIM);
     LEInteractor::interpolate(typed_masked_value, NDIM, X, NDIM, mask, field, patch, box, IBKernel::IB_4);
     LEInteractor::interpolate(string_masked_value, NDIM, X, NDIM, mask, field, patch, box, "IB_4");
-    TBOX_ASSERT(typed_masked_value == string_masked_value);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        masked_interpolation_error += std::abs(typed_masked_value[d] - string_masked_value[d]);
+    }
     typed_masked_spread->fillAll(0.0);
     string_masked_spread->fillAll(0.0);
     LEInteractor::spread(mask, typed_masked_spread, force, NDIM, X, NDIM, patch, box, IBKernel::IB_4);
@@ -213,28 +227,44 @@ check_patch(Pointer<Patch<NDIM>> patch,
     {
         for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
         {
-            TBOX_ASSERT((*typed_masked_spread)(i()) == (*string_masked_spread)(i()));
+            masked_spreading_error += std::abs((*typed_masked_spread)(i()) - (*string_masked_spread)(i()));
         }
     }
     user_defined_calls = 0;
     LEInteractor::interpolate(string_masked_value, NDIM, X, NDIM, mask, field, patch, box, "USER_DEFINED");
     LEInteractor::interpolate(typed_masked_value, NDIM, X, NDIM, mask, field, patch, box, user_defined);
-    TBOX_ASSERT(user_defined_calls > 0 && string_masked_value == typed_masked_value);
+    callbacks_used = callbacks_used && user_defined_calls > 0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        masked_interpolation_error += std::abs(string_masked_value[d] - typed_masked_value[d]);
+    }
     string_masked_spread->fillAll(0.0);
     typed_masked_spread->fillAll(0.0);
     user_defined_calls = 0;
     LEInteractor::spread(mask, string_masked_spread, force, NDIM, X, NDIM, patch, box, "USER_DEFINED");
     LEInteractor::spread(mask, typed_masked_spread, force, NDIM, X, NDIM, patch, box, user_defined);
-    TBOX_ASSERT(user_defined_calls > 0);
+    callbacks_used = callbacks_used && user_defined_calls > 0;
     for (int component = 0; component < NDIM; ++component)
     {
         for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
         {
-            TBOX_ASSERT((*string_masked_spread)(i()) == (*typed_masked_spread)(i()));
+            masked_spreading_error += std::abs((*string_masked_spread)(i()) - (*typed_masked_spread)(i()));
         }
     }
     LEInteractor::s_kernel_fcn = saved_kernel;
     LEInteractor::s_kernel_fcn_stencil_size = saved_stencil_size;
+    plog << std::setprecision(12) << "interpolation error = " << interpolation_error << '\n'
+         << "spreading error = " << spreading_error << '\n'
+         << "reference interpolation error = " << reference_interpolation_error << '\n'
+         << "reference spreading error = " << reference_spreading_error << '\n'
+         << "masked interpolation error = " << masked_interpolation_error << '\n'
+         << "masked spreading error = " << masked_spreading_error << '\n';
+    if (!(interpolation_error == 0.0 && spreading_error == 0.0 && reference_interpolation_error < 1.0e-12 &&
+          reference_spreading_error < 1.0e-12 && masked_interpolation_error == 0.0 && masked_spreading_error == 0.0 &&
+          callbacks_used))
+    {
+        TBOX_ERROR("Live kernel dispatch or independent weight comparison failed.\n");
+    }
 }
 } // namespace
 
@@ -246,6 +276,7 @@ main(int argc, char* argv[])
     const bool expect_error = input_file.find("expect_error=true") != std::string::npos;
 
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "le_interactor_kernels.log");
+    PIO::logOnlyNodeZero("output");
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
     Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
@@ -270,7 +301,5 @@ main(int argc, char* argv[])
                 app_initializer->getInputDatabase()->getStringWithDefault("error_kernel", "COMPOSITE_BSPLINE_12"),
                 app_initializer->getInputDatabase()->getStringWithDefault("error_operation", "interpolate"));
 
-    std::ofstream output("output");
-    TBOX_ASSERT(static_cast<bool>(output));
     return 0;
 }
