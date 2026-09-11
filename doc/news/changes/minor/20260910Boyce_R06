@@ -1,0 +1,3 @@
+Fixed: Fill fine ghost data before RT0 restriction in Stokes FAC.
+<br>
+(Boyce Griffith, 2026/09/10)
