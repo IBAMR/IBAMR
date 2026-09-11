@@ -1,0 +1,11 @@
+Changed: HierarchyGhostCellInterpolation now completes deferred physical
+boundary-box construction during initialization and enforces SAMRAI's
+registered ghost-width limit before constructing schedules, resetting
+transactions, or filling data. Register the required maximum before boundary
+construction and keep a registration maintaining that maximum if later reuse
+is needed: a smaller registered maximum observed by a check or level
+construction can lower the shared limit. Operations on an empty hierarchy do
+not establish a new limit. Existing boundary boxes and filling formulas are
+unchanged.
+<br>
+(Boyce Griffith, 2026/09/10)

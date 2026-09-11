@@ -1,0 +1,9 @@
+Case: shrink-fill-restore
+Checking initialization.
+Checking fill.
+Nonfinite entries: 0; maximum error: 0
+Checking fill after the limit decreased.
+Patch data unchanged before rejection: true
+Program abort called with error message
+
+    Error in hier::GridGeometry<DIM> object with name = geometry: in computeMaxGhostWidth():  Cannot add variables and increase maximum ghost width after creating the GridGeometry!

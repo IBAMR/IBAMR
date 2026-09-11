@@ -78,6 +78,20 @@ namespace IBTK
  * \note In cases where physical boundary conditions are set via extrapolation
  * from interior values, setting ghost cell values may require both coarsening
  * and refining.
+ *
+ * Initialization completes deferred physical boundary-box construction on
+ * levels zero through the requested finest level, including coarse levels
+ * below the requested fill range. Register the required maximum ghost width
+ * before boundary construction. Initialization, transaction reset, and filling
+ * enforce SAMRAI's componentwise limit on the entire patch descriptor, including
+ * unused registrations and periodic configurations.
+ *
+ * SAMRAI's shared grid-geometry limit can decrease when a width check or level
+ * construction observes a smaller registered maximum. Restoring a wider
+ * registration can then fail even if older boundary boxes had sufficient
+ * width. Keep a registration maintaining the required maximum to preserve its
+ * later use. Deallocating or reinitializing this operator does not reset that
+ * limit. Operations on an empty hierarchy do not establish a new limit.
  */
 class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
@@ -339,6 +353,12 @@ public:
 
 protected:
 private:
+    /*!
+     * \brief Enforce SAMRAI's ghost-width limit without establishing a limit
+     * for an empty hierarchy.
+     */
+    void validateGhostWidth();
+
     /*!
      * \brief Copy constructor.
      *

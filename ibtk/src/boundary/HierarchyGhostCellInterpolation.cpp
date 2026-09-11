@@ -164,6 +164,15 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_coarsest_ln = coarsest_ln == invalid_level_number ? 0 : coarsest_ln;
     d_finest_ln = finest_ln == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln;
 
+    // Complete deferred construction before checking the width. The level
+    // operation preserves existing boxes and includes coarse dependencies.
+    for (int ln = 0; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        level->setBoundaryBoxes();
+    }
+    validateGhostWidth();
+
     // Register the cubic coarsen operators with the grid geometry object.
     IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
                  d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()););
@@ -263,6 +272,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
             {
                 d_cf_bdry_ops[comp_idx] = new CartSideDoubleQuadraticCFInterpolation();
+                // The constructor registers scratch data that setPatchHierarchy()
+                // allocates and fills, so validate before that setup begins.
+                validateGhostWidth();
                 d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(
                     d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
                 d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
@@ -333,6 +345,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_refine_strategy =
         std::make_unique<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
 
+    // Coarse-fine operator setup can register additional scratch variables.
+    validateGhostWidth();
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
@@ -385,6 +399,8 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                    << "  invalid reset operation.  attempting to change the number of registered "
                       "interpolation transaction components.\n");
     }
+
+    validateGhostWidth();
 
     // Reset the transaction components.
     d_transaction_comps = transaction_comps;
@@ -578,6 +594,8 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
+    validateGhostWidth();
+
     // Ensure the boundary condition objects are in the correct state.
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
@@ -659,6 +677,16 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+HierarchyGhostCellInterpolation::validateGhostWidth()
+{
+    if (d_finest_ln >= 0)
+    {
+        d_grid_geom->computeMaxGhostWidth(d_hierarchy->getPatchDescriptor());
+    }
+    return;
+} // validateGhostWidth
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
