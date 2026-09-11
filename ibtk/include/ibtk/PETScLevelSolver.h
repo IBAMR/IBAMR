@@ -56,6 +56,7 @@ class Database;
 namespace IBTK
 {
 class PETScLevelSolverShellBackend;
+enum class PETScLevelSolverShellTraversal;
 /*!
  * \brief Class PETScLevelSolver is an abstract LinearSolver for solving systems
  * of linear equations on a \em single SAMRAI::hier::PatchLevel using <A
@@ -92,6 +93,20 @@ class PETScLevelSolverShellBackend;
  * blas_lapack_subdomain_solver_rcond must be finite and defaults to -1.0
  * (LAPACK's SVD default). Nonnegative values set the relative SVD cutoff or QR
  * diagonal rank threshold; QR is a full-rank solver.
+ *
+ * The serial "eigen" backend uses eigen_subdomain_solver_type (default
+ * PARTIAL_PIV_LU) and eigen_subdomain_solver_threshold (default -1).
+ * "eigen-pseudoinverse" precomputes the solve matrix using
+ * eigen_subdomain_pseudoinverse_type (default COL_PIV_HOUSEHOLDER_QR) and
+ * eigen_subdomain_pseudoinverse_threshold (default -1). Available solver types
+ * are LLT, LDLT, PARTIAL_PIV_LU, FULL_PIV_LU, HOUSEHOLDER_QR,
+ * COL_PIV_HOUSEHOLDER_QR, COMPLETE_ORTHOGONAL_DECOMPOSITION (also COD),
+ * FULL_PIV_HOUSEHOLDER_QR, JACOBI_SVD and BDC_SVD. Names are case-insensitive;
+ * underscores, hyphens, or concatenated words are accepted. LLT requires positive
+ * definiteness and LDLT requires symmetry. Thresholds must be finite.
+ * Nonnegative values set Eigen's relative rank threshold where supported; negative values retain its
+ * default. COD and SVD precompute Moore-Penrose pseudoinverses. Other modes solve
+ * against the identity, retaining their mode-specific pivot/rank policy.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -245,6 +260,14 @@ public:
     //\}
 
 protected:
+    /*! \brief Initialize the selected shell backend after specialized DOF numbering
+     * and subdomain construction. Derived solvers may supply additional setup data;
+     * the default calls the backend's ordinary initializer.
+     */
+    virtual void initializeShellBackend(PETScLevelSolverShellBackend& backend,
+                                        bool use_multiplicative,
+                                        PETScLevelSolverShellTraversal traversal);
+
     /*!
      * \brief Basic initialization.
      */

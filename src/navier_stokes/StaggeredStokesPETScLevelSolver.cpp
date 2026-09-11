@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/private/StaggeredStokesEigenSchurComplementShellBackend.h>
 
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -177,6 +178,17 @@ insert_velocity_block_rows(Mat source, AO mapping, Mat destination)
     }
 }
 
+std::unique_ptr<IBTK::PETScLevelSolverShellBackend>
+allocate_eigen_schur_backend(Pointer<Database> input_db)
+{
+    return std::make_unique<StaggeredStokesEigenSchurComplementShellBackend>(input_db);
+}
+const bool registered_eigen_schur = []()
+{
+    IBTK::PETScLevelSolverShellBackendManager::get_manager().registerFactory("eigen-schur-complement",
+                                                                             allocate_eigen_schur_backend);
+    return true;
+}();
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -272,6 +284,43 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
 } // setAugmentedOperatorMat
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+StaggeredStokesPETScLevelSolver::initializeShellBackend(IBTK::PETScLevelSolverShellBackend& backend,
+                                                        const bool use_multiplicative,
+                                                        const IBTK::PETScLevelSolverShellTraversal traversal)
+{
+    StaggeredStokesEigenSchurComplementShellBackend* schur =
+        dynamic_cast<StaggeredStokesEigenSchurComplementShellBackend*>(&backend);
+    if (!schur)
+    {
+        PETScLevelSolver::initializeShellBackend(backend, use_multiplicative, traversal);
+        return;
+    }
+    if (IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR("Eigen shell backends require one MPI rank.\n");
+    }
+    std::vector<std::string> names;
+    std::vector<std::set<int>> fields;
+    generateFieldSplitSubdomains(names, fields);
+    const std::vector<std::string>::const_iterator velocity = std::find(names.cbegin(), names.cend(), "velocity");
+    const std::vector<std::string>::const_iterator pressure = std::find(names.cbegin(), names.cend(), "pressure");
+    if (velocity == names.cend() || pressure == names.cend())
+    {
+        TBOX_ERROR("Eigen Schur shell backend requires named velocity and pressure fields.\n");
+    }
+    schur->initializeSolverState(d_petsc_mat,
+                                 d_petsc_x,
+                                 d_petsc_b,
+                                 d_overlap_is,
+                                 d_nonoverlap_is,
+                                 fields[velocity - names.cbegin()],
+                                 fields[pressure - names.cbegin()],
+                                 d_options_prefix,
+                                 use_multiplicative,
+                                 traversal);
+}
 
 void
 StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,

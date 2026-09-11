@@ -14,6 +14,7 @@
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/private/StaggeredStokesEigenSchurComplementShellBackend.h>
 
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -324,7 +325,9 @@ check_stages(const bool fallback,
 int
 check_hand_solve(const bool blas,
                  const PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD,
-                 const bool traversal_case = false)
+                 const bool traversal_case = false,
+                 const std::string& eigen_backend = "",
+                 const bool additive = false)
 {
     const int rank = IBTK_MPI::getRank();
     Mat mat = nullptr;
@@ -356,14 +359,15 @@ check_hand_solve(const bool blas,
         IBTK_CHKERRQ(ierr);
         const bool parallel = traversal_case && IBTK_MPI::getNodes() == 2;
         const std::vector<PetscScalar> target =
+            additive ? std::vector<PetscScalar>{ 4.0 / 3.0, 5.0 / 3.0, 8.0 / 3.0 } :
             traversal == PETScLevelSolverShellTraversal::REVERSE ?
-                (parallel ? std::vector<PetscScalar>{ 40.0 / 9.0, 41.0 / 9.0, 8.0 / 3.0 } :
-                            std::vector<PetscScalar>{ 20.0 / 9.0, 31.0 / 9.0, 8.0 / 3.0 }) :
+                       (parallel ? std::vector<PetscScalar>{ 40.0 / 9.0, 41.0 / 9.0, 8.0 / 3.0 } :
+                                   std::vector<PetscScalar>{ 20.0 / 9.0, 31.0 / 9.0, 8.0 / 3.0 }) :
             traversal == PETScLevelSolverShellTraversal::SYMMETRIC ?
-                (parallel ? std::vector<PetscScalar>{ 64.0 / 27.0, 107.0 / 27.0, 32.0 / 9.0 } :
-                            std::vector<PetscScalar>{ 64.0 / 27.0, 101.0 / 27.0, 28.0 / 9.0 }) :
-                (parallel ? std::vector<PetscScalar>{ 8.0 / 3.0, 37.0 / 9.0, 32.0 / 9.0 } :
-                            std::vector<PetscScalar>{ 4.0 / 3.0, 29.0 / 9.0, 28.0 / 9.0 });
+                       (parallel ? std::vector<PetscScalar>{ 64.0 / 27.0, 107.0 / 27.0, 32.0 / 9.0 } :
+                                   std::vector<PetscScalar>{ 64.0 / 27.0, 101.0 / 27.0, 28.0 / 9.0 }) :
+                       (parallel ? std::vector<PetscScalar>{ 8.0 / 3.0, 37.0 / 9.0, 32.0 / 9.0 } :
+                                   std::vector<PetscScalar>{ 4.0 / 3.0, 29.0 / 9.0, 28.0 / 9.0 });
         ierr = VecSetValue(expected, row, target[row], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
@@ -386,17 +390,22 @@ check_hand_solve(const bool blas,
     {
         ierr = ISCreateGeneral(PETSC_COMM_SELF, 2, dofs[i].data(), PETSC_COPY_VALUES, &overlap[i]);
         IBTK_CHKERRQ(ierr);
-        ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, nullptr, PETSC_COPY_VALUES, &partition[i]);
+        ierr = ISCreateGeneral(PETSC_COMM_SELF,
+                               additive ? (i == 0 ? 2 : 1) : 0,
+                               additive ? dofs[i].data() + (i == 0 ? 0 : 1) : nullptr,
+                               PETSC_COPY_VALUES,
+                               &partition[i]);
         IBTK_CHKERRQ(ierr);
     }
     Pointer<MemoryDatabase> db = new MemoryDatabase("hand");
     db->putString("blas_lapack_subdomain_solver_type", "lu");
     std::unique_ptr<PETScLevelSolverShellBackend> backend =
-        PETScLevelSolverShellBackendManager::get_manager().allocateBackend(blas ? "blas-lapack" : "petsc", db);
+        PETScLevelSolverShellBackendManager::get_manager().allocateBackend(
+            eigen_backend.empty() ? (blas ? "blas-lapack" : "petsc") : eigen_backend, db);
     int failures = 0;
     for (int cycle = 0; cycle < 2; ++cycle)
     {
-        backend->initializeSolverState(mat, x, y, overlap, partition, "r09_hand", true, traversal);
+        backend->initializeSolverState(mat, x, y, overlap, partition, "r09_hand", !additive, traversal);
         for (int application = 0; application < 2; ++application)
         {
             backend->apply(x, y);
@@ -587,6 +596,231 @@ reference_action(Mat mat,
     ierr = VecDestroy(&residual);
     IBTK_CHKERRQ(ierr);
 }
+
+class FieldCheckingSolver : public StaggeredStokesPETScLevelSolver
+{
+public:
+    using StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver;
+    void checkFields(const std::set<int>& velocity, const std::set<int>& pressure)
+    {
+        std::vector<std::string> names;
+        std::vector<std::set<int>> fields;
+        generateFieldSplitSubdomains(names, fields);
+        TBOX_ASSERT(names.size() == 2 && fields.size() == 2);
+        for (std::size_t i = 0; i < names.size(); ++i)
+        {
+            TBOX_ASSERT(names[i] == "velocity" || names[i] == "pressure");
+            TBOX_ASSERT(fields[i] == (names[i] == "velocity" ? velocity : pressure));
+        }
+        plog << "velocity_dofs = " << velocity.size() << " pressure_dofs = " << pressure.size() << '\n';
+    }
+};
+
+// Algebraic cases use a known solution and deliberately interleaved Stokes fields.
+int
+check_eigen_local(Pointer<Database> test)
+{
+    const std::string mode = test->getString("eigen_local");
+    const bool rank_test = mode == "rank";
+    const bool nonsymmetric = mode == "nonsymmetric";
+    const bool basic = mode == "basic";
+    const std::vector<std::string> types =
+        basic ?
+            std::vector<std::string>{
+                "FULL_PIV_LU", "COL_PIV_HOUSEHOLDER_QR", "FULL_PIV_HOUSEHOLDER_QR", "cod", "JACOBI_SVD", "BDC_SVD"
+            } :
+        mode == "all" ?
+            std::vector<std::string>{ "LLT",
+                                      "ldlt",
+                                      "PartialPivLU",
+                                      "full-piv-lu",
+                                      "HOUSEHOLDER_QR",
+                                      "COL_PIV_HOUSEHOLDER_QR",
+                                      "cod",
+                                      "FULL_PIV_HOUSEHOLDER_QR",
+                                      "JACOBI_SVD",
+                                      "BDC_SVD" } :
+        rank_test ?
+            std::vector<std::string>{ "cod", "JACOBI_SVD", "BDC_SVD", "FULL_PIV_LU", "FULL_PIV_HOUSEHOLDER_QR" } :
+            std::vector<std::string>{ "FULL_PIV_HOUSEHOLDER_QR" };
+    const std::vector<std::string> backends =
+        nonsymmetric ? std::vector<std::string>{ "eigen", "eigen-pseudoinverse", "eigen-schur-complement" } :
+        mode == "all" || rank_test || basic ?
+                       std::vector<std::string>{ "eigen", "eigen-pseudoinverse" } :
+                       std::vector<std::string>{ test->getStringWithDefault("backend", "eigen-schur-complement") };
+    Mat mat = nullptr;
+    Vec rhs = nullptr, result = nullptr;
+    int ierr = MatCreateAIJ(PETSC_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, 3, 3, 3, nullptr, 3, nullptr, &mat);
+    IBTK_CHKERRQ(ierr);
+    PetscInt lo = 0, hi = 0;
+    ierr = MatGetOwnershipRange(mat, &lo, &hi);
+    IBTK_CHKERRQ(ierr);
+    const double entries[3][3] = { { basic ? 1.0 : 4.0, basic || nonsymmetric ? 2.0 : 1.0, basic ? 0.0 : 1.0 },
+                                   { basic ? 0.0 : 1.0, basic ? 0.0 : 3.0, basic ? 0.0 : -1.0 },
+                                   { basic || nonsymmetric ? 0.0 : 1.0, basic ? 0.0 : -1.0, basic ? 2.0 : 5.0 } };
+    const double target[3] = { 1, -2, 3 };
+    for (PetscInt i = lo; i < hi; ++i)
+    {
+        for (PetscInt j = 0; j < 3; ++j)
+        {
+            const double value = rank_test ? (i == j ? (i == 0 ? 2.0 : i == 1 ? 0.01 : 0.0) : 0.0) : entries[i][j];
+            ierr = MatSetValue(mat, i, j, value, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateVecs(mat, &rhs, &result);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = lo; i < hi; ++i)
+    {
+        double value = basic ? (i == 0 ? 2.0 : i == 1 ? 0.0 : 4.0) : rank_test ? i + 2.0 : 0.0;
+        if (!rank_test && !basic)
+        {
+            for (PetscInt j = 0; j < 3; ++j)
+            {
+                value += entries[i][j] * target[j];
+            }
+        }
+        ierr = VecSetValue(rhs, i, value, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecAssemblyBegin(rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(rhs);
+    IBTK_CHKERRQ(ierr);
+    int failures = 0;
+    for (const std::string& backend_name : backends)
+    {
+        for (const std::string& type : types)
+        {
+            Pointer<MemoryDatabase> db = new MemoryDatabase("eigen");
+            db->putString("eigen_subdomain_solver_type", type);
+            db->putString("eigen_subdomain_pseudoinverse_type", type);
+            db->putDouble("eigen_subdomain_solver_threshold", rank_test ? 0.1 : -1.0);
+            db->putDouble("eigen_subdomain_pseudoinverse_threshold", rank_test ? 0.1 : -1.0);
+            std::unique_ptr<PETScLevelSolverShellBackend> backend =
+                PETScLevelSolverShellBackendManager::get_manager().allocateBackend(backend_name, db);
+            for (int cycle = 0; cycle < 2; ++cycle)
+            {
+                std::vector<IS> overlap(2), partition(2);
+                ierr = ISCreateStride(PETSC_COMM_SELF, 3, 0, 1, &overlap[0]);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISCreateStride(PETSC_COMM_SELF, 0, 0, 1, &overlap[1]);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISDuplicate(overlap[0], &partition[0]);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISDuplicate(overlap[1], &partition[1]);
+                IBTK_CHKERRQ(ierr);
+                StaggeredStokesEigenSchurComplementShellBackend* schur =
+                    dynamic_cast<StaggeredStokesEigenSchurComplementShellBackend*>(backend.get());
+                if (schur && mode != "missing_fields")
+                {
+                    std::set<int> velocity = cycle == 0 ? std::set<int>{ 0, 2 } : std::set<int>{ 1 };
+                    std::set<int> pressure = cycle == 0 ? std::set<int>{ 1 } : std::set<int>{ 0, 2 };
+                    if (mode == "invalid_fields")
+                    {
+                        pressure.insert(0);
+                    }
+                    if (mode == "velocity_only")
+                    {
+                        velocity = { 0, 1, 2 };
+                        pressure.clear();
+                    }
+                    if (mode == "pressure_only")
+                    {
+                        pressure = { 0, 1, 2 };
+                        velocity.clear();
+                    }
+                    schur->initializeSolverState(mat,
+                                                 rhs,
+                                                 result,
+                                                 overlap,
+                                                 partition,
+                                                 velocity,
+                                                 pressure,
+                                                 "test",
+                                                 false,
+                                                 PETScLevelSolverShellTraversal::FORWARD);
+                }
+                else
+                {
+                    backend->initializeSolverState(mat, rhs, result, overlap, partition, "test");
+                }
+                // The initializer borrows these only during setup. Destroy them before applying.
+                for (IS& is : overlap)
+                {
+                    ierr = ISDestroy(&is);
+                    IBTK_CHKERRQ(ierr);
+                }
+                for (IS& is : partition)
+                {
+                    ierr = ISDestroy(&is);
+                    IBTK_CHKERRQ(ierr);
+                }
+                if (mode == "missing_fields" || mode == "invalid_fields" || mode == "parallel")
+                {
+                    return 0;
+                }
+                for (int application = 0; application < 3; ++application)
+                {
+                    backend->apply(rhs, result);
+                    const PetscScalar* values = nullptr;
+                    ierr = VecGetArrayRead(result, &values);
+                    IBTK_CHKERRQ(ierr);
+                    double error = 0.0;
+                    for (PetscInt j = 0; j < 3; ++j)
+                    {
+                        const bool minimum_norm = type == "cod" || type == "JACOBI_SVD" || type == "BDC_SVD";
+                        const double expected = basic     ? (j == 2       ? 2.0 :
+                                                             minimum_norm ? (j == 0 ? 0.4 : 0.8) :
+                                                             j == 0       ? 0.0 :
+                                                                            1.0) :
+                                                rank_test ? (j == 0 ? 1.0 : 0.0) :
+                                                            target[j];
+                        if (!std::isfinite(PetscRealPart(values[j])))
+                        {
+                            ++failures;
+                        }
+                        error = std::max(error, std::abs(PetscRealPart(values[j]) - expected));
+                    }
+                    if (!std::isfinite(error) || error > 1.e-10)
+                    {
+                        ++failures;
+                    }
+                    if (cycle == 0 && application == 0)
+                    {
+                        plog << backend_name << " " << type << " solution = " << values[0] << " " << values[1] << " "
+                             << values[2] << '\n';
+                    }
+                    ierr = VecRestoreArrayRead(result, &values);
+                    IBTK_CHKERRQ(ierr);
+                }
+                backend->deallocateSolverState();
+                backend->deallocateSolverState();
+                // Reinitialization must rebuild factors for changed matrix values.
+                ierr = MatScale(mat, 2.0);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecScale(rhs, 2.0);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatScale(mat, 0.25);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScale(rhs, 0.25);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    ierr = MatDestroy(&mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&result);
+    IBTK_CHKERRQ(ierr);
+    plog << "failures = " << failures << '\n';
+    return failures ? 1 : 0;
+}
 } // namespace
 
 int
@@ -598,6 +832,11 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
     Pointer<Database> input = app->getInputDatabase();
     Pointer<Database> test = input->getDatabase("test");
+    if (test->keyExists("eigen_local"))
+    {
+        plog << std::setprecision(12);
+        return check_eigen_local(test);
+    }
     const bool boundary = test->getBoolWithDefault("boundary", false);
     const bool lifetime = test->getBoolWithDefault("lifetime", false);
     const bool invalid = test->getBoolWithDefault("invalid", false);
@@ -636,7 +875,9 @@ main(int argc, char* argv[])
     const int hand_failures = test->getBoolWithDefault("hand_solve", false) ?
                                   check_hand_solve(shell_type == "multiplicative-blas-lapack",
                                                    traversal,
-                                                   test->keyExists("shell_pc_subdomain_traversal")) :
+                                                   test->keyExists("shell_pc_subdomain_traversal"),
+                                                   test->getStringWithDefault("hand_backend", ""),
+                                                   !multiplicative) :
                                   0;
     const bool diagonal_operator = test->getBoolWithDefault("diagonal_operator", false);
     const double small_diagonal = test->getDoubleWithDefault("small_diagonal", 1.0e-12);
@@ -705,10 +946,20 @@ main(int argc, char* argv[])
     {
         db->putString("shell_pc_type", shell_type);
     }
+    for (const std::string key : { "eigen_subdomain_solver_type",
+                                   "eigen_subdomain_pseudoinverse_type",
+                                   "a00_solver_type",
+                                   "schur_solver_type" })
+    {
+        if (test->keyExists(key))
+        {
+            db->putString(key, test->getString(key));
+        }
+    }
     db->putBool("initial_guess_nonzero", false);
     db->putInteger("max_iterations", 1);
     int box_size[NDIM];
-    std::fill_n(box_size, NDIM, boundary ? input->getInteger("N") : 4);
+    std::fill_n(box_size, NDIM, test->getIntegerWithDefault("box_size", boundary ? input->getInteger("N") : 4));
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
     int failures = hand_failures;
     plog << std::setprecision(12);
@@ -722,7 +973,7 @@ main(int argc, char* argv[])
         {
             db->putDouble("blas_lapack_subdomain_solver_rcond", test->getDouble("blas_lapack_subdomain_solver_rcond"));
         }
-        StaggeredStokesPETScLevelSolver solver("shell_solver", db, "shell_");
+        FieldCheckingSolver solver("shell_solver", db, "shell_");
         PoissonSpecifications coefficients("coefficients");
         coefficients.setCConstant(1.0);
         coefficients.setDConstant(-1.0);
@@ -809,6 +1060,29 @@ main(int argc, char* argv[])
         }
         for (int cycle = 0; cycle < (lifetime ? 2 : 1); ++cycle)
         {
+            if (shell_type.find("eigen-schur-complement") != std::string::npos)
+            {
+                std::set<int> velocity, pressure;
+                for (PatchLevel<NDIM>::Iterator patch_number(level); patch_number; patch_number++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(patch_number());
+                    Pointer<SideData<NDIM, int>> u_indices = patch->getPatchData(udi);
+                    Pointer<CellData<NDIM, int>> p_indices = patch->getPatchData(pdi);
+                    for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+                    {
+                        pressure.insert((*p_indices)(it()));
+                    }
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        const Box<NDIM> box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+                        for (Box<NDIM>::Iterator it(box); it; it++)
+                        {
+                            velocity.insert((*u_indices)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower)));
+                        }
+                    }
+                }
+                solver.checkFields(velocity, pressure);
+            }
             Mat mat = nullptr;
             PC pc = nullptr;
             ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);

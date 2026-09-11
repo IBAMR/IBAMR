@@ -1,0 +1,9 @@
+velocity_dofs = 192 pressure_dofs = 64
+action_norm = 0.75
+error = 0
+repeated_error = 0
+velocity_dofs = 192 pressure_dofs = 64
+action_norm = 0.75
+error = 0
+repeated_error = 0
+failures = 0

@@ -1,0 +1,11 @@
+eigen cod solution = 1 0 0
+eigen JACOBI_SVD solution = 1 0 0
+eigen BDC_SVD solution = 1 0 0
+eigen FULL_PIV_LU solution = 1 0 0
+eigen FULL_PIV_HOUSEHOLDER_QR solution = 1 0 0
+eigen-pseudoinverse cod solution = 1 0 0
+eigen-pseudoinverse JACOBI_SVD solution = 1 0 0
+eigen-pseudoinverse BDC_SVD solution = 1 0 0
+eigen-pseudoinverse FULL_PIV_LU solution = 1 0 0
+eigen-pseudoinverse FULL_PIV_HOUSEHOLDER_QR solution = 1 0 0
+failures = 0

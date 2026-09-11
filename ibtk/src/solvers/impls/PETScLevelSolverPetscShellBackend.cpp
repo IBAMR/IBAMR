@@ -14,6 +14,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/private/PETScLevelSolverBlasLapackShellBackend.h>
+#include <ibtk/private/PETScLevelSolverEigenShellBackend.h>
 #include <ibtk/private/PETScLevelSolverPetscShellBackend.h>
 
 #include <tbox/Utilities.h>
@@ -35,6 +36,16 @@ std::unique_ptr<PETScLevelSolverShellBackend>
 allocate_blas_lapack_backend(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
     return std::make_unique<PETScLevelSolverBlasLapackShellBackend>(input_db);
+}
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_eigen_backend(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+{
+    return std::make_unique<PETScLevelSolverEigenShellBackend>(input_db);
+}
+std::unique_ptr<PETScLevelSolverShellBackend>
+allocate_eigen_pseudoinverse_backend(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+{
+    return std::make_unique<PETScLevelSolverEigenShellBackend>(input_db, true);
 }
 } // namespace
 
@@ -76,7 +87,10 @@ PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key,
 }
 
 PETScLevelSolverShellBackendManager::PETScLevelSolverShellBackendManager()
-    : d_factories{ { "petsc", allocate_petsc_backend }, { "blas-lapack", allocate_blas_lapack_backend } }
+    : d_factories{ { "petsc", allocate_petsc_backend },
+                   { "blas-lapack", allocate_blas_lapack_backend },
+                   { "eigen", allocate_eigen_backend },
+                   { "eigen-pseudoinverse", allocate_eigen_pseudoinverse_backend } }
 {
 }
 

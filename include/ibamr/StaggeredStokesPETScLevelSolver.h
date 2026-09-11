@@ -65,6 +65,12 @@ namespace IBAMR
  * equations.
  *
  * \see INSStaggeredHierarchyIntegrator
+ *
+ * The serial shell backend "eigen-schur-complement" uses live velocity/pressure
+ * field IDs. a00_solver_type and schur_solver_type default to
+ * FULL_PIV_HOUSEHOLDER_QR; a00_solver_threshold and schur_solver_threshold default
+ * to -1. Types and threshold policies match IBTK::PETScLevelSolver's Eigen
+ * settings. A00 is factorized; the Schur solve matrix is precomputed.
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
 {
@@ -135,6 +141,11 @@ public:
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
 protected:
+    /*! \copydoc IBTK::PETScLevelSolver::initializeShellBackend */
+    void initializeShellBackend(IBTK::PETScLevelSolverShellBackend& backend,
+                                bool use_multiplicative,
+                                IBTK::PETScLevelSolverShellTraversal traversal) override;
+
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */

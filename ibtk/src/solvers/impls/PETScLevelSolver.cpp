@@ -466,14 +466,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             TBOX_ERROR(d_object_name << " unknown shell_pc_subdomain_traversal: " << traversal_name
                                      << "\nValid values are FORWARD, REVERSE, and SYMMETRIC.\n");
         }
-        d_shell_backend->initializeSolverState(d_petsc_mat,
-                                               d_petsc_x,
-                                               d_petsc_b,
-                                               d_overlap_is,
-                                               d_nonoverlap_is,
-                                               d_options_prefix,
-                                               multiplicative,
-                                               traversal);
+        initializeShellBackend(*d_shell_backend, multiplicative, traversal);
         ierr = PCShellSetContext(ksp_pc, static_cast<void*>(this));
         IBTK_CHKERRQ(ierr);
         ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::pc_apply_shell);
@@ -540,6 +533,21 @@ PETScLevelSolver::deallocateSolverState()
 } // deallocateSolverState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+PETScLevelSolver::initializeShellBackend(PETScLevelSolverShellBackend& backend,
+                                         const bool use_multiplicative,
+                                         const PETScLevelSolverShellTraversal traversal)
+{
+    backend.initializeSolverState(d_petsc_mat,
+                                  d_petsc_x,
+                                  d_petsc_b,
+                                  d_overlap_is,
+                                  d_nonoverlap_is,
+                                  d_options_prefix,
+                                  use_multiplicative,
+                                  traversal);
+}
 
 void
 PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
