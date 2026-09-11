@@ -1798,20 +1798,28 @@ struct LevelFixture
     Pointer<HierarchyVector> x, b;
     std::vector<int> indices;
     std::vector<PetscInt> velocity_ids;
+    std::vector<int> dof_counts, velocity_counts;
     int full_size = 0;
 
-    LevelFixture(Pointer<Database> geometry_db, int ln = 0, bool full = true)
+    LevelFixture(Pointer<Database> geometry_db, int ln = 0, bool full = true, bool distributed = false)
     {
-        if (IBTK_MPI::getNodes() != 1)
+        if (IBTK_MPI::getNodes() != (distributed ? 2 : 1))
         {
-            TBOX_ERROR("Level fixture requires one rank\n");
+            TBOX_ERROR("Unexpected rank count for level fixture\n");
         }
         Pointer<CartesianGridGeometry<NDIM>> geometry = new CartesianGridGeometry<NDIM>("level_geometry", geometry_db);
         hierarchy = new PatchHierarchy<NDIM>("level_hierarchy", geometry);
-        BoxArray<NDIM> boxes(1);
-        boxes[0] = Box<NDIM>(SAMRAI::hier::Index<NDIM>(0), SAMRAI::hier::Index<NDIM>(15));
-        ProcessorMapping mapping(1);
-        mapping.setProcessorAssignment(0, 0);
+        const int ranks = IBTK_MPI::getNodes();
+        BoxArray<NDIM> boxes(ranks);
+        ProcessorMapping mapping(ranks);
+        for (int rank = 0; rank < ranks; ++rank)
+        {
+            SAMRAI::hier::Index<NDIM> lower(0), upper(15);
+            lower(0) = rank * 16 / ranks;
+            upper(0) = (rank + 1) * 16 / ranks - 1;
+            boxes[rank] = Box<NDIM>(lower, upper);
+            mapping.setProcessorAssignment(rank, rank);
+        }
         hierarchy->makeNewPatchLevel(0, IntVector<NDIM>(1), boxes, mapping);
         if (ln == 1)
         {
@@ -1859,19 +1867,51 @@ struct LevelFixture
         {
             level->allocatePatchData(idx);
         }
-        std::vector<int> counts;
-        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, udi, pdi, level);
-        full_size = counts[0];
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(dof_counts, udi, pdi, level);
+        const int rank = IBTK_MPI::getRank();
+        int first_dof = 0;
+        for (int r = 0; r < ranks; ++r)
+        {
+            full_size += dof_counts[r];
+            if (r < rank)
+            {
+                first_dof += dof_counts[r];
+            }
+        }
         std::set<int> velocity;
-        Pointer<SideData<NDIM, int>> data = level->getPatch(0)->getPatchData(udi);
+        Pointer<SideData<NDIM, int>> data = level->getPatch(rank)->getPatchData(udi);
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(level->getPatch(0)->getBox(), axis)); i; i++)
+            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(level->getPatch(rank)->getBox(), axis)); i; i++)
             {
-                velocity.insert((*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower)));
+                const int id = (*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower));
+                if (id >= first_dof && id < first_dof + dof_counts[rank])
+                {
+                    velocity.insert(id);
+                }
             }
         }
         velocity_ids.assign(velocity.begin(), velocity.end());
+        const int local_velocity = velocity_ids.size();
+        velocity_counts.resize(ranks);
+        int ierr = MPI_Allgather(&local_velocity, 1, MPI_INT, velocity_counts.data(), 1, MPI_INT, PETSC_COMM_WORLD);
+        IBTK_CHKERRQ(ierr);
+        std::vector<int> offsets(ranks, 0);
+        for (int r = 1; r < ranks; ++r)
+        {
+            offsets[r] = offsets[r - 1] + velocity_counts[r - 1];
+        }
+        std::vector<PetscInt> all_velocity(offsets.back() + velocity_counts.back());
+        ierr = MPI_Allgatherv(velocity_ids.data(),
+                              local_velocity,
+                              MPIU_INT,
+                              all_velocity.data(),
+                              velocity_counts.data(),
+                              offsets.data(),
+                              MPIU_INT,
+                              PETSC_COMM_WORLD);
+        IBTK_CHKERRQ(ierr);
+        velocity_ids = std::move(all_velocity);
     }
     ~LevelFixture()
     {
@@ -1954,15 +1994,15 @@ check_level_solve(PETScLevelSolver& solver)
     IBTK_CHKERRQ(ierr);
     ierr = VecDuplicate(exact, &solution);
     IBTK_CHKERRQ(ierr);
-    PetscInt n;
-    ierr = VecGetSize(exact, &n);
+    PetscInt first, last;
+    ierr = VecGetOwnershipRange(exact, &first, &last);
     IBTK_CHKERRQ(ierr);
     PetscScalar* values;
     ierr = VecGetArray(exact, &values);
     IBTK_CHKERRQ(ierr);
-    for (PetscInt i = 0; i < n; ++i)
+    for (PetscInt i = first; i < last; ++i)
     {
-        values[i] = std::sin(0.13 * i) + 0.5;
+        values[i - first] = std::sin(0.13 * i) + 0.5;
     }
     ierr = VecRestoreArray(exact, &values);
     IBTK_CHKERRQ(ierr);
@@ -2093,7 +2133,7 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
     solver.setTimeInterval(0.0, 1.0);
     solver.setSolutionTime(1.0);
     bool identity = true, creator_valid = true, values_valid = true, solves = true;
-    bool references_valid = check_matrix_reference_lifetime(fixture);
+    bool references_valid = augmentation || check_matrix_reference_lifetime(fixture);
     for (int cycle = 0; cycle < (augmentation ? 4 : 2); ++cycle)
     {
         const bool full_augmentation = cycle % 2 == 0;
@@ -2210,6 +2250,152 @@ run_level_operator(Pointer<AppInitializer> app, bool augmentation)
          << "velocity_pressure_mapping_error = " << max_mapping_error << '\n'
          << "test_failures = " << failures << std::endl;
     return failures;
+}
+
+int
+run_distributed_augmentation(Pointer<AppInitializer> app)
+{
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"), 0, true, true);
+    const int rank = IBTK_MPI::getRank();
+    Mat creator = nullptr, augmentation = nullptr;
+    PetscErrorCode ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                                       fixture.dof_counts[rank],
+                                       fixture.dof_counts[rank],
+                                       PETSC_DECIDE,
+                                       PETSC_DECIDE,
+                                       1,
+                                       nullptr,
+                                       0,
+                                       nullptr,
+                                       &creator);
+    IBTK_CHKERRQ(ierr);
+    PetscInt first, last;
+    ierr = MatGetOwnershipRange(creator, &first, &last);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt row = first; row < last; ++row)
+    {
+        ierr = MatSetValue(creator, row, row, 4.0, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(creator, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(creator, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    Mat expected = nullptr, original = nullptr;
+    ierr = MatDuplicate(creator, MAT_COPY_VALUES, &expected);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDuplicate(creator, MAT_COPY_VALUES, &original);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(expected, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        fixture.velocity_counts[rank],
+                        fixture.velocity_counts[rank],
+                        PETSC_DECIDE,
+                        PETSC_DECIDE,
+                        1,
+                        nullptr,
+                        1,
+                        nullptr,
+                        &augmentation);
+    IBTK_CHKERRQ(ierr);
+    PetscInt vfirst, vlast;
+    ierr = MatGetOwnershipRange(augmentation, &vfirst, &vlast);
+    IBTK_CHKERRQ(ierr);
+    int off_process = 0;
+    for (PetscInt row = vfirst; row < vlast; ++row)
+    {
+        const PetscInt other = (row + fixture.velocity_ids.size() / 2) % fixture.velocity_ids.size();
+        const PetscInt columns[2] = { row, other };
+        const PetscScalar values[2] = { 1.0 + 0.001 * row, 0.125 };
+        ierr = MatSetValues(augmentation, 1, &row, 2, columns, values, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        const PetscInt full_row = fixture.velocity_ids[row];
+        const PetscInt full_columns[2] = { full_row, fixture.velocity_ids[other] };
+        ierr = MatSetValues(expected, 1, &full_row, 2, full_columns, values, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        off_process += full_columns[1] < first || full_columns[1] >= last;
+    }
+    for (Mat mat : { augmentation, expected })
+    {
+        ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+    }
+    Mat augmentation_original = nullptr;
+    ierr = MatDuplicate(augmentation, MAT_COPY_VALUES, &augmentation_original);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScLevelSolver solver("distributed_augmentation", level_solver_database(), "");
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    solver.setOperatorMat(creator);
+    solver.setAugmentedOperatorMat(augmentation);
+    Mat retained_creator = creator, retained_augmentation = augmentation;
+    ierr = MatDestroy(&creator);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&augmentation);
+    IBTK_CHKERRQ(ierr);
+    bool valid = IBTK_MPI::sumReduction(off_process) > 0;
+    double action_error = 0.0;
+    for (int cycle = 0; cycle < 2; ++cycle)
+    {
+        valid = matrix_references(retained_creator) == 1 && matrix_references(retained_augmentation) == 1 && valid;
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        Mat installed = nullptr;
+        ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+        IBTK_CHKERRQ(ierr);
+        valid = installed != retained_creator && matrices_equal(installed, expected) &&
+                matrices_equal(retained_creator, original) &&
+                matrices_equal(retained_augmentation, augmentation_original) && valid;
+        Vec x = nullptr, result = nullptr, reference = nullptr;
+        ierr = MatCreateVecs(expected, &x, &result);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(result, &reference);
+        IBTK_CHKERRQ(ierr);
+        PetscScalar* values;
+        ierr = VecGetArray(x, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt row = first; row < last; ++row)
+        {
+            values[row - first] = 1.0 + 0.01 * row;
+        }
+        ierr = VecRestoreArray(x, &values);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(installed, x, result);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(expected, x, reference);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(result, -1.0, reference);
+        IBTK_CHKERRQ(ierr);
+        PetscReal error;
+        ierr = VecNorm(result, NORM_INFINITY, &error);
+        IBTK_CHKERRQ(ierr);
+        valid = std::isfinite(error) && error <= 1.0e-12 && valid;
+        action_error = std::max(action_error, error);
+        for (Vec* vec : { &x, &result, &reference })
+        {
+            ierr = VecDestroy(vec);
+            IBTK_CHKERRQ(ierr);
+        }
+        valid = check_level_solve(solver) && valid;
+        solver.deallocateSolverState();
+    }
+    valid = matrix_references(retained_creator) == 1 && matrix_references(retained_augmentation) == 1 && valid;
+    solver.setOperatorMat(nullptr);
+    solver.setAugmentedOperatorMat(nullptr);
+    for (Mat* mat : { &original, &expected, &augmentation_original })
+    {
+        ierr = MatDestroy(mat);
+        IBTK_CHKERRQ(ierr);
+    }
+    pout << "distributed matrix error = " << max_matrix_error << '\n'
+         << "distributed action error = " << action_error << '\n';
+    if (!valid)
+    {
+        TBOX_ERROR("Distributed compact augmentation mapping, action, or creator lifetime failed.\n");
+    }
+    return 0;
 }
 
 int
@@ -2437,6 +2623,10 @@ main(int argc, char* argv[])
     if (test_case == "level_augmentation")
     {
         return run_level_operator(app, true);
+    }
+    if (test_case == "distributed_augmentation")
+    {
+        return run_distributed_augmentation(app);
     }
     if (test_case == "set_operator_initialized")
     {

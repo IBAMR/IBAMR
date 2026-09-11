@@ -133,7 +133,8 @@ construct_velocity_field_ao(IS velocity_field_is_local, Mat velocity_block_mat, 
     const PetscInt* velocity_full_ids = nullptr;
     ierr = ISGetIndices(velocity_field_is_local, &velocity_full_ids);
     IBTK_CHKERRQ(ierr);
-    ierr = AOCreateBasic(
+    // Pressure indices leave gaps between ranks' coupled velocity intervals.
+    ierr = AOCreateMapping(
         PETSC_COMM_WORLD, n_velocity_local, velocity_field_ids.data(), velocity_full_ids, &velocity_field_ao);
     IBTK_CHKERRQ(ierr);
     ierr = ISRestoreIndices(velocity_field_is_local, &velocity_full_ids);
