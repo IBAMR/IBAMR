@@ -154,7 +154,7 @@ SETUP(multiphase_flow water_entry_circular_cylinder.cpp IBAMR2d)
 # navier_stokes:
 SETUP_2D(navier_stokes navier_stokes_01.cpp)
 SETUP_3D(navier_stokes navier_stokes_01.cpp)
-SETUP_2D(navier_stokes poiseuille_flow_2d.cpp)
+SETUP(navier_stokes poiseuille_flow_2d.cpp IBAMR2d)
 SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 
