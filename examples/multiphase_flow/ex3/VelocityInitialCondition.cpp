@@ -18,12 +18,15 @@
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
+#include <CartesianPatchGeometry.h>
+#include <CellIndex.h>
+#include <Patch.h>
+#include <SideData.h>
+#include <SideGeometry.h>
 
-/////////////////////////////// STATIC ///////////////////////////////////////
-// Various options to setting side-centered initial velocities
-#define SMOOTH_SC_U 1
-#define DESJARDINS_SC_U 0
+#include <cmath>
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -31,22 +34,14 @@ VelocityInitialCondition::VelocityInitialCondition(const std::string& object_nam
                                                    const double num_interface_cells,
                                                    std::vector<double> inside_velocity,
                                                    std::vector<double> outside_velocity,
-                                                   CircularInterface init_circle)
-    : d_object_name(object_name),
+                                                   Pointer<MultiphaseExamples::SphereLevelSet> sphere)
+    : CartGridFunction(object_name),
       d_num_interface_cells(num_interface_cells),
       d_inside_velocity(inside_velocity),
       d_outside_velocity(outside_velocity),
-      d_init_circle(init_circle)
+      d_sphere(sphere)
 {
-    // intentionally blank
-    return;
 } // VelocityInitialCondition
-
-VelocityInitialCondition::~VelocityInitialCondition()
-{
-    // intentionally blank
-    return;
-} // ~VelocityInitialCondition
 
 bool
 VelocityInitialCondition::isTimeDependent() const
@@ -65,17 +60,16 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
     // Set the initial velocity inside and outside the level set
     if (initial_time)
     {
-        // Get the circle parameters
-        const double& R = d_init_circle.R;
-        const IBTK::Vector& X0 = d_init_circle.X0;
-
         // Initial velocity patch data
         Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(data_idx);
 
         Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         double vol_cell = 1.0;
-        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            vol_cell *= patch_dx[d];
+        }
         double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
         const Box<NDIM>& patch_box = patch->getBox();
         for (int axis = 0; axis < NDIM; ++axis)
@@ -105,39 +99,9 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
                         patch_X_lower[d] + patch_dx[d] * (static_cast<double>(c_u(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                const double phi_lower =
-                    std::sqrt(std::pow((coord_lower[0] - X0(0)), 2.0) + std::pow((coord_lower[1] - X0(1)), 2.0)
-#if (NDIM == 3)
-                              + std::pow((coord_lower[2] - X0(2)), 2.0)
-#endif
-                                  ) -
-                    R;
+                const double phi_lower = d_sphere->evaluateSignedDistance(coord_lower, 0.0);
 
-                const double phi_upper =
-                    std::sqrt(std::pow((coord_upper[0] - X0(0)), 2.0) + std::pow((coord_upper[1] - X0(1)), 2.0)
-#if (NDIM == 3)
-                              + std::pow((coord_upper[2] - X0(2)), 2.0)
-#endif
-                                  ) -
-                    R;
-#if (DESJARDINS_SC_U)
-                // Desjardins way to set side-centered density
-                if (phi_lower >= 0.0 && phi_upper >= 0.0)
-                {
-                    h = 1.0;
-                }
-                else if (phi_lower < 0.0 && phi_upper < 0.0)
-                {
-                    h = 0.0;
-                }
-                else
-                {
-                    h = (std::max(phi_lower, 0.0) + std::max(phi_upper, 0.0)) /
-                        (std::abs(phi_lower) + std::abs(phi_upper));
-                }
-                (*U_data)(s_i) = u_inside + (u_outside - u_inside) * h;
-#endif
-#if (SMOOTH_SC_U)
+                const double phi_upper = d_sphere->evaluateSignedDistance(coord_upper, 0.0);
                 // Simple average of phi onto side centers and set rho_sc directly
                 const double phi = 0.5 * (phi_lower + phi_upper);
 
@@ -155,7 +119,6 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
                 }
 
                 (*U_data)(s_i) = (u_outside - u_inside) * h + u_inside;
-#endif
             }
         }
     }

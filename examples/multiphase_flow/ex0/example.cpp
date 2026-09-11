@@ -42,7 +42,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LSLocateCircularInterface.h"
+#include <LSLocateInterface.h>
+#include <PointwiseLevelSet.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -163,12 +164,12 @@ main(int argc, char* argv[])
         const double dP_exact = input_db->getDouble("dP_exact");
 
         // Setup level set information
-        CircularInterface circle;
-        circle.R = input_db->getDouble("R");
-        circle.X0[0] = input_db->getDouble("XCOM");
-        circle.X0[1] = input_db->getDouble("YCOM");
+        const double circle_radius = input_db->getDouble("R");
+        IBTK::Vector circle_center = IBTK::Vector::Zero();
+        circle_center[0] = input_db->getDouble("XCOM");
+        circle_center[1] = input_db->getDouble("YCOM");
 #if (NDIM == 3)
-        circle.X0[2] = input_db->getDouble("ZCOM");
+        circle_center[2] = input_db->getDouble("ZCOM");
 #endif
 
         const string& ls_name = "level_set";
@@ -180,10 +181,11 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateCircularInterface setLSLocateCircularInterface(
-            "LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
-                                                                static_cast<void*>(&setLSLocateCircularInterface));
+        Pointer<MultiphaseExamples::SphereLevelSet> sphere =
+            new MultiphaseExamples::SphereLevelSet("initial_sphere", circle_center, circle_radius);
+        MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, sphere);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
+                                                                static_cast<void*>(&locate_interface));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
             phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
