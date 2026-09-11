@@ -21,9 +21,9 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    LSLocateLayerInterface.cpp example.cpp
+    example.cpp
   LINK_TARGETS
-    IBAMR2d
+    multiphase_flow_helpers_2d
   INPUT_FILES
     input2d.filling input2d.stationary
   )

@@ -42,7 +42,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LSLocateLayerInterface.h"
+#include <LSLocateInterface.h>
+#include <PointwiseLevelSet.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -163,8 +164,7 @@ main(int argc, char* argv[])
         const double dP_exact = input_db->getDouble("DP_EXACT");
 
         // Setup level set information
-        LayerInterface layer;
-        layer.height = input_db->getDouble("FLUID_HEIGHT");
+        const double fluid_height = input_db->getDouble("FLUID_HEIGHT");
 
         const string& ls_name = "level_set";
         Pointer<CellVariable<NDIM, double>> phi_var = new CellVariable<NDIM, double>(ls_name);
@@ -175,9 +175,11 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateLayerInterface setLSLocateLayerInterface("LSLocateLayerInterface", adv_diff_integrator, phi_var, layer);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateLayerInterfaceCallbackFunction,
-                                                                static_cast<void*>(&setLSLocateLayerInterface));
+        Pointer<CartGridFunction> plane =
+            new MultiphaseExamples::PlaneLevelSet("initial_layer", NDIM - 1, fluid_height);
+        MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, plane);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
+                                                                static_cast<void*>(&locate_interface));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
             phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
