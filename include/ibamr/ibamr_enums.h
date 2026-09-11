@@ -628,7 +628,7 @@ enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
     return "UNKNOWN_INDICATOR_FUNC_TYPE";
 } // enum_to_string
 
-/*! \brief Geometrical or velocity-coupling-based ASM construction. */
+/*! \brief Geometrical or coupling-based ASM construction. */
 enum class ASMSubdomainConstructionMode
 {
     GEOMETRICAL,
@@ -640,6 +640,19 @@ template <>
 ASMSubdomainConstructionMode string_to_enum<ASMSubdomainConstructionMode>(const std::string& val);
 template <>
 std::string enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val);
+
+/*! \brief Velocity-component or pressure-cell seeds for coupling-aware patches. */
+enum class CouplingAwareASMPatchSeedType
+{
+    VELOCITY_COMPONENT,
+    PRESSURE_CELL,
+    UNKNOWN
+};
+
+template <>
+CouplingAwareASMPatchSeedType string_to_enum<CouplingAwareASMPatchSeedType>(const std::string& val);
+template <>
+std::string enum_to_string<CouplingAwareASMPatchSeedType>(CouplingAwareASMPatchSeedType val);
 
 /*! \brief Incident-cell closure or complete-stencil filtering. */
 enum class CouplingAwareASMClosurePolicy

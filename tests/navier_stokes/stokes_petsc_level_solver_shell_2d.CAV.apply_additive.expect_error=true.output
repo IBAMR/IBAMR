@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    shell_solver: pressure-cell CAV requires an unrestricted multiplicative shell smoother.
+

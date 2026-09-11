@@ -121,14 +121,12 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
     {
         TBOX_ERROR(d_options_prefix << " BLAS/LAPACK shell backend requires a serial square operator.\n");
     }
-    TBOX_ASSERT(overlap.size() == nonoverlap.size());
+    TBOX_ASSERT(use_multiplicative || overlap.size() == nonoverlap.size());
     d_subdomains.resize(overlap.size());
     for (std::size_t i = 0; i < overlap.size(); ++i)
     {
         PetscInt n = 0, m = 0;
         ierr = ISGetLocalSize(overlap[i], &n);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISGetLocalSize(nonoverlap[i], &m);
         IBTK_CHKERRQ(ierr);
         ierr = PetscBLASIntCast(n, &d_subdomains[i].local_size);
         IBTK_CHKERRQ(ierr);
@@ -141,18 +139,23 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
         }
         ierr = ISRestoreIndices(overlap[i], &indices);
         IBTK_CHKERRQ(ierr);
-        ierr = ISGetIndices(nonoverlap[i], &indices);
-        IBTK_CHKERRQ(ierr);
-        for (PetscInt j = 0; j < m; ++j)
+        if (!use_multiplicative)
         {
-            const std::vector<PetscInt>::const_iterator position = std::lower_bound(
-                d_subdomains[i].overlap_dofs.cbegin(), d_subdomains[i].overlap_dofs.cend(), indices[j]);
-            TBOX_ASSERT(position != d_subdomains[i].overlap_dofs.cend() && *position == indices[j]);
-            d_subdomains[i].update_local_positions.push_back(
-                static_cast<PetscBLASInt>(position - d_subdomains[i].overlap_dofs.cbegin()));
+            ierr = ISGetLocalSize(nonoverlap[i], &m);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(nonoverlap[i], &indices);
+            IBTK_CHKERRQ(ierr);
+            for (PetscInt j = 0; j < m; ++j)
+            {
+                const std::vector<PetscInt>::const_iterator position = std::lower_bound(
+                    d_subdomains[i].overlap_dofs.cbegin(), d_subdomains[i].overlap_dofs.cend(), indices[j]);
+                TBOX_ASSERT(position != d_subdomains[i].overlap_dofs.cend() && *position == indices[j]);
+                d_subdomains[i].update_local_positions.push_back(
+                    static_cast<PetscBLASInt>(position - d_subdomains[i].overlap_dofs.cbegin()));
+            }
+            ierr = ISRestoreIndices(nonoverlap[i], &indices);
+            IBTK_CHKERRQ(ierr);
         }
-        ierr = ISRestoreIndices(nonoverlap[i], &indices);
-        IBTK_CHKERRQ(ierr);
         if (use_multiplicative)
         {
             d_subdomains[i].update_local_positions.resize(n);

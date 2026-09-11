@@ -112,7 +112,7 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
     deallocateSolverState();
     initializeComposition(mat, x, b, use_multiplicative, traversal);
     d_multiplicative = use_multiplicative;
-    TBOX_ASSERT(overlap.size() == nonoverlap.size());
+    TBOX_ASSERT(use_multiplicative || overlap.size() == nonoverlap.size());
     const int n_local = static_cast<int>(overlap.size());
     const int n_max = IBTK_MPI::maxReduction(n_local);
     Mat* sub_mat = nullptr;
@@ -132,27 +132,30 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
         {
             ierr = ISGetLocalSize(overlap[i], &n_overlap);
             IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(nonoverlap[i], &n_nonoverlap);
-            IBTK_CHKERRQ(ierr);
             const PetscInt* overlap_indices = nullptr;
             const PetscInt* nonoverlap_indices = nullptr;
             ierr = ISGetIndices(overlap[i], &overlap_indices);
             IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(nonoverlap[i], &nonoverlap_indices);
-            IBTK_CHKERRQ(ierr);
-            for (PetscInt j = 0; j < n_nonoverlap; ++j)
+            if (!use_multiplicative)
             {
-                const PetscInt* position =
-                    std::lower_bound(overlap_indices, overlap_indices + n_overlap, nonoverlap_indices[j]);
-                TBOX_ASSERT(position != overlap_indices + n_overlap && *position == nonoverlap_indices[j]);
-                local_nonoverlap.push_back(static_cast<PetscInt>(position - overlap_indices));
+                ierr = ISGetLocalSize(nonoverlap[i], &n_nonoverlap);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISGetIndices(nonoverlap[i], &nonoverlap_indices);
+                IBTK_CHKERRQ(ierr);
+                for (PetscInt j = 0; j < n_nonoverlap; ++j)
+                {
+                    const PetscInt* position =
+                        std::lower_bound(overlap_indices, overlap_indices + n_overlap, nonoverlap_indices[j]);
+                    TBOX_ASSERT(position != overlap_indices + n_overlap && *position == nonoverlap_indices[j]);
+                    local_nonoverlap.push_back(static_cast<PetscInt>(position - overlap_indices));
+                }
+                ierr = ISRestoreIndices(nonoverlap[i], &nonoverlap_indices);
+                IBTK_CHKERRQ(ierr);
             }
             if (use_multiplicative && n_overlap > 0)
             {
                 d_correction_dofs[i].assign(overlap_indices, overlap_indices + n_overlap);
             }
-            ierr = ISRestoreIndices(nonoverlap[i], &nonoverlap_indices);
-            IBTK_CHKERRQ(ierr);
             ierr = ISRestoreIndices(overlap[i], &overlap_indices);
             IBTK_CHKERRQ(ierr);
             ierr = MatCreateVecs(sub_mat[i], &d_sub_x[i], &d_sub_y[i]);
@@ -191,11 +194,14 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
         IS local_overlap = nullptr, local_partition = nullptr;
         ierr = ISCreateStride(PETSC_COMM_WORLD, n_overlap, 0, 1, &local_overlap);
         IBTK_CHKERRQ(ierr);
-        ierr = ISCreateGeneral(
-            PETSC_COMM_WORLD, n_nonoverlap, local_nonoverlap.data(), PETSC_COPY_VALUES, &local_partition);
-        IBTK_CHKERRQ(ierr);
+        if (!use_multiplicative)
+        {
+            ierr = ISCreateGeneral(
+                PETSC_COMM_WORLD, n_nonoverlap, local_nonoverlap.data(), PETSC_COPY_VALUES, &local_partition);
+            IBTK_CHKERRQ(ierr);
+        }
         IS global_overlap = i < n_local ? overlap[i] : local_overlap;
-        IS global_partition = i < n_local ? nonoverlap[i] : local_partition;
+        IS global_partition = !use_multiplicative && i < n_local ? nonoverlap[i] : local_partition;
         ierr = VecScatterCreate(x, global_overlap, d_sub_x[i], local_overlap, &d_restriction[i]);
         IBTK_CHKERRQ(ierr);
         ierr = VecScatterCreate(d_sub_y[i],

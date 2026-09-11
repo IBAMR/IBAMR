@@ -54,6 +54,7 @@
 #include <Variable.h>
 #include <VariableContext.h>
 #include <VariableDatabase.h>
+#include <strings.h>
 
 #include <algorithm>
 #include <cmath>
@@ -193,6 +194,36 @@ const bool registered_eigen_schur = []()
 }();
 } // namespace
 
+template <>
+CouplingAwareASMPatchSeedType
+string_to_enum<CouplingAwareASMPatchSeedType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "VELOCITY_COMPONENT") == 0)
+    {
+        return CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+    }
+    if (strcasecmp(val.c_str(), "PRESSURE_CELL") == 0)
+    {
+        return CouplingAwareASMPatchSeedType::PRESSURE_CELL;
+    }
+    return CouplingAwareASMPatchSeedType::UNKNOWN;
+}
+
+template <>
+std::string
+enum_to_string<CouplingAwareASMPatchSeedType>(CouplingAwareASMPatchSeedType val)
+{
+    if (val == CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT)
+    {
+        return "VELOCITY_COMPONENT";
+    }
+    if (val == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+    {
+        return "PRESSURE_CELL";
+    }
+    return "UNKNOWN";
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
@@ -205,6 +236,8 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     {
         d_asm_mode = string_to_enum<ASMSubdomainConstructionMode>(
             input_db->getStringWithDefault("asm_subdomain_construction_mode", "GEOMETRICAL"));
+        d_ca_seed_type = string_to_enum<CouplingAwareASMPatchSeedType>(
+            input_db->getStringWithDefault("coupling_aware_asm_patch_seed_type", "VELOCITY_COMPONENT"));
         d_ca_seed_axis = input_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", d_ca_seed_axis);
         d_ca_seed_stride = input_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", d_ca_seed_stride);
         d_ca_order = string_to_enum<CouplingAwareASMSeedTraversalOrder>(
@@ -222,7 +255,8 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                              d_ca_order == CouplingAwareASMSeedTraversalOrder::J_K_I ||
                              d_ca_order == CouplingAwareASMSeedTraversalOrder::K_I_J;
 #endif
-    if (d_asm_mode == ASMSubdomainConstructionMode::UNKNOWN || d_ca_policy == CouplingAwareASMClosurePolicy::UNKNOWN ||
+    if (d_ca_seed_type == CouplingAwareASMPatchSeedType::UNKNOWN ||
+        d_asm_mode == ASMSubdomainConstructionMode::UNKNOWN || d_ca_policy == CouplingAwareASMClosurePolicy::UNKNOWN ||
         !valid_order || d_ca_seed_axis < 0 || d_ca_seed_axis >= NDIM || d_ca_seed_stride < 1 ||
         !std::isfinite(d_ca_relative_zero_tol) || d_ca_relative_zero_tol < 0.0)
     {
@@ -312,6 +346,17 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
     return;
 } // setAugmentedOperatorMat
 
+void
+StaggeredStokesPETScLevelSolver::setCouplingAwareASMConstructionMat(Mat construction_mat)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name
+                   << "::setCouplingAwareASMConstructionMat(): deallocate solver state before changing the matrix.\n");
+    }
+    d_ca_construction_mat = construction_mat;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -319,6 +364,11 @@ StaggeredStokesPETScLevelSolver::initializeShellBackend(IBTK::PETScLevelSolverSh
                                                         const bool use_multiplicative,
                                                         const IBTK::PETScLevelSolverShellTraversal traversal)
 {
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE &&
+        d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL && !use_multiplicative)
+    {
+        TBOX_ERROR(d_object_name << ": pressure-cell CAV requires an unrestricted multiplicative shell smoother.\n");
+    }
     StaggeredStokesEigenSchurComplementShellBackend* schur =
         dynamic_cast<StaggeredStokesEigenSchurComplementShellBackend*>(&backend);
     if (!schur)
@@ -361,6 +411,28 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
         {
             d_ca_subdomains =
                 std::make_unique<CouplingAwareASMSubdomains>(d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+        }
+        if (d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+        {
+            if (d_pc_type != "shell")
+            {
+                TBOX_ERROR(d_object_name << ": pressure-cell CAV requires pc_type=shell.\n");
+            }
+            if (!d_ca_construction_mat)
+            {
+                TBOX_ERROR(d_object_name << ": pressure-cell CAV requires a live elasticity construction matrix.\n");
+            }
+            std::vector<int> pressure_seeds;
+            d_ca_subdomains->constructPressureCellPatches(overlap_is,
+                                                          pressure_seeds,
+                                                          d_num_dofs_per_proc,
+                                                          d_ca_construction_mat,
+                                                          d_ca_seed_stride,
+                                                          d_ca_order,
+                                                          d_ca_policy,
+                                                          d_ca_relative_zero_tol);
+            nonoverlap_is.clear();
+            return;
         }
         d_ca_subdomains->constructSubdomains(overlap_is,
                                              nonoverlap_is,
@@ -592,6 +664,7 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
         d_nonoverlap_is.clear();
     }
     d_ca_subdomains.reset();
+    d_ca_construction_mat = nullptr;
 
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);

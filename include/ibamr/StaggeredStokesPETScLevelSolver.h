@@ -68,12 +68,20 @@ class CouplingAwareASMSubdomains;
  * equations.
  *
  * asm_subdomain_construction_mode defaults to GEOMETRICAL; COUPLING_AWARE
- * selects velocity-seeded subdomains with the construction contract in
+ * selects coupling-aware subdomains. coupling_aware_asm_patch_seed_type defaults
+ * to VELOCITY_COMPONENT, with the construction contract in
  * StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
  * coupling_aware_asm_seed_axis defaults to 0, seed_stride to 1, closure_policy
  * to RELAXED and relative_zero_tol to 1.0e-14 (all with the
  * coupling_aware_asm_ prefix). coupling_aware_asm_seed_traversal_order
  * defaults to I_J in 2D and I_J_K in 3D; J_I and J_K_I/K_I_J are alternatives.
+ * PRESSURE_CELL selects the patches defined by
+ * StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+ * Pressure-patch application requires pc_type=shell, multiplicative composition
+ * and a matrix supplied through setCouplingAwareASMConstructionMat(); no
+ * nonoverlap partition is formed. Other PETSc-selected PCs bypass construction,
+ * except PCASM, which rejects pressure-cell patches.
+ * The local solves and residual updates use the coupled level operator.
  * Construction settings are read at construction. Cached geometry is rebuilt
  * with solver state; velocity pairing is built only for STRICT construction.
  *
@@ -152,6 +160,19 @@ public:
      * independently to this handle.
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
+
+    /*!
+     * \brief Set the Eulerian elasticity matrix used to construct pressure-cell patches.
+     *
+     * The matrix uses full coupled level numbering with zero pressure rows and
+     * columns, as required by
+     * StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+     * The solver borrows it without copying, modifying or retaining a reference.
+     * Keep it alive and unchanged until deallocateSolverState(), which clears the
+     * borrowed handle. Set, replace or clear it only while deallocated, and resupply
+     * it before reinitialization. Passing nullptr clears the construction matrix.
+     */
+    void setCouplingAwareASMConstructionMat(Mat construction_mat);
 
 protected:
     /*! \copydoc IBTK::PETScLevelSolver::initializeShellBackend */
@@ -246,6 +267,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
     ASMSubdomainConstructionMode d_asm_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    CouplingAwareASMPatchSeedType d_ca_seed_type = CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+    Mat d_ca_construction_mat = nullptr; // Borrowed for one solver-state lifetime.
     int d_ca_seed_axis = 0, d_ca_seed_stride = 1;
 #if (NDIM == 2)
     CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J;

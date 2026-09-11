@@ -1,0 +1,13 @@
+pressure_patches = 64
+partition_size = 0
+pressure_mean = 5.20417042793e-18
+action_norm = 0.325767678053
+error = 3.33066907388e-16
+repeated_error = 3.33066907388e-16
+pressure_patches = 64
+partition_size = 0
+pressure_mean = -2.16840434497e-18
+action_norm = 0.323801574248
+error = 3.88578058619e-16
+repeated_error = 3.88578058619e-16
+failures = 0
