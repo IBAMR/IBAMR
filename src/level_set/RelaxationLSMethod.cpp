@@ -957,10 +957,11 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
                 const double h_phi = IBTK::smooth_heaviside(phi, alpha);
                 const double h_prime = IBTK::smooth_delta(phi, alpha);
 
-                (*lambda_data)(ci) = h_phi * (1.0 - h_phi);
+                const double weight = h_phi * IBTK::smooth_heaviside(-phi, alpha);
+                (*lambda_data)(ci) = weight;
 
                 source_integral += h_prime * signof(phi0) * (grad_phi - 1.0) * dv;
-                weight_integral += h_prime * h_phi * (1.0 - h_phi) * dv;
+                weight_integral += h_prime * weight * dv;
             }
         }
     }
