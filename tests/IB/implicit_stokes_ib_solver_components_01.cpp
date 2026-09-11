@@ -2260,7 +2260,8 @@ bool
 check_shell_state(LevelSolverProbe<Solver>& solver,
                   Pointer<HierarchyVector> x,
                   Pointer<HierarchyVector> b,
-                  PetscInt& overlap_total)
+                  PetscInt& overlap_total,
+                  const bool legacy_storage)
 {
     bool valid = true;
     for (int cycle = 0; cycle < 2; ++cycle)
@@ -2279,7 +2280,9 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
         }
         valid = check_level_solve(solver) && valid;
         std::vector<Vec> retained = solver.retainShellVectors();
-        valid = valid && retained.size() == 16;
+        // Additive vectors belong to the selected backend; only the legacy
+        // multiplicative action stores vectors in PETScLevelSolver itself.
+        valid = valid && retained.size() == (legacy_storage ? 16 : 0);
         solver.deallocateSolverState();
         valid = solver.shellStorageEmpty() && valid;
         PetscInt max_references = 0;
@@ -2294,7 +2297,7 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             ierr = VecDestroy(&v);
             IBTK_CHKERRQ(ierr);
         }
-        if (max_references != 1)
+        if (!retained.empty() && max_references != 1)
         {
             pout << "unreleased_shell_vector_references = " << max_references << std::endl;
         }
@@ -2333,13 +2336,13 @@ run_level_state(Pointer<AppInitializer> app)
             cc.setTimeInterval(0.0, 1.0);
             sc.setTimeInterval(0.0, 1.0);
             PetscInt cc_total, sc_total, stokes_total;
-            cc_valid = check_shell_state(cc, cc_x, cc_b, cc_total) && cc_valid;
-            sc_valid = check_shell_state(sc, sc_x, sc_b, sc_total) && sc_valid;
+            cc_valid = check_shell_state(cc, cc_x, cc_b, cc_total, width == 0) && cc_valid;
+            sc_valid = check_shell_state(sc, sc_x, sc_b, sc_total, width == 0) && sc_valid;
             LevelSolverProbe<StaggeredStokesPETScLevelSolver> stokes("state_stokes", db);
             Mat creator = level_test_matrix(fixture.full_size, 4.0);
             stokes.setOperatorMat(creator);
             stokes.setTimeInterval(0.0, 1.0);
-            stokes_valid = check_shell_state(stokes, fixture.x, fixture.b, stokes_total) && stokes_valid;
+            stokes_valid = check_shell_state(stokes, fixture.x, fixture.b, stokes_total, width == 0) && stokes_valid;
             stokes.setOperatorMat(nullptr);
             PetscErrorCode ierr = MatDestroy(&creator);
             IBTK_CHKERRQ(ierr);

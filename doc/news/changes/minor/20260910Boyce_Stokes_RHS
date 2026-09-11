@@ -1,0 +1,3 @@
+Fix: Preserve boundary adjustments in the PETSc Stokes level solver right-hand side.
+<br>
+(Boyce Griffith, 2026/09/10)

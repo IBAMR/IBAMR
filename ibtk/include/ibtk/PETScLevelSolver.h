@@ -34,6 +34,7 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,7 @@ class Database;
 
 namespace IBTK
 {
+class PETScLevelSolverShellBackend;
 /*!
  * \brief Class PETScLevelSolver is an abstract LinearSolver for solving systems
  * of linear equations on a \em single SAMRAI::hier::PatchLevel using <A
@@ -70,6 +72,12 @@ namespace IBTK
  max_iterations = 10000        // see setMaxIterations()
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
+ *
+ * For pc_type = "shell", shell_pc_type = "additive" selects the PETSc
+ * backend; "additive-KEY" selects a registered additive backend. See
+ * PETScLevelSolverShellBackendManager for registration. "multiplicative"
+ * retains the existing shell action. shell_pc_type must be specified when
+ * selecting a shell preconditioner, including through PETSc options.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -329,6 +337,8 @@ protected:
     //\}
 
 private:
+    std::unique_ptr<PETScLevelSolverShellBackend> d_shell_backend;
+
     /*!
      * \brief Copy constructor.
      *
@@ -352,7 +362,7 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+    static PetscErrorCode pc_apply_additive(PC pc, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
