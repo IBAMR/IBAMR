@@ -14,6 +14,8 @@
 #ifndef included_MultiphaseExamples_CapillaryForces
 #define included_MultiphaseExamples_CapillaryForces
 
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 

@@ -14,6 +14,8 @@
 #ifndef included_MultiphaseExamples_PointwiseLevelSet
 #define included_MultiphaseExamples_PointwiseLevelSet
 
+#include <ibamr/config.h>
+
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
 

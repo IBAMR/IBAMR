@@ -11,688 +11,245 @@
 //
 // ---------------------------------------------------------------------
 
-#include "Applications.h"
-
-// Config files
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for application-specific algorithm/data structure objects
-#include <ibamr/AllenCahnHierarchyIntegrator.h>
-#include <ibamr/EnthalpyHierarchyIntegrator.h>
-#include <ibamr/HeavisideForcingFunction.h>
-#include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
-#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
-#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/MarangoniSurfaceTensionForceFunction.h>
-#include <ibamr/PhaseChangeDivUSourceFunction.h>
-#include <ibamr/PhaseChangeUtilities.h>
-#include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 
-#include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
-#include <ibtk/IBTKInit.h>
-#include <ibtk/IBTK_MPI.h>
-#include <ibtk/muParserCartGridFunction.h>
-#include <ibtk/muParserRobinBcCoefs.h>
+
+#include <CapillaryForces.h>
+#include <VariableDatabase.h>
+
+#include <cmath>
+
+#include "Applications.h"
+#include "CoupledApplication.h"
+#include "DiagnosticUtilities.h"
 
 #include <ibamr/app_namespaces.h>
 
-// Application
-#include <CapillaryForces.h>
-#include <LSLocateInterface.h>
-
-#include "HeavisideFromLevelSet.h"
-#include "LiquidFractionForceMask.h"
-
-using MultiphaseExamples::call_locate_interface;
-using MultiphaseExamples::LSLocateInterface;
-
 namespace PhaseChangeExamples
 {
-/*******************************************************************************
- * For each run, the input filename and restart information (if needed) must   *
- * be given on the command line.  For non-restarted case, command line is:     *
- *                                                                             *
- *    executable <input file name>                                             *
- *                                                                             *
- * For restarted run, command line is:                                         *
- *                                                                             *
- *    executable <input file name> <restart directory> <restart number>        *
- *                                                                             *
- *******************************************************************************/
-int
-run_thermocapillary(int argc, char* argv[])
+namespace
 {
-    // Initialize IBAMR and libraries. Deinitialization is handled by this object
-    // as well.
-    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
-
-    // Increase maximum patch data component indices
-    SAMRAIManager::setMaxNumberPatchDataEntries(2500);
-
-    { // cleanup dynamically allocated objects prior to shutdown
-
-        // Parse command line options, set some standard options from the input
-        // file, initialize the restart database (if this is a restarted run),
-        // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-
-        // Get various standard options set in the input file.
-        const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
+class ThermocapillaryApplication : public CoupledApplication
+{
+public:
+    explicit ThermocapillaryApplication(Pointer<AppInitializer> app_initializer) : CoupledApplication(app_initializer)
+    {
+        if (d_input_db->keyExists("EnthalpyHierarchyIntegrator"))
         {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
-
-        const bool dump_timer_data = app_initializer->dumpTimerData();
-        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
-
-        // Create major algorithm and data objects that comprise the
-        // application.  These objects are configured from the input database
-        // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
-            "INSVCStaggeredConservativeHierarchyIntegrator",
-            app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
-
-        Pointer<PhaseChangeHierarchyIntegrator> phase_change_integrator;
-        Pointer<EnthalpyHierarchyIntegrator> enthalpy_integrator;
-        Pointer<AllenCahnHierarchyIntegrator> ac_integrator;
-        if (input_db->keyExists("EnthalpyHierarchyIntegrator"))
-        {
-            enthalpy_integrator = new EnthalpyHierarchyIntegrator(
-                "EnthalpyHierarchyIntegrator", app_initializer->getComponentDatabase("EnthalpyHierarchyIntegrator"));
-            phase_change_integrator = enthalpy_integrator;
+            useEnthalpy();
         }
         else
         {
-            ac_integrator = new AllenCahnHierarchyIntegrator(
-                "AllenCahnHierarchyIntegrator", app_initializer->getComponentDatabase("AllenCahnHierarchyIntegrator"));
-            phase_change_integrator = ac_integrator;
+            useAllenCahn();
         }
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = phase_change_integrator;
-        time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
-
-        const double bubble_radius = input_db->getDouble("R");
-
-        // register level set
-        Pointer<CellVariable<NDIM, double>> ls_var = new CellVariable<NDIM, double>("ls_var");
-        adv_diff_integrator->registerTransportedQuantity(ls_var, true);
-        adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
-
-        Pointer<RelaxationLSMethod> level_set_ops =
-            new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        Pointer<CartGridFunction> ls_init = new muParserCartGridFunction(
-            "ls_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
-        LSLocateInterface locate_interface(adv_diff_integrator, ls_var, ls_init);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&call_locate_interface,
-                                                                static_cast<void*>(&locate_interface));
-        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
-        adv_diff_integrator->registerResetFunction(
-            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
-
-        // register liquid fraction
-        Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
-        phase_change_integrator->registerLiquidFractionVariable(lf_var, true);
-
-        Pointer<CellVariable<NDIM, double>> lf_gradient_var;
-        Pointer<CellVariable<NDIM, double>> lf_extrap_var = lf_var;
-        if (enthalpy_integrator)
+        d_bubble_radius = d_input_db->getDouble("R");
+        registerLevelSet();
+        registerLiquidFraction();
+        if (d_enthalpy_integrator)
         {
-            lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
-            enthalpy_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
-            lf_extrap_var = new CellVariable<NDIM, double>("lf_extrap_var");
-            enthalpy_integrator->registerLiquidFractionVariableForExtrapolation(lf_extrap_var);
-            Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
-            enthalpy_integrator->registerSpecificEnthalpyVariable(h_var, true);
-            enthalpy_integrator->registerLevelSetVariable(ls_var);
+            registerLiquidFractionGradient();
+            registerExtrapolatedLiquidFraction();
+            registerSpecificEnthalpy();
+            registerLevelSetForExtrapolation();
         }
-
-        // register Heaviside
-        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
-        adv_diff_integrator->registerTransportedQuantity(H_var, true);
-        adv_diff_integrator->setDiffusionCoefficient(H_var, 0.0);
-
-        // set Heaviside
-        phase_change_integrator->registerHeavisideVariable(H_var);
-
-        // register temperature
-        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
-        phase_change_integrator->registerTemperatureVariable(T_var, true);
-
-        // set Advection velocity.
-        adv_diff_integrator->setAdvectionVelocity(ls_var, time_integrator->getAdvectionVelocityVariable());
-        adv_diff_integrator->setAdvectionVelocity(H_var, time_integrator->getAdvectionVelocityVariable());
-        phase_change_integrator->setAdvectionVelocity(time_integrator->getAdvectionVelocityVariable());
-
-        const ConvectiveDifferencingType ls_difference_form =
-            IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("LS_CONVECTIVE_FORM"));
-        adv_diff_integrator->setConvectiveDifferencingType(ls_var, ls_difference_form);
-
-        const ConvectiveDifferencingType H_difference_form =
-            IBAMR::string_to_enum<ConvectiveDifferencingType>(input_db->getString("H_CONVECTIVE_FORM"));
-        adv_diff_integrator->setConvectiveDifferencingType(H_var, H_difference_form);
-
-        // set priority.
-        adv_diff_integrator->setResetPriority(ls_var, 0);
-        adv_diff_integrator->setResetPriority(H_var, 1);
-
-        // set initial conditions for the variables.
-        adv_diff_integrator->setInitialConditions(ls_var, ls_init);
-
-        // Since H is synchronized with ls, the initial conditions for H is not
-        // rquired.
-        if (input_db->keyExists("TemperatureInitialConditions"))
+        registerHeaviside();
+        registerTransportFields();
+        registerMaterialFields();
+        if (d_enthalpy_integrator)
         {
-            Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
-                "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
-            phase_change_integrator->setTemperatureInitialCondition(T_var, T_init);
+            registerLevelSetTagging();
+            registerLiquidFractionTagging();
         }
-
-        if (input_db->keyExists("LiquidFractionInitialConditions"))
+        setHeavisideBoundary();
+        setTemperatureBoundary();
+        if (d_enthalpy_integrator)
         {
-            Pointer<CartGridFunction> lf_init = new muParserCartGridFunction(
-                "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
-            phase_change_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
+            setEnthalpyBoundary();
         }
-
-        if (input_db->keyExists("VelocityInitialConditions"))
+        setLiquidFractionBoundary();
+        setVelocityBoundary();
+        setDensityBoundary();
+        setViscosityBoundary();
+        if (d_allen_cahn_integrator)
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-            time_integrator->registerVelocityInitialConditions(u_init);
+            setSpecificHeatBoundary();
         }
-
-        if (input_db->keyExists("PressureInitialConditions"))
+        setConductivityBoundary();
+        setLevelSetBoundary();
+        if (d_enthalpy_integrator)
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
-                "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
-            time_integrator->registerPressureInitialConditions(p_init);
+            registerMaterialProperties();
         }
-
-        PhaseChangeExamples::HeavisideFromLevelSet sync_ls_ctx(
-            adv_diff_integrator, ls_var, input_db->getDouble("NUMBER_OF_INTERFACE_CELLS"));
-
-        adv_diff_integrator->registerResetFunction(
-            H_var,
-            &PhaseChangeExamples::HeavisideFromLevelSet::synchronize_levelset_with_heaviside_fcn,
-            static_cast<void*>(&sync_ls_ctx));
-
-        // Setup the INS maintained material properties.
-        Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
-        time_integrator->registerMassDensityVariable(rho_sc_var);
-
-        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
-        time_integrator->registerViscosityVariable(mu_var);
-
-        Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
-        phase_change_integrator->registerDensityVariable(rho_cc_var, true);
-
-        Pointer<CellVariable<NDIM, double>> Cp_var = new CellVariable<NDIM, double>("Cp");
-        phase_change_integrator->registerSpecificHeatVariable(Cp_var, true);
-
-        std::unique_ptr<LevelSetUtilities::TagLSRefinementCells> ls_tagger;
-        std::unique_ptr<PhaseChangeUtilities::TagLiquidFractionRefinementCells> lf_tagger;
-        if (enthalpy_integrator)
+        else
         {
-            const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-            ls_tagger = std::make_unique<LevelSetUtilities::TagLSRefinementCells>(
-                adv_diff_integrator, ls_var, -tag_thresh, tag_thresh);
-            time_integrator->registerApplyGradientDetectorCallback(&LevelSetUtilities::tagLSCells, ls_tagger.get());
-            lf_tagger = std::make_unique<PhaseChangeUtilities::TagLiquidFractionRefinementCells>(
-                phase_change_integrator,
-                lf_var,
-                lf_gradient_var,
-                input_db->getDouble("MIN_TAG_VAL"),
-                input_db->getDouble("MAX_TAG_VAL"));
-            phase_change_integrator->registerApplyGradientDetectorCallback(
-                &PhaseChangeUtilities::call_tag_liquid_fraction_cells_callback, lf_tagger.get());
+            registerMaterialProperties(0.0, 0.0, 0.0, 0.0);
         }
-
-        // Create Eulerian boundary condition specification objects (when
-        // necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> H_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
-        {
-            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
-        {
-            T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "T_bc_coef", app_initializer->getComponentDatabase("TemperatureBcCoefs"), grid_geometry);
-            phase_change_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> h_bc_coef;
-        if (enthalpy_integrator && !(periodic_shift.min() > 0) && input_db->keyExists("EnthalpyBcCoefs"))
-        {
-            h_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "h_bc_coef", app_initializer->getComponentDatabase("EnthalpyBcCoefs"), grid_geometry);
-            enthalpy_integrator->setEnthalpyBcCoef(h_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> lf_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
-        {
-            lf_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
-            if (ac_integrator)
-            {
-                ac_integrator->setLiquidFractionPhysicalBcCoef(lf_var, lf_bc_coef.get());
-            }
-        }
-
-        vector<std::unique_ptr<RobinBcCoefStrategy<NDIM>>> u_bc_coefs(NDIM);
-        if (periodic_shift.min() == 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs[d] = std::make_unique<muParserRobinBcCoefs>(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
-            }
-            time_integrator->registerPhysicalBoundaryConditions({
-                u_bc_coefs[0].get(), u_bc_coefs[1].get()
-#if (NDIM == 3)
-                                         ,
-                    u_bc_coefs[2].get()
-#endif
-            });
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> rho_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
-        {
-            rho_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "rho_bc_coef", app_initializer->getComponentDatabase("DensityBcCoefs"), grid_geometry);
-            time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
-            phase_change_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> mu_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
-        {
-            mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBcCoefs"), grid_geometry);
-            time_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> Cp_bc_coef;
-        if (ac_integrator && !(periodic_shift.min() > 0) && input_db->keyExists("SpecificHeatBcCoefs"))
-        {
-            Cp_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "Cp_bc_coef", app_initializer->getComponentDatabase("SpecificHeatBcCoefs"), grid_geometry);
-            ac_integrator->registerSpecificHeatBoundaryConditions(Cp_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> k_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
-        {
-            k_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
-            phase_change_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef.get());
-        }
-
-        std::unique_ptr<RobinBcCoefStrategy<NDIM>> ls_bc_coef;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
-        {
-            ls_bc_coef = std::make_unique<muParserRobinBcCoefs>(
-                "ls_bc_coef", app_initializer->getComponentDatabase("LevelSetBcCoefs"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef.get());
-            level_set_ops->registerPhysicalBoundaryCondition(ls_bc_coef.get());
-        }
-
-        // thermophysical properties and parameters.
-        const double kappa_liquid = input_db->getDouble("KAPPA_L");
-        const double kappa_solid = enthalpy_integrator ? input_db->getDouble("KAPPA_S") : 0.0;
-        const double kappa_gas = input_db->getDouble("KAPPA_G");
-        const double Cp_liquid = input_db->getDouble("CP_L");
-        const double Cp_solid = enthalpy_integrator ? input_db->getDouble("CP_S") : 0.0;
-        const double Cp_gas = input_db->getDouble("CP_G");
-        const double rho_liquid = input_db->getDouble("RHO_L");
-        const double rho_solid = enthalpy_integrator ? input_db->getDouble("RHO_S") : 0.0;
-        const double rho_gas = input_db->getDouble("RHO_G");
-        const double mu_liquid = input_db->getDouble("MU_L");
-        const double mu_solid = enthalpy_integrator ? input_db->getDouble("MU_S") : 0.0;
-        const double mu_gas = input_db->getDouble("MU_G");
-        const double sigma_0 = input_db->getDouble("SIGMA_0");
-        const double dsigma_dT_0 = input_db->getDouble("DSIGMA_DT_0");
-        const double ref_temperature = input_db->getDouble("REFERENCE_TEMP_SIGMA");
-        const double temperature_gradient = input_db->getDouble("TEMPERATURE_GRADIENT");
-
-        // Callback functions can either be registered with the NS integrator, or
-        // the advection-diffusion integrator
-        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
-                                                                              adv_diff_integrator,
-                                                                              H_var,
-                                                                              H_bc_coef.get(),
-                                                                              lf_var,
-                                                                              lf_bc_coef.get(),
-                                                                              rho_liquid,
-                                                                              rho_solid,
-                                                                              rho_gas,
-                                                                              kappa_liquid,
-                                                                              kappa_solid,
-                                                                              kappa_gas,
-                                                                              Cp_liquid,
-                                                                              Cp_solid,
-                                                                              Cp_gas,
-                                                                              mu_liquid,
-                                                                              mu_solid,
-                                                                              mu_gas);
-
-        time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::call_set_density_callback,
-                                                      static_cast<void*>(&setSetFluidProperties));
-
-        time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::call_set_viscosity_callback,
-                                                        static_cast<void*>(&setSetFluidProperties));
-
-        phase_change_integrator->registerResetDiffusionCoefficientFcn(
-            &IBAMR::PhaseChangeUtilities::call_set_thermal_conductivity_callback,
-            static_cast<void*>(&setSetFluidProperties));
-
-        phase_change_integrator->registerResetSpecificHeatFcn(
-            &IBAMR::PhaseChangeUtilities::call_set_specific_heat_callback, static_cast<void*>(&setSetFluidProperties));
-
-        phase_change_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::call_set_density_callback,
-                                                         static_cast<void*>(&setSetFluidProperties));
-
-        // Register H Div U term in the Heaviside equation.
-        Pointer<CellVariable<NDIM, double>> F_var = new CellVariable<NDIM, double>(H_var->getName() + "_F");
-        adv_diff_integrator->registerSourceTerm(F_var, true);
-        Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
-            "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
-        adv_diff_integrator->setSourceTermFunction(F_var, H_forcing_fcn);
-        adv_diff_integrator->setSourceTerm(H_var, F_var);
-
-        // Register source term for Div U equation.
-        Pointer<CartGridFunction> Div_U_forcing_fcn =
-            new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", phase_change_integrator);
-        time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
-
+        const double sigma_0 = d_input_db->getDouble("SIGMA_0");
+        d_dsigma_dt = d_input_db->getDouble("DSIGMA_DT_0");
+        const double ref_temperature = d_input_db->getDouble("REFERENCE_TEMP_SIGMA");
+        d_temperature_gradient = d_input_db->getDouble("TEMPERATURE_GRADIENT");
+        registerPhaseChangeSources(d_heaviside_var->getName() + "_F");
         // Register surface tension force.
         Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
             "MarangoniSurfaceTensionForceFunction",
-            app_initializer->getComponentDatabase("MarangoniSurfaceTensionForceFunction"),
-            adv_diff_integrator,
-            ls_var,
-            T_var,
-            T_bc_coef.get());
+            d_app_initializer->getComponentDatabase("MarangoniSurfaceTensionForceFunction"),
+            d_phase_change_integrator,
+            d_level_set_var,
+            d_temperature_var,
+            d_temperature_bc_coef.get());
 
-        // Register callback function to multiply the surface tension term with the
-        // coefficient.
-        PhaseChangeExamples::LiquidFractionForceMask mask_surface_tension_force_ctx(
-            lf_extrap_var, lf_bc_coef.get(), adv_diff_integrator, time_integrator, rho_liquid, rho_gas);
-
-        surface_tension_force->registerSurfaceTensionForceMasking(
-            &PhaseChangeExamples::LiquidFractionForceMask::mask_surface_tension_force,
-            static_cast<void*>(&mask_surface_tension_force_ctx));
+        registerForceMask(surface_tension_force, d_extrapolated_liquid_fraction_var);
 
         // Register variable coefficient surface tension.
-        MultiphaseExamples::SurfaceTensionCoefficients compute_variable_surface_tension_coef_ctx(
-            T_var, adv_diff_integrator->getScratchContext(), sigma_0, dsigma_dT_0, ref_temperature);
+        d_coefficients = std::make_unique<MultiphaseExamples::SurfaceTensionCoefficients>(
+            d_temperature_var, d_phase_change_integrator->getScratchContext(), sigma_0, d_dsigma_dt, ref_temperature);
 
         surface_tension_force->registerSurfaceTensionCoefficientFunction(
             &MultiphaseExamples::SurfaceTensionCoefficients::compute_surface_tension_coef_function,
-            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            static_cast<void*>(d_coefficients.get()));
 
         // Register variable marangoni coefficient dsigma_dT.
         Pointer<MarangoniSurfaceTensionForceFunction> marangoni_force = surface_tension_force;
         marangoni_force->registerMarangoniCoefficientFunction(
             &MultiphaseExamples::SurfaceTensionCoefficients::compute_marangoni_coef_function,
-            static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+            static_cast<void*>(d_coefficients.get()));
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);
-        time_integrator->registerBodyForceFunction(eul_forces);
+        d_time_integrator->registerBodyForceFunction(eul_forces);
+    }
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
-        if (uses_visit)
+private:
+    void setThermalInitialConditions() override
+    {
+        if (d_input_db->keyExists("TemperatureInitialConditions"))
         {
-            time_integrator->registerVisItDataWriter(visit_data_writer);
+            setTemperatureInitialCondition();
         }
-
-        // Initialize hierarchy configuration and data on all patches.
-        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
-        // Remove the AppInitializer
-        app_initializer.setNull();
-
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
-        // Write out initial visualization data.
-        int iteration_num = time_integrator->getIntegratorStep();
-        double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
+        if (d_input_db->keyExists("LiquidFractionInitialConditions"))
         {
-            pout << "\n\nWriting visualization files...\n\n";
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            setLiquidFractionInitialCondition();
         }
-
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
-        const int phi_idx = var_db->mapVariableAndContextToIndex(ls_var, adv_diff_integrator->getCurrentContext());
-        const int H_cloned_idx = var_db->registerClonedPatchDataIndex(ls_var, phi_idx);
+    }
+    void initializeDiagnostics(const double loop_time) override
+    {
+        d_var_db = VariableDatabase<NDIM>::getDatabase();
+        d_h_idx =
+            d_var_db->mapVariableAndContextToIndex(d_heaviside_var, d_phase_change_integrator->getCurrentContext());
+        d_phi_idx =
+            d_var_db->mapVariableAndContextToIndex(d_level_set_var, d_phase_change_integrator->getCurrentContext());
+        d_h_cloned_idx = d_var_db->registerClonedPatchDataIndex(d_level_set_var, d_phi_idx);
 
         // Interpolating side-centered velocity to cell-centered
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> U_sc_var =
-            time_integrator->getVelocityVariable();
-        const int U_sc_idx = var_db->mapVariableAndContextToIndex(U_sc_var, time_integrator->getCurrentContext());
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> U_cc_var;
-        U_cc_var = new CellVariable<NDIM, double>("U_cc", NDIM);
-        int U_cc_idx = var_db->registerVariableAndContext(U_cc_var, var_db->getContext("U_cc"), 0);
+        d_u_sc_var = d_time_integrator->getVelocityVariable();
+        d_u_sc_idx = d_var_db->mapVariableAndContextToIndex(d_u_sc_var, d_time_integrator->getCurrentContext());
+
+        d_u_cc_var = new CellVariable<NDIM, double>("U_cc", NDIM);
+        d_u_cc_idx = d_var_db->registerVariableAndContext(d_u_cc_var, d_var_db->getContext("U_cc"), 0);
 
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> v_var;
         v_var = new CellVariable<NDIM, double>("v_cc");
-        int v_idx = var_db->registerVariableAndContext(v_var, var_db->getContext("v_cc"), 0);
+        d_v_idx = d_var_db->registerVariableAndContext(v_var, d_var_db->getContext("v_cc"), 0);
 
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(H_cloned_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cc_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(v_idx, loop_time);
-        }
+        d_coarsest_ln = 0;
+        d_finest_ln = d_patch_hierarchy->getFinestLevelNumber();
+        allocate_diagnostic_data(
+            d_patch_hierarchy, { d_h_cloned_idx, d_u_cc_idx, d_v_idx }, d_coarsest_ln, d_finest_ln, loop_time);
 
         // File to write rise velocity of a bubble.
-        std::ofstream output_file;
+
         if (SAMRAI_MPI::getRank() == 0)
         {
-            string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
-            output_file.open(output_file_name, ios_base::out | ios_base::app);
-            output_file.precision(16);
-            output_file.setf(ios::fixed, ios::floatfield);
+            string output_file_name = d_input_db->getString("OUTPUT_FILE_NAME");
+            open_diagnostic_file(d_output_file, output_file_name);
         }
+    }
+    void postprocessStep(const double loop_time) override
+    {
+        HierarchyMathOps hier_math_ops("HierarchyMathOps", d_patch_hierarchy, d_coarsest_ln, d_finest_ln);
 
-        // Main time step loop.
-        double loop_time_end = time_integrator->getEndTime();
-        double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_patch_hierarchy, d_coarsest_ln, d_finest_ln);
+
+        allocate_diagnostic_data(
+            d_patch_hierarchy, { d_h_cloned_idx, d_u_cc_idx, d_v_idx }, d_coarsest_ln, d_finest_ln, loop_time);
+
+        hier_math_ops.interp(d_u_cc_idx, d_u_cc_var, d_u_sc_idx, d_u_sc_var, nullptr, loop_time, true);
+
+        const double U_ref = std::abs(d_dsigma_dt) * d_temperature_gradient * d_bubble_radius / d_mu_liquid;
+        const double t_ref = d_bubble_radius / U_ref;
+
+        // Calculate Heaviside function and compute the rise velocity.
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            iteration_num = time_integrator->getIntegratorStep();
-            loop_time = time_integrator->getIntegratorTime();
+            Pointer<PatchLevel<NDIM>> level = d_patch_hierarchy->getPatchLevel(ln);
 
-            pout << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-
-            dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
-            loop_time += dt;
-
-            pout << "\n";
-            pout << "At end       of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "\n";
-
-            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
-
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(H_cloned_idx))
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+
+                Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(d_u_cc_idx);
+                Pointer<CellData<NDIM, double>> v_data = patch->getPatchData(d_v_idx);
+                Pointer<CellData<NDIM, double>> H_cloned_data = patch->getPatchData(d_h_cloned_idx);
+
+                Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(d_h_idx);
+
+                for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
-                    level->allocatePatchData(H_cloned_idx, loop_time);
+                    CellIndex<NDIM> ci(it());
+                    (*v_data)(ci) = (*U_cc_data)(ci, 1) / U_ref; // non_dimensional velocity
+                    (*H_cloned_data)(ci) = 1.0 - (*H_data)(ci);
                 }
-                if (!level->checkAllocated(U_cc_idx))
-                {
-                    level->allocatePatchData(U_cc_idx, loop_time);
-                }
-                if (!level->checkAllocated(v_idx))
-                {
-                    level->allocatePatchData(v_idx, loop_time);
-                }
-            }
-
-            hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, true);
-
-            const double U_ref = std::abs(dsigma_dT_0) * temperature_gradient * bubble_radius / mu_liquid;
-            const double t_ref = bubble_radius / U_ref;
-
-            // Calculate Heaviside function and compute the rise velocity.
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-
-                    Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(U_cc_idx);
-                    Pointer<CellData<NDIM, double>> v_data = patch->getPatchData(v_idx);
-                    Pointer<CellData<NDIM, double>> H_cloned_data = patch->getPatchData(H_cloned_idx);
-                    Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
-                    Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
-
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                    {
-                        CellIndex<NDIM> ci(it());
-                        (*v_data)(ci) = (*U_cc_data)(ci, 1) / U_ref; // non_dimensional velocity
-                        (*H_cloned_data)(ci) = 1.0 - (*H_data)(ci);
-                    }
-                }
-            }
-
-            double vol = hier_cc_data_ops.integral(H_cloned_idx, wgt_cc_idx);
-            hier_cc_data_ops.multiply(H_cloned_idx, H_cloned_idx, wgt_cc_idx);
-            double v_integral = hier_cc_data_ops.integral(v_idx, H_cloned_idx);
-
-            if (SAMRAI_MPI::getRank() == 0)
-            {
-                output_file.precision(16);
-                output_file.setf(ios::fixed, ios::floatfield);
-                output_file << loop_time / t_ref << "\t" << v_integral / vol << "\n";
-            }
-
-            // At specified intervals, write visualization and restart files,
-            // print out timer data, and store hierarchy data for post
-            // processing.
-            iteration_num += 1;
-            const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting visualization files...\n\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\n";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
-            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
             }
         }
 
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(H_cloned_idx);
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(U_cc_idx);
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(v_idx);
-        }
+        double vol = hier_cc_data_ops.integral(d_h_cloned_idx, wgt_cc_idx);
+        hier_cc_data_ops.multiply(d_h_cloned_idx, d_h_cloned_idx, wgt_cc_idx);
+        double v_integral = hier_cc_data_ops.integral(d_v_idx, d_h_cloned_idx);
 
-        var_db->removePatchDataIndex(H_cloned_idx);
-        var_db->removePatchDataIndex(U_cc_idx);
-        var_db->removePatchDataIndex(v_idx);
-
-        // Cleanup pointers.
-
-        // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            output_file.close();
+            d_output_file << loop_time / t_ref << "\t" << v_integral / vol << "\n";
         }
+    }
+    void finalizeDiagnostics() override
+    {
+        deallocate_diagnostic_data(
+            d_patch_hierarchy, { d_h_cloned_idx, d_u_cc_idx, d_v_idx }, d_coarsest_ln, d_finest_ln);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            d_output_file.close();
+        }
+    }
+    VariableDatabase<NDIM>* d_var_db = nullptr;
+    int d_h_idx = -1;
+    int d_phi_idx = -1;
+    int d_h_cloned_idx = -1;
+    int d_u_sc_idx = -1;
+    int d_u_cc_idx = -1;
+    int d_v_idx = -1;
+    int d_coarsest_ln = -1;
+    int d_finest_ln = -1;
+    Pointer<SideVariable<NDIM, double>> d_u_sc_var;
+    Pointer<CellVariable<NDIM, double>> d_u_cc_var;
+    std::ofstream d_output_file;
+    double d_bubble_radius = 0.0, d_dsigma_dt = 0.0, d_temperature_gradient = 0.0;
+    std::unique_ptr<MultiphaseExamples::SurfaceTensionCoefficients> d_coefficients;
+};
 
-    } // cleanup dynamically allocated objects prior to shutdown
-    return 0;
+std::unique_ptr<CoupledApplication>
+create_application(Pointer<AppInitializer> app_initializer)
+{
+    return std::make_unique<ThermocapillaryApplication>(app_initializer);
 }
+} // namespace
 
+int
+run_thermocapillary(int argc, char* argv[])
+{
+    return run_coupled(argc, argv, &create_application);
+}
 } // namespace PhaseChangeExamples
