@@ -35,13 +35,15 @@ public:
     /*! \brief Release local and composition state. */
     ~PETScLevelSolverBlasLapackShellBackend() override;
     /*! \copydoc PETScLevelSolverShellBackend::initializeSolverState */
-    void initializeSolverState(Mat mat,
-                               Vec x,
-                               Vec b,
-                               const std::vector<IS>& overlap,
-                               const std::vector<IS>& nonoverlap,
-                               const std::string& options_prefix,
-                               bool use_multiplicative = false) override;
+    void
+    initializeSolverState(Mat mat,
+                          Vec x,
+                          Vec b,
+                          const std::vector<IS>& overlap,
+                          const std::vector<IS>& nonoverlap,
+                          const std::string& options_prefix,
+                          bool use_multiplicative = false,
+                          PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD) override;
     /*! \copydoc PETScLevelSolverShellBackend::deallocateSolverState */
     void deallocateSolverState() override;
 

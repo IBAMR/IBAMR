@@ -1,0 +1,10 @@
+hand_error = 4.44089e-16
+default_forward_error = 0
+action_norm = 0.221430365668
+error = 1.38777878078e-16
+repeated_error = 1.38777878078e-16
+default_forward_error = 0
+action_norm = 0.221430365668
+error = 1.38777878078e-16
+repeated_error = 1.38777878078e-16
+failures = 0

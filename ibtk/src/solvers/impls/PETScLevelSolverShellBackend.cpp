@@ -37,15 +37,37 @@ PETScLevelSolverShellBackend::apply(Vec x, Vec y)
     {
         ierr = VecCopy(x, d_residual);
         IBTK_CHKERRQ(ierr);
-        for (std::size_t i = 0; i < n_subdomains; ++i)
+        const auto apply_subdomain = [&](const std::size_t i, const bool has_next)
         {
             beginSubdomainRhs(i, d_residual);
             endSubdomainRhs(i, d_residual);
             solveSubdomain(i);
             accumulateSubdomainCorrection(i, y);
-            if (i + 1 < n_subdomains)
+            if (has_next)
             {
                 updateResidual(i);
+            }
+        };
+        if (d_traversal == PETScLevelSolverShellTraversal::REVERSE)
+        {
+            for (std::size_t n = n_subdomains; n > 0; --n)
+            {
+                apply_subdomain(n - 1, n > 1);
+            }
+        }
+        else
+        {
+            const bool symmetric = d_traversal == PETScLevelSolverShellTraversal::SYMMETRIC;
+            for (std::size_t i = 0; i < n_subdomains; ++i)
+            {
+                apply_subdomain(i, symmetric ? n_subdomains > 1 : i + 1 < n_subdomains);
+            }
+            if (symmetric)
+            {
+                for (std::size_t n = n_subdomains > 0 ? n_subdomains - 1 : 0; n > 0; --n)
+                {
+                    apply_subdomain(n - 1, n > 1);
+                }
             }
         }
     }
@@ -65,9 +87,23 @@ PETScLevelSolverShellBackend::apply(Vec x, Vec y)
 }
 
 void
-PETScLevelSolverShellBackend::initializeComposition(Mat mat, Vec x, Vec b, const bool use_multiplicative)
+PETScLevelSolverShellBackend::initializeComposition(Mat mat,
+                                                    Vec x,
+                                                    Vec b,
+                                                    const bool use_multiplicative,
+                                                    const PETScLevelSolverShellTraversal traversal)
 {
     TBOX_ASSERT(!d_initialized && !d_mat);
+    if (traversal != PETScLevelSolverShellTraversal::FORWARD && traversal != PETScLevelSolverShellTraversal::REVERSE &&
+        traversal != PETScLevelSolverShellTraversal::SYMMETRIC)
+    {
+        TBOX_ERROR("Unknown multiplicative shell traversal.\n");
+    }
+    if (!use_multiplicative && traversal != PETScLevelSolverShellTraversal::FORWARD)
+    {
+        TBOX_ERROR("shell_pc_subdomain_traversal applies only to multiplicative composition.\n");
+    }
+    d_traversal = traversal;
     d_multiplicative = use_multiplicative;
     if (!d_multiplicative)
     {

@@ -74,12 +74,15 @@ class PETScLevelSolverShellBackend;
  \endverbatim
  *
  * For pc_type = "shell", an omitted shell_pc_type, "multiplicative", or
- * "multiplicative-petsc" selects unrestricted forward PETSc corrections using
+ * "multiplicative-petsc" selects unrestricted PETSc corrections using
  * the current original residual. "multiplicative-KEY" selects another registered
  * backend. "additive" and "additive-KEY" use independent local solves with
  * restricted writes. See PETScLevelSolverShellBackendManager for registration.
  * An explicitly empty selector is invalid. Reinitialize after changing the
  * operator or subdomains; outer KSP/nullspace handling is unchanged.
+ * shell_pc_subdomain_traversal selects a case-insensitive FORWARD (default),
+ * REVERSE, or SYMMETRIC order as defined by PETScLevelSolverShellTraversal.
+ * Nonforward traversal requires multiplicative composition.
  *
  * The input database is retained; backend factories read it when solver state
  * is initialized or rebuilt. The serial real-scalar "blas-lapack" backend accepts

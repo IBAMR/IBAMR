@@ -28,7 +28,20 @@
 
 namespace IBTK
 {
-/*! \brief Shared additive and forward multiplicative shell composition.
+/*! \brief Visit order for multiplicative shell composition.
+ *
+ * FORWARD visits 0,...,N-1; REVERSE visits N-1,...,0; SYMMETRIC visits
+ * 0,...,N-1,N-2,...,0, with the turnaround visited once. Symmetric order
+ * alone does not guarantee a symmetric positive definite preconditioner.
+ */
+enum class PETScLevelSolverShellTraversal
+{
+    FORWARD,
+    REVERSE,
+    SYMMETRIC
+};
+
+/*! \brief Shared additive and multiplicative shell composition.
  *
  * initializeSolverState() receives sorted overlapping index sets and matching
  * nonoverlapping subsets. Additive application solves independent overlapping
@@ -36,7 +49,9 @@ namespace IBTK
  * Multiplicative application ignores the subsets, adds each full overlapping
  * correction, and updates
  * the original residual before the next subdomain. Parallel ranks advance through
- * the same number of stages, summing all corrections in each stage.
+ * the same number of stages, summing all corrections in each stage. Traversal
+ * defaults to FORWARD; additive composition requires FORWARD. See
+ * PETScLevelSolverShellTraversal for the multiplicative visit orders.
  *
  * Inputs are borrowed during initialization; implementations retain objects they
  * need afterwards. Reinitialize after changing the operator or subdomains.
@@ -56,13 +71,15 @@ public:
     /*! \brief Release composition state. */
     virtual ~PETScLevelSolverShellBackend();
     /*! \brief Initialize local solves and communication for the supplied layout. */
-    virtual void initializeSolverState(Mat mat,
-                                       Vec x,
-                                       Vec b,
-                                       const std::vector<IS>& overlap,
-                                       const std::vector<IS>& nonoverlap,
-                                       const std::string& options_prefix,
-                                       bool use_multiplicative = false) = 0;
+    virtual void
+    initializeSolverState(Mat mat,
+                          Vec x,
+                          Vec b,
+                          const std::vector<IS>& overlap,
+                          const std::vector<IS>& nonoverlap,
+                          const std::string& options_prefix,
+                          bool use_multiplicative = false,
+                          PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD) = 0;
     /*! \brief Release the initialized state. */
     virtual void deallocateSolverState() = 0;
     /*! \brief Apply the shared correction sequence. */
@@ -76,7 +93,11 @@ protected:
      * at cached offsets and rejects changed columns at those offsets; this is not
      * a detector for arbitrary sparsity changes. Reassembly requires reinitialization.
      */
-    void initializeComposition(Mat mat, Vec x, Vec b, bool use_multiplicative);
+    void initializeComposition(Mat mat,
+                               Vec x,
+                               Vec b,
+                               bool use_multiplicative,
+                               PETScLevelSolverShellTraversal traversal = PETScLevelSolverShellTraversal::FORWARD);
     /*! \brief Construct residual-update metadata after local setup. */
     void finalizeComposition();
     /*! \brief Release composition scratch and references. */
@@ -122,6 +143,7 @@ private:
     /*! \brief Subtract the actual accumulated stage action from the residual. */
     void updateResidual(std::size_t i);
 
+    PETScLevelSolverShellTraversal d_traversal = PETScLevelSolverShellTraversal::FORWARD;
     Mat d_mat = nullptr;
     Vec d_residual = nullptr, d_correction = nullptr, d_action = nullptr;
     bool d_multiplicative = false, d_initialized = false, d_use_rows = false;
