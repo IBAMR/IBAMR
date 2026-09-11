@@ -24,6 +24,7 @@
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBOperatorRegistry.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
@@ -34,7 +35,6 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
-#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -328,8 +328,9 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
+    const double start_time = d_ib_solver ? d_ib_solver->getStartTime() : std::numeric_limits<double>::quiet_NaN();
+    const bool initial_time = d_ib_solver ? IBTK::rel_equal_eps(current_time, start_time) :
+                                            (d_ib_force_fcn_needs_init || d_ib_source_fcn_needs_init);
 
     if (d_ib_force_fcn)
     {
@@ -420,10 +421,13 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const int integrator_step = d_ib_solver->getIntegratorStep();
+    const int integrator_step = d_ib_solver ? d_ib_solver->getIntegratorStep() : 0;
 
     // Update the instrumentation data.
-    updateIBInstrumentationData(integrator_step + 1, new_time);
+    if (d_ib_solver)
+    {
+        updateIBInstrumentationData(integrator_step + 1, new_time);
+    }
     if (d_instrument_panel->isInstrumented())
     {
         const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
@@ -654,14 +658,23 @@ IBMethod::updateFixedLEOperators()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        if (ln >= static_cast<int>(d_X_LE_new_data.size()) || !d_X_LE_new_data[ln])
+        {
+            TBOX_ERROR(d_object_name << "::updateFixedLEOperators(): fixed LE data is not initialized.\n"
+                                     << "Call setUseFixedLEOperators(true) before preprocessIntegrateData().");
+        }
         ierr = VecCopy(d_X_new_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     d_X_LE_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData>>* X_LE_half_data;
-    bool* X_LE_half_needs_ghost_fill;
+    std::vector<Pointer<LData>>* X_LE_half_data = nullptr;
+    bool* X_LE_half_needs_ghost_fill = nullptr;
     getLECouplingPositionData(&X_LE_half_data, &X_LE_half_needs_ghost_fill, d_half_time);
+    if (!X_LE_half_data || !X_LE_half_needs_ghost_fill)
+    {
+        TBOX_ERROR(d_object_name << "::updateFixedLEOperators(): midpoint fixed LE data is unavailable.\n");
+    }
     reinitMidpointData(d_X_current_data, d_X_LE_new_data, *X_LE_half_data);
     *X_LE_half_needs_ghost_fill = true;
 
@@ -1022,33 +1035,20 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
 
 void
 IBMethod::constructInterpOp(Mat& J,
-                            void (*spread_fnc)(const double, double*),
-                            const int stencil_width,
+                            const IBKernelTensorProduct& kernel,
                             const std::vector<int>& num_dofs_per_proc,
                             const int dof_index_idx,
                             const double data_time)
 {
-    if (J)
-    {
-        int ierr = MatDestroy(&J);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    // Get the "frozen" position for Lagrangian structure
     std::vector<Pointer<LData>>* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-
-    // Build the Jacobian matrix.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
     Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    PETScMatUtilities::constructPatchLevelSCInterpOp(
-        J, spread_fnc, stencil_width, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
-
-    return;
-
-} // getInterpOperator
+    IBOperatorRegistry::construct_interpolation_matrix_sc(
+        J, kernel, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+}
 
 void
 IBMethod::computeLagrangianFluidSource(const double data_time)
@@ -1350,7 +1350,10 @@ IBMethod::interpolatePressure(int p_data_idx,
 void
 IBMethod::postprocessData()
 {
-    if (!d_post_processor) return;
+    if (!d_post_processor || !d_ib_solver)
+    {
+        return;
+    }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx =
@@ -1968,7 +1971,10 @@ IBMethod::resetLagrangianSourceFunction(const double init_data_time, const bool 
 void
 IBMethod::updateIBInstrumentationData(const int timestep_num, const double data_time)
 {
-    if (!d_instrument_panel->isInstrumented()) return;
+    if (!d_ib_solver || !d_instrument_panel->isInstrumented())
+    {
+        return;
+    }
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

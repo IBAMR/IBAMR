@@ -58,6 +58,12 @@ OPTION(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with
 OPTION(IBAMR_ENABLE_DOCUMENTATION
 "Whether or not to compile the documentation via doxygen." OFF)
 
+SET(IBTK_MAX_BSPLINE_ORDER "8" CACHE STRING
+  "Highest B-spline order automatically registered for IB interpolation matrices.")
+IF(NOT "${IBTK_MAX_BSPLINE_ORDER}" MATCHES "^[1-9][0-9]*$")
+  MESSAGE(FATAL_ERROR "IBTK_MAX_BSPLINE_ORDER must be a positive decimal integer.")
+ENDIF()
+
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 # Build the libraries in one place:
