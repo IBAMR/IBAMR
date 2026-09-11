@@ -1,0 +1,14 @@
+PIECEWISE_LINEAR interpolation_max_abs = 7.7715611723760958e-16 spreading_max_abs = 7.7715611723760958e-16
+BSPLINE_3 interpolation_max_abs = 1.3045120539345589e-15 spreading_max_abs = 1.3045120539345589e-15
+BSPLINE_4 interpolation_max_abs = 4.163336342344337e-15 spreading_max_abs = 4.163336342344337e-15
+BSPLINE_5 interpolation_max_abs = 2.285671651947041e-14 spreading_max_abs = 2.285671651947041e-14
+BSPLINE_6 interpolation_max_abs = 9.6543432970275234e-14 spreading_max_abs = 9.6543432970275234e-14
+COMPOSITE_BSPLINE_32 interpolation_max_abs = 8.0491169285323849e-16 spreading_max_abs = 8.0491169285323849e-16
+COMPOSITE_BSPLINE_43 interpolation_max_abs = 4.1910919179599659e-15 spreading_max_abs = 4.1910919179599659e-15
+COMPOSITE_BSPLINE_54 interpolation_max_abs = 2.5590640717609858e-14 spreading_max_abs = 2.5590640717609858e-14
+COMPOSITE_BSPLINE_65 interpolation_max_abs = 1.0349013312982436e-13 spreading_max_abs = 1.0349013312982436e-13
+IB_3 interpolation_max_abs = 8.2434059578417873e-15 spreading_max_abs = 8.2434059578417873e-15
+IB_4 interpolation_max_abs = 2.7755575615628914e-16 spreading_max_abs = 2.4980018054066022e-16
+IB_5 interpolation_max_abs = 1.3877787807814457e-16 spreading_max_abs = 1.3877787807814457e-16
+IB_6 interpolation_max_abs = 1.5265566588595902e-16 spreading_max_abs = 1.5265566588595902e-16
+test_failures = 0
