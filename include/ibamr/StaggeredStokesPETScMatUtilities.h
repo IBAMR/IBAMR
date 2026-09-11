@@ -134,6 +134,44 @@ public:
         CouplingAwareASMClosurePolicy policy = CouplingAwareASMClosurePolicy::RELAXED,
         double relative_zero_tol = 1.0e-14);
 
+    /*! \brief Construct ordered pressure-cell-seeded CAV patches.
+     *
+     * The borrowed elasticity matrix uses full global velocity-pressure IDs,
+     * supports row access, and has numerically zero pressure rows and columns.
+     * An entry is retained when its magnitude exceeds
+     * max(n * epsilon, relative_zero_tol) times its row maximum, where n counts
+     * all stored entries, including zeros. Each seed's incident MAC velocities
+     * expand once through the retained row-or-column graph. Without expansion,
+     * both policies return the standard Vanka patch. Otherwise RELAXED closes
+     * all incident cells and retains expanded velocities; STRICT retains only
+     * cells whose complete velocity stencil is supported.
+     *
+     * Pressure seeds are sorted in logical traversal order and de-duplicated
+     * before applying the positive seed_stride. patches[k] corresponds to
+     * pressure_seeds[k]; each set contains increasing unique global IDs.
+     * The traversal order must match NDIM and relative_zero_tol must be finite
+     * and nonnegative. DOF data need valid adjacent-cell ghosts and must remain
+     * unchanged during construction. Only one MPI rank is supported.
+     * The matrix is read anew on each call and is not retained. This operation
+     * constructs patches, without partitioning ownership or applying corrections.
+     */
+    static void construct_patch_level_pressure_cell_seeded_cav_patches(
+        std::vector<std::set<int>>& patches,
+        std::vector<int>& pressure_seeds,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+        Mat elasticity,
+        int seed_stride = 1,
+#if (NDIM == 2)
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J,
+#else
+        CouplingAwareASMSeedTraversalOrder order = CouplingAwareASMSeedTraversalOrder::I_J_K,
+#endif
+        CouplingAwareASMClosurePolicy policy = CouplingAwareASMClosurePolicy::RELAXED,
+        double relative_zero_tol = 1.0e-14);
+
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * PCFieldSplit preconditioner.

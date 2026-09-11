@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    CouplingAwareASMSubdomains: pressure-cell CAV construction requires one MPI rank.
+

@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    CouplingAwareASMSubdomains: elasticity pressure rows and columns must be numerically zero.
+
