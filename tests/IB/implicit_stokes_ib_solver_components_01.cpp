@@ -1768,22 +1768,6 @@ public:
     {
         return d_references_before_ksp;
     }
-    bool shellStorageEmpty() const
-    {
-        return this->d_sub_x.empty() && this->d_sub_y.empty() && this->d_sub_ksp.empty() &&
-               this->d_restriction.empty() && this->d_prolongation.empty();
-    }
-    std::vector<Vec> retainShellVectors()
-    {
-        std::vector<Vec> result = this->d_sub_x;
-        result.insert(result.end(), this->d_sub_y.begin(), this->d_sub_y.end());
-        for (Vec v : result)
-        {
-            PetscErrorCode ierr = PetscObjectReference(reinterpret_cast<PetscObject>(v));
-            IBTK_CHKERRQ(ierr);
-        }
-        return result;
-    }
 
 protected:
     void initializeSolverStateSpecialized(const HierarchyVector& x, const HierarchyVector& b) override
@@ -2260,8 +2244,7 @@ bool
 check_shell_state(LevelSolverProbe<Solver>& solver,
                   Pointer<HierarchyVector> x,
                   Pointer<HierarchyVector> b,
-                  PetscInt& overlap_total,
-                  const bool legacy_storage)
+                  PetscInt& overlap_total)
 {
     bool valid = true;
     for (int cycle = 0; cycle < 2; ++cycle)
@@ -2279,28 +2262,8 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             overlap_total += n;
         }
         valid = check_level_solve(solver) && valid;
-        std::vector<Vec> retained = solver.retainShellVectors();
-        // Additive vectors belong to the selected backend; only the legacy
-        // multiplicative action stores vectors in PETScLevelSolver itself.
-        valid = valid && retained.size() == (legacy_storage ? 16 : 0);
         solver.deallocateSolverState();
-        valid = solver.shellStorageEmpty() && valid;
-        PetscInt max_references = 0;
-        for (Vec& v : retained)
-        {
-            PetscInt references;
-            PetscErrorCode ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(v), &references);
-            IBTK_CHKERRQ(ierr);
-            // Only this test reference may remain after solver teardown.
-            valid = references == 1 && valid;
-            max_references = std::max(max_references, references);
-            ierr = VecDestroy(&v);
-            IBTK_CHKERRQ(ierr);
-        }
-        if (!retained.empty() && max_references != 1)
-        {
-            pout << "unreleased_shell_vector_references = " << max_references << std::endl;
-        }
+        solver.deallocateSolverState();
     }
     return valid;
 }
@@ -2336,13 +2299,13 @@ run_level_state(Pointer<AppInitializer> app)
             cc.setTimeInterval(0.0, 1.0);
             sc.setTimeInterval(0.0, 1.0);
             PetscInt cc_total, sc_total, stokes_total;
-            cc_valid = check_shell_state(cc, cc_x, cc_b, cc_total, width == 0) && cc_valid;
-            sc_valid = check_shell_state(sc, sc_x, sc_b, sc_total, width == 0) && sc_valid;
+            cc_valid = check_shell_state(cc, cc_x, cc_b, cc_total) && cc_valid;
+            sc_valid = check_shell_state(sc, sc_x, sc_b, sc_total) && sc_valid;
             LevelSolverProbe<StaggeredStokesPETScLevelSolver> stokes("state_stokes", db);
             Mat creator = level_test_matrix(fixture.full_size, 4.0);
             stokes.setOperatorMat(creator);
             stokes.setTimeInterval(0.0, 1.0);
-            stokes_valid = check_shell_state(stokes, fixture.x, fixture.b, stokes_total, width == 0) && stokes_valid;
+            stokes_valid = check_shell_state(stokes, fixture.x, fixture.b, stokes_total) && stokes_valid;
             stokes.setOperatorMat(nullptr);
             PetscErrorCode ierr = MatDestroy(&creator);
             IBTK_CHKERRQ(ierr);

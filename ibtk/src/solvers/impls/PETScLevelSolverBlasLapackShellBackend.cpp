@@ -22,6 +22,7 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <utility>
 
 namespace IBTK
@@ -86,15 +87,22 @@ PETScLevelSolverBlasLapackShellBackend::PETScLevelSolverBlasLapackShellBackend(
     }
 }
 
-void
-PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
-                                                              Vec /*x*/,
-                                                              Vec /*b*/,
-                                                              const std::vector<IS>& overlap,
-                                                              const std::vector<IS>& nonoverlap,
-                                                              const std::string& options_prefix)
+PETScLevelSolverBlasLapackShellBackend::~PETScLevelSolverBlasLapackShellBackend()
 {
     deallocateSolverState();
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
+                                                              Vec x,
+                                                              Vec b,
+                                                              const std::vector<IS>& overlap,
+                                                              const std::vector<IS>& nonoverlap,
+                                                              const std::string& options_prefix,
+                                                              const bool use_multiplicative)
+{
+    deallocateSolverState();
+    initializeComposition(mat, x, b, use_multiplicative);
     d_options_prefix = options_prefix;
     if (IBTK_MPI::getNodes() != 1)
     {
@@ -144,6 +152,11 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
         }
         ierr = ISRestoreIndices(nonoverlap[i], &indices);
         IBTK_CHKERRQ(ierr);
+        if (use_multiplicative)
+        {
+            d_subdomains[i].update_local_positions.resize(n);
+            std::iota(d_subdomains[i].update_local_positions.begin(), d_subdomains[i].update_local_positions.end(), 0);
+        }
         d_subdomains[i].solve_data.resize(static_cast<std::size_t>(n) * static_cast<std::size_t>(n));
         d_subdomains[i].rhs_workspace.resize(static_cast<std::size_t>(n));
         // Reuse the RHS buffer for one extracted row during setup.
@@ -164,42 +177,73 @@ PETScLevelSolverBlasLapackShellBackend::initializeSolverState(Mat mat,
         }
         initializeSubdomainSolver(d_subdomains[i], i);
     }
+    finalizeComposition();
 }
 
 void
 PETScLevelSolverBlasLapackShellBackend::deallocateSolverState()
 {
+    deallocateComposition();
     d_subdomains.clear();
 }
 
-void
-PETScLevelSolverBlasLapackShellBackend::apply(Vec x, Vec y)
+std::size_t
+PETScLevelSolverBlasLapackShellBackend::getNumberOfSubdomains() const
 {
-    int ierr = VecZeroEntries(y);
-    IBTK_CHKERRQ(ierr);
+    return d_subdomains.size();
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::beginSubdomainRhs(const std::size_t i, Vec source)
+{
     const PetscScalar* rhs = nullptr;
-    PetscScalar* correction = nullptr;
-    ierr = VecGetArrayRead(x, &rhs);
+    int ierr = VecGetArrayRead(source, &rhs);
     IBTK_CHKERRQ(ierr);
-    ierr = VecGetArray(y, &correction);
-    IBTK_CHKERRQ(ierr);
-    for (std::size_t i = 0; i < d_subdomains.size(); ++i)
+    for (PetscBLASInt j = 0; j < d_subdomains[i].local_size; ++j)
     {
-        for (PetscBLASInt j = 0; j < d_subdomains[i].local_size; ++j)
-        {
-            d_subdomains[i].rhs_workspace[j] = rhs[d_subdomains[i].overlap_dofs[j]];
-        }
-        solveSubdomainSystem(d_subdomains[i], i);
-        for (const PetscBLASInt position : d_subdomains[i].update_local_positions)
-        {
-            correction[d_subdomains[i].overlap_dofs[position]] += d_subdomains[i].rhs_workspace[position];
-        }
+        d_subdomains[i].rhs_workspace[j] = rhs[d_subdomains[i].overlap_dofs[j]];
+    }
+    ierr = VecRestoreArrayRead(source, &rhs);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::endSubdomainRhs(std::size_t /*i*/, Vec /*source*/)
+{
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::solveSubdomain(const std::size_t i)
+{
+    solveSubdomainSystem(d_subdomains[i], i);
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::accumulateSubdomainCorrection(const std::size_t i, Vec y)
+{
+    PetscScalar* correction = nullptr;
+    int ierr = VecGetArray(y, &correction);
+    IBTK_CHKERRQ(ierr);
+    for (const PetscBLASInt position : d_subdomains[i].update_local_positions)
+    {
+        correction[d_subdomains[i].overlap_dofs[position]] += d_subdomains[i].rhs_workspace[position];
     }
     ierr = VecRestoreArray(y, &correction);
     IBTK_CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(x, &rhs);
-    IBTK_CHKERRQ(ierr);
 }
+
+const std::vector<PetscInt>&
+PETScLevelSolverBlasLapackShellBackend::getSubdomainCorrectionDofs(const std::size_t i) const
+{
+    return d_subdomains[i].overlap_dofs;
+}
+
+void
+PETScLevelSolverBlasLapackShellBackend::copySubdomainCorrection(const std::size_t i, PetscScalar* values)
+{
+    std::copy(d_subdomains[i].rhs_workspace.begin(), d_subdomains[i].rhs_workspace.end(), values);
+}
+
 void
 PETScLevelSolverBlasLapackShellBackend::initializeSubdomainSolver(SubdomainData& subdomain_data,
                                                                   const std::size_t subdomain_num)

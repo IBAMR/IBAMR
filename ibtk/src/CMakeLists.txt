@@ -152,6 +152,7 @@ SET(CXX_SRC
   solvers/impls/NewtonKrylovSolverManager.cpp
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
+  solvers/impls/PETScLevelSolverShellBackend.cpp
   solvers/impls/PETScLevelSolverPetscShellBackend.cpp
   solvers/impls/PETScLevelSolverBlasLapackShellBackend.cpp
   solvers/impls/CCPoissonSolverManager.cpp

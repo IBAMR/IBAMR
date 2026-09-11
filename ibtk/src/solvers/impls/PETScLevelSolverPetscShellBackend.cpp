@@ -64,7 +64,7 @@ PETScLevelSolverShellBackendManager::allocateBackend(const std::string& key,
     if (factory == d_factories.end())
     {
         TBOX_ERROR("PETScLevelSolverShellBackendManager::allocateBackend():\n"
-                   << "  unknown additive shell backend: " << key << "\n");
+                   << "  unknown shell backend: " << key << "\n");
     }
     std::unique_ptr<PETScLevelSolverShellBackend> backend = factory->second(input_db);
     if (!backend)
@@ -91,15 +91,19 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
                                                          Vec b,
                                                          const std::vector<IS>& overlap,
                                                          const std::vector<IS>& nonoverlap,
-                                                         const std::string& options_prefix)
+                                                         const std::string& options_prefix,
+                                                         const bool use_multiplicative)
 {
     deallocateSolverState();
+    initializeComposition(mat, x, b, use_multiplicative);
+    d_multiplicative = use_multiplicative;
     TBOX_ASSERT(overlap.size() == nonoverlap.size());
     const int n_local = static_cast<int>(overlap.size());
     const int n_max = IBTK_MPI::maxReduction(n_local);
     Mat* sub_mat = nullptr;
     int ierr = MatCreateSubMatrices(mat, n_local, overlap.data(), overlap.data(), MAT_INITIAL_MATRIX, &sub_mat);
     IBTK_CHKERRQ(ierr);
+    d_correction_dofs.resize(n_max);
     d_sub_ksp.resize(n_local);
     d_sub_x.resize(n_max);
     d_sub_y.resize(n_max);
@@ -127,6 +131,10 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
                     std::lower_bound(overlap_indices, overlap_indices + n_overlap, nonoverlap_indices[j]);
                 TBOX_ASSERT(position != overlap_indices + n_overlap && *position == nonoverlap_indices[j]);
                 local_nonoverlap.push_back(static_cast<PetscInt>(position - overlap_indices));
+            }
+            if (use_multiplicative && n_overlap > 0)
+            {
+                d_correction_dofs[i].assign(overlap_indices, overlap_indices + n_overlap);
             }
             ierr = ISRestoreIndices(nonoverlap[i], &nonoverlap_indices);
             IBTK_CHKERRQ(ierr);
@@ -175,7 +183,11 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
         IS global_partition = i < n_local ? nonoverlap[i] : local_partition;
         ierr = VecScatterCreate(x, global_overlap, d_sub_x[i], local_overlap, &d_restriction[i]);
         IBTK_CHKERRQ(ierr);
-        ierr = VecScatterCreate(d_sub_y[i], local_partition, b, global_partition, &d_prolongation[i]);
+        ierr = VecScatterCreate(d_sub_y[i],
+                                use_multiplicative ? local_overlap : local_partition,
+                                b,
+                                use_multiplicative ? global_overlap : global_partition,
+                                &d_prolongation[i]);
         IBTK_CHKERRQ(ierr);
         ierr = ISDestroy(&local_overlap);
         IBTK_CHKERRQ(ierr);
@@ -185,11 +197,14 @@ PETScLevelSolverPetscShellBackend::initializeSolverState(Mat mat,
     // Each sub-KSP retains its submatrix.
     ierr = MatDestroyMatrices(n_local, &sub_mat);
     IBTK_CHKERRQ(ierr);
+    finalizeComposition();
 }
 
 void
 PETScLevelSolverPetscShellBackend::deallocateSolverState()
 {
+    deallocateComposition();
+    d_correction_dofs.clear();
     for (KSP& ksp : d_sub_ksp)
     {
         const int ierr = KSPDestroy(&ksp);
@@ -213,29 +228,61 @@ PETScLevelSolverPetscShellBackend::deallocateSolverState()
     d_sub_y.clear();
 }
 
-void
-PETScLevelSolverPetscShellBackend::apply(Vec x, Vec y)
+std::size_t
+PETScLevelSolverPetscShellBackend::getNumberOfSubdomains() const
 {
-    int ierr = VecZeroEntries(y);
+    return d_sub_x.size();
+}
+
+void
+PETScLevelSolverPetscShellBackend::beginSubdomainRhs(const std::size_t i, Vec source)
+{
+    const int ierr = VecScatterBegin(d_restriction[i], source, d_sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
-    for (std::size_t i = 0; i < d_sub_x.size(); ++i)
+}
+
+void
+PETScLevelSolverPetscShellBackend::endSubdomainRhs(const std::size_t i, Vec source)
+{
+    const int ierr = VecScatterEnd(d_restriction[i], source, d_sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+PETScLevelSolverPetscShellBackend::solveSubdomain(const std::size_t i)
+{
+    if (i < d_sub_ksp.size())
     {
-        ierr = VecScatterBegin(d_restriction[i], x, d_sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
+        const int ierr = KSPSolve(d_sub_ksp[i], d_sub_x[i], d_sub_y[i]);
         IBTK_CHKERRQ(ierr);
     }
-    for (std::size_t i = 0; i < d_sub_x.size(); ++i)
-    {
-        ierr = VecScatterEnd(d_restriction[i], x, d_sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        if (i < d_sub_ksp.size())
-        {
-            ierr = KSPSolve(d_sub_ksp[i], d_sub_x[i], d_sub_y[i]);
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecScatterBegin(d_prolongation[i], d_sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScatterEnd(d_prolongation[i], d_sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
-    }
+}
+
+void
+PETScLevelSolverPetscShellBackend::accumulateSubdomainCorrection(const std::size_t i, Vec y)
+{
+    const InsertMode mode = d_multiplicative ? ADD_VALUES : INSERT_VALUES;
+    const ScatterMode scatter = d_multiplicative ? SCATTER_FORWARD : SCATTER_FORWARD_LOCAL;
+    int ierr = VecScatterBegin(d_prolongation[i], d_sub_y[i], y, mode, scatter);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecScatterEnd(d_prolongation[i], d_sub_y[i], y, mode, scatter);
+    IBTK_CHKERRQ(ierr);
+}
+
+const std::vector<PetscInt>&
+PETScLevelSolverPetscShellBackend::getSubdomainCorrectionDofs(const std::size_t i) const
+{
+    return d_correction_dofs[i];
+}
+
+void
+PETScLevelSolverPetscShellBackend::copySubdomainCorrection(const std::size_t i, PetscScalar* values)
+{
+    const PetscScalar* correction = nullptr;
+    int ierr = VecGetArrayRead(d_sub_y[i], &correction);
+    IBTK_CHKERRQ(ierr);
+    std::copy_n(correction, d_correction_dofs[i].size(), values);
+    ierr = VecRestoreArrayRead(d_sub_y[i], &correction);
+    IBTK_CHKERRQ(ierr);
 }
 } // namespace IBTK

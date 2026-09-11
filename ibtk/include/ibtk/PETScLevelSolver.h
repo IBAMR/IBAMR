@@ -73,11 +73,13 @@ class PETScLevelSolverShellBackend;
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
  *
- * For pc_type = "shell", shell_pc_type = "additive" selects the PETSc
- * backend; "additive-KEY" selects a registered additive backend. See
- * PETScLevelSolverShellBackendManager for registration. "multiplicative"
- * retains the existing shell action. shell_pc_type must be specified when
- * selecting a shell preconditioner, including through PETSc options.
+ * For pc_type = "shell", an omitted shell_pc_type, "multiplicative", or
+ * "multiplicative-petsc" selects unrestricted forward PETSc corrections using
+ * the current original residual. "multiplicative-KEY" selects another registered
+ * backend. "additive" and "additive-KEY" use independent local solves with
+ * restricted writes. See PETScLevelSolverShellBackendManager for registration.
+ * An explicitly empty selector is invalid. Reinitialize after changing the
+ * operator or subdomains; outer KSP/nullspace handling is unchanged.
  *
  * The input database is retained; backend factories read it when solver state
  * is initialized or rebuilt. The serial real-scalar "blas-lapack" backend accepts
@@ -315,7 +317,7 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
+    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type = "multiplicative";
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
@@ -327,14 +329,8 @@ protected:
      * \name Support for additive and multiplicative Schwarz preconditioners.
      */
     //\{
-    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    int d_n_local_subdomains, d_n_subdomains_max;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
-    std::vector<VecScatter> d_restriction, d_prolongation;
-    std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
-    std::vector<Vec> d_sub_x, d_sub_y;
+    std::vector<IS> d_overlap_is, d_nonoverlap_is;
     //\}
 
     /*!
@@ -372,17 +368,7 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode pc_apply_additive(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
+    static PetscErrorCode pc_apply_shell(PC pc, Vec x, Vec y);
 };
 } // namespace IBTK
 
