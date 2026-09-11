@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    CartCellDoubleLinearCoarsen::coarsen(): insufficient declared or allocated fine-cell stencil width.
+
