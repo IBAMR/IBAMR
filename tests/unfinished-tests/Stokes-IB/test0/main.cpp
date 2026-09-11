@@ -694,12 +694,7 @@ main(int argc, char* argv[])
 
         // Get the matrix representation of J at the finest level
         Mat J = nullptr;
-        ib_method_ops->constructInterpOp(J,
-                                         PETScMatUtilities::ib_4_interp_fcn,
-                                         PETScMatUtilities::ib_4_interp_stencil,
-                                         num_dofs_per_proc[finest_ln],
-                                         u_dof_index_idx,
-                                         new_time);
+        ib_method_ops->constructInterpOp(J, IBKernel::IB_4, num_dofs_per_proc[finest_ln], u_dof_index_idx, new_time);
 
         // Configure the fac pc/op
         fac_pc->setPhysicalBcCoefs(navier_stokes_integrator->getIntermediateVelocityBoundaryConditions(),

@@ -22,6 +22,8 @@
 
 #include <ibamr/IBStrategy.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
+
 #include <petscmat.h>
 #include <petscvec.h>
 
@@ -133,11 +135,17 @@ public:
         double data_time) = 0;
 
     /*!
-     * Construct the IB interpolation operator.
+     * \brief Construct a matrix mapping side-centered velocity to IB points at data_time.
+     *
+     * The kernel must be available through IBTK::IBOperatorRegistry.
+     * See IBTK::IBKernelTensorProduct for the kernel specification.
+     * An existing J is destroyed and replaced. The caller owns the new matrix.
+     *
+     * \see IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp() for degree-of-freedom
+     * numbering and physical-boundary limitations.
      */
     virtual void constructInterpOp(Mat& J,
-                                   void (*spread_fnc)(const double, double*),
-                                   int stencil_width,
+                                   const IBTK::IBKernelTensorProduct& kernel,
                                    const std::vector<int>& num_dofs_per_proc,
                                    int dof_index_idx,
                                    double data_time) = 0;
