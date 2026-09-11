@@ -28,8 +28,10 @@
 #include <GriddingAlgorithm.h>
 #include <HeavisideFromLevelSet.h>
 #include <HierarchyCellDataOpsReal.h>
+#include <LSLocateInterface.h>
 #include <LiquidFractionForceMask.h>
 #include <LoadBalancer.h>
+#include <PointwiseLevelSet.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <StandardTagAndInitialize.h>
@@ -39,6 +41,7 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <vector>
 
 #include <ibamr/app_namespaces.h>
@@ -254,6 +257,79 @@ check_capillary(Pointer<PatchHierarchy<NDIM>> hierarchy,
     }
     db->removePatchDataIndex(force_idx);
 }
+void
+check_geometry(Pointer<PatchHierarchy<NDIM>> hierarchy,
+               Pointer<AdvDiffHierarchyIntegrator> integrator,
+               Pointer<CellVariable<NDIM, double>> sphere_var,
+               Pointer<CellVariable<NDIM, double>> plane_var,
+               const bool check_reset)
+{
+    VariableDatabase<NDIM>* db = VariableDatabase<NDIM>::getDatabase();
+    const int sphere_idx = db->registerVariableAndContext(sphere_var, db->getContext("geometry"));
+    const int plane_idx = db->registerVariableAndContext(plane_var, db->getContext("geometry"));
+    const int sphere_current = db->mapVariableAndContextToIndex(sphere_var, integrator->getCurrentContext());
+    const int plane_current = db->mapVariableAndContextToIndex(plane_var, integrator->getCurrentContext());
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+    level->allocatePatchData(sphere_idx, 0.0);
+    level->allocatePatchData(plane_idx, 0.0);
+    Pointer<CartGridFunction> sphere = new MultiphaseExamples::SphereLevelSet("sphere", IBTK::Vector::Zero(), 0.5);
+    Pointer<CartGridFunction> plane = new MultiphaseExamples::PlaneLevelSet("plane", NDIM - 1, 0.125);
+    MultiphaseExamples::LSLocateInterface sphere_locator(integrator, sphere_var, sphere);
+    MultiphaseExamples::LSLocateInterface plane_locator(integrator, plane_var, plane);
+    Pointer<HierarchyMathOps> math_ops = new HierarchyMathOps("geometry_math", hierarchy);
+    MultiphaseExamples::call_locate_interface(sphere_idx, math_ops, 0.0, true, &sphere_locator);
+    MultiphaseExamples::call_locate_interface(plane_idx, math_ops, 0.0, true, &plane_locator);
+    if (check_reset)
+    {
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_current);
+            Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_current);
+            for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+            {
+                (*sphere_data)(CellIndex<NDIM>(i())) = 10.0 + i()(0);
+                (*plane_data)(CellIndex<NDIM>(i())) = -20.0 - i()(NDIM - 1);
+            }
+        }
+        MultiphaseExamples::call_locate_interface(sphere_idx, math_ops, 1.0, false, &sphere_locator);
+        MultiphaseExamples::call_locate_interface(plane_idx, math_ops, 1.0, false, &plane_locator);
+    }
+    double sphere_min = std::numeric_limits<double>::max(), sphere_max = -sphere_min;
+    double plane_min = sphere_min, plane_max = sphere_max;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_idx);
+        Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_idx);
+        for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+        {
+            double radius_squared = 0.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                const double coordinate = -1.0 + (i()(d) + 0.5) / 4.0;
+                radius_squared += coordinate * coordinate;
+            }
+            const double sphere_expected = check_reset ? 10.0 + i()(0) : std::sqrt(radius_squared) - 0.5;
+            const double plane_expected = check_reset ? -20.0 - i()(NDIM - 1) : -1.125 + (i()(NDIM - 1) + 0.5) / 4.0;
+            const double sphere_value = (*sphere_data)(CellIndex<NDIM>(i()));
+            const double plane_value = (*plane_data)(CellIndex<NDIM>(i()));
+            check_value(sphere_value, sphere_expected);
+            check_value(plane_value, plane_expected);
+            sphere_min = std::min(sphere_min, sphere_value);
+            sphere_max = std::max(sphere_max, sphere_value);
+            plane_min = std::min(plane_min, plane_value);
+            plane_max = std::max(plane_max, plane_value);
+        }
+    }
+    plog << "Sphere range: " << sphere_min << ' ' << sphere_max << '\n';
+    plog << "Plane range: " << plane_min << ' ' << plane_max << '\n';
+    level->deallocatePatchData(sphere_idx);
+    level->deallocatePatchData(plane_idx);
+    db->removePatchDataIndex(sphere_idx);
+    db->removePatchDataIndex(plane_idx);
+}
+
 } // namespace
 
 int
@@ -299,7 +375,11 @@ main(int argc, char* argv[])
         PIO::logOnlyNodeZero("output");
         plog << std::fixed << std::setprecision(12);
         const std::string contract = input->getString("contract");
-        if (contract == "heaviside")
+        if (contract == "geometry" || contract == "reset")
+        {
+            check_geometry(hierarchy, adv, ls, H, contract == "reset");
+        }
+        else if (contract == "heaviside")
         {
             const int H_idx =
                 VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(H, adv->getCurrentContext());

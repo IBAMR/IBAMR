@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2026 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,91 +14,33 @@
 #ifndef included_VelocityInitialCondition
 #define included_VelocityInitialCondition
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
+#include <ibtk/CartGridFunction.h>
 
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <PointwiseLevelSet.h>
 
-#include <ibamr/app_namespaces.h>
+#include <string>
+#include <vector>
 
-// Application includes
-#include "LSLocateCircularInterface.h"
-
-/////////////////////////////// CLASS DEFINITION /////////////////////////////
-
-/*!
- * \brief Class VelocityInitialCondition provides forcing an initial condition for velocity
- * based on the initial level set information.
- */
-class VelocityInitialCondition : public CartGridFunction
+class VelocityInitialCondition : public IBTK::CartGridFunction
 {
 public:
-    /*!
-     * \brief Class constructor.
-     */
     VelocityInitialCondition(const std::string& object_name,
-                             const double num_interface_cells,
+                             double num_interface_cells,
                              std::vector<double> inside_velocity,
                              std::vector<double> outside_velocity,
-                             CircularInterface init_circle);
-
-    /*!
-     * \brief Empty destructor.
-     */
-    ~VelocityInitialCondition();
-
-    /*!
-     * \name Methods to set patch data.
-     */
-    //\{
-
-    /*!
-     * \brief Indicates whether the concrete VelocityInitialCondition object is
-     * time-dependent.
-     */
-    bool isTimeDependent() const;
-
-    /*!
-     * \brief Evaluate the function on the patch interior.
-     */
-    void setDataOnPatch(const int data_idx,
-                        Pointer<Variable<NDIM>> var,
-                        Pointer<Patch<NDIM>> patch,
-                        const double data_time,
-                        const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM>> patch_level = nullptr);
-
-    //\}
+                             SAMRAI::tbox::Pointer<MultiphaseExamples::SphereLevelSet> sphere);
+    bool isTimeDependent() const override;
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                        double data_time,
+                        bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level = nullptr) override;
 
 private:
-    VelocityInitialCondition();
-
-    VelocityInitialCondition(const VelocityInitialCondition& from);
-
-    VelocityInitialCondition& operator=(const VelocityInitialCondition& that);
-
-    /*!
-     * Name of this object.
-     */
-    std::string d_object_name;
-
-    /*!
-     * Number of interface cells over which to smooth the material properties
-     */
     double d_num_interface_cells;
-
-    /*!
-     * Velocities of the fluid level set
-     */
-    std::vector<double> d_inside_velocity;
-    std::vector<double> d_outside_velocity;
-
-    /*!
-     * Initial level set information.
-     */
-    CircularInterface d_init_circle;
+    std::vector<double> d_inside_velocity, d_outside_velocity;
+    SAMRAI::tbox::Pointer<MultiphaseExamples::SphereLevelSet> d_sphere;
 };
 
-//////////////////////////////////////////////////////////////////////////////
-
-#endif // #ifndef included_VelocityInitialCondition
+#endif
