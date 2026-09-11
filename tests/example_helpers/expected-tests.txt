@@ -1,0 +1,4 @@
+example_helpers/helper_contracts_2d.capillary.mpirun=1.input
+example_helpers/helper_contracts_2d.heaviside.mpirun=1.input
+example_helpers/helper_contracts_3d.capillary.mpirun=1.input
+example_helpers/helper_contracts_3d.heaviside.mpirun=1.input

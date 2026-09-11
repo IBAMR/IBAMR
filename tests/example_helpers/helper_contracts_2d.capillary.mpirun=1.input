@@ -1,0 +1,41 @@
+contract = "capillary"
+Main {
+  log_file_name = "helper_setup.log"
+  log_all_nodes = FALSE
+}
+Initial { function = "100.0" }
+INS {
+  velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+  velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+  velocity_precond_db { coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER" }
+  start_time = 0.0
+  end_time = 1.0
+  convective_difference_form = "CONSERVATIVE"
+  rho_is_const = FALSE
+  mu_is_const = TRUE
+  rho = 1.0
+  mu = 0.01
+  enable_logging = FALSE
+  mass_momentum_integrator_db {
+    density_time_stepping_type = "SSPRK3"
+    velocity_convective_limiter = "CUI"
+    density_convective_limiter = "CUI"
+  }
+}
+AdvDiff {
+  start_time = 0.0
+  end_time = 1.0
+  enable_logging = FALSE
+}
+CartesianGeometry {
+  domain_boxes = [(0,0),(7,7)]
+  x_lo = -1,-1
+  x_up = 1,1
+  periodic_dimension = 1,1
+}
+GriddingAlgorithm {
+  max_levels = 1
+  largest_patch_size { level_0 = 8,8 }
+  smallest_patch_size { level_0 = 8,8 }
+}
+StandardTagAndInitialize { tagging_method = "GRADIENT_DETECTOR" }
