@@ -627,6 +627,49 @@ enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
     if (val == DISCONTINUOUS) return "DISCONTINUOUS";
     return "UNKNOWN_INDICATOR_FUNC_TYPE";
 } // enum_to_string
+
+/*! \brief Geometrical or velocity-coupling-based ASM construction. */
+enum class ASMSubdomainConstructionMode
+{
+    GEOMETRICAL,
+    COUPLING_AWARE,
+    UNKNOWN
+};
+
+template <>
+ASMSubdomainConstructionMode string_to_enum<ASMSubdomainConstructionMode>(const std::string& val);
+template <>
+std::string enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val);
+
+/*! \brief Incident-cell closure or complete-stencil filtering. */
+enum class CouplingAwareASMClosurePolicy
+{
+    RELAXED,
+    STRICT,
+    UNKNOWN
+};
+
+template <>
+CouplingAwareASMClosurePolicy string_to_enum<CouplingAwareASMClosurePolicy>(const std::string& val);
+template <>
+std::string enum_to_string<CouplingAwareASMClosurePolicy>(CouplingAwareASMClosurePolicy val);
+
+/*! \brief Logical seed coordinates, from slowest to fastest varying. */
+enum class CouplingAwareASMSeedTraversalOrder
+{
+    I_J,
+    J_I,
+    I_J_K,
+    J_K_I,
+    K_I_J,
+    UNKNOWN
+};
+
+template <>
+CouplingAwareASMSeedTraversalOrder string_to_enum<CouplingAwareASMSeedTraversalOrder>(const std::string& val);
+template <>
+std::string enum_to_string<CouplingAwareASMSeedTraversalOrder>(CouplingAwareASMSeedTraversalOrder val);
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
