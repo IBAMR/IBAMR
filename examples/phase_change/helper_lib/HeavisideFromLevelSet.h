@@ -14,6 +14,8 @@
 #ifndef included_PhaseChangeExamples_HeavisideFromLevelSet
 #define included_PhaseChangeExamples_HeavisideFromLevelSet
 
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 

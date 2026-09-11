@@ -14,6 +14,8 @@
 #ifndef included_PhaseChangeExamples_Applications
 #define included_PhaseChangeExamples_Applications
 
+#include <ibamr/config.h>
+
 namespace PhaseChangeExamples
 {
 // Each entry owns IBTK initialization and all application objects through shutdown.

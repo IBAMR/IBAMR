@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 #include "Applications.h"
+#include "ExampleOutput.h"
 
 // Config files
 #include <SAMRAI_config.h>
@@ -70,25 +71,7 @@ run_stefan(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Get various standard options set in the input file.
-        const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
-        {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
-
-        const bool dump_timer_data = app_initializer->dumpTimerData();
-        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
+        ExampleOutput output(app_initializer);
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -268,12 +251,7 @@ run_stefan(int argc, char* argv[])
         phase_change_integrator->registerApplyGradientDetectorCallback(
             &IBAMR::PhaseChangeUtilities::call_tag_liquid_fraction_cells_callback, static_cast<void*>(&tagger));
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
-        if (uses_visit)
-        {
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-        }
+        output.registerDataWriter(app_initializer, time_integrator);
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -285,61 +263,11 @@ run_stefan(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
-        // Write out initial visualization data.
-        int iteration_num = time_integrator->getIntegratorStep();
-        double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
-        {
-            pout << "\n\nWriting visualization files...\n\n";
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-        }
-
-        // Main time step loop.
-        double loop_time_end = time_integrator->getEndTime();
-        double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
-        {
-            iteration_num = time_integrator->getIntegratorStep();
-            loop_time = time_integrator->getIntegratorTime();
-
-            pout << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-
-            dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
-            loop_time += dt;
-
-            pout << "\n";
-            pout << "At end       of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "\n";
-
-            // At specified intervals, write visualization and restart files,
-            // print out timer data, and store hierarchy data for post
-            // processing.
-            iteration_num += 1;
-            const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting visualization files...\n\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\n";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
-            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
-            }
-        }
+        output.writeInitial(time_integrator,
+                            patch_hierarchy,
+                            time_integrator->getIntegratorStep(),
+                            time_integrator->getIntegratorTime());
+        run_time_loop(time_integrator, patch_hierarchy, output);
 
     } // cleanup dynamically allocated objects prior to shutdown
     return 0;

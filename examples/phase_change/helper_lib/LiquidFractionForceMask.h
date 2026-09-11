@@ -14,6 +14,8 @@
 #ifndef included_PhaseChangeExamples_LiquidFractionForceMask
 #define included_PhaseChangeExamples_LiquidFractionForceMask
 
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
