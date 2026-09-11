@@ -6,10 +6,10 @@ assembled_jacobian = true, tolerance = 1e-09
 centered_fd = true, tolerance = 1e-06
 nonlinear_apply_add = true, tolerance = 1e-11
 jacobian_apply_add = true, tolerance = 1e-09
-mffd_stokes_action = true, tolerance = 1e-06
 initial_supplied_action = true, tolerance = 1e-12
 outer_initialization_strategy = true, tolerance = 1e-12
 post_initialization_supplied = true, tolerance = 1e-12
+mffd_stokes_action = true, tolerance = 1e-06
 time_state_scaling_valid = true
 nontrivial_coupling_valid = true
 updated_base_state_valid = true

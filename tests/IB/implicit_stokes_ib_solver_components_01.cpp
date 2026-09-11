@@ -1373,6 +1373,7 @@ run_operators(Pointer<AppInitializer> app)
     StaggeredStokesIBOperator nonlinear("nonlinear");
     StaggeredStokesIBJacobianOperator jacobian("jacobian");
     PETScMFFDJacobianOperator mffd("mffd");
+    const bool test_mffd = type == BACKWARD_EULER;
     nonlinear.setOperatorContext(ctx);
     jacobian.setOperatorContext(ctx);
     mffd.setOperator(stokes);
@@ -1421,7 +1422,10 @@ run_operators(Pointer<AppInitializer> app)
         method->setUpdatedPosition(position);
         nonlinear.initializeOperatorState(*base, *residual);
         jacobian.initializeOperatorState(*base, *residual);
-        mffd.initializeOperatorState(*mffd_base, *residual);
+        if (test_mffd)
+        {
+            mffd.initializeOperatorState(*mffd_base, *residual);
+        }
         method->constructInterpOp(J, IBKernel::IB_4, counts, u_dof, force_time);
         for (int state = 0; state < 2; ++state)
         {
@@ -1545,23 +1549,27 @@ run_operators(Pointer<AppInitializer> app)
             finite_difference->linearSum(0.5 / h, expected, -0.5 / h, work);
             derivative_valid =
                 close(action, finite_difference, FD_TOL, "centered finite difference") && derivative_valid;
-            // A real Stokes action exercises SAMRAI-backed MFFD function storage.
-            // Its derivative is linear: changed-base coverage comes from the
-            // stored-vector and evaluation checks, not a changing derivative.
-            side_ops->setToScalar(mffd_base->getComponentDescriptorIndex(0), state == 0 ? 0.5 : 1.0);
-            cell_ops->setToScalar(mffd_base->getComponentDescriptorIndex(1), state == 0 ? -0.25 : -0.5);
-            side_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(0), 0.25);
-            cell_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(1), 0.5);
-            stokes->setTimeInterval(current, next);
-            stokes->setSolutionTime(force_time);
-            stokes->setHomogeneousBc(true);
-            const int evaluations_before_form = stokes->evaluations;
-            mffd.formJacobian(*mffd_base);
-            base_valid = base_valid && stokes->evaluations == evaluations_before_form + 1;
-            base_valid = close(mffd.getBaseVector(), mffd_base, 0.0) && base_valid;
-            mffd.apply(*mffd_direction, *expected);
-            stokes->apply(*mffd_direction, *work);
-            mffd_valid = close(expected, work, FD_TOL, "MFFD Stokes action") && work->maxNorm() > 1.0e-12 && mffd_valid;
+            if (test_mffd)
+            {
+                // A real Stokes action exercises SAMRAI-backed MFFD function storage.
+                // Its derivative is linear: changed-base coverage comes from the
+                // stored-vector and evaluation checks, not a changing derivative.
+                side_ops->setToScalar(mffd_base->getComponentDescriptorIndex(0), state == 0 ? 0.5 : 1.0);
+                cell_ops->setToScalar(mffd_base->getComponentDescriptorIndex(1), state == 0 ? -0.25 : -0.5);
+                side_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(0), 0.25);
+                cell_ops->setToScalar(mffd_direction->getComponentDescriptorIndex(1), 0.5);
+                stokes->setTimeInterval(current, next);
+                stokes->setSolutionTime(force_time);
+                stokes->setHomogeneousBc(true);
+                const int evaluations_before_form = stokes->evaluations;
+                mffd.formJacobian(*mffd_base);
+                base_valid = base_valid && stokes->evaluations == evaluations_before_form + 1;
+                base_valid = close(mffd.getBaseVector(), mffd_base, 0.0) && base_valid;
+                mffd.apply(*mffd_direction, *expected);
+                stokes->apply(*mffd_direction, *work);
+                mffd_valid =
+                    close(expected, work, FD_TOL, "MFFD Stokes action") && work->maxNorm() > 1.0e-12 && mffd_valid;
+            }
 
             nonlinear.applyAdd(*base, *direction, *expected);
             work->add(residual, direction);
@@ -1606,11 +1614,14 @@ run_operators(Pointer<AppInitializer> app)
                 op->setSolutionTime(force_time);
             }
         }
-        const std::array<int, 4> base_indices = { jacobian.getBaseVector()->getComponentDescriptorIndex(0),
-                                                  jacobian.getBaseVector()->getComponentDescriptorIndex(1),
-                                                  mffd.getBaseVector()->getComponentDescriptorIndex(0),
-                                                  mffd.getBaseVector()->getComponentDescriptorIndex(1) };
-        mffd.deallocateOperatorState();
+        std::vector<int> base_indices = { jacobian.getBaseVector()->getComponentDescriptorIndex(0),
+                                          jacobian.getBaseVector()->getComponentDescriptorIndex(1) };
+        if (test_mffd)
+        {
+            base_indices.push_back(mffd.getBaseVector()->getComponentDescriptorIndex(0));
+            base_indices.push_back(mffd.getBaseVector()->getComponentDescriptorIndex(1));
+            mffd.deallocateOperatorState();
+        }
         jacobian.deallocateOperatorState();
         nonlinear.deallocateOperatorState();
         lifecycle_valid = lifecycle_valid && !mffd.getIsInitialized() && !jacobian.getIsInitialized() &&
@@ -1675,7 +1686,6 @@ run_operators(Pointer<AppInitializer> app)
                                std::make_tuple("centered_fd", derivative_valid, FD_TOL),
                                std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
                                std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
-                               std::make_tuple("mffd_stokes_action", mffd_valid, FD_TOL),
                                std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
                                std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
                                std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
@@ -1683,6 +1693,11 @@ run_operators(Pointer<AppInitializer> app)
         pout << std::get<0>(check) << " = " << (std::get<1>(check) ? "true" : "false")
              << ", tolerance = " << std::get<2>(check) << '\n';
         failures += !std::get<1>(check);
+    }
+    if (test_mffd)
+    {
+        pout << "mffd_stokes_action = " << (mffd_valid ? "true" : "false") << ", tolerance = " << FD_TOL << '\n';
+        failures += !mffd_valid;
     }
     for (const auto& check :
          std::vector<std::pair<std::string, bool>>{ { "time_state_scaling_valid", time_valid },
