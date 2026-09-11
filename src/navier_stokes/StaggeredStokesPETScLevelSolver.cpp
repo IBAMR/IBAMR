@@ -575,6 +575,22 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
         d_petsc_pc = nullptr;
     }
 
+    // Couplings and DOF numbering can change between solver lifetimes.
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        for (IS& is : d_overlap_is)
+        {
+            const int ierr = ISDestroy(&is);
+            IBTK_CHKERRQ(ierr);
+        }
+        d_overlap_is.clear();
+        for (IS& is : d_nonoverlap_is)
+        {
+            const int ierr = ISDestroy(&is);
+            IBTK_CHKERRQ(ierr);
+        }
+        d_nonoverlap_is.clear();
+    }
     d_ca_subdomains.reset();
 
     // Deallocate DOF index data.

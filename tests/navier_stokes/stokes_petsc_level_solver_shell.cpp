@@ -351,6 +351,8 @@ check_ca_construction(Pointer<AppInitializer> app, Pointer<Database> test)
         {
             for (int axis = 0; axis < NDIM; ++axis)
             {
+                ierr = MatSetValue(matrix, cell.second[axis], cell.second[axis], 2 * NDIM + 1.0, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
                 for (int direction = 0; direction < NDIM; ++direction)
                 {
                     for (const int sign : { -1, 1 })
@@ -414,42 +416,90 @@ check_ca_construction(Pointer<AppInitializer> app, Pointer<Database> test)
         b.addComponent(u, ui);
         b.addComponent(p, pi);
         x.setToScalar(0.0);
-        // Exercise ordinary initialization, lazy generation, repeated construction,
-        // and deallocation. Subdomain inspection uses the existing PETSc IS query.
-        for (const std::string policy : { "RELAXED", "STRICT" })
+        // Dense velocity coupling closes the entire level in either policy.
+        Mat changed_matrix = nullptr;
+        ierr = MatDuplicate(matrix, MAT_COPY_VALUES, &changed_matrix);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetOption(changed_matrix, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+        IBTK_CHKERRQ(ierr);
+        for (const auto& row_cell : fields)
         {
-            Pointer<MemoryDatabase> db = new MemoryDatabase("ca_solver");
-            db->putString("pc_type", "asm");
-            db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
-            db->putString("coupling_aware_asm_closure_policy", policy);
-            StaggeredStokesPETScLevelSolver solver("ca_solver_" + policy, db, "ca_");
-            solver.setOperatorMat(matrix);
-            std::vector<std::set<int>> expected, expected_partition;
-            StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
-                expected,
-                expected_partition,
-                counts,
-                udi,
-                pdi,
-                level,
-                matrix,
-                0,
-                1,
-                default_order,
-                IBAMR::string_to_enum<CouplingAwareASMClosurePolicy>(policy));
-            for (int cycle = 0; cycle < 2; ++cycle)
+            for (int row_axis = 0; row_axis < NDIM; ++row_axis)
             {
-                solver.initializeSolverState(x, b);
-                std::vector<IS>* actual_overlap = nullptr;
-                std::vector<IS>* actual_partition = nullptr;
-                solver.getASMSubdomains(&actual_partition, &actual_overlap);
-                if (ca_read_sets(*actual_overlap) != expected || ca_read_sets(*actual_partition) != expected_partition)
+                const int row = row_cell.second[row_axis];
+                for (const auto& column_cell : fields)
                 {
-                    ++failures;
+                    for (int column_axis = 0; column_axis < NDIM; ++column_axis)
+                    {
+                        const int column = column_cell.second[column_axis];
+                        ierr = MatSetValue(
+                            changed_matrix, row, column, row == column ? 2 * NDIM + 1.0 : 0.01, INSERT_VALUES);
+                        IBTK_CHKERRQ(ierr);
+                    }
                 }
-                solver.deallocateSolverState();
             }
         }
+        ierr = MatAssemblyBegin(changed_matrix, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(changed_matrix, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        std::set<int> all_dofs;
+        for (int dof = 0; dof < total; ++dof)
+        {
+            all_dofs.insert(dof);
+        }
+        const std::vector<std::set<int>> changed_overlap(fields.size(), all_dofs);
+        std::vector<std::set<int>> changed_partition(fields.size());
+        changed_partition.front() = all_dofs;
+        for (const std::string pc_type : { "asm", "shell" })
+        {
+            for (const std::string policy : { "RELAXED", "STRICT" })
+            {
+                Pointer<MemoryDatabase> db = new MemoryDatabase("ca_solver");
+                db->putString("pc_type", pc_type);
+                db->putString("shell_pc_type", "multiplicative");
+                db->putString("asm_subdomain_construction_mode", "COUPLING_AWARE");
+                db->putString("coupling_aware_asm_closure_policy", policy);
+                StaggeredStokesPETScLevelSolver solver("ca_solver_" + pc_type + "_" + policy, db, "ca_");
+                std::vector<std::set<int>> expected, expected_partition;
+                StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
+                    expected,
+                    expected_partition,
+                    counts,
+                    udi,
+                    pdi,
+                    level,
+                    matrix,
+                    0,
+                    1,
+                    default_order,
+                    IBAMR::string_to_enum<CouplingAwareASMClosurePolicy>(policy));
+                TBOX_ASSERT(expected != changed_overlap && expected_partition != changed_partition);
+                // Replace the operator after teardown, then restore it in a third lifetime.
+                for (int cycle = 0; cycle < 3; ++cycle)
+                {
+                    solver.setOperatorMat(cycle == 1 ? changed_matrix : matrix);
+                    solver.initializeSolverState(x, b);
+                    std::vector<IS>* actual_overlap = nullptr;
+                    std::vector<IS>* actual_partition = nullptr;
+                    solver.getASMSubdomains(&actual_partition, &actual_overlap);
+                    const bool overlap_matches =
+                        ca_read_sets(*actual_overlap) == (cycle == 1 ? changed_overlap : expected);
+                    const bool partition_matches =
+                        ca_read_sets(*actual_partition) == (cycle == 1 ? changed_partition : expected_partition);
+                    if (!overlap_matches || !partition_matches)
+                    {
+                        pout << "CA lifetime mismatch: " << pc_type << " " << policy << " cycle=" << cycle
+                             << " overlap_matches=" << overlap_matches << " partition_matches=" << partition_matches
+                             << '\n';
+                        ++failures;
+                    }
+                    solver.deallocateSolverState();
+                }
+            }
+        }
+        ierr = MatDestroy(&changed_matrix);
+        IBTK_CHKERRQ(ierr);
         level->deallocatePatchData(ui);
         level->deallocatePatchData(pi);
     }
