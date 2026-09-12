@@ -19,11 +19,6 @@
 #include <ibtk/CartGridPointwiseFunction.h>
 
 #include <CartesianPatchGeometry.h>
-#include <CellDataFactory.h>
-#include <EdgeDataFactory.h>
-#include <FaceDataFactory.h>
-#include <NodeDataFactory.h>
-#include <SideDataFactory.h>
 #include <Variable.h>
 
 #include <functional>
@@ -63,33 +58,41 @@ enum_to_string<TensorStorage>(const TensorStorage value)
     return "";
 }
 
-template <typename Value, typename Data, typename Function>
-CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(std::string object_name, Function function)
+template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+CartGridPointwiseFunction<Value, Layout, Function>::CartGridPointwiseFunction(std::string object_name,
+                                                                              Function function)
+    requires(!std::same_as<Value, MatrixNd>)
     : CartGridFunction(std::move(object_name)), d_function(std::move(function)), d_tensor_storage(TensorStorage::FULL)
 {
-    static_assert(!std::is_same_v<Value, MatrixNd>, "MatrixNd requires explicit TensorStorage.");
 }
 
-template <typename Value, typename Data, typename Function>
-CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(std::string object_name,
-                                                                            Function function,
-                                                                            const TensorStorage storage)
+template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+CartGridPointwiseFunction<Value, Layout, Function>::CartGridPointwiseFunction(
+    std::string object_name,
+    Function function,
+    const TensorStorage storage) requires std::same_as<Value, MatrixNd>
     : CartGridFunction(std::move(object_name)), d_function(std::move(function)), d_tensor_storage(storage)
 {
-    static_assert(std::is_same_v<Value, MatrixNd>, "TensorStorage is only applicable to MatrixNd.");
-    Values::tensor_depth(storage);
+    switch (storage)
+    {
+    case TensorStorage::FULL:
+    case TensorStorage::SYMMETRIC:
+        break;
+    default:
+        TBOX_ERROR("CartGridPointwiseFunction: invalid tensor storage\n");
+    }
 }
 
-template <typename Value, typename Data, typename Function>
+template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
 bool
-CartGridPointwiseFunction<Value, Data, Function>::isTimeDependent() const
+CartGridPointwiseFunction<Value, Layout, Function>::isTimeDependent() const
 {
     return true;
 }
 
-template <typename Value, typename Data, typename Function>
+template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
 void
-CartGridPointwiseFunction<Value, Data, Function>::setDataOnPatch(
+CartGridPointwiseFunction<Value, Layout, Function>::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -118,284 +121,132 @@ CartGridPointwiseFunction<Value, Data, Function>::setDataOnPatch(
     applyPointwise(*data, patch->getBox(), *geometry, data_time);
 }
 
-template <typename Value, typename Data, typename Function>
-constexpr bool
-CartGridPointwiseFunction<Value, Data, Function>::Centering::is_staggered()
-{
-    return !std::is_same_v<Data, SAMRAI::pdat::CellData<NDIM, double>> &&
-           !std::is_same_v<Data, SAMRAI::pdat::NodeData<NDIM, double>>;
-}
-
-template <typename Value, typename Data, typename Function>
-bool
-CartGridPointwiseFunction<Value, Data, Function>::Centering::has_axis(const Data& data, const int axis)
-{
-    if constexpr (std::is_same_v<Data, SAMRAI::pdat::SideData<NDIM, double>>)
-    {
-        return data.getDirectionVector()(axis) != 0;
-    }
-    else
-    {
-        return true;
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-typename Data::Iterator
-CartGridPointwiseFunction<Value, Data, Function>::Centering::begin(const SAMRAI::hier::Box<NDIM>& box, const int axis)
-{
-    if constexpr (is_staggered())
-    {
-        return typename Data::Iterator(box, axis);
-    }
-    else
-    {
-        return typename Data::Iterator(box);
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-VectorNd
-CartGridPointwiseFunction<Value, Data, Function>::Centering::offset(const int axis)
-{
-    VectorNd result;
-    if constexpr (std::is_same_v<Data, SAMRAI::pdat::NodeData<NDIM, double>>)
-    {
-        result.setZero();
-    }
-    else if constexpr (std::is_same_v<Data, SAMRAI::pdat::EdgeData<NDIM, double>>)
-    {
-        result.setZero();
-        result[axis] = 0.5;
-    }
-    else
-    {
-        result.setConstant(0.5);
-        if constexpr (is_staggered())
-        {
-            result[axis] = 0.0;
-        }
-    }
-    return result;
-}
-
-template <typename Value, typename Data, typename Function>
-template <typename Index>
-SAMRAI::hier::Index<NDIM>
-CartGridPointwiseFunction<Value, Data, Function>::Centering::cartesian_index(const Index& index)
-{
-    if constexpr (std::is_same_v<Data, SAMRAI::pdat::FaceData<NDIM, double>>)
-    {
-        return index.toCell(1);
-    }
-    else
-    {
-        return index;
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-int
-CartGridPointwiseFunction<Value, Data, Function>::Values::tensor_depth(const TensorStorage storage)
-{
-    switch (storage)
-    {
-    case TensorStorage::FULL:
-        return NDIM * NDIM;
-    case TensorStorage::SYMMETRIC:
-        return NDIM * (NDIM + 1) / 2;
-    default:
-        TBOX_ERROR("CartGridPointwiseFunction: invalid tensor storage\n");
-    }
-    return 0;
-}
-
-template <typename Value, typename Data, typename Function>
+template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
 void
-CartGridPointwiseFunction<Value, Data, Function>::Values::validate_depth(const int depth, const TensorStorage storage)
+CartGridPointwiseFunction<Value, Layout, Function>::applyPointwise(
+    Data& data,
+    const SAMRAI::hier::Box<NDIM>& box,
+    const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
+    const double time)
 {
+    const int depth = data.getDepth();
     if (depth <= 0)
     {
         TBOX_ERROR("CartGridPointwiseFunction: patch data must have positive depth\n");
     }
-    if constexpr (std::is_same_v<Value, VectorNd>)
+    if constexpr (std::same_as<Value, VectorNd>)
     {
         if (depth != NDIM)
         {
             TBOX_ERROR("CartGridPointwiseFunction: VectorNd requires depth NDIM\n");
         }
     }
-    else if constexpr (std::is_same_v<Value, MatrixNd>)
+    else if constexpr (std::same_as<Value, MatrixNd>)
     {
-        if (depth != (storage == TensorStorage::FULL ? NDIM * NDIM : NDIM * (NDIM + 1) / 2))
+        if (depth != (d_tensor_storage == TensorStorage::FULL ? NDIM * NDIM : NDIM * (NDIM + 1) / 2))
         {
             TBOX_ERROR("CartGridPointwiseFunction: tensor storage does not match patch data depth\n");
         }
     }
-}
-
-template <typename Value, typename Data, typename Function>
-Value
-CartGridPointwiseFunction<Value, Data, Function>::Values::make_value(const int depth)
-{
-    if constexpr (std::is_same_v<Value, VectorXd>)
+    Value q{}, result{};
+    if constexpr (std::same_as<Value, VectorXd>)
     {
-        return VectorXd(depth);
+        q.resize(depth);
+        result.resize(depth);
     }
-    else
+    const auto component = [&](Value& value, const int d) -> double&
     {
-        return Value{};
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-std::pair<int, int>
-CartGridPointwiseFunction<Value, Data, Function>::Values::tensor_index(const int component, const TensorStorage storage)
-{
-    if (storage == TensorStorage::FULL)
-    {
-        return { component / NDIM, component % NDIM };
-    }
-    return voigt_to_tensor_idx(component);
-}
-
-template <typename Value, typename Data, typename Function>
-template <typename Result>
-void
-CartGridPointwiseFunction<Value, Data, Function>::Values::assign_result(Value& value, Result&& result, const int depth)
-{
-    if constexpr (!std::is_same_v<Value, double>)
-    {
-        const int rows = std::is_same_v<Value, VectorXd> ? depth : NDIM;
-        const int cols = std::is_same_v<Value, MatrixNd> ? NDIM : 1;
-        if (result.rows() != rows || result.cols() != cols)
+        if constexpr (std::same_as<Value, double>)
         {
-            TBOX_ERROR("CartGridPointwiseFunction: callback result has an incompatible shape\n");
+            return value;
         }
-    }
-    value = std::forward<Result>(result);
-}
-
-template <typename Value, typename Data, typename Function>
-template <typename Index>
-void
-CartGridPointwiseFunction<Value, Data, Function>::Values::load(Value& value,
-                                                               const Data& data,
-                                                               const Index& index,
-                                                               const int depth,
-                                                               const TensorStorage storage)
-{
-    if constexpr (std::is_same_v<Value, double>)
-    {
-        value = data(index, depth);
-    }
-    else
-    {
-        for (int d = 0; d < data.getDepth(); ++d)
+        else if constexpr (std::same_as<Value, MatrixNd>)
         {
-            if constexpr (std::is_same_v<Value, MatrixNd>)
-            {
-                const std::pair<int, int> ij = tensor_index(d, storage);
-                value(ij.first, ij.second) = data(index, d);
-                if (storage == TensorStorage::SYMMETRIC)
-                {
-                    value(ij.second, ij.first) = value(ij.first, ij.second);
-                }
-            }
-            else
-            {
-                value[d] = data(index, d);
-            }
+            const std::pair<int, int> ij = d_tensor_storage == TensorStorage::FULL ?
+                                               std::pair<int, int>{ d / NDIM, d % NDIM } :
+                                               voigt_to_tensor_idx(d);
+            return value(ij.first, ij.second);
         }
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-template <typename Index>
-void
-CartGridPointwiseFunction<Value, Data, Function>::Values::store(const Value& value,
-                                                                Data& data,
-                                                                const Index& index,
-                                                                const int depth,
-                                                                const TensorStorage storage)
-{
-    if constexpr (std::is_same_v<Value, double>)
-    {
-        data(index, depth) = value;
-    }
-    else
-    {
-        if constexpr (std::is_same_v<Value, MatrixNd>)
+        else
         {
-            if (storage == TensorStorage::SYMMETRIC && !value.isApprox(value.transpose()))
-            {
-                TBOX_ERROR("CartGridPointwiseFunction: symmetric storage requires a symmetric callback result\n");
-            }
+            return value[d];
         }
-        for (int d = 0; d < data.getDepth(); ++d)
-        {
-            if constexpr (std::is_same_v<Value, MatrixNd>)
-            {
-                const std::pair<int, int> ij = tensor_index(d, storage);
-                data(index, d) = value(ij.first, ij.second);
-            }
-            else
-            {
-                data(index, d) = value[d];
-            }
-        }
-    }
-}
-
-template <typename Value, typename Data, typename Function>
-void
-CartGridPointwiseFunction<Value, Data, Function>::applyPointwise(
-    Data& data,
-    const SAMRAI::hier::Box<NDIM>& box,
-    const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
-    const double time)
-{
-    Values::validate_depth(data.getDepth(), d_tensor_storage);
-    Value q = Values::make_value(data.getDepth());
-    Value result = Values::make_value(data.getDepth());
+    };
     const double* const x_lower = geometry.getXLower();
     const double* const dx = geometry.getDx();
     const SAMRAI::hier::Index<NDIM>& index_lower = box.lower();
-    const int n_groups = std::is_same_v<Value, double> ? data.getDepth() : 1;
-    const int n_axes = Centering::is_staggered() ? NDIM : 1;
-    for (int depth = 0; depth < n_groups; ++depth)
+    const int n_groups = std::same_as<Value, double> ? depth : 1;
+    const int n_components = std::same_as<Value, double> ? 1 : depth;
+    for (int orientation = 0; orientation < (Layout::is_oriented() ? NDIM : 1); ++orientation)
     {
-        for (int orientation = 0; orientation < n_axes; ++orientation)
+        if (!Layout::template has_axis<double>(data, orientation))
         {
-            if (!Centering::has_axis(data, orientation))
+            continue;
+        }
+        const int axis = Layout::is_oriented() ? orientation : invalid_index;
+        const VectorNd offset = Layout::offset(orientation);
+        for (auto it = Layout::begin(box, orientation); it; it++)
+        {
+            const typename Layout::Index& index = it();
+            const SAMRAI::hier::Index<NDIM> cartesian_index = Layout::cartesian_index(index);
+            VectorNd x;
+            for (int d = 0; d < NDIM; ++d)
             {
-                continue;
+                x[d] = x_lower[d] + dx[d] * (cartesian_index(d) - index_lower(d) + offset[d]);
             }
-            const int axis = Centering::is_staggered() ? orientation : invalid_index;
-            const VectorNd offset = Centering::offset(orientation);
-            for (auto it = Centering::begin(box, orientation); it; it++)
+            for (int group = 0; group < n_groups; ++group)
             {
-                const auto& index = it();
-                const SAMRAI::hier::Index<NDIM> cartesian_index = Centering::cartesian_index(index);
-                VectorNd x;
-                for (int d = 0; d < NDIM; ++d)
+                auto evaluate = [&]() -> decltype(auto)
                 {
-                    x[d] = x_lower[d] + dx[d] * (cartesian_index(d) - index_lower(d) + offset[d]);
-                }
-                if constexpr (s_transforms)
+                    if constexpr (
+                        std::is_invocable_r_v<Value, Function&, const Value&, const VectorNd&, double, int, int>)
+                    {
+                        for (int d = 0; d < n_components; ++d)
+                        {
+                            component(q, d) = data(index, group + d);
+                        }
+                        if constexpr (std::same_as<Value, MatrixNd>)
+                        {
+                            if (d_tensor_storage == TensorStorage::SYMMETRIC)
+                            {
+                                for (int i = 1; i < NDIM; ++i)
+                                {
+                                    for (int j = 0; j < i; ++j)
+                                    {
+                                        q(i, j) = q(j, i);
+                                    }
+                                }
+                            }
+                        }
+                        return std::invoke(d_function, std::as_const(q), std::as_const(x), time, group, axis);
+                    }
+                    else
+                    {
+                        return std::invoke(d_function, std::as_const(x), time, group, axis);
+                    }
+                };
+                decltype(auto) value = evaluate();
+                if constexpr (!std::same_as<Value, double>)
                 {
-                    Values::load(q, data, index, depth, d_tensor_storage);
-                    Values::assign_result(
-                        result,
-                        std::invoke(d_function, std::as_const(q), std::as_const(x), time, depth, axis),
-                        data.getDepth());
+                    if (value.rows() != q.rows() || value.cols() != q.cols())
+                    {
+                        TBOX_ERROR("CartGridPointwiseFunction: callback result has an incompatible shape\n");
+                    }
                 }
-                else
+                // Materialize lazy expressions before scattering or overwriting q.
+                result = value;
+                if constexpr (std::same_as<Value, MatrixNd>)
                 {
-                    Values::assign_result(
-                        result, std::invoke(d_function, std::as_const(x), time, depth, axis), data.getDepth());
+                    if (d_tensor_storage == TensorStorage::SYMMETRIC && !result.isApprox(result.transpose()))
+                    {
+                        TBOX_ERROR(
+                            "CartGridPointwiseFunction: symmetric storage requires a symmetric callback result\n");
+                    }
                 }
-                Values::store(result, data, index, depth, d_tensor_storage);
+                for (int d = 0; d < n_components; ++d)
+                {
+                    data(index, group + d) = component(result, d);
+                }
             }
         }
     }
@@ -403,7 +254,7 @@ CartGridPointwiseFunction<Value, Data, Function>::applyPointwise(
 
 namespace detail
 {
-// Share centering selection between the scalar/vector and tensor factories.
+// Share construction between the scalar/vector and tensor factories.
 template <typename Value, typename Function, typename... Args>
 SAMRAI::tbox::Pointer<CartGridFunction>
 allocate_cart_grid_pointwise_function(std::string object_name,
@@ -411,61 +262,42 @@ allocate_cart_grid_pointwise_function(std::string object_name,
                                       Function&& function,
                                       Args&&... args)
 {
-    using namespace SAMRAI;
     if (!var)
     {
         TBOX_ERROR("CartGridPointwiseFunction: a variable is required\n");
     }
-    const tbox::Pointer<hier::PatchDataFactory<NDIM>> factory = var->getPatchDataFactory();
-    if (tbox::Pointer<pdat::CellDataFactory<NDIM, double>> typed_factory = factory)
+    const DataCentering centering = get_data_centering<double>(*var->getPatchDataFactory());
+    if (centering == DataCentering::UNKNOWN)
     {
-        return new CartGridPointwiseFunction<Value, pdat::CellData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+        TBOX_ERROR("CartGridPointwiseFunction: unsupported variable patch data factory\n");
     }
-    if (tbox::Pointer<pdat::NodeDataFactory<NDIM, double>> typed_factory = factory)
-    {
-        return new CartGridPointwiseFunction<Value, pdat::NodeData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
-    }
-    if (tbox::Pointer<pdat::SideDataFactory<NDIM, double>> typed_factory = factory)
-    {
-        return new CartGridPointwiseFunction<Value, pdat::SideData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
-    }
-    if (tbox::Pointer<pdat::FaceDataFactory<NDIM, double>> typed_factory = factory)
-    {
-        return new CartGridPointwiseFunction<Value, pdat::FaceData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
-    }
-    if (tbox::Pointer<pdat::EdgeDataFactory<NDIM, double>> typed_factory = factory)
-    {
-        return new CartGridPointwiseFunction<Value, pdat::EdgeData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
-    }
-    TBOX_ERROR("CartGridPointwiseFunction: unsupported variable patch data factory\n");
-    return nullptr;
+    return dispatch_data_centering(
+        centering,
+        [&]<Centering Layout>() -> SAMRAI::tbox::Pointer<CartGridFunction>
+        {
+            return new CartGridPointwiseFunction<Value, Layout, std::decay_t<Function>>(
+                std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+        });
 }
 } // namespace detail
 
-template <typename Value, typename Function>
+template <PointwiseValue Value, PointwiseCallback<Value> Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                  Function&& function)
+                                  Function&& function) requires(!std::same_as<Value, MatrixNd>)
 {
-    static_assert(!std::is_same_v<Value, MatrixNd>, "MatrixNd requires explicit TensorStorage.");
     return detail::allocate_cart_grid_pointwise_function<Value>(
         std::move(object_name), var, std::forward<Function>(function));
 }
 
-template <typename Value, typename Function>
+template <PointwiseValue Value, PointwiseCallback<Value> Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function,
-                                  const TensorStorage storage)
+                                  const TensorStorage storage) requires std::same_as<Value, MatrixNd>
 {
-    static_assert(std::is_same_v<Value, MatrixNd>, "TensorStorage is only applicable to MatrixNd.");
     return detail::allocate_cart_grid_pointwise_function<Value>(
         std::move(object_name), var, std::forward<Function>(function), storage);
 }
