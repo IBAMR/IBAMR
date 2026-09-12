@@ -1,6 +1,8 @@
 New: CartGridPointwiseFunction and make_cart_grid_pointwise_function provide
 functor-based initialization and transformation of scalar, vector, and tensor
 values on cell-, node-, side-, face-, and edge-centered patch data. The factory
-selects the centering from a SAMRAI variable at construction.
+selects the centering from a SAMRAI variable at construction. CartesianCentering
+provides the SAMRAI types and geometry for each DataCentering and models the
+Centering concept. The same dispatch is used by CartGridFunctionSet.
 <br>
 (Aaron Barrett and Boyce Griffith, 2026/09/10)
