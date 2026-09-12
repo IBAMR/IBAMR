@@ -46,7 +46,8 @@ namespace IBTK
  * -# Scan a specified directory for subdirectories matching the pattern "restore.NNNNNN..."
  * -# Parse restart restore numbers from these directory names
  * -# Sort directories based on restart restore numbers
- * -# Keep the N most recent directories and delete the rest
+ * -# Keep the N most recent directories plus any marked important, and delete the rest
+ * -# Mark specific directories as important to protect them from cleanup
  *
  * \note This class assumes restart directories follow the naming pattern "restore.NNNNNN..."
  * where the restart restore number is zero-padded to a minimum of 6 digits by IBAMR.
@@ -68,10 +69,11 @@ namespace IBTK
  * // Configuration-driven usage with SAMRAI Database
  * Pointer<Database> restart_db = input_db->getDatabase("RestartCleaner");
  * RestartCleaner cleaner("RestartCleaner", restart_db);
- * cleaner.cleanup();  // Use dry_run=true in config to preview without deleting
  *
- * // Check available restart restore numbers
- * auto restore_numbers = cleaner.getAvailableRestoreNumbers();
+ * // In the restart dump block of the time loop:
+ * RestartManager::getManager()->writeRestartFile(dirname, iteration_num);
+ * cleaner.markImportant(iteration_num);  // protect from deletion
+ * cleaner.cleanup();  // deletes old directories, keeps recent + important
  * \endcode
  */
 class RestartCleaner
@@ -118,6 +120,32 @@ public:
      * actually removing any files.
      */
     void cleanup();
+
+    /*!
+     * \brief Mark a restart directory as important to protect it from deletion.
+     *
+     * Creates a ".important" marker file inside the restore directory corresponding
+     * to the given restart restore number. During cleanup(), directories with this
+     * marker are unconditionally kept regardless of the keep_recent_n policy.
+     *
+     * The final keep set during cleanup is: K_recent ∪ K_important.
+     *
+     * \note Must be called AFTER RestartManager::writeRestartFile() has created the
+     * directory, and BEFORE cleanup() deletes old directories. The typical calling
+     * pattern in the restart dump block is:
+     * \code
+     * RestartManager::getManager()->writeRestartFile(dirname, iteration_num);
+     * if (some_condition) cleaner.markImportant(iteration_num);
+     * cleaner.cleanup();
+     * \endcode
+     *
+     * \note In parallel environments, the marker file is created only on the master
+     * processor (rank 0) to ensure consistency.
+     *
+     * \param restart_restore_number The restart restore number of the directory to mark.
+     *        Must correspond to an existing restore directory.
+     */
+    void markImportant(int restart_restore_number);
 
     /*!
      * \brief Get available restart restore numbers.
@@ -179,6 +207,17 @@ private:
      * \brief KEEP_RECENT_N strategy implementation.
      */
     void keepRecentN() const;
+
+    /*!
+     * \brief Check if a restart directory is marked as important.
+     *
+     * \param dir_path Path to the restart directory to check
+     * \return true if the directory contains the importance marker file
+     */
+    bool isMarkedImportant(const std::filesystem::path& dir_path) const;
+
+    // Filename for the importance marker within restore directories
+    static const std::string s_important_marker_filename;
 
     // Member variables
     std::string d_object_name;
