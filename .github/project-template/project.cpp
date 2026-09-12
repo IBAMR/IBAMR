@@ -16,7 +16,7 @@
 
 int main(int argc, char **argv)
 {
-    // Make sure we set up the right C++ version by explicitly using C++11 features:
+    static_assert(__cplusplus >= 202002L, "IBAMR requires C++20.");
     auto ibtk_init = std::make_shared<IBTK::IBTKInit>(argc, argv);
 #ifdef IBTK_HAVE_LIBMESH
     const libMesh::Point point(1.0, 2.0, 3.0);
