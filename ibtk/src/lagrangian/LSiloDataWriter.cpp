@@ -64,12 +64,14 @@ static const int SILO_MPI_TAG = 0;
 
 // The name of the Silo dumps and database filenames.
 static const int SILO_NAME_BUFSIZE = 128;
+#if defined(IBTK_HAVE_SILO)
 static const std::string VISIT_DUMPS_FILENAME = "lag_data.visit";
 static const std::string SILO_DUMP_DIR_PREFIX = "lag_data.cycle_";
 static const std::string SILO_SUMMARY_FILE_PREFIX = "lag_data.cycle_";
 static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
 static const std::string SILO_PROCESSOR_FILE_PREFIX = "lag_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
+#endif
 
 // Version of LSiloDataWriter restart file data.
 static const int LAG_SILO_DATA_WRITER_VERSION = 1;
