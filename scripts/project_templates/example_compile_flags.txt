@@ -20,5 +20,5 @@
 -I/usr/local/opt/llvm/include
 -I/usr/local/opt/llvm/include/c++/v1
 -Wall
--std=c++11
+-std=c++20
 -xc++
