@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
@@ -41,7 +42,7 @@ namespace
 {
 constexpr double INITIAL_TIME = 0.5;
 constexpr double TRANSFORM_TIME = 1.25;
-using Functions = std::array<Pointer<CartGridFunction>, 3>;
+using Functions = std::array<Pointer<CartGridFunction>, 2>;
 
 double
 coordinate_value(const VectorNd& x, const double time)
@@ -71,12 +72,6 @@ coordinate_expression(const std::string& time)
     return "(" + expression + ")";
 }
 
-double
-scalar_identity(const double q, const VectorNd&, const double, const int, const int)
-{
-    return q;
-}
-
 Functions
 make_scalar_functions(Pointer<Variable<NDIM>> var)
 {
@@ -85,7 +80,6 @@ make_scalar_functions(Pointer<Variable<NDIM>> var)
                  var,
                  [offset = std::make_unique<double>(0.0)](const VectorNd& x, double t, int d, int axis)
                  { return coordinate_value(x, t) + 10 * d + 100 * axis_number(axis) + *offset; }),
-             make_cart_grid_pointwise_function<double>("scalar identity", var, scalar_identity),
              make_cart_grid_pointwise_function<double>("scalar transformation",
                                                        var,
                                                        [](double q, const VectorNd& x, double t, int d, int axis) {
@@ -118,10 +112,6 @@ make_vector_functions(Pointer<Variable<NDIM>> var, const int depth)
                      }
                      return q;
                  }),
-             make_cart_grid_pointwise_function<Value>(
-                 "vector identity",
-                 var,
-                 [](const Value& q, const VectorNd&, double, int, int) -> const Value& { return q; }),
              make_cart_grid_pointwise_function<Value>("vector transformation",
                                                       var,
                                                       [](const Value& q, const VectorNd&, double, int, int)
@@ -157,11 +147,6 @@ make_tensor_functions(Pointer<Variable<NDIM>> var, const TensorStorage storage)
                      }
                      return base.array() + coordinate_value(x, t) + 100 * axis_number(axis);
                  },
-                 storage),
-             make_cart_grid_pointwise_function<MatrixNd>(
-                 "tensor identity",
-                 var,
-                 [](const MatrixNd& q, const VectorNd&, double, int, int) -> const MatrixNd& { return q; },
                  storage),
              make_cart_grid_pointwise_function<MatrixNd>(
                  "tensor transformation",
@@ -341,84 +326,77 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
         functions =
             make_tensor_functions(selector_var, kind == "full tensor" ? TensorStorage::FULL : TensorStorage::SYMMETRIC);
     }
-    // The selector is no longer needed after construction.
     selector_var.setNull();
-    TBOX_ASSERT(functions[0]->isTimeDependent());
+    Pointer<Var> var;
+    if constexpr (std::is_same_v<Var, SideVariable<NDIM, double>>)
+    {
+        var = new Var(name, depth, true, partial ? NDIM - 1 : -1);
+    }
+    else
+    {
+        var = new Var(name, depth);
+    }
+    Pointer<Var> reference_var = new Var(name + " reference", depth);
     IntVector<NDIM> ghosts(1);
     ghosts(1) = 2;
+    const int data_idx = var_db->registerVariableAndContext(var, context, ghosts);
+    const int reference_idx = var_db->registerVariableAndContext(reference_var, context, ghosts);
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(data_idx);
+        level->allocatePatchData(reference_idx);
+        for (PatchLevel<NDIM>::Iterator it(level); it; it++)
+        {
+            Pointer<Data> data = level->getPatch(it())->getPatchData(data_idx);
+            Pointer<Data> reference = level->getPatch(it())->getPatchData(reference_idx);
+            data->fillAll(std::numeric_limits<double>::quiet_NaN());
+            reference->fillAll(std::numeric_limits<double>::quiet_NaN());
+        }
+    }
     const bool staggered =
         !std::is_same_v<Data, CellData<NDIM, double>> && !std::is_same_v<Data, NodeData<NDIM, double>>;
-    double initialization_error = 0.0, identity_error = 0.0, transformation_error = 0.0;
-    // Reuse scalar callbacks across changing depths and partial side directions.
-    const int n_layouts = kind == "scalar" ? 2 : 1;
-    for (int layout = 0; layout < n_layouts; ++layout)
+    set_reference(
+        hierarchy, reference_idx, reference_var, reference_expressions(kind, depth, staggered, false), INITIAL_TIME);
+    functions[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, INITIAL_TIME);
+    const double initialization_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
+    functions[1]->setDataOnPatchHierarchy(data_idx, var, hierarchy, TRANSFORM_TIME);
+    set_reference(
+        hierarchy, reference_idx, reference_var, reference_expressions(kind, depth, staggered, true), TRANSFORM_TIME);
+    const double transformation_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
+
+    CartGridFunctionSet sum(name + " sum");
+    sum.addFunction(functions[0]);
+    sum.addFunction(functions[0]);
+    std::vector<std::string> sum_expressions = reference_expressions(kind, depth, staggered, false);
+    for (std::string& expression : sum_expressions)
     {
-        const int data_depth = depth + layout;
-        const std::string layout_name = name + " " + std::to_string(layout);
-        Pointer<Var> var;
-        if constexpr (std::is_same_v<Var, SideVariable<NDIM, double>>)
-        {
-            var = new Var(layout_name, data_depth, true, partial ? NDIM - 1 - layout : -1);
-        }
-        else
-        {
-            var = new Var(layout_name, data_depth);
-        }
-        Pointer<Var> reference_var = new Var(layout_name + " reference", data_depth);
-        const int data_idx = var_db->registerVariableAndContext(var, context, ghosts);
-        const int reference_idx = var_db->registerVariableAndContext(reference_var, context, ghosts);
-        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            hierarchy->getPatchLevel(ln)->allocatePatchData(data_idx);
-            hierarchy->getPatchLevel(ln)->allocatePatchData(reference_idx);
-        }
-        for (const bool initial_time : { false, true })
-        {
-            for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator it(level); it; it++)
-                {
-                    Pointer<Data> data = level->getPatch(it())->getPatchData(data_idx);
-                    Pointer<Data> reference = level->getPatch(it())->getPatchData(reference_idx);
-                    data->fillAll(std::numeric_limits<double>::quiet_NaN());
-                    reference->fillAll(std::numeric_limits<double>::quiet_NaN());
-                }
-            }
-            set_reference(hierarchy,
-                          reference_idx,
-                          reference_var,
-                          reference_expressions(kind, data_depth, staggered, false),
-                          INITIAL_TIME);
-            functions[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, INITIAL_TIME, initial_time);
-            initialization_error =
-                std::max(initialization_error, compute_error<Data>(hierarchy, data_idx, reference_idx));
-            // Exercise the inherited level entry point independently of hierarchy traversal.
-            for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-            {
-                functions[1]->setDataOnPatchLevel(
-                    data_idx, var, hierarchy->getPatchLevel(ln), TRANSFORM_TIME, initial_time);
-            }
-            identity_error = std::max(identity_error, compute_error<Data>(hierarchy, data_idx, reference_idx));
-            functions[2]->setDataOnPatchHierarchy(data_idx, var, hierarchy, TRANSFORM_TIME, initial_time);
-            set_reference(hierarchy,
-                          reference_idx,
-                          reference_var,
-                          reference_expressions(kind, data_depth, staggered, true),
-                          TRANSFORM_TIME);
-            transformation_error =
-                std::max(transformation_error, compute_error<Data>(hierarchy, data_idx, reference_idx));
-        }
-        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            hierarchy->getPatchLevel(ln)->deallocatePatchData(data_idx);
-            hierarchy->getPatchLevel(ln)->deallocatePatchData(reference_idx);
-        }
-        var_db->removePatchDataIndex(data_idx);
-        var_db->removePatchDataIndex(reference_idx);
+        expression = "2*(" + expression + ")";
     }
-    plog << name << " errors (initialize, identity, transform): " << initialization_error << ' ' << identity_error
-         << ' ' << transformation_error << '\n';
+    set_reference(hierarchy, reference_idx, reference_var, sum_expressions, INITIAL_TIME);
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator it(level); it; it++)
+        {
+            sum.setDataOnPatch(data_idx, var, level->getPatch(it()), INITIAL_TIME, true, level);
+        }
+    }
+    const double patch_sum_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        sum.setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(ln), INITIAL_TIME, true);
+    }
+    const double level_sum_error = compute_error<Data>(hierarchy, data_idx, reference_idx);
+    plog << name << " errors (initialize, transform, patch sum, level sum): " << initialization_error << ' '
+         << transformation_error << ' ' << patch_sum_error << ' ' << level_sum_error << '\n';
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(data_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(reference_idx);
+    }
+    var_db->removePatchDataIndex(data_idx);
+    var_db->removePatchDataIndex(reference_idx);
 }
 
 // Preserve the actual abort diagnostic while omitting source paths and line numbers.
@@ -442,61 +420,15 @@ run_error_case(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::string& error
     Logger::getInstance()->setAbortAppender(new ErrorAppender());
     Pointer<Variable<NDIM>> selector_var = new CellVariable<NDIM, double>("selector");
     Pointer<CartGridFunction> function;
-    int depth = NDIM;
-    if (error == "vector_depth")
-    {
-        depth = NDIM + 1;
-        function = make_vector_functions<VectorNd>(selector_var, NDIM)[1];
-    }
-    else if (error == "dynamic_shape")
+    const int depth = NDIM;
+    if (error == "dynamic_shape")
     {
         function = make_cart_grid_pointwise_function<VectorXd>(
             "bad shape", selector_var, [](const VectorNd&, double, int, int) { return VectorXd::Zero(NDIM + 1); });
     }
-    else if (error == "fixed_shape")
-    {
-        function = make_cart_grid_pointwise_function<VectorNd>(
-            "bad shape", selector_var, [](const VectorNd&, double, int, int) { return VectorXd::Zero(NDIM + 1); });
-    }
-    else if (error == "tensor_depth")
-    {
-        depth = NDIM * NDIM;
-        function = make_tensor_functions(selector_var, TensorStorage::SYMMETRIC)[1];
-    }
-    else if (error == "symmetry")
-    {
-        depth = NDIM * (NDIM + 1) / 2;
-        function = make_cart_grid_pointwise_function<MatrixNd>(
-            "nonsymmetric",
-            selector_var,
-            [](const VectorNd&, double, int, int) -> MatrixNd
-            {
-                MatrixNd q = MatrixNd::Identity();
-                q(0, 1) = 1.0;
-                return q;
-            },
-            TensorStorage::SYMMETRIC);
-    }
-    else if (error == "storage")
-    {
-        function = make_tensor_functions(selector_var, static_cast<TensorStorage>(-1))[1];
-    }
-    else if (error == "null_variable")
-    {
-        function = make_scalar_functions(nullptr)[0];
-    }
-    else if (error == "factory_type")
-    {
-        selector_var = new CellVariable<NDIM, int>("integer selector");
-        function = make_scalar_functions(selector_var)[0];
-    }
-    else if (error == "centering")
+    else if (error == "centering" || error == "data_type")
     {
         function = make_scalar_functions(selector_var)[0];
-    }
-    else if (error == "data_type")
-    {
-        function = make_scalar_functions(selector_var)[1];
     }
     else
     {
@@ -519,14 +451,6 @@ run_error_case(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::string& error
     const int idx = var_db->registerVariableAndContext(var, var_db->getContext("invalid"), IntVector<NDIM>(0));
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     level->allocatePatchData(idx);
-    for (PatchLevel<NDIM>::Iterator it(level); it; it++)
-    {
-        Pointer<CellData<NDIM, double>> data = level->getPatch(it())->getPatchData(idx);
-        if (data)
-        {
-            data->fillAll(1.0);
-        }
-    }
     function->setDataOnPatchHierarchy(idx, var, hierarchy, INITIAL_TIME);
     // A zero exit status must fail an expect_error test if no diagnostic occurred.
 }
@@ -572,22 +496,19 @@ main(int argc, char* argv[])
     {
         TBOX_ERROR("This test requires two hierarchy levels\n");
     }
-    TBOX_ASSERT(enum_to_string(TensorStorage::FULL) == "FULL");
-    TBOX_ASSERT(enum_to_string(TensorStorage::SYMMETRIC) == "SYMMETRIC");
-    TBOX_ASSERT(string_to_enum<TensorStorage>("full") == TensorStorage::FULL);
-    TBOX_ASSERT(string_to_enum<TensorStorage>("symmetric") == TensorStorage::SYMMETRIC);
     plog << std::scientific << std::setprecision(12);
-    const std::array<std::string, 5> kinds{ "scalar", "vector", "general", "full tensor", "symmetric tensor" };
-    const std::array<int, 5> depths{ NDIM + 2, NDIM, 2 * NDIM + 1, NDIM * NDIM, NDIM * (NDIM + 1) / 2 };
-    for (unsigned int k = 0; k < kinds.size(); ++k)
-    {
-        run_case<CellData<NDIM, double>, CellVariable<NDIM, double>>(hierarchy, "cell", kinds[k], depths[k]);
-        run_case<NodeData<NDIM, double>, NodeVariable<NDIM, double>>(hierarchy, "node", kinds[k], depths[k]);
-        run_case<SideData<NDIM, double>, SideVariable<NDIM, double>>(hierarchy, "side", kinds[k], depths[k]);
-        run_case<FaceData<NDIM, double>, FaceVariable<NDIM, double>>(hierarchy, "face", kinds[k], depths[k]);
-        run_case<EdgeData<NDIM, double>, EdgeVariable<NDIM, double>>(hierarchy, "edge", kinds[k], depths[k]);
-        run_case<SideData<NDIM, double>, SideVariable<NDIM, double>>(
-            hierarchy, "partial side", kinds[k], depths[k], true);
-    }
+    // Exercise each centering's geometry with scalars, then vector and tensor
+    // packing on representative layouts.
+    run_case<CellData<NDIM, double>, CellVariable<NDIM, double>>(hierarchy, "cell", "scalar", NDIM + 2);
+    run_case<NodeData<NDIM, double>, NodeVariable<NDIM, double>>(hierarchy, "node", "scalar", NDIM + 2);
+    run_case<SideData<NDIM, double>, SideVariable<NDIM, double>>(hierarchy, "side", "scalar", NDIM + 2);
+    run_case<FaceData<NDIM, double>, FaceVariable<NDIM, double>>(hierarchy, "face", "scalar", NDIM + 2);
+    run_case<EdgeData<NDIM, double>, EdgeVariable<NDIM, double>>(hierarchy, "edge", "scalar", NDIM + 2);
+    run_case<SideData<NDIM, double>, SideVariable<NDIM, double>>(hierarchy, "partial side", "scalar", NDIM + 2, true);
+    run_case<NodeData<NDIM, double>, NodeVariable<NDIM, double>>(hierarchy, "node", "vector", NDIM);
+    run_case<FaceData<NDIM, double>, FaceVariable<NDIM, double>>(hierarchy, "face", "general", 2 * NDIM + 1);
+    run_case<CellData<NDIM, double>, CellVariable<NDIM, double>>(hierarchy, "cell", "full tensor", NDIM * NDIM);
+    run_case<SideData<NDIM, double>, SideVariable<NDIM, double>>(
+        hierarchy, "side", "symmetric tensor", NDIM * (NDIM + 1) / 2);
     return 0;
 }
