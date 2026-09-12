@@ -72,20 +72,39 @@ coordinate_expression(const std::string& time)
     return "(" + expression + ")";
 }
 
+class ScalarResult
+{
+public:
+    /*! \brief Store the scalar callback result. */
+    explicit ScalarResult(const double value) : d_value(value)
+    {
+    }
+
+    /*! \brief Require conversion from the returned value rather than an lvalue. */
+    operator double() &&
+    {
+        return d_value;
+    }
+
+private:
+    double d_value;
+};
+
 Functions
 make_scalar_functions(Pointer<Variable<NDIM>> var)
 {
+    // Copy a const source functor and preserve its rvalue-only scalar conversion.
+    const auto transform = [result = 0.0](double q, const VectorNd& x, double t, int d, int axis) mutable
+    {
+        result = 2 * q + coordinate_value(x, t) + d + axis_number(axis);
+        return ScalarResult(result);
+    };
     return { make_cart_grid_pointwise_function<double>(
                  "scalar initialization",
                  var,
                  [offset = std::make_unique<double>(0.0)](const VectorNd& x, double t, int d, int axis)
                  { return coordinate_value(x, t) + 10 * d + 100 * axis_number(axis) + *offset; }),
-             make_cart_grid_pointwise_function<double>("scalar transformation",
-                                                       var,
-                                                       [](double q, const VectorNd& x, double t, int d, int axis) {
-                                                           return 2 * q + coordinate_value(x, t) + d +
-                                                                  axis_number(axis);
-                                                       }) };
+             make_cart_grid_pointwise_function<double>("scalar transformation", var, transform) };
 }
 
 template <typename Value>
@@ -135,19 +154,17 @@ base_tensor(const bool symmetric)
 Functions
 make_tensor_functions(Pointer<Variable<NDIM>> var, const TensorStorage storage)
 {
-    return { make_cart_grid_pointwise_function<MatrixNd>(
-                 "tensor initialization",
-                 var,
-                 [base = base_tensor(storage == TensorStorage::SYMMETRIC)](
-                     const VectorNd& x, double t, int d, int axis) -> MatrixNd
-                 {
-                     if (d != 0)
-                     {
-                         TBOX_ERROR("Whole-tensor callbacks must receive depth zero\n");
-                     }
-                     return base.array() + coordinate_value(x, t) + 100 * axis_number(axis);
-                 },
-                 storage),
+    // Exercise const lvalue copying in the tensor factory as well.
+    const auto initialize = [base = base_tensor(storage == TensorStorage::SYMMETRIC)](
+                                const VectorNd& x, double t, int d, int axis) mutable -> MatrixNd
+    {
+        if (d != 0)
+        {
+            TBOX_ERROR("Whole-tensor callbacks must receive depth zero\n");
+        }
+        return base.array() + coordinate_value(x, t) + 100 * axis_number(axis);
+    };
+    return { make_cart_grid_pointwise_function<MatrixNd>("tensor initialization", var, initialize, storage),
              make_cart_grid_pointwise_function<MatrixNd>(
                  "tensor transformation",
                  var,

@@ -167,23 +167,25 @@ private:
  * f->setDataOnPatchHierarchy(data_idx, var, hierarchy, time);
  * \endcode
  */
-template <PointwiseValue Value, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                  Function&& function) requires(!std::same_as<Value, MatrixNd>);
+                                  Function&& function)
+    requires(!std::same_as<Value, MatrixNd> && PointwiseCallback<std::decay_t<Function>, Value>);
 
 /*!
  * \brief Construct a MatrixNd pointwise function with explicit tensor storage.
  *
  * Variable selection and functor ownership follow the scalar/vector overload.
  */
-template <PointwiseValue Value, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function,
-                                  TensorStorage storage) requires std::same_as<Value, MatrixNd>;
+                                  TensorStorage storage)
+    requires(std::same_as<Value, MatrixNd>&& PointwiseCallback<std::decay_t<Function>, Value>);
 } // namespace IBTK
 
 #include <ibtk/private/CartGridPointwiseFunction-inl.h>
