@@ -68,6 +68,7 @@ inline std::string enum_to_string<DataCentering>(DataCentering value);
  * The enum selects the SAMRAI data, factory, index, and patch arithmetic types.
  * Scalar type and data depth are independent of centering. Side, face, and edge
  * data have separate arrays for each orientation; cell and node data do not.
+ * For oriented data, axis must be in [0, NDIM); cell and node operations ignore it.
  */
 template <DataCentering C>
 struct CartesianCentering
@@ -115,14 +116,14 @@ struct CartesianCentering
     /*! \brief Iterate over an orientation of the given cell box. */
     static typename Data<double>::Iterator begin(const SAMRAI::hier::Box<NDIM>& box, int axis);
 
-    /*! \brief Locate data relative to the lower corner of its cell. */
+    /*! \brief Return the offset from a cell's lower corner in units of its widths. */
     static VectorNd offset(int axis);
 
     /*! \brief Convert a native data index to Cartesian coordinate order. */
     static SAMRAI::hier::Index<NDIM> cartesian_index(const Index& index);
 };
 
-/*! \brief A Cartesian layout supplying data types, iteration, and physical offsets. */
+/*! \brief A Cartesian layout supplying data types, iteration, and cell-relative offsets. */
 template <typename Layout>
 concept Centering = requires(const typename Layout::template Data<double>& data,
                              const SAMRAI::hier::Box<NDIM>& box,

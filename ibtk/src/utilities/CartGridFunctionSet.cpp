@@ -196,8 +196,7 @@ CartGridFunctionSet::setDataOnPatch(const int data_idx,
 #endif
             d_fcns[0]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
             cloned_data->copy(*data);
-            // A cloned index cannot be registered for a single patch, so accumulate
-            // separately while each function writes to the original index.
+            // Accumulate separately since each function overwrites data_idx.
             for (unsigned int k = 1; k < d_fcns.size(); ++k)
             {
                 d_fcns[k]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
