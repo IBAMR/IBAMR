@@ -234,7 +234,7 @@ CartGridPointwiseFunction<Value, Layout, Function>::applyPointwise(
                     }
                 }
                 // Materialize lazy expressions before scattering or overwriting q.
-                result = value;
+                result = std::forward<decltype(value)>(value);
                 if constexpr (std::same_as<Value, MatrixNd>)
                 {
                     if (d_tensor_storage == TensorStorage::SYMMETRIC && !result.isApprox(result.transpose()))
@@ -280,22 +280,24 @@ allocate_cart_grid_pointwise_function(std::string object_name,
 }
 } // namespace detail
 
-template <PointwiseValue Value, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                  Function&& function) requires(!std::same_as<Value, MatrixNd>)
+                                  Function&& function)
+    requires(!std::same_as<Value, MatrixNd> && PointwiseCallback<std::decay_t<Function>, Value>)
 {
     return detail::allocate_cart_grid_pointwise_function<Value>(
         std::move(object_name), var, std::forward<Function>(function));
 }
 
-template <PointwiseValue Value, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
 make_cart_grid_pointwise_function(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function,
-                                  const TensorStorage storage) requires std::same_as<Value, MatrixNd>
+                                  const TensorStorage storage)
+    requires(std::same_as<Value, MatrixNd>&& PointwiseCallback<std::decay_t<Function>, Value>)
 {
     return detail::allocate_cart_grid_pointwise_function<Value>(
         std::move(object_name), var, std::forward<Function>(function), storage);
