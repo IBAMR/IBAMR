@@ -254,7 +254,6 @@ CartGridPointwiseFunction<Value, Layout, Function>::applyPointwise(
 
 namespace detail
 {
-// Share construction between the scalar/vector and tensor factories.
 template <typename Value, typename Function, typename... Args>
 SAMRAI::tbox::Pointer<CartGridFunction>
 allocate_cart_grid_pointwise_function(std::string object_name,
