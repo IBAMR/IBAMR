@@ -1,0 +1,3 @@
+New: CartGridPatchwiseFunction adapts owned patch callables to CartGridFunction.
+<br>
+(Boyce Griffith, 2026/09/12)
