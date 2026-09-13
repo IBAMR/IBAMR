@@ -82,7 +82,8 @@ check_heaviside(Pointer<PatchHierarchy<NDIM>> hierarchy,
         Pointer<CellData<NDIM, double>> ls_data = patch->getPatchData(ls_idx);
         for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
         {
-            (*ls_data)(CellIndex<NDIM>(i())) = alpha * distances[i()(0) % distances.size()];
+            (*ls_data)(CellIndex<NDIM>(i())) =
+                alpha * distances[(i()(0) - patch->getBox().lower(0)) % distances.size()];
         }
     }
     PhaseChangeExamples::HeavisideFromLevelSet context(integrator, ls_var, 2.0);
@@ -96,7 +97,7 @@ check_heaviside(Pointer<PatchHierarchy<NDIM>> hierarchy,
         Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
         for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
         {
-            const auto sample = i()(0) % expected.size();
+            const auto sample = (i()(0) - patch->getBox().lower(0)) % expected.size();
             measured[sample] = (*H_data)(CellIndex<NDIM>(i()));
             check_value(measured[sample], expected[sample]);
         }
@@ -107,6 +108,28 @@ check_heaviside(Pointer<PatchHierarchy<NDIM>> hierarchy,
         plog << ' ' << value;
     }
     plog << '\n';
+}
+
+double
+fraction_value(const CellIndex<NDIM>& index, const bool extrapolated)
+{
+    double perturbation = 0.0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        perturbation += 0.02 * (d + 1) * std::sin(0.25 * std::acos(-1.0) * index(d));
+    }
+    return extrapolated ? 0.75 - perturbation : 0.25 + perturbation;
+}
+
+double
+temperature_value(const CellIndex<NDIM>& index)
+{
+    double temperature = 1.0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        temperature += 0.125 * (d + 1) * index(d);
+    }
+    return temperature;
 }
 
 enum class CapillaryOperation
@@ -150,12 +173,15 @@ check_capillary(Pointer<PatchHierarchy<NDIM>> hierarchy,
         Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
         for (Box<NDIM>::Iterator i(T_data->getGhostBox()); i; i++)
         {
-            (*T_data)(CellIndex<NDIM>(i())) = 1.0 + 0.25 * i()(0);
+            (*T_data)(CellIndex<NDIM>(i())) = temperature_value(CellIndex<NDIM>(i()));
         }
         Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_new_idx);
         Pointer<CellData<NDIM, double>> extrap_data = patch->getPatchData(extrap_new_idx);
-        lf_data->fillAll(0.25);
-        extrap_data->fillAll(0.75);
+        for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+        {
+            (*lf_data)(CellIndex<NDIM>(i())) = fraction_value(CellIndex<NDIM>(i()), false);
+            (*extrap_data)(CellIndex<NDIM>(i())) = fraction_value(CellIndex<NDIM>(i()), true);
+        }
         Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -215,11 +241,13 @@ check_capillary(Pointer<PatchHierarchy<NDIM>> hierarchy,
                 for (Box<NDIM>::Iterator i(side_box); i; i++)
                 {
                     const SideIndex<NDIM> side(i(), axis, SideIndex<NDIM>::Lower);
+                    CellIndex<NDIM> left(i()), right(i());
+                    --left(axis);
                     double expected = 0.0;
                     switch (operation)
                     {
                     case CapillaryOperation::SURFACE_TENSION:
-                        expected = 4.0 - 0.25 * (i()(0) - (axis == 0 ? 0.5 : 0.0));
+                        expected = 5.0 - 0.5 * (temperature_value(left) + temperature_value(right));
                         break;
                     case CapillaryOperation::MARANGONI:
                         expected = -1.0;
@@ -228,10 +256,10 @@ check_capillary(Pointer<PatchHierarchy<NDIM>> hierarchy,
                         expected = 2.0 + axis;
                         break;
                     case CapillaryOperation::LIQUID_MASK:
-                        expected = (2.0 + axis) * 0.25;
+                        expected = (2.0 + axis) * 0.5 * (fraction_value(left, false) + fraction_value(right, false));
                         break;
                     case CapillaryOperation::EXTRAPOLATED_MASK:
-                        expected = (2.0 + axis) * 0.75;
+                        expected = (2.0 + axis) * 0.5 * (fraction_value(left, true) + fraction_value(right, true));
                         break;
                     default:
                         TBOX_ERROR("Unknown capillary operation\n");
@@ -261,8 +289,7 @@ void
 check_geometry(Pointer<PatchHierarchy<NDIM>> hierarchy,
                Pointer<AdvDiffHierarchyIntegrator> integrator,
                Pointer<CellVariable<NDIM, double>> sphere_var,
-               Pointer<CellVariable<NDIM, double>> plane_var,
-               const bool check_reset)
+               Pointer<CellVariable<NDIM, double>> plane_var)
 {
     VariableDatabase<NDIM>* db = VariableDatabase<NDIM>::getDatabase();
     const int sphere_idx = db->registerVariableAndContext(sphere_var, db->getContext("geometry"));
@@ -272,58 +299,73 @@ check_geometry(Pointer<PatchHierarchy<NDIM>> hierarchy,
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     level->allocatePatchData(sphere_idx, 0.0);
     level->allocatePatchData(plane_idx, 0.0);
-    Pointer<CartGridFunction> sphere = new MultiphaseExamples::SphereLevelSet("sphere", IBTK::Vector::Zero(), 0.5);
+    IBTK::Vector center = IBTK::Vector::Zero();
+    for (int d = 0; d < NDIM; ++d)
+    {
+        center[d] = 0.125 * (d + 1);
+    }
+    Pointer<CartGridFunction> sphere = new MultiphaseExamples::SphereLevelSet("sphere", center, 0.5);
     Pointer<CartGridFunction> plane = new MultiphaseExamples::PlaneLevelSet("plane", NDIM - 1, 0.125);
     MultiphaseExamples::LSLocateInterface sphere_locator(integrator, sphere_var, sphere);
     MultiphaseExamples::LSLocateInterface plane_locator(integrator, plane_var, plane);
     Pointer<HierarchyMathOps> math_ops = new HierarchyMathOps("geometry_math", hierarchy);
     MultiphaseExamples::call_locate_interface(sphere_idx, math_ops, 0.0, true, &sphere_locator);
     MultiphaseExamples::call_locate_interface(plane_idx, math_ops, 0.0, true, &plane_locator);
-    if (check_reset)
+    for (const bool check_reset : { false, true })
     {
+        if (check_reset)
+        {
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_current);
+                Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_current);
+                for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                {
+                    (*sphere_data)(CellIndex<NDIM>(i())) = 10.0 + i()(0);
+                    (*plane_data)(CellIndex<NDIM>(i())) = -20.0 - i()(NDIM - 1);
+                }
+            }
+            MultiphaseExamples::call_locate_interface(sphere_idx, math_ops, 1.0, false, &sphere_locator);
+            MultiphaseExamples::call_locate_interface(plane_idx, math_ops, 1.0, false, &plane_locator);
+        }
+        double sphere_min = std::numeric_limits<double>::max(), sphere_max = -sphere_min;
+        double plane_min = sphere_min, plane_max = sphere_max;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_current);
-            Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_current);
+            Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_idx);
+            Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_idx);
+            Pointer<CartesianPatchGeometry<NDIM>> cartesian = patch->getPatchGeometry();
             for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
             {
-                (*sphere_data)(CellIndex<NDIM>(i())) = 10.0 + i()(0);
-                (*plane_data)(CellIndex<NDIM>(i())) = -20.0 - i()(NDIM - 1);
+                double radius_squared = 0.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    const double coordinate =
+                        cartesian->getXLower()[d] + (i()(d) - patch->getBox().lower(d) + 0.5) * cartesian->getDx()[d];
+                    radius_squared += std::pow(coordinate - center[d], 2.0);
+                }
+                const double sphere_expected = check_reset ? 10.0 + i()(0) : std::sqrt(radius_squared) - 0.5;
+                const double plane_expected =
+                    check_reset ?
+                        -20.0 - i()(NDIM - 1) :
+                        cartesian->getXLower()[NDIM - 1] +
+                            (i()(NDIM - 1) - patch->getBox().lower(NDIM - 1) + 0.5) * cartesian->getDx()[NDIM - 1] -
+                            0.125;
+                const double sphere_value = (*sphere_data)(CellIndex<NDIM>(i()));
+                const double plane_value = (*plane_data)(CellIndex<NDIM>(i()));
+                check_value(sphere_value, sphere_expected);
+                check_value(plane_value, plane_expected);
+                sphere_min = std::min(sphere_min, sphere_value);
+                sphere_max = std::max(sphere_max, sphere_value);
+                plane_min = std::min(plane_min, plane_value);
+                plane_max = std::max(plane_max, plane_value);
             }
         }
-        MultiphaseExamples::call_locate_interface(sphere_idx, math_ops, 1.0, false, &sphere_locator);
-        MultiphaseExamples::call_locate_interface(plane_idx, math_ops, 1.0, false, &plane_locator);
+        plog << (check_reset ? "Reset sphere range: " : "Sphere range: ") << sphere_min << ' ' << sphere_max << '\n';
+        plog << (check_reset ? "Reset plane range: " : "Plane range: ") << plane_min << ' ' << plane_max << '\n';
     }
-    double sphere_min = std::numeric_limits<double>::max(), sphere_max = -sphere_min;
-    double plane_min = sphere_min, plane_max = sphere_max;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-        Pointer<CellData<NDIM, double>> sphere_data = patch->getPatchData(sphere_idx);
-        Pointer<CellData<NDIM, double>> plane_data = patch->getPatchData(plane_idx);
-        for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
-        {
-            double radius_squared = 0.0;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                const double coordinate = -1.0 + (i()(d) + 0.5) / 4.0;
-                radius_squared += coordinate * coordinate;
-            }
-            const double sphere_expected = check_reset ? 10.0 + i()(0) : std::sqrt(radius_squared) - 0.5;
-            const double plane_expected = check_reset ? -20.0 - i()(NDIM - 1) : -1.125 + (i()(NDIM - 1) + 0.5) / 4.0;
-            const double sphere_value = (*sphere_data)(CellIndex<NDIM>(i()));
-            const double plane_value = (*plane_data)(CellIndex<NDIM>(i()));
-            check_value(sphere_value, sphere_expected);
-            check_value(plane_value, plane_expected);
-            sphere_min = std::min(sphere_min, sphere_value);
-            sphere_max = std::max(sphere_max, sphere_value);
-            plane_min = std::min(plane_min, plane_value);
-            plane_max = std::max(plane_max, plane_value);
-        }
-    }
-    plog << "Sphere range: " << sphere_min << ' ' << sphere_max << '\n';
-    plog << "Plane range: " << plane_min << ' ' << plane_max << '\n';
     level->deallocatePatchData(sphere_idx);
     level->deallocatePatchData(plane_idx);
     db->removePatchDataIndex(sphere_idx);
@@ -339,7 +381,6 @@ main(int argc, char* argv[])
     {
         TimerManager::createManager(nullptr);
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "helper_setup.log");
-        Pointer<Database> input = app->getInputDatabase();
         Pointer<INSVCStaggeredHierarchyIntegrator> ins =
             new INSVCStaggeredConservativeHierarchyIntegrator("ins", app->getComponentDatabase("INS"));
         Pointer<AdvDiffHierarchyIntegrator> adv =
@@ -374,25 +415,11 @@ main(int argc, char* argv[])
         ins->initializePatchHierarchy(hierarchy, gridding);
         PIO::logOnlyNodeZero("output");
         plog << std::fixed << std::setprecision(12);
-        const std::string contract = input->getString("contract");
-        if (contract == "geometry" || contract == "reset")
-        {
-            check_geometry(hierarchy, adv, ls, H, contract == "reset");
-        }
-        else if (contract == "heaviside")
-        {
-            const int H_idx =
-                VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(H, adv->getCurrentContext());
-            check_heaviside(hierarchy, adv, ls, H_idx);
-        }
-        else if (contract == "capillary")
-        {
-            check_capillary(hierarchy, ins, adv, T, lf, extrap);
-        }
-        else
-        {
-            TBOX_ERROR("Unknown helper contract: " << contract << '\n');
-        }
+        check_geometry(hierarchy, adv, ls, H);
+        const int H_idx =
+            VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(H, adv->getCurrentContext());
+        check_heaviside(hierarchy, adv, ls, H_idx);
+        check_capillary(hierarchy, ins, adv, T, lf, extrap);
     }
     return 0;
 }

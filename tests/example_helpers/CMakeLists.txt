@@ -8,6 +8,12 @@ FOREACH(_dim 2 3)
   TARGET_LINK_LIBRARIES(tests-example_helpers_${_dim}d PRIVATE phase_change_helpers_${_dim}d)
   ADD_DEPENDENCIES(tests-example_helpers tests-example_helpers_${_dim}d)
 ENDFOREACH()
+ADD_EXECUTABLE(tests-example_application_2d EXCLUDE_FROM_ALL application_contracts.cpp)
+SET_TARGET_PROPERTIES(tests-example_application_2d PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/example_helpers"
+  OUTPUT_NAME application_contracts_2d)
+TARGET_LINK_LIBRARIES(tests-example_application_2d PRIVATE phase_change_helpers_2d)
+ADD_DEPENDENCIES(tests-example_helpers tests-example_application_2d)
 ADD_DEPENDENCIES(tests-example_helpers
   multiphase_flow-ex0-2d
   multiphase_flow-ex0-3d
