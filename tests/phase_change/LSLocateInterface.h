@@ -21,6 +21,8 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include <ibtk/CartGridFunction.h>
+
 namespace IBTK
 {
 class HierarchyMathOps;
@@ -49,7 +51,7 @@ public:
     LSLocateInterface(const std::string& object_name,
                       SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
-                      double initial_interface_position);
+                      SAMRAI::tbox::Pointer<IBTK::CartGridFunction> initial_condition);
 
     /*!
      * Destructor for this class.
@@ -96,9 +98,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
 
     /*!
-     * Initial position of interface
+     * Analytic initial condition for the level set
      */
-    double d_initial_interface_position;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_initial_condition;
 };
 
 #endif // #ifndef included_LSLocateInterface

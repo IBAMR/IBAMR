@@ -34,6 +34,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
@@ -52,10 +53,7 @@
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeUtilities.h>
 
-#include "LSLocateInterface.cpp"
 #include "LSLocateInterface.h"
-#include "LevelSetInitialCondition.cpp"
-#include "LevelSetInitialCondition.h"
 
 void
 scale_laser_flux(int data_idx, Pointer<HierarchyMathOps> math_ops, int, double, double, double, void*)
@@ -338,10 +336,14 @@ main(int argc, char* argv[])
         adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
 
         const double initial_liquid_gas_interface_position = input_db->getDouble("INITIAL_INTERFACE_POSITION");
+        Pointer<CartGridFunction> ls_init = make_cart_grid_pointwise_function<double>(
+            "ls_init",
+            ls_var,
+            [initial_liquid_gas_interface_position](const VectorNd& X, double, int, int)
+            { return -(initial_liquid_gas_interface_position - X[0]) + 100.0; });
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateInterface locate_interface(
-            "LSLocateInterface", adv_diff_integrator, ls_var, initial_liquid_gas_interface_position);
+        LSLocateInterface locate_interface("LSLocateInterface", adv_diff_integrator, ls_var, ls_init);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&call_ls_locate_interface_callback, &locate_interface);
         IBAMR::LevelSetUtilities::SetLSProperties set_ls_properties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
@@ -398,8 +400,6 @@ main(int argc, char* argv[])
         adv_diff_integrator->setResetPriority(H_var, 1);
 
         // set initial conditions for the variables.
-        Pointer<CartGridFunction> ls_init =
-            new LevelSetInitialCondition("ls_init", initial_liquid_gas_interface_position);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
         // Since H is synchronized with ls, the initial conditions for H is not rquired.

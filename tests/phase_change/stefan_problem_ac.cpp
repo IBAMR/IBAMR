@@ -28,11 +28,19 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIndex.h>
+#include <VariableDatabase.h>
+
+#include <algorithm>
+#include <cmath>
 #include <sstream>
 
 #include "PhaseChangeTestUtilities.cpp"
@@ -41,11 +49,6 @@
 
 // Application
 #include <ibamr/PhaseChangeUtilities.h>
-
-#include "LiquidFractionInitialCondition.cpp"
-#include "LiquidFractionInitialCondition.h"
-#include "TemperatureInitialCondition.cpp"
-#include "TemperatureInitialCondition.h"
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -156,12 +159,20 @@ main(int argc, char* argv[])
         const double init_liquid_temperature = input_db->getDouble("LIQUID_TEMPERATURE");
         const double init_solid_temperature = input_db->getDouble("SOLID_TEMPERATURE");
 
-        Pointer<CartGridFunction> T_init = new TemperatureInitialCondition(
-            "T_init", init_liquid_solid_interface_position, init_liquid_temperature, init_solid_temperature);
+        Pointer<CartGridFunction> T_init = make_cart_grid_pointwise_function<double>(
+            "T_init",
+            T_var,
+            [init_liquid_solid_interface_position, init_liquid_temperature, init_solid_temperature](
+                const VectorNd& X, double, int, int) {
+                return X[1] <= init_liquid_solid_interface_position ? init_liquid_temperature : init_solid_temperature;
+            });
         ac_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
 
-        Pointer<CartGridFunction> lf_init =
-            new LiquidFractionInitialCondition("lf_init", init_liquid_solid_interface_position);
+        Pointer<CartGridFunction> lf_init = make_cart_grid_pointwise_function<double>(
+            "lf_init",
+            lf_var,
+            [init_liquid_solid_interface_position](const VectorNd& X, double, int, int)
+            { return X[1] <= init_liquid_solid_interface_position ? 1.0 : 0.0; });
         ac_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
         Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
@@ -269,6 +280,51 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+        if (!from_restart)
+        {
+            auto* variable_db = VariableDatabase<NDIM>::getDatabase();
+            const auto context = ac_hier_integrator->getCurrentContext();
+            const int temperature_idx = variable_db->mapVariableAndContextToIndex(T_var, context);
+            const int fraction_idx = variable_db->mapVariableAndContextToIndex(lf_var, context);
+            double max_error = 0.0;
+            int liquid_cells = 0, solid_cells = 0;
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+                    Pointer<CellData<NDIM, double>> temperature = patch->getPatchData(temperature_idx);
+                    Pointer<CellData<NDIM, double>> fraction = patch->getPatchData(fraction_idx);
+                    for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                    {
+                        const CellIndex<NDIM> cell(i());
+                        const double y = geometry->getXLower()[1] +
+                                         (cell(1) - patch->getBox().lower(1) + 0.5) * geometry->getDx()[1];
+                        const bool liquid = y <= init_liquid_solid_interface_position;
+                        liquid_cells += liquid;
+                        solid_cells += !liquid;
+                        const double expected_temperature = liquid ? init_liquid_temperature : init_solid_temperature;
+                        if (!std::isfinite((*temperature)(cell)) || !std::isfinite((*fraction)(cell)))
+                        {
+                            TBOX_ERROR("Nonfinite initial temperature or liquid fraction.\n");
+                        }
+                        max_error = std::max({ max_error,
+                                               std::abs((*temperature)(cell)-expected_temperature) /
+                                                   std::max(1.0, std::abs(expected_temperature)),
+                                               std::abs((*fraction)(cell) - (liquid ? 1.0 : 0.0)) });
+                    }
+                }
+            }
+            const double global_error = IBTK_MPI::maxReduction(max_error);
+            const int global_liquid_cells = IBTK_MPI::sumReduction(liquid_cells);
+            const int global_solid_cells = IBTK_MPI::sumReduction(solid_cells);
+            if (global_error > 1.0e-12 || global_liquid_cells == 0 || global_solid_cells == 0)
+            {
+                TBOX_ERROR("Incorrect initial temperature/liquid fraction or missing interface-side coverage.\n");
+            }
+        }
         Pointer<RegridCountingIntegrator<AllenCahnHierarchyIntegrator>> counting_integrator = ac_hier_integrator;
         const int initial_reset_count = counting_integrator->getConfigurationResetCount();
         const int initial_mesh_change_count = counting_integrator->getMeshChangeCount();

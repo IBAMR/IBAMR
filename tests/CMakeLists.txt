@@ -194,6 +194,10 @@ SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_2D(phase_change stefan_problem_enthalpy.cpp)
 SETUP_3D(phase_change stefan_problem_enthalpy.cpp)
 SETUP_2D(phase_change stefan_problem_ac.cpp)
+FOREACH(_dim 2 3)
+  TARGET_SOURCES(tests-phase_change_stefan_problem_enthalpy_${_dim}d PRIVATE
+    phase_change/LSLocateInterface.cpp)
+ENDFOREACH()
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})
