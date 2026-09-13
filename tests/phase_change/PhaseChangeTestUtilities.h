@@ -94,6 +94,12 @@ void check_restart_fields(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDI
 void check_liquid_fraction_tags(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> integrator,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
+void check_material_properties(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> integrator,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> H_var,
+                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
+                               std::ostream& results);
+
 void check_liquid_fraction_gradient(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> integrator,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> fraction_var,

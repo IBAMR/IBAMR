@@ -1,62 +1,59 @@
-Nz = 32
-check_tags = TRUE
+check_restart = TRUE
+check_amr = TRUE
+GAS_FRACTION = 0.0
+check_extrapolation = TRUE
 // constants
 PI = 3.1415926535897932
 
 // solid parameters
-RHO_S   = 500.0
-KAPPA_S = 211.0
-CP_S    = 0.91e3
+RHO_S   = 1.0
+KAPPA_S = 1.0
+CP_S    = 1.0
 MU_S    = 0.0
 
 // liquid parameters
-RHO_L   = 2700.0
-KAPPA_L = 91.0
-CP_L    = 1.0424e3
+RHO_L   = 1.0
+KAPPA_L = 1.0
+CP_L    = 1.0
 MU_L    = 0.0
 
 // gas parameters
-RHO_G   = 0.4
-KAPPA_G = 61.0e-3
-CP_G    = 1.1e3
+RHO_G   = 1.0
+KAPPA_G = 1.0
+CP_G    = 1.0
 MU_G    = 0.0
 
-LATENT_HEAT = 3.8384e5
+LATENT_HEAT = 1.0
 
-MELT_TEMPERATURE = 933.6
-LIQUID_TEMPERATURE = 973.6
-SOLID_TEMPERATURE = 298.6
-INITIAL_INTERFACE_POSITION = 0.0
-NUMBER_OF_INTERFACE_CELLS  = 2.0
+MELT_TEMPERATURE = 1.0
+LIQUID_TEMPERATURE = 1.0
+SOLID_TEMPERATURE = 1.0
+INITIAL_INTERFACE_POSITION = 100.5
+NUMBER_OF_INTERFACE_CELLS  = 1.0
 
-LIQUIDUS_TEMPERATURE = 938.6
-SOLIDUS_TEMPERATURE = 928.6
-REFERENCE_TEMPERATURE = 933.6
+LIQUIDUS_TEMPERATURE = 1.1
+SOLIDUS_TEMPERATURE = 0.9
+REFERENCE_TEMPERATURE = 0.9
 
 // grid spacing parameters
 L          = 1.0
 H          = 1.0
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 32
-Ny = 8
+Nx = 64
+Ny = 16
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
-LiquidFractionInitialConditions{
-  function = "1.0"
-}
+LiquidFractionInitialConditions { function = "0.5" }
 
-TemperatureInitialConditions{
-  function = "973.6"
-}
+TemperatureInitialConditions { function = "1.0" }
 
 VelocityInitialConditions{
   function_0 = "0.0"
   function_1 = "0.0"
-  function_2 = "0.0"
 }
 
 VelocityBcCoefs_0 {
@@ -93,23 +90,6 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
-VelocityBcCoefs_2 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}
-
 TemperatureBcCoefs {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -121,8 +101,8 @@ TemperatureBcCoefs {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "298.6"
-   gcoef_function_1 = "973.6"
+   gcoef_function_0 = "1.0"
+   gcoef_function_1 = "1.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
@@ -252,7 +232,7 @@ DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS =   10  // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS = 4
 REGRID_INTERVAL      =   1
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
@@ -292,7 +272,7 @@ VORTICITY_REL_THRESH = 0.25
 // Level set parameters
 LS_ORDER           = "THIRD_ORDER_ENO"
 LS_ABS_TOL         = 1e-8
-LS_REINIT_INTERVAL = 1
+LS_REINIT_INTERVAL = 0
 MAX_ITERATIONS     = 25
 APPLY_SIGN_FIX     = TRUE
 APPLY_SUBCELL_FIX  = TRUE
@@ -402,6 +382,10 @@ INSVCStaggeredConservativeHierarchyIntegrator {
 }
 
 EnthalpyHierarchyIntegrator {
+   require_lf_extrapolation = TRUE
+   lf_extrap_max_num_time_steps = 120
+   lf_extrap_cell_size = HFINEST
+   gas_liquid_fraction = GAS_FRACTION
    start_time                      = START_TIME
    end_time                        = END_TIME
    grow_dt                         = GROW_DT
@@ -494,44 +478,44 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 0
    viz_dump_dirname            = "viz_stefan_problem_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_stefan_problem_2d"
+   restart_dump_interval       = 2
+   restart_dump_dirname        = "restart"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0, 0, 0) , (Nx - 1, Ny - 1, Nz - 1) ]
-   x_lo         =   0,   0,   0           // lower end of computational domain.
-   x_up         =   L,   H,   1.0         // upper end of computational domain.
-   periodic_dimension = 0,1,1
+   domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
+   x_lo         =   0,   0           // lower end of computational domain.
+   x_up         =   L,   H         // upper end of computational domain.
+   periodic_dimension = 0,1
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_6 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_7 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
-      level_0 = 2048, 2048, 2048 // largest patch allowed in hierarchy
+      level_0 = 2048, 2048 // largest patch allowed in hierarchy
                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  4, 4, 4 // smallest patch allowed in hierarchy
+      level_0 =  4, 4 // smallest patch allowed in hierarchy
                             // all finer levels will use same values as level_0...
    }
 
@@ -542,19 +526,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [(0 , 0 , 0 ),(Nx - 1 , Ny - 1 , Nz - 1 )]
-      level_1 = [(0 , 0 , 0 ),(2*Nx - 1 , 2*Ny - 1 , 2*Nz - 1 )]
-      level_2 = [(0 , 0 , 0 ),(4*Nx - 1 , 4*Ny - 1 , 4*Nz - 1 )]
-      level_3 = [(0 , 0 , 0 ),(8*Nx - 1 , 8*Ny - 1 , 8*Nz - 1 )]
-      level_4 = [(0 , 0 , 0 ),(16*Nx - 1 , 16*Ny - 1 , 16*Nz - 1 )]
-      level_5 = [(0 , 0 , 0 ),(32*Nx - 1 , 32*Ny - 1 , 32*Nz - 1 )]
-      level_6 = [(0 , 0 , 0 ),(64*Nx - 1 , 64*Ny - 1 , 64*Nz - 1 )]
-      level_7 = [(0 , 0 , 0 ),(128*Nx - 1 , 128*Ny - 1 , 128*Nz - 1 )]
-      level_8 = [(0 , 0 , 0 ),(256*Nx - 1 , 256*Ny - 1 , 256*Nz - 1 )]
-      level_9 = [(0 , 0 , 0 ),(512*Nx - 1 , 512*Ny - 1 , 512*Nz - 1 )]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {
