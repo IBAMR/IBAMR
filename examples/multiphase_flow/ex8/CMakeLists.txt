@@ -25,7 +25,7 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d.cyl
+    input2d.cyl cylinder2d.vertex
   )
 
 IBAMR_ADD_EXAMPLE(
