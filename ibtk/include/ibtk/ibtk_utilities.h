@@ -419,13 +419,7 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
  * filename-generation code.
  */
 inline std::string
-format_samrai_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
-{
-    std::ostringstream oss;
-    oss << data_dump_dirname << "/" << prefix << ".";
-    oss << std::setw(5) << std::setfill('0') << iteration_num << ".samrai." << std::setw(5) << IBTK_MPI::getRank();
-    return oss.str();
-}
+format_samrai_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix);
 
 /*!
  * Generate a filename for an iteration data file using the output directory,
@@ -433,15 +427,13 @@ format_samrai_output_filename(int iteration_num, const std::string& data_dump_di
  * filename-generation code.
  */
 inline std::string
-format_iteration_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix)
-{
-    std::ostringstream oss;
-    oss << data_dump_dirname << "/" << prefix << ".";
-    oss << std::setw(5) << std::setfill('0') << iteration_num;
-    return oss.str();
-}
+format_iteration_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix);
 
 } // namespace IBTK
+
+/////////////////////////////// INLINE ///////////////////////////////////////
+
+#include <ibtk/private/ibtk_utilities-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -488,7 +488,7 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     hier_db->close();
 
     // Write Lagrangian data.
-    file_name = format_iteration_output_filename(iteration_num, data_dump_dirname, "fe_mesh");
+    std::string file_name = format_iteration_output_filename(iteration_num, data_dump_dirname, "fe_mesh");
     file_name += ".xda";
     mesh.write(file_name);
     equation_systems->write(format_iteration_output_filename(iteration_num, data_dump_dirname, "fe_equation_systems"),
