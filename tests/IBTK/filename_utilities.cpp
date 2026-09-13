@@ -1,5 +1,4 @@
 #include <ibtk/IBTKInit.h>
-#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <fstream>
