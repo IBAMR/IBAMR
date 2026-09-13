@@ -1,0 +1,10 @@
+kernel_sample_max_error = 1.11022e-16
+kernel_moment_max_error = 8.88178e-16
+IBRedundantInitializer:  Deallocating initialization data.
+periodic_column_mismatches = 0
+periodic_weight_max_error = 0
+periodic_action_max_error = 0
+stencil_columns_and_weights_valid = true
+isotropic_equivalence_valid = true
+standalone_lifecycle_valid = true
+test_failures = 0

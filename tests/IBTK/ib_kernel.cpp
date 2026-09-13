@@ -13,7 +13,9 @@
 
 #include <ibtk/IBKernel.h>
 #include <ibtk/IBKernelTensorProduct.h>
+#include <ibtk/IBKernelTensorProductEvaluator.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/kernels.h>
 
 #include <tbox/Utilities.h>
 
@@ -39,9 +41,97 @@ using IBTK::IBKernelTensorProduct;
 
 bool ib_kernel_static_initialization_valid();
 
+struct RuntimeExtentWeights
+{
+    double operator[](std::size_t) const;
+};
+
+struct FractionalExtentWeights
+{
+    double operator[](std::size_t) const;
+};
+
+template <>
+struct IBTK::KernelWeightTraits<RuntimeExtentWeights>
+{
+    using value_type = double;
+    static std::size_t extent;
+};
+
+template <>
+struct IBTK::KernelWeightTraits<FractionalExtentWeights>
+{
+    using value_type = double;
+    static constexpr double extent = 2.5;
+};
+
+static_assert(!IBTK::KernelWeights<RuntimeExtentWeights>);
+static_assert(!IBTK::KernelWeights<FractionalExtentWeights>);
+
 namespace
 {
 constexpr std::size_t ENCODED_BLOCK_COUNT = 2;
+
+struct NonConstScalar
+{
+    using Weights = std::array<double, 2>;
+    Weights operator()(double);
+};
+
+struct BorrowedScalar
+{
+    using Weights = std::array<double, 2>;
+    const Weights& operator()(double) const;
+};
+
+struct EmptyScalar
+{
+    using Weights = std::array<double, 0>;
+    Weights operator()(double) const;
+};
+
+struct DynamicWidths
+{
+    template <int Axis>
+    static std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(1);
+        return widths;
+    }
+    template <int Axis>
+    std::array<double, 1> evaluate(const std::array<double, NDIM>&) const;
+};
+
+template <std::size_t Width, std::size_t Count>
+struct TensorShape
+{
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(Width);
+        return widths;
+    }
+    template <int Axis>
+    std::array<double, Count> evaluate(const std::array<double, NDIM>&) const;
+};
+
+static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB3>);
+static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB4>);
+static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB5>);
+static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB6>);
+static_assert(IBTK::ScalarKernel<IBTK::Kernels::BSpline<9>>);
+static_assert(!IBTK::ScalarKernel<NonConstScalar>);
+static_assert(!IBTK::ScalarKernel<BorrowedScalar>);
+static_assert(!IBTK::ScalarKernel<EmptyScalar>);
+static_assert(!IBTK::ScalarKernel<int>);
+static_assert(IBTK::TensorKernel<IBTK::IBKernelTensorProductEvaluator<IBTK::Kernels::IB4>>);
+static_assert(IBTK::TensorKernel<TensorShape<1, 1>>);
+static_assert(!IBTK::TensorKernel<DynamicWidths>);
+static_assert(!IBTK::TensorKernel<TensorShape<0, 1>>);
+static_assert(!IBTK::TensorKernel<TensorShape<2, 1>>);
+static_assert(!IBTK::TensorKernel<int>);
 
 std::vector<std::string>
 spellings(const std::string& name)
@@ -71,6 +161,68 @@ copy_product(IBKernelTensorProduct kernel)
     return kernel;
 }
 
+template <int Axis>
+double
+tensor_product_error()
+{
+    using namespace IBTK;
+    const IBKernelTensorProductEvaluator product{ Kernels::IB4{}, Kernels::IB3{} };
+    std::array<double, NDIM> r;
+    r.fill(1.0);
+    r[Axis] = 1.5;
+    const std::array<double, NDIM == 2 ? 12 : 36> weights = product.template evaluate<Axis>(r);
+    constexpr std::array<std::size_t, NDIM> widths = product.template get_stencil_widths<Axis>();
+    static_assert(weights.size() == (NDIM == 2 ? 12 : 36), "Natural tensor stencil size");
+    const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
+    const std::array<double, 4> normal = { a, b, b, a };
+    const std::array<double, 3> tangent = { 1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0 };
+    double error = 0.0;
+    for (std::size_t entry = 0; entry < weights.size(); ++entry)
+    {
+        std::size_t index = entry;
+        double expected = 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const int j = index % widths[d];
+            index /= widths[d];
+            expected *= d == Axis ? normal[j] : tangent[j];
+        }
+        const double entry_error = std::abs(weights[entry] - expected);
+        if (!(entry_error <= 1.0e-12))
+        {
+            TBOX_ERROR("Tensor weight error = " << entry_error << '\n');
+        }
+        error = std::max(error, entry_error);
+    }
+    return error;
+}
+
+double
+check_tensor_products()
+{
+    using namespace IBTK;
+    double error = std::max(tensor_product_error<0>(), tensor_product_error<1>());
+#if NDIM == 3
+    error = std::max(error, tensor_product_error<2>());
+#endif
+    const IBKernelTensorProductEvaluator bspline3{ Kernels::BSpline<3>{} };
+    const IBKernelTensorProductEvaluator bspline5{ Kernels::BSpline<5>{} };
+    std::array<double, NDIM> r;
+    r.fill(1.0);
+    const std::array<double, NDIM == 2 ? 9 : 27> weights3 = bspline3.template evaluate<0>(r);
+    r.fill(1.5);
+    const std::array<double, NDIM == 2 ? 25 : 125> weights5 = bspline5.template evaluate<NDIM - 1>(r);
+    static_assert(weights3.size() == (NDIM == 2 ? 9 : 27), "Natural three-point tensor stencil size");
+    static_assert(weights5.size() == (NDIM == 2 ? 25 : 125), "Natural five-point tensor stencil size");
+    const double error3 = std::abs(weights3[weights3.size() / 2] - std::pow(0.75, NDIM));
+    const double error5 = std::abs(weights5[0] - std::pow(1.0 / 24.0, NDIM));
+    if (!(error3 <= 1.0e-12 && error5 <= 1.0e-12))
+    {
+        TBOX_ERROR("B-spline tensor weight errors = " << error3 << ", " << error5 << '\n');
+    }
+    error = std::max({ error, error3, error5 });
+    return error;
+}
 } // namespace
 
 int
@@ -356,6 +508,7 @@ main(int argc, char* argv[])
         TBOX_ASSERT(ordered[slot] == expected);
     }
 
+    const double tensor_error = check_tensor_products();
     if (rank == 0)
     {
         std::ofstream out("output");
@@ -368,6 +521,7 @@ main(int argc, char* argv[])
         {
             out << composite.name << " = " << IBKernelTensorProduct(composite.name) << '\n';
         }
+        out << "tensor_product_max_error = " << tensor_error << '\n';
     }
-    return 0;
+    return !(tensor_error <= 1.0e-12);
 }

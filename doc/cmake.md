@@ -147,6 +147,11 @@ In particular, to use compilers specified by modules, you need to provide paths
 to them to CMake.
 
 ### Configuring the build
+- `IBAMR_MAX_BSPLINE_ORDER` sets the highest B-spline order available through
+  the name-selecting SCInterpolationOperator constructor. It defaults to `8`
+  and accepts positive decimal integers without leading zeros.
+  For example, `-DIBAMR_MAX_BSPLINE_ORDER=12` supplies orders 1 through 12.
+  Application-bound evaluators and kernel names are independent of this range.
 - If you want to build IBAMR with static libraries then pass the argument
   `-DBUILD_SHARED_LIBS=OFF` to the initial call to `cmake`. IBAMR defaults to
   building shared libraries.

@@ -44,6 +44,8 @@
  */
 #define IBTK_MAX_STACK_ARRAY_SIZE 32
 
+#define IBTK_MAX_BSPLINE_ORDER @IBAMR_MAX_BSPLINE_ORDER@
+
 //
 // Dependency information
 //
