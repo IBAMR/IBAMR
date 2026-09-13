@@ -179,9 +179,9 @@ ENDIF()
 # ---------------------------------------------------------------------------- #
 
 #
-# We require at least C++17.
+# We require at least C++20.
 #
-SET(IBAMR_CXX_STANDARD "17")
+SET(IBAMR_CXX_STANDARD "20")
 
 #
 # We and our dependencies require MPI so set that up first:
