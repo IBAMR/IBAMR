@@ -14,6 +14,8 @@
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
 #include <ibamr/PhaseChangeUtilities.h>
 
+#include <array>
+
 #include "PhaseChangeTestUtilities.h"
 
 #include <ibamr/app_namespaces.h>
@@ -91,8 +93,11 @@ check_restart_fields(Pointer<PatchHierarchy<NDIM>> hierarchy,
                     for (int depth = 0; depth < data->getDepth(); ++depth)
                     {
                         std::ostringstream key;
-                        key << "cell/" << ln << '/' << k << '/' << depth << '/' << it();
-                        fields[key.str()] = (*data)(CellIndex<NDIM>(it()), depth);
+                        key << "cell/" << ln << '/' << patch->getBox() << '/' << k << '/' << depth << '/' << it();
+                        if (!fields.emplace(key.str(), (*data)(CellIndex<NDIM>(it()), depth)).second)
+                        {
+                            TBOX_ERROR("Duplicate cell record in restart comparison\n");
+                        }
                     }
                 }
             }
@@ -104,8 +109,12 @@ check_restart_fields(Pointer<PatchHierarchy<NDIM>> hierarchy,
                     for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); it; it++)
                     {
                         std::ostringstream key;
-                        key << "side/" << ln << '/' << k << '/' << axis << '/' << it();
-                        fields[key.str()] = (*data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower));
+                        key << "side/" << ln << '/' << patch->getBox() << '/' << k << '/' << axis << '/' << it();
+                        if (!fields.emplace(key.str(), (*data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower)))
+                                 .second)
+                        {
+                            TBOX_ERROR("Duplicate side record in restart comparison\n");
+                        }
                     }
                 }
             }
@@ -237,6 +246,163 @@ check_liquid_fraction_tags(Pointer<AdvDiffHierarchyIntegrator> integrator, Point
     {
         var_db->removePatchDataIndex(idx);
     }
+}
+
+void
+check_material_properties(Pointer<AdvDiffHierarchyIntegrator> integrator,
+                          Pointer<PatchHierarchy<NDIM>> hierarchy,
+                          Pointer<CellVariable<NDIM, double>> H_var,
+                          Pointer<CellVariable<NDIM, double>> lf_var,
+                          std::ostream& results)
+{
+    VariableDatabase<NDIM>* db = VariableDatabase<NDIM>::getDatabase();
+    const int H_current = db->mapVariableAndContextToIndex(H_var, integrator->getCurrentContext());
+    const int f_current = db->mapVariableAndContextToIndex(lf_var, integrator->getCurrentContext());
+    const int H_new = db->mapVariableAndContextToIndex(H_var, integrator->getNewContext());
+    const int f_new = db->mapVariableAndContextToIndex(lf_var, integrator->getNewContext());
+    Pointer<CellVariable<NDIM, double>> cell_var = new CellVariable<NDIM, double>("material_test_cell");
+    Pointer<SideVariable<NDIM, double>> side_var = new SideVariable<NDIM, double>("material_test_side");
+    const int cell_idx = db->registerVariableAndContext(cell_var, db->getContext("material_test"));
+    const int side_idx = db->registerVariableAndContext(side_var, db->getContext("material_test"));
+    const std::array<double, 8> indicators = { 0.0, 1.0, 1.0, 0.25, 0.75, 0.5, 0.0, 1.0 };
+    const std::array<double, 8> fractions = { 0.2, 0.0, 1.0, 0.4, 0.8, 0.6, 1.0, 0.3 };
+    const auto sample = [](const CellIndex<NDIM>& index, const int offset)
+    {
+        int value = offset;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            value += (d + 1) * index(d);
+        }
+        return (value % 8 + 8) % 8;
+    };
+    const std::array<std::array<double, 3>, 4> coefficients = {
+        { { 11.0, 5.0, 2.0 }, { 17.0, 7.0, 3.0 }, { 23.0, 13.0, 4.0 }, { 31.0, 19.0, 6.0 } }
+    };
+    const auto blend = [](const double H, const double f, const std::array<double, 3>& values)
+    { return (1.0 - H) * values[2] + H * ((1.0 - f) * values[1] + f * values[0]); };
+    PhaseChangeUtilities::SetFluidProperties properties("material_test",
+                                                        integrator,
+                                                        H_var,
+                                                        nullptr,
+                                                        lf_var,
+                                                        nullptr,
+                                                        11.0,
+                                                        5.0,
+                                                        2.0,
+                                                        17.0,
+                                                        7.0,
+                                                        3.0,
+                                                        23.0,
+                                                        13.0,
+                                                        4.0,
+                                                        31.0,
+                                                        19.0,
+                                                        6.0);
+    using Callback = decltype(&PhaseChangeUtilities::call_set_density_callback);
+    const std::array<Callback, 4> callbacks = { PhaseChangeUtilities::call_set_density_callback,
+                                                PhaseChangeUtilities::call_set_thermal_conductivity_callback,
+                                                PhaseChangeUtilities::call_set_specific_heat_callback,
+                                                PhaseChangeUtilities::call_set_viscosity_callback };
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (const int idx : { H_new, f_new, cell_idx, side_idx })
+        {
+            TBOX_ASSERT(!level->checkAllocated(idx));
+            level->allocatePatchData(idx, 0.0);
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            for (int state = 0; state < 2; ++state)
+            {
+                Pointer<CellData<NDIM, double>> H = patch->getPatchData(state ? H_new : H_current);
+                Pointer<CellData<NDIM, double>> f = patch->getPatchData(state ? f_new : f_current);
+                for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                {
+                    const int k = sample(CellIndex<NDIM>(i()), state);
+                    (*H)(CellIndex<NDIM>(i())) = indicators[k];
+                    (*f)(CellIndex<NDIM>(i())) = fractions[k];
+                }
+            }
+        }
+    }
+    Pointer<HierarchyMathOps> math_ops = new HierarchyMathOps("material_math", hierarchy);
+    for (int state = 0; state < 2; ++state)
+    {
+        double cell_error = 0.0, side_error = 0.0;
+        int checked_sides = 0;
+        for (unsigned operation = 0; operation < callbacks.size(); ++operation)
+        {
+            callbacks[operation](cell_idx, cell_var, math_ops, 0, state, 0.0, 1.0, &properties);
+            for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double>> data = patch->getPatchData(cell_idx);
+                    for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                    {
+                        const int k = sample(CellIndex<NDIM>(i()), state);
+                        const double value = (*data)(CellIndex<NDIM>(i()));
+                        if (!std::isfinite(value))
+                        {
+                            TBOX_ERROR("Nonfinite material property\n");
+                        }
+                        cell_error = std::max(
+                            cell_error, std::abs(value - blend(indicators[k], fractions[k], coefficients[operation])));
+                    }
+                }
+            }
+        }
+        callbacks[0](side_idx, side_var, math_ops, 0, state, 0.0, 1.0, &properties);
+        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> data = patch->getPatchData(side_idx);
+                Box<NDIM> interior = patch->getBox();
+                interior.grow(-1);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(interior, axis)); i; i++)
+                    {
+                        const SideIndex<NDIM> side(i(), axis, SideIndex<NDIM>::Lower);
+                        const int a = sample(side.toCell(0), state), b = sample(side.toCell(1), state);
+                        const double expected = blend(0.5 * (indicators[a] + indicators[b]),
+                                                      0.5 * (fractions[a] + fractions[b]),
+                                                      coefficients[0]);
+                        const double value = (*data)(side);
+                        if (!std::isfinite(value))
+                        {
+                            TBOX_ERROR("Nonfinite side density\n");
+                        }
+                        side_error = std::max(side_error, std::abs(value - expected));
+                        ++checked_sides;
+                    }
+                }
+            }
+        }
+        if (IBTK_MPI::sumReduction(checked_sides) == 0)
+        {
+            TBOX_ERROR("Material test did not examine any sides\n");
+        }
+        results << "Material " << (state ? "new" : "current")
+                << " maximum cell/side error = " << IBTK_MPI::maxReduction(cell_error) << ' '
+                << IBTK_MPI::maxReduction(side_error) << '\n';
+    }
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        for (const int idx : { H_new, f_new, cell_idx, side_idx })
+        {
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(idx);
+        }
+    }
+    db->removePatchDataIndex(cell_idx);
+    db->removePatchDataIndex(side_idx);
 }
 
 // On the finest level, interior patch cells have the same centered stencil as

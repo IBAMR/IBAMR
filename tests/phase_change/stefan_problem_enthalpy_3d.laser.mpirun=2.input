@@ -1,3 +1,4 @@
+check_tags = TRUE
 Nz = 32
 check_laser = TRUE
 // constants

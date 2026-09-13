@@ -1,3 +1,4 @@
+check_tags = TRUE
 check_laser = TRUE
 // constants
 PI = 3.1415926535897932

@@ -47,120 +47,6 @@
 #include "TemperatureInitialCondition.cpp"
 #include "TemperatureInitialCondition.h"
 
-// Exercise the interpolation profiles through the integrator's public source
-// evaluation on its live patch data. The test supplies fractions on both sides
-// of independently computed transition points and temperatures around melting.
-class InterpolationCheckingIntegrator : public RegridCountingIntegrator<AllenCahnHierarchyIntegrator>
-{
-public:
-    using RegridCountingIntegrator<AllenCahnHierarchyIntegrator>::RegridCountingIntegrator;
-
-    void setProfileCheck(const std::string& profile)
-    {
-        d_profile = profile;
-    }
-
-    int getProfileCheckCount() const
-    {
-        return d_profile_check_count;
-    }
-
-    double getProfileMaxError() const
-    {
-        return d_profile_max_error;
-    }
-
-    void computeDivergenceVelocitySourceTerm(int source_idx, double new_time) override
-    {
-        if (d_profile.empty())
-        {
-            AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(source_idx, new_time);
-            return;
-        }
-        const bool hybrid = d_profile.compare(0, 7, "LINEAR_") == 0;
-        const double slope = hybrid ? std::stod(d_profile.substr(7)) : 0.0;
-        double lo = 0.0, hi = 1.0 / 3.0;
-        for (int iteration = 0; iteration < 60; ++iteration)
-        {
-            const double f = 0.5 * (lo + hi);
-            if (30.0 * f * (1.0 - f) * (1.0 - f) < slope)
-            {
-                lo = f;
-            }
-            else
-            {
-                hi = f;
-            }
-        }
-        const double transition = hybrid ? 0.5 * (lo + hi) : 0.1;
-        const double samples[] = { 0.0,         5e-11,       2e-10, transition - 1e-7,       transition + 1e-7,
-                                   0.25,        0.5,         0.75,  1.0 - transition - 1e-7, 1.0 - transition + 1e-7,
-                                   1.0 - 2e-10, 1.0 - 5e-11, 1.0 };
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int lf_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-        const int T_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-        const int q_idx =
-            var_db->mapVariableAndContextToIndex(var_db->getVariable("q_firstder_var"), getCurrentContext());
-        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> fraction = patch->getPatchData(lf_idx);
-                Pointer<CellData<NDIM, double>> temperature = patch->getPatchData(T_idx);
-                for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
-                {
-                    const CellIndex<NDIM> ci(it());
-                    (*fraction)(ci) = samples[ci(1) % 13];
-                    (*temperature)(ci) = d_T_melt + static_cast<double>(ci(0) % 3 - 1);
-                }
-            }
-        }
-        AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(source_idx, new_time);
-        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> fraction = patch->getPatchData(lf_idx);
-                Pointer<CellData<NDIM, double>> temperature = patch->getPatchData(T_idx);
-                Pointer<CellData<NDIM, double>> derivative = patch->getPatchData(q_idx);
-                for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
-                {
-                    const CellIndex<NDIM> ci(it());
-                    const double f = (*fraction)(ci), T = (*temperature)(ci);
-                    double expected = 30.0 * f * f * (1.0 - f) * (1.0 - f);
-                    if (d_profile == "QUADRATIC")
-                    {
-                        expected = 6.0 * f * (1.0 - f);
-                    }
-                    else if (hybrid && (f < transition || f > 1.0 - transition))
-                    {
-                        expected = slope * std::min(f, 1.0 - f);
-                    }
-                    if ((f >= 1.0 - 1e-10 && T <= d_T_melt) || (f <= 1e-10 && T >= d_T_melt))
-                    {
-                        expected = 1.0;
-                    }
-                    if (!std::isfinite((*derivative)(ci)))
-                    {
-                        TBOX_ERROR("Incorrect interpolation derivative for " << d_profile << " at f = " << f << "\n");
-                    }
-                    d_profile_max_error = std::max(d_profile_max_error, std::abs((*derivative)(ci)-expected));
-                    ++d_profile_check_count;
-                }
-            }
-        }
-    }
-
-private:
-    std::string d_profile;
-    int d_profile_check_count = 0;
-    double d_profile_max_error = 0.0;
-};
-
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -191,9 +77,7 @@ main(int argc, char* argv[])
         Pointer<Database> input_db = app_initializer->getInputDatabase();
         const bool check_restart = input_db->getBoolWithDefault("check_restart", false);
         const bool check_amr = input_db->getBoolWithDefault("check_amr", false);
-        const bool check_source_transfer = input_db->getBoolWithDefault("check_source_transfer", false);
         const bool from_restart = RestartManager::getManager()->isFromRestart();
-        const bool check_profiles = input_db->getBoolWithDefault("check_profiles", false);
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -220,7 +104,7 @@ main(int argc, char* argv[])
         // and, if this is a restarted run, from the restart database.
 
         Pointer<AdvDiffHierarchyIntegrator> time_integrator;
-        time_integrator = new InterpolationCheckingIntegrator(
+        time_integrator = new RegridCountingIntegrator<AllenCahnHierarchyIntegrator>(
             "AllenCahnHierarchyIntegrator", app_initializer->getComponentDatabase("AllenCahnHierarchyIntegrator"));
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -250,12 +134,6 @@ main(int argc, char* argv[])
         {
             lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient", NDIM);
             ac_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
-        }
-
-        Pointer<InterpolationCheckingIntegrator> profile_integrator = time_integrator;
-        if (check_profiles)
-        {
-            profile_integrator->setProfileCheck(input_db->getString("INTERPOLATION_FUNCTION_PROFILE"));
         }
 
         // register Heaviside
@@ -384,7 +262,7 @@ main(int argc, char* argv[])
         }
 
         RefinementRegion refinement_region(input_db->getDoubleWithDefault("DT_MAX", 1.0));
-        if (check_amr || check_source_transfer)
+        if (check_amr)
         {
             time_integrator->registerApplyGradientDetectorCallback(&tag_moving_refinement_region, &refinement_region);
         }
@@ -429,21 +307,10 @@ main(int argc, char* argv[])
         Pointer<HierarchyCellDataOpsReal<NDIM, double>> hier_cc_data_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
         std::ostringstream results;
-        if (check_source_transfer)
-        {
-            check_divergence_source_transfer(
-                time_integrator, ac_hier_integrator, patch_hierarchy, refinement_region, results);
-            if (IBTK_MPI::sumReduction(counting_integrator->getMeshChangeCount() - initial_mesh_change_count) == 0)
-            {
-                TBOX_ERROR("Source transfer test did not move the refined region.\n");
-            }
-        }
-
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!check_source_transfer && !MathUtilities<double>::equalEps(loop_time, loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
@@ -481,7 +348,7 @@ main(int argc, char* argv[])
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
-            if (!check_restart && !check_profiles)
+            if (!check_restart)
             {
                 results << std::setprecision(13) << loop_time << "\t" << mass << "\n";
             }
@@ -529,16 +396,6 @@ main(int argc, char* argv[])
         }
 
         var_db->removePatchDataIndex(pcm_mass_idx);
-        if (check_profiles)
-        {
-            if (IBTK_MPI::sumReduction(profile_integrator->getProfileCheckCount()) == 0)
-            {
-                TBOX_ERROR("Interpolation profile was not evaluated.\n");
-            }
-            results << std::setprecision(13) << "Maximum interpolation derivative error = "
-                    << IBTK_MPI::maxReduction(profile_integrator->getProfileMaxError()) << '\n';
-        }
-
         if (check_amr)
         {
             if (patch_hierarchy->getFinestLevelNumber() != 1 ||

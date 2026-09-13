@@ -106,6 +106,8 @@ check_laser_source(Pointer<EnthalpyHierarchyIntegrator> integrator,
     const int weight_idx = math_ops.getCellWeightPatchDescriptorIndex();
     HierarchyCellDataOpsReal<NDIM, double> ops(hierarchy);
     const std::string time_types[] = { "FORWARD_EULER", "MIDPOINT_RULE", "BACKWARD_EULER" };
+    std::array<double, 3> unsmoothed_variances = {};
+    double smoothing_error = 0.0;
     for (const std::string kernel : { "none", "IB_4" })
     {
         for (int t = 0; t < 3; ++t)
@@ -138,11 +140,46 @@ check_laser_source(Pointer<EnthalpyHierarchyIntegrator> integrator,
             }
             const double total = ops.integral(source_idx, weight_idx);
             const double centroid = ops.integral(moment_idx, weight_idx) / total;
+            for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
+                    Pointer<CellData<NDIM, double>> source = patch->getPatchData(source_idx);
+                    Pointer<CellData<NDIM, double>> moment = patch->getPatchData(moment_idx);
+                    for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+                    {
+                        const CellIndex<NDIM> ci(i());
+                        const double x =
+                            geom->getXLower()[0] + (ci(0) - patch->getBox().lower(0) + 0.5) * geom->getDx()[0];
+                        (*moment)(ci) = std::pow(x - centroid, 2.0) * (*source)(ci);
+                    }
+                }
+            }
+            const double variance = ops.integral(moment_idx, weight_idx) / total;
+            if (!std::isfinite(variance))
+            {
+                TBOX_ERROR("Nonfinite laser source variance\n");
+            }
+            if (kernel == "none")
+            {
+                unsmoothed_variances[t] = variance;
+            }
+            else
+            {
+                // The integer-grid IB_4 weights (1/4, 1/2, 1/4) add dx^2/2 to the variance.
+                const double added_variance = 0.5 * std::pow(geometry->getDx()[0], 2.0);
+                smoothing_error =
+                    std::max(smoothing_error, std::abs(variance - unsmoothed_variances[t] - added_variance));
+            }
             results << std::setprecision(13) << "Laser " << kernel << " " << time_types[t]
                     << ": initial norm = " << initial_norm << ", integral = " << total << ", centroid = " << centroid
                     << '\n';
         }
     }
+    results << "Laser smoothing variance error = " << smoothing_error << '\n';
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
@@ -644,6 +681,7 @@ main(int argc, char* argv[])
         if (check_laser)
         {
             check_laser_source(enthalpy_hier_integrator, ls_var, patch_hierarchy, grid_geometry, results);
+            check_material_properties(enthalpy_hier_integrator, patch_hierarchy, H_var, lf_var, results);
         }
         const bool check_tags = input_db->getBoolWithDefault("check_tags", false);
         if (check_tags)
@@ -699,7 +737,7 @@ main(int argc, char* argv[])
             }
             else if (check_restart)
             {
-                const std::vector<int> cell_indices = {
+                std::vector<int> cell_indices = {
                     enthalpy_hier_integrator->getVelocityDivergencePatchDataIndex(),
                     var_db->mapVariableAndContextToIndex(lf_gradient_var,
                                                          enthalpy_hier_integrator->getCurrentContext()),
@@ -713,6 +751,11 @@ main(int argc, char* argv[])
                     var_db->mapVariableAndContextToIndex(time_integrator->getPressureVariable(),
                                                          time_integrator->getCurrentContext())
                 };
+                if (check_extrapolation)
+                {
+                    cell_indices.push_back(var_db->mapVariableAndContextToIndex(
+                        lf_extrap_var, enthalpy_hier_integrator->getCurrentContext()));
+                }
                 check_restart_fields(patch_hierarchy,
                                      cell_indices,
                                      { var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
