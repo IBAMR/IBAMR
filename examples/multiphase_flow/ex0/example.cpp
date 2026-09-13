@@ -34,16 +34,18 @@
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <cmath>
+
 #include <ibamr/app_namespaces.h>
 
 // Application
 #include <LSLocateInterface.h>
-#include <PointwiseLevelSet.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -181,8 +183,18 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        Pointer<MultiphaseExamples::SphereLevelSet> sphere =
-            new MultiphaseExamples::SphereLevelSet("initial_sphere", circle_center, circle_radius);
+        Pointer<CartGridFunction> sphere = make_cart_grid_pointwise_function<double>(
+            "initial_sphere",
+            phi_var,
+            [circle_center, circle_radius](const VectorNd& X, double, int, int)
+            {
+                return std::sqrt(std::pow(X[0] - circle_center[0], 2.0) + std::pow(X[1] - circle_center[1], 2.0)
+#if (NDIM == 3)
+                                 + std::pow(X[2] - circle_center[2], 2.0)
+#endif
+                                     ) -
+                       circle_radius;
+            });
         MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, sphere);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
                                                                 static_cast<void*>(&locate_interface));

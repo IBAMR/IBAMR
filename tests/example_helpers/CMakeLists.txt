@@ -2,6 +2,10 @@
 ADD_CUSTOM_TARGET(tests-example_helpers)
 FOREACH(_dim 2 3)
   ADD_EXECUTABLE(tests-example_helpers_${_dim}d EXCLUDE_FROM_ALL helper_contracts.cpp)
+  TARGET_SOURCES(tests-example_helpers_${_dim}d PRIVATE
+    "${CMAKE_SOURCE_DIR}/examples/multiphase_flow/ex3/InitialConditions.cpp")
+  TARGET_INCLUDE_DIRECTORIES(tests-example_helpers_${_dim}d PRIVATE
+    "${CMAKE_SOURCE_DIR}/examples/multiphase_flow/ex3")
   SET_TARGET_PROPERTIES(tests-example_helpers_${_dim}d PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/example_helpers"
     OUTPUT_NAME helper_contracts_${_dim}d)

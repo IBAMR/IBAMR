@@ -42,9 +42,8 @@
 
 // Application
 #include <LSLocateInterface.h>
-#include <PointwiseLevelSet.h>
 
-#include "VelocityInitialCondition.h"
+#include "InitialConditions.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -179,8 +178,8 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        Pointer<MultiphaseExamples::SphereLevelSet> sphere =
-            new MultiphaseExamples::SphereLevelSet("initial_sphere", circle_center, circle_radius);
+        Pointer<CartGridFunction> sphere =
+            MultiphaseEx3::make_sphere_initial_condition("initial_sphere", phi_var, circle_center, circle_radius);
         MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, sphere);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
                                                                 static_cast<void*>(&locate_interface));
@@ -246,8 +245,8 @@ main(int argc, char* argv[])
                                                                static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
-        Pointer<CartGridFunction> u_init =
-            new VelocityInitialCondition("u_init", num_interface_cells, inside_velocity, outside_velocity, sphere);
+        Pointer<CartGridFunction> u_init = MultiphaseEx3::make_velocity_initial_condition(
+            "u_init", circle_center, circle_radius, num_interface_cells, inside_velocity, outside_velocity);
         time_integrator->registerVelocityInitialConditions(u_init);
 
         if (input_db->keyExists("PressureInitialConditions"))

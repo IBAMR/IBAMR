@@ -21,7 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    VelocityInitialCondition.cpp example.cpp
+    InitialConditions.cpp example.cpp
   LINK_TARGETS
     multiphase_flow_helpers_2d
   INPUT_FILES
@@ -38,7 +38,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    VelocityInitialCondition.cpp example.cpp
+    InitialConditions.cpp example.cpp
   LINK_TARGETS
     multiphase_flow_helpers_3d
   INPUT_FILES

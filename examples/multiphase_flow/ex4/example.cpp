@@ -34,6 +34,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -43,7 +44,6 @@
 
 // Application
 #include <LSLocateInterface.h>
-#include <PointwiseLevelSet.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -175,8 +175,10 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        Pointer<CartGridFunction> plane =
-            new MultiphaseExamples::PlaneLevelSet("initial_layer", NDIM - 1, fluid_height);
+        Pointer<CartGridFunction> plane = make_cart_grid_pointwise_function<double>(
+            "initial_layer",
+            phi_var,
+            [fluid_height](const VectorNd& X, double, int, int) { return X[NDIM - 1] - fluid_height; });
         MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, plane);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
                                                                 static_cast<void*>(&locate_interface));

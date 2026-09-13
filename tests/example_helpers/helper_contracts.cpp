@@ -15,8 +15,10 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <tbox/PIO.h>
@@ -28,12 +30,13 @@
 #include <GriddingAlgorithm.h>
 #include <HeavisideFromLevelSet.h>
 #include <HierarchyCellDataOpsReal.h>
+#include <InitialConditions.h>
 #include <LSLocateInterface.h>
 #include <LiquidFractionForceMask.h>
 #include <LoadBalancer.h>
-#include <PointwiseLevelSet.h>
 #include <SideData.h>
 #include <SideGeometry.h>
+#include <SideVariable.h>
 #include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
 
@@ -285,6 +288,116 @@ check_capillary(Pointer<PatchHierarchy<NDIM>> hierarchy,
     }
     db->removePatchDataIndex(force_idx);
 }
+
+void
+check_velocity(Pointer<PatchHierarchy<NDIM>> hierarchy)
+{
+    auto* db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, double>> velocity_var = new SideVariable<NDIM, double>("initial_velocity");
+    const int velocity_idx =
+        db->registerVariableAndContext(velocity_var, db->getContext("velocity_contract"), IntVector<NDIM>(1));
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
+    level->allocatePatchData(velocity_idx, 0.0);
+    IBTK::Vector center = IBTK::Vector::Zero();
+    std::vector<double> inside(NDIM), outside(NDIM);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        center[d] = 0.125 * (d + 1);
+        inside[d] = (d % 2 == 0 ? 1.25 : -1.25) * (d + 1);
+        outside[d] = -2.0 * inside[d];
+    }
+    const double radius = 0.5, interface_cells = 2.0;
+    Pointer<CartGridFunction> initial =
+        MultiphaseEx3::make_velocity_initial_condition("velocity", center, radius, interface_cells, inside, outside);
+    const double sentinel = 91.0, noninitial_sentinel = -93.0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<SideData<NDIM, double>> data = level->getPatch(p())->getPatchData(velocity_idx);
+        data->fillAll(sentinel);
+    }
+    initial->setDataOnPatchHierarchy(velocity_idx, velocity_var, hierarchy, 0.0, true);
+    int distinguishing_sides = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+        Pointer<SideData<NDIM, double>> data = patch->getPatchData(velocity_idx);
+        const double* dx = geometry->getDx();
+        double volume = 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            volume *= dx[d];
+        }
+        const double alpha = interface_cells * std::pow(volume, 1.0 / NDIM);
+        const auto distance = [&](const IBTK::Vector& position)
+        {
+            double squared_radius = 0.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                squared_radius += (position[d] - center[d]) * (position[d] - center[d]);
+            }
+            return std::sqrt(squared_radius) - radius;
+        };
+        const auto heaviside = [alpha](const double phi)
+        {
+            const double z = std::clamp(phi / alpha, -1.0, 1.0);
+            const double pi = std::acos(-1.0);
+            return 0.5 * (1.0 + z + std::sin(pi * z) / pi);
+        };
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> interior = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(data->getGhostBox(), axis)); i; i++)
+            {
+                const SideIndex<NDIM> side(i(), axis, SideIndex<NDIM>::Lower);
+                if (!interior.contains(i()))
+                {
+                    check_value((*data)(side), sentinel);
+                    continue;
+                }
+                IBTK::Vector position = IBTK::Vector::Zero();
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    position[d] = geometry->getXLower()[d] +
+                                  (i()(d) - patch->getBox().lower(d) + (d == axis ? 0.0 : 0.5)) * dx[d];
+                }
+                IBTK::Vector lower = position, upper = position;
+                lower[axis] -= 0.5 * dx[axis];
+                upper[axis] += 0.5 * dx[axis];
+                const double expected = inside[axis] + (outside[axis] - inside[axis]) *
+                                                           heaviside(0.5 * (distance(lower) + distance(upper)));
+                const double side_center_value =
+                    inside[axis] + (outside[axis] - inside[axis]) * heaviside(distance(position));
+                check_value((*data)(side), expected);
+                if (std::abs(expected - side_center_value) > 1.0e-6)
+                {
+                    ++distinguishing_sides;
+                }
+            }
+        }
+        data->fillAll(noninitial_sentinel);
+    }
+    initial->setDataOnPatchHierarchy(velocity_idx, velocity_var, hierarchy, 1.0, false);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<SideData<NDIM, double>> data = level->getPatch(p())->getPatchData(velocity_idx);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(data->getGhostBox(), axis)); i; i++)
+            {
+                check_value((*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower)), noninitial_sentinel);
+            }
+        }
+    }
+    if (IBTK_MPI::sumReduction(distinguishing_sides) == 0)
+    {
+        TBOX_ERROR("Velocity test does not distinguish the adjacent-cell stencil.\n");
+    }
+    plog << "Velocity initialization, ghosts, and noninitial guard verified\n";
+    level->deallocatePatchData(velocity_idx);
+    db->removePatchDataIndex(velocity_idx);
+}
+
 void
 check_geometry(Pointer<PatchHierarchy<NDIM>> hierarchy,
                Pointer<AdvDiffHierarchyIntegrator> integrator,
@@ -304,8 +417,9 @@ check_geometry(Pointer<PatchHierarchy<NDIM>> hierarchy,
     {
         center[d] = 0.125 * (d + 1);
     }
-    Pointer<CartGridFunction> sphere = new MultiphaseExamples::SphereLevelSet("sphere", center, 0.5);
-    Pointer<CartGridFunction> plane = new MultiphaseExamples::PlaneLevelSet("plane", NDIM - 1, 0.125);
+    Pointer<CartGridFunction> sphere = MultiphaseEx3::make_sphere_initial_condition("sphere", sphere_var, center, 0.5);
+    Pointer<CartGridFunction> plane = make_cart_grid_pointwise_function<double>(
+        "plane", plane_var, [](const VectorNd& X, double, int, int) { return X[NDIM - 1] - 0.125; });
     MultiphaseExamples::LSLocateInterface sphere_locator(integrator, sphere_var, sphere);
     MultiphaseExamples::LSLocateInterface plane_locator(integrator, plane_var, plane);
     Pointer<HierarchyMathOps> math_ops = new HierarchyMathOps("geometry_math", hierarchy);
@@ -416,6 +530,7 @@ main(int argc, char* argv[])
         PIO::logOnlyNodeZero("output");
         plog << std::fixed << std::setprecision(12);
         check_geometry(hierarchy, adv, ls, H);
+        check_velocity(hierarchy);
         const int H_idx =
             VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(H, adv->getCurrentContext());
         check_heaviside(hierarchy, adv, ls, H_idx);
