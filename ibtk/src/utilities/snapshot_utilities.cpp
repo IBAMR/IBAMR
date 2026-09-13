@@ -184,8 +184,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
         auto var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(u_idx, var);
-        Pointer<HierarchyDataOpsReal<NDIM, double>> hier_data_ops =
-            hier_math_ops->getOperationsDouble(cache.getVariable(), hierarchy, true);
+        hier_data_ops = hier_math_ops->getOperationsDouble(cache.getVariable(), hierarchy, true);
     }
 
     // Now grab the indices from the snapshot.
@@ -193,7 +192,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
     fill_snapshot_on_hierarchy(cache, u_idx, snapshot_time_low, hierarchy, refine_type, 1.0e-8);
     fill_snapshot_on_hierarchy(cache, scr_idx, snapshot_time_up, hierarchy, refine_type, 1.0e-8);
     // We have the upper and lower indices, now we can interpolate in time.
-    hier_data_ops->linearSum(u_idx, (time - t_low) / (t_up - t_low), u_idx, -(time - t_up) / (t_up - t_low), scr_idx);
+    hier_data_ops->linearSum(u_idx, (t_up - time) / (t_up - t_low), u_idx, (time - t_low) / (t_up - t_low), scr_idx);
 }
 //////////////////////////////////////////////////////////////////////////////
 
