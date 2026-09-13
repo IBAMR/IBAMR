@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2025 by the IBAMR developers
+## Copyright (c) 2020 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -190,6 +190,8 @@ SET(CXX_SRC
   utilities/CopyToRootSchedule.cpp
   utilities/AppInitializer.cpp
   utilities/IBTKInit.cpp
+  utilities/IBKernel.cpp
+  utilities/IBKernelTensorProduct.cpp
   utilities/RestartCleaner.cpp
   utilities/SAMRAIDataCache.cpp
   utilities/FixedSizedStream.cpp
@@ -237,6 +239,7 @@ IF(IBAMR_HAVE_LIBMESH)
     utilities/libmesh_utilities.cpp
     )
 ENDIF()
+
 
 # TARGET_SOURCES needs to use private - if we used public then dependencies on
 # this target will also compile the source files

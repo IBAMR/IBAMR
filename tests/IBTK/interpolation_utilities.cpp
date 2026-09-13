@@ -20,6 +20,8 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
 
+#include <tbox/Utilities.h>
+
 #include <petscsys.h>
 
 #include <BergerRigoutsos.h>
@@ -169,6 +171,9 @@ main(int argc, char* argv[])
         // Cell centered
         pout << "Interpolating cell centered values\n";
         std::vector<double> interped_val = interpolate(x_pt, cc_idx, cc_var, 1, patch_hierarchy, "IB_4");
+        const IBKernelTensorProduct resolved({ IBKernel::IB_4 });
+        TBOX_ASSERT(interped_val == interpolate(x_pt, cc_idx, cc_var, 1, patch_hierarchy, resolved));
+        TBOX_ASSERT(interpolate(x_pt[0], cc_idx, cc_var, 1, patch_hierarchy, resolved)[0] == interped_val[0]);
         for (int i = 0; i < 2; ++i)
         {
             bool correct = std::abs(interped_val[i] - exact_fcn(x_pt[i])) < 1.0e-12;
@@ -184,6 +189,7 @@ main(int argc, char* argv[])
         // Side centered
         pout << "Interpolating side centered values\n";
         interped_val = interpolate(x_pt, sc_idx, sc_var, 1, patch_hierarchy, "IB_4");
+        TBOX_ASSERT(interped_val == interpolate(x_pt, sc_idx, sc_var, 1, patch_hierarchy, resolved));
         for (int i = 0; i < 2; ++i)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -202,6 +208,7 @@ main(int argc, char* argv[])
         // Node centered
         pout << "Interpolating node centered values\n";
         interped_val = interpolate(x_pt, nc_idx, nc_var, NDIM, patch_hierarchy, "IB_4");
+        TBOX_ASSERT(interped_val == interpolate(x_pt, nc_idx, nc_var, NDIM, patch_hierarchy, resolved));
         for (int i = 0; i < 2; ++i)
         {
             for (int d = 0; d < NDIM; ++d)
