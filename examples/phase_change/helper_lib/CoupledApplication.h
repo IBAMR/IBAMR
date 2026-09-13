@@ -31,7 +31,6 @@
 #include <GriddingAlgorithm.h>
 #include <LSLocateInterface.h>
 #include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
 
 #include <memory>
 #include <string>
@@ -40,6 +39,15 @@
 #include "ExampleOutput.h"
 #include "HeavisideFromLevelSet.h"
 #include "LiquidFractionForceMask.h"
+
+namespace SAMRAI
+{
+namespace mesh
+{
+template <int DIM>
+class StandardTagAndInitialize;
+}
+} // namespace SAMRAI
 
 namespace PhaseChangeExamples
 {
