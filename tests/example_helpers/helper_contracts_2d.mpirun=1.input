@@ -1,4 +1,3 @@
-contract = "capillary"
 Main {
   log_file_name = "helper_setup.log"
   log_all_nodes = FALSE
@@ -28,14 +27,14 @@ AdvDiff {
   enable_logging = FALSE
 }
 CartesianGeometry {
-  domain_boxes = [(0,0,0),(7,7,7)]
-  x_lo = -1,-1,-1
-  x_up = 1,1,1
-  periodic_dimension = 1,1,1
+  domain_boxes = [(-3,2),(4,9)]
+  x_lo = -1.5,-0.75
+  x_up = 0.5,2.25
+  periodic_dimension = 1,1
 }
 GriddingAlgorithm {
   max_levels = 1
-  largest_patch_size { level_0 = 8,8,8 }
-  smallest_patch_size { level_0 = 8,8,8 }
+  largest_patch_size { level_0 = 8,8 }
+  smallest_patch_size { level_0 = 8,8 }
 }
 StandardTagAndInitialize { tagging_method = "GRADIENT_DETECTOR" }
