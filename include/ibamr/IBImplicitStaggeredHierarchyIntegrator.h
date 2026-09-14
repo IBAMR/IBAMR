@@ -28,6 +28,7 @@
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 
 #include <tbox/Pointer.h>
@@ -80,10 +81,12 @@ namespace IBAMR
  *
  * Configure the nonlinear solver in this object's input database (PETSc prefix
  * \c ib_) and FAC in \c stokes_ib_precond_db (prefix \c stokes_ib_pc_).
- * \c jacobian_delta_fcn selects an isotropic IB_3 through IB_6 or BSPLINE_1
- * through BSPLINE_6 interpolation-matrix evaluator. The strategy's minimum ghost width must
- * cover that kernel; with IBMethod, set \c min_ghost_cell_width when needed.
- * Applications may override this choice with setJacobianInterpolationMatrixBuilder().
+ * \c jacobian_delta_fcn selects an IBKernelTensorProduct using IB_3 through IB_6
+ * or B-splines through the configured IBTK_MAX_BSPLINE_ORDER (default 8).
+ * The strategy's minimum ghost width must cover that kernel; with IBMethod,
+ * set \c min_ghost_cell_width when needed. Names are parsed at construction;
+ * built-in availability is checked at initialization unless an explicit builder
+ * was supplied with setJacobianInterpolationMatrixBuilder().
  *
  * Fixed coupling is enabled on the supplied strategy at construction. Subclasses
  * overriding time-step or hierarchy hooks must call the corresponding base
@@ -101,6 +104,8 @@ public:
      *
      * The nonempty callable is retained by value and must own its evaluator state.
      * A move-only evaluator can be captured through shared_ptr<const Evaluator>.
+     * This overrides any valid input kernel name, independently of the compiled
+     * B-spline limit. Invalid names are rejected during construction.
      * This changes assembled coupling only, not live interpolation or spreading.
      */
     void setJacobianInterpolationMatrixBuilder(InterpolationMatrixBuilder builder);
@@ -211,6 +216,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
 
     // Solvers and associated vectors.
+    //! Input descriptor resolved at initialization unless an explicit builder is supplied.
+    IBTK::IBKernelTensorProduct d_jac_kernel = IBTK::IBKernel::IB_4;
     //! Owns the operation assembling the FAC interpolation matrix.
     InterpolationMatrixBuilder d_interp_matrix_builder;
     bool d_vectors_need_init = true;

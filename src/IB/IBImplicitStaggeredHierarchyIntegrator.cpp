@@ -63,6 +63,7 @@
 
 #include <cmath>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -96,6 +97,42 @@ make_matrix_builder(Evaluator evaluator)
     { PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, X, counts, dof, level); };
 }
 
+template <std::size_t... I>
+auto
+make_bspline_kernels(std::index_sequence<I...>)
+{
+    return std::make_tuple(
+        std::make_pair(IBKernel("BSPLINE_" + std::to_string(I + 1)), IBKernels::BSpline<I + 1>{})...);
+}
+
+IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
+select_matrix_builder(const IBKernelTensorProduct& kernel)
+{
+    const auto kernels = std::tuple_cat(make_bspline_kernels(std::make_index_sequence<IBTK_MAX_BSPLINE_ORDER>{}),
+                                        std::make_tuple(std::make_pair(IBKernel::IB_3, IBKernels::IB3{}),
+                                                        std::make_pair(IBKernel::IB_4, IBKernels::IB4{}),
+                                                        std::make_pair(IBKernel::IB_5, IBKernels::IB5{}),
+                                                        std::make_pair(IBKernel::IB_6, IBKernels::IB6{})));
+    IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder builder;
+    const auto select_normal = [&](const auto& normal)
+    {
+        if (normal.first != kernel[0])
+        {
+            return;
+        }
+        const auto select_tangential = [&](const auto& tangential)
+        {
+            if (tangential.first == kernel[kernel.size() - 1])
+            {
+                builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ normal.second, tangential.second });
+            }
+        };
+        std::apply([&](const auto&... tangential) { (select_tangential(tangential), ...); }, kernels);
+    };
+    std::apply([&](const auto&... normal) { (select_normal(normal), ...); }, kernels);
+    return builder;
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -123,7 +160,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     d_use_structure_predictor = false;
 
-    IBKernel kernel = IBKernel::IB_4;
     Pointer<Database> stokes_ib_pc_db = nullptr;
     if (input_db)
     {
@@ -133,57 +169,12 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
         }
         if (input_db->keyExists("jacobian_delta_fcn"))
         {
-            kernel = IBKernel(input_db->getString("jacobian_delta_fcn"));
+            d_jac_kernel = IBKernelTensorProduct(input_db->getString("jacobian_delta_fcn"));
         }
         if (input_db->isDatabase("stokes_ib_precond_db"))
         {
             stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
         }
-    }
-
-    if (kernel == IBKernel::IB_3)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::IB3{} });
-    }
-    else if (kernel == IBKernel::IB_4)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} });
-    }
-    else if (kernel == IBKernel::IB_5)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} });
-    }
-    else if (kernel == IBKernel::IB_6)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::IB6{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_1)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<1>{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_2)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<2>{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_3)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_4)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<4>{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_5)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<5>{} });
-    }
-    else if (kernel == IBKernel::BSPLINE_6)
-    {
-        d_interp_matrix_builder = make_matrix_builder(IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<6>{} });
-    }
-    else
-    {
-        TBOX_ERROR("No compiled Jacobian matrix evaluator for the selected kernel.\n");
     }
 
     if (stokes_ib_pc_db)
@@ -345,6 +336,15 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     if (d_integrator_is_initialized)
     {
         return;
+    }
+    if (!d_interp_matrix_builder)
+    {
+        d_interp_matrix_builder = select_matrix_builder(d_jac_kernel);
+        if (!d_interp_matrix_builder)
+        {
+            TBOX_ERROR("No compiled Jacobian matrix evaluator for "
+                       << d_jac_kernel << "; IBTK_MAX_BSPLINE_ORDER = " << IBTK_MAX_BSPLINE_ORDER << ".\n");
+        }
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");

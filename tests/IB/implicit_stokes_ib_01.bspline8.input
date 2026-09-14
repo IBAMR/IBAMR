@@ -1,7 +1,7 @@
 N = 8
-IB_RULE = "MIDPOINT_RULE"
-JAC_KERNEL = "APP_CUSTOM"
-custom_kernel = TRUE
+IB_RULE = "BACKWARD_EULER"
+JAC_KERNEL = "BSPLINE_8"
+custom_kernel = FALSE
 IBHierarchyIntegrator {
    start_time = 0.0
    end_time = 0.0025
@@ -33,13 +33,13 @@ INSStaggeredHierarchyIntegrator {
    mu = 0.01
    rho = 1.0
    creeping_flow = TRUE
-   viscous_time_stepping_type = "TRAPEZOIDAL_RULE"
+   viscous_time_stepping_type = "BACKWARD_EULER"
    normalize_pressure = TRUE
    num_cycles = 1
    dt_max = 0.001
    enable_logging_solver_iterations = FALSE
 }
-IBMethod { delta_fcn = "IB_4" }
+IBMethod { delta_fcn = "IB_4" min_ghost_cell_width = 4 }
 IBRedundantInitializer {
    max_levels = 1
    base_filenames_0 = "ellipse"

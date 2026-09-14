@@ -166,6 +166,11 @@ main(int argc, char* argv[])
     {
         Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
         Pointer<Database> input = app->getInputDatabase();
+        if (input->getBoolWithDefault("expect_invalid_kernel", false))
+        {
+            Pointer<Logger::Appender> abort_appender = new TestAppender();
+            Logger::getInstance()->setAbortAppender(abort_appender);
+        }
         const bool custom_kernel = input->getBoolWithDefault("custom_kernel", false);
         Pointer<INSStaggeredHierarchyIntegrator> ins = new INSStaggeredHierarchyIntegrator(
             "INSStaggeredHierarchyIntegrator", app->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
@@ -226,6 +231,10 @@ main(int argc, char* argv[])
         ins->registerVelocityInitialConditions(new muParserCartGridFunction(
             "initial_velocity", app->getComponentDatabase("VelocityInitialConditions"), geometry));
         integrator->initializePatchHierarchy(hierarchy, gridding);
+        if (input->getBoolWithDefault("expect_invalid_kernel", false))
+        {
+            return 0;
+        }
         method->freeLInitStrategy();
         initializer.setNull();
 
