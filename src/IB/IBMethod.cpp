@@ -328,8 +328,8 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
+    const bool initial_time = d_ib_solver ? IBTK::rel_equal_eps(current_time, d_ib_solver->getStartTime()) :
+                                            (d_ib_force_fcn_needs_init || d_ib_source_fcn_needs_init);
 
     if (d_ib_force_fcn)
     {
@@ -420,10 +420,13 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const int integrator_step = d_ib_solver->getIntegratorStep();
+    const int integrator_step = d_ib_solver ? d_ib_solver->getIntegratorStep() : 0;
 
     // Update the instrumentation data.
-    updateIBInstrumentationData(integrator_step + 1, new_time);
+    if (d_ib_solver)
+    {
+        updateIBInstrumentationData(integrator_step + 1, new_time);
+    }
     if (d_instrument_panel->isInstrumented())
     {
         const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
@@ -654,6 +657,11 @@ IBMethod::updateFixedLEOperators()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        if (ln >= static_cast<int>(d_X_LE_new_data.size()) || !d_X_LE_new_data[ln])
+        {
+            TBOX_ERROR(d_object_name << "::updateFixedLEOperators(): fixed LE data is not initialized.\n"
+                                     << "Call setUseFixedLEOperators(true) before preprocessIntegrateData().");
+        }
         ierr = VecCopy(d_X_new_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
@@ -1337,7 +1345,10 @@ IBMethod::interpolatePressure(int p_data_idx,
 void
 IBMethod::postprocessData()
 {
-    if (!d_post_processor) return;
+    if (!d_post_processor || !d_ib_solver)
+    {
+        return;
+    }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx =
@@ -1955,7 +1966,10 @@ IBMethod::resetLagrangianSourceFunction(const double init_data_time, const bool 
 void
 IBMethod::updateIBInstrumentationData(const int timestep_num, const double data_time)
 {
-    if (!d_instrument_panel->isInstrumented()) return;
+    if (!d_ib_solver || !d_instrument_panel->isInstrumented())
+    {
+        return;
+    }
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

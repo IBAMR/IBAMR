@@ -1,0 +1,34 @@
+test_case = "operators"
+time_stepping = "MIDPOINT_RULE"
+operator_level = 1
+supplied_action_only = TRUE
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+IBMethod {
+   delta_fcn = "IB_4"
+}
+IBRedundantInitializer {
+   max_levels = 2
+   base_filenames_1 = "curve"
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(7,7)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser { level_1 = 2, 2 }
+   largest_patch_size { level_0 = 8, 8 level_1 = 16, 16 }
+   smallest_patch_size { level_0 = 8, 8 level_1 = 16, 16 }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes { level_0 = [(0,0),(7,7)] }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
