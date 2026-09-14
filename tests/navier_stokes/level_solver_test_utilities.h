@@ -34,12 +34,15 @@
 #include <HierarchySideDataOpsReal.h>
 #include <PatchHierarchy.h>
 #include <ProcessorMapping.h>
+#include <SideData.h>
+#include <SideGeometry.h>
 #include <SideVariable.h>
 #include <VariableDatabase.h>
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <set>
 #include <vector>
 
 #include <ibamr/app_namespaces.h>
@@ -57,6 +60,14 @@ public:
     LevelSolverProbe(const std::string& name, Pointer<Database> db) : Solver(name, db, "")
     {
     }
+    Mat matrixBeforeKSP() const
+    {
+        return d_matrix_before_ksp;
+    }
+    PetscInt referencesBeforeKSP() const
+    {
+        return d_references_before_ksp;
+    }
     bool shellStorageEmpty() const
     {
         return this->d_sub_x.empty() && this->d_sub_y.empty() && this->d_sub_ksp.empty() &&
@@ -73,6 +84,20 @@ public:
         }
         return result;
     }
+
+protected:
+    void initializeSolverStateSpecialized(const HierarchyVector& x, const HierarchyVector& b) override
+    {
+        Solver::initializeSolverStateSpecialized(x, b);
+        d_matrix_before_ksp = this->d_petsc_mat;
+        PetscErrorCode ierr =
+            PetscObjectGetReference(reinterpret_cast<PetscObject>(d_matrix_before_ksp), &d_references_before_ksp);
+        IBTK_CHKERRQ(ierr);
+    }
+
+private:
+    Mat d_matrix_before_ksp = nullptr;
+    PetscInt d_references_before_ksp = 0;
 };
 
 struct LevelFixture
@@ -81,21 +106,37 @@ struct LevelFixture
     Pointer<PatchLevel<NDIM>> level;
     Pointer<HierarchyVector> x, b;
     std::vector<int> indices;
+    std::vector<PetscInt> velocity_ids;
+    std::vector<int> dof_counts, velocity_counts;
+    int full_size = 0;
 
-    explicit LevelFixture(Pointer<Database> geometry_db)
+    explicit LevelFixture(Pointer<Database> geometry_db, int ln = 0, bool full = true, bool distributed = false)
     {
-        if (IBTK_MPI::getNodes() != 1)
+        if (IBTK_MPI::getNodes() != (distributed ? 2 : 1))
         {
             TBOX_ERROR("Unexpected rank count for level fixture\n");
         }
         Pointer<CartesianGridGeometry<NDIM>> geometry = new CartesianGridGeometry<NDIM>("level_geometry", geometry_db);
         hierarchy = new PatchHierarchy<NDIM>("level_hierarchy", geometry);
-        BoxArray<NDIM> boxes(1);
-        ProcessorMapping mapping(1);
-        boxes[0] = Box<NDIM>(SAMRAI::hier::Index<NDIM>(0), SAMRAI::hier::Index<NDIM>(15));
-        mapping.setProcessorAssignment(0, 0);
+        const int ranks = IBTK_MPI::getNodes();
+        BoxArray<NDIM> boxes(ranks);
+        ProcessorMapping mapping(ranks);
+        for (int rank = 0; rank < ranks; ++rank)
+        {
+            SAMRAI::hier::Index<NDIM> lower(0), upper(15);
+            lower(0) = rank * 16 / ranks;
+            upper(0) = (rank + 1) * 16 / ranks - 1;
+            boxes[rank] = Box<NDIM>(lower, upper);
+            mapping.setProcessorAssignment(rank, rank);
+        }
         hierarchy->makeNewPatchLevel(0, IntVector<NDIM>(1), boxes, mapping);
-        level = hierarchy->getPatchLevel(0);
+        if (ln == 1)
+        {
+            boxes[0] = full ? Box<NDIM>(SAMRAI::hier::Index<NDIM>(0), SAMRAI::hier::Index<NDIM>(31)) :
+                              Box<NDIM>(SAMRAI::hier::Index<NDIM>(8), SAMRAI::hier::Index<NDIM>(23));
+            hierarchy->makeNewPatchLevel(1, IntVector<NDIM>(2), boxes, mapping);
+        }
+        level = hierarchy->getPatchLevel(ln);
         VariableDatabase<NDIM>* db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = db->getContext("level_fixture");
         Pointer<SideVariable<NDIM, double>> u = new SideVariable<NDIM, double>("level_u");
@@ -110,9 +151,9 @@ struct LevelFixture
         }
         const int ui = db->registerVariableAndContext(u, context, IntVector<NDIM>(1));
         const int pi = db->registerVariableAndContext(p, context, IntVector<NDIM>(1));
-        x = new HierarchyVector("level_x", hierarchy, 0, 0);
-        x->addComponent(u, ui, -1, new HierarchySideDataOpsReal<NDIM, double>(hierarchy, 0, 0));
-        x->addComponent(p, pi, -1, new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, 0));
+        x = new HierarchyVector("level_x", hierarchy, ln, ln);
+        x->addComponent(u, ui, -1, new HierarchySideDataOpsReal<NDIM, double>(hierarchy, ln, ln));
+        x->addComponent(p, pi, -1, new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, ln, ln));
         x->allocateVectorData();
         x->setToScalar(0.0);
         b = x->cloneVector("level_b");
@@ -135,8 +176,51 @@ struct LevelFixture
         {
             level->allocatePatchData(idx);
         }
-        std::vector<int> dof_counts;
         StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(dof_counts, udi, pdi, level);
+        const int rank = IBTK_MPI::getRank();
+        int first_dof = 0;
+        for (int r = 0; r < ranks; ++r)
+        {
+            full_size += dof_counts[r];
+            if (r < rank)
+            {
+                first_dof += dof_counts[r];
+            }
+        }
+        std::set<int> velocity;
+        Pointer<SideData<NDIM, int>> data = level->getPatch(rank)->getPatchData(udi);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator i(SideGeometry<NDIM>::toSideBox(level->getPatch(rank)->getBox(), axis)); i; i++)
+            {
+                const int id = (*data)(SideIndex<NDIM>(i(), axis, SideIndex<NDIM>::Lower));
+                if (id >= first_dof && id < first_dof + dof_counts[rank])
+                {
+                    velocity.insert(id);
+                }
+            }
+        }
+        velocity_ids.assign(velocity.begin(), velocity.end());
+        const int local_velocity = velocity_ids.size();
+        velocity_counts.resize(ranks);
+        int ierr = MPI_Allgather(&local_velocity, 1, MPI_INT, velocity_counts.data(), 1, MPI_INT, PETSC_COMM_WORLD);
+        IBTK_CHKERRQ(ierr);
+        std::vector<int> offsets(ranks, 0);
+        for (int r = 1; r < ranks; ++r)
+        {
+            offsets[r] = offsets[r - 1] + velocity_counts[r - 1];
+        }
+        std::vector<PetscInt> all_velocity(offsets.back() + velocity_counts.back());
+        ierr = MPI_Allgatherv(velocity_ids.data(),
+                              local_velocity,
+                              MPIU_INT,
+                              all_velocity.data(),
+                              velocity_counts.data(),
+                              offsets.data(),
+                              MPIU_INT,
+                              PETSC_COMM_WORLD);
+        IBTK_CHKERRQ(ierr);
+        velocity_ids = std::move(all_velocity);
     }
     ~LevelFixture()
     {
