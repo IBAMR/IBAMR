@@ -53,6 +53,10 @@ StaggeredStokesIBJacobianOperator::~StaggeredStokesIBJacobianOperator()
 void
 StaggeredStokesIBJacobianOperator::setOperatorContext(const StaggeredStokesIBOperator::Context& ctx)
 {
+    if (getIsInitialized())
+    {
+        TBOX_ERROR(d_object_name << "::setOperatorContext(): deallocate operator state before replacing the Context");
+    }
     d_ctx = ctx;
     return;
 } // setOperatorContext
@@ -63,6 +67,10 @@ StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat SAJ_mat)
     if (d_SAJ_mat == SAJ_mat)
     {
         return;
+    }
+    if (getIsInitialized())
+    {
+        validateContext(SAJ_mat != nullptr);
     }
     if (d_SAJ_mat)
     {
@@ -84,17 +92,14 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
 #if !defined(NDEBUG)
     TBOX_ASSERT(getIsInitialized());
 #endif
-    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op || !d_ctx.hier_velocity_data_ops)
+    if (d_SAJ_mat)
     {
-        TBOX_ERROR(d_object_name << "::formJacobian(): incomplete operator context\n");
-    }
-    if (d_ctx.u_idx == IBTK::invalid_index)
-    {
-        TBOX_ERROR(d_object_name << "::formJacobian(): invalid velocity scratch index\n");
-    }
-    if (d_ctx.u_current_idx == IBTK::invalid_index)
-    {
-        TBOX_ERROR(d_object_name << "::formJacobian(): invalid current velocity data index\n");
+        // Supplied-matrix initialization need not validate strategy data.
+        if (!d_ctx.ib_implicit_ops || !d_ctx.hier_velocity_data_ops || d_ctx.u_idx < 0 || d_ctx.u_current_idx < 0)
+        {
+            TBOX_ERROR(d_object_name << "::formJacobian(): requires an IB strategy, velocity data operations, "
+                                        "and scratch/current-velocity data indices\n");
+        }
     }
 
     if (!d_base_vector)
@@ -179,17 +184,9 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
 #endif
     if (d_SAJ_mat)
     {
-        if (d_ctx.u_dof_index_idx == IBTK::invalid_index || d_ctx.p_dof_index_idx == IBTK::invalid_index)
-        {
-            TBOX_ERROR(d_object_name << "::apply(): SAJ apply path requires valid DOF-index patch data indices\n");
-        }
         if (x.getCoarsestLevelNumber() != x.getFinestLevelNumber())
         {
-            TBOX_ERROR(d_object_name << "::apply(): SAJ apply path supports single-level vectors only\n");
-        }
-        if (!d_ctx.stokes_op)
-        {
-            TBOX_ERROR(d_object_name << "::apply(): SAJ apply path requires Stokes operator\n");
+            TBOX_ERROR(d_object_name << "::apply(): supplied coupling matrix requires single-level vectors\n");
         }
 
         Pointer<PatchLevel<NDIM>> level = x.getPatchHierarchy()->getPatchLevel(x.getCoarsestLevelNumber());
@@ -229,15 +226,6 @@ StaggeredStokesIBJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMR
                                                                 nullptr,
                                                                 nullptr);
         return;
-    }
-
-    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op || !d_ctx.hier_velocity_data_ops)
-    {
-        TBOX_ERROR(d_object_name << "::apply(): incomplete operator context\n");
-    }
-    if (d_ctx.u_idx == IBTK::invalid_index || d_ctx.f_idx == IBTK::invalid_index)
-    {
-        TBOX_ERROR(d_object_name << "::apply(): invalid scratch data indices\n");
     }
 
     const double current_time = getTimeInterval().first;
@@ -301,13 +289,12 @@ StaggeredStokesIBJacobianOperator::initializeOperatorState(const SAMRAIVectorRea
         deallocateOperatorState();
     }
 
-    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op)
+    validateContext(d_SAJ_mat != nullptr);
+    if (d_ctx.ib_implicit_ops)
     {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState(): missing operator dependencies\n");
+        d_ctx.ib_implicit_ops->setUseFixedLEOperators(true);
+        d_ctx.ib_implicit_ops->updateFixedLEOperators();
     }
-
-    d_ctx.ib_implicit_ops->setUseFixedLEOperators(true);
-    d_ctx.ib_implicit_ops->updateFixedLEOperators();
     d_ctx.stokes_op->initializeOperatorState(in, out);
     JacobianOperator::initializeOperatorState(in, out);
     return;
@@ -383,6 +370,34 @@ StaggeredStokesIBJacobianOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& 
 } // imposeSolBcs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesIBJacobianOperator::validateContext(bool supplied_matrix) const
+{
+    if (!d_ctx.stokes_op)
+    {
+        TBOX_ERROR(d_object_name << ": operator Context requires a Stokes operator\n");
+    }
+    if (supplied_matrix)
+    {
+        if (d_ctx.u_dof_index_idx < 0 || d_ctx.p_dof_index_idx < 0)
+        {
+            TBOX_ERROR(d_object_name << ": supplied coupling matrix requires velocity and pressure DOF-index data\n");
+        }
+    }
+    else
+    {
+        if (!d_ctx.ib_implicit_ops || !d_ctx.hier_velocity_data_ops)
+        {
+            TBOX_ERROR(d_object_name << ": strategy action requires an IB strategy and velocity data operations\n");
+        }
+        if (d_ctx.u_idx < 0 || d_ctx.f_idx < 0 || d_ctx.u_current_idx < 0)
+        {
+            TBOX_ERROR(
+                d_object_name << ": strategy action requires velocity, force and current-velocity data indices\n");
+        }
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

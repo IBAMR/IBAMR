@@ -88,6 +88,8 @@ public:
      * is unsupported. Passing nullptr selects the strategy action instead.
      * formJacobian() does not update this matrix.
      * The operator retains a PETSc reference until replacement or deallocation.
+     * For supplied-matrix-only use, install it before the first initialization;
+     * only the Stokes operator and DOF fields in Context are required.
      * Reinitialization releases the retained matrix; install a current matrix
      * after any enclosing solver has initialized this operator.
      */
@@ -127,7 +129,7 @@ public:
     /*!
      * \brief Initialize hierarchy-dependent operator state.
      *
-     * Enables and updates fixed coupling on the shared IB strategy regardless
+     * When an IB strategy is supplied, enables and updates its fixed coupling regardless
      * of StaggeredStokesIBOperator::Context::use_fixed_le_operators.
      * Reinitialization deallocates the previous state, including the Jacobian
      * base and supplied coupling matrix; see formJacobian() and setIBCouplingJacobian().
@@ -156,6 +158,9 @@ public:
     void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
 private:
+    /*! \brief Check Context dependencies and indices for the selected action. */
+    void validateContext(bool supplied_matrix) const;
+
     /*! \brief Default construction is disabled. */
     StaggeredStokesIBJacobianOperator() = delete;
     /*! \brief Copy construction is disabled. */

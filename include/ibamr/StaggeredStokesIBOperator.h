@@ -106,7 +106,7 @@ public:
      * and must remain valid during use; omit it only if the boundary setup needs
      * no such strategy, e.g. a periodic domain.
      *
-     * The supplied-matrix Jacobian action additionally requires coupled velocity/pressure
+     * Supplied-matrix-only Jacobian use requires just stokes_op and coupled velocity/pressure
      * DOF fields u_dof_index_idx/p_dof_index_idx on the input vector's single level;
      * see StaggeredStokesIBJacobianOperator::setIBCouplingJacobian().
      * Copying Context copies handles and indices, not the shared objects or
