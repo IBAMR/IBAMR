@@ -1,4 +1,4 @@
 Program abort called with error message
 
     wrong_strategy::StaggeredStokesIBJacobianFACPreconditioner():
-  fac_strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.
+  fac_strategy must be nonnull.

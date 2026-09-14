@@ -645,9 +645,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         if (!p_coarse_petsc_solver)
         {
             TBOX_ERROR("StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized():\n"
-                       << "  coarse solver must be StaggeredStokesPETScLevelSolver to select between Galerkin "
-                          "Stokes+IB operators and SAJ-augmented rediscretized Stokes operators before "
-                          "initializeSolverState().\n");
+                       << "  coarse solver must be a StaggeredStokesPETScLevelSolver.\n");
         }
         // A single-level hierarchy has no projected coarse matrix: its coarse
         // solver is also the finest-level Stokes-plus-IB solver.
