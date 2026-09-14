@@ -34,10 +34,6 @@ namespace IBAMR
 {
 class StaggeredStokesIBLevelRelaxationFACOperator;
 } // namespace IBAMR
-namespace IBTK
-{
-class FACPreconditionerStrategy;
-} // namespace IBTK
 namespace SAMRAI
 {
 namespace tbox
@@ -54,8 +50,8 @@ namespace IBAMR
  * \brief FAC preconditioner for the Stokes-IB Jacobian.
  *
  * Uses the velocity-pressure formulation described by \ref StaggeredStokesIBOperator.
- * The supplied strategy must be nonnull and a StaggeredStokesIBLevelRelaxationFACOperator.
- * Subclasses must preserve this requirement when replacing the protected strategy.
+ * The supplied strategy must be nonnull. Subclasses replacing the protected strategy
+ * must preserve its StaggeredStokesIBLevelRelaxationFACOperator type.
  * See that class for configuration and matrix requirements.
  */
 class StaggeredStokesIBJacobianFACPreconditioner : public StaggeredStokesFACPreconditioner
@@ -64,10 +60,11 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesIBJacobianFACPreconditioner(const std::string& object_name,
-                                               SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
-                                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                               const std::string& default_options_prefix);
+    StaggeredStokesIBJacobianFACPreconditioner(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
