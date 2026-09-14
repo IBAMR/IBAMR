@@ -99,23 +99,44 @@ namespace IBAMR
  * smoothers for staggered-grid (MAC) discretizations of the implicit
  * incompressible Stokes-IB equations.
  *
- * Sample parameters for initialization from database (and their default
- * values): \verbatim
-
- smoother_type = "ADDITIVE"                     // see setSmootherType()
- U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
- P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
- U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
- P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
- coarse_solver_type = "LEVEL_SMOOTHER"          // see setCoarseSolverType()
- coarse_solver_rel_residual_tol = 1.0e-5        // see setCoarseSolverRelativeTolerance()
- coarse_solver_abs_residual_tol = 1.0e-50       // see setCoarseSolverAbsoluteTolerance()
- coarse_solver_max_iterations = 10              // see setCoarseSolverMaxIterations()
- coarse_solver_db = { ... }                     // SAMRAI::tbox::Database for initializing
- coarse
- level solver
- \endverbatim
-*/
+ * Configure Stokes coefficients, boundary conditions, nullspaces, times, and the
+ * IB time rule before initialization. Supply the matrices described by
+ * setIBForceJacobian() and setIBInterpOp() for the structure on the finest level.
+ * Vectors contain side-centered velocity followed by cell-centered pressure on
+ * the configured hierarchy and level range.
+ *
+ * \anchor stokes_ib_fac_matrices
+ * \par IB matrices
+ * A is the unscaled Lagrangian force derivative with respect to position at the
+ * desired linearization configuration and force time. J interpolates finest-level
+ * Eulerian velocity to the Lagrangian mesh at the desired fixed coupling
+ * configuration. Its columns use the full coupled velocity-pressure numbering
+ * and local distribution from
+ * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(); pressure
+ * columns are zero. Its row ordering and distribution match those of A.
+ * Initialization constructs the finest-level Eulerian contribution
+ * \f$-\beta^2\Delta t\,J^T A J/\Delta V\f$, where \f$\Delta V\f$ is the cell
+ * volume and \f$\beta=1\f$ for backward Euler or \f$1/2\f$ for trapezoidal and
+ * midpoint stepping. Do not include these factors in A.
+ *
+ * A and J must be nonnull, assembled PETSc matrices compatible with this product
+ * on PETSC_COMM_WORLD. Both setters borrow handles without retaining PETSc
+ * references and require deallocated state. Keep the matrices alive and unchanged
+ * during use and subsequent initialization; deallocation does not clear them.
+ * Deallocate before updating the matrices, linearization data, or hierarchy,
+ * then reinitialize.
+ *
+ * rediscretize_stokes selects rediscretized Stokes operators plus the IB
+ * contribution; false selects Galerkin operators below the finest level.
+ * Independently, res_rediscretized_stokes selects the hierarchy Stokes residual
+ * minus the IB contribution; false uses the installed level matrices. Both
+ * default to true. The finest-level operator uses rediscretized Stokes plus the
+ * IB contribution, including on a one-level hierarchy. See
+ * StaggeredStokesFACPreconditionerStrategy for shared FAC settings.
+ *
+ * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
+ * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
+ */
 class StaggeredStokesIBLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
@@ -153,49 +174,62 @@ public:
 
     /*!
      * \brief Set the IB time stepping type.
+     *
+     * Select BACKWARD_EULER, TRAPEZOIDAL_RULE, or MIDPOINT_RULE before
+     * initialization; no time rule is selected by default. Reinitialize the
+     * operator after changing the rule or time interval to rebuild its matrices.
      */
     void setIBTimeSteppingType(TimeSteppingType time_stepping_type);
 
     /*!
-     * \brief Set the IB-force Jacobian at the finest patch level (where the
-     * structure resides).
+     * \brief Set the Lagrangian force derivative A for the finest-level structure.
      */
-    void setIBForceJacobian(Mat& A);
+    void setIBForceJacobian(Mat A);
 
     /*!
-     * \brief Set the IB-interpolation operator at the finest patch level (where the
-     * structure resides).
+     * \brief Set interpolation J from finest-level Eulerian data to Lagrangian velocity.
      */
-    void setIBInterpOp(Mat& J);
+    void setIBInterpOp(Mat J);
 
     //\}
 
     /*!
      * \name Functions for accessing the level operators and solvers.
+     *
+     * Requires initialized operator state and a level in its constructed range.
+     * Returned Mat/Vec handles are borrowed: do not destroy or modify them.
+     * They are invalidated by teardown or rebuilding of the corresponding level;
+     * reacquire them after reinitialization.
      */
     //\{
 
     /*!
      * \brief Get the Staggered Stokes IB level solver.
+     *
+     * Retaining the solver Pointer keeps the object alive, but does not preserve its
+     * initialized state independently of FAC teardown or rebuilding.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPETScLevelSolver> getStaggeredStokesPETScLevelSolver(int ln) const;
 
     /*!
-     * \brief Get the Eulerian elasticity level operator.
+     * \brief Return the scaled Eulerian elasticity contribution on level \em ln.
+     *
+     * \see \ref stokes_ib_fac_matrices
      */
     Mat getEulerianElasticityLevelOp(int ln) const;
 
     /*!
-     * \brief Get the prolongation level operator. The prolongation
-     * operator prolongs data from level \em ln to level \em ln + 1.
+     * \brief Return the elasticity prolongation from level \em ln to level \em ln + 1.
+     *
+     * Requires an adjacent pair of initialized levels.
      */
     Mat getProlongationOp(int ln) const;
 
     /*!
-     * \brief Get the scaling for level restriction operator. The restriction
-     * operator restricts data from level \em ln + 1 to level \em ln.
-     * Restriction op is defined to be the scaled adjoint of prolongation
-     * operator, i.e., R = L P^T.
+     * \brief Return the diagonal of L in the elasticity restriction R = L P^T.
+     *
+     * P is the prolongation from getProlongationOp(). Requires an adjacent pair
+     * of initialized levels \em ln and \em ln + 1.
      */
     Vec getRestrictionScalingOp(int ln) const;
 
@@ -207,8 +241,7 @@ public:
     //\{
 
     /*!
-     * \brief Compute the composite-grid residual on the specified range of
-     * levels of the patch hierarchy.
+     * \brief Compute the configured Stokes-IB residual on the specified level range.
      */
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
@@ -315,6 +348,36 @@ private:
     int d_u_dof_index_idx, d_p_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
+
+    /*! \brief Own the move-only PETSc scratch vectors for one level's residual. */
+    struct LevelResidualWorkspace
+    {
+        /*! \brief Construct an empty workspace. */
+        LevelResidualWorkspace() = default;
+        /*! \brief Release the owned vectors. */
+        ~LevelResidualWorkspace();
+        /*! \brief Copy construction is disabled. */
+        LevelResidualWorkspace(const LevelResidualWorkspace&) = delete;
+        /*! \brief Copy assignment is disabled. */
+        LevelResidualWorkspace& operator=(const LevelResidualWorkspace&) = delete;
+        /*! \brief Take ownership of the source vectors, leaving the source empty. */
+        LevelResidualWorkspace(LevelResidualWorkspace&& from) noexcept;
+        /*! \brief Release existing vectors and take ownership of the source vectors. */
+        LevelResidualWorkspace& operator=(LevelResidualWorkspace&& from) noexcept;
+
+        /*! \brief Collectively allocate an empty workspace on PETSC_COMM_WORLD. */
+        void initialize(PetscInt local_size);
+        /*! \brief Release all vectors and leave the workspace empty. */
+        void deallocate();
+
+        Vec solution = nullptr;
+        Vec residual = nullptr;
+    };
+
+    /*
+     * Residual work vectors for each hierarchy level.
+     */
+    std::vector<LevelResidualWorkspace> d_residual_work_vecs;
 
     /*
      * The time stepping type.

@@ -1,0 +1,3 @@
+Changed: Add StaggeredStokesIBJacobianFACPreconditioner and rework StaggeredStokesIBLevelRelaxationFACOperator for the implicit Stokes-IB system.
+<br>
+(Boyce Griffith, 2026/09/14)
