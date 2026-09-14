@@ -1074,7 +1074,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
 
     d_row_lower = i_lower;
     d_n_local_points = m_local / NDIM;
-    ierr = VecGetArray(X_vec, &d_positions);
+    ierr = VecGetArrayRead(X_vec, &d_positions);
     IBTK_CHKERRQ(ierr);
     d_patch_numbers.resize(d_n_local_points);
     d_stencil_boxes.resize(d_n_local_points);
@@ -1195,7 +1195,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
 
 PETScMatUtilities::SCInterpOpData::~SCInterpOpData()
 {
-    const int ierr = VecRestoreArray(d_X, &d_positions);
+    const int ierr = VecRestoreArrayRead(d_X, &d_positions);
     IBTK_CHKERRQ(ierr);
 }
 

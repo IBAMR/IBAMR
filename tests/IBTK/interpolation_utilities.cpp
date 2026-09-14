@@ -193,8 +193,12 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         variables->removePatchDataIndex(dof);
         return 0;
     }
+    ierr = VecLockReadPush(X);
+    IBTK_CHKERRQ(ierr);
     PETScMatUtilities::constructPatchLevelSCInterpOp(
         matrix, IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{}, LinearIBKernel{} }, X, counts, dof, level);
+    ierr = VecLockReadPop(X);
+    IBTK_CHKERRQ(ierr);
     Mat float_matrix = nullptr;
     PETScMatUtilities::constructPatchLevelSCInterpOp(
         float_matrix, ReorderedTensorKernel<float>{}, X, counts, dof, level);

@@ -276,8 +276,8 @@ private:
         Mat& d_mat;
         //! Borrowed vector; must remain alive through restoration of d_positions.
         Vec d_X;
-        //! Array borrowed from VecGetArray until the matching VecRestoreArray.
-        double* d_positions = nullptr;
+        //! Read-only array borrowed until the matching VecRestoreArrayRead.
+        const double* d_positions = nullptr;
         //! Grid spacings and physical domain origin.
         std::array<double, NDIM> d_dx, d_x_lower;
         //! Lower index of the physical domain.
