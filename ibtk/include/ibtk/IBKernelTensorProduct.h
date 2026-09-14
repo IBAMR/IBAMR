@@ -19,9 +19,11 @@
 #include <ibtk/IBKernel.h>
 
 #include <array>
+#include <compare>
 #include <initializer_list>
 #include <iosfwd>
 #include <string>
+#include <string_view>
 
 namespace IBTK
 {
@@ -70,11 +72,8 @@ public:
     /*! \brief Return whether two products have the same factors after combining equal pairs. */
     bool operator==(const IBKernelTensorProduct& other) const;
 
-    /*! \brief Return whether two products differ. */
-    bool operator!=(const IBKernelTensorProduct& other) const;
-
-    /*! \brief Compare factors lexicographically using IBKernel::operator<(). */
-    bool operator<(const IBKernelTensorProduct& other) const;
+    /*! \brief Compare active factors lexicographically. */
+    std::strong_ordering operator<=>(const IBKernelTensorProduct& other) const;
 
 private:
     //! Minimum number of factors accepted by the constructors.
@@ -100,7 +99,7 @@ private:
     static CanonicalFactors canonicalize(std::initializer_list<IBKernel> factors);
 
     /*! \brief Parse a scalar or composite kernel name. */
-    static CanonicalFactors parse_name(const std::string& name);
+    static CanonicalFactors parse_name(std::string_view name);
 
     /*! \brief Parse a scalar or composite kernel name, rejecting null pointers. */
     static CanonicalFactors parse_name(const char* name);
@@ -114,15 +113,6 @@ private:
 
 //! Compare an isotropic product with a scalar kernel.
 bool operator==(const IBKernelTensorProduct& product, const IBKernel& kernel);
-
-//! Compare a scalar kernel with an isotropic product.
-bool operator==(const IBKernel& kernel, const IBKernelTensorProduct& product);
-
-//! Return whether a product differs from an isotropic scalar kernel.
-bool operator!=(const IBKernelTensorProduct& product, const IBKernel& kernel);
-
-//! Return whether an isotropic scalar kernel differs from a product.
-bool operator!=(const IBKernel& kernel, const IBKernelTensorProduct& product);
 
 //! Write the scalar kernel names as a parenthesized, comma-separated list.
 std::ostream& operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel);
