@@ -66,13 +66,10 @@ CoupledApplication::run()
 {
     d_output.registerDataWriter(d_app_initializer, d_time_integrator);
 
-    // Initialize hierarchy configuration and data on all patches.
     d_time_integrator->initializePatchHierarchy(d_patch_hierarchy, d_gridding_algorithm);
 
-    // Remove the AppInitializer
     d_app_initializer.setNull();
 
-    // Print the input database contents to the log file.
     plog << "Input database:\n";
     d_input_db->printClassData(plog);
 

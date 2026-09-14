@@ -23,7 +23,6 @@ namespace PhaseChangeExamples
 {
 ExampleOutput::ExampleOutput(Pointer<AppInitializer> app_initializer)
 {
-    // Get various standard options set in the input file.
     d_dump_viz_data = app_initializer->dumpVizData();
     d_viz_dump_interval = app_initializer->getVizDumpInterval();
     d_uses_visit = d_dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
@@ -47,7 +46,6 @@ ExampleOutput::ExampleOutput(Pointer<AppInitializer> app_initializer)
 void
 ExampleOutput::registerDataWriter(Pointer<AppInitializer> app_initializer, Pointer<HierarchyIntegrator> time_integrator)
 {
-    // Set up visualization plot file writers.
     d_visit_data_writer = app_initializer->getVisItDataWriter();
     if (d_uses_visit)
     {
@@ -75,9 +73,6 @@ ExampleOutput::writeStep(Pointer<HierarchyIntegrator> time_integrator,
                          const int iteration_num,
                          const double loop_time)
 {
-    // At specified intervals, write visualization and restart files,
-    // print out timer data, and store hierarchy data for post
-    // processing.
     const bool last_step = !time_integrator->stepsRemaining();
     if (d_dump_viz_data && d_uses_visit && (iteration_num % d_viz_dump_interval == 0 || last_step))
     {
@@ -105,7 +100,6 @@ run_time_loop(Pointer<HierarchyIntegrator> time_integrator,
 {
     int iteration_num = time_integrator->getIntegratorStep();
     double loop_time = time_integrator->getIntegratorTime();
-    // Main time step loop.
     double loop_time_end = time_integrator->getEndTime();
     double dt = 0.0;
     while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())

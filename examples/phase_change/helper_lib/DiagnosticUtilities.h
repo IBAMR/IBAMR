@@ -38,8 +38,8 @@ void deallocate_diagnostic_data(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarc
                                 int coarsest_level,
                                 int finest_level);
 
-// Keep the diagnostic's original level range fixed through a run. Cases that
-// regrid explicitly request scratch allocation again before using the product.
+// Use the levels present at construction. After regridding, call allocateData()
+// before multiply() to allocate scratch data on the new patches.
 class PhaseMassDiagnostic
 {
 public:
