@@ -1,4 +1,4 @@
-empty_builder = TRUE
+late_kernel = TRUE
 N = 8
 IB_RULE = "BACKWARD_EULER"
 JAC_KERNEL = "IB_4"

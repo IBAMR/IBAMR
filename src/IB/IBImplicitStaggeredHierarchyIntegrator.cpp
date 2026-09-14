@@ -88,15 +88,6 @@ namespace
 {
 constexpr int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
-template <class Evaluator>
-IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
-make_matrix_builder(Evaluator evaluator)
-{
-    return [evaluator = std::move(evaluator)](
-               Mat& J, Vec X, const std::vector<int>& counts, int dof, Pointer<PatchLevel<NDIM>> level)
-    { PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, X, counts, dof, level); };
-}
-
 template <std::size_t... I>
 auto
 make_bspline_kernels(std::index_sequence<I...>)
@@ -105,10 +96,12 @@ make_bspline_kernels(std::index_sequence<I...>)
         std::make_pair(IBKernel("BSPLINE_" + std::to_string(I + 1)), IBKernels::BSpline<I + 1>{})...);
 }
 
+} // namespace
+
 IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
-select_matrix_builder(const IBKernelTensorProduct& kernel)
+IBImplicitStaggeredHierarchyIntegrator::select_matrix_builder(const IBKernelTensorProduct& kernel)
 {
-    const auto kernels = std::tuple_cat(make_bspline_kernels(std::make_index_sequence<IBTK_MAX_BSPLINE_ORDER>{}),
+    const auto kernels = std::tuple_cat(make_bspline_kernels(std::make_index_sequence<IBAMR_MAX_BSPLINE_ORDER>{}),
                                         std::make_tuple(std::make_pair(IBKernel::IB_3, IBKernels::IB3{}),
                                                         std::make_pair(IBKernel::IB_4, IBKernels::IB4{}),
                                                         std::make_pair(IBKernel::IB_5, IBKernels::IB5{}),
@@ -133,19 +126,7 @@ select_matrix_builder(const IBKernelTensorProduct& kernel)
     return builder;
 }
 
-} // namespace
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-void
-IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationMatrixBuilder(InterpolationMatrixBuilder builder)
-{
-    if (!builder || d_integrator_is_initialized)
-    {
-        TBOX_ERROR("A nonempty matrix builder must be supplied before initialization.\n");
-    }
-    d_interp_matrix_builder = std::move(builder);
-}
 
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
@@ -343,7 +324,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
         if (!d_interp_matrix_builder)
         {
             TBOX_ERROR("No compiled Jacobian matrix evaluator for "
-                       << d_jac_kernel << "; IBTK_MAX_BSPLINE_ORDER = " << IBTK_MAX_BSPLINE_ORDER << ".\n");
+                       << d_jac_kernel << "; check IBAMR_MAX_BSPLINE_ORDER or supply a concrete evaluator.\n");
         }
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

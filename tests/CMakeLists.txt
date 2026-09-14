@@ -353,6 +353,20 @@ FOREACH(_case centering data_type)
     VERBATIM)
 ENDFOREACH()
 
+# Success cases requiring factors outside the compiled input catalog are not runnable.
+IF(IBAMR_MAX_BSPLINE_ORDER LESS 8)
+  ADD_CUSTOM_COMMAND(TARGET tests-IB POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "${CMAKE_BINARY_DIR}/tests/IB/implicit_stokes_ib_01.bspline8.input"
+    VERBATIM)
+ENDIF()
+IF(IBAMR_MAX_BSPLINE_ORDER LESS 4)
+  ADD_CUSTOM_COMMAND(TARGET tests-IB POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "${CMAKE_BINARY_DIR}/tests/IB/implicit_stokes_ib_01.mixed_kernel.input"
+    VERBATIM)
+ENDIF()
+
 # Find numdiff, if possible (we only need it for tests so its not essential that
 # we find it now)
 FIND_PROGRAM(NUMDIFF_EXECUTABLE NAMES numdiff HINTS ${NUMDIFF_ROOT} PATH_SUFFIXES bin)

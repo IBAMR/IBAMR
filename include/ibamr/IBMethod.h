@@ -486,12 +486,7 @@ public:
                       bool** F_needs_ghost_fill,
                       IBTK::TimePoint time_pt);
 
-    /*! \brief Borrow the selected coupling-position vector for immediate read-only use.
-     *
-     * Requires initialized data at the requested level and current, half, or new time.
-     * Fixed coupling can differ from ordinary positions. No ghost fill or reference
-     * transfer is performed; do not retain the vector across strategy state changes.
-     */
+    /*! \copydoc IBImplicitStrategy::getLECouplingPositionVector */
     Vec getLECouplingPositionVector(int level_number, double data_time) override;
 
 protected:

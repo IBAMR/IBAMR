@@ -1,4 +1,4 @@
 Program abort called with error message
 
-    No compiled Jacobian matrix evaluator for (APP_CUSTOM); IBTK_MAX_BSPLINE_ORDER = 8.
+    No compiled Jacobian matrix evaluator for (APP_CUSTOM); check IBAMR_MAX_BSPLINE_ORDER or supply a concrete evaluator.
 

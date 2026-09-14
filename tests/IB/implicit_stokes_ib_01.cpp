@@ -24,7 +24,6 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
-#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/ib_kernels.h>
 #include <ibtk/muParserCartGridFunction.h>
 
@@ -53,17 +52,18 @@
 namespace
 {
 constexpr int NUM_POINTS = 16;
-int builder_calls = 0;
 
 // An application-compiled evaluator with the supplied four-point kernel's weights.
 struct CustomKernel
 {
-    explicit CustomKernel(double scale);
+    CustomKernel(double scale, std::shared_ptr<const int> lifetime);
     std::array<double, 4> operator()(double r) const;
     std::unique_ptr<const double> scale;
+    std::shared_ptr<const int> lifetime;
 };
 
-CustomKernel::CustomKernel(double value) : scale(std::make_unique<const double>(value))
+CustomKernel::CustomKernel(double value, std::shared_ptr<const int> token)
+    : scale(std::make_unique<const double>(value)), lifetime(std::move(token))
 {
 }
 
@@ -177,37 +177,13 @@ main(int argc, char* argv[])
         Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
         Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
             "IBHierarchyIntegrator", app->getComponentDatabase("IBHierarchyIntegrator"), method, ins);
-        if (input->getBoolWithDefault("empty_builder", false))
-        {
-            Pointer<Logger::Appender> abort_appender = new TestAppender();
-            Logger::getInstance()->setAbortAppender(abort_appender);
-            integrator->setJacobianInterpolationMatrixBuilder({});
-            return 0;
-        }
+        std::weak_ptr<const int> evaluator_lifetime;
         if (custom_kernel)
         {
-            using Evaluator = IBKernelEvaluatorTensorProduct<CustomKernel>;
-            auto evaluator = std::make_shared<const Evaluator>(CustomKernel{ 1.0 }, CustomKernel{ 1.0 });
-            integrator->setJacobianInterpolationMatrixBuilder(
-                [evaluator](Mat& J, Vec X, const std::vector<int>& counts, int dof, Pointer<PatchLevel<NDIM>> level)
-                {
-                    ++builder_calls;
-                    PETScMatUtilities::constructPatchLevelSCInterpOp(J, *evaluator, X, counts, dof, level);
-                    // Independently check preservation of a constant side field.
-                    Vec ones = nullptr, values = nullptr;
-                    IBTK_CHKERRQ(MatCreateVecs(J, &ones, &values));
-                    IBTK_CHKERRQ(VecSet(ones, 1.0));
-                    IBTK_CHKERRQ(MatMult(J, ones, values));
-                    IBTK_CHKERRQ(VecShift(values, -1.0));
-                    double error = 0.0;
-                    IBTK_CHKERRQ(VecNorm(values, NORM_INFINITY, &error));
-                    IBTK_CHKERRQ(VecDestroy(&ones));
-                    IBTK_CHKERRQ(VecDestroy(&values));
-                    if (!(error < 1.0e-12))
-                    {
-                        TBOX_ERROR("Custom matrix does not preserve constant velocity.\n");
-                    }
-                });
+            auto lifetime = std::make_shared<const int>(1);
+            evaluator_lifetime = lifetime;
+            integrator->setJacobianInterpolationKernel(
+                IBKernelEvaluatorTensorProduct{ CustomKernel{ 1.0, lifetime }, CustomKernel{ 1.0, lifetime } });
         }
         CycleData cycles{ 0, method.getPointer() };
         integrator->registerIntegrateHierarchyCallback(count_integration_cycles, &cycles);
@@ -235,6 +211,13 @@ main(int argc, char* argv[])
         {
             return 0;
         }
+        if (input->getBoolWithDefault("late_kernel", false))
+        {
+            Pointer<Logger::Appender> abort_appender = new TestAppender();
+            Logger::getInstance()->setAbortAppender(abort_appender);
+            integrator->setJacobianInterpolationKernel(IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} });
+            return 0;
+        }
         method->freeLInitStrategy();
         initializer.setNull();
 
@@ -250,7 +233,6 @@ main(int argc, char* argv[])
         plog << std::scientific << std::setprecision(8);
         for (int step = 0; step < 3; ++step)
         {
-            const int previous_calls = builder_calls;
             cycles.count = 0;
             // A shorter final step also exercises timestep-dependent matrix setup.
             integrator->advanceHierarchy(step < 2 ? 0.001 : 0.0005);
@@ -270,9 +252,9 @@ main(int argc, char* argv[])
                  << velocity_ops.L2Norm(u, math_ops->getSideWeightPatchDescriptorIndex()) << " pressure_L2 "
                  << pressure_ops.L2Norm(p, math_ops->getCellWeightPatchDescriptorIndex()) << " radius_L2 "
                  << radius_norm << '\n';
-            if (custom_kernel && builder_calls == previous_calls)
+            if (custom_kernel && evaluator_lifetime.expired())
             {
-                TBOX_ERROR("The selected application evaluator was not used during advancement.\n");
+                TBOX_ERROR("The integrator did not retain the application evaluator.\n");
             }
         }
         ierr = VecDestroy(&centered_positions);

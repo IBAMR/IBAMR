@@ -28,6 +28,7 @@
 #include <ibamr/StaggeredStokesIBOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 
+#include <ibtk/IBKernelConcepts.h>
 #include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 
@@ -82,11 +83,11 @@ namespace IBAMR
  * Configure the nonlinear solver in this object's input database (PETSc prefix
  * \c ib_) and FAC in \c stokes_ib_precond_db (prefix \c stokes_ib_pc_).
  * \c jacobian_delta_fcn selects an IBKernelTensorProduct using IB_3 through IB_6
- * or B-splines through the configured IBTK_MAX_BSPLINE_ORDER (default 8).
- * The strategy's minimum ghost width must cover that kernel; with IBMethod,
- * set \c min_ghost_cell_width when needed. Names are parsed at construction;
- * built-in availability is checked at initialization unless an explicit builder
- * was supplied with setJacobianInterpolationMatrixBuilder().
+ * or B-splines within the compiled input-selection bound documented in [CMake
+ * configuration](../../doc/cmake.md#implicit-ib-interpolation-kernels). The strategy's minimum ghost width must cover
+ * that kernel; with IBMethod, set \c min_ghost_cell_width when needed. Names are parsed at construction; built-in
+ * availability is checked at initialization unless an explicit builder was supplied with
+ * setJacobianInterpolationKernel().
  *
  * Fixed coupling is enabled on the supplied strategy at construction. Subclasses
  * overriding time-step or hierarchy hooks must call the corresponding base
@@ -96,37 +97,28 @@ namespace IBAMR
 class IBImplicitStaggeredHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
-    /*! \brief Build an owned interpolation matrix from borrowed coupling geometry and DOF data. */
-    using InterpolationMatrixBuilder = std::function<
-        void(Mat&, Vec, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
-
-    /*! \brief Replace input-selected matrix construction before initialization.
+    /*! \brief Own a concrete interpolation evaluator configured before initialization.
      *
-     * The nonempty callable is retained by value and must own its evaluator state.
-     * A move-only evaluator can be captured through shared_ptr<const Evaluator>.
+     * The evaluator is moved into owned storage and evaluated as const according
+     * to IBTK::IBKernelEvaluatorCartesian and the stencil/weight conventions of
+     * IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp(). It must own any
+     * state needed during later advances; move-only evaluators are supported.
      * This overrides any valid input kernel name, independently of the compiled
-     * B-spline limit. Invalid names are rejected during construction.
-     * This changes assembled coupling only, not live interpolation or spreading.
+     * bound. Invalid names still fail at construction; calls after initialization
+     * fail. This selects assembled FAC coupling, not live interpolation/spreading.
+     * See [the configuration example](../../doc/cmake.md#implicit-ib-interpolation-kernels).
      */
-    void setJacobianInterpolationMatrixBuilder(InterpolationMatrixBuilder builder);
+    template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+    void setJacobianInterpolationKernel(Evaluator evaluator);
 
-    /*!
-     * The constructor for class IBImplicitStaggeredHierarchyIntegrator sets
-     * some default values, reads in configuration information from input and
-     * restart databases, and registers the integrator object with the restart
-     * manager when requested.
-     */
+    /*! \brief Construct an implicit velocity-pressure integrator and enable fixed coupling. */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                            SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
                                            SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
                                            bool register_for_restart = true);
 
-    /*!
-     * The destructor for class IBImplicitStaggeredHierarchyIntegrator
-     * unregisters the integrator object with the restart manager when the
-     * object is so registered.
-     */
+    /*! \brief Release the implicit solver state. */
     ~IBImplicitStaggeredHierarchyIntegrator() override;
 
     /*!
@@ -142,14 +134,8 @@ public:
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
 
-    /*!
-     * Initialize the variables, basic communications algorithms, solvers, and
-     * other data structures used by this time integrator object.
-     *
-     * This method is called automatically by initializePatchHierarchy() prior
-     * to the construction of the patch hierarchy.  It is also possible for
-     * users to make an explicit call to initializeHierarchyIntegrator() prior
-     * to calling initializePatchHierarchy().
+    /*! \brief Resolve the interpolation evaluator and initialize coupled solver data.
+     * \see IBHierarchyIntegrator::initializeHierarchyIntegrator()
      */
     void
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
@@ -183,6 +169,16 @@ protected:
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
 
 private:
+    using InterpolationMatrixBuilder = std::function<
+        void(Mat&, Vec, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
+
+    /*! \brief Return a whole-matrix builder owning a concrete const evaluator. */
+    template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+    static InterpolationMatrixBuilder make_matrix_builder(Evaluator evaluator);
+
+    /*! \brief Select a compiled evaluator for the configured normal/tangential factors. */
+    static InterpolationMatrixBuilder select_matrix_builder(const IBTK::IBKernelTensorProduct& kernel);
+
     /*! \brief Copy construction is disabled. */
     IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from) = delete;
     /*! \brief Copy assignment is disabled. */
@@ -240,5 +236,7 @@ private:
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
+
+#include <ibamr/private/IBImplicitStaggeredHierarchyIntegrator-inl.h>
 
 #endif // #ifndef included_IBAMR_IBImplicitStaggeredHierarchyIntegrator
