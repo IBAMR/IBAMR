@@ -56,8 +56,9 @@ public:
     /*!
      * \brief Construct a kernel from its name.
      *
-     * \param name Nonempty name containing at most MAX_NAME_LENGTH ASCII letters,
-     * digits, or underscores, other than the reserved name UNKNOWN.
+     * Use is_valid_name() to check whether a name is accepted.
+     *
+     * \param name Nonempty name containing ASCII letters, digits, or underscores.
      * Names are case-insensitive; scalar aliases are accepted.
      */
     explicit IBKernel(const std::string& name);
