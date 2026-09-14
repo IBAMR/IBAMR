@@ -19,6 +19,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesIBJacobianOperator.h>
 #include <ibamr/StaggeredStokesIBOperator.h>
+#include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/ibamr_enums.h>
 
@@ -41,8 +42,10 @@
 #include <tbox/MemoryDatabase.h>
 
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <CellVariable.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
@@ -50,6 +53,7 @@
 #include <LoadBalancer.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PatchHierarchy.h>
+#include <ProcessorMapping.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
 #include <SideData.h>
@@ -62,16 +66,19 @@
 #include <cmath>
 #include <iomanip>
 #include <map>
+#include <set>
 #include <tuple>
 #include <vector>
 
+#include "../navier_stokes/level_solver_test_utilities.h"
 #include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
+using namespace level_solver_test;
+
 namespace
 {
-using HierarchyVector = SAMRAIVectorReal<NDIM, double>;
 
 class BoundaryCheckedStokesOperator : public StaggeredStokesOperator
 {
@@ -1054,11 +1061,571 @@ run_operators(Pointer<AppInitializer> app)
 }
 } // namespace
 
+namespace
+{
+Mat
+level_test_matrix(PetscInt n, double shift)
+{
+    Mat matrix;
+    PetscErrorCode ierr = MatCreateAIJ(PETSC_COMM_WORLD, n, n, n, n, 2, nullptr, 0, nullptr, &matrix);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < n; ++i)
+    {
+        const PetscInt cols[2] = { i, (i + 3) % n };
+        const PetscScalar vals[2] = { shift + 0.001 * i, 0.125 };
+        ierr = MatSetValues(matrix, 1, &i, 2, cols, vals, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(matrix, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(matrix, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    return matrix;
+}
+
+// Maximum errors across the matrix replacements and solver lifetimes in one case.
+double max_matrix_error = 0.0, max_mapping_error = 0.0;
+
+bool
+matrices_equal(Mat a, Mat b)
+{
+    Mat diff;
+    PetscErrorCode ierr = MatDuplicate(a, MAT_COPY_VALUES, &diff);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAXPY(diff, -1.0, b, DIFFERENT_NONZERO_PATTERN);
+    IBTK_CHKERRQ(ierr);
+    PetscReal norm;
+    ierr = MatNorm(diff, NORM_INFINITY, &norm);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&diff);
+    IBTK_CHKERRQ(ierr);
+    max_matrix_error = std::max(max_matrix_error, norm);
+    return std::isfinite(norm) && norm < 1.0e-12;
+}
+
+bool
+check_stokes_vector_mapping(StaggeredStokesPETScLevelSolver& solver, LevelFixture& fixture)
+{
+    const int u = fixture.x->getComponentDescriptorIndex(0), p = fixture.x->getComponentDescriptorIndex(1);
+    set_operator_velocity(u, fixture.level, 0.3, 0.4);
+    Pointer<CellData<NDIM, double>> pressure = fixture.level->getPatch(0)->getPatchData(p);
+    pressure->fill(0.25);
+    Mat matrix;
+    PetscErrorCode ierr = KSPGetOperators(solver.getPETScKSP(), &matrix, nullptr);
+    IBTK_CHKERRQ(ierr);
+    Vec exact, rhs, result;
+    ierr = MatCreateVecs(matrix, &exact, &rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(exact, &result);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        exact, u, fixture.indices[0], p, fixture.indices[1], fixture.level);
+    ierr = MatMult(matrix, exact, rhs);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(rhs,
+                                                            fixture.b->getComponentDescriptorIndex(0),
+                                                            fixture.indices[0],
+                                                            fixture.b->getComponentDescriptorIndex(1),
+                                                            fixture.indices[1],
+                                                            fixture.level,
+                                                            nullptr,
+                                                            nullptr);
+    fixture.x->setToScalar(0.0);
+    const bool converged = solver.solveSystem(*fixture.x, *fixture.b);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        result, u, fixture.indices[0], p, fixture.indices[1], fixture.level);
+    ierr = VecAXPY(result, -1.0, exact);
+    IBTK_CHKERRQ(ierr);
+    PetscReal error;
+    ierr = VecNorm(result, NORM_INFINITY, &error);
+    IBTK_CHKERRQ(ierr);
+    for (Vec* v : { &exact, &rhs, &result })
+    {
+        ierr = VecDestroy(v);
+        IBTK_CHKERRQ(ierr);
+    }
+    max_mapping_error = std::max(max_mapping_error, error);
+    return converged && std::isfinite(error) && error < 1.0e-9;
+}
+
+PetscInt
+matrix_references(Mat matrix)
+{
+    PetscInt references;
+    PetscErrorCode ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(matrix), &references);
+    IBTK_CHKERRQ(ierr);
+    return references;
+}
+
+bool
+check_matrix_reference_lifetime(LevelFixture& fixture)
+{
+    Mat a = level_test_matrix(fixture.full_size, 4.0), b = level_test_matrix(fixture.full_size, 5.0);
+    bool valid = true;
+    {
+        StaggeredStokesPETScLevelSolver solver("uninitialized_lifetime", level_solver_database(), "");
+        // Each setter owns a reference, even when both inputs are the same Mat.
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(a);
+        valid = matrix_references(a) == 3 && valid;
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(a);
+        valid = matrix_references(a) == 3 && valid;
+        solver.setOperatorMat(b);
+        valid = matrix_references(a) == 2 && matrix_references(b) == 2 && valid;
+        solver.setAugmentedOperatorMat(b);
+        valid = matrix_references(a) == 1 && matrix_references(b) == 3 && valid;
+        solver.setOperatorMat(nullptr);
+        solver.setOperatorMat(nullptr);
+        valid = matrix_references(b) == 2 && valid;
+        solver.setOperatorMat(a);
+        valid = matrix_references(a) == 2 && valid;
+        // Destruction must release inputs even without initialization.
+    }
+    valid = matrix_references(a) == 1 && matrix_references(b) == 1 && valid;
+    {
+        StaggeredStokesPETScLevelSolver solver("initialized_lifetime", level_solver_database(), "");
+        solver.setTimeInterval(0.0, 1.0);
+        solver.setSolutionTime(1.0);
+        solver.setOperatorMat(a);
+        solver.setAugmentedOperatorMat(b);
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        valid = check_level_solve(solver) && valid;
+        // Destruction also tears down KSP state before releasing both inputs.
+    }
+    valid = matrix_references(a) == 1 && matrix_references(b) == 1 && valid;
+    PetscErrorCode ierr = MatDestroy(&a);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&b);
+    IBTK_CHKERRQ(ierr);
+    return valid;
+}
+
+int
+run_level_operator(Pointer<AppInitializer> app, bool augmentation)
+{
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+    LevelSolverProbe<StaggeredStokesPETScLevelSolver> solver("supplied_stokes", level_solver_database());
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    bool identity = true, creator_valid = true, values_valid = true, solves = true;
+    bool references_valid = augmentation || check_matrix_reference_lifetime(fixture);
+    for (int cycle = 0; cycle < (augmentation ? 4 : 2); ++cycle)
+    {
+        const bool full_augmentation = cycle % 2 == 0;
+        Mat creator = level_test_matrix(fixture.full_size, 4.0 + cycle), original;
+        PetscErrorCode ierr = MatDuplicate(creator, MAT_COPY_VALUES, &original);
+        IBTK_CHKERRQ(ierr);
+        solver.setOperatorMat(creator);
+        references_valid = matrix_references(creator) == 2 && references_valid;
+        Mat augmented = nullptr, expected = nullptr, augmented_original = nullptr;
+        if (augmentation)
+        {
+            const PetscInt n = full_augmentation ? fixture.full_size : fixture.velocity_ids.size();
+            augmented = level_test_matrix(n, 1.0);
+            ierr = MatDuplicate(augmented, MAT_COPY_VALUES, &augmented_original);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(creator, MAT_COPY_VALUES, &expected);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetOption(expected, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+            IBTK_CHKERRQ(ierr);
+            // Independently embed known entries, using actual coupled DOF data.
+            for (PetscInt row = 0; row < n; ++row)
+            {
+                const PetscInt next = (row + 3) % n;
+                const PetscInt full_row = full_augmentation ? row : fixture.velocity_ids[row];
+                const PetscInt cols[2] = { full_row, full_augmentation ? next : fixture.velocity_ids[next] };
+                const PetscScalar vals[2] = { 1.0 + 0.001 * row, 0.125 };
+                ierr = MatSetValues(expected, 1, &full_row, 2, cols, vals, ADD_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(expected, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(expected, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+        }
+        solver.setAugmentedOperatorMat(augmented);
+        if (augmentation)
+        {
+            references_valid = matrix_references(augmented) == 2 && references_valid;
+        }
+        // Reject missing retention before testing caller release, so that a
+        // regression reports failure instead of dereferencing a dangling Mat.
+        if (!references_valid)
+        {
+            TBOX_ERROR("Installed matrix references were not retained correctly.\n");
+        }
+        const Mat operator_alias = creator, augmentation_alias = augmented;
+        ierr = MatDestroy(&creator);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&augmented);
+        IBTK_CHKERRQ(ierr);
+        for (int lifetime = 0; lifetime < 2; ++lifetime)
+        {
+            // No caller-owned reference remains, even before initialization.
+            references_valid = matrix_references(operator_alias) == 1 && references_valid;
+            if (augmentation)
+            {
+                references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            }
+            solver.initializeSolverState(*fixture.x, *fixture.b);
+            Mat installed;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+            IBTK_CHKERRQ(ierr);
+            identity = identity && installed == solver.matrixBeforeKSP() &&
+                       (augmentation ? installed != operator_alias : installed == operator_alias) &&
+                       solver.referencesBeforeKSP() == 1;
+            values_valid = matrices_equal(installed, augmentation ? expected : original) && values_valid;
+            creator_valid = matrices_equal(operator_alias, original) && creator_valid;
+            if (augmentation)
+            {
+                creator_valid = matrices_equal(augmentation_alias, augmented_original) && creator_valid;
+            }
+            solves = check_level_solve(solver) && solves;
+            solves = check_stokes_vector_mapping(solver, fixture) && solves;
+            solver.deallocateSolverState();
+            // Same-handle replacement must also work with only the solver's
+            // reference remaining. Aliases are used read-only throughout.
+            solver.setOperatorMat(operator_alias);
+            solver.setAugmentedOperatorMat(augmentation_alias);
+            references_valid = matrix_references(operator_alias) == 1 && references_valid;
+            if (augmentation)
+            {
+                references_valid = matrix_references(augmentation_alias) == 1 && references_valid;
+            }
+        }
+        // Retain observer references to check that clearing releases exactly
+        // the solver's references, without destroying another owner's data.
+        creator = operator_alias;
+        augmented = augmentation_alias;
+        ierr = PetscObjectReference(reinterpret_cast<PetscObject>(creator));
+        IBTK_CHKERRQ(ierr);
+        ierr = PetscObjectReference(reinterpret_cast<PetscObject>(augmented));
+        IBTK_CHKERRQ(ierr);
+        solver.setOperatorMat(nullptr);
+        solver.setAugmentedOperatorMat(nullptr);
+        references_valid = matrix_references(creator) == 1 && references_valid;
+        creator_valid = matrices_equal(creator, original) && creator_valid;
+        if (augmentation)
+        {
+            references_valid = matrix_references(augmented) == 1 && references_valid;
+            creator_valid = matrices_equal(augmented, augmented_original) && creator_valid;
+        }
+        for (Mat* m : { &creator, &original, &augmented, &expected, &augmented_original })
+        {
+            ierr = MatDestroy(m);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    pout << "matrix_identity_valid = " << (identity ? "true" : "false") << '\n'
+         << "creator_lifetime_valid = " << (creator_valid ? "true" : "false") << '\n'
+         << "retained_references_valid = " << (references_valid ? "true" : "false") << '\n'
+         << "matrix_error = " << max_matrix_error << '\n'
+         << "level_solve_error = " << max_level_solve_error << '\n'
+         << "velocity_pressure_mapping_error = " << max_mapping_error << std::endl;
+    if (!identity || !creator_valid || !values_valid || !solves || !references_valid)
+    {
+        TBOX_ERROR("A level-operator matrix or solve check failed; see the printed validity flags.\n");
+    }
+    return 0;
+}
+
+int
+run_distributed_augmentation(Pointer<AppInitializer> app)
+{
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"), 0, true, true);
+    const int rank = IBTK_MPI::getRank();
+    Mat creator = nullptr, augmentation = nullptr;
+    PetscErrorCode ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                                       fixture.dof_counts[rank],
+                                       fixture.dof_counts[rank],
+                                       PETSC_DECIDE,
+                                       PETSC_DECIDE,
+                                       1,
+                                       nullptr,
+                                       0,
+                                       nullptr,
+                                       &creator);
+    IBTK_CHKERRQ(ierr);
+    PetscInt first, last;
+    ierr = MatGetOwnershipRange(creator, &first, &last);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt row = first; row < last; ++row)
+    {
+        ierr = MatSetValue(creator, row, row, 4.0, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(creator, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(creator, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    Mat expected = nullptr, original = nullptr;
+    ierr = MatDuplicate(creator, MAT_COPY_VALUES, &expected);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDuplicate(creator, MAT_COPY_VALUES, &original);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(expected, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        fixture.velocity_counts[rank],
+                        fixture.velocity_counts[rank],
+                        PETSC_DECIDE,
+                        PETSC_DECIDE,
+                        1,
+                        nullptr,
+                        1,
+                        nullptr,
+                        &augmentation);
+    IBTK_CHKERRQ(ierr);
+    PetscInt vfirst, vlast;
+    ierr = MatGetOwnershipRange(augmentation, &vfirst, &vlast);
+    IBTK_CHKERRQ(ierr);
+    int off_process = 0;
+    for (PetscInt row = vfirst; row < vlast; ++row)
+    {
+        const PetscInt other = (row + fixture.velocity_ids.size() / 2) % fixture.velocity_ids.size();
+        const PetscInt columns[2] = { row, other };
+        const PetscScalar values[2] = { 1.0 + 0.001 * row, 0.125 };
+        ierr = MatSetValues(augmentation, 1, &row, 2, columns, values, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+        const PetscInt full_row = fixture.velocity_ids[row];
+        const PetscInt full_columns[2] = { full_row, fixture.velocity_ids[other] };
+        ierr = MatSetValues(expected, 1, &full_row, 2, full_columns, values, ADD_VALUES);
+        IBTK_CHKERRQ(ierr);
+        off_process += full_columns[1] < first || full_columns[1] >= last;
+    }
+    for (Mat mat : { augmentation, expected })
+    {
+        ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+    }
+    Mat augmentation_original = nullptr;
+    ierr = MatDuplicate(augmentation, MAT_COPY_VALUES, &augmentation_original);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScLevelSolver solver("distributed_augmentation", level_solver_database(), "");
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    solver.setOperatorMat(creator);
+    solver.setAugmentedOperatorMat(augmentation);
+    Mat retained_creator = creator, retained_augmentation = augmentation;
+    ierr = MatDestroy(&creator);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&augmentation);
+    IBTK_CHKERRQ(ierr);
+    bool valid = IBTK_MPI::sumReduction(off_process) > 0;
+    double action_error = 0.0;
+    for (int cycle = 0; cycle < 2; ++cycle)
+    {
+        valid = matrix_references(retained_creator) == 1 && matrix_references(retained_augmentation) == 1 && valid;
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        Mat installed = nullptr;
+        ierr = KSPGetOperators(solver.getPETScKSP(), &installed, nullptr);
+        IBTK_CHKERRQ(ierr);
+        valid = installed != retained_creator && matrices_equal(installed, expected) &&
+                matrices_equal(retained_creator, original) &&
+                matrices_equal(retained_augmentation, augmentation_original) && valid;
+        Vec x = nullptr, result = nullptr, reference = nullptr;
+        ierr = MatCreateVecs(expected, &x, &result);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(result, &reference);
+        IBTK_CHKERRQ(ierr);
+        PetscScalar* values;
+        ierr = VecGetArray(x, &values);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt row = first; row < last; ++row)
+        {
+            values[row - first] = 1.0 + 0.01 * row;
+        }
+        ierr = VecRestoreArray(x, &values);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(installed, x, result);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(expected, x, reference);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(result, -1.0, reference);
+        IBTK_CHKERRQ(ierr);
+        PetscReal error;
+        ierr = VecNorm(result, NORM_INFINITY, &error);
+        IBTK_CHKERRQ(ierr);
+        valid = std::isfinite(error) && error <= 1.0e-12 && valid;
+        action_error = std::max(action_error, error);
+        for (Vec* vec : { &x, &result, &reference })
+        {
+            ierr = VecDestroy(vec);
+            IBTK_CHKERRQ(ierr);
+        }
+        valid = check_level_solve(solver) && valid;
+        solver.deallocateSolverState();
+    }
+    valid = matrix_references(retained_creator) == 1 && matrix_references(retained_augmentation) == 1 && valid;
+    solver.setOperatorMat(nullptr);
+    solver.setAugmentedOperatorMat(nullptr);
+    for (Mat* mat : { &original, &expected, &augmentation_original })
+    {
+        ierr = MatDestroy(mat);
+        IBTK_CHKERRQ(ierr);
+    }
+    pout << "distributed matrix error = " << max_matrix_error << '\n'
+         << "distributed action error = " << action_error << '\n';
+    if (!valid)
+    {
+        TBOX_ERROR("Distributed compact augmentation mapping, action, or creator lifetime failed.\n");
+    }
+    return 0;
+}
+
+int
+run_initialized_matrix_setter(Pointer<AppInitializer> app, bool augmentation)
+{
+    // Use the repository's path-independent expected-error output.
+    Pointer<Logger::Appender> abort_appender = new TestAppender();
+    Logger::getInstance()->setAbortAppender(abort_appender);
+    LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+    StaggeredStokesPETScLevelSolver solver("initialized_setter", level_solver_database(), "");
+    solver.setTimeInterval(0.0, 1.0);
+    solver.setSolutionTime(1.0);
+    Mat matrix = level_test_matrix(fixture.full_size, 4.0);
+    solver.setOperatorMat(matrix);
+    if (augmentation)
+    {
+        solver.setAugmentedOperatorMat(matrix);
+    }
+    solver.initializeSolverState(*fixture.x, *fixture.b);
+    if (augmentation)
+    {
+        solver.setAugmentedOperatorMat(matrix);
+    }
+    else
+    {
+        solver.setOperatorMat(matrix);
+    }
+    // Even same-handle setters must reject initialized state. Returning zero
+    // on unexpected continuation makes this expect_error=true case fail attest.
+    solver.deallocateSolverState();
+    PetscErrorCode ierr = MatDestroy(&matrix);
+    IBTK_CHKERRQ(ierr);
+    pout << "ERROR: initialized matrix setter unexpectedly returned.\n";
+    return 0;
+}
+
+int
+run_level_nullspace(Pointer<AppInitializer> app)
+{
+    bool domain_valid = true;
+    for (int variant = 0; variant < 3; ++variant)
+    {
+        const bool full = variant != 2;
+        LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"), variant == 0 ? 0 : 1, full);
+        LevelSolverProbe<StaggeredStokesPETScLevelSolver> solver("domain_stokes", level_solver_database());
+        PoissonSpecifications coefs("domain_coefs");
+        coefs.setCConstant(2.0);
+        coefs.setDConstant(-0.01);
+        solver.setVelocityPoissonSpecifications(coefs);
+        solver.setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr), nullptr);
+        solver.setComponentsHaveNullSpace(false, true);
+        solver.setTimeInterval(0.0, 1.0);
+        solver.setSolutionTime(1.0);
+        solver.initializeSolverState(*fixture.x, *fixture.b);
+        Mat matrix;
+        MatNullSpace nullspace;
+        PetscErrorCode ierr = KSPGetOperators(solver.getPETScKSP(), &matrix, nullptr);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatGetNullSpace(matrix, &nullspace);
+        IBTK_CHKERRQ(ierr);
+        domain_valid = domain_valid && (full ? nullspace != nullptr : nullspace == nullptr);
+        if (full && nullspace)
+        {
+            PetscBool is_nullspace;
+            ierr = MatNullSpaceTest(nullspace, matrix, &is_nullspace);
+            IBTK_CHKERRQ(ierr);
+            domain_valid = domain_valid && is_nullspace;
+        }
+        solver.deallocateSolverState();
+    }
+    for (const bool caller_nullspace : { false, true })
+    {
+        // A solver that uses a supplied matrix directly attaches its nullspace to that matrix only while
+        // initialized, and then restores the matrix's own nullspace, if it had one.
+        LevelFixture fixture(app->getComponentDatabase("CartesianGeometry"));
+        LevelSolverProbe<StaggeredStokesPETScLevelSolver> solver("supplied_nullspace", level_solver_database());
+        Mat creator = level_test_matrix(fixture.full_size, 4.0);
+        MatNullSpace own = nullptr;
+        PetscErrorCode ierr = 0;
+        if (caller_nullspace)
+        {
+            ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, PETSC_TRUE, 0, nullptr, &own);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetNullSpace(creator, own);
+            IBTK_CHKERRQ(ierr);
+        }
+        solver.setOperatorMat(creator);
+        solver.setComponentsHaveNullSpace(false, true);
+        solver.setTimeInterval(0.0, 1.0);
+        solver.setSolutionTime(1.0);
+        MatNullSpace nullspace = nullptr;
+        for (int cycle = 0; cycle < 2; ++cycle)
+        {
+            solver.initializeSolverState(*fixture.x, *fixture.b);
+            ierr = MatGetNullSpace(creator, &nullspace);
+            IBTK_CHKERRQ(ierr);
+            domain_valid = domain_valid && nullspace != nullptr && nullspace != own;
+            solver.deallocateSolverState();
+            ierr = MatGetNullSpace(creator, &nullspace);
+            IBTK_CHKERRQ(ierr);
+            domain_valid = domain_valid && nullspace == own;
+        }
+        solver.setOperatorMat(nullptr);
+        ierr = MatNullSpaceDestroy(&own);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&creator);
+        IBTK_CHKERRQ(ierr);
+    }
+    pout << "domain_nullspace_valid = " << (domain_valid ? "true" : "false") << std::endl;
+    if (!domain_valid)
+    {
+        TBOX_ERROR("A level nullspace check failed; see the printed validity flag.\n");
+    }
+    return 0;
+}
+} // namespace
+
 int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     Logger::getInstance()->setWarning(false);
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "components.log");
-    return run_operators(app);
+    const std::string test_case = app->getInputDatabase()->getString("test_case");
+    if (test_case == "operators")
+    {
+        return run_operators(app);
+    }
+    if (test_case == "level_borrowing")
+    {
+        return run_level_operator(app, false);
+    }
+    if (test_case == "level_augmentation")
+    {
+        return run_level_operator(app, true);
+    }
+    if (test_case == "distributed_augmentation")
+    {
+        return run_distributed_augmentation(app);
+    }
+    if (test_case == "set_operator_initialized")
+    {
+        return run_initialized_matrix_setter(app, false);
+    }
+    if (test_case == "set_augmentation_initialized")
+    {
+        return run_initialized_matrix_setter(app, true);
+    }
+    if (test_case == "level_nullspace")
+    {
+        return run_level_nullspace(app);
+    }
+    TBOX_ERROR("Unknown component test case: " << test_case << '\n');
+    return 1;
 }
