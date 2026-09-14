@@ -77,8 +77,9 @@ namespace IBAMR
  *
  * Uses the velocity-pressure formulation of StaggeredStokesIBOperator with
  * backward Euler, trapezoidal, or midpoint IB stepping. The INS integrator
- * supplies fluid time-stepping terms and boundary conditions. The hierarchy
- * Jacobian applies the analytic IB linearization; FAC uses assembled coupling.
+ * supplies fluid time-stepping terms and boundary conditions. The matrix-free
+ * hierarchy Jacobian applies the strategy's force linearization; FAC uses
+ * separately assembled coupling.
  *
  * Configure the nonlinear solver in this object's input database (PETSc prefix
  * \c ib_) and FAC in \c stokes_ib_precond_db (prefix \c stokes_ib_pc_).
@@ -86,7 +87,7 @@ namespace IBAMR
  * or B-splines within the compiled input-selection bound documented in [CMake
  * configuration](../../doc/cmake.md#implicit-ib-interpolation-kernels). The strategy's minimum ghost width must cover
  * that kernel; with IBMethod, set \c min_ghost_cell_width when needed. Names are parsed at construction; built-in
- * availability is checked at initialization unless an explicit builder was supplied with
+ * availability is checked at initialization unless an explicit evaluator was supplied with
  * setJacobianInterpolationKernel().
  *
  * Fixed coupling is enabled on the supplied strategy at construction. Subclasses
@@ -212,7 +213,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
 
     // Solvers and associated vectors.
-    //! Input descriptor resolved at initialization unless an explicit builder is supplied.
+    //! Input descriptor resolved at initialization unless an explicit evaluator is supplied.
     IBTK::IBKernelTensorProduct d_jac_kernel = IBTK::IBKernel::IB_4;
     //! Owns the operation assembling the FAC interpolation matrix.
     InterpolationMatrixBuilder d_interp_matrix_builder;

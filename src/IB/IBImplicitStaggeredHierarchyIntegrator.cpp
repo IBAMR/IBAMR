@@ -383,7 +383,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const doub
     reinitializeOperatorsAndSolvers(current_time, new_time);
 
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
-    // Keep the hierarchy Jacobian analytic and matrix-free; FAC owns assembled level coupling.
+    // The matrix-free hierarchy Jacobian uses the strategy's force linearization; FAC owns assembled level coupling.
     d_ib_solver->initializeSolverState(*d_sol_vec, *d_rhs_vec);
     if (!d_ib_solver->solveSystem(*d_sol_vec, *d_rhs_vec))
     {
