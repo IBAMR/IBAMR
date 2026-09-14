@@ -82,27 +82,7 @@ composite_bspline_orders(std::string_view name)
 IBTK::IBKernel
 bspline_kernel(unsigned int order)
 {
-    if (order == 0)
-    {
-        TBOX_ERROR("B-spline order must be positive\n");
-    }
-    switch (order)
-    {
-    case 1:
-        return IBTK::IBKernel::BSPLINE_1;
-    case 2:
-        return IBTK::IBKernel::BSPLINE_2;
-    case 3:
-        return IBTK::IBKernel::BSPLINE_3;
-    case 4:
-        return IBTK::IBKernel::BSPLINE_4;
-    case 5:
-        return IBTK::IBKernel::BSPLINE_5;
-    case 6:
-        return IBTK::IBKernel::BSPLINE_6;
-    default:
-        return IBTK::IBKernel("BSPLINE_" + std::to_string(order));
-    }
+    return IBTK::IBKernel("BSPLINE_" + std::to_string(order));
 }
 
 } // namespace
