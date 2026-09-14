@@ -1,0 +1,5 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    stokes_ib_solver_components::fac_op::initializeOperatorStateSpecialized():
+  LEVEL_SMOOTHER is unsupported; select PETSC_LEVEL_SOLVER for the coarse solver.
