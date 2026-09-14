@@ -49,6 +49,10 @@ StaggeredStokesIBOperator::~StaggeredStokesIBOperator()
 void
 StaggeredStokesIBOperator::setOperatorContext(const StaggeredStokesIBOperator::Context& ctx)
 {
+    if (getIsInitialized())
+    {
+        TBOX_ERROR(d_object_name << "::setOperatorContext(): deallocate operator state before replacing the Context\n");
+    }
     d_ctx = ctx;
     return;
 } // setOperatorContext
@@ -59,19 +63,6 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 #if !defined(NDEBUG)
     TBOX_ASSERT(getIsInitialized());
 #endif
-    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op || !d_ctx.hier_velocity_data_ops)
-    {
-        TBOX_ERROR(d_object_name << "::apply(): incomplete operator context\n");
-    }
-    if (d_ctx.u_idx == IBTK::invalid_index || d_ctx.f_idx == IBTK::invalid_index)
-    {
-        TBOX_ERROR(d_object_name << "::apply(): invalid scratch data indices\n");
-    }
-    if (d_ctx.u_current_idx == IBTK::invalid_index)
-    {
-        TBOX_ERROR(d_object_name << "::apply(): invalid current velocity data index\n");
-    }
-
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
     const StaggeredStokesIBTimeStepParameters step_parameters = get_staggered_stokes_ib_time_step_parameters(
@@ -136,9 +127,14 @@ StaggeredStokesIBOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
         deallocateOperatorState();
     }
 
-    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op)
+    if (!d_ctx.ib_implicit_ops || !d_ctx.stokes_op || !d_ctx.hier_velocity_data_ops)
     {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState(): missing operator dependencies\n");
+        TBOX_ERROR(d_object_name << "::initializeOperatorState(): missing operator dependencies");
+    }
+    if (d_ctx.u_idx < 0 || d_ctx.f_idx < 0 || d_ctx.u_current_idx < 0)
+    {
+        TBOX_ERROR(
+            d_object_name << "::initializeOperatorState(): invalid velocity, force or current-velocity data index\n");
     }
 
     d_ctx.ib_implicit_ops->setUseFixedLEOperators(d_ctx.use_fixed_le_operators);

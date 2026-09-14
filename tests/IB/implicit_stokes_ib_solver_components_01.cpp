@@ -354,7 +354,6 @@ run_operators(Pointer<AppInitializer> app)
         coefs.setDConstant(-0.01);
         stokes->setVelocityPoissonSpecifications(coefs);
         StaggeredStokesIBOperator::Context ctx;
-        ctx.ib_implicit_ops = method;
         ctx.stokes_op = stokes;
         ctx.u_dof_index_idx = u_dof;
         ctx.p_dof_index_idx = p_dof;
@@ -362,8 +361,8 @@ run_operators(Pointer<AppInitializer> app)
         jacobian.setOperatorContext(ctx);
         jacobian.setTimeInterval(current, next);
         jacobian.setSolutionTime(force_time);
-        jacobian.initializeOperatorState(*direction, *action);
         jacobian.setIBCouplingJacobian(coupling);
+        jacobian.initializeOperatorState(*direction, *action);
         jacobian.apply(*direction, *action);
         stokes->apply(*direction, *expected);
         side_ops->axpy(expected->getComponentDescriptorIndex(0),
@@ -546,6 +545,27 @@ run_operators(Pointer<AppInitializer> app)
     nonlinear.setOperatorContext(ctx);
     jacobian.setOperatorContext(ctx);
     mffd.setOperator(stokes);
+    const std::string context_check = app->getInputDatabase()->getStringWithDefault("context_check", "");
+    if (!context_check.empty())
+    {
+        Pointer<Logger::Appender> abort_appender = new TestAppender();
+        Logger::getInstance()->setAbortAppender(abort_appender);
+    }
+    if (context_check == "incomplete")
+    {
+        ctx.hier_velocity_data_ops.setNull();
+        nonlinear.setOperatorContext(ctx);
+        nonlinear.initializeOperatorState(*base, *residual);
+        return 0;
+    }
+    if (context_check == "replace")
+    {
+        jacobian.setTimeInterval(current, next);
+        jacobian.setSolutionTime(force_time);
+        jacobian.initializeOperatorState(*base, *residual);
+        jacobian.setOperatorContext(ctx);
+        return 0;
+    }
     for (GeneralOperator* op : { static_cast<GeneralOperator*>(&nonlinear),
                                  static_cast<GeneralOperator*>(&jacobian),
                                  static_cast<GeneralOperator*>(&mffd) })
