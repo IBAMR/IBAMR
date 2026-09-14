@@ -191,6 +191,8 @@ public:
      * the column counts on each rank. The physical domain must be a single
      * box, and local index data must cover the stencils of local IB points.
      * Insufficient DOF ghost storage is a fatal error.
+     * Each local point's cell must lie in a locally owned patch or its
+     * one-cell neighborhood.
      *
      * Axis selects the side-normal coordinate. With data centering included in
      * the grid coordinate q, the first stencil index is floor(q+1/2)-(N-1)/2

@@ -65,7 +65,8 @@ IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluate(const std::array<do
     constexpr std::array<std::size_t, NDIM> widths = get_stencil_widths<Axis>();
     const auto wx = evaluateDirection<Axis, 0>(r[0]);
     const auto wy = evaluateDirection<Axis, 1>(r[1]);
-    using Value = typename IBKernelWeightsTraits<std::invoke_result_t<const Normal&, const double&>>::value_type;
+    using Value = std::remove_cv_t<
+        typename IBKernelWeightsTraits<std::invoke_result_t<const Normal&, const double&>>::value_type>;
     constexpr std::size_t count = widths[0] * widths[1]
 #if (NDIM == 3)
                                   * widths[2]

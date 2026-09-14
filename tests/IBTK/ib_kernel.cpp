@@ -114,6 +114,14 @@ struct FloatScalar
     std::array<float, 1> operator()(double) const;
 };
 
+struct ImmutableScalar
+{
+    std::array<const double, 1> operator()(double) const
+    {
+        return { 0.5 };
+    }
+};
+
 struct RvalueOnlyScalar
 {
     std::array<double, 1> operator()(double&&) const;
@@ -163,6 +171,7 @@ static_assert(!IBTK::IBKernelEvaluatorScalar<EmptyScalar>);
 static_assert(!IBTK::IBKernelEvaluatorScalar<int>);
 static_assert(!IBTK::IBKernelEvaluatorScalar<RvalueOnlyScalar>);
 static_assert(IBTK::IBKernelEvaluatorScalar<ImmovableScalar>);
+static_assert(IBTK::IBKernelEvaluatorScalar<ImmutableScalar>);
 static_assert(IBTK::IBKernelEvaluatorScalar<const IBTK::IBKernels::IB4&>);
 static_assert(
     !std::is_constructible_v<IBTK::IBKernelEvaluatorTensorProduct<ImmovableScalar>, ImmovableScalar, ImmovableScalar>);
@@ -396,6 +405,9 @@ check_tensor_products()
 {
     using namespace IBTK;
     TBOX_ASSERT(check_kernels() == 0);
+    const IBKernelEvaluatorTensorProduct immutable{ ImmutableScalar{} };
+    const std::array<double, 1> immutable_product = immutable.template evaluate<NDIM - 1>({});
+    TBOX_ASSERT(immutable_product[0] == std::ldexp(1.0, -NDIM));
     const IBKernelEvaluatorTensorProduct explicit_copy{ ExplicitConstructionScalar{ 0.5 } };
     const IBKernelEvaluatorTensorProduct explicit_moves{ ExplicitConstructionScalar{ 0.25 },
                                                          ExplicitConstructionScalar{ 0.5 } };
