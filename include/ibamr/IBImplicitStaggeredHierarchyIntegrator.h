@@ -174,7 +174,7 @@ private:
 
     /*! \brief Return a whole-matrix builder owning a concrete const evaluator. */
     template <IBTK::IBKernelEvaluatorCartesian Evaluator>
-    static InterpolationMatrixBuilder make_matrix_builder(Evaluator evaluator);
+    static InterpolationMatrixBuilder make_matrix_builder(Evaluator&& evaluator);
 
     /*! \brief Select a compiled evaluator for the configured normal/tangential factors. */
     static InterpolationMatrixBuilder select_matrix_builder(const IBTK::IBKernelTensorProduct& kernel);

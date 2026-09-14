@@ -34,7 +34,7 @@ IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationKernel(Evaluator
 
 template <IBTK::IBKernelEvaluatorCartesian Evaluator>
 inline IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
-IBImplicitStaggeredHierarchyIntegrator::make_matrix_builder(Evaluator evaluator)
+IBImplicitStaggeredHierarchyIntegrator::make_matrix_builder(Evaluator&& evaluator)
 {
     // std::function requires a copyable capture even when the evaluator is move-only.
     auto kernel = std::make_shared<const Evaluator>(std::move(evaluator));

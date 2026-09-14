@@ -53,6 +53,44 @@ namespace
 {
 constexpr int NUM_POINTS = 16;
 
+// The public setter must accept a prvalue whose move constructor is explicit.
+struct ExplicitMoveEvaluator
+{
+    ExplicitMoveEvaluator() = default;
+    explicit ExplicitMoveEvaluator(ExplicitMoveEvaluator&&) = default;
+    ExplicitMoveEvaluator(const ExplicitMoveEvaluator&) = delete;
+
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths();
+
+    template <int Axis>
+    std::array<double, 1> evaluate(const std::array<double, NDIM>&) const;
+};
+
+template <int Axis>
+constexpr std::array<std::size_t, NDIM>
+ExplicitMoveEvaluator::get_stencil_widths()
+{
+    std::array<std::size_t, NDIM> widths;
+    widths.fill(1);
+    return widths;
+}
+
+template <int Axis>
+std::array<double, 1>
+ExplicitMoveEvaluator::evaluate(const std::array<double, NDIM>&) const
+{
+    return { 1.0 };
+}
+
+static_assert(IBKernelEvaluatorCartesian<ExplicitMoveEvaluator>);
+
+[[maybe_unused]] void
+check_explicit_move_construction(IBImplicitStaggeredHierarchyIntegrator& integrator)
+{
+    integrator.setJacobianInterpolationKernel(ExplicitMoveEvaluator{});
+}
+
 // An application-compiled evaluator with the supplied four-point kernel's weights.
 struct CustomKernel
 {
