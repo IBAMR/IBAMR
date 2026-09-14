@@ -88,10 +88,12 @@ public:
      * is unsupported. Passing nullptr selects the strategy action instead.
      * formJacobian() does not update this matrix.
      * The operator retains a PETSc reference until replacement or deallocation.
-     * For supplied-matrix-only use, install it before the first initialization;
-     * only the Stokes operator and DOF fields in Context are required.
-     * Reinitialization releases the retained matrix; install a current matrix
-     * after any enclosing solver has initialized this operator.
+     * Supplied-matrix-only use requires just the Stokes operator and DOF fields
+     * in Context. Automatic reinitialization is unsupported with this Context:
+     * deallocate the operator and any enclosing solver, install the current matrix
+     * while deallocated, then initialize. Reinitialization releases the matrix.
+     * With a Context supporting strategy action, the matrix may instead be
+     * installed after an enclosing solver initializes this operator.
      */
     void setIBCouplingJacobian(Mat SAJ_mat);
 
