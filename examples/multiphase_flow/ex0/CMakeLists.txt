@@ -21,9 +21,9 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    example.cpp LSLocateCircularInterface.cpp
+    example.cpp
   LINK_TARGETS
-    IBAMR2d
+    multiphase_flow_helpers_2d
   INPUT_FILES
     input2d
   )
@@ -39,9 +39,9 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    example.cpp LSLocateCircularInterface.cpp
+    example.cpp
   LINK_TARGETS
-    IBAMR3d
+    multiphase_flow_helpers_3d
   INPUT_FILES
     input3d
   )
